@@ -185,6 +185,19 @@ Install development dependencies:
 Generated EXEs, ZIP packages, PLC project archives, credentials, and Python
 environments are intentionally excluded from Git.
 
+Build the standalone Windows runtime from an approved development computer:
+
+```powershell
+.\.venv\Scripts\python.exe -m PyInstaller `
+    --noconfirm --clean --onefile `
+    --name SiemensPlcPcInterface `
+    --paths src --collect-all snap7 `
+    --distpath build\vm-package `
+    --workpath build\pyinstaller-work `
+    --specpath build\pyinstaller-spec `
+    tools\runtime_entrypoint.py
+```
+
 Run the offline unit suite:
 
 ```powershell

@@ -301,6 +301,30 @@ If company policy blocks Python installation, do not bypass that policy.
 Use an approved computer to build a standalone executable or have IT approve
 the runtime.
 
+### Build a standalone Windows executable
+
+On an approved Windows build computer, install the development dependencies
+and package the guarded runtime:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
+.\.venv\Scripts\python.exe -m PyInstaller `
+    --noconfirm `
+    --clean `
+    --onefile `
+    --name SiemensPlcPcInterface `
+    --paths src `
+    --collect-all snap7 `
+    --distpath build\vm-package `
+    --workpath build\pyinstaller-work `
+    --specpath build\pyinstaller-spec `
+    tools\runtime_entrypoint.py
+```
+
+Copy `SiemensPlcPcInterface.exe`, the approved JSON configuration, and the
+operator instructions to the target VM. The generated executable and package
+remain excluded from Git.
+
 ## 7. Run the read-only proof
 
 Run this before authorizing any PLC write:
