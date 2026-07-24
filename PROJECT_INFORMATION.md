@@ -46,9 +46,10 @@ The validated DB14 contract is documented in `docs/DB14_INTERFACE.md`.
 The complete processor, network, DB, PLC logic, PC, and verification procedure
 is documented in `docs/USER_SETUP.md`.
 
-## Next implementation milestone
+## Configuration milestone
 
-Replace hard-coded proof tags with a validated configuration file containing:
+The first configuration layer now replaces hard-coded proof settings with a
+validated JSON file containing:
 
 - connection settings;
 - symbolic tag names;
@@ -58,5 +59,24 @@ Replace hard-coded proof tags with a validated configuration file containing:
 - safe default value;
 - heartbeat timeout behavior.
 
-The configuration layer must be completed before adding a graphical scene
-editor.
+The validator rejects physical I/O addresses, data-type/address mismatches,
+duplicate or overlapping DB memory, wrong tag ownership, invalid safe values,
+and inconsistent heartbeat references. Validation is offline and cannot
+connect to the PLC.
+
+The heartbeat counter and progress timeout are implemented as an I/O-free
+state machine with unit tests.
+
+## Next implementation milestone
+
+Add a Snap7 adapter behind a testable client protocol, then implement one
+controlled runtime cycle:
+
+1. connect using the validated settings;
+2. write only configured `pc_to_plc` tags;
+3. read only configured `plc_to_pc` tags;
+4. supervise the heartbeat echo;
+5. define an explicit, opt-in safe-state write policy for communication loss.
+
+Do not add the graphical scene editor until the runtime and failure behavior
+are proven.

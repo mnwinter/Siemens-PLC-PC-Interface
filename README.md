@@ -56,7 +56,8 @@ listed as proven.
 
 This repository is not yet a scene editor or complete simulation runtime. It
 currently contains the proven connection diagnostics, PLC memory contract,
-and setup documentation that the full interface will build on.
+setup documentation, validated JSON configuration model, and heartbeat state
+machine that the full interface will build on.
 
 ## Start here
 
@@ -64,7 +65,8 @@ New users should follow:
 
 1. [Processor, network, DB, and PC setup](docs/USER_SETUP.md)
 2. [DB14 memory contract](docs/DB14_INTERFACE.md)
-3. [Real-hardware proof results](docs/PROOF_RESULTS.md)
+3. [JSON configuration reference](docs/CONFIGURATION.md)
+4. [Real-hardware proof results](docs/PROOF_RESULTS.md)
 
 The setup guide covers:
 
@@ -105,6 +107,15 @@ Only after the processor and DB are configured, run the guarded write test:
 Without `--execute`, the round-trip utility exits before connecting or
 writing.
 
+Validate the example interface configuration without connecting to the PLC:
+
+```powershell
+siemens-plc-pc-interface validate .\examples\db14-interface.json
+```
+
+The validation command explicitly reports
+`PLC_CONNECTION_ATTEMPTED: False`.
+
 ## Validated DB14 proof contract
 
 | Address | Symbol | Type | Owner |
@@ -133,8 +144,8 @@ authoritative.
 
 ## Roadmap
 
-1. Configuration-driven PLC connections and tag mappings.
-2. Continuous heartbeat and communication-loss safe state.
+1. **Complete:** validated configuration-driven connection and tag model.
+2. **In progress:** continuous heartbeat and communication-loss safe state.
 3. Typed digital and analog point model.
 4. Simulation update loop with diagnostics and logging.
 5. Reusable equipment components.
