@@ -43,6 +43,8 @@ TIA without changing the communications result.
 ## Current DB contract
 
 The validated DB14 contract is documented in `docs/DB14_INTERFACE.md`.
+The complete processor, network, DB, PLC logic, PC, and verification procedure
+is documented in `docs/USER_SETUP.md`.
 
 ## Next implementation milestone
 
