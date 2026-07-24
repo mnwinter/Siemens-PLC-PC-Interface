@@ -1,44 +1,87 @@
 # Siemens PLC-PC Interface
 
-PC interface for reading and writing a dedicated Siemens PLC simulation data
-block. The long-term goal is a Factory I/O-style test interface without
-writing directly to physical PLC I/O.
+An open PC-to-Siemens PLC interface for testing automation logic with
+simulated sensors, actuators, and processes.
+
+## Project goal
+
+The goal is to build a maintainable Factory I/O-style interface that can:
+
+- connect a Windows PC to a Siemens S7-1200 or S7-1500;
+- read PLC commands and status;
+- write simulated sensor and process values;
+- use configuration files instead of hard-coded PLC addresses;
+- provide connection state, heartbeat, diagnostics, and safe defaults;
+- eventually support a graphical scene/runtime layer for PLC program testing.
+
+The PLC remains responsible for permissives, interlocks, operating modes,
+fault handling, and safety. The PC interface is a simulation and commissioning
+tool, not a safety controller.
+
+## Architecture
+
+```mermaid
+flowchart LR
+    Scene["Future scene / simulation runtime"]
+    Client["PC S7 client"]
+    DB["Dedicated standard-access simulation DB"]
+    Mapping["PLC mapping and heartbeat logic"]
+    Program["Machine control program"]
+
+    Scene <--> Client
+    Client <--> DB
+    DB <--> Mapping
+    Mapping <--> Program
+```
+
+The dedicated DB prevents the PC from writing physical `%I` or `%Q` addresses
+directly and gives every field one defined writer.
 
 ## Current status
 
-The communication method has been proven on the following real system:
+The communications baseline has been proven on real hardware:
 
-- CPU: Siemens CPU 1512SP-1 PN
-- PLC address: `10.70.9.201`
-- Engineering environment: TIA Portal V17
-- PC environment: Windows Server 2019 VM
-- Network path: passed-through ASIX USB Ethernet adapter
-- S7 library: `python-snap7 3.1.0`
+| Component | Proven configuration |
+|---|---|
+| PLC | Siemens CPU 1512SP-1 PN |
+| Engineering software | TIA Portal V17 |
+| PC | Windows Server 2019 VM |
+| Network | Passed-through ASIX USB Ethernet adapter |
+| Library | `python-snap7 3.1.0` |
+| Result | Bidirectional DB14 round trip passed and original values restored |
 
-The validated test established an S7 session, wrote the two PC-owned DB14
-fields, read both PLC echo fields, and restored the original values.
+S7-1200 support is planned but has not yet been hardware-proven by this
+project. Other S7-1500 models and firmware must also be verified before being
+listed as proven.
 
-This repository is not yet a complete scene editor or general-purpose
-simulation runtime. The current code is the proven communications baseline.
+This repository is not yet a scene editor or complete simulation runtime. It
+currently contains the proven connection diagnostics, PLC memory contract,
+and setup documentation that the full interface will build on.
 
-## DB14 interface
+## Start here
 
-| Address | Symbol | Type | Owner |
-|---|---|---|---|
-| `DB14.DBX0.0` | `PC_To_PLC` | `Bool` | PC writes |
-| `DB14.DBX0.1` | `PLC_To_PC` | `Bool` | PLC writes |
-| `DB14.DBD2` | `PC_Heartbeat` | `DInt` | PC writes |
-| `DB14.DBD6` | `PLC_Heartbeat_Echo` | `DInt` | PLC writes |
+New users should follow:
 
-DB14 must use standard, non-optimized access for these absolute addresses.
-See [docs/DB14_INTERFACE.md](docs/DB14_INTERFACE.md) before changing the PLC
-data block.
+1. [Processor, network, DB, and PC setup](docs/USER_SETUP.md)
+2. [DB14 memory contract](docs/DB14_INTERFACE.md)
+3. [Real-hardware proof results](docs/PROOF_RESULTS.md)
 
-## Run from source
+The setup guide covers:
 
-Create a virtual environment and install the pinned dependency:
+- processor network configuration;
+- CPU PUT/GET and firmware-dependent access-control settings;
+- the secure PG/PC option;
+- creation of the standard/non-optimized DB14;
+- PLC echo logic and watch table;
+- PC dependency installation;
+- read-only and guarded round-trip testing;
+- failure symptoms and first checks.
+
+## Quick software setup
 
 ```powershell
+git clone https://github.com/mnwinter/Siemens-PLC-PC-Interface.git
+cd Siemens-PLC-PC-Interface
 py -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
@@ -46,10 +89,11 @@ py -m venv .venv
 Run the read-only connection proof first:
 
 ```powershell
-.\.venv\Scripts\python.exe .\tools\prove_s7_connection.py --ip 10.70.9.201
+.\.venv\Scripts\python.exe .\tools\prove_s7_connection.py `
+    --ip 10.70.9.201
 ```
 
-Then run the guarded DB14 round-trip test:
+Only after the processor and DB are configured, run the guarded write test:
 
 ```powershell
 .\.venv\Scripts\python.exe .\tools\round_trip_db14.py `
@@ -61,12 +105,48 @@ Then run the guarded DB14 round-trip test:
 Without `--execute`, the round-trip utility exits before connecting or
 writing.
 
-## Safety boundary
+## Validated DB14 proof contract
+
+| Address | Symbol | Type | Owner |
+|---|---|---|---|
+| `DB14.DBX0.0` | `PC_To_PLC` | `Bool` | PC writes |
+| `DB14.DBX0.1` | `PLC_To_PC` | `Bool` | PLC writes |
+| `DB14.DBD2` | `PC_Heartbeat` | `DInt` | PC writes |
+| `DB14.DBD6` | `PLC_Heartbeat_Echo` | `DInt` | PLC writes |
+
+DB14 must use standard/non-optimized access because the current S7 client uses
+fixed absolute addresses.
+
+## Safety and security boundary
 
 The diagnostic write test is limited to `DB14.DBX0.0` and `DB14.DBD2`. It
-does not write physical inputs, physical outputs, PLC-owned echo fields, or
-CPU operating state.
+does not write physical I/O, the PLC-owned echo fields, or CPU operating
+state.
 
-Do not connect future simulation commands directly to machine motion or
-hazardous outputs. PLC permissives, interlocks, safety logic, and a heartbeat
-timeout must remain authoritative.
+PUT/GET is not authenticated or encrypted. Use an isolated or properly
+segmented controls network, limit access to TCP port 102, and never expose the
+PLC directly to the Internet.
+
+Do not connect simulated commands directly to hazardous motion or outputs.
+PLC permissives, interlocks, safety logic, and a heartbeat timeout must remain
+authoritative.
+
+## Roadmap
+
+1. Configuration-driven PLC connections and tag mappings.
+2. Continuous heartbeat and communication-loss safe state.
+3. Typed digital and analog point model.
+4. Simulation update loop with diagnostics and logging.
+5. Reusable equipment components.
+6. Graphical scene editor and runtime.
+
+## Development
+
+Install development dependencies:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
+```
+
+Generated EXEs, ZIP packages, PLC project archives, credentials, and Python
+environments are intentionally excluded from Git.
