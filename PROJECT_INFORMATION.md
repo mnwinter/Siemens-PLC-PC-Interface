@@ -46,6 +46,14 @@ The validated DB14 contract is documented in `docs/DB14_INTERFACE.md`.
 The complete processor, network, DB, PLC logic, PC, and verification procedure
 is documented in `docs/USER_SETUP.md`.
 
+The contract now also includes:
+
+- `DB14.DBX10.0` `Simulation_Enable` (operator/PLC-owned);
+- `DB14.DBX10.1` `Simulation_Comm_OK` (PLC-owned);
+- `DB14.DBX10.2` `Simulation_Timeout` (PLC-owned).
+
+The PC reads but never writes these three fields.
+
 ## Configuration milestone
 
 The first configuration layer now replaces hard-coded proof settings with a
@@ -67,16 +75,51 @@ connect to the PLC.
 The heartbeat counter and progress timeout are implemented as an I/O-free
 state machine with unit tests.
 
+## Watchdog proof
+
+On 2026-07-24, `Simulation_Watchdog [FB3]` and
+`Simulation_Watchdog_DB [DB5]` were compiled and downloaded to the real
+CPU 1512SP-1 PN. The FB uses a `T#2s` progress timeout.
+
+Live tests confirmed:
+
+- a heartbeat change from `0` to `1` was echoed;
+- a stopped heartbeat produced `Simulation_Comm_OK = false` and
+  `Simulation_Timeout = true`;
+- with `PC_To_PLC = true` during timeout, the gated `PLC_To_PC` remained
+  false.
+
+This proves PLC-side timeout and safe gating. It does not yet prove the new
+continuous PC runtime.
+
+## Runtime milestone
+
+The first Snap7 adapter and controlled runtime cycle are implemented:
+
+- Snap7 is lazy-loaded behind a small testable transport protocol.
+- The transport refuses reads of PC-owned tags and writes of PLC-owned tags.
+- The runtime reads only configured `plc_to_pc` tags.
+- The runtime writes only configured `pc_to_plc` tags.
+- Non-heartbeat PC values are written only when changed, reducing the
+  read/modify/write race created by opposite-owner DB14 bits sharing byte 0.
+- The heartbeat is generated internally and written last.
+- The default shutdown policy relies on the authoritative PLC watchdog.
+- An explicit option enables best-effort safe-value writes before disconnect.
+- The CLI does not connect without `--execute` and prints its exact write
+  scope.
+
+This layer passes 41 offline unit tests with fake transports. It has not yet
+been connected to the live PLC.
+
 ## Next implementation milestone
 
-Add a Snap7 adapter behind a testable client protocol, then implement one
-controlled runtime cycle:
+Run the guarded runtime against the real PLC and prove:
 
-1. connect using the validated settings;
-2. write only configured `pc_to_plc` tags;
-3. read only configured `plc_to_pc` tags;
-4. supervise the heartbeat echo;
-5. define an explicit, opt-in safe-state write policy for communication loss.
+1. continuous heartbeat and echo progression;
+2. `Simulation_Comm_OK` true while the loop is running;
+3. timeout and gated false output after the loop stops;
+4. recovery on a new progressing heartbeat;
+5. cleanup of temporary PC-owned test values.
 
 Do not add the graphical scene editor until the runtime and failure behavior
 are proven.

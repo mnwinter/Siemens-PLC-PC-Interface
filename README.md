@@ -54,10 +54,14 @@ S7-1200 support is planned but has not yet been hardware-proven by this
 project. Other S7-1500 models and firmware must also be verified before being
 listed as proven.
 
-This repository is not yet a scene editor or complete simulation runtime. It
-currently contains the proven connection diagnostics, PLC memory contract,
-setup documentation, validated JSON configuration model, and heartbeat state
-machine that the full interface will build on.
+This repository is not yet a scene editor. It currently contains the proven
+connection diagnostics, the PLC-side communication watchdog, the DB14 memory
+contract, setup documentation, a validated JSON configuration model, and a
+guarded configuration-driven Snap7 runtime.
+
+The Snap7 transport and runtime pass offline tests with fake clients. Their
+continuous exchange loop has not yet been run against the real PLC; that live
+test is the next proof step.
 
 ## Start here
 
@@ -74,7 +78,7 @@ The setup guide covers:
 - CPU PUT/GET and firmware-dependent access-control settings;
 - the secure PG/PC option;
 - creation of the standard/non-optimized DB14;
-- PLC echo logic and watch table;
+- PLC watchdog, gated mapping logic, and watch table;
 - PC dependency installation;
 - read-only and guarded round-trip testing;
 - failure symptoms and first checks.
@@ -95,26 +99,39 @@ Run the read-only connection proof first:
     --ip 10.70.9.201
 ```
 
-Only after the processor and DB are configured, run the guarded write test:
+Validate the example configuration without connecting:
 
 ```powershell
-.\.venv\Scripts\python.exe .\tools\round_trip_db14.py `
-    --ip 10.70.9.201 `
-    --execute `
-    --hold-seconds 5
+.\.venv\Scripts\siemens-plc-pc-interface.exe validate `
+    .\examples\db14-interface.json
 ```
 
-Without `--execute`, the round-trip utility exits before connecting or
-writing.
-
-Validate the example interface configuration without connecting to the PLC:
+Preview the runtime's exact write scope. This still does not connect:
 
 ```powershell
-siemens-plc-pc-interface validate .\examples\db14-interface.json
+.\.venv\Scripts\siemens-plc-pc-interface.exe run `
+    .\examples\db14-interface.json `
+    --cycles 20 `
+    --set pc_to_plc=true
 ```
 
-The validation command explicitly reports
+Both commands explicitly report
 `PLC_CONNECTION_ATTEMPTED: False`.
+
+Only after DB14 and the PLC watchdog are downloaded, set
+`Simulation_Enable = true` from TIA and authorize the guarded runtime:
+
+```powershell
+.\.venv\Scripts\siemens-plc-pc-interface.exe run `
+    .\examples\db14-interface.json `
+    --execute `
+    --cycles 20 `
+    --set pc_to_plc=true `
+    --write-safe-state-on-exit
+```
+
+The runtime writes only the two configured PC-owned DB14 fields. It does not
+write `Simulation_Enable`.
 
 ## Validated DB14 proof contract
 
@@ -124,15 +141,18 @@ The validation command explicitly reports
 | `DB14.DBX0.1` | `PLC_To_PC` | `Bool` | PLC writes |
 | `DB14.DBD2` | `PC_Heartbeat` | `DInt` | PC writes |
 | `DB14.DBD6` | `PLC_Heartbeat_Echo` | `DInt` | PLC writes |
+| `DB14.DBX10.0` | `Simulation_Enable` | `Bool` | Operator/PLC writes |
+| `DB14.DBX10.1` | `Simulation_Comm_OK` | `Bool` | PLC writes |
+| `DB14.DBX10.2` | `Simulation_Timeout` | `Bool` | PLC writes |
 
 DB14 must use standard/non-optimized access because the current S7 client uses
 fixed absolute addresses.
 
 ## Safety and security boundary
 
-The diagnostic write test is limited to `DB14.DBX0.0` and `DB14.DBD2`. It
-does not write physical I/O, the PLC-owned echo fields, or CPU operating
-state.
+The configured runtime write scope is limited to `DB14.DBX0.0` and
+`DB14.DBD2`. It does not write physical I/O, the operator enable, the
+PLC-owned status fields, or CPU operating state.
 
 PUT/GET is not authenticated or encrypted. Use an isolated or properly
 segmented controls network, limit access to TCP port 102, and never expose the
@@ -145,11 +165,14 @@ authoritative.
 ## Roadmap
 
 1. **Complete:** validated configuration-driven connection and tag model.
-2. **In progress:** continuous heartbeat and communication-loss safe state.
-3. Typed digital and analog point model.
-4. Simulation update loop with diagnostics and logging.
-5. Reusable equipment components.
-6. Graphical scene editor and runtime.
+2. **Complete offline:** guarded Snap7 transport and continuous heartbeat
+   runtime with unit-tested ownership and shutdown behavior.
+3. **Next live proof:** run the continuous PC heartbeat against the real PLC
+   and verify healthy, timeout, and recovery states.
+4. Typed digital and analog point model.
+5. Simulation update loop with diagnostics and logging.
+6. Reusable equipment components.
+7. Graphical scene editor and runtime.
 
 ## Development
 
@@ -161,3 +184,10 @@ Install development dependencies:
 
 Generated EXEs, ZIP packages, PLC project archives, credentials, and Python
 environments are intentionally excluded from Git.
+
+Run the offline unit suite:
+
+```powershell
+$env:PYTHONPATH = "src"
+py -3 -m unittest discover -s tests -v
+```

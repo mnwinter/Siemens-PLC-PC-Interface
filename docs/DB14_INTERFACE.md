@@ -5,58 +5,108 @@
 Create `DB_SimulationProof` as DB14 with optimized block access disabled.
 The validated layout is:
 
-| Offset | Symbol | Type | Direction |
+| Absolute address | Symbol | Type | Owner |
 |---|---|---|---|
-| `0.0` | `PC_To_PLC` | `Bool` | PC to PLC |
-| `0.1` | `PLC_To_PC` | `Bool` | PLC to PC |
-| `2.0` | `PC_Heartbeat` | `DInt` | PC to PLC |
-| `6.0` | `PLC_Heartbeat_Echo` | `DInt` | PLC to PC |
+| `DB14.DBX0.0` | `PC_To_PLC` | `Bool` | PC writes |
+| `DB14.DBX0.1` | `PLC_To_PC` | `Bool` | PLC writes |
+| `DB14.DBD2` | `PC_Heartbeat` | `DInt` | PC writes |
+| `DB14.DBD6` | `PLC_Heartbeat_Echo` | `DInt` | PLC writes |
+| `DB14.DBX10.0` | `Simulation_Enable` | `Bool` | Operator/PLC writes |
+| `DB14.DBX10.1` | `Simulation_Comm_OK` | `Bool` | PLC writes |
+| `DB14.DBX10.2` | `Simulation_Timeout` | `Bool` | PLC writes |
 
-The resulting absolute addresses are:
+The PC runtime reads the final three fields but does not write them.
+`Simulation_Enable` is an operator-controlled mode request. It is deliberately
+not a remote PC command because communications must not enable their own
+authority.
+
+## PLC watchdog
+
+The proven PLC implementation uses `Simulation_Watchdog [FB3]` with a
+single-instance DB, `Simulation_Watchdog_DB [DB5]`.
+
+Interface:
+
+| Section | Name | Type |
+|---|---|---|
+| Input | `Simulation_Enable` | `Bool` |
+| Input | `PC_Heartbeat` | `DInt` |
+| Input | `Watchdog_Time` | `Time` |
+| Output | `PLC_Heartbeat_Echo` | `DInt` |
+| Output | `Simulation_Comm_OK` | `Bool` |
+| Output | `Simulation_Timeout` | `Bool` |
+| Static | `Last_Heartbeat` | `DInt` |
+| Static | `Heartbeat_Seen` | `Bool` |
+| Static | `Heartbeat_Timer` | `TON_TIME` |
+| Temp | `Heartbeat_Changed` | `Bool` |
+
+The implementation performs these operations in order:
+
+1. Compare `PC_Heartbeat <> Last_Heartbeat`.
+2. On a change, store the new heartbeat in `Last_Heartbeat`.
+3. On a change, copy the heartbeat to `PLC_Heartbeat_Echo`.
+4. On a change, set `Heartbeat_Seen`.
+5. Run a `TON` while a heartbeat has been seen but is no longer changing.
+6. Set `Simulation_Comm_OK` only while simulation is enabled, a heartbeat has
+   been seen, and the timer is not done.
+7. Set `Simulation_Timeout` while simulation is enabled and communication is
+   not OK.
+
+The proven watchdog time is `T#2s`.
+
+## Safe PLC mapping
+
+The proof Boolean feedback is gated by the PLC watchdog:
 
 ```text
-DB14.DBX0.0  PC_To_PLC
-DB14.DBX0.1  PLC_To_PC
-DB14.DBD2    PC_Heartbeat
-DB14.DBD6    PLC_Heartbeat_Echo
+PLC_To_PC := Simulation_Comm_OK AND PC_To_PLC
 ```
 
-## PLC proof logic
-
-The PLC proof requires two operations called cyclically:
-
-```text
-PLC_To_PC := PC_To_PLC
-PLC_Heartbeat_Echo := PC_Heartbeat
-```
-
-In LAD, use a normally open `PC_To_PLC` contact driving the `PLC_To_PC` coil,
-and a `MOVE` from `PC_Heartbeat` to `PLC_Heartbeat_Echo`.
+For a larger simulation, apply the same principle to every simulated input:
+the PLC mapping layer must select a safe or physical source when
+`Simulation_Comm_OK` is false. Do not rely on a final PC write during cable
+loss; that write may never reach the PLC.
 
 ## Ownership rule
 
 - The PC writes only `PC_To_PLC` and `PC_Heartbeat`.
-- The PLC writes only `PLC_To_PC` and `PLC_Heartbeat_Echo`.
-- Neither side should write the other side's fields.
+- The PLC writes `PLC_To_PC`, `PLC_Heartbeat_Echo`,
+  `Simulation_Comm_OK`, and `Simulation_Timeout`.
+- The operator/PLC controls `Simulation_Enable`; the PC only reads it.
+- Neither side writes fields owned by the other side.
 
-This separation avoids two writers fighting over the same memory.
+This separation avoids competing writers and makes the failure behavior
+deterministic.
 
-## Diagnostic sequence
+### Adjacent Boolean limitation
 
-The guarded round-trip test:
+The validated proof places the PC-owned `DBX0.0` and PLC-owned `DBX0.1` in the
+same byte. A client Boolean write can require a byte read/modify/write. The PC
+runtime therefore writes `PC_To_PLC` only when its value changes rather than
+rewriting it every cycle.
 
-1. Reads and stores the original PC-owned values.
-2. Writes `true` and `24072401`.
-3. Verifies both PLC echoes.
-4. Writes `false` and `24072402`.
-5. Verifies both PLC echoes.
-6. Restores and verifies the original PC-owned values.
+For a larger production mapping, group PC-owned and PLC-owned Boolean fields
+in separate bytes. That removes cross-owner byte-level races and enables
+efficient grouped transfers.
 
-The `--hold-seconds 5` option keeps each state visible in a monitoring TIA
-watch table.
+## Proven failure behavior
+
+On 2026-07-24, the real CPU 1512SP-1 PN passed these live checks:
+
+1. With simulation enabled and no progressing heartbeat,
+   `Simulation_Comm_OK = false` and `Simulation_Timeout = true`.
+2. Changing `PC_Heartbeat` to `1` produced
+   `PLC_Heartbeat_Echo = 1`.
+3. After the heartbeat stopped for two seconds, the PLC returned to
+   `Simulation_Comm_OK = false` and `Simulation_Timeout = true`.
+4. With `PC_To_PLC = true` during that timeout, `PLC_To_PC` remained false.
+
+This proves the PLC-side timeout and output gate. The continuous PC runtime
+still requires a separate live test.
 
 ## Production expansion
 
-Do not expand this proof by directly writing `%I` or `%Q`. Add separately
+Do not expand this interface by directly writing `%I` or `%Q`. Add separately
 owned fields to a dedicated simulation DB, validate their types and offsets,
-and map them through PLC logic with normal permissives and interlocks.
+and map them through PLC logic with normal permissives, interlocks, and
+machine-safe fallback behavior.

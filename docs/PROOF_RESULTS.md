@@ -52,3 +52,40 @@ ROUND_TRIP_PROOF=PASS
 
 This proves the custom PC client can exchange data bidirectionally with this
 controller through the dedicated DB14 interface.
+
+## PLC watchdog proof
+
+After the baseline proof, DB14 and the PLC logic were extended with:
+
+```text
+DB14.DBX10.0  Simulation_Enable
+DB14.DBX10.1  Simulation_Comm_OK
+DB14.DBX10.2  Simulation_Timeout
+```
+
+`Simulation_Watchdog [FB3]` was called from OB1 with a `T#2s` timeout. A
+rebuild compiled with zero errors and zero warnings before the software was
+downloaded.
+
+Live watch-table results:
+
+```text
+Simulation_Enable=True
+PC_Heartbeat=1
+PLC_Heartbeat_Echo=1
+Simulation_Comm_OK=False
+Simulation_Timeout=True
+PC_To_PLC=True
+PLC_To_PC=False
+```
+
+Interpretation:
+
+- the heartbeat change was received and echoed;
+- the heartbeat then stopped progressing for longer than two seconds;
+- the PLC declared a timeout;
+- the watchdog gate prevented `PC_To_PLC=True` from propagating to
+  `PLC_To_PC`.
+
+This proves the PLC-side communication-loss behavior. It does not yet prove
+the new continuous PC runtime against hardware; that is the next live test.

@@ -65,6 +65,27 @@ def valid_config() -> dict:
                 "data_type": "DINT",
                 "direction": "plc_to_pc",
             },
+            {
+                "name": "simulation_enable",
+                "plc_symbol": "DB_SimulationProof.Simulation_Enable",
+                "address": "DB14.DBX10.0",
+                "data_type": "BOOL",
+                "direction": "plc_to_pc",
+            },
+            {
+                "name": "simulation_comm_ok",
+                "plc_symbol": "DB_SimulationProof.Simulation_Comm_OK",
+                "address": "DB14.DBX10.1",
+                "data_type": "BOOL",
+                "direction": "plc_to_pc",
+            },
+            {
+                "name": "simulation_timeout",
+                "plc_symbol": "DB_SimulationProof.Simulation_Timeout",
+                "address": "DB14.DBX10.2",
+                "data_type": "BOOL",
+                "direction": "plc_to_pc",
+            },
         ],
     }
 
@@ -77,7 +98,7 @@ class ConfigTests(unittest.TestCase):
         self.assertEqual(config.connection.rack, 0)
         self.assertEqual(config.connection.slot, 1)
         self.assertEqual(config.heartbeat.timeout_ms, 1_000)
-        self.assertEqual(len(config.tags), 4)
+        self.assertEqual(len(config.tags), 7)
 
         pc_bool = config.tag("pc_to_plc")
         self.assertIs(pc_bool.data_type, DataType.BOOL)
@@ -142,7 +163,7 @@ class ConfigTests(unittest.TestCase):
             {
                 "name": "simulated_speed",
                 "plc_symbol": "DB_SimulationProof.SimulatedSpeed",
-                "address": "DB14.DBD10",
+                "address": "DB14.DBD12",
                 "data_type": "REAL",
                 "direction": "pc_to_plc",
                 "safe_value": float("inf"),

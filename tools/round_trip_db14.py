@@ -1,5 +1,9 @@
 """
-Controlled bidirectional DB14 communication proof.
+Legacy DB14 direct-echo proof for the original four-field PLC logic.
+
+This diagnostic does not maintain the continuous heartbeat required by the
+current PLC watchdog. Use ``siemens-plc-pc-interface run`` for the watchdog
+configuration documented in ``docs/USER_SETUP.md``.
 
 PC writes:
   DB14.DBX0.0  PC_To_PLC
@@ -97,7 +101,11 @@ def main() -> int:
     if not 0.1 <= args.hold_seconds <= 60.0:
         parser.error("--hold-seconds must be between 0.1 and 60")
 
-    print("MODE: DB14 WRITE/READ/RESTORE")
+    print("MODE: LEGACY DB14 DIRECT-ECHO WRITE/READ/RESTORE")
+    print(
+        "WARNING: this tool does not service the current continuous "
+        "heartbeat watchdog; use the configured runtime for that PLC logic"
+    )
     print(f"TARGET: {args.ip}")
     print("RACK/SLOT: 0/1")
     print("WRITE SCOPE: DB14.DBX0.0 and DB14.DBD2 only")

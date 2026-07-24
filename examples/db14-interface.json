@@ -43,6 +43,27 @@
       "address": "DB14.DBD6",
       "data_type": "DINT",
       "direction": "plc_to_pc"
+    },
+    {
+      "name": "simulation_enable",
+      "plc_symbol": "DB_SimulationProof.Simulation_Enable",
+      "address": "DB14.DBX10.0",
+      "data_type": "BOOL",
+      "direction": "plc_to_pc"
+    },
+    {
+      "name": "simulation_comm_ok",
+      "plc_symbol": "DB_SimulationProof.Simulation_Comm_OK",
+      "address": "DB14.DBX10.1",
+      "data_type": "BOOL",
+      "direction": "plc_to_pc"
+    },
+    {
+      "name": "simulation_timeout",
+      "plc_symbol": "DB_SimulationProof.Simulation_Timeout",
+      "address": "DB14.DBX10.2",
+      "data_type": "BOOL",
+      "direction": "plc_to_pc"
     }
   ]
 }

@@ -24,7 +24,7 @@ Expected output includes:
 ```text
 CONFIG_VALID: True
 PC_TO_PLC_TAGS: 2
-PLC_TO_PC_TAGS: 2
+PLC_TO_PC_TAGS: 5
 PLC_CONNECTION_ATTEMPTED: False
 ```
 
@@ -65,6 +65,12 @@ Rules:
 Rack/slot `0/1` is the proven value for this project's CPU 1512SP-1 PN test.
 Keep both fields configurable for other hardware.
 
+`connect_timeout_ms` is reserved for a transport-level timeout. The
+`python-snap7 3.1.0` `Client.connect()` API does not accept that value, so the
+current adapter uses the library's connection behavior. The validator keeps
+the field bounded, but this release does not claim to enforce it. See the
+[python-snap7 Client API](https://python-snap7.readthedocs.io/en/3.1.0/API/client.html#snap7.client.Client.connect).
+
 ## Tag mapping
 
 ```json
@@ -104,12 +110,14 @@ also rejected, including a byte/word/dword that overlaps configured bits.
 
 ### Direction and ownership
 
-`direction` determines the only allowed writer:
+`direction` determines the only allowed PC operation:
 
 - `pc_to_plc`: the PC runtime may write the tag;
 - `plc_to_pc`: the PLC owns the tag and the PC runtime may only read it.
 
-The future runtime will build separate read and write lists from this field.
+The runtime and Snap7 transport both enforce these separate read and write
+lists. A tag that represents an operator-controlled PLC mode, such as
+`Simulation_Enable`, is also configured `plc_to_pc`.
 
 ### Safe value
 
@@ -119,8 +127,10 @@ omit it or set it to `null`.
 The validator checks signed/unsigned integer ranges and requires a real JSON
 Boolean for `BOOL`.
 
-Safe values are configuration data only in the current milestone. No code in
-this release writes them to the PLC.
+The runtime starts every non-heartbeat PC-owned point at its safe value. On
+shutdown, the default policy relies on the PLC watchdog. The optional
+`--write-safe-state-on-exit` flag attempts the safe writes before disconnect,
+but cannot guarantee delivery after a network failure.
 
 ## Heartbeat
 
@@ -142,9 +152,46 @@ The heartbeat state machine detects progress, not merely a connected socket.
 If the PLC echo stops changing longer than the timeout, its status becomes
 `echo_stalled`.
 
-The current milestone implements and tests this state machine offline. The
-next milestone will connect it to the Snap7 runtime and define exactly when
-safe values may be written.
+The runtime reads the previous PLC echo, evaluates progress, writes the
+configured non-heartbeat PC values, then writes a new heartbeat last. This
+ordering makes the echo an acknowledgement of a previous cycle.
+
+## Guarded runtime
+
+Preview the exact write scope without connecting:
+
+```powershell
+siemens-plc-pc-interface run .\examples\db14-interface.json --cycles 20
+```
+
+The command returns without connecting until `--execute` is present.
+
+After the PLC watchdog is downloaded and `Simulation_Enable` is set true by
+the operator, run:
+
+```powershell
+siemens-plc-pc-interface run .\examples\db14-interface.json `
+    --execute `
+    --cycles 20 `
+    --set pc_to_plc=true `
+    --write-safe-state-on-exit
+```
+
+Exact write scope:
+
+```text
+DB14.DBX0.0  PC_To_PLC
+DB14.DBD2    PC_Heartbeat
+```
+
+No physical I/O, PLC-owned watchdog state, or CPU operating-state command is
+written.
+
+Each cycle prints the complete configured PLC-owned read set. For the DB14
+example, verify that `simulation_enable` and `simulation_comm_ok` are true and
+`simulation_timeout` is false while the heartbeat is progressing. A finite
+run returns `HEARTBEAT_PROOF: PASS` only if the PC observed a progressing echo
+and the final echo was still healthy.
 
 ## Validation failures
 

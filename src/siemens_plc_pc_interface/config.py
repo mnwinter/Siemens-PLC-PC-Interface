@@ -256,11 +256,12 @@ def _parse_direction(value: Any, path: str) -> Direction:
         raise ConfigError(f"{path} must be one of: {supported}") from exc
 
 
-def _validate_safe_value(
+def validate_data_value(
     value: Any,
     data_type: DataType,
     path: str,
 ) -> bool | int | float:
+    """Validate one Python value against a configured PLC scalar type."""
     if data_type is DataType.BOOL:
         if not isinstance(value, bool):
             raise ConfigError(f"{path} must be true or false for BOOL")
@@ -389,7 +390,7 @@ def _parse_tag(value: Any, index: int) -> tuple[TagConfig, tuple[int, int, int]]
             raise ConfigError(
                 f"{path}.safe_value is required for pc_to_plc tags"
             )
-        safe_value = _validate_safe_value(
+        safe_value = validate_data_value(
             raw["safe_value"],
             data_type,
             f"{path}.safe_value",
