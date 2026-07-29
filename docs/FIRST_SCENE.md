@@ -16,8 +16,8 @@ This is the first runtime scene, not yet a graphical scene editor.
 | Scene validation, fixed-step engine, and scheduler | Offline tested |
 | 10 ms physics step | Offline tested |
 | Original 20 ms PLC exchange | Live functional test passed |
-| Batched DB14 transport and throttled reporting | Offline tested |
-| 20/15/10/5 ms optimized rate sweep | Awaiting live test |
+| Batched DB14 transport and throttled reporting | Live tested |
+| 20/15/10/5 ms optimized rate sweep | Live tested; 20 ms passed |
 | Conveyor scene against the real PLC | Live functional proof passed |
 
 The scene does not write physical `%I` or `%Q`, CPU state, the operator
@@ -139,6 +139,45 @@ Stop descending when a rate fails those checks. The preceding rate is the
 short-test candidate, not yet a hard real-time guarantee. Repeat that candidate
 for a longer soak before using it as the project default. TIA online monitoring
 and VM/host load should remain consistent between tests.
+
+### Optimized live rate-sweep result
+
+The optimized package was tested on 2026-07-29 from the Windows Server 2019 VM
+against the real CPU 1512SP-1 PN:
+
+| Period | Cycles | Overruns | Resyncs | Average | Maximum | p99 | Result |
+|---:|---:|---:|---:|---:|---:|---:|---|
+| 20 ms | 250 | 0 | 0 | 3.701 ms | 9.660 ms | 6.758 ms | Pass |
+| 15 ms | 334 | 5 | 3 | 3.482 ms | 50.055 ms | 7.835 ms | Fail |
+| 10 ms | 500 | 32 | 7 | 4.304 ms | 56.674 ms | 18.209 ms | Fail |
+| 5 ms | 1000 | 136 | 1 | 3.175 ms | 12.617 ms | 6.412 ms | Fail |
+
+Every run retained `HEARTBEAT_PROOF: PASS` and `SAFE_STATE_WRITE: PASS`.
+However, average duration is not sufficient for selecting the exchange rate.
+The 15, 10, and 5 ms runs missed deadlines or resynchronized because of
+Windows/VM long-tail scheduling delays. The 20 ms rate was the fastest
+short-test candidate and was selected for the longer soak shown below.
+
+The subsequent 30,000-cycle 20 ms soak reported:
+
+```text
+TIMING: cycles=30000 overruns=23 resyncs=7 average_ms=3.573 maximum_ms=13.012 p99_ms=5.913
+HEARTBEAT_PROOF: PASS
+SAFE_STATE_WRITE: PASS
+```
+
+The PLC exchange workload remained below 20 ms at p99 and maximum, but Windows
+missed 23 deadlines and resynchronized seven times during the approximately
+ten-minute run. The heartbeat remained healthy. Because this application is a
+visual PLC logic simulator rather than a deterministic machine controller,
+20 ms is accepted as the supported best-effort exchange rate with PLC
+watchdog protection. `Simulation_Enable` was enabled near cycle 2,867 rather
+than before cycle 1.
+
+The current command files report the functional runtime exit code. A timing
+failure can therefore still display exit code zero; judge these builds by the
+printed timing criteria until timing acceptance is incorporated into the
+process exit status.
 
 ## Offline validation
 

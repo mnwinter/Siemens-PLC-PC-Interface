@@ -210,10 +210,17 @@ authoritative.
 6. **Complete offline:** first reusable conveyor/photoeye component.
 7. **Complete on hardware:** deterministic first conveyor/photoeye scene,
    guarded 20 ms PLC exchange, heartbeat proof, and safe cleanup.
-8. **Ready for hardware rate sweep:** batched DB reads, reduced console
-   reporting, and a guarded 20/15/10/5 ms test sequence are offline-tested.
-   The fastest rate is not yet hardware-proven.
-9. Graphical scene editor and runtime.
+8. **Complete on hardware:** the optimized 20/15/10/5 ms rate sweep retained
+   heartbeat and safe cleanup at every rate. Only 20 ms passed the timing
+   criteria with zero overruns, zero resynchronizations, 6.758 ms p99, and
+   9.660 ms maximum duration in the five-second sweep. A later 30,000-cycle
+   soak retained heartbeat and safe cleanup with 5.913 ms p99 and 13.012 ms
+   maximum workload, but recorded 23 scheduler overruns and seven
+   resynchronizations. The project is a visual logic simulator rather than a
+   real-time machine controller, so the proven best-effort 20 ms exchange is
+   the supported default; the PLC watchdog remains authoritative.
+9. **Next:** graphical conveyor scene runtime using the existing headless
+   engine and proven 20 ms PLC exchange.
 
 ## Development
 

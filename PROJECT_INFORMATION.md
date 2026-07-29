@@ -280,12 +280,55 @@ After that result, the runtime was optimized offline:
 - `--cycle-ms` permits a guarded 20/15/10/5 ms rate sweep against a 5 ms
   physics profile.
 
-These optimizations pass offline tests but do not yet have live timing data.
-The project now passes 113 offline unit tests.
+These optimizations pass 113 offline unit tests.
+
+On 2026-07-29, the optimized package was tested live from the Windows Server
+2019 VM against the same CPU 1512SP-1 PN:
+
+| Requested period | Cycles | Overruns | Resyncs | Average | Maximum | p99 | Result |
+|---:|---:|---:|---:|---:|---:|---:|---|
+| 20 ms | 250 | 0 | 0 | 3.701 ms | 9.660 ms | 6.758 ms | Pass |
+| 15 ms | 334 | 5 | 3 | 3.482 ms | 50.055 ms | 7.835 ms | Fail |
+| 10 ms | 500 | 32 | 7 | 4.304 ms | 56.674 ms | 18.209 ms | Fail |
+| 5 ms | 1000 | 136 | 1 | 3.175 ms | 12.617 ms | 6.412 ms | Fail |
+
+All four runs retained `HEARTBEAT_PROOF: PASS` and
+`SAFE_STATE_WRITE: PASS`. Only 20 ms satisfied the timing acceptance criteria:
+zero resynchronizations and both maximum and p99 transaction duration below
+the requested period. The Windows/VM scheduler produced occasional long-tail
+delays at the faster rates even though their average transaction duration was
+low.
+
+A subsequent 30,000-cycle 20 ms soak, approximately ten minutes, reported:
+
+```text
+TIMING: cycles=30000 overruns=23 resyncs=7 average_ms=3.573 maximum_ms=13.012 p99_ms=5.913
+HEARTBEAT_PROOF: PASS
+SAFE_STATE_WRITE: PASS
+```
+
+`Simulation_Enable` was changed from false to true near cycle 2,867. The
+heartbeat and safe-state proofs passed, and both maximum and p99 transaction
+duration remained below 20 ms. The 23 scheduler overruns and seven
+resynchronizations confirm that the Windows/VM host is not deterministic, but
+this project is a visual logic simulator rather than a real-time machine
+controller. The proven best-effort 20 ms exchange is therefore accepted as the
+supported default. The PLC watchdog remains authoritative if communication
+actually stops.
+
+After the operator returned `Simulation_Enable` to false, the live watch table
+confirmed `PC_To_PLC`, `PLC_To_PC`, `Simulation_Comm_OK`, and
+`Simulation_Timeout` false, with both heartbeat values restored to zero.
+
+The rate-test command files currently return the runtime's functional exit
+code. Therefore, the faster timing failures still displayed exit code zero.
+The printed timing criteria, not that exit code alone, were used to judge the
+rate sweep.
 
 ## Next implementation milestone
 
-Run the optimized package at 20, 15, 10, and 5 ms in that order. Stop at the
-first rate with heartbeat/safe-state failure, schedule resynchronization, or
-workload p99/maximum at or above the requested period. Repeat the fastest
-passing short-test rate in a longer soak before changing the default.
+Build the first graphical scene runtime around the proven 20 ms exchange:
+display the conveyor, product, photoeye, PLC command, communication state, and
+simulation enable/timeout status while keeping the existing headless engine as
+the authoritative simulation model. Timing acceptance should distinguish
+functional visual-simulator operation from optional strict timing tests.

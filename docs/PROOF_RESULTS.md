@@ -139,3 +139,55 @@ command path, best-effort restoration of the PC-owned safe values, and a clean
 operator-disabled final state. The separate PLC watchdog proof above proves
 timeout and gated false behavior when heartbeat progression stops. Together,
 the tests close the live commissioning proof.
+
+## Optimized conveyor rate sweep
+
+On 2026-07-29, the batched DB14 transport and throttled console reporting were
+tested at four requested PLC exchange periods:
+
+| Period | Cycles | Overruns | Resyncs | Average | Maximum | p99 | Result |
+|---:|---:|---:|---:|---:|---:|---:|---|
+| 20 ms | 250 | 0 | 0 | 3.701 ms | 9.660 ms | 6.758 ms | Pass |
+| 15 ms | 334 | 5 | 3 | 3.482 ms | 50.055 ms | 7.835 ms | Fail |
+| 10 ms | 500 | 32 | 7 | 4.304 ms | 56.674 ms | 18.209 ms | Fail |
+| 5 ms | 1000 | 136 | 1 | 3.175 ms | 12.617 ms | 6.412 ms | Fail |
+
+All four runs reported:
+
+```text
+HEARTBEAT_PROOF: PASS
+SAFE_STATE_WRITE: PASS
+```
+
+Only 20 ms met the rate-selection criteria: zero resynchronizations and p99
+plus maximum transaction duration below the requested period. The faster rates
+showed Windows/VM scheduling jitter and are not accepted operating rates even
+though the runtime's functional exit code was zero.
+
+The 20 ms result was a successful five-second short test, not a hard real-time
+guarantee. It selected 20 ms for the longer representative-load soak below.
+
+### 20 ms soak
+
+A subsequent 30,000-cycle run exercised the 20 ms rate for approximately ten
+minutes:
+
+```text
+TIMING: cycles=30000 overruns=23 resyncs=7 average_ms=3.573 maximum_ms=13.012 p99_ms=5.913
+HEARTBEAT_PROOF: PASS
+SAFE_STATE_WRITE: PASS
+```
+
+The operator enabled simulation near cycle 2,867, so the initial portion ran
+with `Simulation_Enable = false`. Communication workload remained below the
+20 ms period at p99 and maximum, and the PLC heartbeat stayed healthy. The
+23 scheduler overruns and seven resynchronizations show that Windows Server
+2019 inside VMware cannot provide a hard 20 ms scheduling guarantee in this
+configuration. That is acceptable for this visual PLC logic simulator: the
+result establishes the watchdog-protected, best-effort 20 ms exchange as the
+supported default. It must not be represented as deterministic motion-control
+performance.
+
+After the operator set `Simulation_Enable = false`, the final watch table
+showed every DB14 Boolean false and both heartbeat DInts at zero, confirming
+the clean disabled state.
