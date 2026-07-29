@@ -89,8 +89,35 @@ Live tests confirmed:
 - with `PC_To_PLC = true` during timeout, the gated `PLC_To_PC` remained
   false.
 
-This proves PLC-side timeout and safe gating. It does not yet prove the new
-continuous PC runtime.
+That 2026-07-24 test proved PLC-side timeout and safe gating but did not yet
+prove the new continuous PC runtime.
+
+## Continuous runtime proof
+
+On 2026-07-29, the packaged guarded runtime was run from the Windows Server
+2019 VM against the real CPU 1512SP-1 PN. Across two commissioning runs, the
+screenshots confirmed:
+
+- the configured target was `10.70.9.201`, rack/slot `0/1`;
+- the reported write scope was limited to `DB14.DBX0.0` and `DB14.DBD2`;
+- the runtime established an S7 session;
+- the heartbeat echo progressed continuously and `HEARTBEAT_PROOF: PASS`;
+- while `Simulation_Enable = true`, the PLC reported
+  `Simulation_Comm_OK = true`, `Simulation_Timeout = false`, and
+  `PLC_To_PC = true`;
+- after the runtime stopped and wrote the configured safe state, the watch
+  table showed `PC_To_PLC = false`, `PC_Heartbeat = 0`,
+  `Simulation_Comm_OK = false`, `Simulation_Timeout = true`, and
+  `PLC_To_PC = false`;
+- the runtime reported `SAFE_STATE_WRITE: PASS`.
+
+The echo is intentionally one count behind the newly generated PC heartbeat:
+each runtime cycle reads the PLC-owned values first and writes the next
+PC heartbeat last. The first cycle therefore showed heartbeat `1` and echo
+`0`; subsequent cycles showed a progressing echo and healthy communication.
+
+This proves the guarded continuous runtime, PLC recovery, timeout, gated
+command path, and best-effort cleanup on this hardware.
 
 ## Runtime milestone
 
@@ -108,18 +135,14 @@ The first Snap7 adapter and controlled runtime cycle are implemented:
 - The CLI does not connect without `--execute` and prints its exact write
   scope.
 
-This layer passes 41 offline unit tests with fake transports. It has not yet
-been connected to the live PLC.
+This layer passes 41 offline unit tests with fake transports and the live
+hardware proof described above.
 
 ## Next implementation milestone
 
-Run the guarded runtime against the real PLC and prove:
+Define the typed digital and analog point model, including ownership,
+address grouping, scaling, safe values, and diagnostics, before adding the
+scene layer.
 
-1. continuous heartbeat and echo progression;
-2. `Simulation_Comm_OK` true while the loop is running;
-3. timeout and gated false output after the loop stops;
-4. recovery on a new progressing heartbeat;
-5. cleanup of temporary PC-owned test values.
-
-Do not add the graphical scene editor until the runtime and failure behavior
-are proven.
+The runtime and failure behavior are now proven on the listed hardware.
+Complete the typed point model before adding the graphical scene editor.

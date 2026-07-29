@@ -87,5 +87,52 @@ Interpretation:
 - the watchdog gate prevented `PC_To_PLC=True` from propagating to
   `PLC_To_PC`.
 
-This proves the PLC-side communication-loss behavior. It does not yet prove
-the new continuous PC runtime against hardware; that is the next live test.
+This proves the PLC-side communication-loss behavior.
+
+## Guarded continuous runtime proof
+
+On 2026-07-29, the packaged `SiemensPlcPcInterface.exe` was run from the
+Windows Server 2019 VM. The live CLI reported this exact authorized scope:
+
+```text
+pc_to_plc=DB14.DBX0.0:BOOL
+pc_heartbeat=DB14.DBD2:DINT
+```
+
+Across two commissioning runs, the observed runtime states included:
+
+```text
+CYCLE 1:
+  heartbeat=1
+  echo=0
+  healthy=False
+  reason=waiting_for_first_echo
+
+CYCLE 2 and later:
+  echo progressing
+  healthy=True
+  Simulation_Enable=True
+  Simulation_Comm_OK=True
+  Simulation_Timeout=False
+  PLC_To_PC=True
+
+Final CLI results:
+  HEARTBEAT_PROOF: PASS
+  SAFE_STATE_WRITE: PASS
+
+Post-stop watch table:
+  PC_To_PLC=False
+  PC_Heartbeat=0
+  Simulation_Enable=True
+  Simulation_Comm_OK=False
+  Simulation_Timeout=True
+  PLC_To_PC=False
+```
+
+The heartbeat/echo count difference is intentional. The runtime reads the
+PLC-owned echo before it writes the new PC-owned heartbeat, so the accepted
+echo normally trails the newly generated heartbeat by one cycle.
+
+This proves continuous exchange, recovery from a prior timeout, the enabled
+command path, watchdog timeout after the runtime stops, gated false output,
+and best-effort restoration of the PC-owned safe values.

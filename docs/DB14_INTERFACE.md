@@ -101,8 +101,18 @@ On 2026-07-24, the real CPU 1512SP-1 PN passed these live checks:
    `Simulation_Comm_OK = false` and `Simulation_Timeout = true`.
 4. With `PC_To_PLC = true` during that timeout, `PLC_To_PC` remained false.
 
-This proves the PLC-side timeout and output gate. The continuous PC runtime
-still requires a separate live test.
+This proves the PLC-side timeout and output gate.
+
+On 2026-07-29, the packaged continuous PC runtime also passed the live
+hardware test. With simulation enabled and the heartbeat progressing,
+`Simulation_Comm_OK` and the gated `PLC_To_PC` became true. When the runtime
+stopped, the safe values were written successfully and the PLC returned to
+`Simulation_Comm_OK = false`, `Simulation_Timeout = true`, and
+`PLC_To_PC = false`.
+
+The echo normally trails the newly generated heartbeat by one count because
+the runtime reads PLC-owned values before writing the next PC-owned
+heartbeat.
 
 ## Production expansion
 
