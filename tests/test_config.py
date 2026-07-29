@@ -109,6 +109,26 @@ class ConfigTests(unittest.TestCase):
         self.assertEqual(pc_bool.snap7_tag, "DB14.DBX0.0:BOOL")
         self.assertEqual(config.points, ())
 
+    def test_five_millisecond_cycle_is_allowed_for_rate_testing(
+        self,
+    ) -> None:
+        raw = valid_config()
+        raw["connection"]["cycle_ms"] = 5
+
+        config = parse_config(raw)
+
+        self.assertEqual(config.connection.cycle_ms, 5)
+
+    def test_cycle_below_five_milliseconds_is_rejected(self) -> None:
+        raw = valid_config()
+        raw["connection"]["cycle_ms"] = 4
+
+        with self.assertRaisesRegex(
+            ConfigError,
+            r"connection\.cycle_ms must be between 5 and 5000",
+        ):
+            parse_config(raw)
+
     def test_version_one_rejects_point_extension(self) -> None:
         raw = valid_config()
         raw["points"] = []

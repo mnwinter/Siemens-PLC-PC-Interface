@@ -307,7 +307,7 @@ def _parse_connection(value: Any) -> ConnectionConfig:
     cycle_ms = _bounded_integer(
         _required(raw, "cycle_ms", path),
         f"{path}.cycle_ms",
-        10,
+        5,
         5_000,
     )
     connect_timeout_ms = _bounded_integer(

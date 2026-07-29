@@ -172,18 +172,26 @@ class InterfaceRuntime:
             raise RuntimeStateError("runtime is not connected")
 
     def _read_plc_values(self) -> dict[str, TagValue]:
+        batch_reader = getattr(self.transport, "read_many", None)
+        if callable(batch_reader):
+            raw_values = batch_reader(self._plc_tags)
+        else:
+            raw_values = {
+                tag.name: self.transport.read(tag)
+                for tag in self._plc_tags
+            }
+
         values: dict[str, TagValue] = {}
         for tag in self._plc_tags:
-            value = self.transport.read(tag)
             values[tag.name] = validate_data_value(
-                value,
+                raw_values[tag.name],
                 tag.data_type,
                 f"PLC value for {tag.name}",
             )
         return values
 
     def _write_pc_values(self) -> dict[str, TagValue]:
-        written: dict[str, TagValue] = {}
+        pending: list[tuple[TagConfig, TagValue]] = []
         for tag in self._pc_tags:
             if (
                 tag is self._heartbeat_tag
@@ -191,13 +199,24 @@ class InterfaceRuntime:
             ):
                 continue
             value = self._pc_values[tag.name]
-            self.transport.write(tag, value)
-            written[tag.name] = value
-            self._dirty_pc_tags.remove(tag.name)
+            pending.append((tag, value))
 
         heartbeat = self._heartbeat_counter.next()
-        self.transport.write(self._heartbeat_tag, heartbeat)
-        written[self._heartbeat_tag.name] = heartbeat
+        pending.append((self._heartbeat_tag, heartbeat))
+
+        batch_writer = getattr(self.transport, "write_many", None)
+        if callable(batch_writer):
+            batch_writer(pending)
+        else:
+            for tag, value in pending:
+                self.transport.write(tag, value)
+
+        written = {tag.name: value for tag, value in pending}
+        self._dirty_pc_tags.difference_update(
+            tag.name
+            for tag, _ in pending
+            if tag is not self._heartbeat_tag
+        )
         self._heartbeat_sent = True
         return written
 
@@ -231,14 +250,20 @@ class InterfaceRuntime:
         )
 
     def _write_safe_state(self) -> None:
-        for tag in self._pc_tags:
-            if tag is self._heartbeat_tag:
-                continue
-            self.transport.write(tag, tag.safe_value)
-        self.transport.write(
-            self._heartbeat_tag,
-            self._heartbeat_tag.safe_value,
+        safe_values = [
+            (tag, tag.safe_value)
+            for tag in self._pc_tags
+            if tag is not self._heartbeat_tag
+        ]
+        safe_values.append(
+            (self._heartbeat_tag, self._heartbeat_tag.safe_value)
         )
+        batch_writer = getattr(self.transport, "write_many", None)
+        if callable(batch_writer):
+            batch_writer(safe_values)
+        else:
+            for tag, value in safe_values:
+                self.transport.write(tag, value)
 
     def close(self) -> ShutdownResult:
         """

@@ -22,6 +22,9 @@ class FakeSnap7Client:
         self.disconnect_calls = 0
         self.read_values: dict[str, object] = {}
         self.write_calls: list[tuple[str, object]] = []
+        self.db_memory = bytearray(32)
+        self.db_read_calls: list[tuple[int, int, int]] = []
+        self.db_write_calls: list[tuple[int, int, bytes]] = []
 
     def connect(self, ip: str, rack: int, slot: int) -> None:
         self.connect_calls.append((ip, rack, slot))
@@ -39,6 +42,25 @@ class FakeSnap7Client:
 
     def write_tag(self, tag: str, value: object) -> None:
         self.write_calls.append((tag, value))
+
+    def db_read(
+        self,
+        db_number: int,
+        start: int,
+        size: int,
+    ) -> bytearray:
+        self.db_read_calls.append((db_number, start, size))
+        return bytearray(self.db_memory[start:start + size])
+
+    def db_write(
+        self,
+        db_number: int,
+        start: int,
+        data: bytearray,
+    ) -> int:
+        self.db_write_calls.append((db_number, start, bytes(data)))
+        self.db_memory[start:start + len(data)] = data
+        return 0
 
 
 class Snap7TransportTests(unittest.TestCase):
@@ -80,6 +102,57 @@ class Snap7TransportTests(unittest.TestCase):
                 self.config.tag("plc_to_pc"),
                 False,
             )
+
+    def test_read_many_uses_one_contiguous_db_read(self) -> None:
+        self.transport.connect(self.config.connection)
+        self.client.db_memory[0] = 0b0000_0010
+        self.client.db_memory[6:10] = (123).to_bytes(
+            4,
+            byteorder="big",
+            signed=True,
+        )
+        self.client.db_memory[10] = 0b0000_0101
+        plc_tags = tuple(
+            tag
+            for tag in self.config.tags
+            if tag.direction.value == "plc_to_pc"
+        )
+
+        values = self.transport.read_many(plc_tags)
+
+        self.assertEqual(
+            values,
+            {
+                "plc_to_pc": True,
+                "plc_heartbeat_echo": 123,
+                "simulation_enable": True,
+                "simulation_comm_ok": False,
+                "simulation_timeout": True,
+            },
+        )
+        self.assertEqual(self.client.db_read_calls, [(14, 0, 11)])
+
+    def test_write_many_preserves_adjacent_plc_bit(self) -> None:
+        self.transport.connect(self.config.connection)
+        self.client.db_memory[0] = 0b0000_0010
+        pc_bool = self.config.tag("pc_to_plc")
+        heartbeat = self.config.tag("pc_heartbeat")
+
+        self.transport.write_many(
+            (
+                (pc_bool, True),
+                (heartbeat, 123),
+            )
+        )
+
+        self.assertEqual(self.client.db_read_calls, [(14, 0, 1)])
+        self.assertEqual(
+            self.client.db_write_calls,
+            [
+                (14, 0, b"\x03"),
+                (14, 2, b"\x00\x00\x00{"),
+            ],
+        )
 
     def test_failed_connection_is_cleaned_up(self) -> None:
         class FailedClient(FakeSnap7Client):

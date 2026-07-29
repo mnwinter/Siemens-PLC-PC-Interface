@@ -155,6 +155,11 @@ The first Snap7 adapter and controlled runtime cycle are implemented:
 - The runtime writes only configured `pc_to_plc` tags.
 - Non-heartbeat PC values are written only when changed, reducing the
   read/modify/write race created by opposite-owner DB14 bits sharing byte 0.
+- The optimized transport batches the five PLC-owned DB14 values into one
+  contiguous DB read. The steady scene exchange is normally one DB read plus
+  one heartbeat DB write.
+- Boolean PC writes retain a read/modify/write boundary so the adjacent
+  PLC-owned `DB14.DBX0.1` bit is preserved.
 - The heartbeat is generated internally and written last.
 - The default shutdown policy relies on the authoritative PLC watchdog.
 - An explicit option enables best-effort safe-value writes before disconnect.
@@ -250,15 +255,37 @@ first scene commissioning guide requires:
 PLC_To_PC := Simulation_Comm_OK AND NOT PC_To_PLC
 ```
 
-That PLC logic change uses the same DB14 contract but has not yet been
-downloaded or live-tested. The 20 ms PC exchange and complete scene are
-therefore offline-tested, not hardware-proven.
+That PLC logic change uses the same DB14 contract. On 2026-07-29 it was
+compiled, downloaded, and tested with the packaged first-scene runtime against
+the target VM and CPU. The 250-exchange run completed with exit code 0:
 
-The project now passes 104 offline unit tests.
+```text
+HEARTBEAT_PROOF: PASS
+SAFE_STATE_WRITE: PASS
+TIMING: cycles=250 overruns=24 resyncs=2 average_ms=9.261 maximum_ms=14.780 p99_ms=13.332
+```
+
+The scene reached its expected stopped-at-photoeye state with the product
+loaded, photoeye blocked, and conveyor motor command false. This proves the
+scene's functional PLC/PC loop on hardware. The original configured 20 ms run
+still recorded 24 deadline overruns and two schedule resynchronizations.
+
+After that result, the runtime was optimized offline:
+
+- the five DB14 PLC-owned values are read in one contiguous S7 DB request;
+- the normal heartbeat update is one S7 DB write;
+- sensor writes remain ownership-safe read/modify/write operations;
+- full scene JSON is printed every 25 cycles instead of every cycle, while
+  health/state changes and the final cycle remain visible;
+- `--cycle-ms` permits a guarded 20/15/10/5 ms rate sweep against a 5 ms
+  physics profile.
+
+These optimizations pass offline tests but do not yet have live timing data.
+The project now passes 113 offline unit tests.
 
 ## Next implementation milestone
 
-Run the documented first-scene commissioning test on the target VM and CPU,
-capture the final heartbeat and timing results, and decide from measured
-overruns whether the 20 ms exchange should remain or be optimized before a
-10 ms PLC exchange is attempted.
+Run the optimized package at 20, 15, 10, and 5 ms in that order. Stop at the
+first rate with heartbeat/safe-state failure, schedule resynchronization, or
+workload p99/maximum at or above the requested period. Repeat the fastest
+passing short-test rate in a longer soak before changing the default.

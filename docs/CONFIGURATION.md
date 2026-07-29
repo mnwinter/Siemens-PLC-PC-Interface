@@ -60,7 +60,9 @@ Rules:
 - `ip` must be a valid IPv4 address.
 - `rack` must be from 0 through 7.
 - `slot` must be from 0 through 31.
-- `cycle_ms` must be from 10 through 5000.
+- `cycle_ms` must be from 5 through 5000. Periods below 20 ms are intended
+  for measured commissioning tests; Windows, the network path, Snap7, and the
+  PLC communication load determine the reliable rate.
 - `connect_timeout_ms` must be from 100 through 30000.
 
 Rack/slot `0/1` is the proven value for this project's CPU 1512SP-1 PN test.

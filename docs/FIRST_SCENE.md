@@ -15,8 +15,10 @@ This is the first runtime scene, not yet a graphical scene editor.
 | DB14 addresses and ownership | Unchanged |
 | Scene validation, fixed-step engine, and scheduler | Offline tested |
 | 10 ms physics step | Offline tested |
-| 20 ms PLC exchange | Configured and offline tested; not yet live proven |
-| Conveyor scene against the real PLC | Requires commissioning test |
+| Original 20 ms PLC exchange | Live functional test passed |
+| Batched DB14 transport and throttled reporting | Offline tested |
+| 20/15/10/5 ms optimized rate sweep | Awaiting live test |
+| Conveyor scene against the real PLC | Live functional proof passed |
 
 The scene does not write physical `%I` or `%Q`, CPU state, the operator
 enable, or any PLC-owned field.
@@ -66,6 +68,8 @@ The PLC interface and scene are deliberately separate:
   ownership, heartbeat, and typed point names.
 - `examples/conveyor-scene.json` contains only simulation components,
   physical parameters, point bindings, and scheduled scene events.
+- `examples/conveyor-scene-fast.json` uses the same model with a 5 ms fixed
+  physics step so 20, 15, 10, and 5 ms exchanges all align exactly.
 
 The scene file has no PLC IP or DB address.
 
@@ -87,10 +91,54 @@ the external S7 client attempts one exchange every 20 ms; it does not force
 the PLC to use a 20 ms scan. The scheduler reports average, maximum, p99, and
 deadline-overrun counts so the rate can be judged from measured behavior.
 
-Do not reduce the PC exchange to 10 ms until the 20 ms run has zero or rare
-overruns on the target VM. The current transport performs typed tag operations
-individually, so network and Snap7 overhead can be materially longer than the
-PLC program scan.
+The optimized runtime does not perform one S7 read per PLC tag. It reads the
+five PLC-owned DB14 values with one contiguous DB read and performs the normal
+heartbeat update with one DB write. A changing Boolean sensor still uses a
+read/modify/write of byte 0 so PLC-owned `DB14.DBX0.1` is preserved. Periodic
+console output defaults to every 25 cycles; health changes, component state
+changes, cycle 1, and the final cycle are always printed.
+
+### First live timing result
+
+The first packaged 250-exchange test passed the functional heartbeat and
+safe-state checks on 2026-07-29:
+
+```text
+HEARTBEAT_PROOF: PASS
+SAFE_STATE_WRITE: PASS
+TIMING: cycles=250 overruns=24 resyncs=2 average_ms=9.261 maximum_ms=14.780 p99_ms=13.332
+```
+
+The product reached the photoeye and stopped as designed. The transaction
+durations remained below 15 ms, but the scheduler still missed 24 configured
+20 ms deadlines and resynchronized twice. This result proves function, not a
+hard real-time 20 ms guarantee. That package used individual tag operations
+and printed a full JSON record every cycle. The optimized rate-sweep build
+changes both sources of overhead, but its timing still requires a live test.
+
+### Finding the fastest reliable rate
+
+Use the optimized 5 ms physics profile and test one exchange period at a time:
+
+| Order | Period | Cycles | Approximate duration |
+|---:|---:|---:|---:|
+| 1 | 20 ms | 250 | 5 s |
+| 2 | 15 ms | 334 | 5 s |
+| 3 | 10 ms | 500 | 5 s |
+| 4 | 5 ms | 1000 | 5 s |
+
+For each run require:
+
+- `HEARTBEAT_PROOF: PASS`;
+- `SAFE_STATE_WRITE: PASS`;
+- zero `resyncs`;
+- `p99_ms` and `maximum_ms` below the requested period;
+- zero or rare overruns.
+
+Stop descending when a rate fails those checks. The preceding rate is the
+short-test candidate, not yet a hard real-time guarantee. Repeat that candidate
+for a longer soak before using it as the project default. TIA online monitoring
+and VM/host load should remain consistent between tests.
 
 ## Offline validation
 
@@ -164,6 +212,34 @@ Expected progression:
 
 After the test, set `Simulation_Enable = false`.
 
+## Controlled rate-sweep commands
+
+The package supplies one guarded command per rate. From source, the equivalent
+20 ms command is:
+
+```powershell
+$env:PYTHONPATH = "src"
+py -3 -m siemens_plc_pc_interface scene-run `
+    .\examples\db14-conveyor-interface.json `
+    .\examples\conveyor-scene-fast.json `
+    --cycle-ms 20 `
+    --report-every 25 `
+    --execute `
+    --cycles 250 `
+    --write-safe-state-on-exit
+```
+
+Repeat with these pairs:
+
+```text
+--cycle-ms 15 --cycles 334
+--cycle-ms 10 --cycles 500
+--cycle-ms 5  --cycles 1000
+```
+
+Do not run the rates simultaneously. Each command opens its own S7 session and
+writes only `DB14.DBX0.0` and `DB14.DBD2`.
+
 ## Failure symptoms
 
 | Symptom | First check |
@@ -172,7 +248,7 @@ After the test, set `Simulation_Enable = false`.
 | `SCENE_INVALID` | Read the exact field/ownership message; validation occurs before connection |
 | First cycle is `starting` | Normal; the PLC echo acknowledges the preceding heartbeat |
 | Persistent `fault` or `Simulation_Timeout = true` | Check heartbeat echo progression and DB14 watchdog call |
-| Frequent timing overruns | Keep 20 ms or increase it; do not force 10 ms |
+| Frequent timing overruns or any resync | Stop the sweep; use the preceding slower rate and repeat it longer |
 | Product stops at photoeye | Expected first-scene behavior |
 | Photoeye never changes | Confirm the product position advances and DB14.DBX0.0 is not forced |
 | `PLC_To_PC` remains false | Check `Simulation_Enable`, `Simulation_Comm_OK`, and the revised rung |

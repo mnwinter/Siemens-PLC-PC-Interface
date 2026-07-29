@@ -83,6 +83,20 @@ class SceneConfigTests(unittest.TestCase):
             SceneEventAction.LOAD_OBJECT,
         )
 
+    def test_five_millisecond_scene_rate_is_valid(self) -> None:
+        raw_interface = valid_scene_interface()
+        raw_interface["connection"]["cycle_ms"] = 5
+        raw_scene = valid_scene()
+        raw_scene["physics_step_ms"] = 5
+
+        scene = parse_scene_config(
+            raw_scene,
+            parse_config(raw_interface),
+        )
+
+        self.assertEqual(scene.plc_exchange_ms, 5)
+        self.assertEqual(scene.physics_steps_per_exchange, 1)
+
     def test_scene_requires_typed_interface(self) -> None:
         with self.assertRaisesRegex(
             SceneConfigError,

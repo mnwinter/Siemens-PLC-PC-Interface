@@ -105,6 +105,68 @@ class InterfaceRuntimeTests(unittest.TestCase):
             "waiting_for_first_echo",
         )
 
+    def test_cycle_prefers_batched_transport_when_available(self) -> None:
+        class BatchTransport(FakeTransport):
+            def __init__(self) -> None:
+                super().__init__(initial_plc_values())
+                self.batch_reads: list[list[str]] = []
+                self.batch_writes: list[
+                    list[tuple[str, TagValue]]
+                ] = []
+
+            def read(self, tag: TagConfig) -> TagValue:
+                raise AssertionError("scalar read should not be used")
+
+            def write(self, tag: TagConfig, value: TagValue) -> None:
+                raise AssertionError("scalar write should not be used")
+
+            def read_many(
+                self,
+                tags: tuple[TagConfig, ...],
+            ) -> dict[str, TagValue]:
+                self.batch_reads.append([tag.name for tag in tags])
+                return {
+                    tag.name: self.plc_values[tag.name]
+                    for tag in tags
+                }
+
+            def write_many(
+                self,
+                values: list[tuple[TagConfig, TagValue]],
+            ) -> None:
+                self.batch_writes.append(
+                    [(tag.name, value) for tag, value in values]
+                )
+
+        transport = BatchTransport()
+        runtime = InterfaceRuntime(
+            self.config,
+            transport,
+            start_time=0.0,
+        )
+        runtime.connect()
+
+        result = runtime.cycle(now=0.0)
+
+        self.assertEqual(
+            transport.batch_reads,
+            [[
+                "plc_to_pc",
+                "plc_heartbeat_echo",
+                "simulation_enable",
+                "simulation_comm_ok",
+                "simulation_timeout",
+            ]],
+        )
+        self.assertEqual(
+            transport.batch_writes,
+            [[
+                ("pc_to_plc", False),
+                ("pc_heartbeat", 1),
+            ]],
+        )
+        self.assertEqual(result.pc_values_written["pc_heartbeat"], 1)
+
     def test_scene_value_and_progressing_echo_become_healthy(self) -> None:
         self.runtime.cycle(now=0.0)
         self.runtime.set_pc_value("pc_to_plc", True)

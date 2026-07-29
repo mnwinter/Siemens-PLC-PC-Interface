@@ -65,8 +65,10 @@ and point health, and can emit JSON-lines cycle logs. The first reusable
 offline equipment model adds a single-object conveyor, simulated photoeye,
 explicit operating states, product discharge, reset, and fail-safe point
 binding. The first deterministic headless scene now loads the conveyor from
-JSON, advances physics in fixed 10 ms steps, exchanges typed points with the
-PLC every configured 20 ms, and reports bounded timing/overrun metrics.
+JSON, advances physics in fixed steps, exchanges typed points at a configured
+rate, and reports bounded timing/overrun metrics. The optimized transport
+reads the PLC-owned DB14 fields in one contiguous request and normally writes
+only the heartbeat in a second request.
 
 The Snap7 transport and runtime pass offline tests with fake clients. On
 2026-07-29, the packaged runtime passed live heartbeat progression, recovery,
@@ -141,7 +143,9 @@ Validate the first scene without connecting:
     .\examples\conveyor-scene.json
 ```
 
-The first scene uses a 10 ms fixed physics step and a 20 ms PLC exchange. Read
+The proven first scene uses a 10 ms fixed physics step and a 20 ms PLC
+exchange. A separate 5 ms physics profile supports controlled 20, 15, 10, and
+5 ms rate tests through `scene-run --cycle-ms`. Read
 [the first-scene commissioning guide](docs/FIRST_SCENE.md) before live use:
 the original DB14 Boolean echo rung must become a stop-at-photoeye PLC command
 rung for the conveyor to move.
@@ -204,10 +208,11 @@ authoritative.
    scene values, point diagnostics, communication health, and JSON-lines
    logging.
 6. **Complete offline:** first reusable conveyor/photoeye component.
-7. **Complete offline:** deterministic JSON scene scheduler, 10 ms fixed
-   physics, guarded 20 ms PLC exchange, events, and timing diagnostics.
-8. **Next live milestone:** commission the first scene and measure the 20 ms
-   exchange on the target VM/PLC.
+7. **Complete on hardware:** deterministic first conveyor/photoeye scene,
+   guarded 20 ms PLC exchange, heartbeat proof, and safe cleanup.
+8. **Ready for hardware rate sweep:** batched DB reads, reduced console
+   reporting, and a guarded 20/15/10/5 ms test sequence are offline-tested.
+   The fastest rate is not yet hardware-proven.
 9. Graphical scene editor and runtime.
 
 ## Development

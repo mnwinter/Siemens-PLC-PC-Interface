@@ -7,6 +7,7 @@ import json
 import sys
 import time
 from collections.abc import Sequence
+from dataclasses import replace
 from typing import Any
 
 from .config import (
@@ -108,6 +109,25 @@ def _build_parser() -> argparse.ArgumentParser:
         help="stop after this many exchanges; omit to run until Ctrl+C",
     )
     scene_run.add_argument(
+        "--report-every",
+        type=_positive_integer,
+        default=25,
+        metavar="CYCLES",
+        help=(
+            "print periodic cycle detail at this interval; state and health "
+            "changes are always printed (default: 25)"
+        ),
+    )
+    scene_run.add_argument(
+        "--cycle-ms",
+        type=_cycle_milliseconds,
+        metavar="MS",
+        help=(
+            "override connection.cycle_ms for a controlled rate test; "
+            "the value must still align to the scene physics step"
+        ),
+    )
+    scene_run.add_argument(
         "--write-safe-state-on-exit",
         action="store_true",
         help=(
@@ -125,6 +145,13 @@ def _positive_integer(text: str) -> int:
         raise argparse.ArgumentTypeError("must be an integer") from exc
     if value <= 0:
         raise argparse.ArgumentTypeError("must be greater than zero")
+    return value
+
+
+def _cycle_milliseconds(text: str) -> int:
+    value = _positive_integer(text)
+    if value < 5 or value > 5_000:
+        raise argparse.ArgumentTypeError("must be from 5 through 5000")
     return value
 
 
@@ -368,10 +395,27 @@ def _run_interface(args: argparse.Namespace) -> int:
 def _load_scene_for_command(
     interface_path: str,
     scene_path: str,
+    *,
+    cycle_ms: int | None = None,
 ) -> tuple[InterfaceConfig, SceneConfig] | None:
     interface = _load_for_command(interface_path)
     if interface is None:
         return None
+    if cycle_ms is not None:
+        if interface.heartbeat.timeout_ms < cycle_ms * 2:
+            print(
+                "SCENE_INVALID: heartbeat.timeout_ms must be at least "
+                "twice the overridden cycle period",
+                file=sys.stderr,
+            )
+            return None
+        interface = replace(
+            interface,
+            connection=replace(
+                interface.connection,
+                cycle_ms=cycle_ms,
+            ),
+        )
     try:
         scene = load_scene_config(scene_path, interface)
     except SceneConfigError as exc:
@@ -463,7 +507,11 @@ def _scene_cycle_text(report: SceneCycleReport) -> str:
 
 
 def _run_scene(args: argparse.Namespace) -> int:
-    loaded = _load_scene_for_command(args.interface, args.scene)
+    loaded = _load_scene_for_command(
+        args.interface,
+        args.scene,
+        cycle_ms=args.cycle_ms,
+    )
     if loaded is None:
         print("PLC_CONNECTION_ATTEMPTED: False")
         return 2
@@ -491,15 +539,53 @@ def _run_scene(args: argparse.Namespace) -> int:
     exit_code = 0
     saw_healthy_heartbeat = False
     last_report: SceneCycleReport | None = None
+    previous_health: tuple[str, bool, str] | None = None
+    previous_components: tuple[tuple[object, ...], ...] | None = None
+    print(f"REPORT_EVERY_CYCLES: {args.report_every}")
 
     def report_cycle(report: SceneCycleReport) -> None:
         nonlocal saw_healthy_heartbeat, last_report
+        nonlocal previous_health, previous_components
         last_report = report
+        update = report.snapshot.update
+        heartbeat = update.cycle.heartbeat
         saw_healthy_heartbeat = (
             saw_healthy_heartbeat
-            or report.snapshot.update.cycle.heartbeat.healthy
+            or heartbeat.healthy
         )
-        print(_scene_cycle_text(report))
+        health = (
+            update.health.value,
+            heartbeat.healthy,
+            heartbeat.reason,
+        )
+        components = tuple(
+            (
+                component_id,
+                snapshot.state.value,
+                snapshot.motor_running,
+                snapshot.object_present,
+                snapshot.photoeye_blocked,
+                snapshot.completed_count,
+            )
+            for component_id, snapshot in sorted(
+                report.snapshot.components.items()
+            )
+        )
+        cycle_number = update.cycle.cycle_number
+        should_print = (
+            cycle_number == 1
+            or cycle_number % args.report_every == 0
+            or health != previous_health
+            or components != previous_components
+            or (
+                args.cycles is not None
+                and cycle_number == args.cycles
+            )
+        )
+        if should_print:
+            print(_scene_cycle_text(report))
+        previous_health = health
+        previous_components = components
 
     runner: SceneRunner | None = None
     try:
