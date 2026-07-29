@@ -213,11 +213,52 @@ The component layer has no Snap7 dependency and no knowledge of PLC IP,
 rack/slot, DB numbers, or absolute addresses. Its behavior is proven only with
 offline unit tests. DB14 and the typed DB100 example remain unchanged.
 
-The project passes 88 offline unit tests.
+The project passes 88 offline unit tests through this component milestone.
+
+## First deterministic scene milestone
+
+The first deterministic headless scene is implemented:
+
+- the DB14 interface was promoted to schema version 2 without changing any
+  proven address or field ownership;
+- `simulated_photoeye` maps to PC-owned `DB14.DBX0.0`;
+- `conveyor_running` maps to PLC-owned `DB14.DBX0.1`;
+- the scene file contains components, physical parameters, point names, and
+  events but no PLC IP or address;
+- the fixed physics step is 10 ms;
+- the initial PLC exchange period is 20 ms with two exact physics steps per
+  exchange;
+- component and event types are allowlisted;
+- binding type, ownership, group, uniqueness, and event alignment are
+  validated offline before a connection;
+- product load/reset events run on logical scene time;
+- PLC commands from one completed exchange are applied to the following
+  exchange;
+- startup/fault/bad-quality command handling remains fail-safe;
+- the real-time runner never makes large physics jumps or bursts extra PLC
+  exchanges to recover lateness;
+- average, maximum, recent-window p99, deadline overruns, and schedule
+  resynchronizations are reported;
+- `scene-run` retains the explicit `--execute` boundary and prints the exact
+  DB write scope before connecting.
+
+The original proof rung `PLC_To_PC := Simulation_Comm_OK AND PC_To_PLC` is not
+a valid conveyor control rung because it creates a circular dependency. The
+first scene commissioning guide requires:
+
+```text
+PLC_To_PC := Simulation_Comm_OK AND NOT PC_To_PLC
+```
+
+That PLC logic change uses the same DB14 contract but has not yet been
+downloaded or live-tested. The 20 ms PC exchange and complete scene are
+therefore offline-tested, not hardware-proven.
+
+The project now passes 104 offline unit tests.
 
 ## Next implementation milestone
 
-Build the first deterministic scene scheduler and JSON scene definition. It
-should own component update order, elapsed-time validation, point bindings,
-product-load/reset events, update-loop exchange, and log lifecycle without
-weakening the existing explicit PLC write authorization.
+Run the documented first-scene commissioning test on the target VM and CPU,
+capture the final heartbeat and timing results, and decide from measured
+overruns whether the 20 ms exchange should remain or be optimized before a
+10 ms PLC exchange is attempted.

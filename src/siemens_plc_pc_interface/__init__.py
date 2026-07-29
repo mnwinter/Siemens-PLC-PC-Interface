@@ -43,6 +43,23 @@ from .components import (
     ConveyorSnapshot,
     ConveyorState,
 )
+from .scene import (
+    SceneCycleReport,
+    SceneEngine,
+    SceneRunner,
+    SceneRuntimeError,
+    SceneSnapshot,
+    TimingSnapshot,
+)
+from .scene_config import (
+    ConveyorSceneConfig,
+    SceneConfig,
+    SceneConfigError,
+    SceneEvent,
+    SceneEventAction,
+    load_scene_config,
+    parse_scene_config,
+)
 
 __all__ = [
     "AddressGroup",
@@ -56,6 +73,7 @@ __all__ = [
     "ConveyorPointBinding",
     "ConveyorSnapshot",
     "ConveyorState",
+    "ConveyorSceneConfig",
     "DataType",
     "DiagnosticLevel",
     "DigitalPointConfig",
@@ -75,11 +93,23 @@ __all__ = [
     "PointQuality",
     "PointSample",
     "PointValueError",
+    "SceneConfig",
+    "SceneConfigError",
+    "SceneCycleReport",
+    "SceneEngine",
+    "SceneEvent",
+    "SceneEventAction",
+    "SceneRunner",
+    "SceneRuntimeError",
+    "SceneSnapshot",
     "SimulationUpdateLoop",
     "TagAddress",
     "TagConfig",
     "UpdateResult",
+    "TimingSnapshot",
     "build_address_groups",
     "load_config",
+    "load_scene_config",
+    "parse_scene_config",
     "update_log_record",
 ]

@@ -259,6 +259,12 @@ Gate the proof Boolean in the next OB1 network:
 PLC_To_PC := Simulation_Comm_OK AND PC_To_PLC
 ```
 
+That assignment is only the original bidirectional communication proof. Do
+not reuse it as the conveyor command in the first scene: it creates a circular
+dependency between the simulated photoeye and conveyor run command. Follow
+[`FIRST_SCENE.md`](FIRST_SCENE.md) for the exact stop-at-photoeye rung used by
+the first scene.
+
 This gate is required. A PC cannot guarantee a final safe write after a cable
 or power failure, so the PLC timeout must remove simulation authority.
 

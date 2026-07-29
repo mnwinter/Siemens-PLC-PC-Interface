@@ -1,0 +1,141 @@
+"""Unit tests for first-scene JSON validation."""
+
+from __future__ import annotations
+
+import copy
+import unittest
+
+from siemens_plc_pc_interface.config import parse_config
+from siemens_plc_pc_interface.scene_config import (
+    SceneConfigError,
+    SceneEventAction,
+    parse_scene_config,
+)
+from test_config import valid_config
+
+
+def valid_scene_interface() -> dict:
+    raw = valid_config()
+    raw["version"] = 2
+    raw["connection"]["cycle_ms"] = 20
+    raw["points"] = [
+        {
+            "name": "simulated_photoeye",
+            "kind": "digital",
+            "tag": "pc_to_plc",
+            "group": "conveyor_one",
+            "inverted": False,
+        },
+        {
+            "name": "conveyor_running",
+            "kind": "digital",
+            "tag": "plc_to_pc",
+            "group": "conveyor_one",
+            "inverted": False,
+        },
+    ]
+    return raw
+
+
+def valid_scene() -> dict:
+    return {
+        "version": 1,
+        "physics_step_ms": 10,
+        "max_catchup_steps": 5,
+        "components": [
+            {
+                "id": "conveyor_1",
+                "type": "conveyor_photoeye",
+                "parameters": {
+                    "length_m": 1.0,
+                    "speed_m_per_s": 0.5,
+                    "object_length_m": 0.2,
+                    "photoeye_position_m": 0.5,
+                    "minimum_photoeye_on_s": 0.1,
+                },
+                "bindings": {
+                    "run_command": "conveyor_running",
+                    "photoeye": "simulated_photoeye",
+                },
+            }
+        ],
+        "events": [
+            {
+                "at_ms": 0,
+                "component": "conveyor_1",
+                "action": "load_object",
+            }
+        ],
+    }
+
+
+class SceneConfigTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.interface = parse_config(valid_scene_interface())
+
+    def test_valid_scene_is_typed_and_uses_two_fixed_steps(self) -> None:
+        scene = parse_scene_config(valid_scene(), self.interface)
+
+        self.assertEqual(scene.physics_steps_per_exchange, 2)
+        self.assertEqual(scene.components[0].component_id, "conveyor_1")
+        self.assertIs(
+            scene.events[0].action,
+            SceneEventAction.LOAD_OBJECT,
+        )
+
+    def test_scene_requires_typed_interface(self) -> None:
+        with self.assertRaisesRegex(
+            SceneConfigError,
+            "interface schema version 2",
+        ):
+            parse_scene_config(
+                valid_scene(),
+                parse_config(valid_config()),
+            )
+
+    def test_physics_step_must_divide_plc_exchange(self) -> None:
+        raw = valid_scene()
+        raw["physics_step_ms"] = 6
+
+        with self.assertRaisesRegex(SceneConfigError, "exact multiple"):
+            parse_scene_config(raw, self.interface)
+
+    def test_binding_ownership_is_enforced(self) -> None:
+        raw = valid_scene()
+        raw["components"][0]["bindings"]["run_command"] = (
+            "simulated_photoeye"
+        )
+
+        with self.assertRaisesRegex(SceneConfigError, "plc_to_pc"):
+            parse_scene_config(raw, self.interface)
+
+    def test_unknown_component_type_and_event_action_are_rejected(self) -> None:
+        bad_type = valid_scene()
+        bad_type["components"][0]["type"] = "python.class.Name"
+        with self.assertRaisesRegex(SceneConfigError, "conveyor_photoeye"):
+            parse_scene_config(bad_type, self.interface)
+
+        bad_action = valid_scene()
+        bad_action["events"][0]["action"] = "run_arbitrary_code"
+        with self.assertRaisesRegex(SceneConfigError, "load_object"):
+            parse_scene_config(bad_action, self.interface)
+
+    def test_event_must_align_to_fixed_physics_step(self) -> None:
+        raw = valid_scene()
+        raw["events"][0]["at_ms"] = 1
+
+        with self.assertRaisesRegex(SceneConfigError, "align"):
+            parse_scene_config(raw, self.interface)
+
+    def test_pc_sensor_point_can_have_only_one_writer(self) -> None:
+        raw = valid_scene()
+        duplicate = copy.deepcopy(raw["components"][0])
+        duplicate["id"] = "conveyor_2"
+        raw["components"].append(duplicate)
+
+        with self.assertRaisesRegex(SceneConfigError, "one component writer"):
+            parse_scene_config(raw, self.interface)
+
+
+if __name__ == "__main__":
+    unittest.main()

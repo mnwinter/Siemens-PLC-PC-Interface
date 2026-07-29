@@ -54,7 +54,7 @@ S7-1200 support is planned but has not yet been hardware-proven by this
 project. Other S7-1500 models and firmware must also be verified before being
 listed as proven.
 
-This repository is not yet a scene editor. It currently contains the proven
+This repository is not yet a graphical scene editor. It currently contains the proven
 connection diagnostics, the PLC-side communication watchdog, the DB14 memory
 contract, setup documentation, a validated JSON configuration model, and a
 guarded configuration-driven Snap7 runtime. It also contains an offline-tested
@@ -64,7 +64,9 @@ update loop now stages scene values, decodes PLC points, reports communication
 and point health, and can emit JSON-lines cycle logs. The first reusable
 offline equipment model adds a single-object conveyor, simulated photoeye,
 explicit operating states, product discharge, reset, and fail-safe point
-binding.
+binding. The first deterministic headless scene now loads the conveyor from
+JSON, advances physics in fixed 10 ms steps, exchanges typed points with the
+PLC every configured 20 ms, and reports bounded timing/overrun metrics.
 
 The Snap7 transport and runtime pass offline tests with fake clients. On
 2026-07-29, the packaged runtime passed live heartbeat progression, recovery,
@@ -82,7 +84,8 @@ New users should follow:
 4. [Typed digital and analog point model](docs/POINT_MODEL.md)
 5. [Typed simulation update loop and logging](docs/UPDATE_LOOP.md)
 6. [Reusable simulation components](docs/COMPONENTS.md)
-7. [Real-hardware proof results](docs/PROOF_RESULTS.md)
+7. [First conveyor/photoeye scene](docs/FIRST_SCENE.md)
+8. [Real-hardware proof results](docs/PROOF_RESULTS.md)
 
 The setup guide covers:
 
@@ -129,6 +132,19 @@ Preview the runtime's exact write scope. This still does not connect:
 
 Both commands explicitly report
 `PLC_CONNECTION_ATTEMPTED: False`.
+
+Validate the first scene without connecting:
+
+```powershell
+.\.venv\Scripts\siemens-plc-pc-interface.exe scene-validate `
+    .\examples\db14-conveyor-interface.json `
+    .\examples\conveyor-scene.json
+```
+
+The first scene uses a 10 ms fixed physics step and a 20 ms PLC exchange. Read
+[the first-scene commissioning guide](docs/FIRST_SCENE.md) before live use:
+the original DB14 Boolean echo rung must become a stop-at-photoeye PLC command
+rung for the conveyor to move.
 
 Only after DB14 and the PLC watchdog are downloaded, set
 `Simulation_Enable = true` from TIA and authorize the guarded runtime:
@@ -187,9 +203,12 @@ authoritative.
 5. **Complete offline:** deterministic simulation update loop with retained
    scene values, point diagnostics, communication health, and JSON-lines
    logging.
-6. **In progress:** reusable equipment components; the first offline
-   conveyor/photoeye model is complete.
-7. Graphical scene editor and runtime.
+6. **Complete offline:** first reusable conveyor/photoeye component.
+7. **Complete offline:** deterministic JSON scene scheduler, 10 ms fixed
+   physics, guarded 20 ms PLC exchange, events, and timing diagnostics.
+8. **Next live milestone:** commission the first scene and measure the 20 ms
+   exchange on the target VM/PLC.
+9. Graphical scene editor and runtime.
 
 ## Development
 

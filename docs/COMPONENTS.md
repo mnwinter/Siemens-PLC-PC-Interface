@@ -106,8 +106,9 @@ between two sample times. The component detects that swept crossing and holds
 the simulated photoeye for `minimum_photoeye_on_s`. Set this value to at least
 the interface cycle time when the PLC must observe one complete true update.
 
-The default is `0.1` seconds, matching the current 100 ms examples. This is a
-simulation pulse-stretching feature, not a claim about a real sensor's
+The default is `0.1` seconds. The first live-scene configuration uses a 20 ms
+PLC exchange, so the default holds the sensor across several exchanges. This
+is a simulation pulse-stretching feature, not a claim about a real sensor's
 hardware response time.
 
 ## Typed point binding
@@ -159,9 +160,10 @@ inputs = binding.inputs_from_update(result)
 ```
 
 This creates an intentional one-update command/response delay, similar to
-separate PLC and simulation scans. A future scene scheduler will own `dt_s`,
-cycle deadlines, component ordering, product loading events, logging, and
-shutdown.
+separate PLC and simulation scans. `SceneEngine` now owns fixed `dt_s`,
+component ordering, point exchange, and product/reset events. `SceneRunner`
+owns real-time deadlines and bounded timing statistics. See
+[`FIRST_SCENE.md`](FIRST_SCENE.md).
 
 ## Reset behavior
 
