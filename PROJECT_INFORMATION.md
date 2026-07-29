@@ -39,6 +39,10 @@ TIA without changing the communications result.
 - Require an explicit write authorization flag in diagnostic tools.
 - Keep the IP address and future tag mappings configurable.
 - Do not commit generated executables or VM-specific Python runtimes.
+- Keep one standalone TIA project per scene. Create each new scene with
+  **Save As** from the prior completed scene, reuse DB14 inside the new
+  project, and replace only the scene-specific members and logic. Do not
+  accumulate every scene's DBs and unused tags in one PLC program.
 
 ## Current DB contract
 
@@ -363,10 +367,40 @@ The current PLC logic removes the conveyor run command while the simulated
 photoeye remains blocked, and this first scene has no downstream actuator to
 remove the product.
 
+## Scene 2 conveyor/pusher milestone
+
+The second beginner scene is implemented and proven offline:
+
+- it preserves Scene 1 as an independent TIA project and starting template;
+- its separate Scene 2 project reuses DB14 instead of adding DB15;
+- three PC-owned DB14 bits represent part-at-pusher, extended, and retracted
+  sensors;
+- two PLC-owned DB14 bits represent conveyor run and pusher extend commands;
+- the heartbeat and watchdog status offsets remain unchanged;
+- the deterministic model adds time-based extension/retraction and product
+  transfer;
+- the pusher is single-solenoid/spring-return, so a false extend command
+  retracts it;
+- the point binding forces both commands false on unhealthy communication or
+  bad point quality;
+- the visualizer displays pusher position and extended/retracted status;
+- validation, preview, and guarded live command files are included in a
+  separate Scene 2 VM package;
+- 129 offline unit tests cover the existing interface plus the new Scene 2
+  contract, sequence, binding, and visual projection.
+
+The proposed Scene 2 ladder latches `Pusher_Extend` when a part is present and
+the pusher is retracted, resets it when extended or communication is lost, and
+permits conveyor motion only while communication is healthy, the pusher is
+retracted, no part is at the pusher, and no push is active.
+
+Scene 2 has not yet been downloaded and observed on the target PLC/VM. Do not
+record it as live-proven until the complete stop, push, transfer, retract, and
+restart sequence is visible in both the graphical viewer and TIA watch table.
+
 ## Next implementation milestone
 
-Add a repeatable material-handling action so the product can leave the
-photoeye. Prefer a PLC-controlled pusher or transfer actuator with explicit
-command and feedback points. This is closer to a Factory I/O-style logic test
-than automatically clearing the sensor inside the visualizer, and it gives
-the PLC program another observable sequence step to control.
+Create the separate `Scene 2 - Conveyor Pusher` TIA project from the saved
+Scene 1 project, enter the documented DB14 layout and three ladder networks,
+compile/download it, then run the packaged graphical test and record the live
+result.

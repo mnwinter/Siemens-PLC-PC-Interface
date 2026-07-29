@@ -10,6 +10,11 @@ from siemens_plc_pc_interface.components import (
     ConveyorPhotoeye,
     ConveyorPhotoeyeConfig,
     ConveyorPointBinding,
+    ConveyorPusher,
+    ConveyorPusherConfig,
+    ConveyorPusherInputs,
+    ConveyorPusherPointBinding,
+    ConveyorPusherState,
     ConveyorState,
 )
 from siemens_plc_pc_interface.heartbeat import HeartbeatStatus
@@ -34,6 +39,7 @@ def update_result(
     *,
     health: LoopHealth,
     command: bool | float = True,
+    extend_command: bool | float = True,
     quality: PointQuality = PointQuality.GOOD,
 ) -> UpdateResult:
     heartbeat_healthy = health in (
@@ -64,11 +70,22 @@ def update_result(
         quality=quality,
         unit=None,
     )
+    extend_sample = PointSample(
+        point_name="pusher_extend",
+        tag_name="pusher_extend_raw",
+        value=extend_command,
+        raw_value=extend_command,
+        quality=quality,
+        unit=None,
+    )
     return UpdateResult(
         cycle=cycle,
         health=health,
         pc_point_samples={},
-        plc_point_samples={"conveyor_running": command_sample},
+        plc_point_samples={
+            "conveyor_running": command_sample,
+            "pusher_extend": extend_sample,
+        },
         diagnostics=(),
     )
 
@@ -289,6 +306,151 @@ class ConveyorPointBindingTests(unittest.TestCase):
             ConveyorPointBinding("", "simulated_photoeye")
         with self.assertRaisesRegex(ComponentError, "different"):
             ConveyorPointBinding("same", "same")
+
+
+class ConveyorPusherTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.pusher = ConveyorPusher(
+            ConveyorPusherConfig(
+                conveyor=conveyor_config(),
+                pusher_stroke_time_s=0.3,
+                transfer_position_fraction=0.8,
+            )
+        )
+
+    def test_safe_initial_state_reports_retracted_limit(self) -> None:
+        snapshot = self.pusher.snapshot
+
+        self.assertIs(snapshot.state, ConveyorPusherState.STOPPED_EMPTY)
+        self.assertTrue(snapshot.pusher_retracted)
+        self.assertFalse(snapshot.pusher_extended)
+        self.assertEqual(snapshot.pusher_position, 0.0)
+
+    def test_product_is_transferred_when_pusher_crosses_threshold(self) -> None:
+        self.pusher.load_object()
+        at_sensor = self.pusher.step(
+            1.0,
+            ConveyorPusherInputs(
+                run_command=True,
+                extend_command=False,
+            ),
+        )
+        partway = self.pusher.step(
+            0.15,
+            ConveyorPusherInputs(
+                run_command=False,
+                extend_command=True,
+            ),
+        )
+        transferred = self.pusher.step(
+            0.09,
+            ConveyorPusherInputs(
+                run_command=False,
+                extend_command=True,
+            ),
+        )
+
+        self.assertTrue(at_sensor.photoeye_blocked)
+        self.assertAlmostEqual(partway.pusher_position, 0.5)
+        self.assertTrue(partway.object_present)
+        self.assertTrue(transferred.object_transferred)
+        self.assertFalse(transferred.object_present)
+        self.assertFalse(transferred.photoeye_blocked)
+        self.assertEqual(transferred.completed_count, 1)
+
+    def test_single_solenoid_pusher_retracts_when_command_clears(self) -> None:
+        extended = self.pusher.step(
+            0.3,
+            ConveyorPusherInputs(
+                run_command=False,
+                extend_command=True,
+            ),
+        )
+        retracted = self.pusher.step(
+            0.3,
+            ConveyorPusherInputs(
+                run_command=False,
+                extend_command=False,
+            ),
+        )
+
+        self.assertTrue(extended.pusher_extended)
+        self.assertIs(extended.state, ConveyorPusherState.EXTENDED)
+        self.assertTrue(retracted.pusher_retracted)
+        self.assertIs(
+            retracted.state,
+            ConveyorPusherState.STOPPED_EMPTY,
+        )
+
+    def test_reset_clears_product_count_and_retracts_pusher(self) -> None:
+        self.pusher.load_object()
+        self.pusher.step(
+            0.3,
+            ConveyorPusherInputs(
+                run_command=False,
+                extend_command=True,
+            ),
+        )
+
+        reset = self.pusher.step(
+            0.01,
+            ConveyorPusherInputs(
+                run_command=True,
+                extend_command=True,
+                reset_scene=True,
+            ),
+        )
+
+        self.assertIs(reset.state, ConveyorPusherState.RESET)
+        self.assertFalse(reset.object_present)
+        self.assertTrue(reset.pusher_retracted)
+        self.assertEqual(reset.completed_count, 0)
+
+
+class ConveyorPusherPointBindingTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.binding = ConveyorPusherPointBinding(
+            run_command_point="conveyor_running",
+            extend_command_point="pusher_extend",
+            photoeye_point="part_at_pusher",
+            extended_sensor_point="pusher_extended",
+            retracted_sensor_point="pusher_retracted",
+        )
+
+    def test_binding_accepts_two_healthy_boolean_commands(self) -> None:
+        inputs = self.binding.inputs_from_update(
+            update_result(health=LoopHealth.HEALTHY)
+        )
+
+        self.assertTrue(inputs.run_command)
+        self.assertTrue(inputs.extend_command)
+
+    def test_binding_forces_both_commands_safe_on_fault(self) -> None:
+        inputs = self.binding.inputs_from_update(
+            update_result(health=LoopHealth.FAULT)
+        )
+
+        self.assertFalse(inputs.run_command)
+        self.assertFalse(inputs.extend_command)
+
+    def test_binding_maps_all_three_pc_owned_sensors(self) -> None:
+        snapshot = ConveyorPusher(
+            ConveyorPusherConfig(
+                conveyor=conveyor_config(),
+                pusher_stroke_time_s=0.3,
+            )
+        ).snapshot
+
+        values = self.binding.pc_point_values(snapshot)
+
+        self.assertEqual(
+            values,
+            {
+                "part_at_pusher": False,
+                "pusher_extended": False,
+                "pusher_retracted": True,
+            },
+        )
 
 
 if __name__ == "__main__":

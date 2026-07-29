@@ -14,6 +14,8 @@ from .components import (
     ComponentError,
     ConveyorPhotoeyeConfig,
     ConveyorPointBinding,
+    ConveyorPusherConfig,
+    ConveyorPusherPointBinding,
 )
 from .config import DigitalPointConfig, Direction, InterfaceConfig
 
@@ -40,6 +42,19 @@ class ConveyorSceneConfig:
 
 
 @dataclass(frozen=True)
+class ConveyorPusherSceneConfig:
+    """One configured conveyor/pusher component and its point binding."""
+
+    component_id: str
+    model: ConveyorPusherConfig
+    binding: ConveyorPusherPointBinding
+    component_type: str = "conveyor_pusher"
+
+
+SceneComponentConfig = ConveyorSceneConfig | ConveyorPusherSceneConfig
+
+
+@dataclass(frozen=True)
 class SceneEvent:
     """One deterministic action applied at a logical scene time."""
 
@@ -56,7 +71,7 @@ class SceneConfig:
     physics_step_ms: int
     max_catchup_steps: int
     plc_exchange_ms: int
-    components: tuple[ConveyorSceneConfig, ...]
+    components: tuple[SceneComponentConfig, ...]
     events: tuple[SceneEvent, ...]
 
     @property
@@ -135,37 +150,13 @@ def _name(value: Any, path: str) -> str:
     return value
 
 
-def _parse_component(
-    value: Any,
-    index: int,
-    interface: InterfaceConfig,
-) -> ConveyorSceneConfig:
-    path = f"components[{index}]"
-    raw = _mapping(value, path)
-    _reject_unknown(raw, {"id", "type", "parameters", "bindings"}, path)
-
-    component_id = _name(_required(raw, "id", path), f"{path}.id")
-    component_type = _required(raw, "type", path)
-    if component_type != "conveyor_photoeye":
-        raise SceneConfigError(
-            f"{path}.type must be 'conveyor_photoeye'"
-        )
-
-    parameters_path = f"{path}.parameters"
-    parameters = _mapping(
-        _required(raw, "parameters", path),
-        parameters_path,
-    )
-    parameter_names = {
-        "length_m",
-        "speed_m_per_s",
-        "object_length_m",
-        "photoeye_position_m",
-        "minimum_photoeye_on_s",
-    }
-    _reject_unknown(parameters, parameter_names, parameters_path)
+def _parse_conveyor_parameters(
+    parameters: dict[str, Any],
+    parameters_path: str,
+) -> ConveyorPhotoeyeConfig:
+    """Parse the conveyor portion shared by both supported components."""
     try:
-        model = ConveyorPhotoeyeConfig(
+        return ConveyorPhotoeyeConfig(
             length_m=_number(
                 _required(parameters, "length_m", parameters_path),
                 f"{parameters_path}.length_m",
@@ -194,16 +185,90 @@ def _parse_component(
     except ComponentError as exc:
         raise SceneConfigError(f"{parameters_path}: {exc}") from exc
 
+
+def _validate_binding_point(
+    interface: InterfaceConfig,
+    point_name: str,
+    expected_direction: Direction,
+    bindings_path: str,
+    role: str,
+) -> DigitalPointConfig:
+    """Validate one scene binding against the typed interface."""
+    try:
+        point = interface.point(point_name)
+    except KeyError as exc:
+        raise SceneConfigError(
+            f"{bindings_path}.{role} references unknown interface "
+            f"point {point_name!r}"
+        ) from exc
+    if not isinstance(point, DigitalPointConfig):
+        raise SceneConfigError(
+            f"{bindings_path}.{role} must reference a digital point"
+        )
+    direction = interface.tag(point.tag).direction
+    if direction is not expected_direction:
+        raise SceneConfigError(
+            f"{bindings_path}.{role} must reference a "
+            f"{expected_direction.value} point"
+        )
+    return point
+
+
+def _parse_component(
+    value: Any,
+    index: int,
+    interface: InterfaceConfig,
+) -> SceneComponentConfig:
+    path = f"components[{index}]"
+    raw = _mapping(value, path)
+    _reject_unknown(raw, {"id", "type", "parameters", "bindings"}, path)
+
+    component_id = _name(_required(raw, "id", path), f"{path}.id")
+    component_type = _required(raw, "type", path)
+    if component_type not in ("conveyor_photoeye", "conveyor_pusher"):
+        raise SceneConfigError(
+            f"{path}.type must be 'conveyor_photoeye' or "
+            "'conveyor_pusher'"
+        )
+
+    parameters_path = f"{path}.parameters"
+    parameters = _mapping(
+        _required(raw, "parameters", path),
+        parameters_path,
+    )
+    conveyor_parameter_names = {
+        "length_m",
+        "speed_m_per_s",
+        "object_length_m",
+        "photoeye_position_m",
+        "minimum_photoeye_on_s",
+    }
+    parameter_names = set(conveyor_parameter_names)
+    if component_type == "conveyor_pusher":
+        parameter_names.update(
+            {"pusher_stroke_time_s", "transfer_position_fraction"}
+        )
+    _reject_unknown(parameters, parameter_names, parameters_path)
+    conveyor_model = _parse_conveyor_parameters(
+        parameters,
+        parameters_path,
+    )
+
     bindings_path = f"{path}.bindings"
     bindings = _mapping(
         _required(raw, "bindings", path),
         bindings_path,
     )
-    _reject_unknown(
-        bindings,
-        {"run_command", "photoeye"},
-        bindings_path,
-    )
+    binding_names = {"run_command", "photoeye"}
+    if component_type == "conveyor_pusher":
+        binding_names.update(
+            {
+                "extend_command",
+                "extended_sensor",
+                "retracted_sensor",
+            }
+        )
+    _reject_unknown(bindings, binding_names, bindings_path)
     run_command = _name(
         _required(bindings, "run_command", bindings_path),
         f"{bindings_path}.run_command",
@@ -212,42 +277,98 @@ def _parse_component(
         _required(bindings, "photoeye", bindings_path),
         f"{bindings_path}.photoeye",
     )
-
-    for point_name, expected_direction, role in (
+    point_specs = [
         (run_command, Direction.PLC_TO_PC, "run_command"),
         (photoeye, Direction.PC_TO_PLC, "photoeye"),
-    ):
-        try:
-            point = interface.point(point_name)
-        except KeyError as exc:
-            raise SceneConfigError(
-                f"{bindings_path}.{role} references unknown interface "
-                f"point {point_name!r}"
-            ) from exc
-        if not isinstance(point, DigitalPointConfig):
-            raise SceneConfigError(
-                f"{bindings_path}.{role} must reference a digital point"
-            )
-        direction = interface.tag(point.tag).direction
-        if direction is not expected_direction:
-            raise SceneConfigError(
-                f"{bindings_path}.{role} must reference a "
-                f"{expected_direction.value} point"
-            )
+    ]
 
-    if interface.point(run_command).group != interface.point(photoeye).group:
+    if component_type == "conveyor_photoeye":
+        points = [
+            _validate_binding_point(
+                interface,
+                point_name,
+                direction,
+                bindings_path,
+                role,
+            )
+            for point_name, direction, role in point_specs
+        ]
+        if len({point.group for point in points}) != 1:
+            raise SceneConfigError(
+                f"{bindings_path} points must use the same interface group"
+            )
+        try:
+            binding = ConveyorPointBinding(
+                run_command_point=run_command,
+                photoeye_point=photoeye,
+            )
+        except ComponentError as exc:
+            raise SceneConfigError(f"{bindings_path}: {exc}") from exc
+        return ConveyorSceneConfig(
+            component_id=component_id,
+            model=conveyor_model,
+            binding=binding,
+        )
+
+    extend_command = _name(
+        _required(bindings, "extend_command", bindings_path),
+        f"{bindings_path}.extend_command",
+    )
+    extended_sensor = _name(
+        _required(bindings, "extended_sensor", bindings_path),
+        f"{bindings_path}.extended_sensor",
+    )
+    retracted_sensor = _name(
+        _required(bindings, "retracted_sensor", bindings_path),
+        f"{bindings_path}.retracted_sensor",
+    )
+    point_specs.extend(
+        (
+            (extend_command, Direction.PLC_TO_PC, "extend_command"),
+            (extended_sensor, Direction.PC_TO_PLC, "extended_sensor"),
+            (retracted_sensor, Direction.PC_TO_PLC, "retracted_sensor"),
+        )
+    )
+    points = [
+        _validate_binding_point(
+            interface,
+            point_name,
+            direction,
+            bindings_path,
+            role,
+        )
+        for point_name, direction, role in point_specs
+    ]
+    if len({point.group for point in points}) != 1:
         raise SceneConfigError(
             f"{bindings_path} points must use the same interface group"
         )
-
     try:
-        binding = ConveyorPointBinding(
+        model = ConveyorPusherConfig(
+            conveyor=conveyor_model,
+            pusher_stroke_time_s=_number(
+                _required(
+                    parameters,
+                    "pusher_stroke_time_s",
+                    parameters_path,
+                ),
+                f"{parameters_path}.pusher_stroke_time_s",
+            ),
+            transfer_position_fraction=_number(
+                parameters.get("transfer_position_fraction", 0.8),
+                f"{parameters_path}.transfer_position_fraction",
+            ),
+        )
+        binding = ConveyorPusherPointBinding(
             run_command_point=run_command,
+            extend_command_point=extend_command,
             photoeye_point=photoeye,
+            extended_sensor_point=extended_sensor,
+            retracted_sensor_point=retracted_sensor,
         )
     except ComponentError as exc:
-        raise SceneConfigError(f"{bindings_path}: {exc}") from exc
-    return ConveyorSceneConfig(
+        raise SceneConfigError(f"{path}: {exc}") from exc
+    return ConveyorPusherSceneConfig(
         component_id=component_id,
         model=model,
         binding=binding,
@@ -364,12 +485,14 @@ def parse_scene_config(
     if len(component_ids) != len(set(component_ids)):
         raise SceneConfigError("component ids must be unique")
 
-    photoeye_points = [
-        component.binding.photoeye_point for component in components
+    pc_point_names = [
+        point_name
+        for component in components
+        for point_name in component.binding.pc_point_names
     ]
-    if len(photoeye_points) != len(set(photoeye_points)):
+    if len(pc_point_names) != len(set(pc_point_names)):
         raise SceneConfigError(
-            "each PC-owned photoeye point may have only one component writer"
+            "each PC-owned scene point may have only one component writer"
         )
 
     raw_events = _list(_required(root, "events", "scene"), "events")

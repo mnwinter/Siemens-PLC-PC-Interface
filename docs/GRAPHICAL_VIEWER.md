@@ -1,8 +1,10 @@
 # Graphical conveyor viewer
 
-The first graphical runtime is a visual layer over the deterministic scene
-engine. It is intended for watching PLC logic drive the simulated conveyor,
-not for hard real-time control.
+The graphical runtime is a visual layer over the deterministic scene engine.
+It is intended for watching PLC logic drive simulated equipment, not for hard
+real-time control. The original Scene 1 conveyor/photoeye remains supported;
+Scene 2 adds a pusher overlay and extended/retracted indication without
+creating a second runtime.
 
 Here, deterministic means the component model advances in fixed simulation
 steps and preserves exchange order. It does not mean Windows, Snap7, or the
@@ -26,6 +28,8 @@ The window shows:
 - conveyor motor running/stopped;
 - one product and its position;
 - photoeye clear/blocked;
+- pusher position and extended/retracted state when the scene contains a
+  pusher;
 - component state and completed count;
 - scene time and exchange duration;
 - update-loop health and heartbeat echo;

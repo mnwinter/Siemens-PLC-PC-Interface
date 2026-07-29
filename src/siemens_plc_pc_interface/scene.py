@@ -6,15 +6,22 @@ import math
 import time
 from collections import deque
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from .components import (
     ComponentError,
     ConveyorInputs,
     ConveyorPhotoeye,
+    ConveyorPusher,
+    ConveyorPusherInputs,
+    ConveyorPusherSnapshot,
     ConveyorSnapshot,
 )
-from .scene_config import SceneConfig, SceneEventAction
+from .scene_config import (
+    ConveyorPusherSceneConfig,
+    SceneConfig,
+    SceneEventAction,
+)
 from .update_loop import SimulationUpdateLoop, UpdateResult
 
 
@@ -28,7 +35,7 @@ class SceneSnapshot:
 
     scene_time_ms: int
     physics_steps: int
-    components: dict[str, ConveyorSnapshot]
+    components: dict[str, ConveyorSnapshot | ConveyorPusherSnapshot]
     update: UpdateResult
 
 
@@ -110,14 +117,26 @@ class SceneEngine:
     ) -> None:
         self.config = config
         self.update_loop = update_loop
-        self._models = {
-            component.component_id: ConveyorPhotoeye(component.model)
-            for component in config.components
-        }
-        self._inputs = {
-            component.component_id: ConveyorInputs(run_command=False)
-            for component in config.components
-        }
+        self._models = {}
+        self._inputs = {}
+        for component in config.components:
+            if isinstance(component, ConveyorPusherSceneConfig):
+                self._models[component.component_id] = ConveyorPusher(
+                    component.model
+                )
+                self._inputs[component.component_id] = (
+                    ConveyorPusherInputs(
+                        run_command=False,
+                        extend_command=False,
+                    )
+                )
+            else:
+                self._models[component.component_id] = ConveyorPhotoeye(
+                    component.model
+                )
+                self._inputs[component.component_id] = ConveyorInputs(
+                    run_command=False
+                )
         self._scene_time_ms = 0
         self._next_event = 0
 
@@ -148,7 +167,10 @@ class SceneEngine:
 
     def step(self, now: float) -> SceneSnapshot:
         """Advance one configured PLC exchange using fixed physics steps."""
-        snapshots: dict[str, ConveyorSnapshot] = {}
+        snapshots: dict[
+            str,
+            ConveyorSnapshot | ConveyorPusherSnapshot,
+        ] = {}
         dt_s = self.config.physics_step_ms / 1_000
 
         for _ in range(self.config.physics_steps_per_exchange):
@@ -156,8 +178,8 @@ class SceneEngine:
             for component in self.config.components:
                 component_id = component.component_id
                 previous = self._inputs[component_id]
-                inputs = ConveyorInputs(
-                    run_command=previous.run_command,
+                inputs = replace(
+                    previous,
                     reset_scene=component_id in reset_components,
                 )
                 snapshots[component_id] = self._models[component_id].step(

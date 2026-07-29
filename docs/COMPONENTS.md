@@ -5,7 +5,9 @@ the typed simulation update loop. They model equipment behavior; they do not
 connect to a PLC, authorize writes, change DB addresses, or replace PLC
 permissives, interlocks, watchdogs, and safety logic.
 
-The first component is a single-object conveyor with one photoeye.
+The first component is a single-object conveyor with one photoeye. The second
+builds on that same conveyor model with a single-solenoid pusher and two
+simulated limit switches.
 
 ## Conveyor/photoeye assumptions
 
@@ -179,6 +181,61 @@ It immediately:
 PLC-controlled machine reset behavior should remain in the PLC program and
 should be exposed as a separate mapped command only when its intended
 simulation behavior is defined.
+
+## Conveyor/pusher component
+
+`ConveyorPusher` reuses the complete `ConveyorPhotoeye` model and adds:
+
+- one PLC-owned extend command;
+- deterministic time-based extension and retraction;
+- one PC-owned extended limit;
+- one PC-owned retracted limit;
+- product transfer when the extending pusher crosses its configured transfer
+  position;
+- an explicit one-cycle `object_transferred` event;
+- fail-safe suppression of both PLC commands when loop health or point
+  quality is bad.
+
+The actuator is intentionally modeled as a single-solenoid, spring-return
+pusher. Removing the extend command causes retraction; there is no separate
+retract command.
+
+```python
+from siemens_plc_pc_interface import (
+    ConveyorPhotoeyeConfig,
+    ConveyorPusher,
+    ConveyorPusherConfig,
+)
+
+pusher = ConveyorPusher(
+    ConveyorPusherConfig(
+        conveyor=ConveyorPhotoeyeConfig(
+            length_m=1.0,
+            speed_m_per_s=0.5,
+            object_length_m=0.2,
+            photoeye_position_m=0.5,
+            minimum_photoeye_on_s=0.1,
+        ),
+        pusher_stroke_time_s=0.3,
+        transfer_position_fraction=0.8,
+    )
+)
+```
+
+`ConveyorPusherPointBinding` uses five distinct digital points:
+
+| Point role | Direction |
+|---|---|
+| Conveyor run command | PLC to PC |
+| Pusher extend command | PLC to PC |
+| Part-at-pusher photoeye | PC to PLC |
+| Pusher extended limit | PC to PLC |
+| Pusher retracted limit | PC to PLC |
+
+The binding requires all five points to use the same interface group. The
+scene validator prevents two components from writing the same PC-owned point.
+See [`SCENE_2_PUSHER.md`](SCENE_2_PUSHER.md) for the standalone Scene 2 TIA
+project, DB14 layout, ladder sequence, and live test.
 
 ## Safety boundary
 

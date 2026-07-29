@@ -40,6 +40,12 @@ from .components import (
     ConveyorPhotoeye,
     ConveyorPhotoeyeConfig,
     ConveyorPointBinding,
+    ConveyorPusher,
+    ConveyorPusherConfig,
+    ConveyorPusherInputs,
+    ConveyorPusherPointBinding,
+    ConveyorPusherSnapshot,
+    ConveyorPusherState,
     ConveyorSnapshot,
     ConveyorState,
 )
@@ -52,6 +58,7 @@ from .scene import (
     TimingSnapshot,
 )
 from .scene_config import (
+    ConveyorPusherSceneConfig,
     ConveyorSceneConfig,
     SceneConfig,
     SceneConfigError,
@@ -61,10 +68,12 @@ from .scene_config import (
     parse_scene_config,
 )
 from .visualizer import (
+    ConveyorPusherVisualState,
     ConveyorVisualState,
     VisualizerOutcome,
     VisualizerUnavailableError,
     project_conveyors,
+    project_conveyor_pushers,
     run_scene_visualizer,
 )
 
@@ -78,6 +87,14 @@ __all__ = [
     "ConveyorPhotoeye",
     "ConveyorPhotoeyeConfig",
     "ConveyorPointBinding",
+    "ConveyorPusher",
+    "ConveyorPusherConfig",
+    "ConveyorPusherInputs",
+    "ConveyorPusherPointBinding",
+    "ConveyorPusherSceneConfig",
+    "ConveyorPusherSnapshot",
+    "ConveyorPusherState",
+    "ConveyorPusherVisualState",
     "ConveyorSnapshot",
     "ConveyorState",
     "ConveyorVisualState",
@@ -122,6 +139,7 @@ __all__ = [
     "load_scene_config",
     "parse_scene_config",
     "project_conveyors",
+    "project_conveyor_pushers",
     "run_scene_visualizer",
     "update_log_record",
 ]

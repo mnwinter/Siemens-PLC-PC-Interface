@@ -3,15 +3,19 @@
 from __future__ import annotations
 
 import unittest
+from pathlib import Path
 
-from siemens_plc_pc_interface.config import parse_config
+from siemens_plc_pc_interface.config import load_config, parse_config
 from siemens_plc_pc_interface.runtime import InterfaceRuntime
 from siemens_plc_pc_interface.scene import (
     SceneEngine,
     SceneRunner,
     SceneRuntimeError,
 )
-from siemens_plc_pc_interface.scene_config import parse_scene_config
+from siemens_plc_pc_interface.scene_config import (
+    load_scene_config,
+    parse_scene_config,
+)
 from siemens_plc_pc_interface.update_loop import (
     LoopHealth,
     SimulationUpdateLoop,
@@ -173,6 +177,89 @@ class SceneEngineTests(unittest.TestCase):
         self.assertEqual(timing.schedule_resyncs, 1)
         self.assertGreaterEqual(timing.maximum_ms, 120.0)
         self.assertGreaterEqual(timing.p99_ms, 120.0)
+
+
+class ConveyorPusherSceneEngineTests(unittest.TestCase):
+    def setUp(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        self.interface = load_config(
+            root
+            / "examples"
+            / "scene-2-db14-pusher-interface.json"
+        )
+        self.scene = load_scene_config(
+            root / "examples" / "scene-2-conveyor-pusher.json",
+            self.interface,
+        )
+        self.transport = FakeTransport(
+            {
+                "conveyor_running": False,
+                "pusher_extend": False,
+                "plc_heartbeat_echo": 0,
+                "simulation_enable": True,
+                "simulation_comm_ok": False,
+                "simulation_timeout": True,
+            }
+        )
+        runtime = InterfaceRuntime(
+            self.interface,
+            self.transport,
+            start_time=0.0,
+        )
+        runtime.connect()
+        self.engine = SceneEngine(
+            self.scene,
+            SimulationUpdateLoop(runtime),
+        )
+
+    def _exchange(
+        self,
+        cycle: int,
+        *,
+        conveyor: bool,
+        pusher: bool,
+    ):
+        self.transport.plc_values["plc_heartbeat_echo"] = cycle
+        self.transport.plc_values["conveyor_running"] = conveyor
+        self.transport.plc_values["pusher_extend"] = pusher
+        return self.engine.step(cycle * 0.02)
+
+    def test_scene_two_completes_one_plc_controlled_push_cycle(self) -> None:
+        first = self.engine.step(0.0)
+        first_snapshot = first.components["conveyor_pusher_1"]
+        self.assertTrue(first_snapshot.object_present)
+        self.assertTrue(first_snapshot.pusher_retracted)
+
+        at_pusher = None
+        for cycle in range(1, 70):
+            result = self._exchange(
+                cycle,
+                conveyor=True,
+                pusher=False,
+            )
+            if result.components[
+                "conveyor_pusher_1"
+            ].photoeye_blocked:
+                at_pusher = result
+                break
+        self.assertIsNotNone(at_pusher)
+
+        transferred = None
+        for cycle in range(70, 100):
+            result = self._exchange(
+                cycle,
+                conveyor=False,
+                pusher=True,
+            )
+            if result.components[
+                "conveyor_pusher_1"
+            ].completed_count == 1:
+                transferred = result
+                break
+        self.assertIsNotNone(transferred)
+        snapshot = transferred.components["conveyor_pusher_1"]
+        self.assertFalse(snapshot.object_present)
+        self.assertEqual(snapshot.completed_count, 1)
 
 
 if __name__ == "__main__":

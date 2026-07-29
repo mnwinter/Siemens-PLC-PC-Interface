@@ -13,7 +13,12 @@ from .scene import (
     SceneRunner,
     TimingSnapshot,
 )
-from .scene_config import ConveyorSceneConfig, SceneConfig
+from .scene_config import (
+    ConveyorPusherSceneConfig,
+    ConveyorSceneConfig,
+    SceneComponentConfig,
+    SceneConfig,
+)
 from .update_loop import LoopHealth, SimulationUpdateLoop
 
 
@@ -34,6 +39,25 @@ class ConveyorVisualState:
     photoeye_fraction: float
     photoeye_blocked: bool
     completed_count: int
+
+
+@dataclass(frozen=True)
+class ConveyorPusherVisualState:
+    """Normalized conveyor/pusher state used by the Canvas renderer."""
+
+    component_id: str
+    state: str
+    motor_running: bool
+    object_present: bool
+    object_leading_fraction: float | None
+    object_trailing_fraction: float | None
+    photoeye_fraction: float
+    photoeye_blocked: bool
+    completed_count: int
+    pusher_position: float
+    pusher_extended: bool
+    pusher_retracted: bool
+    pusher_extending: bool
 
 
 @dataclass(frozen=True)
@@ -66,6 +90,8 @@ def project_conveyors(
     """
     projected: list[ConveyorVisualState] = []
     for component in scene.components:
+        if not isinstance(component, ConveyorSceneConfig):
+            continue
         snapshot = report.snapshot.components[component.component_id]
         length = component.model.length_m
         leading = snapshot.object_leading_edge_m
@@ -88,6 +114,49 @@ def project_conveyors(
                 ),
                 photoeye_blocked=snapshot.photoeye_blocked,
                 completed_count=snapshot.completed_count,
+            )
+        )
+    return tuple(projected)
+
+
+def project_conveyor_pushers(
+    scene: SceneConfig,
+    report: SceneCycleReport,
+) -> tuple[ConveyorPusherVisualState, ...]:
+    """Project authoritative pusher snapshots into display fractions."""
+    projected: list[ConveyorPusherVisualState] = []
+    for component in scene.components:
+        if not isinstance(component, ConveyorPusherSceneConfig):
+            continue
+        snapshot = report.snapshot.components[component.component_id]
+        conveyor = component.model.conveyor
+        leading = snapshot.object_leading_edge_m
+        projected.append(
+            ConveyorPusherVisualState(
+                component_id=component.component_id,
+                state=snapshot.state.value,
+                motor_running=snapshot.motor_running,
+                object_present=snapshot.object_present,
+                object_leading_fraction=(
+                    leading / conveyor.length_m
+                    if leading is not None
+                    else None
+                ),
+                object_trailing_fraction=(
+                    (leading - conveyor.object_length_m)
+                    / conveyor.length_m
+                    if leading is not None
+                    else None
+                ),
+                photoeye_fraction=(
+                    conveyor.photoeye_position_m / conveyor.length_m
+                ),
+                photoeye_blocked=snapshot.photoeye_blocked,
+                completed_count=snapshot.completed_count,
+                pusher_position=snapshot.pusher_position,
+                pusher_extended=snapshot.pusher_extended,
+                pusher_retracted=snapshot.pusher_retracted,
+                pusher_extending=snapshot.pusher_extending,
             )
         )
     return tuple(projected)
@@ -212,7 +281,7 @@ class _TkSceneViewer:
 
         root = tk.Tk()
         self._root = root
-        root.title("Siemens PLC Visual Simulator - Conveyor Scene")
+        root.title("Siemens PLC Visual Simulator")
         root.geometry("1100x720")
         root.minsize(780, 520)
         root.configure(bg=self._BACKGROUND)
@@ -425,20 +494,29 @@ class _TkSceneViewer:
                 else self._BAD
             )
         )
-        self._draw_conveyors(project_conveyors(self._scene, report))
+        self._draw_components(
+            project_conveyors(self._scene, report),
+            project_conveyor_pushers(self._scene, report),
+        )
 
-    def _draw_conveyors(
+    def _draw_components(
         self,
-        states: tuple[ConveyorVisualState, ...],
+        conveyor_states: tuple[ConveyorVisualState, ...],
+        pusher_states: tuple[ConveyorPusherVisualState, ...],
     ) -> None:
         canvas = self._canvas
         canvas.delete("all")
         width = max(canvas.winfo_width(), 760)
         height = max(canvas.winfo_height(), 300)
-        row_height = max(190, height // max(1, len(states)))
+        total = len(conveyor_states) + len(pusher_states)
+        row_height = max(190, height // max(1, total))
+        components = {
+            component.component_id: component
+            for component in self._scene.components
+        }
 
-        for index, state in enumerate(states):
-            component = self._scene.components[index]
+        for index, state in enumerate(conveyor_states):
+            component = components[state.component_id]
             self._draw_conveyor(
                 component,
                 state,
@@ -447,16 +525,40 @@ class _TkSceneViewer:
                 row_height=row_height,
             )
 
+        offset = len(conveyor_states)
+        for index, state in enumerate(pusher_states):
+            component = components[state.component_id]
+            top = (offset + index) * row_height
+            self._draw_conveyor(
+                component,
+                state,
+                top=top,
+                width=width,
+                row_height=row_height,
+            )
+            self._draw_pusher(
+                component,
+                state,
+                top=top,
+                width=width,
+                row_height=row_height,
+            )
+
     def _draw_conveyor(
         self,
-        component: ConveyorSceneConfig,
-        state: ConveyorVisualState,
+        component: SceneComponentConfig,
+        state: ConveyorVisualState | ConveyorPusherVisualState,
         *,
         top: int,
         width: int,
         row_height: int,
     ) -> None:
         canvas = self._canvas
+        model = (
+            component.model.conveyor
+            if isinstance(component, ConveyorPusherSceneConfig)
+            else component.model
+        )
         left = 135.0
         right = max(left + 300.0, width - 70.0)
         belt_y = top + row_height * 0.56
@@ -595,9 +697,74 @@ class _TkSceneViewer:
             right,
             belt_y + 62,
             anchor="e",
-            text=f"{component.model.length_m:.1f} m",
+            text=f"{model.length_m:.1f} m",
             fill=self._MUTED,
             font=("Consolas", 9),
+        )
+
+    def _draw_pusher(
+        self,
+        component: SceneComponentConfig,
+        state: ConveyorPusherVisualState,
+        *,
+        top: int,
+        width: int,
+        row_height: int,
+    ) -> None:
+        """Overlay one pusher cylinder, rod, and limit indication."""
+        if not isinstance(component, ConveyorPusherSceneConfig):
+            return
+        canvas = self._canvas
+        left = 135.0
+        right = max(left + 300.0, width - 70.0)
+        belt_y = top + row_height * 0.56
+        span = right - left
+        sensor_x = left + span * state.photoeye_fraction
+        pusher_x = sensor_x - 48.0
+        cylinder_top = belt_y - 135.0
+        cylinder_bottom = belt_y - 104.0
+        rod_end = cylinder_bottom + 58.0 * state.pusher_position
+        pusher_color = (
+            self._WARN if state.pusher_extending else "#9fb0ba"
+        )
+
+        canvas.create_rectangle(
+            pusher_x - 22,
+            cylinder_top,
+            pusher_x + 22,
+            cylinder_bottom,
+            fill="#344955",
+            outline="#c7d1d6",
+            width=2,
+        )
+        canvas.create_line(
+            pusher_x,
+            cylinder_bottom,
+            pusher_x,
+            rod_end,
+            fill=pusher_color,
+            width=7,
+        )
+        canvas.create_rectangle(
+            pusher_x - 24,
+            rod_end,
+            pusher_x + 24,
+            rod_end + 8,
+            fill=pusher_color,
+            outline="",
+        )
+        canvas.create_text(
+            pusher_x,
+            cylinder_top - 15,
+            text=(
+                "PUSHER EXTENDED"
+                if state.pusher_extended
+                else "PUSHER RETRACTED"
+                if state.pusher_retracted
+                else f"PUSHER {state.pusher_position * 100:.0f}%"
+            ),
+            fill=pusher_color,
+            font=("Segoe UI", 9, "bold"),
         )
 
 

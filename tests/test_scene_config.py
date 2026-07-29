@@ -4,11 +4,14 @@ from __future__ import annotations
 
 import copy
 import unittest
+from pathlib import Path
 
-from siemens_plc_pc_interface.config import parse_config
+from siemens_plc_pc_interface.config import load_config, parse_config
 from siemens_plc_pc_interface.scene_config import (
+    ConveyorPusherSceneConfig,
     SceneConfigError,
     SceneEventAction,
+    load_scene_config,
     parse_scene_config,
 )
 from test_config import valid_config
@@ -149,6 +152,33 @@ class SceneConfigTests(unittest.TestCase):
 
         with self.assertRaisesRegex(SceneConfigError, "one component writer"):
             parse_scene_config(raw, self.interface)
+
+    def test_scene_two_pusher_examples_form_one_typed_contract(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        interface = load_config(
+            root
+            / "examples"
+            / "scene-2-db14-pusher-interface.json"
+        )
+        scene = load_scene_config(
+            root / "examples" / "scene-2-conveyor-pusher.json",
+            interface,
+        )
+
+        component = scene.components[0]
+        self.assertIsInstance(component, ConveyorPusherSceneConfig)
+        self.assertEqual(
+            component.binding.extend_command_point,
+            "pusher_extend",
+        )
+        self.assertEqual(
+            component.binding.pc_point_names,
+            (
+                "part_at_pusher",
+                "pusher_extended",
+                "pusher_retracted",
+            ),
+        )
 
 
 if __name__ == "__main__":

@@ -504,12 +504,24 @@ def _run_scene_validate(interface_path: str, scene_path: str) -> int:
     print("SCENE_VALID: True")
     _print_scene_scope(interface, scene, runtime)
     for component in scene.components:
+        binding = component.binding
+        detail = (
+            f"run={binding.run_command_point} "
+            f"extend={binding.extend_command_point} "
+            f"photoeye={binding.photoeye_point} "
+            f"extended={binding.extended_sensor_point} "
+            f"retracted={binding.retracted_sensor_point}"
+            if component.component_type == "conveyor_pusher"
+            else (
+                f"run={binding.run_command_point} "
+                f"sensor={binding.photoeye_point}"
+            )
+        )
         print(
             "COMPONENT: "
             f"{component.component_id} "
             f"type={component.component_type} "
-            f"run={component.binding.run_command_point} "
-            f"sensor={component.binding.photoeye_point}"
+            f"{detail}"
         )
     print("PLC_CONNECTION_ATTEMPTED: False")
     return 0
@@ -518,8 +530,9 @@ def _run_scene_validate(interface_path: str, scene_path: str) -> int:
 def _scene_cycle_text(report: SceneCycleReport) -> str:
     update = report.snapshot.update
     heartbeat = update.cycle.heartbeat
-    component_values = {
-        component_id: {
+    component_values = {}
+    for component_id, snapshot in report.snapshot.components.items():
+        values = {
             "state": snapshot.state.value,
             "motor_running": snapshot.motor_running,
             "object_present": snapshot.object_present,
@@ -527,8 +540,15 @@ def _scene_cycle_text(report: SceneCycleReport) -> str:
             "photoeye_blocked": snapshot.photoeye_blocked,
             "completed_count": snapshot.completed_count,
         }
-        for component_id, snapshot in report.snapshot.components.items()
-    }
+        if hasattr(snapshot, "pusher_position"):
+            values.update(
+                {
+                    "pusher_position": snapshot.pusher_position,
+                    "pusher_extended": snapshot.pusher_extended,
+                    "pusher_retracted": snapshot.pusher_retracted,
+                }
+            )
+        component_values[component_id] = values
     components = json.dumps(
         component_values,
         sort_keys=True,
@@ -606,6 +626,9 @@ def _run_scene(args: argparse.Namespace) -> int:
                 snapshot.object_present,
                 snapshot.photoeye_blocked,
                 snapshot.completed_count,
+                getattr(snapshot, "pusher_position", None),
+                getattr(snapshot, "pusher_extended", None),
+                getattr(snapshot, "pusher_retracted", None),
             )
             for component_id, snapshot in sorted(
                 report.snapshot.components.items()
@@ -726,7 +749,10 @@ def _run_scene_visualizer(args: argparse.Namespace) -> int:
     )
     _print_scene_scope(interface, scene, runtime)
     print("VIEW: GRAPHICAL CONVEYOR AND PHOTOEYE")
-    print("VIEW_REFRESH: independent of the 20 ms PLC exchange")
+    print("VIEW_COMPONENTS: CONVEYOR, PHOTOEYE, AND OPTIONAL PUSHER")
+    print(
+        "VIEW_REFRESH: independent of the configured PLC exchange"
+    )
 
     if not args.execute:
         print("PLC_CONNECTION_ATTEMPTED: False")

@@ -54,8 +54,9 @@ S7-1200 support is planned but has not yet been hardware-proven by this
 project. Other S7-1500 models and firmware must also be verified before being
 listed as proven.
 
-This repository is not yet a graphical scene editor. It now contains a first
-graphical conveyor/photoeye runtime in addition to the proven connection
+This repository is not yet a drag-and-drop scene editor. It contains a
+graphical conveyor/photoeye runtime and an offline-tested second conveyor/
+pusher scene in addition to the proven connection
 diagnostics, the PLC-side communication watchdog, the DB14 memory
 contract, setup documentation, a validated JSON configuration model, and a
 guarded configuration-driven Snap7 runtime. It also contains an offline-tested
@@ -89,7 +90,13 @@ New users should follow:
 6. [Reusable simulation components](docs/COMPONENTS.md)
 7. [First conveyor/photoeye scene](docs/FIRST_SCENE.md)
 8. [Graphical conveyor viewer](docs/GRAPHICAL_VIEWER.md)
-9. [Real-hardware proof results](docs/PROOF_RESULTS.md)
+9. [Scene 2 conveyor/pusher](docs/SCENE_2_PUSHER.md)
+10. [Real-hardware proof results](docs/PROOF_RESULTS.md)
+
+Use one standalone TIA project per scene. Create the next project with
+**Save As** from the last completed scene, then replace only that scene's
+DB14 members and control logic. Do not accumulate every scene's unused tags
+and DBs in one PLC program. The prior TIA project remains the restore point.
 
 The setup guide covers:
 
@@ -183,7 +190,11 @@ physics or PLC communication. TIA Portal remains responsible for changing
 `Simulation_Enable`. This is deliberately a best-effort visual simulator;
 fixed simulation steps do not make Windows or Snap7 hard real-time.
 
-## Validated DB14 proof contract
+Scene 2 adds a PLC-controlled spring-return pusher. Copy the Scene 1 TIA
+project with **Save As**, reuse DB14 inside the new project, and follow
+[the Scene 2 guide](docs/SCENE_2_PUSHER.md). Scene 1 stays unchanged.
+
+## Validated Scene 1 DB14 proof contract
 
 | Address | Symbol | Type | Owner |
 |---|---|---|---|
@@ -198,11 +209,18 @@ fixed simulation steps do not make Windows or Snap7 hard real-time.
 DB14 must use standard/non-optimized access because the current S7 client uses
 fixed absolute addresses.
 
+Scene 2 deliberately reuses DB14 inside its own standalone TIA project but
+changes the scene-specific Boolean members. Its exact contract is documented
+in [`SCENE_2_PUSHER.md`](docs/SCENE_2_PUSHER.md). Do not combine the two DB14
+layouts in one project.
+
 ## Safety and security boundary
 
-The configured runtime write scope is limited to `DB14.DBX0.0` and
-`DB14.DBD2`. It does not write physical I/O, the operator enable, the
-PLC-owned status fields, or CPU operating state.
+Each scene configuration declares and prints its exact write scope before
+connecting. Scene 1 writes `DB14.DBX0.0` and `DB14.DBD2`. Scene 2 writes
+three simulated sensors at `DB14.DBX0.0` through `DB14.DBX0.2` plus
+`DB14.DBD2`. Neither scene writes physical I/O, operator enable, PLC-owned
+commands/status, or CPU operating state.
 
 PUT/GET is not authenticated or encrypted. Use an isolated or properly
 segmented controls network, limit access to TCP port 102, and never expose the
@@ -240,9 +258,13 @@ authoritative.
 9. **Complete offline:** first graphical conveyor/photoeye viewer using the
    existing headless engine, a dedicated PLC worker thread, independent GUI
    redraws, guarded `--execute`, and clean window-close shutdown.
-10. **Packaged; live test next:** standalone EXE and one-click VM launch
-    files for the graphical viewer. The next proof is opening the window in
-    the Windows Server 2019 VM against the proven 20 ms DB14 exchange.
+10. **Complete on hardware:** the standalone graphical conveyor/photoeye
+    viewer opened in the Windows Server 2019 VM, reached healthy
+    communication, and displayed the expected stop-at-photoeye behavior.
+11. **Complete offline; packaged for live test:** Scene 2 adds a
+    single-solenoid pusher, extended/retracted feedback, a separate DB14
+    contract, deterministic process behavior, graphical rendering, and
+    one-click VM launch files. Its live PLC sequence is not yet proven.
 
 ## Development
 
@@ -276,6 +298,15 @@ Build the complete graphical-viewer VM ZIP:
 
 The generated package is
 `build\SiemensPlcPcInterface-GraphicalViewer-VM.zip`.
+
+Build the separate Scene 2 conveyor/pusher VM ZIP:
+
+```powershell
+.\tools\build_scene_2_pusher_package.ps1
+```
+
+The generated package is
+`build\SiemensPlcPcInterface-Scene-2-Pusher-VM.zip`.
 
 Run the offline unit suite:
 
