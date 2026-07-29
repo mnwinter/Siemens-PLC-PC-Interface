@@ -75,6 +75,30 @@ connect to the PLC.
 The heartbeat counter and progress timeout are implemented as an I/O-free
 state machine with unit tests.
 
+## Typed point model milestone
+
+The scene-facing point layer is implemented and proven offline:
+
+- schema version 1 remains the proven raw-tag format, while version 2 adds
+  typed points explicitly;
+- digital points require a `BOOL` backing tag and support explicit inversion;
+- analog points support validated raw and engineering ranges, units,
+  reverse-acting scales, and deterministic integer rounding;
+- `clamp` produces a bounded value with a clamp diagnostic;
+- `fault` produces no writable raw value and reports a range fault;
+- point ownership is inherited from the backing tag instead of duplicated;
+- PC-owned analog ranges must contain the backing tag's raw safe value;
+- internal heartbeat tags cannot be exposed as scene points;
+- one raw tag can back only one point;
+- contiguous DB byte groups are computed by ownership for a future block
+  transport;
+- mixed-owner bytes are flagged so a future grouped write cannot silently
+  overwrite an opposite-owner bit.
+
+`examples/typed-points.json` is an offline DB100 architecture example. Its
+addresses and PLC behavior have not been downloaded or hardware-tested. The
+proven DB14 contract and current single-tag Snap7 transport are unchanged.
+
 ## Watchdog proof
 
 On 2026-07-24, `Simulation_Watchdog [FB3]` and
@@ -137,11 +161,12 @@ The first Snap7 adapter and controlled runtime cycle are implemented:
 - The CLI does not connect without `--execute` and prints its exact write
   scope.
 
-This layer passes 41 offline unit tests with fake transports and the live
-hardware proof described above.
+The project passes 63 offline unit tests, including fake-transport runtime
+tests and the live hardware proof described above.
 
 ## Next implementation milestone
 
-Define the typed digital and analog point model, including ownership, address
-grouping, scaling, safe values, and diagnostics, before adding the graphical
-scene editor.
+Build the simulation update loop that exchanges typed point values, publishes
+point quality and communication diagnostics, and records useful runtime logs.
+Keep DB14 and the proven transport unchanged while this loop is developed and
+tested offline.

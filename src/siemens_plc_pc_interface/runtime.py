@@ -13,6 +13,7 @@ from .config import (
     validate_data_value,
 )
 from .heartbeat import HeartbeatCounter, HeartbeatMonitor, HeartbeatStatus
+from .points import PointModel, PointSample, PointValueError
 from .transport import PlcTransport, TagValue
 
 
@@ -73,6 +74,7 @@ class InterfaceRuntime:
         self.transport = transport
         self.safe_state_policy = safe_state_policy
         self._heartbeat_counter = heartbeat_counter or HeartbeatCounter()
+        self._point_model = PointModel(config)
         self._heartbeat_monitor = HeartbeatMonitor(
             timeout_ms=config.heartbeat.timeout_ms,
             start_time=start_time,
@@ -113,6 +115,11 @@ class InterfaceRuntime:
         """Return every tag this runtime can read."""
         return self._plc_tags
 
+    @property
+    def point_model(self) -> PointModel:
+        """Return the typed point converter used by this runtime."""
+        return self._point_model
+
     def set_pc_value(self, name: str, value: TagValue) -> None:
         """Set one non-heartbeat, PC-owned scene value."""
         try:
@@ -137,6 +144,22 @@ class InterfaceRuntime:
         if self._pc_values[name] != validated:
             self._pc_values[name] = validated
             self._dirty_pc_tags.add(name)
+
+    def set_pc_point(
+        self,
+        name: str,
+        value: bool | int | float,
+    ) -> PointSample:
+        """Scale and set one configured PC-owned scene point."""
+        sample = self._point_model.encode_pc_value(name, value)
+        if not sample.conversion_succeeded:
+            raise PointValueError(
+                f"point {name!r} rejected the value with quality "
+                f"{sample.quality.value}"
+            )
+        assert sample.raw_value is not None
+        self.set_pc_value(sample.tag_name, sample.raw_value)
+        return sample
 
     def connect(self) -> None:
         if self._connected:

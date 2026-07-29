@@ -9,7 +9,14 @@ import time
 from collections.abc import Sequence
 from typing import Any
 
-from .config import ConfigError, Direction, load_config
+from .config import (
+    AnalogPointConfig,
+    ConfigError,
+    DigitalPointConfig,
+    Direction,
+    load_config,
+)
+from .points import build_address_groups
 from .runtime import InterfaceRuntime, SafeStatePolicy
 from .transport import Snap7Transport
 
@@ -88,6 +95,17 @@ def _run_validate(path: str) -> int:
         tag for tag in config.tags
         if tag.direction is Direction.PLC_TO_PC
     ]
+    digital_points = [
+        point
+        for point in config.points
+        if isinstance(point, DigitalPointConfig)
+    ]
+    analog_points = [
+        point
+        for point in config.points
+        if isinstance(point, AnalogPointConfig)
+    ]
+    address_groups = build_address_groups(config)
 
     print("CONFIG_VALID: True")
     print(f"VERSION: {config.version}")
@@ -101,6 +119,13 @@ def _run_validate(path: str) -> int:
     print(f"CYCLE_MS: {config.connection.cycle_ms}")
     print(f"PC_TO_PLC_TAGS: {len(pc_tags)}")
     print(f"PLC_TO_PC_TAGS: {len(plc_tags)}")
+    print(f"DIGITAL_POINTS: {len(digital_points)}")
+    print(f"ANALOG_POINTS: {len(analog_points)}")
+    print(f"ADDRESS_GROUPS: {len(address_groups)}")
+    print(
+        "MIXED_OWNER_BYTE_GROUPS: "
+        f"{sum(group.shares_byte_with_opposite_owner for group in address_groups)}"
+    )
     print(
         "HEARTBEAT: "
         f"{config.heartbeat.pc_tag} -> "

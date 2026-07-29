@@ -35,6 +35,38 @@ class DataType(str, Enum):
     REAL = "REAL"
 
 
+class PointKind(str, Enum):
+    """Scene-facing point behavior."""
+
+    DIGITAL = "digital"
+    ANALOG = "analog"
+
+
+class OutOfRangePolicy(str, Enum):
+    """How an analog point handles values outside its configured range."""
+
+    CLAMP = "clamp"
+    FAULT = "fault"
+
+
+@dataclass(frozen=True)
+class TagAddress:
+    """Validated DB memory interval used for grouping and diagnostics."""
+
+    db_number: int
+    start_bit: int
+    end_bit: int
+
+    @property
+    def start_byte(self) -> int:
+        return self.start_bit // 8
+
+    @property
+    def end_byte(self) -> int:
+        """Return the exclusive ending byte."""
+        return (self.end_bit + 7) // 8
+
+
 @dataclass(frozen=True)
 class ConnectionConfig:
     """S7 endpoint and timing settings."""
@@ -57,6 +89,7 @@ class TagConfig:
     data_type: DataType
     direction: Direction
     safe_value: bool | int | float | None
+    memory: TagAddress
 
     @property
     def snap7_tag(self) -> str:
@@ -74,6 +107,36 @@ class HeartbeatConfig:
 
 
 @dataclass(frozen=True)
+class DigitalPointConfig:
+    """One Boolean scene point backed by a configured BOOL tag."""
+
+    name: str
+    tag: str
+    group: str
+    inverted: bool
+    kind: PointKind = PointKind.DIGITAL
+
+
+@dataclass(frozen=True)
+class AnalogPointConfig:
+    """One scaled scene point backed by a configured numeric tag."""
+
+    name: str
+    tag: str
+    group: str
+    raw_min: int | float
+    raw_max: int | float
+    engineering_min: float
+    engineering_max: float
+    unit: str
+    out_of_range: OutOfRangePolicy
+    kind: PointKind = PointKind.ANALOG
+
+
+PointConfig = DigitalPointConfig | AnalogPointConfig
+
+
+@dataclass(frozen=True)
 class InterfaceConfig:
     """Complete, validated interface configuration."""
 
@@ -81,12 +144,20 @@ class InterfaceConfig:
     connection: ConnectionConfig
     heartbeat: HeartbeatConfig
     tags: tuple[TagConfig, ...]
+    points: tuple[PointConfig, ...]
 
     def tag(self, name: str) -> TagConfig:
         """Return a tag by configured name."""
         for tag in self.tags:
             if tag.name == name:
                 return tag
+        raise KeyError(name)
+
+    def point(self, name: str) -> PointConfig:
+        """Return a scene point by configured name."""
+        for point in self.points:
+            if point.name == name:
+                return point
         raise KeyError(name)
 
 
@@ -137,6 +208,24 @@ def _string(value: Any, path: str) -> str:
 def _integer(value: Any, path: str) -> int:
     if isinstance(value, bool) or not isinstance(value, int):
         raise ConfigError(f"{path} must be an integer")
+    return value
+
+
+def _number(value: Any, path: str) -> float:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise ConfigError(f"{path} must be numeric")
+    try:
+        parsed = float(value)
+    except OverflowError as exc:
+        raise ConfigError(f"{path} must be finite") from exc
+    if not math.isfinite(parsed):
+        raise ConfigError(f"{path} must be finite")
+    return parsed
+
+
+def _boolean(value: Any, path: str) -> bool:
+    if not isinstance(value, bool):
+        raise ConfigError(f"{path} must be true or false")
     return value
 
 
@@ -273,7 +362,12 @@ def validate_data_value(
     if data_type is DataType.REAL:
         if not isinstance(value, (int, float)):
             raise ConfigError(f"{path} must be numeric for REAL")
-        parsed = float(value)
+        try:
+            parsed = float(value)
+        except OverflowError as exc:
+            raise ConfigError(
+                f"{path} must be a finite 32-bit REAL value"
+            ) from exc
         if not math.isfinite(parsed) or abs(parsed) > 3.402_823_5e38:
             raise ConfigError(
                 f"{path} must be a finite 32-bit REAL value"
@@ -303,7 +397,7 @@ def _address_interval(
     address: str,
     data_type: DataType,
     path: str,
-) -> tuple[int, int, int]:
+) -> TagAddress:
     match = _ADDRESS_PATTERN.fullmatch(address)
     if match is None:
         raise ConfigError(
@@ -341,10 +435,14 @@ def _address_interval(
             )
         start_bit = byte_offset * 8
 
-    return db_number, start_bit, start_bit + _TYPE_BITS[data_type]
+    return TagAddress(
+        db_number=db_number,
+        start_bit=start_bit,
+        end_bit=start_bit + _TYPE_BITS[data_type],
+    )
 
 
-def _parse_tag(value: Any, index: int) -> tuple[TagConfig, tuple[int, int, int]]:
+def _parse_tag(value: Any, index: int) -> TagConfig:
     path = f"tags[{index}]"
     raw = _mapping(value, path)
     _reject_unknown(
@@ -403,22 +501,19 @@ def _parse_tag(value: Any, index: int) -> tuple[TagConfig, tuple[int, int, int]]
             )
         safe_value = None
 
-    return (
-        TagConfig(
-            name=name,
-            plc_symbol=plc_symbol,
-            address=address,
-            data_type=data_type,
-            direction=direction,
-            safe_value=safe_value,
-        ),
-        interval,
+    return TagConfig(
+        name=name,
+        plc_symbol=plc_symbol,
+        address=address,
+        data_type=data_type,
+        direction=direction,
+        safe_value=safe_value,
+        memory=interval,
     )
 
 
 def _validate_unique_and_non_overlapping(
     tags: list[TagConfig],
-    intervals: list[tuple[int, int, int]],
 ) -> None:
     names: set[str] = set()
     symbols: set[str] = set()
@@ -437,8 +532,10 @@ def _validate_unique_and_non_overlapping(
             seen.add(value)
 
     occupied: list[tuple[int, int, int, str]] = []
-    for tag, interval in zip(tags, intervals, strict=True):
-        db_number, start_bit, end_bit = interval
+    for tag in tags:
+        db_number = tag.memory.db_number
+        start_bit = tag.memory.start_bit
+        end_bit = tag.memory.end_bit
         for used_db, used_start, used_end, used_name in occupied:
             overlaps = (
                 db_number == used_db
@@ -451,6 +548,181 @@ def _validate_unique_and_non_overlapping(
                     f"in DB{db_number}"
                 )
         occupied.append((db_number, start_bit, end_bit, tag.name))
+
+
+def _parse_point_kind(value: Any, path: str) -> PointKind:
+    text = _string(value, path).lower()
+    try:
+        return PointKind(text)
+    except ValueError as exc:
+        supported = ", ".join(item.value for item in PointKind)
+        raise ConfigError(f"{path} must be one of: {supported}") from exc
+
+
+def _parse_out_of_range(value: Any, path: str) -> OutOfRangePolicy:
+    text = _string(value, path).lower()
+    try:
+        return OutOfRangePolicy(text)
+    except ValueError as exc:
+        supported = ", ".join(item.value for item in OutOfRangePolicy)
+        raise ConfigError(f"{path} must be one of: {supported}") from exc
+
+
+def _point_name(value: Any, path: str) -> str:
+    name = _string(value, path).lower()
+    if _NAME_PATTERN.fullmatch(name) is None:
+        raise ConfigError(
+            f"{path} must start with a lowercase letter and contain only "
+            "lowercase letters, digits, and underscores"
+        )
+    return name
+
+
+def _parse_point(
+    value: Any,
+    index: int,
+    tags_by_name: dict[str, TagConfig],
+    heartbeat: HeartbeatConfig,
+) -> PointConfig:
+    path = f"points[{index}]"
+    raw = _mapping(value, path)
+    kind = _parse_point_kind(
+        _required(raw, "kind", path),
+        f"{path}.kind",
+    )
+
+    common_fields = {"name", "kind", "tag", "group"}
+    if kind is PointKind.DIGITAL:
+        _reject_unknown(raw, common_fields | {"inverted"}, path)
+    else:
+        _reject_unknown(
+            raw,
+            common_fields
+            | {
+                "raw_min",
+                "raw_max",
+                "engineering_min",
+                "engineering_max",
+                "unit",
+                "out_of_range",
+            },
+            path,
+        )
+
+    name = _point_name(_required(raw, "name", path), f"{path}.name")
+    tag_name = _point_name(_required(raw, "tag", path), f"{path}.tag")
+    group = _point_name(_required(raw, "group", path), f"{path}.group")
+
+    try:
+        tag = tags_by_name[tag_name]
+    except KeyError as exc:
+        raise ConfigError(
+            f"{path}.tag references unknown tag {tag_name!r}"
+        ) from exc
+
+    if tag_name in {heartbeat.pc_tag, heartbeat.echo_tag}:
+        raise ConfigError(
+            f"{path}.tag cannot expose an internal heartbeat tag"
+        )
+
+    if kind is PointKind.DIGITAL:
+        if tag.data_type is not DataType.BOOL:
+            raise ConfigError(
+                f"{path}.tag must reference a BOOL tag for a digital point"
+            )
+        inverted = _boolean(raw.get("inverted", False), f"{path}.inverted")
+        return DigitalPointConfig(
+            name=name,
+            tag=tag_name,
+            group=group,
+            inverted=inverted,
+        )
+
+    if tag.data_type is DataType.BOOL:
+        raise ConfigError(
+            f"{path}.tag must reference a numeric tag for an analog point"
+        )
+
+    raw_min = validate_data_value(
+        _required(raw, "raw_min", path),
+        tag.data_type,
+        f"{path}.raw_min",
+    )
+    raw_max = validate_data_value(
+        _required(raw, "raw_max", path),
+        tag.data_type,
+        f"{path}.raw_max",
+    )
+    if raw_min >= raw_max:
+        raise ConfigError(f"{path}.raw_min must be less than raw_max")
+    if (
+        tag.direction is Direction.PC_TO_PLC
+        and tag.safe_value is not None
+        and not raw_min <= tag.safe_value <= raw_max
+    ):
+        raise ConfigError(
+            f"{path} raw range must contain the backing tag safe_value"
+        )
+
+    engineering_min = _number(
+        _required(raw, "engineering_min", path),
+        f"{path}.engineering_min",
+    )
+    engineering_max = _number(
+        _required(raw, "engineering_max", path),
+        f"{path}.engineering_max",
+    )
+    if engineering_min == engineering_max:
+        raise ConfigError(
+            f"{path}.engineering_min and engineering_max must differ"
+        )
+    if not math.isfinite(engineering_max - engineering_min):
+        raise ConfigError(f"{path} engineering range is too large")
+
+    unit = _string(_required(raw, "unit", path), f"{path}.unit")
+    out_of_range = _parse_out_of_range(
+        _required(raw, "out_of_range", path),
+        f"{path}.out_of_range",
+    )
+    return AnalogPointConfig(
+        name=name,
+        tag=tag_name,
+        group=group,
+        raw_min=raw_min,
+        raw_max=raw_max,
+        engineering_min=engineering_min,
+        engineering_max=engineering_max,
+        unit=unit,
+        out_of_range=out_of_range,
+    )
+
+
+def _parse_points(
+    value: Any,
+    tags_by_name: dict[str, TagConfig],
+    heartbeat: HeartbeatConfig,
+) -> tuple[PointConfig, ...]:
+    raw_points = _list(value, "points")
+    parsed = [
+        _parse_point(item, index, tags_by_name, heartbeat)
+        for index, item in enumerate(raw_points)
+    ]
+
+    names: set[str] = set()
+    tag_names: set[str] = set()
+    for index, point in enumerate(parsed):
+        if point.name in names:
+            raise ConfigError(
+                f"points[{index}].name duplicates {point.name!r}"
+            )
+        names.add(point.name)
+        if point.tag in tag_names:
+            raise ConfigError(
+                f"points[{index}].tag duplicates point tag {point.tag!r}"
+            )
+        tag_names.add(point.tag)
+
+    return tuple(parsed)
 
 
 def _parse_heartbeat(
@@ -524,15 +796,18 @@ def _parse_heartbeat(
 def parse_config(value: Any) -> InterfaceConfig:
     """Validate a decoded JSON value and return an immutable configuration."""
     root = _mapping(value, "config")
+    version = _integer(_required(root, "version", "config"), "version")
+    if version not in {1, 2}:
+        raise ConfigError("version must be 1 or 2")
+
+    allowed_fields = {"version", "connection", "heartbeat", "tags"}
+    if version == 2:
+        allowed_fields.add("points")
     _reject_unknown(
         root,
-        {"version", "connection", "heartbeat", "tags"},
+        allowed_fields,
         "config",
     )
-
-    version = _integer(_required(root, "version", "config"), "version")
-    if version != 1:
-        raise ConfigError("version must be 1")
 
     connection = _parse_connection(
         _required(root, "connection", "config")
@@ -543,25 +818,35 @@ def parse_config(value: Any) -> InterfaceConfig:
         raise ConfigError("tags must contain at least one tag")
 
     parsed_tags: list[TagConfig] = []
-    intervals: list[tuple[int, int, int]] = []
     for index, raw_tag in enumerate(raw_tags):
-        tag, interval = _parse_tag(raw_tag, index)
-        parsed_tags.append(tag)
-        intervals.append(interval)
+        parsed_tags.append(_parse_tag(raw_tag, index))
 
-    _validate_unique_and_non_overlapping(parsed_tags, intervals)
+    _validate_unique_and_non_overlapping(parsed_tags)
     tags_by_name = {tag.name: tag for tag in parsed_tags}
     heartbeat = _parse_heartbeat(
         _required(root, "heartbeat", "config"),
         connection,
         tags_by_name,
     )
+    if version == 2:
+        points = _parse_points(
+            _required(root, "points", "config"),
+            tags_by_name,
+            heartbeat,
+        )
+        if not points:
+            raise ConfigError(
+                "points must contain at least one point for version 2"
+            )
+    else:
+        points = ()
 
     return InterfaceConfig(
         version=version,
         connection=connection,
         heartbeat=heartbeat,
         tags=tuple(parsed_tags),
+        points=points,
     )
 
 

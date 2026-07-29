@@ -34,6 +34,22 @@ class CliTests(unittest.TestCase):
             output.getvalue(),
         )
 
+    def test_typed_point_example_reports_offline_model_counts(self) -> None:
+        path = (
+            Path(__file__).resolve().parents[1]
+            / "examples"
+            / "typed-points.json"
+        )
+        output = io.StringIO()
+
+        with redirect_stdout(output):
+            result = main(["validate", str(path)])
+
+        self.assertEqual(result, 0)
+        self.assertIn("DIGITAL_POINTS: 2", output.getvalue())
+        self.assertIn("ANALOG_POINTS: 2", output.getvalue())
+        self.assertIn("PLC_CONNECTION_ATTEMPTED: False", output.getvalue())
+
     def test_invalid_config_returns_two(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "invalid.json"

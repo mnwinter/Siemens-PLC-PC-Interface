@@ -9,9 +9,12 @@ import unittest
 from pathlib import Path
 
 from siemens_plc_pc_interface.config import (
+    AnalogPointConfig,
     ConfigError,
     DataType,
+    DigitalPointConfig,
     Direction,
+    OutOfRangePolicy,
     load_config,
     parse_config,
 )
@@ -104,6 +107,199 @@ class ConfigTests(unittest.TestCase):
         self.assertIs(pc_bool.data_type, DataType.BOOL)
         self.assertIs(pc_bool.direction, Direction.PC_TO_PLC)
         self.assertEqual(pc_bool.snap7_tag, "DB14.DBX0.0:BOOL")
+        self.assertEqual(config.points, ())
+
+    def test_version_one_rejects_point_extension(self) -> None:
+        raw = valid_config()
+        raw["points"] = []
+
+        with self.assertRaisesRegex(ConfigError, "unknown field.*points"):
+            parse_config(raw)
+
+    def test_unknown_schema_version_is_rejected(self) -> None:
+        raw = valid_config()
+        raw["version"] = 3
+
+        with self.assertRaisesRegex(ConfigError, "version must be 1 or 2"):
+            parse_config(raw)
+
+    def test_version_two_requires_at_least_one_point(self) -> None:
+        raw = valid_config()
+        raw["version"] = 2
+        raw["points"] = []
+
+        with self.assertRaisesRegex(ConfigError, "at least one point"):
+            parse_config(raw)
+
+    def test_digital_and_analog_points_are_typed(self) -> None:
+        raw = valid_config()
+        raw["version"] = 2
+        raw["tags"].append(
+            {
+                "name": "simulated_speed_raw",
+                "plc_symbol": "DB_SimulationProof.SimulatedSpeedRaw",
+                "address": "DB14.DBW12",
+                "data_type": "WORD",
+                "direction": "pc_to_plc",
+                "safe_value": 0,
+            }
+        )
+        raw["points"] = [
+            {
+                "name": "simulated_photoeye",
+                "kind": "digital",
+                "tag": "pc_to_plc",
+                "group": "line_one",
+                "inverted": True,
+            },
+            {
+                "name": "simulated_speed",
+                "kind": "analog",
+                "tag": "simulated_speed_raw",
+                "group": "line_one",
+                "raw_min": 0,
+                "raw_max": 27648,
+                "engineering_min": 0,
+                "engineering_max": 100,
+                "unit": "percent",
+                "out_of_range": "clamp",
+            },
+        ]
+
+        config = parse_config(raw)
+
+        digital = config.point("simulated_photoeye")
+        analog = config.point("simulated_speed")
+        self.assertIsInstance(digital, DigitalPointConfig)
+        self.assertTrue(digital.inverted)
+        self.assertIsInstance(analog, AnalogPointConfig)
+        self.assertEqual(analog.raw_max, 27648)
+        self.assertIs(analog.out_of_range, OutOfRangePolicy.CLAMP)
+
+    def test_point_type_must_match_tag_type(self) -> None:
+        raw = valid_config()
+        raw["version"] = 2
+        raw["points"] = [
+            {
+                "name": "bad_analog",
+                "kind": "analog",
+                "tag": "pc_to_plc",
+                "group": "proof",
+                "raw_min": 0,
+                "raw_max": 1,
+                "engineering_min": 0,
+                "engineering_max": 100,
+                "unit": "percent",
+                "out_of_range": "fault",
+            }
+        ]
+
+        with self.assertRaisesRegex(ConfigError, "numeric tag"):
+            parse_config(raw)
+
+    def test_point_cannot_expose_internal_heartbeat(self) -> None:
+        raw = valid_config()
+        raw["version"] = 2
+        raw["points"] = [
+            {
+                "name": "heartbeat_as_scene_point",
+                "kind": "analog",
+                "tag": "pc_heartbeat",
+                "group": "proof",
+                "raw_min": 0,
+                "raw_max": 100,
+                "engineering_min": 0,
+                "engineering_max": 100,
+                "unit": "count",
+                "out_of_range": "fault",
+            }
+        ]
+
+        with self.assertRaisesRegex(ConfigError, "internal heartbeat"):
+            parse_config(raw)
+
+    def test_analog_raw_range_must_be_ordered(self) -> None:
+        raw = valid_config()
+        raw["version"] = 2
+        raw["tags"].append(
+            {
+                "name": "simulated_speed_raw",
+                "plc_symbol": "DB_SimulationProof.SimulatedSpeedRaw",
+                "address": "DB14.DBW12",
+                "data_type": "WORD",
+                "direction": "pc_to_plc",
+                "safe_value": 0,
+            }
+        )
+        raw["points"] = [
+            {
+                "name": "simulated_speed",
+                "kind": "analog",
+                "tag": "simulated_speed_raw",
+                "group": "line_one",
+                "raw_min": 27648,
+                "raw_max": 0,
+                "engineering_min": 0,
+                "engineering_max": 100,
+                "unit": "percent",
+                "out_of_range": "clamp",
+            }
+        ]
+
+        with self.assertRaisesRegex(ConfigError, "raw_min must be less"):
+            parse_config(raw)
+
+    def test_analog_range_must_contain_pc_safe_value(self) -> None:
+        raw = valid_config()
+        raw["version"] = 2
+        raw["tags"].append(
+            {
+                "name": "simulated_speed_raw",
+                "plc_symbol": "DB_SimulationProof.SimulatedSpeedRaw",
+                "address": "DB14.DBW12",
+                "data_type": "WORD",
+                "direction": "pc_to_plc",
+                "safe_value": 0,
+            }
+        )
+        raw["points"] = [
+            {
+                "name": "simulated_speed",
+                "kind": "analog",
+                "tag": "simulated_speed_raw",
+                "group": "line_one",
+                "raw_min": 1000,
+                "raw_max": 27648,
+                "engineering_min": 0,
+                "engineering_max": 100,
+                "unit": "percent",
+                "out_of_range": "clamp",
+            }
+        ]
+
+        with self.assertRaisesRegex(ConfigError, "contain.*safe_value"):
+            parse_config(raw)
+
+    def test_two_points_cannot_control_the_same_tag(self) -> None:
+        raw = valid_config()
+        raw["version"] = 2
+        raw["points"] = [
+            {
+                "name": "photoeye_one",
+                "kind": "digital",
+                "tag": "pc_to_plc",
+                "group": "line_one",
+            },
+            {
+                "name": "photoeye_two",
+                "kind": "digital",
+                "tag": "pc_to_plc",
+                "group": "line_two",
+            },
+        ]
+
+        with self.assertRaisesRegex(ConfigError, "duplicates point tag"):
+            parse_config(raw)
 
     def test_invalid_ip_is_rejected(self) -> None:
         raw = valid_config()

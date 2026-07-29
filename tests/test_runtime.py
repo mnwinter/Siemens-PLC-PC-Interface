@@ -122,6 +122,39 @@ class InterfaceRuntimeTests(unittest.TestCase):
             ],
         )
 
+    def test_typed_digital_point_sets_its_backing_tag(self) -> None:
+        raw = valid_config()
+        raw["version"] = 2
+        raw["points"] = [
+            {
+                "name": "simulated_photoeye",
+                "kind": "digital",
+                "tag": "pc_to_plc",
+                "group": "proof",
+                "inverted": True,
+            }
+        ]
+        transport = FakeTransport(initial_plc_values())
+        runtime = InterfaceRuntime(
+            parse_config(raw),
+            transport,
+            start_time=0.0,
+        )
+        runtime.connect()
+
+        sample = runtime.set_pc_point("simulated_photoeye", False)
+        runtime.cycle(now=0.0)
+
+        self.assertIs(sample.value, False)
+        self.assertIs(sample.raw_value, True)
+        self.assertEqual(
+            transport.writes[:2],
+            [
+                ("pc_to_plc", True),
+                ("pc_heartbeat", 1),
+            ],
+        )
+
     def test_unchanged_scene_value_is_not_rewritten_every_cycle(self) -> None:
         self.runtime.cycle(now=0.0)
         self.transport.plc_values["plc_heartbeat_echo"] = 1

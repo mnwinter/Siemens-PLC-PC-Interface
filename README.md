@@ -57,7 +57,9 @@ listed as proven.
 This repository is not yet a scene editor. It currently contains the proven
 connection diagnostics, the PLC-side communication watchdog, the DB14 memory
 contract, setup documentation, a validated JSON configuration model, and a
-guarded configuration-driven Snap7 runtime.
+guarded configuration-driven Snap7 runtime. It also contains an offline-tested
+typed point layer for digital inversion, analog scaling, units, range quality,
+and ownership-aware DB address grouping.
 
 The Snap7 transport and runtime pass offline tests with fake clients. On
 2026-07-29, the packaged runtime passed live heartbeat progression, recovery,
@@ -72,7 +74,8 @@ New users should follow:
 1. [Processor, network, DB, and PC setup](docs/USER_SETUP.md)
 2. [DB14 memory contract](docs/DB14_INTERFACE.md)
 3. [JSON configuration reference](docs/CONFIGURATION.md)
-4. [Real-hardware proof results](docs/PROOF_RESULTS.md)
+4. [Typed digital and analog point model](docs/POINT_MODEL.md)
+5. [Real-hardware proof results](docs/PROOF_RESULTS.md)
 
 The setup guide covers:
 
@@ -171,8 +174,10 @@ authoritative.
    runtime with unit-tested ownership and shutdown behavior.
 3. **Complete on hardware:** continuous heartbeat, healthy state, recovery,
    enabled gated output, watchdog timeout, and safe cleanup.
-4. Typed digital and analog point model.
-5. Simulation update loop with diagnostics and logging.
+4. **Complete offline:** typed digital and analog point model with ownership,
+   inversion, scaling, units, safe values, range quality, and address-group
+   diagnostics.
+5. Simulation update loop with point diagnostics and logging.
 6. Reusable equipment components.
 7. Graphical scene editor and runtime.
 

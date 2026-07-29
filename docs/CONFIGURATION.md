@@ -32,10 +32,11 @@ PLC_CONNECTION_ATTEMPTED: False
 
 | Field | Purpose |
 |---|---|
-| `version` | Configuration schema version; currently `1` |
+| `version` | Schema `1` for raw tags or `2` for the typed point extension |
 | `connection` | CPU family, IP, rack/slot, and timing |
 | `heartbeat` | PC heartbeat tag, PLC echo tag, and timeout |
 | `tags` | Typed PLC tag mappings and ownership |
+| `points` | Optional scene-facing digital and analog point definitions |
 
 Unknown fields are rejected. This catches spelling mistakes instead of
 silently ignoring them.
@@ -127,10 +128,32 @@ omit it or set it to `null`.
 The validator checks signed/unsigned integer ranges and requires a real JSON
 Boolean for `BOOL`.
 
-The runtime starts every non-heartbeat PC-owned point at its safe value. On
+The runtime starts every non-heartbeat PC-owned raw tag at its safe value. On
 shutdown, the default policy relies on the PLC watchdog. The optional
 `--write-safe-state-on-exit` flag attempts the safe writes before disconnect,
 but cannot guarantee delivery after a network failure.
+
+## Typed points (schema version 2)
+
+Version 2 adds the required `points` array and scene-facing meaning without
+duplicating PLC addresses or ownership. Each point references one validated
+tag and inherits that tag's `pc_to_plc` or `plc_to_pc` direction.
+
+Version 1 remains valid for the proven DB14 raw-tag configuration. A version 1
+file that contains `points` is rejected; change it to version 2 deliberately
+instead of relying on an older runtime to ignore the new model.
+
+- Digital points require a `BOOL` tag and can apply inversion.
+- Analog points require a numeric tag and define raw range, engineering
+  range, units, and `clamp` or `fault` out-of-range behavior.
+- Internal heartbeat tags cannot be scene points.
+- One tag can back only one point.
+- A PC-owned analog point's raw range must contain its configured safe value.
+
+See the [typed point model](POINT_MODEL.md) and the offline
+[`typed-points.json`](../examples/typed-points.json) example for the complete
+schema and conversion behavior. That DB100 example is proposed architecture,
+not a hardware-tested PLC contract.
 
 ## Heartbeat
 
