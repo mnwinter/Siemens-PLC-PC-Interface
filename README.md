@@ -59,7 +59,9 @@ connection diagnostics, the PLC-side communication watchdog, the DB14 memory
 contract, setup documentation, a validated JSON configuration model, and a
 guarded configuration-driven Snap7 runtime. It also contains an offline-tested
 typed point layer for digital inversion, analog scaling, units, range quality,
-and ownership-aware DB address grouping.
+and ownership-aware DB address grouping. A deterministic typed simulation
+update loop now stages scene values, decodes PLC points, reports communication
+and point health, and can emit JSON-lines cycle logs.
 
 The Snap7 transport and runtime pass offline tests with fake clients. On
 2026-07-29, the packaged runtime passed live heartbeat progression, recovery,
@@ -75,7 +77,8 @@ New users should follow:
 2. [DB14 memory contract](docs/DB14_INTERFACE.md)
 3. [JSON configuration reference](docs/CONFIGURATION.md)
 4. [Typed digital and analog point model](docs/POINT_MODEL.md)
-5. [Real-hardware proof results](docs/PROOF_RESULTS.md)
+5. [Typed simulation update loop and logging](docs/UPDATE_LOOP.md)
+6. [Real-hardware proof results](docs/PROOF_RESULTS.md)
 
 The setup guide covers:
 
@@ -177,7 +180,9 @@ authoritative.
 4. **Complete offline:** typed digital and analog point model with ownership,
    inversion, scaling, units, safe values, range quality, and address-group
    diagnostics.
-5. Simulation update loop with point diagnostics and logging.
+5. **Complete offline:** deterministic simulation update loop with retained
+   scene values, point diagnostics, communication health, and JSON-lines
+   logging.
 6. Reusable equipment components.
 7. Graphical scene editor and runtime.
 

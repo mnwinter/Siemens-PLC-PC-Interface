@@ -161,12 +161,35 @@ The first Snap7 adapter and controlled runtime cycle are implemented:
 - The CLI does not connect without `--execute` and prints its exact write
   scope.
 
-The project passes 63 offline unit tests, including fake-transport runtime
-tests and the live hardware proof described above.
+## Simulation update loop milestone
+
+The typed simulation update loop is implemented and proven offline:
+
+- scene inputs are supplied as partial PC-owned point updates;
+- omitted PC points retain their last accepted value;
+- point conversions are staged before one existing guarded runtime cycle;
+- `clamp` stages the bounded raw value and reports degraded health;
+- `fault` skips that point write, retains the previous accepted value, and
+  reports fault health;
+- all PLC-owned points are decoded from the current cycle read;
+- bad PLC analog values preserve their raw value for diagnostics;
+- heartbeat state and point quality produce explicit `starting`, `healthy`,
+  `degraded`, or `fault` loop health;
+- one optional JSON-lines record captures heartbeat, PC points, PLC points,
+  and diagnostics for every completed update.
+
+The implementation does not change the DB14 contract, current typed-tag
+Snap7 transport, read/write ownership, live-proven cycle order, safe shutdown,
+or PLC watchdog behavior. The loop requires schema version 2 with configured
+points. Its tests use an in-memory transport and do not connect to a PLC.
+
+The project passes 74 offline unit tests, including fake-transport runtime and
+update-loop tests. The live hardware proof described above remains applicable
+to the unchanged transport/runtime layer, not to the proposed DB100 typed
+point example.
 
 ## Next implementation milestone
 
-Build the simulation update loop that exchanges typed point values, publishes
-point quality and communication diagnostics, and records useful runtime logs.
-Keep DB14 and the proven transport unchanged while this loop is developed and
-tested offline.
+Build reusable simulation equipment components above the typed update loop,
+starting with a small conveyor/photoeye component that has explicit inputs,
+outputs, state transitions, timing, and reset-safe behavior.

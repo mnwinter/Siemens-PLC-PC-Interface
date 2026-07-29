@@ -25,6 +25,15 @@ from .points import (
     PointValueError,
     build_address_groups,
 )
+from .update_loop import (
+    DiagnosticLevel,
+    JsonLinesUpdateLogger,
+    LoopHealth,
+    PointDiagnostic,
+    SimulationUpdateLoop,
+    UpdateResult,
+    update_log_record,
+)
 
 __all__ = [
     "AddressGroup",
@@ -32,6 +41,7 @@ __all__ = [
     "ConfigError",
     "ConnectionConfig",
     "DataType",
+    "DiagnosticLevel",
     "DigitalPointConfig",
     "Direction",
     "HeartbeatConfig",
@@ -39,15 +49,21 @@ __all__ = [
     "HeartbeatMonitor",
     "HeartbeatStatus",
     "InterfaceConfig",
+    "JsonLinesUpdateLogger",
+    "LoopHealth",
     "OutOfRangePolicy",
     "PointConfig",
+    "PointDiagnostic",
     "PointKind",
     "PointModel",
     "PointQuality",
     "PointSample",
     "PointValueError",
+    "SimulationUpdateLoop",
     "TagAddress",
     "TagConfig",
+    "UpdateResult",
     "build_address_groups",
     "load_config",
+    "update_log_record",
 ]
