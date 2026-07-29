@@ -343,15 +343,30 @@ The first graphical conveyor/photoeye runtime is implemented:
 - optional best-effort safe-state writing remains available, while the PLC
   watchdog stays authoritative.
 
-This milestone is offline-tested and packaged. Tkinter 8.6 imports on the
-development PC, PyInstaller collected its `_tkinter` hook and Tcl/Tk data,
-and the standalone EXE passed `scene-validate` plus the guarded
-`scene-visualize` preview. The graphical window has not yet been opened in
-the Windows Server 2019 VM or tested against the live DB14 exchange.
+This milestone is packaged and live-tested. On 2026-07-29, the standalone
+viewer was opened in the Windows Server 2019 VM and connected to the live
+DB14 exchange. The displayed evidence confirmed:
+
+- `Connected - scene running`;
+- loop health `HEALTHY`;
+- a progressing heartbeat echo;
+- `Simulation_Enable = true`;
+- `Simulation_Comm_OK = true`;
+- `Simulation_Timeout = false`;
+- approximately 3.18 ms exchange time and 6.71 ms recent p99;
+- the product moved to the configured photoeye;
+- the photoeye changed to blocked and the conveyor motor stopped;
+- component state `stopped_loaded`, matching the current PLC rung.
+
+The final stopped state is expected, not a communication or rendering fault.
+The current PLC logic removes the conveyor run command while the simulated
+photoeye remains blocked, and this first scene has no downstream actuator to
+remove the product.
 
 ## Next implementation milestone
 
-Copy `build\SiemensPlcPcInterface-GraphicalViewer-VM.zip` to the Windows
-Server 2019 VM and run the first live visual test. Confirm the displayed
-conveyor command, product movement, photoeye transition, DB14 status, clean
-stop, and safe-state result.
+Add a repeatable material-handling action so the product can leave the
+photoeye. Prefer a PLC-controlled pusher or transfer actuator with explicit
+command and feedback points. This is closer to a Factory I/O-style logic test
+than automatically clearing the sensor inside the visualizer, and it gives
+the PLC program another observable sequence step to control.
