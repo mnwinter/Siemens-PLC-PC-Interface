@@ -106,9 +106,10 @@ This proves the PLC-side timeout and output gate.
 On 2026-07-29, the packaged continuous PC runtime passed the active portion
 of the live hardware test. With simulation enabled and the heartbeat
 progressing, `Simulation_Comm_OK` and the gated `PLC_To_PC` became true. A
-completed run also reported a successful best-effort safe-state write. The
-final post-stop watch-table state from an enabled run still needs to be
-captured to close the end-to-end proof.
+completed 50-cycle run also reported successful heartbeat proof and
+best-effort safe-state write. After the operator disabled simulation, the
+watch table returned to the clean false/zero baseline. Combined with the
+separate stopped-heartbeat watchdog test, this closes the live proof.
 
 The echo normally trails the newly generated heartbeat by one count because
 the runtime reads PLC-owned values before writing the next PC-owned

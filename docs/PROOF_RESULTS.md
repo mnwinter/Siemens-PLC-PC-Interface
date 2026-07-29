@@ -116,9 +116,18 @@ CYCLE 2 and later:
   Simulation_Timeout=False
   PLC_To_PC=True
 
-Completed first-run CLI results:
+Final enabled-run CLI results:
   HEARTBEAT_PROOF: PASS
   SAFE_STATE_WRITE: PASS
+
+Final watch table after the operator disabled simulation:
+  PC_To_PLC=False
+  PLC_To_PC=False
+  PC_Heartbeat=0
+  PLC_Heartbeat_Echo=0
+  Simulation_Enable=False
+  Simulation_Comm_OK=False
+  Simulation_Timeout=False
 ```
 
 The heartbeat/echo count difference is intentional. The runtime reads the
@@ -126,7 +135,7 @@ PLC-owned echo before it writes the new PC-owned heartbeat, so the accepted
 echo normally trails the newly generated heartbeat by one cycle.
 
 This proves continuous exchange, recovery from a prior timeout, the enabled
-command path, and best-effort restoration of the PC-owned safe values. The
-enabled-run screenshot was captured during cycle 10. A final post-stop
-screenshot is still required to prove the complete enabled
-run-to-watchdog-timeout transition in one commissioning run.
+command path, best-effort restoration of the PC-owned safe values, and a clean
+operator-disabled final state. The separate PLC watchdog proof above proves
+timeout and gated false behavior when heartbeat progression stops. Together,
+the tests close the live commissioning proof.
