@@ -135,6 +135,46 @@ def _build_parser() -> argparse.ArgumentParser:
             "the PLC watchdog remains authoritative"
         ),
     )
+
+    scene_visualize = commands.add_parser(
+        "scene-visualize",
+        help="open a graphical scene with explicit PLC write approval",
+    )
+    scene_visualize.add_argument(
+        "interface",
+        help="path to the schema-v2 JSON interface configuration",
+    )
+    scene_visualize.add_argument(
+        "scene",
+        help="path to the JSON scene configuration",
+    )
+    scene_visualize.add_argument(
+        "--execute",
+        action="store_true",
+        help="authorize writes only to configured pc_to_plc DB tags",
+    )
+    scene_visualize.add_argument(
+        "--cycles",
+        type=_positive_integer,
+        help="stop after this many exchanges; omit to run until the window closes",
+    )
+    scene_visualize.add_argument(
+        "--cycle-ms",
+        type=_cycle_milliseconds,
+        metavar="MS",
+        help=(
+            "override connection.cycle_ms; the value must still align to "
+            "the scene physics step"
+        ),
+    )
+    scene_visualize.add_argument(
+        "--write-safe-state-on-exit",
+        action="store_true",
+        help=(
+            "best-effort write configured safe values before disconnecting; "
+            "the PLC watchdog remains authoritative"
+        ),
+    )
     return parser
 
 
@@ -663,6 +703,59 @@ def _run_scene(args: argparse.Namespace) -> int:
     return exit_code
 
 
+def _run_scene_visualizer(args: argparse.Namespace) -> int:
+    loaded = _load_scene_for_command(
+        args.interface,
+        args.scene,
+        cycle_ms=args.cycle_ms,
+    )
+    if loaded is None:
+        print("PLC_CONNECTION_ATTEMPTED: False")
+        return 2
+    interface, scene = loaded
+    policy = (
+        SafeStatePolicy.BEST_EFFORT_WRITE
+        if args.write_safe_state_on_exit
+        else SafeStatePolicy.PLC_WATCHDOG_ONLY
+    )
+    runtime = InterfaceRuntime(
+        interface,
+        Snap7Transport(),
+        safe_state_policy=policy,
+        start_time=time.monotonic(),
+    )
+    _print_scene_scope(interface, scene, runtime)
+    print("VIEW: GRAPHICAL CONVEYOR AND PHOTOEYE")
+    print("VIEW_REFRESH: independent of the 20 ms PLC exchange")
+
+    if not args.execute:
+        print("PLC_CONNECTION_ATTEMPTED: False")
+        print(
+            "NOT RUN: add --execute to authorize only the listed "
+            "configured DB writes"
+        )
+        return 2
+
+    from .visualizer import (
+        VisualizerUnavailableError,
+        run_scene_visualizer,
+    )
+
+    try:
+        return run_scene_visualizer(
+            scene,
+            runtime,
+            cycles=args.cycles,
+        )
+    except VisualizerUnavailableError as exc:
+        print(
+            f"SCENE_VISUALIZER_UNAVAILABLE: {exc}",
+            file=sys.stderr,
+        )
+        print("PLC_CONNECTION_ATTEMPTED: False")
+        return 2
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """Run one requested command."""
     parser = _build_parser()
@@ -676,6 +769,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _run_scene_validate(args.interface, args.scene)
     if args.command == "scene-run":
         return _run_scene(args)
+    if args.command == "scene-visualize":
+        return _run_scene_visualizer(args)
 
     parser.error(f"unsupported command: {args.command}")
     return 2

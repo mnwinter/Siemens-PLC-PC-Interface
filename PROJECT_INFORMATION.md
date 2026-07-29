@@ -325,10 +325,33 @@ code. Therefore, the faster timing failures still displayed exit code zero.
 The printed timing criteria, not that exit code alone, were used to judge the
 rate sweep.
 
+## First graphical viewer milestone
+
+The first graphical conveyor/photoeye runtime is implemented:
+
+- `scene-visualize` preserves the existing `--execute` write authorization;
+- previewing without `--execute` prints the exact scope and cannot connect;
+- the existing deterministic `SceneEngine` remains the only process model;
+- a worker thread owns Snap7, scene physics, timing, and cleanup;
+- Tkinter only renders the latest completed scene report;
+- GUI redraw timing is independent of the supported best-effort 20 ms PLC
+  exchange;
+- the viewer displays product position, conveyor state, photoeye state,
+  heartbeat health, communication health, simulation enable, PLC timeout, and
+  exchange timing;
+- closing the window requests a stop before the runtime disconnects;
+- optional best-effort safe-state writing remains available, while the PLC
+  watchdog stays authoritative.
+
+This milestone is offline-tested and packaged. Tkinter 8.6 imports on the
+development PC, PyInstaller collected its `_tkinter` hook and Tcl/Tk data,
+and the standalone EXE passed `scene-validate` plus the guarded
+`scene-visualize` preview. The graphical window has not yet been opened in
+the Windows Server 2019 VM or tested against the live DB14 exchange.
+
 ## Next implementation milestone
 
-Build the first graphical scene runtime around the proven 20 ms exchange:
-display the conveyor, product, photoeye, PLC command, communication state, and
-simulation enable/timeout status while keeping the existing headless engine as
-the authoritative simulation model. Timing acceptance should distinguish
-functional visual-simulator operation from optional strict timing tests.
+Copy `build\SiemensPlcPcInterface-GraphicalViewer-VM.zip` to the Windows
+Server 2019 VM and run the first live visual test. Confirm the displayed
+conveyor command, product movement, photoeye transition, DB14 status, clean
+stop, and safe-state result.

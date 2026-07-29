@@ -212,6 +212,7 @@ class SceneRunner:
         *,
         cycles: int | None,
         on_cycle: Callable[[SceneCycleReport], None] | None = None,
+        should_stop: Callable[[], bool] | None = None,
     ) -> TimingSnapshot:
         """
         Run until the cycle limit or interruption.
@@ -229,6 +230,9 @@ class SceneRunner:
         deadline = self._clock()
         completed = 0
         while cycles is None or completed < cycles:
+            if should_stop is not None and should_stop():
+                break
+
             started = self._clock()
             snapshot = self.engine.step(started)
             finished = self._clock()
@@ -247,6 +251,8 @@ class SceneRunner:
                 on_cycle(report)
             completed += 1
             if cycles is not None and completed >= cycles:
+                break
+            if should_stop is not None and should_stop():
                 break
 
             current = self._clock()

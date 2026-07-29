@@ -61,6 +61,65 @@ class SceneCliTests(unittest.TestCase):
         self.assertIn("PLC_CONNECTION_ATTEMPTED: False", output.getvalue())
         self.assertIn("pc_to_plc=DB14.DBX0.0:BOOL", output.getvalue())
 
+    def test_scene_visualize_without_execute_never_connects(self) -> None:
+        class NoConnectTransport:
+            connected = False
+
+            def connect(self, connection: object) -> None:
+                raise AssertionError("visual preview attempted a PLC connection")
+
+            def disconnect(self) -> None:
+                return None
+
+        output = io.StringIO()
+        with (
+            patch(
+                "siemens_plc_pc_interface.cli.Snap7Transport",
+                return_value=NoConnectTransport(),
+            ),
+            redirect_stdout(output),
+        ):
+            result = main(
+                [
+                    "scene-visualize",
+                    str(INTERFACE),
+                    str(FAST_SCENE),
+                ]
+            )
+
+        text = output.getvalue()
+        self.assertEqual(result, 2)
+        self.assertIn("VIEW: GRAPHICAL CONVEYOR AND PHOTOEYE", text)
+        self.assertIn("PLC_CONNECTION_ATTEMPTED: False", text)
+        self.assertIn("pc_to_plc=DB14.DBX0.0:BOOL", text)
+
+    def test_scene_visualize_execute_dispatches_to_viewer(self) -> None:
+        output = io.StringIO()
+        with (
+            patch(
+                "siemens_plc_pc_interface.visualizer.run_scene_visualizer",
+                return_value=0,
+            ) as viewer,
+            redirect_stdout(output),
+        ):
+            result = main(
+                [
+                    "scene-visualize",
+                    str(INTERFACE),
+                    str(FAST_SCENE),
+                    "--execute",
+                    "--cycles",
+                    "3",
+                ]
+            )
+
+        self.assertEqual(result, 0)
+        viewer.assert_called_once()
+        _, runtime = viewer.call_args.args
+        self.assertEqual(runtime.write_scope[0].name, "pc_to_plc")
+        self.assertEqual(runtime.write_scope[1].name, "pc_heartbeat")
+        self.assertEqual(viewer.call_args.kwargs["cycles"], 3)
+
     def test_cycle_override_is_validated_against_fast_scene(self) -> None:
         output = io.StringIO()
 

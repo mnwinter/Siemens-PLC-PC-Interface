@@ -60,6 +60,13 @@ from .scene_config import (
     load_scene_config,
     parse_scene_config,
 )
+from .visualizer import (
+    ConveyorVisualState,
+    VisualizerOutcome,
+    VisualizerUnavailableError,
+    project_conveyors,
+    run_scene_visualizer,
+)
 
 __all__ = [
     "AddressGroup",
@@ -73,6 +80,7 @@ __all__ = [
     "ConveyorPointBinding",
     "ConveyorSnapshot",
     "ConveyorState",
+    "ConveyorVisualState",
     "ConveyorSceneConfig",
     "DataType",
     "DiagnosticLevel",
@@ -107,9 +115,13 @@ __all__ = [
     "TagConfig",
     "UpdateResult",
     "TimingSnapshot",
+    "VisualizerOutcome",
+    "VisualizerUnavailableError",
     "build_address_groups",
     "load_config",
     "load_scene_config",
     "parse_scene_config",
+    "project_conveyors",
+    "run_scene_visualizer",
     "update_log_record",
 ]

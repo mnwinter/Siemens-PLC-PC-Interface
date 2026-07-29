@@ -12,7 +12,7 @@ The goal is to build a maintainable Factory I/O-style interface that can:
 - write simulated sensor and process values;
 - use configuration files instead of hard-coded PLC addresses;
 - provide connection state, heartbeat, diagnostics, and safe defaults;
-- eventually support a graphical scene/runtime layer for PLC program testing.
+- support a graphical scene/runtime layer for PLC program testing.
 
 The PLC remains responsible for permissives, interlocks, operating modes,
 fault handling, and safety. The PC interface is a simulation and commissioning
@@ -22,7 +22,7 @@ tool, not a safety controller.
 
 ```mermaid
 flowchart LR
-    Scene["Future scene / simulation runtime"]
+    Scene["Scene runtime and visualizer"]
     Client["PC S7 client"]
     DB["Dedicated standard-access simulation DB"]
     Mapping["PLC mapping and heartbeat logic"]
@@ -54,8 +54,9 @@ S7-1200 support is planned but has not yet been hardware-proven by this
 project. Other S7-1500 models and firmware must also be verified before being
 listed as proven.
 
-This repository is not yet a graphical scene editor. It currently contains the proven
-connection diagnostics, the PLC-side communication watchdog, the DB14 memory
+This repository is not yet a graphical scene editor. It now contains a first
+graphical conveyor/photoeye runtime in addition to the proven connection
+diagnostics, the PLC-side communication watchdog, the DB14 memory
 contract, setup documentation, a validated JSON configuration model, and a
 guarded configuration-driven Snap7 runtime. It also contains an offline-tested
 typed point layer for digital inversion, analog scaling, units, range quality,
@@ -87,7 +88,8 @@ New users should follow:
 5. [Typed simulation update loop and logging](docs/UPDATE_LOOP.md)
 6. [Reusable simulation components](docs/COMPONENTS.md)
 7. [First conveyor/photoeye scene](docs/FIRST_SCENE.md)
-8. [Real-hardware proof results](docs/PROOF_RESULTS.md)
+8. [Graphical conveyor viewer](docs/GRAPHICAL_VIEWER.md)
+9. [Real-hardware proof results](docs/PROOF_RESULTS.md)
 
 The setup guide covers:
 
@@ -165,6 +167,22 @@ Only after DB14 and the PLC watchdog are downloaded, set
 The runtime writes only the two configured PC-owned DB14 fields. It does not
 write `Simulation_Enable`.
 
+Open the first graphical conveyor scene with the same guarded write scope:
+
+```powershell
+.\.venv\Scripts\siemens-plc-pc-interface.exe scene-visualize `
+    .\examples\db14-conveyor-interface.json `
+    .\examples\conveyor-scene-fast.json `
+    --execute `
+    --write-safe-state-on-exit
+```
+
+The 20 ms PLC exchange drives the existing deterministic scene engine. The
+window redraws independently, so a delayed display frame does not alter scene
+physics or PLC communication. TIA Portal remains responsible for changing
+`Simulation_Enable`. This is deliberately a best-effort visual simulator;
+fixed simulation steps do not make Windows or Snap7 hard real-time.
+
 ## Validated DB14 proof contract
 
 | Address | Symbol | Type | Owner |
@@ -219,8 +237,12 @@ authoritative.
    resynchronizations. The project is a visual logic simulator rather than a
    real-time machine controller, so the proven best-effort 20 ms exchange is
    the supported default; the PLC watchdog remains authoritative.
-9. **Next:** graphical conveyor scene runtime using the existing headless
-   engine and proven 20 ms PLC exchange.
+9. **Complete offline:** first graphical conveyor/photoeye viewer using the
+   existing headless engine, a dedicated PLC worker thread, independent GUI
+   redraws, guarded `--execute`, and clean window-close shutdown.
+10. **Packaged; live test next:** standalone EXE and one-click VM launch
+    files for the graphical viewer. The next proof is opening the window in
+    the Windows Server 2019 VM against the proven 20 ms DB14 exchange.
 
 ## Development
 
@@ -245,6 +267,15 @@ Build the standalone Windows runtime from an approved development computer:
     --specpath build\pyinstaller-spec `
     tools\runtime_entrypoint.py
 ```
+
+Build the complete graphical-viewer VM ZIP:
+
+```powershell
+.\tools\build_graphical_viewer_package.ps1
+```
+
+The generated package is
+`build\SiemensPlcPcInterface-GraphicalViewer-VM.zip`.
 
 Run the offline unit suite:
 

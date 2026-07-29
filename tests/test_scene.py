@@ -117,6 +117,25 @@ class SceneEngineTests(unittest.TestCase):
         self.assertEqual(len(reports), 3)
         self.assertEqual(timing.p99_ms, 0.0)
 
+    def test_runner_stops_before_the_next_exchange_when_requested(self) -> None:
+        clock = ManualClock()
+        runner = SceneRunner(
+            self.engine,
+            clock=clock,
+            sleeper=clock.sleep,
+        )
+        reports = []
+
+        timing = runner.run(
+            cycles=None,
+            on_cycle=reports.append,
+            should_stop=lambda: len(reports) >= 2,
+        )
+
+        self.assertEqual(timing.cycles, 2)
+        self.assertEqual(len(reports), 2)
+        self.assertEqual(clock.sleep_calls, [0.02])
+
     def test_runner_reports_overrun_and_resynchronizes_large_lag(self) -> None:
         clock = ManualClock()
 

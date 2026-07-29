@@ -1,10 +1,13 @@
 # First scene: conveyor and photoeye
 
-The first runnable scene is a deterministic, headless conveyor simulation. It
+The first runnable scene is a deterministic conveyor simulation. It
 loads one product at the infeed, reads a PLC-owned conveyor run command, moves
-the product at a fixed speed, and writes one simulated photoeye to the PLC.
+the product at a fixed speed, and writes one simulated photoeye to the PLC. It
+can run headless for proofs or in the first graphical viewer.
 
-This is the first runtime scene, not yet a graphical scene editor.
+The viewer displays the conveyor, product, photoeye, motor command,
+communication health, heartbeat, simulation enable, and timeout state. It is
+not yet a graphical scene editor; components still come from validated JSON.
 
 ## Proven versus new
 
@@ -19,6 +22,8 @@ This is the first runtime scene, not yet a graphical scene editor.
 | Batched DB14 transport and throttled reporting | Live tested |
 | 20/15/10/5 ms optimized rate sweep | Live tested; 20 ms passed |
 | Conveyor scene against the real PLC | Live functional proof passed |
+| Graphical conveyor/photoeye viewer | Implemented and offline tested |
+| Graphical viewer from the Windows Server 2019 VM | Not yet live tested |
 
 The scene does not write physical `%I` or `%Q`, CPU state, the operator
 enable, or any PLC-owned field.
@@ -213,6 +218,52 @@ py -3 -m siemens_plc_pc_interface scene-run `
 This also does not connect. It prints the exact write scope and exits with code
 2 because `--execute` was intentionally omitted.
 
+## Graphical viewer
+
+Preview the graphical command without connecting:
+
+```powershell
+$env:PYTHONPATH = "src"
+py -3 -m siemens_plc_pc_interface scene-visualize `
+    .\examples\db14-conveyor-interface.json `
+    .\examples\conveyor-scene-fast.json
+```
+
+The preview prints the target, scene timing, and exact DB write scope. It does
+not open a window or connect because `--execute` is absent.
+
+Start the live visual simulator:
+
+```powershell
+$env:PYTHONPATH = "src"
+py -3 -m siemens_plc_pc_interface scene-visualize `
+    .\examples\db14-conveyor-interface.json `
+    .\examples\conveyor-scene-fast.json `
+    --execute `
+    --write-safe-state-on-exit
+```
+
+The Snap7 session and scene scheduler run on one worker thread. Tkinter only
+renders the latest completed `SceneCycleReport`; it does not calculate
+physics, access Snap7, or write PLC memory. The window can therefore redraw at
+the desktop's available frame rate without changing the configured 20 ms PLC
+exchange.
+
+Use **Stop simulator** or close the window to request an orderly stop. The
+worker finishes its current exchange, performs the configured best-effort safe
+write, disconnects, and then closes the window. The PLC watchdog remains
+authoritative if the connection has already failed.
+
+Expected display:
+
+1. Connection changes from `Connecting` to `Connected - scene running`.
+2. Loop health changes from `STARTING` to `HEALTHY`.
+3. `Simulation enable`, `Communication OK`, and `PLC timeout` match DB14.
+4. With `Simulation_Enable = true`, the motor shows `RUN`.
+5. The product travels toward the photoeye.
+6. When the photoeye becomes blocked, the PLC run command drops and the
+   product stops at the sensor.
+
 ## Live commissioning sequence
 
 Before running:
@@ -291,6 +342,9 @@ writes only `DB14.DBX0.0` and `DB14.DBD2`.
 | Product stops at photoeye | Expected first-scene behavior |
 | Photoeye never changes | Confirm the product position advances and DB14.DBX0.0 is not forced |
 | `PLC_To_PC` remains false | Check `Simulation_Enable`, `Simulation_Comm_OK`, and the revised rung |
+| Viewer reports Tkinter unavailable | Install/use a Python build containing Tcl/Tk, or rebuild the EXE with Tkinter collected |
+| Viewer window stops repainting but heartbeat is healthy | Check VM/host desktop load; GUI refresh is separate from the PLC worker |
+| Viewer closes with a safe-state failure | Confirm PLC/network access; then rely on and verify the PLC watchdog timeout |
 
 ## Scene JSON contract
 
