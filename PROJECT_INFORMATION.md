@@ -105,19 +105,18 @@ screenshots confirmed:
 - while `Simulation_Enable = true`, the PLC reported
   `Simulation_Comm_OK = true`, `Simulation_Timeout = false`, and
   `PLC_To_PC = true`;
-- after the runtime stopped and wrote the configured safe state, the watch
-  table showed `PC_To_PLC = false`, `PC_Heartbeat = 0`,
-  `Simulation_Comm_OK = false`, `Simulation_Timeout = true`, and
-  `PLC_To_PC = false`;
-- the runtime reported `SAFE_STATE_WRITE: PASS`.
+- a completed run reported `SAFE_STATE_WRITE: PASS`.
 
 The echo is intentionally one count behind the newly generated PC heartbeat:
 each runtime cycle reads the PLC-owned values first and writes the next
 PC heartbeat last. The first cycle therefore showed heartbeat `1` and echo
 `0`; subsequent cycles showed a progressing echo and healthy communication.
 
-This proves the guarded continuous runtime, PLC recovery, timeout, gated
-command path, and best-effort cleanup on this hardware.
+This proves the guarded continuous runtime, PLC recovery, enabled gated
+command path, and best-effort cleanup on this hardware. The second screenshot
+was captured during cycle 10, so it does not prove the final enabled
+run-to-timeout transition. Capture that post-stop state before closing the
+end-to-end commissioning milestone.
 
 ## Runtime milestone
 
@@ -135,14 +134,19 @@ The first Snap7 adapter and controlled runtime cycle are implemented:
 - The CLI does not connect without `--execute` and prints its exact write
   scope.
 
-This layer passes 41 offline unit tests with fake transports and the live
-hardware proof described above.
+This layer passes 41 offline unit tests with fake transports and the partial
+live hardware proof described above.
 
 ## Next implementation milestone
 
-Define the typed digital and analog point model, including ownership,
-address grouping, scaling, safe values, and diagnostics, before adding the
-scene layer.
+Finish the enabled end-to-end proof:
 
-The runtime and failure behavior are now proven on the listed hardware.
-Complete the typed point model before adding the graphical scene editor.
+1. confirm `HEARTBEAT_PROOF: PASS` and `SAFE_STATE_WRITE: PASS` at the end of
+   the enabled run;
+2. after the runtime stops, confirm `PC_To_PLC = false`,
+   `PC_Heartbeat = 0`, `Simulation_Comm_OK = false`,
+   `Simulation_Timeout = true`, and `PLC_To_PC = false`.
+
+Then define the typed digital and analog point model, including ownership,
+address grouping, scaling, safe values, and diagnostics, before adding the
+graphical scene editor.

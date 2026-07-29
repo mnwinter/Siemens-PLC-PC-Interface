@@ -48,7 +48,7 @@ The communications baseline has been proven on real hardware:
 | PC | Windows Server 2019 VM |
 | Network | Passed-through ASIX USB Ethernet adapter |
 | Library | `python-snap7 3.1.0` |
-| Result | DB14 round trip, continuous heartbeat, watchdog, and safe cleanup passed |
+| Result | DB14 round trip and PLC watchdog passed; continuous-runtime live proof in progress |
 
 S7-1200 support is planned but has not yet been hardware-proven by this
 project. Other S7-1500 models and firmware must also be verified before being
@@ -60,9 +60,10 @@ contract, setup documentation, a validated JSON configuration model, and a
 guarded configuration-driven Snap7 runtime.
 
 The Snap7 transport and runtime pass offline tests with fake clients. On
-2026-07-29, the packaged continuous runtime also passed its live heartbeat,
-PLC watchdog, gated command, timeout, and safe-cleanup proof against the real
-CPU 1512SP-1 PN.
+2026-07-29, the packaged runtime passed live heartbeat progression, recovery,
+the enabled gated command path, and its best-effort safe-state write against
+the real CPU 1512SP-1 PN. The final enabled run-to-timeout screenshot remains
+to close the end-to-end proof.
 
 ## Start here
 
@@ -168,8 +169,9 @@ authoritative.
 1. **Complete:** validated configuration-driven connection and tag model.
 2. **Complete offline:** guarded Snap7 transport and continuous heartbeat
    runtime with unit-tested ownership and shutdown behavior.
-3. **Complete on hardware:** continuous heartbeat, healthy state, recovery,
-   timeout, gated output, and safe cleanup.
+3. **Live proof in progress:** continuous heartbeat, healthy state, recovery,
+   enabled gated output, and safe cleanup passed; final enabled post-stop
+   timeout capture remains.
 4. Typed digital and analog point model.
 5. Simulation update loop with diagnostics and logging.
 6. Reusable equipment components.
