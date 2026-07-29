@@ -34,12 +34,28 @@ from .update_loop import (
     UpdateResult,
     update_log_record,
 )
+from .components import (
+    ComponentError,
+    ConveyorInputs,
+    ConveyorPhotoeye,
+    ConveyorPhotoeyeConfig,
+    ConveyorPointBinding,
+    ConveyorSnapshot,
+    ConveyorState,
+)
 
 __all__ = [
     "AddressGroup",
     "AnalogPointConfig",
+    "ComponentError",
     "ConfigError",
     "ConnectionConfig",
+    "ConveyorInputs",
+    "ConveyorPhotoeye",
+    "ConveyorPhotoeyeConfig",
+    "ConveyorPointBinding",
+    "ConveyorSnapshot",
+    "ConveyorState",
     "DataType",
     "DiagnosticLevel",
     "DigitalPointConfig",

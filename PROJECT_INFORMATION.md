@@ -188,8 +188,36 @@ update-loop tests. The live hardware proof described above remains applicable
 to the unchanged transport/runtime layer, not to the proposed DB100 typed
 point example.
 
+## Reusable component milestone
+
+The first reusable offline process component is implemented:
+
+- one-dimensional constant-speed conveyor motion;
+- one product with explicit length and leading-edge position;
+- one configured photoeye with swept-crossing detection;
+- configurable minimum photoeye on-time to prevent a narrow simulated event
+  from disappearing between update samples;
+- explicit reset, stopped/running, empty/loaded states;
+- one-cycle discharge event and completed-product count;
+- dominant scene reset that suppresses run and clears product/sensor state;
+- binding from a PLC-owned Boolean run point to a PC-owned photoeye point;
+- fail-safe run suppression during update-loop startup, fault, bad command
+  quality, or missing/invalid command mapping.
+
+This component is intentionally single-product and forward-only. It does not
+yet model acceleration, slip, accumulation, jams, collisions, reverse motion,
+or a motor/drive. Product loading and scene reset remain host simulation
+events rather than PLC commands.
+
+The component layer has no Snap7 dependency and no knowledge of PLC IP,
+rack/slot, DB numbers, or absolute addresses. Its behavior is proven only with
+offline unit tests. DB14 and the typed DB100 example remain unchanged.
+
+The project passes 88 offline unit tests.
+
 ## Next implementation milestone
 
-Build reusable simulation equipment components above the typed update loop,
-starting with a small conveyor/photoeye component that has explicit inputs,
-outputs, state transitions, timing, and reset-safe behavior.
+Build the first deterministic scene scheduler and JSON scene definition. It
+should own component update order, elapsed-time validation, point bindings,
+product-load/reset events, update-loop exchange, and log lifecycle without
+weakening the existing explicit PLC write authorization.

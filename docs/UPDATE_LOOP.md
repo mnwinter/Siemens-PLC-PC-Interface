@@ -174,3 +174,6 @@ The unit tests use an in-memory fake transport. They prove:
 No PLC connection is attempted by these tests. The typed DB100 example remains
 proposed architecture and must not be run with `--execute` until a matching
 PLC DB and watchdog have been commissioned.
+
+The first consumer of this result model is documented in
+[Reusable simulation components](COMPONENTS.md).
