@@ -196,9 +196,11 @@ public partial class EquipmentMotionController : Node
             var name = target.Name.ToString();
             var offset = Vector3.Right * (TravelM * _position);
             if (name.StartsWith("KIN_Y_CARRIAGE", StringComparison.Ordinal)
-                || name.StartsWith("KIN_Z_AXIS", StringComparison.Ordinal))
+                || name.StartsWith("KIN_Z_AXIS", StringComparison.Ordinal)
+                || name.StartsWith("GANTRY_GRIPPER", StringComparison.Ordinal))
                 offset += Vector3.Back * (0.45f * _position);
-            if (name.StartsWith("KIN_Z_AXIS", StringComparison.Ordinal))
+            if (name.StartsWith("KIN_Z_AXIS", StringComparison.Ordinal)
+                || name.StartsWith("GANTRY_GRIPPER", StringComparison.Ordinal))
                 // Keep this delivered solid rod inside the carriage housing.
                 // It is not a modeled telescoping actuator.
                 offset += Vector3.Down * (0.12f * _position);
@@ -238,7 +240,8 @@ public partial class EquipmentMotionController : Node
         if (Kind == MotionKind.CartesianGantry)
             return name.StartsWith("KIN_X_BRIDGE", StringComparison.Ordinal)
                 || name.StartsWith("KIN_Y_CARRIAGE", StringComparison.Ordinal)
-                || name.StartsWith("KIN_Z_AXIS", StringComparison.Ordinal);
+                || name.StartsWith("KIN_Z_AXIS", StringComparison.Ordinal)
+                || name.StartsWith("GANTRY_GRIPPER", StringComparison.Ordinal);
         if (Kind == MotionKind.ScissorLift)
         {
             return name.StartsWith("KIN_platform", StringComparison.Ordinal)

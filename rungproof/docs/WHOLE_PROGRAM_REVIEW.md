@@ -1,5 +1,38 @@
 # Whole program review - 2026-10-03
 
+## Current status: visual review reopened (2026-10-04)
+
+The user identified a pallet intersecting a Demo 5 gantry post after the prior
+software review checkpoint. That checkpoint did **not** include multi-angle
+inspection of every scene and cannot establish whole-program visual acceptance.
+The visual-review goal is active. See [MULTI_ANGLE_SCENE_REVIEW.md](MULTI_ANGLE_SCENE_REVIEW.md)
+for the complete catalog coverage ledger and remaining repairs.
+
+Demo 5's pallet, conveyor carton, robot clearance and coordinate-sensor placement
+are corrected. The gantry gripper now moves with its Z axis. Native Windows
+inspection covers four diagonal views and overhead, with motion observed from
+front-left and rear-right views. Seven geometry/motion regression checks pass.
+This is an illustrative command sweep, not closed-loop carton placement.
+
+The new complete shell/geometry inventory also reproduced a scene-opening error:
+REAL points initialized with JSON `0` reached the strict ladder editor as a long.
+Normalize that numeric token to double at the scene-project boundary. The catalog
+test now uses the plant's actual scalar-reading behavior; it failed before the
+fix and all 142 tests pass afterward. All 77 shell scenes now inventory without
+that error. The inventory flags candidates in 45 scenes and does not grant any
+of them visual approval. Powder-mixer multi-angle inspection finds intersecting
+tanks and a roller-shutter incorrectly labeled as a powder discharge chute;
+that scene requires repair.
+
+Parcel-sorter startup and native exercise-editor opening now work with REAL
+`route_position=0`. Its five-view inspection still finds turntable/belt and
+carton interference. Current native static coverage is 3/77, with 74 pending;
+only the bounded Demo 5 geometry repair has passed this new inspection.
+
+Restore tag before this pass: `codex/multi-angle-review-baseline-20261004` at
+`2c3de4b`. The software evidence below remains valid within its stated scope;
+the prior final checkpoint is historical, not the current visual acceptance.
+
 Scope: the entire canonical PLC interface and RungProof application. Demo 5
 is one reproduction example, not the acceptance boundary. The review and repair
 pass covers startup, scene/controller ownership, editor/persistence, workspace

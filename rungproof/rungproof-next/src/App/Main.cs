@@ -139,6 +139,9 @@ public partial class Main : Node3D
         _verifyExternalDialog = userArguments.Contains("--verify-external-dialog", StringComparer.Ordinal);
         _verifyExternalPlayback = userArguments.Contains("--verify-external-playback", StringComparer.Ordinal);
         _verifyPlantMotion = userArguments.Contains("--verify-plant-motion", StringComparer.Ordinal);
+        _verifySceneGeometry = userArguments.Contains("--verify-scene-geometry", StringComparer.Ordinal);
+        _reportSceneGeometry = userArguments.Contains("--report-scene-geometry", StringComparer.Ordinal);
+        _visualSceneReview = userArguments.Contains("--visual-scene-review", StringComparer.Ordinal);
         _verifyWorkspace = userArguments.Contains("--verify-workspace", StringComparer.Ordinal);
         _verifyHud = userArguments.Contains("--verify-hud", StringComparer.Ordinal);
         _verifyCameraInput = userArguments.Contains("--verify-camera-input", StringComparer.Ordinal);
@@ -155,7 +158,7 @@ public partial class Main : Node3D
         _mcpSceneId = userArguments
             .FirstOrDefault(argument => argument.StartsWith("--mcp-scene=", StringComparison.Ordinal))?
             .Substring("--mcp-scene=".Length);
-        _appShellRequested = _verifyAppShell || _verifyExternalDialog || _verifyExternalPlayback || _verifyPlantMotion || _verifyWorkspace || _verifyHud || _verifyCameraInput || _verifySceneControls
+        _appShellRequested = _reportSceneGeometry || _verifySceneGeometry || _visualSceneReview || _verifyAppShell || _verifyExternalDialog || _verifyExternalPlayback || _verifyPlantMotion || _verifyWorkspace || _verifyHud || _verifyCameraInput || _verifySceneControls
             || _verifyVirtualController || _verifyNumericSceneIo || _verifyLadderEditor || _verifySplitView || _verifyUiDensity || _virtualControllerDemo
             || userArguments.Contains("--app-shell", StringComparer.Ordinal);
         _shellView = userArguments
@@ -477,7 +480,16 @@ public partial class Main : Node3D
             if (unavailableRequestedScene)
                 _simulatorShell.SetWorkspaceStatus($"Startup scene '{_shellScene}' unavailable · default scene loaded");
         }
-        if (_verifyHud)
+        if (_visualSceneReview) AddVisualSceneReviewControls();
+        if (_reportSceneGeometry)
+        {
+            CallDeferred(nameof(ReportSceneGeometry));
+        }
+        else if (_verifySceneGeometry)
+        {
+            CallDeferred(nameof(VerifySceneGeometry));
+        }
+        else if (_verifyHud)
         {
             CreateDemoConnections(candidates);
             _simulatorShell.SetReviewState("connections", string.Empty);
@@ -3311,6 +3323,7 @@ public partial class Main : Node3D
         _sceneCameraDirection = sourceCameraPosition - authoredTarget;
         _placedAssetCount = 0;
         _currentSceneId = scene.Id;
+        if (_visualSceneReview) UpdateVisualReviewLabel();
         _simulatorShell?.AttachScene(scene, _sceneRuntime, composition);
         MarkWorkspaceSaved();
         RefreshWorkspaceUi();

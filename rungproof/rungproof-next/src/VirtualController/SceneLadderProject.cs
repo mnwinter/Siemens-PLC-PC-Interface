@@ -37,8 +37,14 @@ public static class SceneLadderProject
                 unsupported.Add(point);
                 continue;
             }
+            var initial = initialValues.GetValueOrDefault(point.Name);
+            // JSON `0` is read by the plant as a long. Its declared REAL type
+            // requires a double in the editor. Normalize this numeric token
+            // at the scene boundary; retain strict validation for other values.
+            if (type == PlcVariableType.Real && initial is long integer)
+                initial = (double)integer;
             document.AddTag(point.Name, input ? PlcVariableRole.Input : PlcVariableRole.Output,
-                point.Name, type.Value, initialValues.GetValueOrDefault(point.Name));
+                point.Name, type.Value, initial);
             document.WatchVariables.Add(point.Name);
         }
         unsupportedPoints = unsupported;

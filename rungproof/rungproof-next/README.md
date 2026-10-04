@@ -27,6 +27,16 @@ and 294 runtime assets. Candidate/training inclusion does not establish
 production quality approval. Older phase descriptions below record the
 original milestones; use the review matrix for current verification boundaries.
 
+For native multi-angle inspection, launch Godot with `-- --app-shell
+--visual-scene-review`. The opt-in review bar provides catalog navigation, four
+diagonal camera views, overhead and a detail zoom. Scene navigation uses the
+normal unsaved-work guards. Normal launch has no review bar.
+`-- --verify-scene-geometry` runs the seven focused Demo 5 clearance/attachment
+checks. `-- --report-scene-geometry` inventories the actual composed meshes in
+all 77 shell scenes. Overlapping bounds are inspection candidates, not proof of
+solid collision or visual acceptance. Track native observations in
+[`../docs/MULTI_ANGLE_SCENE_REVIEW.md`](../docs/MULTI_ANGLE_SCENE_REVIEW.md).
+
 ## Architecture rule
 
 The 3D application never owns direct PLC transport. A separate guarded runtime

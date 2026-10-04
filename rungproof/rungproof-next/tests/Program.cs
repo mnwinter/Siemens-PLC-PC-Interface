@@ -239,7 +239,9 @@ internal static class Program
                 {
                     JsonValueKind.True => true,
                     JsonValueKind.False => false,
-                    JsonValueKind.Number when type is "INT" or "DINT" => value.GetInt64(),
+                    // Match the plant's JSON scalar reader: integer tokens
+                    // remain long even when their declared scene type is REAL.
+                    JsonValueKind.Number when value.TryGetInt64(out var integer) => integer,
                     JsonValueKind.Number => value.GetDouble(),
                     _ => null,
                 };

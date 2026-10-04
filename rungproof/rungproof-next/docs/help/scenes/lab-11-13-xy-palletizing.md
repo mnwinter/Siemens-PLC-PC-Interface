@@ -11,6 +11,11 @@ command motion and a four-pick layer count. Reset starts a new layer. The XYZ
 sweep illustrates the command; it does not place cartons or generate position
 or pick-complete feedback.
 
+The white pallet is centered inside the four gantry posts and rests on the base
+slab. The carton rests on the conveyor deck. The orange tool follows the X/Y/Z
+command offsets with its Z axis; Stop holds that attached pose and Reset
+restores it. The separate vacuum-gripper model remains an illustrative accessory.
+
 ## Expected I/O to operate this scene
 
 All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or hardware addresses. PC-owned points are simulator feedback; PLC-owned points are commands supplied by the controller; SIM points are internal and should not be wired as external I/O.

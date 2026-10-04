@@ -8,6 +8,24 @@ temporary runtime state.
 
 ## Product intent
 
+Visual review reopened (2026-10-04): the user reported a pallet intersecting a
+Demo 5 gantry post. The previous final checkpoint did not inspect every scene
+from multiple angles. The active goal now requires catalog-wide native visual
+coverage and repair; do not mark it complete after Demo 5. Use
+`MULTI_ANGLE_SCENE_REVIEW.md` as the coverage ledger. Demo 5 placement and attached
+gripper motion are corrected and inspected from five angles; seven focused
+geometry checks pass. REAL scene initial JSON integer tokens now normalize at
+the scene-project boundary; the previously mismatched catalog test reproduces
+the production reader and all 142 tests pass. The complete 77-scene shell bounds
+inventory flags 45 scenes for interpretation. Powder-mixer inspection fails:
+overlapping tanks and a powder chute copied from a roller-shutter model.
+Parcel-sorter five-view inspection also fails: intersecting turntables/belts
+and unsupported/intersecting cartons. Its repaired native scene and exercise
+editor now open with REAL route_position=0. Three scenes inspected; 74 pending.
+Candidate AABB flags and scene loading are never visual acceptance. Restore tag
+`codex/multi-angle-review-baseline-20261004` preserves `2c3de4b`. No hardware or
+push. Continue the remaining ledger and asset/placement repairs.
+
 Whole-program review final checkpoint (2026-10-04): Windows startup, all five
 authored demos, controller ownership, editor/history/persistence, native
 workspace authoring and malformed-file rejection were inspected and repaired.
