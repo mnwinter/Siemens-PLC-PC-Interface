@@ -30,6 +30,7 @@
       "config": {
         "style": "pushbutton",
         "action": "toggle-request",
+        "faceLabel": "ATTENTION",
         "color": 3050449
       }
     },

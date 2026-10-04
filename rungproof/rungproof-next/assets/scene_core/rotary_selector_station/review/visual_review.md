@@ -1,41 +1,31 @@
-# Four-position selector-station visual review
+# Rotary selector delivery audit - 2026-10-04
 
-Review date: 2026-09-21
+Disposition: **candidate; prior four-position approval invalidated**.
 
-Disposition: **independent recognition passed - eligible for strict production gate**
+The delivered GLB contains POSITION_label_0/1/2 and three matching tick meshes,
+not the four detents claimed by the archived 2026-09-21 review. Its handle pivot
+quaternion rotates around Godot Z; the front dial is in the X/Y plane. The old
+runtime incorrectly applied Y rotation while retaining its authored Z angle.
+The source builder also currently authors only three marks. Existing pictures
+and the archived independent result do not establish the current delivery's
+four-position animation or the newly composed scene variants.
 
-## Source corrections
+The production entry was moved to candidates and its quality flags cleared.
+The original recognition JSON and visual review are preserved under
+archive-20261004-stale-four-position-review. No new independent pass is claimed.
+The master GLB/Blend and historical pictures are unchanged.
 
-- Replaced the tall, unanchored generic cabinet with a compact floor-mounted
-  operator enclosure, hollow structural pedestal, visible gussets, base plate,
-  washers, and four anchors.
-- Rebuilt the selector around `KIN_selector_handle`; the handle and its flush
-  direction inlay are one hierarchy, with four -55 to +55 degree detents.
-- Corrected the Godot selector binding to rotate around the physical front-face
-  Y axis instead of swinging the mechanism out of the dial plane around Z.
-- Replaced floating labels and the detached-looking red end-piece with flush
-  numbered dial indices, matching radial detent ticks, and an in-handle white
-  direction inlay.
-- Retained the catalog signal as the PC-owned discrete `position` input only;
-  this asset invents no PLC-owned command, physical address, or live-I/O path.
-
-## Evidence inspection
-
-| Evidence | Result | Finding |
-| --- | --- | --- |
-| `hero.png` / `blind_review.png` | Pass locally | Complete enclosure, four-position dial, supported pedestal, and anchored base are in frame. |
-| `selector_dial_and_labels.png` | Pass | Flush 0-3 indices and radial ticks identify the four detents; the selected handle's white inlay remains inside the handle silhouette. |
-| `pedestal_and_anchors.png` | Pass | Pedestal tube, enclosure flange/gussets, base plate, washers, and four anchors form a continuous support path. |
-| `rear_enclosure_and_gland.png` | Pass | Rear enclosure and bottom cable gland are present without a dangling catalog cable. |
-| `state_stopped.png` / `state_auto.png` / `state_running.png` | Pass | Position 0 and position 3 captures prove the handle and inlay rotate together from -55 to +55 degrees; `state_running.png` is the contract-named AUTO witness. |
-| `scale_reference.png` | Pass | One-metre witness establishes the authored floor-station scale. |
-| `wireframe.png` | Pass | Dial, handle, enclosure, supports, and fasteners have distinct, inspectable topology. |
-
-## Independent acceptance
-
-The final separate context-free review identified the unlabeled render as a
-pedestal-mounted rotary selector switch/control station at 0.98 confidence.
-It returned PASS with no major support, collision, scale, or rendering defect.
-It noted only that a large real-world selector handle partially covers the
-selected dial area; the flush numbered detents and direction inlay leave this
-as a minor readability improvement, not a gate failure.
+SceneComposer now creates 2-4 configured radial detents/number labels and hides
+the master's fixed markings. SelectorSwitchController turns the actual handle
+around Z and honors initialPosition. The runtime projects both integer and BOOL
+selector inputs through this same mapping without writing PLC-owned outputs.
+Imported pointer geometry is checked through every declared action and Reset
+in Bay Light Selector, Maintenance Beacon, Fume Extractor and Pallet Pickup.
+Count, alignment and pointer-plane checks failed before repair; Reset already
+passed. All 20 final selector checks pass, including tick/plate contact. Final
+native five-view and close observations cover the Bay Light 2-position variant
+and Maintenance Beacon 4-position variant, including actual 3D clicks and Reset.
+Other variants still need fresh native observation after this shared change.
+Evidence is tracked separately in docs/MULTI_ANGLE_SCENE_REVIEW.md.
+Full master re-authoring, approval/help reconciliation and fresh
+independent asset recognition remain pending.

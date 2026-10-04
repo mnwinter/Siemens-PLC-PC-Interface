@@ -1,10 +1,10 @@
 # Multi-angle scene review - 2026-10-04
 
 Status: **active**. The prior software review did not establish multi-angle
-visual acceptance. Eighteen scenes have five-view native static inspections; 59 remain pending.
+visual acceptance. Twenty-three scenes have five-view native static inspections; 54 remain pending.
 Demo 5, Powder Batch Mixer, Parcel Size Sorter, Conveyor Inspection Cell,
 the Equipment Gallery, Drive Alarm-Code String and Chicken Label Print have repaired static layouts.
-The sorter operator Run still lacks a controller; three simple panels now have corrected function plates and clear spacing. Other scenes
+The sorter operator Run still lacks a controller; six simple panels now have corrected function plates and clear spacing. Other scenes
 remain pending unless their row explicitly records observation. Inspection coverage
 includes failed scenes; it is not a count of accepted scenes.
 
@@ -23,11 +23,54 @@ not catalog dimensions. Its column counts intersecting mesh AABBs between
 separate equipment, with more than 5 mm overlap on each axis. Curved/rotated
 meshes and intentional connections can create false positives. Zero candidates
 also does not prove proper support, equipment identity, or moving clearance.
-42 of 77 scenes have positive counts in the current label-print inventory.
+42 of 77 scenes have positive counts in the selector follow-up inventory.
 Every row requires native inspection.
 
 ## Repairs and open findings
 
+- Two Station Call, Bay Light Selector, Ready/Attention, Dual Contact Permissive
+  and Maintenance Beacon have final native FR/FL/RL/RR/T inspections. Their
+  supports contact the floor and separate equipment remains clear in these views.
+  Close views cover five new function plates: NORTH CALL, SOUTH CALL, ATTENTION,
+  RESET NO and TEST NC. The two call actions independently change PC-owned inputs;
+  actual 3D request/reset/NC controls were clicked on Ready/Attention and Dual
+  Contact Permissive. Reset restores their input defaults. Ready/Attention's
+  request is currently a persistent toggle despite its spring-return description;
+  mouse hold/release and physical contact behavior are not accepted by these checks.
+  Bay lights are single-tier post indicators; actual bay lighting is not modeled.
+- Bay Light Selector exposed three fixed dial marks for a two-position input,
+  and handle motion around Y swung it away from the front face. The delivered
+  master has three marks and a Z-axis pivot, contradicting its old four-position
+  approval. Composed variants now show only their configured 2-4 detents, with
+  numbers outside the rim, ticks contacting the actual plate, and Z-axis handle
+  projection. initialPosition is honored. Native Bay Light Selector clicks show
+  0/1 and Reset to 0; Maintenance Beacon clicks show 0/1/2/3, wrap to 0, and Reset
+  from 1 to 0. All numbers remain readable in final close views. This establishes
+  symbolic dial projection, not beacon output logic or a lockout function.
+  The unchanged master was moved from production to candidates, quality flags
+  cleared, and its stale recognition/review archived. No fresh independent asset
+  recognition is claimed. Master re-authoring, approval/help reconciliation,
+  and fresh native checks of Gallery, Fume Extractor and Pallet Pickup variants
+  remain open after the shared selector change.
+- Normal Run was separately clicked on all five newly inspected lessons and
+  opens the blank exercise editor with NO CONTROLLER LOADED. PC input clicks do
+  not drive PLC-owned outputs without a program. These are static/input checks;
+  the lesson output sequences and user-authored ladder workflow remain unaccepted.
+  The user's Demo 1 window was preserved; isolated reviewers closed cleanly.
+  Fresh build has zero warnings/errors. All 69 geometry checks pass, including
+  20 selector checks of imported ticks, pointer alignment/plane and Reset across
+  four bound selector lessons. Count/alignment/plane checks failed before repair.
+  Plant checks (19), authored scene cases (71), virtual-controller tests (142),
+  shell verification (77 scenes, 294 assets, disconnected) and normal rendered
+  controls pass. Final geometry/build and native dial views include the last
+  tick/legend placement; behavior suites preceded that geometry-only adjustment.
+  Evidence under rungproof-next/.tools: selector-geometry-before.log,
+  selector-final--verify-scene-geometry.log, selector-final--verify-plant-motion.log,
+  selector-scene-contracts.log, selector-virtual-controller.log,
+  selector--verify-app-shell.log, selector-rendered-controls.log,
+  selector-inventory.log, catalog-panels-18-21-native.log,
+  selector-native-complete.log and selector-four-position-native.log.
+  Logs record navigation; screenshots were inspected separately. Goal remains active.
 - Demo 5: pallet now centered between four posts on the base slab; carton rests
   inside the conveyor deck footprint; robot clears the shortened conveyor;
   coordinate-sensor foot clears the separate gripper model. The gantry tool now
@@ -266,12 +309,12 @@ count as this scene's multi-angle or runtime acceptance.
 | 15 | `lab-2-01-workstation-call` | 0 | FR/FL/RL/RR/T + plate detail; repeated after repair | Clear supports/spacing; MATERIAL CALL plate repaired; normal Run opens empty exercise editor |
 | 16 | `lab-2-02-dual-confirmation` | 0 | FR/FL/RL/RR/T + two plate details; repeated after repair | Clear supports/spacing; OPERATOR OK / QUALITY OK plates repaired; normal Run opens empty exercise editor |
 | 17 | `lab-2-03-service-marker-inhibit` | 0 | FR/FL/RL/RR/T + plate detail; repeated after repair | Clear supports/spacing; INHIBIT plate repaired; normal Run opens empty exercise editor |
-| 18 | `lab-2-04-two-station-call` | 0 | Pending | Pending |
-| 19 | `lab-2-05-bay-light-selector` | 0 | Pending | Pending |
-| 20 | `lab-2-06-ready-attention` | 0 | Pending | Pending |
-| 21 | `lab-2-07-dual-contact-permissive` | 0 | Pending | Pending |
+| 18 | `lab-2-04-two-station-call` | 0 | FR/FL/RL/RR/T + close plates | Static clear; NORTH/SOUTH CALL repaired. Independent PC actions/Reset checked; Run empty controller. |
+| 19 | `lab-2-05-bay-light-selector` | 0 | FR/FL/RL/RR/T + close dial | Static clear; 2-position dial/axis repaired; native 0/1/Reset. Post indicators only; Run empty controller. |
+| 20 | `lab-2-06-ready-attention` | 0 | FR/FL/RL/RR/T + close plate | Static clear; ATTENTION repaired; 3D request/Reset checked. Persistent toggle vs spring-return description open; Run empty controller. |
+| 21 | `lab-2-07-dual-contact-permissive` | 0 | FR/FL/RL/RR/T + close plates | Static clear; RESET NO/TEST NC repaired; 3D PC inputs/Reset checked. No physical contact proof; Run empty controller. |
 | 22 | `lab-2-08-inspection-vote` | 0 | Pending | Pending |
-| 23 | `lab-2-09-maintenance-beacon` | 0 | Pending | Pending |
+| 23 | `lab-2-09-maintenance-beacon` | 0 | FR/FL/RL/RR/T + close dial | Static clear; 4-position dial/axis repaired; native 0-3/wrap/Reset. No beacon sequence or lockout proof; Run empty controller. |
 | 24 | `lab-2-10-dust-collector-seal-in` | 0 | Pending | Pending |
 | 25 | `lab-2-11-inbound-tote-stop` | 15 | Pending | Pending |
 | 26 | `lab-2-12-assembly-lift` | 0 | Pending | Pending |

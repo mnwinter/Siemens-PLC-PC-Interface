@@ -14302,6 +14302,59 @@
       "trainingRequirement": "zone handoff sensor",
       "genericBasisAssetId": "sensing.condition.vibration.v1",
       "copyrightBoundary": "Generic training visual; no logo, trade dress, product number, or exact OEM claim."
+    },
+    {
+      "id": "controls.operator-station.selector.v1",
+      "displayName": "Rotary Selector Station (three-mark master)",
+      "category": "controls/operator-stations",
+      "tags": [
+        "rotary selector station",
+        "three-mark master",
+        "scene-configured detents"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/scene_core/rotary_selector_station/source/rotary_selector_station.blend",
+        "deliveryGltf": "res://assets/scene_core/rotary_selector_station/delivery/rotary_selector_station.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/scene_core/rotary_selector_station/collision/rotary_selector_station_collision.glb",
+        "thumbnailFile": "res://assets/scene_core/rotary_selector_station/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 0.7,
+        "heightM": 1.7,
+        "depthM": 0.6
+      },
+      "connectors": [],
+      "kinematics": [
+        {
+          "id": "selector_position",
+          "kind": "rotary",
+          "nodePath": "KIN_selector_handle",
+          "minimum": -55,
+          "maximum": 55,
+          "unit": "deg",
+          "maximumRate": 180
+        }
+      ],
+      "signals": [
+        {
+          "id": "position",
+          "dataType": "int32",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Position."
+        }
+      ],
+      "quality": {
+        "status": "candidate",
+        "blindReviewId": null,
+        "recognitionConfidence": null,
+        "topologyReviewed": false,
+        "materialReviewed": false,
+        "scaleReviewed": false,
+        "animationReviewed": false
+      }
     }
   ]
 }

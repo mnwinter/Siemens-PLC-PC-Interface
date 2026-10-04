@@ -914,12 +914,8 @@ public partial class SceneSimulationRuntime : Node
                         controller.SetPositionNormalized(AsBool(value) ? 1.0f : 0.0f);
                     break;
                 case "selector":
-                    if (equipment.FindChild("KIN_selector_handle", true, false) is Node3D selector)
-                        // The four-position selector is drawn on the front (X/Z)
-                        // plane.  Its physical axis is vertical in Godot's Y-up
-                        // coordinates, so turning Z would swing the handle out of
-                        // the dial instead of between its detented positions.
-                        selector.RotationDegrees = new Vector3(selector.RotationDegrees.X, -55.0f + Convert.ToSingle(value, CultureInfo.InvariantCulture) * 36.7f, selector.RotationDegrees.Z);
+                    if (equipment.FindChild("SelectorSwitchController", true, false) is SelectorSwitchController selector)
+                        selector.SetPosition(Convert.ToSingle(value, CultureInfo.InvariantCulture));
                     break;
                 case "indicator":
                     var color = value is string text ? text : Text(binding, "activeColor", "green");

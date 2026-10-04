@@ -6,7 +6,31 @@ would otherwise be trapped in a local Codex session. It intentionally excludes
 machine-local Codex databases, credentials, screenshots from private chats, and
 temporary runtime state.
 
-Latest follow-up (2026-10-04): native coverage is 18/77 inspected, 59 pending,
+Latest follow-up (2026-10-04): native coverage is 23/77 inspected, 54 pending,
+including failures. Scenes 18-21 and 23 have final FR/FL/RL/RR/T inspections and
+close plates/dial views. Five plates now use NORTH CALL / SOUTH CALL / ATTENTION /
+RESET NO / TEST NC. Native PC input actions and Reset were checked. All five
+normal Run attempts open the blank lesson editor with NO CONTROLLER LOADED;
+no lesson output sequence acceptance is implied. Ready/Attention's toggle versus
+spring-return description remains open.
+
+Shared selector repair: actual imported face is X/Y and handle axis is Z, while
+old runtime applied Y. The master has three marks despite its stale four-position
+approval. Composed variants now show configured 2-4 detents with readable numbers
+outside the rim and ticks resting on the plate. Z projection honors initialPosition
+and Reset. Windows close checks cover Bay Light 0/1 and Maintenance 0-3/wrap/Reset.
+Master GLB/Blend is unchanged; catalog entry moved to candidates, quality cleared,
+stale recognition/review archived. Master re-authoring, approval/help reconciliation,
+and native rechecks of Gallery/Fume Extractor/Pallet Pickup variants remain pending.
+Final build zero warnings/errors and 69 geometry checks pass. Plant checks 19,
+authored cases 71, controller tests 142, shell 77 scenes/294 assets and normal
+rendered controls pass; behavior suites preceded the last tick/legend adjustment.
+Evidence and exact boundaries are recorded in MULTI_ANGLE_SCENE_REVIEW.md and
+the selector asset review. Isolated windows closed cleanly; user Demo 1 preserved.
+Goal active. Next: scene 22 Inspection Vote, then remaining native reviews and
+repairs of recorded failed packages/layouts/workflows. Do not mark all scenes done.
+
+Earlier follow-up (2026-10-04): native coverage was 18/77 inspected, 59 pending,
 including failures. Scenes 9-12 (Wastewater Collection, Multi-Conveyor Pallet
 Route, Service Elevator, Mobile Traffic Lights) each have inspected FR/FL/RL/RR/T
 views and a separately clicked normal Run. All four fail geometry/identity and

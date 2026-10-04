@@ -274,6 +274,7 @@ public partial class Main
             VerifyDriveAlarmGeometry(Check);
             VerifyMotorStateProjection(Check);
             VerifyLabelPrintGeometry(Check);
+            VerifySelectorProjection(Check);
 
             AddMigratedScene("tank-radar", _candidateCatalog!, _mainCamera!, false, false);
             // Exercise an authored parent scale as well as configured sizing.
@@ -595,6 +596,60 @@ public partial class Main
         runtime.ResetSimulation();
         check(!motion.Running && shaft.Transform == authored && runtime.Points["motor_running"] is false,
             "motor_state_reset_restores_shaft_and_output");
+    }
+
+    private void VerifySelectorProjection(Action<bool, string> check)
+    {
+        // Inspect actual imported pointer/tick geometry through each declared
+        // action, including the BOOL mode selector and a four-position dial.
+        foreach (var sceneId in new[] { "lab-2-05-bay-light-selector", "lab-2-09-maintenance-beacon",
+            "lab-2-15-fume-extractor", "lab-2-18-pallet-pickup" })
+        {
+            AddMigratedScene(sceneId, _candidateCatalog!, _mainCamera!, false, false);
+            var equipment = _sceneCompositionRoot!.GetChildren().OfType<Node3D>()
+                .Single(node => node.FindChild("KIN_selector_handle", true, false) is not null);
+            var runtime = _sceneRuntime!;
+            var definition = SceneCatalogLoader.LoadScene(_sceneCatalog!.Scenes.Single(scene => scene.Id == sceneId));
+            var config = definition.Equipment.Single(item => item.Type == "rotarySwitch").Config;
+            var count = config.GetProperty("positionCount").GetInt32();
+            var action = config.GetProperty("action").GetString()!;
+            var binding = definition.Simulation.GetProperty("pointBindings").EnumerateArray()
+                .Single(item => item.GetProperty("mode").GetString() == "selector");
+            var point = binding.GetProperty("point").GetString()!;
+            var pivot = (Node3D)equipment.FindChild("KIN_selector_handle", true, false)!;
+            var inlay = (Node3D)equipment.FindChild("SELECTOR_direction_inlay", true, false)!;
+            var ticks = ReviewMeshes(equipment).Where(mesh => mesh.Name.ToString().StartsWith("POSITION_tick_", StringComparison.Ordinal)).ToArray();
+            check(ticks.Length == count, $"{sceneId}_only_configured_detents_visible");
+            var dialFace = ReviewBounds((MeshInstance3D)equipment.FindChild("SELECTOR_dial_plate", true, false)!).End.Z;
+            check(ticks.All(tick => MathF.Abs(ReviewBounds(tick).Position.Z - dialFace) < 0.001f),
+                $"{sceneId}_tick_solids_rest_on_dial_face");
+            var initial = inlay.GlobalTransform;
+            var aligned = true;
+            var onFace = true;
+            var actionsAccepted = true;
+            for (var step = 0; step <= count; step++)
+            {
+                var ordinal = Convert.ToInt32(runtime.Points[point]);
+                var center = equipment.ToLocal(pivot.GlobalPosition);
+                var tip = equipment.ToLocal(inlay.GlobalPosition);
+                var direction = new Vector2(tip.X - center.X, tip.Y - center.Y).Normalized();
+                var tick = ticks.SingleOrDefault(mesh => mesh.Name == $"POSITION_tick_{ordinal}");
+                if (tick is null) aligned = false;
+                else
+                {
+                    var target = equipment.ToLocal(tick.GlobalPosition) - center;
+                    aligned &= direction.Dot(new Vector2(target.X, target.Y).Normalized()) > 0.999f;
+                }
+                // Authored inlay lies 51 mm forward of the pivot. The old Y
+                // rotation changed this depth and swung the handle off the face.
+                onFace &= MathF.Abs(tip.Z - center.Z - 0.051f) < 0.001f;
+                actionsAccepted &= runtime.ExecuteAction(action);
+            }
+            check(actionsAccepted && aligned, $"{sceneId}_pointer_aligns_with_current_input_detent");
+            check(onFace, $"{sceneId}_pointer_stays_in_dial_plane");
+            runtime.ResetSimulation();
+            check(inlay.GlobalTransform.IsEqualApprox(initial), $"{sceneId}_reset_restores_initial_pointer");
+        }
     }
 
     private void VerifyGalleryGeometry(Action<bool, string> check)

@@ -30,6 +30,7 @@
       "config": {
         "style": "pushbutton",
         "action": "toggle-north-call",
+        "faceLabel": "NORTH CALL",
         "color": 15902976
       }
     },
@@ -45,6 +46,7 @@
       "config": {
         "style": "pushbutton",
         "action": "toggle-south-call",
+        "faceLabel": "SOUTH CALL",
         "color": 15902976
       }
     },

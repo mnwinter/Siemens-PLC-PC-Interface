@@ -1,5 +1,38 @@
 # Whole program review - 2026-10-03
 
+Selector and panel follow-up (2026-10-04): coverage is now 23/77 native five-view
+inspections, 54 pending, including previously recorded failures. Two Station
+Call, Bay Light Selector, Ready/Attention, Dual Contact Permissive and Maintenance
+Beacon have final FR/FL/RL/RR/T inspections with clear spacing and grounded
+supports. Five wrong START plates now read NORTH CALL / SOUTH CALL / ATTENTION /
+RESET NO / TEST NC. Close views confirm fit. Native input actions and Reset were
+checked; actual 3D controls were clicked in both selector lessons and the
+Ready/Attention and Dual Contact lessons. All five normal Run attempts open
+the empty exercise editor with NO CONTROLLER LOADED. Their output sequences
+remain unaccepted. Ready/Attention's persistent toggle also does not establish
+its described spring-return interaction.
+
+The selector used three fixed marks regardless of positionCount and rotated its
+handle around Y, away from the imported dial face. Composed variants now use
+configured 2-4 detents, readable external numbers, plate-contacting tick solids,
+and the actual Z-axis pivot, including initialPosition and Reset. Final Windows
+close views cover Bay Light's 0/1 and Maintenance's 0/1/2/3 plus wrap/Reset.
+The unchanged three-mark master contradicts its old four-position approval;
+its entry is now candidate with cleared quality flags, and old recognition and
+review are archived. No independent approval is fabricated. Master re-authoring,
+approval/help reconciliation and native rechecks of its other variants remain open.
+
+Fresh build has zero warnings/errors; all 69 geometry checks pass (20 new selector
+checks across four bound lessons). Before-fix count/alignment/plane failures are
+preserved. Plant checks (19), authored cases (71), virtual-controller tests (142),
+77-scene shell verification and normal rendered controls pass. Final build,
+geometry and native views include the last tick/legend adjustment; the behavior
+suites preceded that geometry-only adjustment. Evidence and per-scene boundaries
+are in MULTI_ANGLE_SCENE_REVIEW.md. Reviewers closed cleanly; user's Demo 1 preserved.
+Goal active; 54 scenes remain pending and recorded failures still need repair.
+
+Earlier checkpoint:
+
 Catalog scenes 9-12 and panel plates follow-up (2026-10-04): coverage is now
 18/77 native five-view inspections, 59 pending. Wastewater Collection has
 overlapping tanks and a pneumatic valve bank labeled as process piping. The

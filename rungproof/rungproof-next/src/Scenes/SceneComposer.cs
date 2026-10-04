@@ -74,7 +74,7 @@ public static class SceneComposer
                     EquipmentMotionController.MotionKind.PositionRotation, "KIN_valve_stem", travelDegrees: 90.0f, travelTimeSeconds: 1.2f),
                 "levelSensor" => CreateLevelSensorAsset(equipment, candidates),
                 "radarLevelSensor" => CreateMappedAsset(equipment, candidates, "sensing.level.radar.v1"),
-                "rotarySwitch" => CreateMappedAsset(equipment, candidates, "controls.operator-station.selector.v1"),
+                "rotarySwitch" => CreateSelectorAsset(equipment, candidates),
                 "fan" => CreateControlledAsset(equipment, candidates, "air-handling.fan.axial-1900.v1", runCommands,
                     EquipmentMotionController.MotionKind.FanRotor, "KIN_", speedRpm: 720.0f),
                 "liftTable" => CreateLiftAsset(equipment, candidates, runCommands),
@@ -443,6 +443,51 @@ public static class SceneComposer
             EquipmentMotionController.MotionKind.ScissorLift, "KIN_",
             travelM: (float)Number(equipment.Config, "travel", 0.8),
             travelTimeSeconds: 2.0f);
+    }
+
+    private static Node3D CreateSelectorAsset(SceneEquipment equipment, AssetCatalogDocument candidates)
+    {
+        var model = CreateMappedAsset(equipment, candidates, "controls.operator-station.selector.v1");
+        var countValue = Number(equipment.Config, "positionCount", 4);
+        var initialValue = Number(equipment.Config, "initialPosition", 0);
+        if (!double.IsFinite(countValue) || countValue != Math.Truncate(countValue) || countValue < 2 || countValue > 4
+            || !double.IsFinite(initialValue) || initialValue != Math.Truncate(initialValue) || initialValue < 0 || initialValue >= countValue)
+            throw new InvalidOperationException($"Selector '{equipment.Id}' requires 2-4 positions and a valid initial ordinal.");
+        var count = (int)countValue;
+        var handle = model.FindChild("KIN_selector_handle", true, false) as Node3D
+            ?? throw new InvalidOperationException("Selector asset is missing its handle pivot.");
+        // The delivered master has three fixed marks. Keep the master intact;
+        // its composed variant must show only the detents this scene can select.
+        foreach (var mesh in model.FindChildren("POSITION_*", "MeshInstance3D", true, false).OfType<MeshInstance3D>())
+        {
+            mesh.Visible = false;
+            mesh.Name = $"Authored_{mesh.Name}";
+        }
+        for (var ordinal = 0; ordinal < count; ordinal++)
+        {
+            var angle = Mathf.DegToRad(SelectorSwitchController.DetentDegrees(ordinal, count));
+            var radial = new Vector3(-Mathf.Sin(angle), Mathf.Cos(angle), 0);
+            model.AddChild(new MeshInstance3D
+            {
+                Name = $"POSITION_tick_{ordinal}",
+                Mesh = new BoxMesh { Size = new Vector3(0.008f, 0.024f, 0.004f) },
+                Position = new Vector3(0, 1.15f, 0.209f) + radial * 0.090f,
+                Rotation = new Vector3(0, 0, angle),
+                MaterialOverride = Material(Colors.Black, 0, 0.8f),
+            });
+            model.AddChild(new Label3D
+            {
+                Name = $"SelectorOrdinal_{ordinal}", Text = ordinal.ToString(CultureInfo.InvariantCulture),
+                // Put numbers beyond the dial rim so a projecting handle does
+                // not cover its selected number in an oblique operator view.
+                Position = new Vector3(0, 1.15f, 0.198f) + radial * 0.153f,
+                FontSize = 32, PixelSize = 0.00085f, OutlineSize = 0, Modulate = Colors.White,
+            });
+        }
+        var controller = new SelectorSwitchController { Name = "SelectorSwitchController" };
+        model.AddChild(controller);
+        controller.Configure(handle, count, (int)initialValue);
+        return model;
     }
 
     private static Node3D CreateSwitchAsset(SceneEquipment equipment, AssetCatalogDocument candidates)

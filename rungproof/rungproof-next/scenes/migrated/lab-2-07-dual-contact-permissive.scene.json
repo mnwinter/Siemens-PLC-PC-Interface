@@ -30,6 +30,7 @@
       "config": {
         "style": "pushbutton",
         "action": "toggle-reset",
+        "faceLabel": "RESET NO",
         "color": 2204518
       }
     },
@@ -45,6 +46,7 @@
       "config": {
         "style": "pushbutton",
         "action": "toggle-nc",
+        "faceLabel": "TEST NC",
         "color": 14695473
       }
     },
