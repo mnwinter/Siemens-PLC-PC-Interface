@@ -15,17 +15,26 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | Point | Type | Owner | Initial value |
 | --- | --- | --- | --- |
 | `conveyor_run` | `BOOL` | **PLC** | `False` |
+| `estop_ok` | `BOOL` | **SIM** | `True` |
 | `photoeye_blocked` | `BOOL` | **PC** | `False` |
 | `conveyor_speed` | `REAL` | **SIM** | `0` |
 | `parts_completed` | `DINT` | **SIM** | `0` |
 
 ## Operator actions
 
-No operator action contract is declared.
+| Action | Type | Bound point/sequence |
+| --- | --- | --- |
+| `Start / stop inspection conveyor` | `toggle` | `conveyor_run` |
+| `Emergency stop conveyor` | `emergencyStop` | `estop_ok` |
+| `Reset emergency stop` | `reset` | `` |
 
 ## Equipment bindings
 
-No point-to-equipment bindings are declared.
+| Symbolic point | Equipment | Mode |
+| --- | --- | --- |
+| `photoeye_blocked` | `inspection_photoeye` | `photoeye` |
+| `conveyor_run` | `main_conveyor` | `running` |
+| `estop_ok` | `main_conveyor` | `estopPermissive` |
 
 ## Expected equipment
 
@@ -42,3 +51,13 @@ No point-to-equipment bindings are declared.
 ## Stop and safety boundary
 
 A normal Stop removes PLC-owned commands according to the scene runtime. This document does not prove a safety function, a real E-stop circuit, a PLC watchdog, or live-machine commissioning.
+
+Declared simulation safe state:
+
+| Point | Value |
+| --- | --- |
+| `conveyor_run` | `False` |
+
+## Inspected local workflow and model limits
+
+Run enables the built-in offline controller; machine Start commands motion. Stop holds cartons and Reset restores the initial layout. Simulated E-stop blocks Run until reset and a new machine Start. The beam follows simplified position feedback; cartons jump upstream at the end, with no physical return path. The carrying deck is 0.9 m and the photoeye stand span is 2.6 m.

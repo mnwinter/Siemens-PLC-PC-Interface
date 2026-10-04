@@ -2,7 +2,7 @@
   "version": 1,
   "id": "equipment-gallery",
   "name": "Reusable Equipment Gallery",
-  "description": "A visual inventory of the current primitive-built assets. Every item is created by the same asset factory used by runtime-loaded scenes.",
+  "description": "A visual inventory of reusable catalog models created by the runtime scene composer. Level instruments are shown on illustrative display stands.",
   "camera": {
     "position": [
       20,
@@ -174,7 +174,7 @@
       "label": "Discrete level switch",
       "position": [
         -1.9,
-        0.65,
+        0,
         4.0
       ],
       "scale": [
@@ -185,7 +185,8 @@
       "config": {
         "sensorType": "discrete",
         "threshold": 0.25,
-        "mode": "low"
+        "mode": "low",
+        "displayStand": true
       }
     },
     {
@@ -194,13 +195,14 @@
       "label": "4\u201320 mA level transmitter",
       "position": [
         0.2,
-        0.65,
-        4.0
+        0,
+        2.2
       ],
       "config": {
         "sensorType": "analog",
         "range": "4-20 mA",
-        "engineeringRange": "0-100 %"
+        "engineeringRange": "0-100 %",
+        "displayStand": true
       }
     },
     {
@@ -209,17 +211,10 @@
       "label": "Flanged process pipe",
       "position": [
         1.9,
-        0.9,
+        0,
         4.0
       ],
-      "config": {
-        "length": 2.8,
-        "diameter": 0.38,
-        "axis": "x",
-        "color": 7636365,
-        "showSupport": true,
-        "supportHeight": 0.82
-      }
+      "config": {}
     },
     {
       "id": "gallery_fan",
@@ -285,7 +280,7 @@
       "label": "Animated process valve",
       "position": [
         0.6,
-        0,
+        -0.25,
         7.2
       ],
       "config": {

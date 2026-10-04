@@ -72,10 +72,7 @@ public static class SceneComposer
                     rotationAxis: Vector3.Right),
                 "valve" => CreateControlledAsset(equipment, candidates, "process.valve.actuated-ball.v1", runCommands,
                     EquipmentMotionController.MotionKind.PositionRotation, "KIN_valve_stem", travelDegrees: 90.0f, travelTimeSeconds: 1.2f),
-                "levelSensor" => CreateMappedAsset(equipment, candidates,
-                    Text(equipment.Config, "sensorType", "analog") == "discrete"
-                        ? "sensing.level.tuning-fork.v1"
-                        : "sensing.level.analog-4-20ma.v1"),
+                "levelSensor" => CreateLevelSensorAsset(equipment, candidates),
                 "radarLevelSensor" => CreateMappedAsset(equipment, candidates, "sensing.level.radar.v1"),
                 "rotarySwitch" => CreateMappedAsset(equipment, candidates, "controls.operator-station.selector.v1"),
                 "fan" => CreateControlledAsset(equipment, candidates, "air-handling.fan.axial-1900.v1", runCommands,
@@ -236,11 +233,6 @@ public static class SceneComposer
         var packed = ResourceLoader.Load<PackedScene>(asset.Model.DeliveryGltf)
             ?? throw new InvalidOperationException($"Unable to load scene asset {asset.Model.DeliveryGltf}.");
         var model = packed.Instantiate<Node3D>();
-        if (equipment.Type == "photoeye")
-        {
-            var requestedSpan = (float)Number(equipment.Config, "span", 1.44);
-            model.Scale = new Vector3(1.0f, 1.0f, requestedSpan / 1.44f);
-        }
         return model;
     }
 
@@ -300,6 +292,36 @@ public static class SceneComposer
         return root;
     }
 
+    private static Node3D CreateLevelSensorAsset(SceneEquipment equipment, AssetCatalogDocument candidates)
+    {
+        var discrete = Text(equipment.Config, "sensorType", "analog") == "discrete";
+        var model = CreateMappedAsset(equipment, candidates, discrete
+            ? "sensing.level.tuning-fork.v1" : "sensing.level.analog-4-20ma.v1");
+        if (equipment.Config.ValueKind != JsonValueKind.Object
+            || !equipment.Config.TryGetProperty("displayStand", out var stand) || stand.ValueKind != JsonValueKind.True)
+            return model;
+
+        // Catalog sensor origins are process-fitting datums, not floor datums.
+        // Only a standalone gallery display opts into this illustrative stand;
+        // tank-mounted scenes retain their authored mounting transforms.
+        var fittingHeight = discrete ? 1.225f : 2.78f; // Authored probe tip + 150 mm floor clearance.
+        model.Position = new Vector3(0, fittingHeight, 0);
+        var root = new Node3D();
+        root.AddChild(model);
+        var steel = Material(new Color("53646e"), 0.55f, 0.28f);
+        var clampHeight = fittingHeight + (discrete ? 0.16f : 0.10f);
+        AddBox(root, new Vector3(1.1f, 0.08f, 1.2f), new Vector3(0, 0.04f, 0.24f), steel).Name = "DISPLAY_STAND_base";
+        AddBox(root, new Vector3(0.10f, clampHeight - 0.08f, 0.10f),
+            new Vector3(0, (clampHeight + 0.08f) / 2, 0.48f), steel).Name = "DISPLAY_STAND_mast";
+        var railX = discrete ? 0.145f : 0.24f;
+        foreach (var side in new[] { -1, 1 })
+            AddBox(root, new Vector3(0.06f, 0.04f, 0.54f),
+                new Vector3(side * railX, clampHeight, 0.24f), steel).Name = $"DISPLAY_STAND_fitting_rail_{side}";
+        AddBox(root, new Vector3(railX * 2 + 0.06f, 0.04f, 0.06f),
+            new Vector3(0, clampHeight, 0.48f), steel).Name = "DISPLAY_STAND_crossbar";
+        return root;
+    }
+
     private static Node3D CreateTankAsset(SceneEquipment equipment, AssetCatalogDocument candidates)
     {
         var model = CreateMappedAsset(equipment, candidates, "process.tank.vertical-3000x5000.v1");
@@ -327,13 +349,25 @@ public static class SceneComposer
         // centerline. It prevents a valid-looking sensor pair from putting
         // its beam through a conveyor rail or below the product envelope.
         var centerlineM = (float)Number(equipment.Config, "beamCenterHeightM", 0.94);
+        // Span is the distance between stand centerlines. Translate the heads,
+        // posts, feet and pigtails together; do not stretch the sensor housings.
+        var spanM = (float)Number(equipment.Config, "span", 1.44);
+        if (!float.IsFinite(centerlineM) || centerlineM < 0.3f || !float.IsFinite(spanM) || spanM <= 0.3f)
+            throw new InvalidOperationException($"Photoeye '{equipment.Id}' requires finite positive stand span and optical height.");
         const float authoredCenterlineM = 0.94f;
         var liftM = centerlineM - authoredCenterlineM;
-        if (MathF.Abs(liftM) < 0.001f) return model;
+        var standOffset = (spanM - 1.44f) / 2;
 
         foreach (var item in model.FindChildren("*", string.Empty, true, false).OfType<Node3D>())
         {
             var name = item.Name.ToString();
+            if (name.StartsWith("TX_", StringComparison.Ordinal) || name.StartsWith("RX_", StringComparison.Ordinal))
+                item.Position += new Vector3(0, 0, MathF.Sign(item.Position.Z) * standOffset);
+            if (name.StartsWith("KIN_beam", StringComparison.Ordinal))
+            {
+                item.Position = new Vector3(item.Position.X, item.Position.Y, item.Position.Z * spanM / 1.44f);
+                item.Scale = new Vector3(item.Scale.X, item.Scale.Y, item.Scale.Z * spanM / 1.44f);
+            }
             if (name.StartsWith("KIN_beam", StringComparison.Ordinal)
                 || name.Contains("adjust_bracket", StringComparison.OrdinalIgnoreCase)
                 || name.Contains("housing", StringComparison.OrdinalIgnoreCase)
@@ -348,7 +382,7 @@ public static class SceneComposer
                 // Grow from its existing floor-mounted base rather than
                 // translating the entire sensor stand into the air.
                 item.Position += Vector3.Up * (liftM * 0.5f);
-                item.Scale = new Vector3(item.Scale.X, item.Scale.Y + liftM / 0.86f, item.Scale.Z);
+                item.Scale = new Vector3(item.Scale.X, item.Scale.Y * (0.92f + liftM) / 0.92f, item.Scale.Z);
             }
         }
         return model;

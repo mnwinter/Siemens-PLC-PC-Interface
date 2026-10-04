@@ -6,7 +6,7 @@ Scene contract: `res://scenes/migrated/equipment-gallery.scene.json`
 
 ## Purpose
 
-A visual inventory of the current primitive-built assets. Every item is created by the same asset factory used by runtime-loaded scenes.
+A visual inventory of reusable catalog models created by the runtime scene composer. Level instruments are shown on illustrative display stands.
 
 ## Expected I/O to operate this scene
 
@@ -22,11 +22,19 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 
 ## Operator actions
 
-No operator action contract is declared.
+| Action | Type | Bound point/sequence |
+| --- | --- | --- |
+| `Start / stop gallery motion` | `toggle` | `gallery_animation` |
+| `Emergency stop gallery motion` | `stop` | `` |
 
 ## Equipment bindings
 
-No point-to-equipment bindings are declared.
+| Symbolic point | Equipment | Mode |
+| --- | --- | --- |
+| `gallery_animation` | `gallery_motor` | `running` |
+| `gallery_animation` | `gallery_conveyor` | `running` |
+| `gallery_animation` | `gallery_fan` | `running` |
+| `gallery_animation` | `gallery_machine` | `running` |
 
 ## Expected equipment
 
@@ -57,3 +65,15 @@ No point-to-equipment bindings are declared.
 ## Stop and safety boundary
 
 A normal Stop removes PLC-owned commands according to the scene runtime. This document does not prove a safety function, a real E-stop circuit, a PLC watchdog, or live-machine commissioning.
+
+Declared simulation safe state:
+
+| Point | Value |
+| --- | --- |
+| `gallery_animation` | `False` |
+| `industrial_fan_run` | `False` |
+| `emergency_stop` | `True` |
+
+## Static review and open workflow
+
+Level instruments use illustrative display stands so their full probes remain visible and clear the floor. This does not establish a process installation or approved hardware support design. Normal Windows Run currently opens a blank editor with NO CONTROLLER LOADED; gallery animation remains unverified.

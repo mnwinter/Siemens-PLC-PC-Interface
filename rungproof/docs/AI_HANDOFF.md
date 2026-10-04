@@ -17,12 +17,12 @@ gripper motion are corrected and inspected from five angles; seven focused
 geometry checks pass. REAL scene initial JSON integer tokens now normalize at
 the scene-project boundary; the previously mismatched catalog test reproduces
 the production reader and all 142 tests pass. The complete 77-scene shell bounds
-inventory now flags 45 scenes for interpretation. Powder-mixer placement and
+inventory now flags 44 scenes for interpretation. Powder-mixer placement and
 tank shell sizing are repaired; an original static open chute replaces the
 copied roller-shutter, and inherited door evidence is archived/removed from
 current approval. Its five-view native reinspection verifies bounded static
 clearance, not a powder-flow process. Scaled radar feedback and Reset projection
-are corrected. Twenty-one focused geometry, 19 plant, three family-selection and
+are corrected. Thirty-one focused geometry, 19 plant, three family-selection and
 71 authored scene-case checks pass (six scenes have no authored cases).
 Parcel-sorter geometry is repaired: flat indexed tables, supported bridge and
 takeaway paths, common deck elevations, raised header and configured optical
@@ -32,7 +32,17 @@ front-left/rear-right; this is scripted geometry, not contact dynamics or sensor
 validation. Normal shell Run opens the blank editor with NO CONTROLLER LOADED;
 no supplied sorter reference controller exists. Do not count preview as operator
 Run acceptance. Shared conveyor width/deck sizing now works; Demo 5 static
-five-view regression passes, but all other conveyor scenes need native review. Six scenes inspected; 71 pending.
+five-view regression passes, and the inspection conveyor is now reviewed; other conveyor scenes still need native review. Eight scenes inspected; 69 pending.
+Conveyor inspection now has supported cartons, grounded/photoeye stands clear
+of frame/pull-cord hardware, and correctly projected beam feedback. Five native
+views plus normal offline Run/Start/Stop/Reset and simulated E-stop/restart gating
+were inspected. Feedback/recirculation remain simplified, not physical sensing.
+Gallery probes are supported on illustrative stands; pipe/valve supports are
+grounded and the transmitter clears the pipe. Five static native views and
+instrument details were inspected. Gallery normal Run opens a blank editor with
+NO CONTROLLER LOADED: its animation workflow remains open. Current evidence is
+catalog-*.log under rungproof-next/.tools; 31 geometry, 19 plant, rendered scene
+controls and 71 scene cases pass. Do not use headless GUI-input checks as evidence.
 Workstation Call, Dual Confirmation and Service Marker have clear supports/spacing but incorrect
 generic START plates. Global help validation fails at Count Display's inherited
 door-axis metadata; investigate actual identity before refreshing that help.

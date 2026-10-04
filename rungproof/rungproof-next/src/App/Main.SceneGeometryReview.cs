@@ -267,6 +267,8 @@ public partial class Main
                 "mixer_chute_and_valve_supports_rest_on_floor");
 
             VerifyParcelGeometry(Check);
+            VerifyInspectionConveyorGeometry(Check);
+            VerifyGalleryGeometry(Check);
 
             AddMigratedScene("tank-radar", _candidateCatalog!, _mainCamera!, false, false);
             // Exercise an authored parent scale as well as configured sizing.
@@ -418,6 +420,84 @@ public partial class Main
         runtime.ResetSimulation();
         check(cartons.All(node => node.Transform == authored[node]) && motions.All(motion => motion.PositionPercent == 0),
             "parcel_reset_restores_cartons_and_table_pose");
+    }
+
+    private void VerifyInspectionConveyorGeometry(Action<bool, string> check)
+    {
+        AddMigratedScene("conveyor-cell", _candidateCatalog!, _mainCamera!, false, false);
+        var root = _sceneCompositionRoot!;
+        var runtime = _sceneRuntime!;
+        var conveyor = root.GetNode<Node3D>("main_conveyor");
+        var cartons = Enumerable.Range(1, 3).Select(index => root.GetNode<Node3D>($"carton_{index}")).ToArray();
+        var authored = cartons.Select(carton => carton.Transform).ToArray();
+        var deck = ReviewBounds((MeshInstance3D)conveyor.FindChild("KIN_belt_surface", true, false));
+        var sensor = root.GetNode<Node3D>("inspection_photoeye");
+        var stands = ReviewMeshes(sensor).Where(mesh => mesh.Name.ToString() is "TX_post" or "RX_post").ToArray();
+        var feet = ReviewMeshes(sensor).Where(mesh => mesh.Name.ToString() is "TX_foot" or "RX_foot").ToArray();
+        var beams = sensor.FindChildren("KIN_beam*", string.Empty, true, false).OfType<MeshInstance3D>().ToArray();
+        foreach (var mesh in stands.Concat(feet)) GD.Print($"INSPECTION_SENSOR_GEOMETRY {mesh.Name} position={mesh.GlobalPosition} bounds={ReviewBounds(mesh)}");
+        LogBoundsCandidates(root); // Curved cable boxes can overlap diagonal frame boxes.
+        var sensorSolids = ReviewMeshes(sensor).Where(mesh => !mesh.Name.ToString().Contains("cable", StringComparison.OrdinalIgnoreCase)
+            && !mesh.Name.ToString().StartsWith("KIN_beam", StringComparison.Ordinal)).ToArray();
+        var conveyorSolids = ReviewMeshes(conveyor).Where(mesh => !mesh.Name.ToString().Contains("cable", StringComparison.OrdinalIgnoreCase)).ToArray();
+        foreach (var sensorMesh in sensorSolids)
+        foreach (var conveyorMesh in conveyorSolids)
+            if (OrientedBoxesPenetrate(sensorMesh, conveyorMesh))
+                GD.Print($"INSPECTION_SOLID_INTERFERENCE {sensorMesh.Name}/{conveyorMesh.Name}");
+        check(sensorSolids.All(sensorMesh => conveyorSolids.All(conveyorMesh => !OrientedBoxesPenetrate(sensorMesh, conveyorMesh))),
+            "inspection_sensor_solid_parts_clear_conveyor_frames");
+        check(cartons.All(carton => MathF.Abs(ReviewBounds(carton).Position.Y - deck.End.Y) < 0.01f),
+            "inspection_cartons_rest_on_actual_belt_surface");
+        check(stands.Length == 2 && MathF.Abs(MathF.Abs(stands[0].GlobalPosition.Z - stands[1].GlobalPosition.Z) - 2.6f) < 0.01f
+            && feet.Length == 2 && feet.All(foot => MathF.Abs(ReviewBounds(foot).Position.Y) < 0.01f),
+            "inspection_photoeye_stands_honor_span_and_grounding");
+        check(beams.Length > 0 && beams.All(beam => ReviewBounds(beam).GetCenter().Y > deck.End.Y
+            && ReviewBounds(beam).GetCenter().Y < cartons.Min(carton => ReviewBounds(carton).End.Y)),
+            "inspection_optical_path_crosses_carton_height_above_deck");
+        runtime.UsesExternalClock = false; // Bounded declared plant preview, no PLC transport.
+        runtime.ExecuteAction("conveyor_run");
+        var support = true;
+        var sawBlocked = false;
+        var sawClear = false;
+        var beamMatches = true;
+        for (var frame = 0; frame < 1200; frame++)
+        {
+            runtime.AdvanceSimulation(0.02);
+            support &= cartons.All(carton => MathF.Abs(ReviewBounds(carton).Position.Y - deck.End.Y) < 0.01f
+                && carton.GlobalPosition.X > deck.Position.X && carton.GlobalPosition.X < deck.End.X);
+            var blocked = runtime.Points["photoeye_blocked"] is true;
+            sawBlocked |= blocked; sawClear |= !blocked;
+            beamMatches &= beams.All(beam => beam.Visible == !blocked);
+        }
+        check(support && sawBlocked && sawClear && beamMatches && Convert.ToInt64(runtime.Points["parts_completed"]) > 0,
+            "inspection_circulation_holds_height_and_projects_beam_feedback");
+        runtime.StopSimulation();
+        var held = cartons.Select(carton => carton.Transform).ToArray();
+        runtime.AdvanceSimulation(0.4);
+        var stopped = cartons.Select((carton, index) => carton.Transform == held[index]).All(value => value);
+        runtime.ResetSimulation();
+        check(stopped && cartons.Select((carton, index) => carton.Transform == authored[index]).All(value => value),
+            "inspection_stop_holds_and_reset_restores_cartons");
+    }
+
+    private void VerifyGalleryGeometry(Action<bool, string> check)
+    {
+        AddMigratedScene("equipment-gallery", _candidateCatalog!, _mainCamera!, false, false);
+        var root = _sceneCompositionRoot!;
+        check(root.GetChildren().OfType<Node3D>().Where(node => ReviewMeshes(node).Length > 0)
+            .All(node => ReviewBounds(node).Position.Y >= -0.005f), "gallery_equipment_clear_finished_floor");
+        check(LogBoundsCandidates(root) == 0, "gallery_separate_equipment_bounds_clear");
+        var instruments = new[] { "gallery_low_sensor", "gallery_transmitter" }.Select(id => root.GetNode<Node3D>(id)).ToArray();
+        check(instruments.All(instrument =>
+        {
+            var standBase = instrument.FindChild("DISPLAY_STAND_base", true, false) as MeshInstance3D;
+            var tips = ReviewMeshes(instrument).Where(mesh => mesh.Name.ToString().StartsWith("FORK_tip", StringComparison.Ordinal)
+                || mesh.Name == "PROBE_tip_weight").ToArray();
+            return standBase is not null && MathF.Abs(ReviewBounds(standBase).Position.Y) < 0.005f
+                && tips.Length > 0 && tips.All(tip => ReviewBounds(tip).Position.Y >= 0.13f);
+        }), "gallery_display_stands_grounded_and_probe_tips_clear");
+        check(new[] { "gallery_pipe", "gallery_valve" }.All(id => MathF.Abs(ReviewBounds(root.GetNode<Node3D>(id)).Position.Y) < 0.005f),
+            "gallery_pipe_and_valve_supports_grounded");
     }
 
     private static List<Vector2> ContactHull(IEnumerable<Vector2> contacts)

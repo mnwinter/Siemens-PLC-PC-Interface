@@ -1,25 +1,25 @@
 {
   "version": 1,
   "machineGuide": {
-    "purpose": "Three cartons circulate through an inspection photoeye on an end-driven roller conveyor.",
+    "purpose": "Three cartons circulate through a simulated inspection photoeye on a belt conveyor.",
     "startConditions": [
-      "Common PLC/watchdog foundation is healthy.",
-      "conveyor_run is FALSE and the photoeye is clear."
+      "Run enables the built-in offline controller clock.",
+      "The simulated emergency stop is reset; a new machine Start is required."
     ],
     "normalSequence": [
-      "PLC commands conveyor_run TRUE.",
-      "A carton crosses and photoeye_blocked becomes TRUE.",
-      "The carton discharges, recirculates, and parts_completed increments."
+      "Machine Start commands conveyor_run TRUE through the offline controller.",
+      "A simplified position threshold sets photoeye_blocked; the visible beam follows that point.",
+      "At the end, each carton jumps to the upstream position and parts_completed increments. A physical return path is not modeled."
     ],
     "stopBehavior": [
       "conveyor_run FALSE holds carton positions and actual speed returns to zero."
     ],
     "faultBehavior": [
-      "A missing conveyor command stops movement.",
-      "A missing or stuck photoeye is reported; the simulator does not invent feedback."
+      "The simulated emergency stop stops motion and blocks Run until reset.",
+      "No optical sensor fault detection or real PLC watchdog is verified by this scene."
     ],
     "expectedObservations": [
-      "Cartons move only when commanded and the beam follows physical carton overlap."
+      "Cartons move only when commanded; Stop holds positions and Reset restores the initial layout."
     ]
   },
   "id": "conveyor-cell",
@@ -70,7 +70,7 @@
       "label": "Carton 1",
       "position": [
         -3.15,
-        0.99,
+        0.9,
         0
       ],
       "config": {
@@ -88,7 +88,7 @@
       "label": "Carton 2",
       "position": [
         -0.55,
-        0.99,
+        0.9,
         0
       ],
       "config": {
@@ -106,7 +106,7 @@
       "label": "Carton 3",
       "position": [
         2.05,
-        0.99,
+        0.9,
         0
       ],
       "config": {
@@ -124,11 +124,11 @@
       "label": "Inspection photoeye",
       "position": [
         1.25,
-        0.02,
+        0,
         0
       ],
       "config": {
-        "span": 2.08,
+        "span": 2.6,
         "height": 1.1,
         "beamCenterHeightM": 1.35,
         "blocked": false
@@ -244,6 +244,11 @@
       "conveyor_run": false
     },
     "pointBindings": [
+      {
+        "point": "photoeye_blocked",
+        "equipmentId": "inspection_photoeye",
+        "mode": "photoeye"
+      },
       {
         "point": "conveyor_run",
         "equipmentId": "main_conveyor",
