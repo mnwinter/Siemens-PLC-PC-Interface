@@ -1,7 +1,7 @@
 # Multi-angle scene review - 2026-10-04
 
 Status: **active**. The prior software review did not establish multi-angle
-visual acceptance. Twenty-six scenes have five-view native static inspections; 51 remain pending.
+visual acceptance. Twenty-seven scenes have five-view native static inspections; 50 remain pending.
 Demo 5, Powder Batch Mixer, Parcel Size Sorter, Conveyor Inspection Cell,
 the Equipment Gallery, Drive Alarm-Code String and Chicken Label Print have repaired static layouts.
 The sorter operator Run still lacks a controller; eight simple panels now have corrected function plates and clear spacing. Other scenes
@@ -28,6 +28,53 @@ Every row requires native inspection.
 
 ## Repairs and open findings
 
+- Assembly Lift (scene 26) has native FR/FL/RL/RR/T inspections, close RAISE /
+  LOWER plate views, and raise/lower movement and endpoints inspected from FL
+  and RR. The fixture previously started at Y=0.82 beneath the actual imported
+  deck top at Y=1.64. Its origin and sequence endpoints are now 1.64 / 3.84,
+  retaining the existing 2.2 m travel. The minimumHeight metadata now matches
+  the imported deck, but the composer still ignores that sizing setting; this
+  change does not implement configurable lift height. Plates now identify both
+  directions instead of displaying generic START labels.
+  Six focused checks cover actual imported-mesh support initially and through
+  both directions, 16 roller/washer attachments, full travel within the initial
+  camera frustum, mid-cycle Stop, and supported Reset. Four attachment/support
+  checks fail before repair; all 81 geometry checks pass after repair. Rollers
+  and washers now follow their nearest authored pins while retaining their
+  mounting offsets. Camera framing includes a conservative lift-travel envelope
+  so a raised deck/fixture is visible without changing its pose. Shared lift
+  motion/framing changes still require native follow-up in the Gallery, Service
+  Elevator, Chain Drive Lift and Drawbridge scenes; their previous coverage
+  does not establish acceptance of this revision.
+  Standalone plant QA now exposes declared actions with a selector so Lower
+  can be exercised as well as the default Raise. Its camera/action bars were
+  repositioned and visually checked for readability and overlap. This control
+  is restricted to the explicit no-controller QA mode. Normal shell Run still
+  opens a blank exercise with EDIT INVALID / NO CONTROLLER LOADED. Native Stop
+  was observed at the completed lower endpoint; only the deterministic check
+  verifies mid-cycle Stop. Reset restores bottom_limit=true / top_limit=false.
+  **Full mechanism motion remains FAIL/open:** the hydraulic rod is still
+  restored to its authored transform rather than following the driven arm.
+  The old asset review describes an enclosed bellows skirt, whereas the current
+  master/source and native scene expose the arms. That historical recognition
+  result does not establish acceptance or guarding of the current revision.
+  Fresh build: zero warnings/errors. Two scene-contract cases, 19 plant-motion
+  checks, 142 controller tests and the 77-scene/294-asset shell verifier pass.
+  The shell verifier also reports four invalid headless window-position errors;
+  it is not a clean stderr run. Rendered Windows control checks pass both with
+  and without the review overlay, including mouse input and external-image
+  ownership. The headless control invocation fails its mouse-click checks;
+  retain that failed log and use the rendered invocation for this verification.
+  Evidence under rungproof-next/.tools: assembly-geometry-before.log,
+  assembly-geometry-final.log, assembly-geometry-build.log,
+  assembly-lift-final-native.log, assembly-lift-final-actions-native.log,
+  assembly-final-contract.log, assembly-final-plant-motion.log,
+  assembly-final-controller.log, assembly-final-shell.log,
+  assembly-final-rendered-controls.log (headless failure),
+  assembly-final-rendered-controls-window.log and
+  assembly-final-overlay-controls-window.log. Isolated windows closed cleanly;
+  the user's Demo 1 window was preserved. Goal remains active: 50 pending static
+  inspections, this hydraulic attachment failure and previously recorded failures.
 - Inspection Vote, Dust Collector and Inbound Tote Stop have final native
   FR/FL/RL/RR/T inspections, plus close function-plate and tote-support views.
   Vote plates now read VOTE A / VOTE B and the collector stop plate reads STOP.
@@ -349,7 +396,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 23 | `lab-2-09-maintenance-beacon` | 0 | FR/FL/RL/RR/T + close dial | Static clear; 4-position dial/axis repaired; native 0-3/wrap/Reset. No beacon sequence or lockout proof; Run empty controller. |
 | 24 | `lab-2-10-dust-collector-seal-in` | 0 | FR/FL/RL/RR/T + close STOP | Static clear; STOP repaired; 3D PC requests/Reset checked. Fan schematic only; Run empty controller. |
 | 25 | `lab-2-11-inbound-tote-stop` | 7 | FR/FL/RL/RR/T + close tote; FL/RR motion endpoints | Tote support, sensor clearance and cycle endpoint repaired; six focused checks pass. Native completion/Reset and endpoint Stop checked; Run empty controller. Cable AABB candidates remain. |
-| 26 | `lab-2-12-assembly-lift` | 0 | Pending | Pending |
+| 26 | `lab-2-12-assembly-lift` | 0 | FR/FL/RL/RR/T + close plates + FL/RR motion | Fixture support, rollers/washers and travel framing repaired; FAIL/open hydraulic rod attachment; historical bellows approval stale; blank editor on normal Run |
 | 27 | `lab-2-13-coolant-jug-fill` | 53 | Pending | Pending |
 | 28 | `lab-2-14-sump-pump` | 41 | Pending | Pending |
 | 29 | `lab-2-15-fume-extractor` | 0 | Pending | Pending |

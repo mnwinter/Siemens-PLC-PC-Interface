@@ -6,7 +6,29 @@ would otherwise be trapped in a local Codex session. It intentionally excludes
 machine-local Codex databases, credentials, screenshots from private chats, and
 temporary runtime state.
 
-Latest follow-up (2026-10-04): native coverage is 26/77 inspected, 51 pending,
+Latest follow-up (2026-10-04): native coverage is 27/77 inspected, 50 pending,
+including failures. Assembly Lift has five native angles, close RAISE/LOWER
+plates and FL/RR raise/lower movement/endpoints. Fixture support now matches
+the actual deck at Y=1.64 (raised Y=3.84); 16 rollers/washers follow their pins.
+Camera framing includes remaining lift travel, and explicit no-controller plant
+QA exposes both declared actions. All 81 geometry checks pass (six new), as do
+build, two scene-contract cases, 19 plant-motion checks, 142 controller tests
+and shell verification. Shell still emits four headless window-position errors.
+Rendered mouse-control checks pass with/without the review overlay; the headless
+invocation fails mouse-click checks. Native Stop was endpoint-only; mid-cycle
+Stop is deterministic. Normal Run still opens a blank exercise. Full lift motion
+remains FAIL/open: KIN_lift_rod stays authored while its driven arm moves; cylinder,
+clevis and drive-lug attachment need review as a complete chain. The old asset
+recognition describes bellows absent from the current master/source, so it is
+historical evidence only. Do not infer current guarding or independent approval.
+Shared motion/framing changes require native follow-up in Gallery, Service
+Elevator, Chain Drive Lift and Drawbridge. User Demo 1 preserved; isolated
+reviewers closed. Exact logs and limits in MULTI_ANGLE_SCENE_REVIEW.md.
+Goal active. Next: repair/verify the hydraulic attachment and reconcile current
+asset evidence, then scene 27 Coolant Jug and the remaining 50 static inspections,
+plus previously recorded failures. Do not mark the full program accepted.
+
+Earlier follow-up (2026-10-04): native coverage is 26/77 inspected, 51 pending,
 including failures. Scenes 22, 24 and 25 have final five-view native inspections
 and close plate/tote views. VOTE A / VOTE B / STOP labels repaired; actual 3D
 PC inputs and Reset checked. All three ordinary Run attempts still open a blank

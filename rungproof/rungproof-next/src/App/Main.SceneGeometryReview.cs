@@ -24,7 +24,7 @@ public partial class Main
     {
         var layer = new CanvasLayer { Name = "VisualSceneReview", Layer = 20 };
         AddChild(layer);
-        var bar = new HBoxContainer { Position = new Vector2(310, _visualPlantReview ? 300 : 126) };
+        var bar = new HBoxContainer { Position = _visualPlantReview ? new Vector2(400, 18) : new Vector2(310, 126) };
         _visualReviewBar = bar;
         layer.AddChild(bar);
         if (_simulatorShell is not null)
@@ -62,6 +62,21 @@ public partial class Main
         };
         bar.AddChild(_visualReviewFocus);
         UpdateVisualReviewLabel();
+        if (_visualPlantReview && _sceneRuntime is not null)
+        {
+            // Standalone QA must expose both directions/actions, not only the
+            // default sequence. Keep this out of the controller-owned shell.
+            var runtime = _sceneRuntime;
+            var actions = runtime.GetActions();
+            var actionBar = new HBoxContainer { Position = new Vector2(18, 240) };
+            layer.AddChild(actionBar);
+            var choice = new OptionButton { CustomMinimumSize = new Vector2(280, 0) };
+            foreach (var action in actions) choice.AddItem(action.Label);
+            actionBar.AddChild(choice);
+            var execute = new Godot.Button { Text = "Preview action", Disabled = actions.Count == 0 };
+            execute.Pressed += () => runtime.ExecuteAction(actions[choice.Selected].Id);
+            actionBar.AddChild(execute);
+        }
     }
 
     private void ChangeVisualReviewScene(int step)
@@ -276,6 +291,7 @@ public partial class Main
             VerifyLabelPrintGeometry(Check);
             VerifySelectorProjection(Check);
             VerifyInboundToteGeometry(Check);
+            VerifyAssemblyLiftGeometry(Check);
 
             AddMigratedScene("tank-radar", _candidateCatalog!, _mainCamera!, false, false);
             // Exercise an authored parent scale as well as configured sizing.
@@ -597,6 +613,74 @@ public partial class Main
         runtime.ResetSimulation();
         check(!motion.Running && shaft.Transform == authored && runtime.Points["motor_running"] is false,
             "motor_state_reset_restores_shaft_and_output");
+    }
+
+    private void VerifyAssemblyLiftGeometry(Action<bool, string> check)
+    {
+        AddMigratedScene("lab-2-12-assembly-lift", _candidateCatalog!, _mainCamera!, false, false);
+        var root = _sceneCompositionRoot!;
+        var runtime = _sceneRuntime!;
+        var lift = root.GetNode<Node3D>("assembly_lift");
+        var fixture = root.GetNode<Node3D>("lift_fixture");
+        var deck = (MeshInstance3D)lift.FindChild("KIN_platform", true, false);
+        var meshes = ReviewMeshes(lift);
+        var pivots = meshes.Where(mesh => mesh.Name.ToString().StartsWith("LIFT_top_pivot_", StringComparison.Ordinal)
+            || mesh.Name.ToString().StartsWith("LIFT_bottom_pivot_", StringComparison.Ordinal)
+            || mesh.Name.ToString().StartsWith("KIN_mid_pivot_", StringComparison.Ordinal)
+            || mesh.Name.ToString().StartsWith("KIN_stage_pivot_", StringComparison.Ordinal)).ToArray();
+        var followers = meshes.Where(mesh => mesh.Name.ToString().StartsWith("LIFT_retaining_washer_", StringComparison.Ordinal)
+            || mesh.Name.ToString().StartsWith("LIFT_lower_guide_roller_", StringComparison.Ordinal)
+            || mesh.Name.ToString().StartsWith("LIFT_upper_guide_roller_", StringComparison.Ordinal))
+            .Select(mesh => (Mesh: mesh, Pivot: pivots.OrderBy(pivot => pivot.GlobalPosition.DistanceSquaredTo(mesh.GlobalPosition)).First()))
+            .Select(pair => (pair.Mesh, pair.Pivot, Offset: pair.Mesh.GlobalPosition - pair.Pivot.GlobalPosition)).ToArray();
+        bool Supported()
+        {
+            var load = ReviewBounds(fixture);
+            var platform = ReviewBounds(deck);
+            return MathF.Abs(load.Position.Y - platform.End.Y) < 0.001f
+                && load.Position.X >= platform.Position.X && load.End.X <= platform.End.X
+                && load.Position.Z >= platform.Position.Z && load.End.Z <= platform.End.Z;
+        }
+        GD.Print($"ASSEMBLY_LIFT_GEOMETRY deck={ReviewBounds(deck)} fixture={ReviewBounds(fixture)} followers={followers.Length}");
+        check(Supported(), "assembly_fixture_supported_at_initial_deck");
+        runtime.UsesExternalClock = false;
+        FrameComposition(_mainCamera!, root, new Vector3(-11, 7, 12));
+        var framed = true;
+        var support = true;
+        var attachments = followers.Length == 16;
+        foreach (var action in new[] { "raise-lift", "lower-lift" })
+        {
+            runtime.ExecuteAction(action);
+            for (var sample = 0; sample < 120; sample++)
+            {
+                runtime.AdvanceSimulation(0.02);
+                support &= Supported();
+                foreach (var mesh in ReviewMeshes(root))
+                {
+                    var bounds = ReviewBounds(mesh);
+                    for (var corner = 0; corner < 8; corner++)
+                        framed &= _mainCamera!.IsPositionInFrustum(bounds.Position + bounds.Size * new Vector3(
+                            (corner & 1) == 0 ? 0 : 1, (corner & 2) == 0 ? 0 : 1, (corner & 4) == 0 ? 0 : 1));
+                }
+                attachments &= followers.All(pair => (pair.Mesh.GlobalPosition - pair.Pivot.GlobalPosition)
+                    .DistanceTo(pair.Offset) < 0.001f);
+            }
+        }
+        check(support, "assembly_fixture_supported_through_raise_and_lower");
+        check(attachments, "assembly_guide_rollers_and_washers_follow_pins");
+        check(framed, "assembly_full_travel_fits_initial_camera_frustum");
+        runtime.ResetSimulation();
+        runtime.ExecuteAction("raise-lift");
+        runtime.AdvanceSimulation(0.7);
+        runtime.StopSimulation();
+        var stoppedDeck = deck.Transform;
+        var stoppedFixture = fixture.Transform;
+        runtime.AdvanceSimulation(0.5);
+        check(deck.Transform.IsEqualApprox(stoppedDeck) && fixture.Transform.IsEqualApprox(stoppedFixture),
+            "assembly_stop_holds_deck_and_fixture");
+        runtime.ResetSimulation();
+        check(Supported() && runtime.Points["bottom_limit"] is true && runtime.Points["top_limit"] is false,
+            "assembly_reset_restores_supported_bottom_state");
     }
 
     private void VerifyInboundToteGeometry(Action<bool, string> check)

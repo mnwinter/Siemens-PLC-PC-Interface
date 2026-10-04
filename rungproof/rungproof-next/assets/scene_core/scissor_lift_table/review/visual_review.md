@@ -1,5 +1,16 @@
 # Guarded hydraulic scissor-lift table visual review
 
+Current revision follow-up (2026-10-04): **motion acceptance failed/open**.
+Native Assembly Lift inspection shows exposed arms; the current delivered master
+and builder source have no enclosing bellows. The historical review below
+describes a different guarded revision and does not establish recognition or
+guarding acceptance of this revision. Platform support and roller/washer
+following have been repaired, but `KIN_lift_rod` still remains authored while
+its driven arm moves. Current hydraulic attachment and independent asset
+acceptance remain open. See `docs/MULTI_ANGLE_SCENE_REVIEW.md` in rungproof.
+
+Historical review follows:
+
 Review date: 2026-09-21
 
 Disposition: **independent recognition passed - eligible for strict production gate**

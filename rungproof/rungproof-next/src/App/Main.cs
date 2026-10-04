@@ -3441,6 +3441,19 @@ public partial class Main : Node3D
             return;
         }
 
+        // Frame the remaining vertical lift travel at load time. A camera fitted
+        // only to the lowered deck clips the platform/fixture as it rises. Use a
+        // conservative translated envelope without changing any equipment pose.
+        var currentPoints = points.ToArray();
+        foreach (var motion in root.FindChildren("*", "", true, false).OfType<EquipmentMotionController>()
+            .Where(item => item.Kind == EquipmentMotionController.MotionKind.ScissorLift))
+        {
+            var remaining = motion.TravelM * (1.0f - motion.PositionPercent * 0.01f);
+            var offset = motion.GetParent<Node3D>().GlobalBasis.Y * remaining;
+            if (offset.LengthSquared() > 0.000001f)
+                points.AddRange(currentPoints.Select(point => point + offset));
+        }
+
         var minimum = points[0];
         var maximum = points[0];
         foreach (var point in points)

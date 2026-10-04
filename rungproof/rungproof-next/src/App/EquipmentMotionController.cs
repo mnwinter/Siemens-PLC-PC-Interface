@@ -50,6 +50,7 @@ public partial class EquipmentMotionController : Node
     private readonly List<Node3D> _targets = [];
     private readonly Dictionary<Node3D, Transform3D> _authoredTransforms = [];
     private readonly Dictionary<Node3D, Vector3> _authoredScales = [];
+    private readonly Dictionary<Node3D, Node3D> _liftPinFollowers = [];
     private Vector3 _fanCenter;
     private float _position;
     private float _targetPosition;
@@ -58,6 +59,26 @@ public partial class EquipmentMotionController : Node
     public override void _Ready()
     {
         BindTargets(GetParent());
+        if (Kind == MotionKind.ScissorLift)
+        {
+            // The delivered rollers and retaining washers are siblings of
+            // their pins. Bind each to the nearest authored pin so the small
+            // mounting offset is retained throughout the two-stage motion.
+            var pins = _targets.FindAll(node => IsLiftPin(node.Name.ToString()));
+            foreach (var follower in _targets.FindAll(node => IsLiftPinFollower(node.Name.ToString())))
+            {
+                Node3D? nearest = null;
+                var distance = float.PositiveInfinity;
+                foreach (var pin in pins)
+                {
+                    var candidate = pin.Position.DistanceSquaredTo(follower.Position);
+                    if (candidate >= distance) continue;
+                    distance = candidate;
+                    nearest = pin;
+                }
+                if (nearest is not null) _liftPinFollowers[follower] = nearest;
+            }
+        }
         if (Kind == MotionKind.FanRotor)
         {
             var hub = _targets.Find(node => node.Name.ToString().StartsWith("KIN_fan_hub", StringComparison.Ordinal));
@@ -269,7 +290,8 @@ public partial class EquipmentMotionController : Node
                 || name.StartsWith("KIN_lift_bellows_", StringComparison.Ordinal)
                 || name.StartsWith("LIFT_top_pivot_", StringComparison.Ordinal)
                 || name.StartsWith("LIFT_bottom_pivot_", StringComparison.Ordinal)
-                || name.StartsWith("LIFT_upper_track_", StringComparison.Ordinal);
+                || name.StartsWith("LIFT_upper_track_", StringComparison.Ordinal)
+                || IsLiftPinFollower(name);
         }
         if (Kind == MotionKind.RollerShutter)
         {
@@ -351,7 +373,24 @@ public partial class EquipmentMotionController : Node
                 target.Scale = scale;
             }
         }
+        foreach (var (follower, pin) in _liftPinFollowers)
+        {
+            var authored = _authoredTransforms[follower];
+            follower.Transform = new Transform3D(authored.Basis,
+                authored.Origin + pin.Position - _authoredTransforms[pin].Origin);
+        }
     }
+
+    private static bool IsLiftPin(string name) =>
+        name.StartsWith("LIFT_top_pivot_", StringComparison.Ordinal)
+        || name.StartsWith("LIFT_bottom_pivot_", StringComparison.Ordinal)
+        || name.StartsWith("KIN_mid_pivot_", StringComparison.Ordinal)
+        || name.StartsWith("KIN_stage_pivot_", StringComparison.Ordinal);
+
+    private static bool IsLiftPinFollower(string name) =>
+        name.StartsWith("LIFT_retaining_washer_", StringComparison.Ordinal)
+        || name.StartsWith("LIFT_lower_guide_roller_", StringComparison.Ordinal)
+        || name.StartsWith("LIFT_upper_guide_roller_", StringComparison.Ordinal);
 
     private void ApplyRollerShutter()
     {

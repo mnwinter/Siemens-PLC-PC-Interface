@@ -30,7 +30,7 @@
       "config": {
         "width": 3,
         "depth": 1.9,
-        "minimumHeight": 0.6,
+        "minimumHeight": 1.64,
         "travel": 2.2,
         "initialPosition": 0
       }
@@ -41,7 +41,7 @@
       "label": "Assembly fixture",
       "position": [
         0,
-        0.82,
+        1.64,
         0
       ],
       "config": {
@@ -65,6 +65,7 @@
       "config": {
         "style": "pushbutton",
         "action": "raise-lift",
+        "faceLabel": "RAISE",
         "color": 2204518
       }
     },
@@ -80,6 +81,7 @@
       "config": {
         "style": "pushbutton",
         "action": "lower-lift",
+        "faceLabel": "LOWER",
         "color": 3050449
       }
     },
@@ -218,8 +220,8 @@
               "type": "translate",
               "equipmentId": "lift_fixture",
               "axis": "y",
-              "from": 0.82,
-              "to": 3.02
+              "from": 1.64,
+              "to": 3.84
             }
           ]
         },
@@ -256,8 +258,8 @@
               "type": "translate",
               "equipmentId": "lift_fixture",
               "axis": "y",
-              "from": 3.02,
-              "to": 0.82
+              "from": 3.84,
+              "to": 1.64
             }
           ]
         },

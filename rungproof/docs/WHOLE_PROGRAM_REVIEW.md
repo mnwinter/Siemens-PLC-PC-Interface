@@ -1,5 +1,27 @@
 # Whole program review - 2026-10-03
 
+Assembly Lift follow-up (2026-10-04): coverage is now 27/77 native five-view
+inspections, 50 pending, including failures. Imported deck contact corrected
+from fixture Y=0.82 to 1.64, with matching raise/lower endpoints. Six new checks
+cover support, moving rollers/washers, full travel framing, Stop and Reset;
+all 81 geometry checks pass. Close RAISE/LOWER plates and both directions were
+inspected in Windows, with FL/RR motion and five final static angles. The shared
+lift adapter now moves 16 rollers/washers with their pins, and the camera fits
+the remaining travel. The no-controller QA toolbar can select Lower as well
+as Raise. Normal Run still opens a blank controller exercise. Full motion is
+not accepted: the hydraulic rod remains fixed while its driven arm moves, and
+the historical bellows review describes geometry absent from the current asset.
+Native Stop was checked at an endpoint; mid-cycle Stop is deterministic evidence.
+Build, two contract cases, 19 plant-motion checks, 142 controller tests and shell
+verification pass. Shell emits four headless window-position errors. Rendered
+control checks pass with/without the review overlay; headless mouse-control
+checks fail and are retained as failed evidence. Shared lift revisions require
+native follow-up in the four other catalog scenes using this asset. User Demo 1
+preserved and isolated windows closed. Goal active; hydraulic repair, 50 pending
+inspections and prior failures remain. See MULTI_ANGLE_SCENE_REVIEW.md.
+
+Earlier checkpoint:
+
 Vote, collector and tote follow-up (2026-10-04): coverage is now 26/77 native
 five-view inspections, 51 pending, including recorded failures. Inspection Vote
 and Dust Collector have corrected VOTE A / VOTE B / STOP plates, close views,
