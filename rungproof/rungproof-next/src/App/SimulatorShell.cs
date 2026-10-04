@@ -173,7 +173,13 @@ public partial class SimulatorShell : CanvasLayer
     private TabContainer _ladderEnvironmentTabs = null!;
     private Label _ladderWorkspaceStatus = null!;
     private readonly LadderEditorDocument _ladderDocument = LadderEditorDocument.CreateConveyorExample();
-    private readonly LadderEditorHistory _ladderHistory = new(150);
+    private LadderEditorHistory _ladderHistory = new(150);
+    // Scene changes replace the plant, not the user's offline project. Keep the
+    // shared document object (both editor views reference it) and restore each
+    // scene's exact draft, including invalid work and its own Undo/Redo history.
+    private sealed record SceneLadderDraft(LadderEditorSnapshot Document,
+        string? SavedJson, string? ProjectPath, LadderEditorHistory History);
+    private readonly Dictionary<string, SceneLadderDraft> _sceneLadderDrafts = new(StringComparer.Ordinal);
     private readonly List<LadderEditorCanvas> _ladderCanvases = [];
     private EditableRung? _ladderRungClipboard;
     private EditableContact? _ladderContactClipboard;
@@ -355,6 +361,9 @@ public partial class SimulatorShell : CanvasLayer
     )
     {
         InvalidateExternalApproval();
+        var changingScene = !string.Equals(_activeScene?.Id, scene.Id, StringComparison.Ordinal);
+        if (changingScene && _activeScene is not null)
+            _sceneLadderDrafts[_activeScene.Id] = CaptureSceneLadderDraft();
         if (_runtime is not null)
         {
             _runtime.StateChanged -= RefreshRuntimeState;
@@ -364,8 +373,7 @@ public partial class SimulatorShell : CanvasLayer
         _runtime = runtime;
         _runtime.StateChanged += RefreshRuntimeState;
         RebuildOperatorActions();
-        LoadAuthoredDemoLadder(scene.Id);
-        AlignDefaultConveyorBindings(scene);
+        if (changingScene) LoadSceneLadderDraft(scene);
         _sceneTitle.Text = _activeSceneName;
         _sceneTitle.TooltipText = _activeSceneName;
         GetWindow().Title = $"RungProof · {_activeSceneName}";
@@ -381,13 +389,32 @@ public partial class SimulatorShell : CanvasLayer
         foreach (var refresh in _ladderEditorRefreshers) refresh();
     }
 
-    private void LoadAuthoredDemoLadder(string sceneId)
-    {
-        if (!AuthoredDemoLadderPrograms.TryCreate(sceneId, out var authoredProgram)) return;
+    private SceneLadderDraft CaptureSceneLadderDraft() => new(
+        _ladderDocument.CaptureSnapshot(), _ladderSavedProjectJson, _ladderProjectPath, _ladderHistory);
 
-        _ladderDocument.RestoreSnapshot(authoredProgram.CaptureSnapshot());
+    private void LoadSceneLadderDraft(SceneDefinition scene)
+    {
+        if (_sceneLadderDrafts.TryGetValue(scene.Id, out var draft))
+        {
+            _ladderDocument.RestoreSnapshot(draft.Document);
+            _ladderSavedProjectJson = draft.SavedJson;
+            _ladderProjectPath = draft.ProjectPath;
+            _ladderHistory = draft.History;
+            _ladderWorkspaceStatus.Text = "SCENE DRAFT RESTORED · VERIFY + LOAD BEFORE RUN";
+            RefreshLadderMonitorMatch();
+            return;
+        }
+
+        var authored = AuthoredDemoLadderPrograms.TryCreate(scene.Id, out var starter);
+        starter ??= LadderEditorDocument.CreateConveyorExample();
+        _ladderDocument.RestoreSnapshot(starter.CaptureSnapshot());
+        _ladderDocument.SourceSceneId = scene.Id;
+        // Align only a fresh template. Restoring a draft must never rewrite
+        // bindings the user has deliberately edited.
+        if (!authored) AlignDefaultConveyorBindings(scene);
         _ladderSavedProjectJson = LadderEditorProjectJson.Save(_ladderDocument);
-        _ladderHistory.Clear();
+        _ladderProjectPath = null;
+        _ladderHistory = new LadderEditorHistory(150);
         _ladderRungClipboard = null;
         _ladderContactClipboard = null;
         if (_ladderWorkspaceStatus is not null)
@@ -401,7 +428,9 @@ public partial class SimulatorShell : CanvasLayer
                     LadderBlockType.DataBlock => "DB",
                     _ => "BLOCK",
                 }));
-            _ladderWorkspaceStatus.Text = $"AUTHORED LADDER LOADED · {blockSummary}";
+            _ladderWorkspaceStatus.Text = authored
+                ? $"AUTHORED LADDER LOADED · {blockSummary}"
+                : "NEW OFFLINE PROJECT · VERIFY SCENE BINDINGS BEFORE RUN";
             _ladderWorkspaceStatus.AddThemeColorOverride("font_color", new Color("65d49a"));
         }
     }
@@ -3879,12 +3908,62 @@ public partial class SimulatorShell : CanvasLayer
         return true;
     }
 
+    public bool VerifySceneDraftPersistence(out string result)
+    {
+        var originalScene = _activeScene?.Id ?? string.Empty;
+        var original = _ladderDocument.CaptureSnapshot();
+        var originalSaved = _ladderSavedProjectJson;
+        var originalPath = _ladderProjectPath;
+        var originalHistory = _ladderHistory;
+        var originalDrafts = _sceneLadderDrafts.ToArray();
+        try
+        {
+            SceneRequested?.Invoke("scene-1-conveyor-stop");
+            var baseline = _ladderDocument.CaptureSnapshot();
+            _ladderHistory = new LadderEditorHistory(150);
+            const string marker = "Unsaved invalid draft - scenario round trip";
+            _ladderProjectPath = "draft-regression.rpproj.json";
+            _ladderSavedProjectJson = LadderEditorProjectJson.Save(_ladderDocument);
+            _ladderHistory.Execute(_ladderDocument, "Add unsaved network",
+                () => _ladderDocument.AddRung(marker, "unresolved_output"));
+            var draft = LadderEditorProjectJson.Save(_ladderDocument);
+            SceneRequested?.Invoke("lab-4-01-press-count-lamp");
+            var isolated = !_ladderDocument.Rungs.Any(rung => rung.Label == marker);
+            SceneRequested?.Invoke("scene-1-conveyor-stop");
+            var retained = LadderEditorProjectJson.Save(_ladderDocument) == draft
+                && _ladderProjectPath == "draft-regression.rpproj.json"
+                && _ladderSavedProjectJson != draft;
+            var undo = TryUndoLadderEdit(out _) && !_ladderDocument.Rungs.Any(rung => rung.Label == marker);
+            SceneRequested?.Invoke("lab-4-01-press-count-lamp");
+            SceneRequested?.Invoke("scene-1-conveyor-stop");
+            var redo = TryRedoLadderEdit(out _) && LadderEditorProjectJson.Save(_ladderDocument) == draft;
+            SceneRequested?.Invoke("scene-1-conveyor-stop");
+            var sameScene = LadderEditorProjectJson.Save(_ladderDocument) == draft && _ladderHistory.CanUndo;
+            result = $"draft={retained} isolated={isolated} undo={undo} redo={redo} sameScene={sameScene}";
+            _ladderDocument.RestoreSnapshot(baseline);
+            return retained && isolated && undo && redo && sameScene;
+        }
+        finally
+        {
+            if (_activeScene?.Id != originalScene) SceneRequested?.Invoke(originalScene);
+            _ladderDocument.RestoreSnapshot(original);
+            _ladderSavedProjectJson = originalSaved;
+            _ladderProjectPath = originalPath;
+            _ladderHistory = originalHistory;
+            _sceneLadderDrafts.Clear();
+            foreach (var entry in originalDrafts) _sceneLadderDrafts.Add(entry.Key, entry.Value);
+            foreach (var refresh in _ladderEditorRefreshers) refresh();
+        }
+    }
+
     public bool VerifyCrossSceneProjectOpen(out string result)
     {
         var sceneId = _activeScene?.Id ?? string.Empty;
         var original = _ladderDocument.CaptureSnapshot();
         var savedJson = _ladderSavedProjectJson;
         var projectPath = _ladderProjectPath;
+        var history = _ladderHistory;
+        var drafts = _sceneLadderDrafts.ToArray();
         var path = System.IO.Path.Combine(OS.GetUserDataDir(),
             $"cross-scene-review-{Guid.NewGuid():N}.rpproj.json");
         try
@@ -3909,6 +3988,9 @@ public partial class SimulatorShell : CanvasLayer
             _ladderDocument.RestoreSnapshot(original);
             _ladderSavedProjectJson = savedJson;
             _ladderProjectPath = projectPath;
+            _ladderHistory = history;
+            _sceneLadderDrafts.Clear();
+            foreach (var entry in drafts) _sceneLadderDrafts.Add(entry.Key, entry.Value);
             foreach (var refresh in _ladderEditorRefreshers) refresh();
             System.IO.File.Delete(path);
         }

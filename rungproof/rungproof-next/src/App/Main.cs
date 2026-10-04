@@ -952,6 +952,7 @@ public partial class Main : Node3D
         var scenarioResult = "shell unavailable";
         var projectResult = "shell unavailable";
         var guardResult = "shell unavailable";
+        var draftResult = "shell unavailable";
         var structurePassed = _simulatorShell is not null
             && _simulatorShell.VerifyStructure(out result);
         var menuPassed = _simulatorShell is not null
@@ -964,8 +965,11 @@ public partial class Main : Node3D
             && _simulatorShell.VerifyCrossSceneProjectOpen(out projectResult);
         var guardPassed = _simulatorShell is not null
             && _simulatorShell.VerifyExternalProfileGuards(out guardResult);
+        var draftPassed = _simulatorShell is not null
+            && _simulatorShell.VerifySceneDraftPersistence(out draftResult);
+        GD.Print($"SCENE_DRAFT_VERIFY {(draftPassed ? "PASS" : "FAIL")} {draftResult}");
         GD.Print($"EXTERNAL_PROFILE_GUARD_VERIFY {(guardPassed ? "PASS" : "FAIL")} {guardResult}");
-        if (structurePassed && menuPassed && plcPassed && scenarioPassed && projectPassed && guardPassed)
+        if (structurePassed && menuPassed && plcPassed && scenarioPassed && projectPassed && guardPassed && draftPassed)
         {
             GD.Print($"APP_SHELL_VERIFY PASS {result} workspaceMenu={menuResult} plcMenu={plcResult} scenarioMenu={scenarioResult} crossSceneProject={projectResult}");
             GetTree().Quit(0);
@@ -980,6 +984,7 @@ public partial class Main : Node3D
             if (!scenarioPassed) failure += $"; scenarioMenu={scenarioResult}";
             if (!projectPassed) failure += $"; crossSceneProject={projectResult}";
             if (!guardPassed) failure += $"; externalProfileGuards={guardResult}";
+            if (!draftPassed) failure += $"; sceneDraft={draftResult}";
         }
         GD.PushError($"APP_SHELL_VERIFY FAIL {failure}");
         GetTree().Quit(1);

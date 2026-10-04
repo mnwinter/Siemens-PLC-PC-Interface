@@ -8,6 +8,14 @@ temporary runtime state.
 
 ## Product intent
 
+Latest local review checkpoint (2026-10-04): scene navigation now retains each
+ladder draft, saved baseline/path, and Undo/Redo. See `WHOLE_PROGRAM_REVIEW.md`
+for failing-before/passing-after regression and native Windows evidence. Drafts
+remain in memory; Save is required before exit. Non-demo starter programs/Run,
+remaining native workflows, external reference semantics, and shutdown leaks
+still require work. The whole-program review is active; no live PLC acceptance
+or complete product acceptance has been established.
+
 RungProof is a Windows PLC visual simulator and training environment. A user
 selects a scenario, sees the 3D machine, edits ladder logic in a TIA Portal or
 Studio 5000 styled workbench, runs a deterministic built-in controller, and

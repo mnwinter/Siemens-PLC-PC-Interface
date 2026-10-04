@@ -128,6 +128,26 @@ Run the new offline suites from `rungproof-next/`:
 Next work remains unsaved project/scene transitions, all demo native workflows,
 external playback/reference semantics, and the rest of the review matrix.
 
+## Scenario draft checkpoint - 2026-10-04
+
+Restore tag `codex/project-persistence-baseline-20261004` at `49c5019`
+preserves the external bridge checkpoint. Native Windows use reproduced loss
+of an unsaved network and Undo history after Demo 3 -> Demo 1 -> Demo 3.
+Scene loading reinstalled the authored template on every attachment. Each
+scene now retains its exact in-memory draft, saved baseline/path, and separate
+Undo/Redo history; selecting the current scene also preserves its project.
+Cached drafts never have user bindings overwritten by template alignment.
+This retains work during scenario navigation; it is not crash recovery or
+automatic disk persistence. Explicit Save remains necessary before closing.
+
+The app-shell regression failed before the fix and passes afterward, including
+invalid draft contents, dirty state/path, isolation, Undo, Redo across another
+round trip, and same-scene selection. Build has zero warnings/errors and the
+rendered editor interaction regression passes. Native Windows inspection
+confirms the third network, dirty marker, and Undo/Redo after the round trip.
+The unrelated conveyor template assigned to non-demo labs and their Run path
+remain under review, as do shutdown resource leaks and the rest of the matrix.
+
 ## Verification boundary
 
 Native mouse/keyboard interaction proves only the inspected Windows workflows.
