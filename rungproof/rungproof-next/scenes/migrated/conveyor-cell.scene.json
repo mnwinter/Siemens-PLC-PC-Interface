@@ -220,6 +220,8 @@
         "label": "Start / stop inspection conveyor",
         "type": "toggle",
         "point": "conveyor_run",
+        "controllerStartBinding": "operator.start",
+        "controllerStopBinding": "operator.stop",
         "requires": {
           "estop_ok": true
         },

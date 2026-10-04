@@ -154,7 +154,9 @@
         "id": "scene-toggle",
         "label": "Start / stop conveyor",
         "type": "toggle",
-        "point": "conveyor_running"
+        "point": "conveyor_running",
+        "controllerStartBinding": "operator.start",
+        "controllerStopBinding": "operator.stop"
       }
     ],
     "pointBindings": [

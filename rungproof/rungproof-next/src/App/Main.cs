@@ -386,6 +386,12 @@ public partial class Main : Node3D
         _simulatorShell.RunRequested += RunActiveController;
         _simulatorShell.StopRequested += StopActiveController;
         _simulatorShell.ResetRequested += ResetActiveController;
+        _simulatorShell.SceneActionRequested += action => ExecuteSelectedControllerAction(action);
+        _simulatorShell.ControllerModeChanged += external =>
+        {
+            if (_virtualController is not null) DisableVirtualController();
+            if (_sceneRuntime is not null) _sceneRuntime.UsesExternalClock = external;
+        };
         _simulatorShell.VirtualControllerDemoRequested += EnableVirtualControllerDemo;
         _simulatorShell.VirtualControllerProgramRequested += EnableVirtualControllerProgram;
         _simulatorShell.VirtualControllerDisabled += DisableVirtualController;
@@ -536,6 +542,11 @@ public partial class Main : Node3D
     private void EnableVirtualControllerProgram(LadderProgram program)
     {
         if (_candidateCatalog is null || _mainCamera is null || _simulatorShell is null) return;
+        if (_simulatorShell.IsExternalMode)
+        {
+            _simulatorShell.SetWorkspaceStatus("Select Built-in Simulator before loading a local controller.", isError: true);
+            return;
+        }
         if (_virtualController is not null) DisableVirtualController();
         if (_sceneRuntime is null) return;
 
@@ -665,7 +676,12 @@ public partial class Main : Node3D
                     isError: true);
                 return;
             }
-            _sceneRuntime?.RunDefault();
+            _simulatorShell.SetWorkspaceStatus("External PLC exchange active · machine commands and execution remain PLC-owned");
+            return;
+        }
+        if (_sceneRuntime?.HasLatchedEmergencyStop == true)
+        {
+            _simulatorShell?.SetWorkspaceStatus("RUN BLOCKED · explicitly reset the simulated E-stop first", isError: true);
             return;
         }
         if (_virtualController is null && _simulatorShell is not null)
@@ -689,7 +705,7 @@ public partial class Main : Node3D
     {
         if (_simulatorShell?.IsExternalMode == true)
         {
-            _sceneRuntime?.StopSimulation();
+            _simulatorShell.SetWorkspaceStatus("External PLC owns Stop · no scene output or PLC command was changed", isError: true);
             return;
         }
         if (_virtualController is not null && _sceneRuntime is not null)
@@ -705,7 +721,7 @@ public partial class Main : Node3D
     {
         if (_simulatorShell?.IsExternalMode == true)
         {
-            _sceneRuntime?.ResetSimulation();
+            _simulatorShell.SetWorkspaceStatus("External PLC owns Reset · use its declared command interface", isError: true);
             return;
         }
         if (_virtualController is not null && _sceneRuntime is not null)
@@ -713,6 +729,7 @@ public partial class Main : Node3D
             _sceneRuntime.ResetSimulation();
             var snapshot = _virtualController.Reset();
             CommitVirtualControllerSnapshot(snapshot);
+            _simulatorShell?.SetWorkspaceStatus("Built-in controller reset · stopped · new machine Start required");
             return;
         }
         _sceneRuntime?.ResetSimulation();
@@ -1127,8 +1144,70 @@ public partial class Main : Node3D
             Position = pointer,
         }, true);
         var restarted = _sceneRuntime.Points.TryGetValue("conveyor_run", out var restartedValue) && restartedValue is true;
-        var passed = facesOperator && running && depressed && restored && estopLatched && stopped && restartBlocked && resetReleased && restarted;
-        GD.Print($"SCENE_CONTROL_VERIFY {(passed ? "PASS" : "FAIL")} facesOperator={facesOperator} start={running} depressed={depressed} restored={restored} estopLatched={estopLatched} stopped={stopped} restartBlocked={restartBlocked} resetReleased={resetReleased} restarted={restarted}");
+        // Repeat at the controller seam; scene-only tests miss scan overwrites.
+        RunActiveController();
+        void ScanOnce() => _virtualController?.Advance(0.020,
+            SampleVirtualControllerInputs, SampleVirtualControllerNumericInputs,
+            CommitVirtualControllerOutputs, CommitVirtualControllerNumericOutputs,
+            _sceneRuntime.AdvanceSimulation);
+        bool OutputOn() => _sceneRuntime.Points.GetValueOrDefault("conveyor_run") is true;
+        var virtualReady = _virtualController is not null;
+        GetViewport().PushInput(new InputEventMouseButton
+        { ButtonIndex = MouseButton.Left, Pressed = true, Position = pointer }, true);
+        ScanOnce();
+        var virtualStart = OutputOn();
+        ExecuteSelectedControllerAction("conveyor_run");
+        ScanOnce();
+        var virtualStopCommand = !OutputOn();
+        ExecuteSelectedControllerAction("conveyor_run");
+        ScanOnce();
+        ExecuteSelectedControllerAction("conveyor-estop");
+        var immediateEstop = !OutputOn() && _virtualController?.Snapshot.State == VirtualControllerState.Stopped;
+        RunActiveController();
+        var virtualRestartBlocked = _virtualController?.Snapshot.State == VirtualControllerState.Stopped;
+        ExecuteSelectedControllerAction("conveyor-estop-reset");
+        RunActiveController();
+        ScanOnce();
+        var resetDoesNotStart = !OutputOn();
+        ExecuteSelectedControllerAction("conveyor_run");
+        ScanOnce();
+        var virtualRestarted = OutputOn();
+        var plcMenu = _simulatorShell?.GetNode<MenuButton>("Workspace/Toolbar/ToolbarMargin/ToolbarRow/PlcMenu").GetPopup();
+        plcMenu?.EmitSignal(PopupMenu.SignalName.IdPressed, 11);
+        var exclusiveExternal = _virtualController is null && _sceneRuntime.UsesExternalClock;
+        var externalActionBlocked = !ExecuteSelectedControllerAction("conveyor_run");
+        _sceneRuntime.CommitExternalPlcOutputs(new Dictionary<string, object?> { ["conveyor_run"] = true });
+        StopActiveController();
+        ResetActiveController();
+        var externalImagePreserved = OutputOn();
+        plcMenu?.EmitSignal(PopupMenu.SignalName.IdPressed, 10);
+        var fallbackRestored = !_sceneRuntime.UsesExternalClock;
+        // A feedback action under controller ownership must not execute the
+        // fallback PLC rule, even if its condition becomes true.
+        using var fixtureJson = System.Text.Json.JsonDocument.Parse("""
+            {"type":"booleanPanel","points":[
+              {"name":"feedback","type":"BOOL","owner":"PC","initial":false},
+              {"name":"motor","type":"BOOL","owner":"PLC","initial":false,"role":"output"}],
+             "actions":[{"id":"feedback-toggle","type":"toggle","point":"feedback"}],
+             "rules":[{"when":{"feedback":true},"set":{"motor":true}}]}
+            """);
+        var fixtureRoot = new Node3D();
+        var fixtureRuntime = new SceneSimulationRuntime(fixtureJson.RootElement, fixtureRoot);
+        fixtureRuntime.ResetSimulation();
+        fixtureRuntime.UsesExternalClock = true;
+        fixtureRuntime.ExecuteAction("feedback-toggle");
+        var noFallbackOverwrite = fixtureRuntime.Points.GetValueOrDefault("motor") is false;
+        fixtureRuntime.UsesExternalClock = false;
+        fixtureRuntime.ExecuteAction("feedback-toggle");
+        fixtureRuntime.ExecuteAction("feedback-toggle");
+        var fallbackRulesWork = fixtureRuntime.Points.GetValueOrDefault("motor") is true;
+        fixtureRuntime.Free();
+        fixtureRoot.Free();
+        var passed = facesOperator && running && depressed && restored && estopLatched && stopped && restartBlocked
+            && resetReleased && restarted && virtualReady && virtualStart && virtualStopCommand && immediateEstop
+            && virtualRestartBlocked && resetDoesNotStart && virtualRestarted && exclusiveExternal && externalActionBlocked
+            && externalImagePreserved && fallbackRestored && noFallbackOverwrite && fallbackRulesWork;
+        GD.Print($"SCENE_CONTROL_VERIFY {(passed ? "PASS" : "FAIL")} facesOperator={facesOperator} start={running} depressed={depressed} restored={restored} estopLatched={estopLatched} stopped={stopped} restartBlocked={restartBlocked} resetReleased={resetReleased} restarted={restarted} virtualReady={virtualReady} virtualStart={virtualStart} virtualStopCommand={virtualStopCommand} immediateEstop={immediateEstop} virtualRestartBlocked={virtualRestartBlocked} resetDoesNotStart={resetDoesNotStart} virtualRestarted={virtualRestarted} exclusiveExternal={exclusiveExternal} externalActionBlocked={externalActionBlocked} externalImagePreserved={externalImagePreserved} fallbackRestored={fallbackRestored} noFallbackOverwrite={noFallbackOverwrite} fallbackRulesWork={fallbackRulesWork}");
         GetTree().Quit(passed ? 0 : 1);
     }
 
@@ -2817,6 +2896,7 @@ public partial class Main : Node3D
         }
         AddChild(composition.Root);
         _sceneRuntime = new SceneSimulationRuntime(scene.Simulation, composition.Root);
+        _sceneRuntime.UsesExternalClock = _simulatorShell?.IsExternalMode == true;
         _sceneControlInteractor = new SceneControlInteractor(scene, composition.Root);
         _sceneRuntime.StateChanged += ApplyWorkspaceSignalMappings;
         AddChild(_sceneRuntime);
@@ -3021,8 +3101,15 @@ public partial class Main : Node3D
 
     public override void _PhysicsProcess(double delta)
     {
-        if (_externalConnection?.State == ConnectionState.Connected)
-            AdvanceExternalPlc();
+        if (_simulatorShell?.IsExternalMode == true)
+        {
+            if (_externalConnection?.State == ConnectionState.Connected)
+            {
+                AdvanceExternalPlc();
+                _sceneRuntime?.AdvanceSimulation(delta);
+            }
+            return;
+        }
         if (_virtualController is null || _sceneRuntime is null) return;
         _virtualController.Advance(
             delta,
@@ -3269,15 +3356,74 @@ public partial class Main : Node3D
             return false;
         }
 
-        // The declared action is the only path from a 3D control to the
-        // symbolic runtime. This method intentionally does not read or write
-        // physical I/O, transport adapters, addresses, or controller state.
-        var executed = _sceneRuntime.ExecuteAction(control.ActionId);
+        // 3D controls and sidebar controls share the selected execution source.
+        var executed = ExecuteSelectedControllerAction(control.ActionId);
         if (executed) _sceneControlInteractor.PlayAcceptedFeedback(control);
-        _simulatorShell?.SetWorkspaceStatus(executed
-            ? $"Scene control · {control.Label} → {control.ActionId}"
-            : $"Scene control blocked · {control.Label} → {control.ActionId}", isError: !executed);
         return true;
+    }
+
+    private bool ExecuteSelectedControllerAction(string actionId)
+    {
+        var executed = TryExecuteSelectedControllerAction(actionId);
+        if (executed) _simulatorShell?.SetWorkspaceStatus($"Scene action accepted · {actionId}");
+        return executed;
+    }
+
+    private bool TryExecuteSelectedControllerAction(string actionId)
+    {
+        if (_sceneRuntime is null || !_sceneRuntime.TryGetAction(actionId, out var action)) return false;
+        var type = action.TryGetProperty("type", out var typeElement)
+            && typeElement.ValueKind == JsonValueKind.String ? typeElement.GetString() ?? string.Empty : string.Empty;
+        var point = action.TryGetProperty("point", out var pointElement) ? pointElement.GetString() ?? string.Empty : string.Empty;
+        bool Block(string reason)
+        {
+            _simulatorShell?.SetWorkspaceStatus($"Action blocked · {reason}", isError: true);
+            return false;
+        }
+        if (!_sceneRuntime.CanExecuteAction(action)) return Block("scene permissives are not satisfied; reset before restarting");
+        if (_simulatorShell?.IsExternalMode == true)
+        {
+            // Only declared simulator feedback may change here. There is no
+            // implicit mapping from a scene motor toggle to a PLC command.
+            if (type is not ("toggle" or "togglePoint" or "pulse" or "cycle")
+                || _sceneRuntime.IsPlcOwnedPoint(point))
+                return Block("External PLC owns this command; no local output was changed");
+            return _sceneRuntime.ExecuteAction(actionId);
+        }
+        if (_virtualController is null) return _sceneRuntime.ExecuteAction(actionId);
+        if (type == "emergencyStop")
+        {
+            _sceneRuntime.ExecuteAction(actionId);
+            StopActiveController();
+            return true;
+        }
+        if (type == "reset") { ResetActiveController(); return true; }
+        if (type == "stop") { StopActiveController(); return true; }
+        if (type == "run") { RunActiveController(); return true; }
+        if (_sceneRuntime.IsPlcOwnedPoint(point) || type == "start")
+        {
+            if (_sceneRuntime.HasLatchedEmergencyStop) return Block("explicitly reset the simulated E-stop first");
+            if (_virtualController.Snapshot.State != VirtualControllerState.Running)
+                return Block("Run the controller before issuing a machine command");
+            if (point.Length > 0 && _virtualProgram?.Variables.Any(item =>
+                item.Role == PlcVariableRole.Output && item.Binding.Equals(point, StringComparison.Ordinal)) != true)
+                return Block($"the loaded ladder has no output mapped to {point}");
+            // These bindings are authored in the scene, never inferred from a
+            // PLC output name. A missing binding is reported instead of silently
+            // forcing an output or queuing an invalid input for a later Run.
+            var stopping = _sceneRuntime.Points.TryGetValue(point, out var current) && current is true;
+            var bindingKey = stopping ? "controllerStopBinding" : "controllerStartBinding";
+            if (!action.TryGetProperty(bindingKey, out var bindingElement))
+                return Block("this scene action has no command binding in the loaded ladder program");
+            var binding = bindingElement.GetString();
+            var variable = _virtualProgram?.Variables.FirstOrDefault(item =>
+                item.Role == PlcVariableRole.Input && item.Type == PlcVariableType.Bool
+                && item.Binding.Equals(binding, StringComparison.Ordinal));
+            if (variable is null) return Block($"the loaded ladder program has no BOOL input for {binding}");
+            _virtualController.PulseInput(variable.Name);
+            return true;
+        }
+        return _sceneRuntime.ExecuteAction(actionId);
     }
 
     private void AddCandidatePreview(AssetDefinition asset)

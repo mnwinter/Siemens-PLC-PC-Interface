@@ -41,6 +41,22 @@ public partial class SceneSimulationRuntime : Node
     public bool IsRunning => _tankSimulationRunning || _activeStepIndex >= 0 || Controllers().Any(IsControllerRunning);
     public bool UsesExternalClock { get; set; }
 
+    public bool TryGetAction(string id, out JsonElement action)
+    {
+        action = Actions().FirstOrDefault(item => Text(item, "id", string.Empty) == id);
+        return action.ValueKind == JsonValueKind.Object;
+    }
+
+    public bool CanExecuteAction(JsonElement action) => RequirementsSatisfied(action);
+    public bool IsPlcOwnedPoint(string point) =>
+        string.Equals(_pointOwners.GetValueOrDefault(point), "PLC", StringComparison.OrdinalIgnoreCase);
+
+    // A scene-local permissive belongs only to the offline simulator. External
+    // PLC safety and reset logic remain in that PLC and are never synthesized here.
+    public bool HasLatchedEmergencyStop => Actions().Any(action =>
+        Text(action, "type", string.Empty) == "emergencyStop"
+        && !AsBool(_points.GetValueOrDefault(Text(action, "point", "estop_ok"))));
+
     public SceneSimulationRuntime(JsonElement definition, Node3D sceneRoot)
     {
         _definition = definition.Clone();
@@ -705,6 +721,15 @@ public partial class SceneSimulationRuntime : Node
 
     private void EvaluateRules()
     {
+        if (UsesExternalClock)
+        {
+            // The selected controller produces the output image. Scene rules
+            // are the fallback fake PLC, and must not compete with that image.
+            foreach (var (name, value) in _points) _previousPoints[name] = value;
+            ApplyBindings();
+            StateChanged?.Invoke();
+            return;
+        }
         if (RuntimeType == "booleanPanel")
         {
             // Match the original fake-PLC scan: combinational outputs return

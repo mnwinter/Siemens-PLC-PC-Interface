@@ -32,6 +32,11 @@ public sealed class VirtualControllerSession
 
     public VirtualControllerSnapshot Stop()
     {
+        // A momentary command that was not scanned before Stop must not fire
+        // during a later Run. Held inputs retain their separate semantics.
+        foreach (var name in _pulseInputs) _operatorInputs[name] = false;
+        _pulseInputs.Clear();
+        _accumulatorSeconds = 0.0;
         var snapshot = _runtime.Stop();
         SnapshotPublished?.Invoke(snapshot);
         return snapshot;

@@ -58,6 +58,8 @@ public partial class SimulatorShell : CanvasLayer
     private readonly List<AssetDefinition> _filteredAssets = [];
     private SceneSimulationRuntime? _runtime;
     private SceneDefinition? _activeScene;
+    private readonly List<string> _operatorEvents = [];
+    private RichTextLabel? _operatorEventHistory;
     private AssetDefinition? _selectedAsset;
 
     private ItemList _sceneList = null!;
@@ -232,6 +234,8 @@ public partial class SimulatorShell : CanvasLayer
     public event Action? RunRequested;
     public event Action? StopRequested;
     public event Action? ResetRequested;
+    public event Action<string>? SceneActionRequested;
+    public event Action<bool>? ControllerModeChanged;
     public event Action? VirtualControllerDemoRequested;
     public event Action<LadderProgram>? VirtualControllerProgramRequested;
     public event Action? VirtualControllerDisabled;
@@ -363,6 +367,7 @@ public partial class SimulatorShell : CanvasLayer
         LoadAuthoredDemoLadder(scene.Id);
         AlignDefaultConveyorBindings(scene);
         _sceneTitle.Text = _activeSceneName;
+        RecordOperatorEvent($"Loaded {_activeSceneName}");
         _selectedAsset = null;
         _placeAsset.Disabled = true;
         RefreshSceneInspector(composition);
@@ -2129,9 +2134,10 @@ public partial class SimulatorShell : CanvasLayer
         var body = new VBoxContainer { Name = "Health" };
         body.AddThemeConstantOverride("separation", 7);
         body.AddChild(SectionLabel("EVENT HISTORY"));
-        var eventHistory = Heading("LOCAL ONLY\nNo active events", 11, new Color("8aa5b4"));
-        eventHistory.CustomMinimumSize = new Vector2(0, 48);
-        body.AddChild(eventHistory);
+        _operatorEventHistory = Inspector("OperatorEventHistory");
+        _operatorEventHistory.CustomMinimumSize = new Vector2(0, 80);
+        _operatorEventHistory.AddThemeFontSizeOverride("normal_font_size", 11);
+        body.AddChild(_operatorEventHistory);
         body.AddChild(SectionLabel("SCENE EQUIPMENT"));
         _operatorEquipment = Inspector("OperatorEquipment");
         _operatorEquipment.CustomMinimumSize = new Vector2(0, 136);
@@ -2412,7 +2418,7 @@ public partial class SimulatorShell : CanvasLayer
         foreach (var action in _runtime.GetActions())
         {
             var button = ToolbarButton($"Action_{action.Id.Replace('-', '_')}", action.Label.ToUpperInvariant(), new Color("276b89"));
-            button.Pressed += () => _runtime?.ExecuteAction(action.Id);
+            button.Pressed += () => SceneActionRequested?.Invoke(action.Id);
             _operatorActions.AddChild(button);
         }
         if (_operatorActions.GetChildCount() == 0)
@@ -2428,7 +2434,7 @@ public partial class SimulatorShell : CanvasLayer
     private void RefreshOperatorPanels()
     {
         if (_runtime is null || _activeScene is null || _operatorActions is null) return;
-        _transportScene.Text = $"{Escape(_activeSceneName)} · {(ActiveRuntimeRunning ? "RUNNING" : "STOPPED")}";
+        _transportScene.Text = $"{Escape(_activeSceneName)} · {(_externalMode ? "PLC OWNED" : ActiveRuntimeRunning ? "RUNNING" : "STOPPED")}";
         _operatorSceneSummary.Text =
             $"[font_size=18][b]{Escape(_activeScene.Name)}[/b][/font_size]\n" +
             $"[color=#9db4c0]{Escape(_activeScene.Description)}[/color]\n\n" +
@@ -2451,8 +2457,10 @@ public partial class SimulatorShell : CanvasLayer
         health.AppendLine($"[b]Health[/b]  {_connection.State.ToString().ToUpperInvariant()}");
         if (external)
         {
-            health.AppendLine("Heartbeat  guarded live runtime");
-            health.AppendLine("Echo  PLC readback");
+            health.AppendLine(_connection.State == ConnectionState.Connected
+                ? "Heartbeat  see guarded session status" : "Heartbeat  unavailable (disconnected)");
+            health.AppendLine(_connection.State == ConnectionState.Connected
+                ? "Echo  see guarded session status" : "Echo  none (disconnected)");
             health.AppendLine($"Connection  {_connection.EndpointDescription}");
             health.AppendLine("Timeout  profile watchdog");
         }
@@ -3599,7 +3607,9 @@ public partial class SimulatorShell : CanvasLayer
     private void RefreshRuntimeState()
     {
         if (_runtime is null) return;
-        _runtimeStatus.Text = ActiveRuntimeRunning
+        _runtimeStatus.Text = _externalMode
+            ? $"EXTERNAL PLC  •  {_connection.State.ToString().ToUpperInvariant()}"
+            : ActiveRuntimeRunning
             ? "LOCAL RUNTIME  •  RUNNING"
             : "LOCAL RUNTIME  •  STOPPED";
         _runtimeStatus.AddThemeColorOverride("font_color",
@@ -7635,7 +7645,10 @@ public partial class SimulatorShell : CanvasLayer
         {
             external.Disconnect();
         }
+        var modeChanged = _externalMode != enabled;
         _externalMode = enabled;
+        if (modeChanged) ControllerModeChanged?.Invoke(enabled);
+        if (modeChanged) RecordOperatorEvent(enabled ? "External PLC source selected" : "Built-in simulator source selected");
         var popup = GetNodeOrNull<MenuButton>("Workspace/Toolbar/ToolbarMargin/ToolbarRow/PlcMenu")?.GetPopup();
         if (popup is not null)
         {
@@ -8028,6 +8041,8 @@ public partial class SimulatorShell : CanvasLayer
 
     public void UpdateVirtualController(VirtualControllerSnapshot snapshot)
     {
+        if (_virtualSnapshot?.State != snapshot.State)
+            RecordOperatorEvent($"Built-in controller {snapshot.State.ToString().ToLowerInvariant()}");
         _virtualSnapshot = snapshot;
         var virtualProgram = _virtualProgram;
         if (virtualProgram is null) return;
@@ -9152,7 +9167,7 @@ public partial class SimulatorShell : CanvasLayer
             $"[b]State[/b]  {_connection.State.ToString().ToUpperInvariant()}\n" +
             $"[b]Endpoint[/b]  {Escape(_connection.EndpointDescription)}\n\n" +
             $"{Escape(_connection.StatusDetail)}";
-        RefreshOperatorPanels();
+        RefreshRuntimeState();
     }
 
     private void PopulateDiagnostics()
@@ -9189,6 +9204,17 @@ public partial class SimulatorShell : CanvasLayer
         _workspaceStatus.Text = message;
         _workspaceStatus.AddThemeColorOverride("font_color",
             isError ? new Color("ef7777") : new Color("65d49a"));
+        RecordOperatorEvent(message);
+    }
+
+    public void RecordOperatorEvent(string message)
+    {
+        // Bound the view and retain only operator/transition events. Scan
+        // refreshes do not log, so long runs cannot flood the history or UI.
+        _operatorEvents.Insert(0, $"{DateTime.Now:HH:mm:ss}  {Escape(message)}");
+        if (_operatorEvents.Count > 32) _operatorEvents.RemoveAt(_operatorEvents.Count - 1);
+        if (_operatorEventHistory is not null)
+            _operatorEventHistory.Text = string.Join("\n", _operatorEvents);
     }
 
     public void SetTransformMode(WorkspaceTransformMode mode)

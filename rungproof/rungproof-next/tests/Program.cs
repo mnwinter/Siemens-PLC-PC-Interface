@@ -35,6 +35,7 @@ internal static class Program
         Test("missing program identity is rejected", TestMissingProgramIdentity);
         Test("Reset restores controller memory", TestReset);
         Test("fixed scan order is sample-execute-commit-plant-publish", TestScanOrder);
+        Test("Stop cancels an unscanned momentary command", TestStopCancelsPulse);
         Test("typed numeric scene I/O follows deterministic scan order", TestNumericScanOrder);
         Test("editor document builds arbitrary rungs", TestEditorDocumentBuild);
         Test("editor inserts instructions at an exact series position", TestEditorExactInsertion);
@@ -526,6 +527,20 @@ internal static class Program
         });
         Equal(1, scans);
         Equal("sample,commit,plant,publish", string.Join(",", order));
+    }
+
+    private static void TestStopCancelsPulse()
+    {
+        var session = new VirtualControllerSession(DemoRuntime());
+        session.Run();
+        session.PulseInput("start_command");
+        session.Stop();
+        session.Run();
+        session.Advance(0.020, () => Inputs(("simulated_photoeye", false)),
+            outputs => False(outputs["conveyor_running"]), _ => { });
+        session.PulseInput("start_command");
+        session.Advance(0.020, () => Inputs(("simulated_photoeye", false)),
+            outputs => True(outputs["conveyor_running"]), _ => { });
     }
 
     private static void TestNumericScanOrder()

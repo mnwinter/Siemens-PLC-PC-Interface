@@ -20,6 +20,12 @@ No changes have been pushed. No plant connection has been attempted.
 | Demo 5 counts unavailable cartons and repeatedly increments a completed layer | Dwell ignored permissives; layer arithmetic executed every scan while completion stayed true. Gate dwell with pick permissive and count completion rising edges. | Two controller regressions passed after fix. |
 | Opening a saved ladder for another scene replaces it with a demo | Restored the saved document before scene attachment installed the starter template. Attach the scene first, then restore saved work. | App-shell regression preserves a custom network label after scene change and reopening, including the loaded controller program. Native same-scene save also verified. |
 | 31 unresolved accessory errors despite existing mappings | Type-level migration metadata predates accessory configuration. Validate configured catalog IDs and retain missing-ID errors. | App shell now reports one informational ready diagnostic, 77 scenes, 294 assets. This does not grant production or visual approval. |
+| Normal conveyor Start is overwritten by the next scan | Sidebar and 3D actions wrote an output directly. Both now use one controller route, with authored momentary command bindings and matching loaded output bindings. | Native Windows Start produced `conveyor_run=True`, speed 1.05 m/s, and carton motion. Rendered picking/scan regression passes. |
+| Scene rules compete with the selected controller | Fallback fake-PLC rules executed on feedback changes. Suppress them while a controller owns the output image. | Regression verifies feedback changes preserve the controller output and that fallback rules still work after returning to local scene execution. |
+| E-stop leaves controller running or permits automatic restart | Route simulated E-stop through the active controller Stop and block Run while its scene permissive is latched. Reset clears controller state without starting. | Native E-stop, blocked Run, and Reset inspected; rendered regression also requires a fresh Start after Reset and Run. |
+| Pending momentary Start fires after Stop/Run | Session Stop retained an unscanned pulse. Cancel pending pulses and partial elapsed scan time on Stop. | Controller regression; 139 tests pass. |
+| External and virtual controllers can publish competing outputs | Mode change unloads the virtual session; external physics takes an exclusive branch. External Run no longer invokes fake-PLC logic. Local Stop/Reset/PLC-owned scene actions are blocked in external mode. | Offline regression checks mode exclusivity and preserves an injected external output image. Native external selection blocks local Start without connecting hardware. |
+| Event History never records events | Replace placeholder with bounded, scrollable action and controller-transition history. | Native Run and accepted/blocked Start events displayed. |
 
 ## Review matrix
 
@@ -38,20 +44,12 @@ No changes have been pushed. No plant connection has been attempted.
 
 ## Specific open issues
 
-- Event History is a static label; it records no user actions or transitions.
-- Native Conveyor Inspection Cell reproduction: Run starts ladder scans; then
-  clicking Start / Stop Inspection Conveyor leaves `conveyor_run` False. The
-  scene action writes a PLC-owned output and the next scan overwrites it.
-  Operator commands must enter the selected controller's input image; both
-  sidebar and 3D controls need the same route. Recheck E-stop/reset at that seam.
 - Standalone Logic Editor hides Local Model Points. Split layout can overflow
   at 1200x675 and hides most of the scene between information rails.
 - Split scene viewport calculation includes opaque UI areas; the camera frames
   the entire viewport rather than its actual visible aperture.
 - Dock layout updates reapply visibility defaults, undoing user choices.
 - Switching scenes does not yet prove preservation of unsaved user ladder work.
-- Main advances external and virtual sessions in the same physics callback.
-  External Run calls local scene logic, so PLC authority needs explicit audit.
 - External bridge JSON reads block the UI thread indefinitely on a missing
   response, with redirected stderr not consumed. Profile cadence is ignored.
 - External connect lacks an enforced matching scene/profile boundary; scope
@@ -74,8 +72,21 @@ No changes have been pushed. No plant connection has been attempted.
   input changes, lost-permissive response, Save, add-network, Undo/Redo, normal
   conveyor Start failure, standalone editor, and unusable split view.
 
-Next work: reproduce and fix controller action routing, then audit execution
-source ownership and repair split/editor layouts with native interaction proof.
+## Controller routing checkpoint
+
+Restore tag `codex/controller-routing-baseline-20261003` preserves the prior
+checkpoint. The current build has zero warnings/errors, 139 passing controller
+tests, and passing rendered scene-control, virtual-controller UI, numeric-I/O,
+and app-shell regressions. No PLC connection was attempted. The scene-control
+regression includes a synthetic external output image; it is ownership proof,
+not a PLC communication or hardware test. Shutdown resource leaks remain open.
+
+Native Windows evidence covers normal Start/motion, E-stop/blocked Run/Reset,
+source selection, rejected external local Start, and displayed event history.
+Unmapped commands report rejection rather than silently forcing outputs. The
+external command interface, transport readiness/cadence, and commissioning
+requirements still need review. Next work is split/editor layout and framing,
+then the remaining external bridge and whole-program workflows.
 
 ## Verification boundary
 
