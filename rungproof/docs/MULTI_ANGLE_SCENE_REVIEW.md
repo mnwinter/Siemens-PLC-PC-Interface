@@ -1,8 +1,9 @@
 # Multi-angle scene review - 2026-10-04
 
 Status: **active**. The prior software review did not establish multi-angle
-visual acceptance. Eight scenes have five-view native static inspections; 69 remain pending.
-Demo 5, Powder Batch Mixer, Parcel Size Sorter, Conveyor Inspection Cell and the Equipment Gallery have repaired layouts.
+visual acceptance. Nine scenes have five-view native static inspections; 68 remain pending.
+Demo 5, Powder Batch Mixer, Parcel Size Sorter, Conveyor Inspection Cell,
+the Equipment Gallery and Drive Alarm-Code String have repaired layouts.
 The sorter operator Run still lacks a controller; three simple panels have clear spacing but incorrect START plates. Other scenes
 remain pending unless their row explicitly records observation.
 
@@ -21,7 +22,7 @@ not catalog dimensions. Its column counts intersecting mesh AABBs between
 separate equipment, with more than 5 mm overlap on each axis. Curved/rotated
 meshes and intentional connections can create false positives. Zero candidates
 also does not prove proper support, equipment identity, or moving clearance.
-44 of 77 scenes have positive counts after the mixer, tank and conveyor sizing repairs.
+43 of 77 scenes have positive counts after the mixer, tank and conveyor sizing repairs.
 Every row requires native inspection.
 
 ## Repairs and open findings
@@ -114,8 +115,8 @@ Local ignored logs under `rungproof-next/.tools/`:
 `scene-real-initial-after.log`, `all-scene-geometry-inventory.log`,
 `multi-angle-native-parcel.log`, `geometry-review-shell-final.log`.
 Build: zero warnings/errors. Controller: 142 pass / 0 fail. Existing plant:
-19 checks pass. Thirty-one focused geometry checks pass (seven Demo 5, four mixer,
-nine parcel, six inspection conveyor, four gallery, one scaled radar); all 71 authored scene cases pass, with six scenes having none.
+19 checks pass. Thirty-eight focused geometry checks pass (seven Demo 5, four mixer,
+nine parcel, six inspection conveyor, four gallery, seven drive alarm, one scaled radar); all 71 authored scene cases pass, with six scenes having none.
 Three family-selection regression cases pass. Current mixer evidence:
 `mixer-build.log`, `powder-chute-build.log`, `mixer-import.log`,
 `mixer-geometry-final.log`, `mixer-plant-regression.log`,
@@ -143,6 +144,28 @@ checks, including actual viewport input and button feedback. Native screenshots
 were separately inspected. The user's pre-existing Demo 1 window was preserved;
 the isolated review window closed cleanly.
 
+- Drive Alarm-Code String: native baseline five-view inspection found a
+  guarding panel labeled VFD, a roller shutter labeled fieldbus display, a servo
+  amplifier labeled status indicator, equipment intersections and a panel below
+  the floor. These are source-package identity failures. The fieldbus GLB's
+  SHUTTER/KIN nodes conflict with its current parking-display recognition record;
+  fresh native import confirms the mismatch. Moving the copies apart was insufficient.
+  Original grounded training props now replace all three. Inherited reviews and
+  unrelated pictures are archived, generic-basis/industrial references removed,
+  stale shutter kinematics removed, and quality remains candidate/unapproved.
+  Native detail inspection caught the VFD mast outside its base and hidden keypad
+  buttons; both are repaired. Final full-scene FR/FL/RL/RR/T views and close VFD
+  front/rear/overhead checks show bounded support/clearance. MESSAGE VALID,
+  CODE FOUND and RESET plates were inspected closely. Optional faceLabel retains
+  default plates in scenes that do not configure it; prior three-panel label
+  findings remain open. The status lens now binds drive_alarm_active; symbolic
+  image true/reset projection passes. Display legends are static, not received
+  alarm text. Scene/help explicitly state Boolean inputs and no fieldbus/string
+  parsing implementation. Normal shell Run was retested after repair: empty
+  editor, NO CONTROLLER LOADED. No supplied reference ladder; that workflow and
+  actual string processing remain open. The original wall-VFD family builder
+  also hides its keypad keys; only this training package is corrected here.
+
 ## Catalog coverage
 
 FR/FL/RL/RR/T = front-right / front-left / rear-left / rear-right / top.
@@ -154,7 +177,7 @@ count as this scene's multi-angle or runtime acceptance.
 | --- | --- | ---: | --- | --- |
 | 1 | `conveyor-cell` | 11 | FR/FL/RL/RR/T | Repaired support/sensor clearance; normal offline Run/Start/Stop/Reset and E-stop inspected |
 | 2 | `equipment-gallery` | 0 | FR/FL/RL/RR/T | Repaired floor/display support; normal Run opens blank editor, animation workflow open |
-| 3 | `lab-10-01-drive-alarm-code-string` | 56 | Pending | Pending |
+| 3 | `lab-10-01-drive-alarm-code-string` | 0 | FR/FL/RL/RR/T | Repaired prop identity, spacing and supports; normal Run opens blank editor; string processing absent |
 | 4 | `lab-10-02-chicken-label-print` | 144 | Pending | Pending |
 | 5 | `lab-10-03-vision-package-sorter` | 32 | Pending | Pending |
 | 6 | `lab-10-04-motor-enum-state` | 0 | Pending | Pending |
@@ -229,3 +252,5 @@ count as this scene's multi-angle or runtime acceptance.
 | 75 | `tank-high-low` | 60 | Pending | Pending |
 | 76 | `tank-level` | 52 | Pending | Pending |
 | 77 | `tank-radar` | 80 | Pending | Pending |
+
+Drive-alarm follow-up evidence: `.tools/drive-alarm-{props-build,build,import,geometry,inventory,scene-contracts,rendered-controls,plant-regression}.log`, `catalog-next-shell-native.log` (baseline), `drive-alarm-native-supported.log` (support and plates), and `drive-alarm-native-final-complete.log` (final five views, keypad detail, failed normal Run). Build zero warnings/errors; 38 focused geometry, 19 plant, rendered scene controls and 71 authored cases pass. These do not approve uninspected scenes, missing controllers, string functionality or hardware.

@@ -269,6 +269,7 @@ public partial class Main
             VerifyParcelGeometry(Check);
             VerifyInspectionConveyorGeometry(Check);
             VerifyGalleryGeometry(Check);
+            VerifyDriveAlarmGeometry(Check);
 
             AddMigratedScene("tank-radar", _candidateCatalog!, _mainCamera!, false, false);
             // Exercise an authored parent scale as well as configured sizing.
@@ -478,6 +479,45 @@ public partial class Main
         runtime.ResetSimulation();
         check(stopped && cartons.Select((carton, index) => carton.Transform == authored[index]).All(value => value),
             "inspection_stop_holds_and_reset_restores_cartons");
+    }
+
+    private void VerifyDriveAlarmGeometry(Action<bool, string> check)
+    {
+        AddMigratedScene("lab-10-01-drive-alarm-code-string", _candidateCatalog!, _mainCamera!, false, false);
+        var root = _sceneCompositionRoot!;
+        check(root.GetChildren().OfType<Node3D>().Where(node => ReviewMeshes(node).Length > 0)
+            .All(node => ReviewBounds(node).Position.Y >= -0.005f),
+            "drive_alarm_equipment_above_finished_floor");
+        check(LogBoundsCandidates(root) == 0, "drive_alarm_separate_equipment_clear");
+        check(Enumerable.Range(3, 3).All(index =>
+        {
+            var prop = root.GetNode<Node3D>($"training_accessory_{index}");
+            var foot = ReviewBounds((MeshInstance3D)prop.FindChild("STAND_base", true, false));
+            var mast = ReviewBounds((MeshInstance3D)prop.FindChild("STAND_mast", true, false));
+            return mast.Position.X >= foot.Position.X && mast.End.X <= foot.End.X
+                && mast.Position.Z >= foot.Position.Z && mast.End.Z <= foot.End.Z
+                && MathF.Abs(mast.Position.Y - foot.End.Y) < 0.005f;
+        }), "drive_alarm_masts_land_on_base_plates");
+        // Guard the observed identity failures. This checks geometry families,
+        // not manufacturer equivalence or independent asset acceptance.
+        check(root.GetNode("training_accessory_3").FindChild("VFD_BODY", true, false) is not null
+            && root.GetNode("training_accessory_4").FindChild("ALARM_DISPLAY_screen", true, false) is not null
+            && root.GetNode("training_accessory_5").FindChild("LENS_red", true, false) is not null
+            && !ReviewMeshes(root).Any(mesh => mesh.Name.ToString().StartsWith("SHUTTER_", StringComparison.Ordinal)
+                || mesh.Name.ToString().StartsWith("PANEL_edge_post", StringComparison.Ordinal)
+                || mesh.Name == "SERVO_DRIVE"), "drive_alarm_correct_prop_families_replace_inherited_copies");
+        var labels = new[] { "MESSAGE VALID", "CODE FOUND", "RESET" };
+        check(Enumerable.Range(6, 3).All(index =>
+            root.GetNode<Node3D>($"switch_{index}").FindChild("OperatorFaceLabel", true, false) is Label3D label
+            && label.Text == labels[index - 6]), "drive_alarm_operator_plates_match_input_functions");
+        var alarmLens = (MeshInstance3D)root.GetNode("training_accessory_5").FindChild("LENS_red", true, false);
+        // Exercise only the symbolic image boundary; this does not connect to a PLC.
+        _sceneRuntime!.CommitExternalPlcOutputs(new Dictionary<string, object?> { ["drive_alarm_active"] = true });
+        check(alarmLens.MaterialOverride is StandardMaterial3D { EmissionEnabled: true },
+            "drive_alarm_bound_status_lens_projects_true");
+        _sceneRuntime.ResetSimulation();
+        check(alarmLens.MaterialOverride is StandardMaterial3D { EmissionEnabled: false }
+            && _sceneRuntime.Points["drive_alarm_active"] is false, "drive_alarm_reset_clears_status_lens");
     }
 
     private void VerifyGalleryGeometry(Action<bool, string> check)

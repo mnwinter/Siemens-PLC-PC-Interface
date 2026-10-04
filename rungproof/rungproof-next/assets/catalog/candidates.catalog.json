@@ -9506,9 +9506,9 @@
         "thumbnailFile": "res://assets/training_accessories/vfd_diagnostic_panel/thumbnail.png"
       },
       "bounds": {
-        "widthM": 4.25,
-        "heightM": 3.15,
-        "depthM": 0.55
+        "widthM": 1.149999976158142,
+        "heightM": 2.0500001907348633,
+        "depthM": 1.3900000154972076
       },
       "connectors": [],
       "kinematics": [],
@@ -9521,10 +9521,9 @@
         "topologyReviewed": false,
         "materialReviewed": false,
         "scaleReviewed": false,
-        "animationReviewed": true
+        "animationReviewed": false
       },
       "trainingRequirement": "VFD diagnostic panel",
-      "genericBasisAssetId": "safety.enclosure.observation-window-panel.v1",
       "copyrightBoundary": "Generic training visual; no logo, trade dress, product number, or exact OEM claim."
     },
     {
@@ -10830,9 +10829,9 @@
         "thumbnailFile": "res://assets/training_accessories/drive_status_indicator/thumbnail.png"
       },
       "bounds": {
-        "widthM": 0.75,
-        "heightM": 0.5,
-        "depthM": 1.3
+        "widthM": 0.800000011920929,
+        "heightM": 1.7000000476837158,
+        "depthM": 1.0
       },
       "connectors": [],
       "kinematics": [],
@@ -10845,10 +10844,9 @@
         "topologyReviewed": false,
         "materialReviewed": false,
         "scaleReviewed": false,
-        "animationReviewed": true
+        "animationReviewed": false
       },
       "trainingRequirement": "drive status indicator",
-      "genericBasisAssetId": "drives.servo.book-form.v1",
       "copyrightBoundary": "Generic training visual; no logo, trade dress, product number, or exact OEM claim."
     },
     {
@@ -11030,29 +11028,13 @@
         "thumbnailFile": "res://assets/training_accessories/fieldbus_alarm_string_display/thumbnail.png"
       },
       "bounds": {
-        "widthM": 5.3,
-        "heightM": 4.2,
-        "depthM": 0.8
+        "widthM": 1.5499999523162842,
+        "heightM": 1.8700000047683716,
+        "depthM": 1.0199999511241913
       },
       "connectors": [],
-      "kinematics": [
-        {
-          "id": "door_position",
-          "kind": "linear",
-          "nodePath": "KIN_bottom_bar",
-          "minimum": 0,
-          "maximum": 3.2,
-          "unit": "m",
-          "maximumRate": 1.2
-        }
-      ],
-      "animationTags": [
-        {
-          "id": "door_position",
-          "nodePath": "KIN_bottom_bar",
-          "kind": "linear"
-        }
-      ],
+      "kinematics": [],
+      "animationTags": [],
       "signals": [],
       "quality": {
         "status": "candidate",
@@ -11061,10 +11043,9 @@
         "topologyReviewed": false,
         "materialReviewed": false,
         "scaleReviewed": false,
-        "animationReviewed": true
+        "animationReviewed": false
       },
       "trainingRequirement": "fieldbus alarm-string display",
-      "genericBasisAssetId": "access-control.door.roller-shutter.v1",
       "copyrightBoundary": "Generic training visual; no logo, trade dress, product number, or exact OEM claim."
     },
     {

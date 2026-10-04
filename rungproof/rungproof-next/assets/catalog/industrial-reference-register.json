@@ -5196,33 +5196,6 @@
       ]
     },
     {
-      "assetId": "training.accessory.vfd_diagnostic_panel.v1",
-      "status": "referenced",
-      "comparisonStatus": "reference-identified",
-      "comparisonNotes": "Generic family reference inherited for candidate package review; the training accessory must be independently compared before promotion.",
-      "referenceFamily": "modular industrial equipment-enclosure observation-window panel",
-      "sources": [
-        {
-          "publisher": "Panel Built",
-          "title": "Modular Inplant Equipment Enclosure case study",
-          "url": "https://www.panelbuilt.com/case-studies/inplant-equipment-enclosure/",
-          "sourceType": "oem-product-page",
-          "accessed": "2026-09-22"
-        }
-      ],
-      "modeledFeatures": [
-        "modular panel field",
-        "framed observation opening",
-        "retention frame",
-        "panel-to-panel interfaces",
-        "floor and top connection context"
-      ],
-      "intentionallyGeneric": [
-        "No Panel Built mark, panel material, glazing type, impact rating, fire rating, sound rating, enclosure specification, or code compliance is reproduced.",
-        "This model is not a machine-safety claim."
-      ]
-    },
-    {
       "assetId": "training.accessory.xy_gantry.v1",
       "status": "referenced",
       "comparisonStatus": "reference-identified",
@@ -5927,35 +5900,6 @@
       ]
     },
     {
-      "assetId": "training.accessory.drive_status_indicator.v1",
-      "status": "referenced",
-      "comparisonStatus": "reference-identified",
-      "comparisonNotes": "Generic family reference inherited for candidate package review; the training accessory must be independently compared before promotion.",
-      "referenceFamily": "book-form modular servo axis amplifier",
-      "sources": [
-        {
-          "publisher": "Siemens",
-          "title": "SINAMICS S120 Booksize servo drive system",
-          "url": "https://www.siemens.com/en-gb/products/sinamics/s120-booksize/",
-          "sourceType": "oem-product-page",
-          "accessed": "2026-09-22"
-        }
-      ],
-      "modeledFeatures": [
-        "compact upright axis body",
-        "rear heat-sink envelope",
-        "upper DC-bus plug treatment",
-        "status/display panel",
-        "motor connector",
-        "control I/O connector",
-        "encoder and motion-port treatment"
-      ],
-      "intentionallyGeneric": [
-        "No Siemens mark, frame width, voltage, bus rating, motor rating, feedback protocol, firmware, safety function, connector pinout, parameterization, or certification is reproduced.",
-        "The simulator does not generate motion torque, establish a DC bus, or claim an implemented safety function."
-      ]
-    },
-    {
       "assetId": "training.accessory.elevator_car_shaft.v1",
       "status": "referenced",
       "comparisonStatus": "reference-identified",
@@ -6037,33 +5981,6 @@
       "intentionallyGeneric": [
         "No Milton Roy mark, capacity, pressure, chemistry, materials, calibration, controls, containment, or certification is reproduced.",
         "The visual does not pump, meter, or contain a process chemical."
-      ]
-    },
-    {
-      "assetId": "training.accessory.fieldbus_alarm_string_display.v1",
-      "status": "referenced",
-      "comparisonStatus": "reference-identified",
-      "comparisonNotes": "Generic family reference inherited for candidate package review; the training accessory must be independently compared before promotion.",
-      "referenceFamily": "industrial coiling steel service door",
-      "sources": [
-        {
-          "publisher": "Clopay",
-          "title": "Roll-Up Sheet Doors product page",
-          "url": "https://www.clopaydoor.com/coiling-sheet-doors",
-          "sourceType": "oem-product-page",
-          "accessed": "2026-09-22"
-        }
-      ],
-      "modeledFeatures": [
-        "interlocking horizontal curtain slats",
-        "vertical guide tracks",
-        "header coil/shaft zone",
-        "bottom bar",
-        "side-mounted operator context"
-      ],
-      "intentionallyGeneric": [
-        "No Clopay mark, slat gauge, curtain material, door size, drive voltage, cycle count, weather sealing, or safety edge is reproduced.",
-        "Simulator travel is not a real door safety or commissioning claim."
       ]
     },
     {

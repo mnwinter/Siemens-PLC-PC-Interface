@@ -1,11 +1,3 @@
-# Book-Form Servo Drive
+# Identity repair - 2026-10-04
 
-Review date: 2026-09-30
-
-Disposition: **candidate - independent blind review pending**
-
-The local review package is generated from the saved Blender source for this
-catalog asset. Hero, physical-scale, and wireframe evidence are maintained
-separately from independent recognition. This note does not claim outside
-recognition, safety certification, live behavior, ratings, or commissioning.
-
+Old inherited reviews and unrelated images are archived. Current original training prop has no independent approval, OEM equivalence or fieldbus claim. Its neutral display legends are static; the drive-status lens can project the scene alarm BOOL. Native scene review is recorded in MULTI_ANGLE_SCENE_REVIEW.md.

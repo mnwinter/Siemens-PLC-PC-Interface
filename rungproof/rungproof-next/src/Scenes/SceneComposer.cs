@@ -456,6 +456,21 @@ public static class SceneComposer
             button.MaterialOverride = Material(
                 ColorFromInteger(equipment.Config, "color", 0x21a366), 0.05f, 0.25f);
         }
+        // Retain the authored default plate unless the scene supplies its own
+        // operator function. A validity/reset input must not say START.
+        var faceLabel = Text(equipment.Config, "faceLabel", string.Empty);
+        if (!emergency && faceLabel.Length > 0
+            && model.FindChild("BUTTON_start_label", true, false) is MeshInstance3D plateText)
+        {
+            plateText.Visible = false;
+            model.AddChild(new Label3D
+            {
+                Name = "OperatorFaceLabel", Text = faceLabel,
+                Position = plateText.Position + new Vector3(0, 0, 0.003f),
+                FontSize = 32, PixelSize = 0.0006f, OutlineSize = 0,
+                Modulate = Colors.White,
+            });
+        }
         return model;
     }
 
