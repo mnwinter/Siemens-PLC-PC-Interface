@@ -3862,6 +3862,8 @@ public partial class SimulatorShell : CanvasLayer
             OkButtonText = "Discard changes", CancelButtonText = "Cancel",
         };
         _unsavedLadderDialog.AddButton("Save…", true, "save");
+        _unsavedLadderDialog.GetLabel().AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        _unsavedLadderDialog.GetLabel().CustomMaximumSize = new Vector2(600, -1);
         _unsavedLadderDialog.Confirmed += CompletePendingLadderAction;
         _unsavedLadderDialog.Canceled += CancelPendingLadderAction;
         _unsavedLadderDialog.CustomAction += action =>
@@ -3911,7 +3913,8 @@ public partial class SimulatorShell : CanvasLayer
     {
         _unsavedLadderDialog.DialogText = error +
             $"{_pendingDraftSaves.Count} unsaved ladder project(s).\n" +
-            string.Join("\n", _pendingDraftSaves.Select(target => target.SceneId)) +
+            string.Join("\n", _pendingDraftSaves.Take(5).Select(target => target.SceneId)) +
+            (_pendingDraftSaves.Count > 5 ? $"\n… and {_pendingDraftSaves.Count - 5} more" : string.Empty) +
             "\n\nSave each project before continuing, discard these changes, or cancel.\n" +
             "Saving preserves work in progress even when ladder verification fails.";
         _unsavedLadderDialog.PopupCentered(new Vector2I(650, 320));
@@ -3948,6 +3951,7 @@ public partial class SimulatorShell : CanvasLayer
     private void SaveNextPendingDraft(string path)
     {
         if (_pendingLadderAction is null || _pendingDraftSaves.Count == 0) return;
+        _pendingDraftSaveDialog.Hide();
         var target = _pendingDraftSaves.Peek();
         try
         {
@@ -6081,7 +6085,11 @@ public partial class SimulatorShell : CanvasLayer
         projectPage.AddThemeConstantOverride("separation", 6);
         projectPage.AddChild(Heading(siemens ? "PROGRAM BLOCK" : "ROUTINE", 11, new Color("344851")));
         projectPage.AddChild(blockName);
-        if (siemens) projectPage.AddChild(blockTypeSelector);
+        // Logix has only a routine choice, but refresh callbacks still use
+        // this selector. Parent it in both environments so its popup/viewport
+        // and theme resources are released with the workbench.
+        projectPage.AddChild(blockTypeSelector);
+        blockTypeSelector.Visible = siemens;
         var blockCommands = new HBoxContainer { Name = "BlockCommands" };
         blockCommands.AddThemeConstantOverride("separation", 4);
         blockCommands.AddChild(addBlock);

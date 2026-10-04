@@ -45,14 +45,14 @@ No changes have been pushed. No plant connection has been attempted.
 | --- | --- | --- |
 | Launch/import/toolchain | Pinned Godot/.NET start; native window opened; build clean | Fresh install/export and missing-dependency recovery |
 | All scene data | All 77 catalog entries load and pass their declared cases; logs in `.tools/scene-review` | Visual controls and unsupported runtime types; many declared cases cover only initial state |
-| Authored demos | All five compile; 139 controller tests pass. Native demos 1-4 counter, delay, conveyor/photoeye, and batch-valid threshold exercised; Demo 5 inputs/lost-permissive previously exercised | All FB/FC/DB views, full animation/bindings, repeated run/reset |
+| Authored demos | All five compile; 140 controller tests pass. Native demos 1-4 counter, delay, conveyor/photoeye, and batch-valid threshold exercised; Demo 5 inputs/lost-permissive previously exercised | All FB/FC/DB views, full animation/bindings, repeated run/reset |
 | Operator controls | Demo 5 inputs, Run, Stop, command removal and normal conveyor Start/E-stop/Reset retested with real mouse input; event history displayed | E-stop/reset across other applicable scenes; visible runtime summary clipping |
-| Ladder editor | Native add-network, Undo, Redo, and Save verified; rendered interaction verifier passed; cross-scene load regression passed | Native cross-scene load, drag insertion, tags, block interfaces, watch, validation failure, help |
+| Ladder editor | Native add-network/contact, Undo/Redo, Save, cross-scene Open, invalid draft feedback, retained good execution, and multi-scene close Save/Cancel verified; rendered interaction verifier passed | Native drag insertion, tag editing, block interfaces, watch, help; crash recovery |
 | Scene/workspace authoring | Rendered workspace verifier passed, including mapping Run and Stop | Native asset placement, mappings, selection, undo, save/load, malformed files |
 | Layout/camera | Split 1200x675 and 1600x900 regressions; native minimum/default/maximized views, points collapse, browser, and resize reflow inspected | Remaining native block/tag/edit flows and runtime summary clipping; broader scene visual acceptance |
 | External execution boundary | 13 offline bridge/contract tests; 16 fake Python tests; profile guards, exclusive source, atomic output, and native local-profile UI checks | Full fake app cycle/cadence integration, external playback/readiness semantics, reconnect, configuration editing and mapping UI; authorized live commissioning |
 | Python canonical interface / legacy tools | 129 root tests and 16 fake live/diagnostic tests passed | Continue source review for legacy conflicts |
-| Shutdown/resource lifecycle | RID and ObjectDB leak reports observed | Trace and fix owned UI/resource cleanup; verify process/bridge termination |
+| Shutdown/resource lifecycle | Orphan Studio block selector repaired; diagnostic/rendered tests exit without resource leak reports; native launch/close completes; 13 offline connection lifecycle tests pass | Repeat resource behavior during longer native authoring sessions |
 
 ## Specific open issues
 
@@ -238,6 +238,28 @@ Cancel, two-scene detection, sequential Save dialogs, and cancelling the
 second Save; the next close lists only the remaining cached draft. Saving
 that final draft produced the correct scene JSON and the review process exited.
 Crash recovery is outside this repair and remains absent.
+
+## Shutdown ownership checkpoint - 2026-10-04
+
+Restore tag `codex/shutdown-review-baseline-20261004` at `aaf2f8d`
+precedes this fix. After pending scene frees settled, orphan diagnostics
+identified an unparented Studio `BlockTypeSelector` and its popup subtree.
+It retained the viewport, canvas, themes, fonts, and textures reported at exit.
+The hidden Studio selector is now owned by its workbench, as in TIA. Before
+the fix the diagnostic run listed 14 stray nodes and shutdown leaks; afterward
+it lists none and exits without RID/ObjectDB leak reports. Rendered editor and
+1200x675 split regressions also pass and exit without those reports. Normal
+batch-file startup and native window close were inspected; the process exits.
+
+Build has zero warnings/errors; controller suite passes 140/140 and offline
+connection/process suite 13/13. Save-failure feedback hides its file dialog
+before showing the error guard, preventing competing exclusive windows.
+Unsaved-dialog text is bounded and abbreviates long scene lists, with Cancel
+focused by default. Longer native authoring and the rest of the matrix remain
+under review. No physical PLC connection was attempted.
+
+For settled orphan diagnostics, append `--trace-orphans` to `--verify-app-shell`.
+Inspect its output for `Stray Node`, `leaked`, or `RID allocations`.
 
 ## Verification boundary
 

@@ -20,9 +20,14 @@ controller's truthful state and show editor errors without stale monitoring.
 New/Open and window close now guard unsaved current/cached drafts with Save,
 Discard, or Cancel; failed writes cannot authorize continuation. Complete
 lab/reference coverage, crash recovery,
-remaining native workflows, external reference semantics, and shutdown leaks
+remaining native workflows, external reference semantics, and longer sessions
 still require work. The whole-program review is active; no live PLC acceptance
 or complete product acceptance has been established.
+
+The shutdown leak was traced to an unparented hidden Studio block selector.
+Both vendor workbenches now own that control and its popup. Settled orphan,
+rendered editor, and split tests exit without resource leak reports. Current
+controller tests pass 140/140 and offline connection/process tests 13/13.
 
 RungProof is a Windows PLC visual simulator and training environment. A user
 selects a scenario, sees the 3D machine, edits ladder logic in a TIA Portal or

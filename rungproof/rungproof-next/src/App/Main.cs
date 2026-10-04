@@ -988,6 +988,11 @@ public partial class Main : Node3D
         if (structurePassed && menuPassed && plcPassed && scenarioPassed && projectPassed && guardPassed && draftPassed && unsavedPassed)
         {
             GD.Print($"APP_SHELL_VERIFY PASS {result} workspaceMenu={menuResult} plcMenu={plcResult} scenarioMenu={scenarioResult} crossSceneProject={projectResult}");
+            if (OS.GetCmdlineUserArgs().Contains("--trace-orphans", StringComparer.Ordinal))
+            {
+                TraceOrphansAndQuit();
+                return;
+            }
             GetTree().Quit(0);
             return;
         }
@@ -1004,6 +1009,14 @@ public partial class Main : Node3D
         }
         GD.PushError($"APP_SHELL_VERIFY FAIL {failure}");
         GetTree().Quit(1);
+    }
+
+    private async void TraceOrphansAndQuit()
+    {
+        await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+        await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+        Node.PrintOrphanNodes();
+        GetTree().Quit();
     }
 
     private void VerifyUiDensity()
