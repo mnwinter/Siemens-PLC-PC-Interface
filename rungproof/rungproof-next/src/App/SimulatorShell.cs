@@ -4500,6 +4500,9 @@ public partial class SimulatorShell : CanvasLayer
             SizeFlagsVertical = Control.SizeFlags.ExpandFill,
         };
         projectTabs.AddThemeFontSizeOverride("font_size", 11);
+        // Tag/object pages contain dark engineering labels. Use the same
+        // light surface as the project tree instead of the default gray tab.
+        projectTabs.AddThemeStyleboxOverride("panel", BoxStyle(new Color("eef0f2"), new Color("9aa7ad")));
         projectBody.AddChild(projectTabs);
         var projectTitle = new HBoxContainer { Name = "ProjectTitle" };
         var projectHeading = Heading(siemens ? "Project tree" : "Controller Organizer", 13, new Color("263943"));
@@ -4861,6 +4864,7 @@ public partial class SimulatorShell : CanvasLayer
         {
             Name = "NewTagBinding",
             FitToLongestItem = false,
+            ClipText = true,
             CustomMinimumSize = new Vector2(0, 32),
         };
         var tagBindingStatus = Heading("UNBOUND · no scene I/O exchange", 11, new Color("4f6874"));
@@ -6229,8 +6233,9 @@ public partial class SimulatorShell : CanvasLayer
         tagPage.AddChild(tagBindingStatus);
         var addTag = ToolbarButton("AddTag", "+ ADD TAG", accent, 180);
         tagPage.AddChild(addTag);
-        var tagEditActions = new HBoxContainer { Name = "TagEditActions" };
-        tagEditActions.AddThemeConstantOverride("separation", 5);
+        var tagEditActions = new HFlowContainer { Name = "TagEditActions" };
+        tagEditActions.AddThemeConstantOverride("h_separation", 5);
+        tagEditActions.AddThemeConstantOverride("v_separation", 5);
         applyTagEdit = ToolbarButton("ApplyTagEdit", "APPLY TAG CHANGES", new Color("4d6674"), 165);
         deleteTag = ToolbarButton("DeleteTag", "DELETE UNUSED TAG", new Color("8a4d55"), 155);
         applyTagEdit.Disabled = true;
@@ -6250,7 +6255,7 @@ public partial class SimulatorShell : CanvasLayer
         tagPage.AddChild(apply);
         var boundary = Inspector("VendorBoundary");
         boundary.FitContent = true;
-        boundary.AddThemeColorOverride("default_color", new Color("d8e1e6"));
+        boundary.AddThemeColorOverride("default_color", new Color("344851"));
         boundary.Text = siemens
             ? "Simulator-native STEP 7-style workbench. No TIA project file or Siemens connection is created."
             : "Simulator-native Logix-style workbench. No ACD file or Rockwell connection is created.";
@@ -6269,8 +6274,9 @@ public partial class SimulatorShell : CanvasLayer
         // and theme resources are released with the workbench.
         projectPage.AddChild(blockTypeSelector);
         blockTypeSelector.Visible = siemens;
-        var blockCommands = new HBoxContainer { Name = "BlockCommands" };
-        blockCommands.AddThemeConstantOverride("separation", 4);
+        var blockCommands = new HFlowContainer { Name = "BlockCommands" };
+        blockCommands.AddThemeConstantOverride("h_separation", 4);
+        blockCommands.AddThemeConstantOverride("v_separation", 4);
         blockCommands.AddChild(addBlock);
         blockCommands.AddChild(applyBlock);
         blockCommands.AddChild(removeBlock);
@@ -6280,10 +6286,12 @@ public partial class SimulatorShell : CanvasLayer
         projectPage.AddChild(interfaceHeading);
         var interfaceExecutionNote = Heading("Declarations only; shared project tags.", 11, new Color("344851"));
         interfaceExecutionNote.Name = "InterfaceExecutionNote";
+        interfaceExecutionNote.ClipText = true;
         interfaceExecutionNote.TooltipText = "Interface declarations are saved. Offline block calls do not yet pass parameters or allocate per-instance FB storage. Declare executable variables in PLC tags.";
         projectPage.AddChild(interfaceExecutionNote);
-        var interfaceFields = new HBoxContainer { Name = "InterfaceFields" };
-        interfaceFields.AddThemeConstantOverride("separation", 3);
+        var interfaceFields = new HFlowContainer { Name = "InterfaceFields" };
+        interfaceFields.AddThemeConstantOverride("h_separation", 3);
+        interfaceFields.AddThemeConstantOverride("v_separation", 3);
         interfaceFields.AddChild(interfaceName);
         interfaceFields.AddChild(interfaceSection);
         interfaceFields.AddChild(interfaceType);
@@ -6299,13 +6307,15 @@ public partial class SimulatorShell : CanvasLayer
         projectPage.AddChild(taskName);
         projectPage.AddChild(taskTarget);
         projectPage.AddChild(taskKind);
-        var taskTiming = new HBoxContainer { Name = "TaskTiming" };
-        taskTiming.AddThemeConstantOverride("separation", 4);
+        var taskTiming = new HFlowContainer { Name = "TaskTiming" };
+        taskTiming.AddThemeConstantOverride("h_separation", 4);
+        taskTiming.AddThemeConstantOverride("v_separation", 4);
         taskTiming.AddChild(taskPeriod);
         taskTiming.AddChild(taskPriority);
         projectPage.AddChild(taskTiming);
-        var taskCommands = new HBoxContainer { Name = "TaskCommands" };
-        taskCommands.AddThemeConstantOverride("separation", 4);
+        var taskCommands = new HFlowContainer { Name = "TaskCommands" };
+        taskCommands.AddThemeConstantOverride("h_separation", 4);
+        taskCommands.AddThemeConstantOverride("v_separation", 4);
         taskCommands.AddChild(addTask);
         taskCommands.AddChild(applyTask);
         taskCommands.AddChild(removeTask);
@@ -7204,6 +7214,7 @@ public partial class SimulatorShell : CanvasLayer
                 interfaceName.Clear();
                 interfaceInitial.Text = "0";
                 RefreshEditor();
+                output.Text = $"[color=#18864b]Declaration added.[/color] {Escape(parameterName)} · {type}. Shared project tags remain the offline execution scope.";
             }
             catch (InvalidOperationException exception)
             {

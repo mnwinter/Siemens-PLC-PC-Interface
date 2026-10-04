@@ -48,7 +48,7 @@ No changes have been pushed. No plant connection has been attempted.
 | Authored demos | All five compile; 142 controller tests pass. Native demos 1-4 exercised; Demo 5 four-pick completion, mixed instructions, FB/FC/DB views, gantry command motion, Stop and Reset inspected | Broader scene runtime coverage; Demo 5 remains a manual-feedback command visualization |
 | Operator controls | Native Run/Stop, normal conveyor Start/E-stop/Reset, action inputs and history; complete runtime/health rails now scroll at 1200x675 and 1600x900 | E-stop/reset across other applicable scenes |
 | Conveyor/pusher/tank plant execution | Pusher repeated transfers, stroke/sensor feedback, Stop and Reset; tank fill, analog/full-level feedback, Stop and Reset inspected natively through File/Open. Fill/drain regression passes; model matches eight Python traces / 83 snapshots | Other scene runtime coverage; native tank drain |
-| Ladder editor | Native drag insertion/Undo, block browsing, Save/Open, invalid drafts, retained execution, multi-scene close guards and watch Remove/Clear/Undo in both views verified; rendered interaction verifier passed | Native tag editing, interface editing, help; crash recovery |
+| Ladder editor | Native drag insertion/Undo, block browsing, Save/Open, invalid drafts, retained execution, multi-scene close guards, watch controls, tag edit/deletion guards and interface validation/Undo verified; rendered interaction verifier passed | Native help; crash recovery |
 | Scene/workspace authoring | Rendered mappings, transforms, atomic Save and replacement guards; native asset placement/selection, Undo/Redo, close Cancel, scene-change Save and workspace Open verified | Native mappings/transforms and malformed files |
 | Layout/camera | Split regressions and native resize/points/browser/scrollable rails inspected; block summary bounded and hovered selection contrast repaired | Remaining native tag/edit flows; broader scene visual acceptance |
 | External execution boundary | 16 offline bridge/contract/playback tests; 16 fake Python tests; fake full-app exchange/playback regression and native Run/Stop/Reset; profile guards, exclusive source, atomic output | Broader profile/cadence integration, reconnect, configuration editing and mapping UI; authorized live commissioning |
@@ -580,6 +580,24 @@ rendered ladder interaction passes; logs `.tools/editor-mutation-before.log`,
 Native form inspection found weak label contrast and fields requiring excessive
 dock width; this is the next layout repair. An invalid review CLI scene ID also
 revealed startup left half initialized instead of rejecting/falling back.
+
+## Native editor form checkpoint - 2026-10-04
+
+Restore tag `codex/editor-form-review-baseline-20261004` at `9ae608f` precedes
+these fixes. Native tag/object pages inherited a gray tab surface with dark
+labels, and horizontal command/parameter rows clipped controls at default
+dock width. A light tab surface now matches the tree; flow containers wrap
+block/task/tag commands and declaration fields. Symbol binding text clips
+inside its dropdown, and the vendor-boundary note has readable dark text.
+Successful declaration insertion replaces any prior form-error message.
+
+Native 1600x900 and minimum 1200x675 forms were inspected. All declaration
+fields and commands fit the default dock with vertical scrolling. Native
+rename/initial BOOL edit applied, deleting the referenced tag was blocked,
+and toolbar Undo restored its original name/value and clean title. Build is
+clean, rendered ladder interaction passes, and native sessions close cleanly.
+Logs `.tools/editor-form-final.log`, `.tools/editor-form-native.log`,
+`.tools/editor-form-native-narrow.log`. No live PLC action was taken.
 
 ## Verification boundary
 
