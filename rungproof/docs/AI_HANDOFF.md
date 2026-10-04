@@ -53,6 +53,12 @@ guards and saved-baseline comparison for Undo. Preserve synchronous scene
 attachment during ladder Open; a deferred Main SceneRequested callback alone
 would reopen that prior corruption bug. See the workspace write checkpoint.
 
+Saved-baseline comparison for workspace dirty state is now implemented.
+Rendered tests reproduce the former Undo-to-baseline false UNSAVED state and
+verify original and nonempty saved baselines with Edit/Undo/Redo/Save. Scene,
+workspace Load and close protection is still pending. The current tree's
+`Main.WorkspaceVerification.cs` also tests failed atomic replacement.
+
 RungProof is a Windows PLC visual simulator and training environment. A user
 selects a scenario, sees the 3D machine, edits ladder logic in a TIA Portal or
 Studio 5000 styled workbench, runs a deterministic built-in controller, and

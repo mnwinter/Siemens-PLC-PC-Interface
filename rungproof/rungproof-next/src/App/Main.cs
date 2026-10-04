@@ -80,6 +80,7 @@ public partial class Main : Node3D
         new(StringComparer.Ordinal);
     private readonly List<WorkspaceDocument> _undoHistory = [];
     private readonly List<WorkspaceDocument> _redoHistory = [];
+    private string _workspaceSavedSnapshotJson = string.Empty;
     private string? _selectedPlacementId;
     private readonly HashSet<string> _selectedPlacementIds = new(StringComparer.Ordinal);
     private readonly List<WorkspaceConnectorLink> _connectorLinks = [];
@@ -1531,6 +1532,7 @@ public partial class Main : Node3D
         var path = ProjectSettings.GlobalizePath(WorkspaceRepository.VerificationWorkspacePath);
         try
         {
+            VerifyWorkspaceDirtyUndo();
             var conveyor = _candidateCatalog.Assets.First(
                 item => item.Id == "material-handling.belt-conveyor.600x6000.v1"
             );
@@ -1739,7 +1741,7 @@ public partial class Main : Node3D
             FrameComposition(_mainCamera, _sceneCompositionRoot, _sceneCameraDirection);
         }
         _simulatorShell?.SetWorkspaceStatus($"Workspace modified · {_workspaceNodes.Count} placed assets");
-        if (recordUndo) _simulatorShell?.SetWorkspaceDirty(true);
+        if (recordUndo) RefreshWorkspaceDirty();
         GD.Print($"ASSET_PLACED id={asset.Id} node={model.Name}");
     }
 
@@ -1877,7 +1879,7 @@ public partial class Main : Node3D
         _simulatorShell?.SetWorkspaceStatus(normalized is null
             ? "Group pivot reset · member centroid"
             : $"Group pivot set · X {normalized[0]:0.###} / Y {normalized[1]:0.###} / Z {normalized[2]:0.###}");
-        _simulatorShell?.SetWorkspaceDirty(true);
+        RefreshWorkspaceDirty();
     }
 
     private void ShowReviewMarquee()
@@ -1976,7 +1978,7 @@ public partial class Main : Node3D
         }
         RefreshWorkspaceUi();
         _simulatorShell?.SetWorkspaceStatus($"Created Group {ordinal:000} · {members.Length} placements");
-        _simulatorShell?.SetWorkspaceDirty(true);
+        RefreshWorkspaceDirty();
     }
 
     private void UngroupSelection()
@@ -2000,7 +2002,7 @@ public partial class Main : Node3D
         }
         RefreshWorkspaceUi();
         _simulatorShell?.SetWorkspaceStatus($"Removed {groups.Length} group{(groups.Length == 1 ? "" : "s")}");
-        _simulatorShell?.SetWorkspaceDirty(true);
+        RefreshWorkspaceDirty();
     }
 
     private void RenameGroup(string groupId, string requestedName)
@@ -2029,7 +2031,7 @@ public partial class Main : Node3D
         _workspaceGroups[index] = new WorkspaceGroup(group.Id, name, group.MemberInstanceIds, group.Pivot, group.ParentGroupId);
         RefreshWorkspaceUi();
         _simulatorShell?.SetWorkspaceStatus($"Renamed group · {name}");
-        _simulatorShell?.SetWorkspaceDirty(true);
+        RefreshWorkspaceDirty();
     }
 
     private List<string[]> SelectedArrangementUnits()
@@ -2096,7 +2098,7 @@ public partial class Main : Node3D
         RefreshWorkspaceUi();
         RefreshConnectionVisuals();
         _simulatorShell?.SetWorkspaceStatus($"Selection arranged · {operation}");
-        _simulatorShell?.SetWorkspaceDirty(true);
+        RefreshWorkspaceDirty();
     }
 
     private void TransformPlacement(string instanceId, Vector3 position, Vector3 rotation, Vector3 scale)
@@ -2128,7 +2130,7 @@ public partial class Main : Node3D
         placement.Node.Scale = scale;
         SelectPlacement(instanceId);
         _simulatorShell?.SetWorkspaceStatus($"Updated transform · {instanceId}");
-        _simulatorShell?.SetWorkspaceDirty(true);
+        RefreshWorkspaceDirty();
     }
 
     private void DuplicatePlacement(string instanceId)
@@ -2150,7 +2152,7 @@ public partial class Main : Node3D
         );
         PlaceAsset(asset, document, recordUndo: false);
         _simulatorShell?.SetWorkspaceStatus($"Duplicated placement · {duplicateId}");
-        _simulatorShell?.SetWorkspaceDirty(true);
+        RefreshWorkspaceDirty();
     }
 
     private void DuplicateSelection()
@@ -2260,7 +2262,7 @@ public partial class Main : Node3D
                 ? $" · skipped {skippedSignalMappings} scene-incompatible signal mapping{(skippedSignalMappings == 1 ? "" : "s")}"
                 : string.Empty),
             isError: skippedSignalMappings > 0);
-        _simulatorShell?.SetWorkspaceDirty(true);
+        RefreshWorkspaceDirty();
     }
 
     private string NextPlacementInstanceId(string assetId)
@@ -2654,7 +2656,7 @@ public partial class Main : Node3D
         _selectedPlacementId = _selectedPlacementIds.LastOrDefault();
         RefreshWorkspaceUi();
         _simulatorShell?.SetWorkspaceStatus($"Deleted placement · {_workspaceNodes.Count} remain");
-        _simulatorShell?.SetWorkspaceDirty(true);
+        RefreshWorkspaceDirty();
         GD.Print($"ASSET_PLACEMENT_DELETED {instanceId}");
     }
 
@@ -2680,7 +2682,7 @@ public partial class Main : Node3D
         UpdateTransformGizmo();
         RefreshWorkspaceUi();
         _simulatorShell?.SetWorkspaceStatus($"Deleted {selected.Length} selected placements · {_workspaceNodes.Count} remain");
-        _simulatorShell?.SetWorkspaceDirty(true);
+        RefreshWorkspaceDirty();
     }
 
     private void RemoveGroupMembers(IEnumerable<string> removedIds)
@@ -2712,7 +2714,7 @@ public partial class Main : Node3D
         _undoHistory.RemoveAt(_undoHistory.Count - 1);
         ApplyWorkspaceSnapshot(snapshot);
         _simulatorShell?.SetWorkspaceStatus("Undo applied");
-        _simulatorShell?.SetWorkspaceDirty(true);
+        RefreshWorkspaceDirty();
     }
 
     private void RedoWorkspace()
@@ -2723,7 +2725,7 @@ public partial class Main : Node3D
         _redoHistory.RemoveAt(_redoHistory.Count - 1);
         ApplyWorkspaceSnapshot(snapshot);
         _simulatorShell?.SetWorkspaceStatus("Redo applied");
-        _simulatorShell?.SetWorkspaceDirty(true);
+        RefreshWorkspaceDirty();
     }
 
     private void ApplyWorkspaceSnapshot(WorkspaceDocument snapshot)
@@ -2929,7 +2931,7 @@ public partial class Main : Node3D
         ));
         RefreshWorkspaceUi();
         _simulatorShell?.SetWorkspaceStatus($"Connector link created · {from.Kind} ↔ {to.Kind}");
-        _simulatorShell?.SetWorkspaceDirty(true);
+        RefreshWorkspaceDirty();
     }
 
     private void CreateSignalLink(string instanceId, string signalId, string pointName)
@@ -2962,7 +2964,7 @@ public partial class Main : Node3D
         ApplySignalMappings();
         RefreshWorkspaceUi();
         _simulatorShell?.SetWorkspaceStatus($"Signal mapped · {signalId} ↔ {pointName}");
-        _simulatorShell?.SetWorkspaceDirty(true);
+        RefreshWorkspaceDirty();
     }
 
     private void DeleteConnectorLink(string id)
@@ -2972,7 +2974,7 @@ public partial class Main : Node3D
         _connectorLinks.RemoveAll(link => link.Id == id);
         RefreshWorkspaceUi();
         _simulatorShell?.SetWorkspaceStatus("Connector link deleted");
-        _simulatorShell?.SetWorkspaceDirty(true);
+        RefreshWorkspaceDirty();
     }
 
     private void DeleteSignalLink(string id)
@@ -2982,7 +2984,7 @@ public partial class Main : Node3D
         _signalLinks.RemoveAll(link => link.Id == id);
         RefreshWorkspaceUi();
         _simulatorShell?.SetWorkspaceStatus("Signal mapping deleted");
-        _simulatorShell?.SetWorkspaceDirty(true);
+        RefreshWorkspaceDirty();
     }
 
     private bool TryResolveConnector(string instanceId, string connectorId, out AssetConnector connector)
@@ -3085,7 +3087,7 @@ public partial class Main : Node3D
         {
             var savedPath = WorkspaceRepository.Save(CreateWorkspaceDocument(), path);
             _simulatorShell?.SetWorkspaceStatus($"Saved {_workspaceNodes.Count} placements · {savedPath}");
-            _simulatorShell?.SetWorkspaceDirty(false);
+            MarkWorkspaceSaved();
             GD.Print($"WORKSPACE_SAVED {savedPath} placements={_workspaceNodes.Count}");
         }
         catch (Exception exception)
@@ -3109,6 +3111,19 @@ public partial class Main : Node3D
         )).ToArray();
         return new WorkspaceDocument(5, _currentSceneId, placements,
             _connectorLinks.ToArray(), _signalLinks.ToArray(), _workspaceGroups.ToArray());
+    }
+
+    private void RefreshWorkspaceDirty()
+    {
+        if (_currentSceneId is null) return;
+        _simulatorShell?.SetWorkspaceDirty(!string.Equals(_workspaceSavedSnapshotJson,
+            JsonSerializer.Serialize(CreateWorkspaceDocument()), StringComparison.Ordinal));
+    }
+
+    private void MarkWorkspaceSaved()
+    {
+        _workspaceSavedSnapshotJson = JsonSerializer.Serialize(CreateWorkspaceDocument());
+        RefreshWorkspaceDirty();
     }
 
     private void LoadWorkspace()
@@ -3141,7 +3156,7 @@ public partial class Main : Node3D
             RefreshWorkspaceUi();
             var message = $"Loaded {document.Placements.Count} placements from {System.IO.Path.GetFileName(path)}.\n\nScene: {document.SourceSceneId}";
             _simulatorShell?.SetWorkspaceStatus(message.Replace("\n\n", " · "), isError: false);
-            _simulatorShell?.SetWorkspaceDirty(false);
+            MarkWorkspaceSaved();
             _simulatorShell?.ShowWorkspaceFeedback(message);
             GD.Print($"WORKSPACE_LOADED scene={document.SourceSceneId} placements={document.Placements.Count}");
         }
@@ -3255,7 +3270,7 @@ public partial class Main : Node3D
         _placedAssetCount = 0;
         _currentSceneId = scene.Id;
         _simulatorShell?.AttachScene(scene, _sceneRuntime, composition);
-        _simulatorShell?.SetWorkspaceDirty(false);
+        MarkWorkspaceSaved();
         RefreshWorkspaceUi();
         GD.Print($"MIGRATED_SCENE_LOADED {scene.Id} rendered={composition.RenderedEquipmentIds.Count} deferred={composition.DeferredEquipmentIds.Count}");
         if (composition.DeferredEquipmentIds.Count > 0)
@@ -3602,7 +3617,7 @@ public partial class Main : Node3D
             RefreshWorkspaceUi();
             RefreshConnectionVisuals();
             _simulatorShell.SetWorkspaceStatus("Viewport transform applied");
-            _simulatorShell.SetWorkspaceDirty(true);
+            RefreshWorkspaceDirty();
             GetViewport().SetInputAsHandled();
             return;
         }

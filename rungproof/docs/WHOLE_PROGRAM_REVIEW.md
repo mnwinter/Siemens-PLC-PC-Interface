@@ -68,8 +68,8 @@ No changes have been pushed. No plant connection has been attempted.
 - Demo 5 currently commands output indicators; complete palletizing motion and
   reusable FB interface/instance behavior require further verification.
 - Unsaved workspace placements/groups/links are not yet protected by the
-  ladder close guard. Scene changes and workspace Load replace them, and Undo
-  marks the workspace dirty even when returning to its saved baseline.
+  ladder close guard. Scene changes and workspace Load still replace them.
+  Workspace dirty state now compares the document with its saved baseline.
 
 ## Checkpoint results
 
@@ -371,6 +371,25 @@ Keep cross-scene ladder Open synchronous until attachment is complete; inserting
 an asynchronous guard only in Main's SceneRequested callback would restore the
 ladder into the old scene before attachment and reintroduce the earlier bug.
 Native inspection remains pending behind the Windows update overlay.
+
+## Workspace baseline checkpoint - 2026-10-04
+
+Restore tag `codex/workspace-drafts-baseline-20261004` at `d4394c9`
+precedes this fix. The rendered workspace regression reproduced UNSAVED
+remaining set after Undo returned to the empty baseline. Dirty-state updates
+now compare the current workspace document against its baseline from scene
+attachment, successful Save or successful Load. Undo/Redo therefore report the
+actual state; a failed Save never advances the baseline. This also avoids
+marking a workspace dirty for scene controls whose values are not stored in
+workspace files.
+
+Build and the complete rendered workspace regression pass, including edits,
+Undo to the original baseline, Redo, Save of a nonempty workspace, another
+edit, Undo to that saved baseline, and Redo. The atomic replacement test still
+passes. Logs: `.tools/workspace-dirty-before.log` and
+`.tools/workspace-dirty-final.log`. Native manual inspection remains pending.
+Next repair: scene replacement, workspace Load and close must consume this
+accurate dirty state without breaking cross-scene ladder attachment ordering.
 
 ## Verification boundary
 

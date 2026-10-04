@@ -9891,8 +9891,11 @@ public partial class SimulatorShell : CanvasLayer
             item.Value.SetPressedNoSignal(item.Key == space);
     }
 
+    public bool IsWorkspaceDirty { get; private set; }
+
     public void SetWorkspaceDirty(bool dirty)
     {
+        IsWorkspaceDirty = dirty;
         _sceneTitle.Text = dirty ? $"{_activeSceneName}  •  UNSAVED" : _activeSceneName;
         _sceneTitle.AddThemeColorOverride("font_color",
             dirty ? new Color("f1aa5b") : new Color("bcd3df"));
