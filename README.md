@@ -80,6 +80,15 @@ gated false behavior when heartbeat progression stops.
 
 ## Start here
 
+### Migrated RungProof visualizer
+
+This repository is the canonical home of the PLC-to-PC visualizer. The
+complete migrated application is under [`rungproof/`](rungproof/README.md);
+the Godot/C# application is under `rungproof/rungproof-next/`. Do not continue
+its development in the retired RungProof or PLC_Code_Visualizer repository.
+Read [`rungproof/docs/CANONICAL_TAKEOVER.md`](rungproof/docs/CANONICAL_TAKEOVER.md)
+for migration identity, fresh-checkout setup, current evidence, and open gates.
+
 New users should follow:
 
 1. [Processor, network, DB, and PC setup](docs/USER_SETUP.md)

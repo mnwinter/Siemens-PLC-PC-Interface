@@ -967,8 +967,13 @@ public partial class Main : Node3D
         GetTree().Quit(1);
     }
 
-    private void VerifySplitView()
+    private async void VerifySplitView()
     {
+        _simulatorShell?.SetReviewState("split", string.Empty);
+        // Container minimum sizes and deferred toolbar clearance settle after
+        // the view switch. Measure the rendered layout, not the previous view.
+        await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+        await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
         var result = "shell unavailable";
         if (_simulatorShell is not null && _simulatorShell.VerifySplitLayout(out result))
         {

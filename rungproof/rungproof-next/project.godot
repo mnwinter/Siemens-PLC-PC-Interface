@@ -40,6 +40,12 @@ project/assembly_name="RungProof.Next"
 
 3d/default_gravity=9.80665
 
+[filesystem]
+
+; Runtime assets are the versioned delivery/collision GLBs. Keep Blender
+; authoring sources available without requiring Blender just to run/import.
+import/blender/enabled=false
+
 [rendering]
 
 lights_and_shadows/directional_shadow/soft_shadow_filter_quality=3

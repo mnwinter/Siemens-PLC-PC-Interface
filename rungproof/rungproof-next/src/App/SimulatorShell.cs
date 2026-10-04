@@ -161,7 +161,7 @@ public partial class SimulatorShell : CanvasLayer
     private VirtualControllerSnapshot? _virtualSnapshot;
     private PanelContainer _ladderWorkspace = null!;
     private Panel _splitDivider = null!;
-    private float _splitDividerRatio = 0.27f;
+    private float _splitDividerRatio = 0.43f;
     private bool _draggingSplitDivider;
     private bool _draggingInstruction;
     private string _draggedInstructionKind = string.Empty;
@@ -738,6 +738,9 @@ public partial class SimulatorShell : CanvasLayer
         }
         switch (view.ToLowerInvariant())
         {
+            case "split":
+                ShowClassicTool("split");
+                break;
             case "assets":
                 ShowClassicTool("assets");
                 if (_filteredAssets.Count > 0)
@@ -1573,6 +1576,8 @@ public partial class SimulatorShell : CanvasLayer
         toolbarRow.AddChild(VRule());
         _sceneTitle = Heading("Loading project…", 17, new Color("bcd3df"));
         _sceneTitle.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        _sceneTitle.ClipText = true;
+        _sceneTitle.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
         toolbarRow.AddChild(_sceneTitle);
         // Keep the two primary view switches beside the current scene title.
         // The Scenario menu remains the browser; these are direct view tabs.
@@ -2273,6 +2278,16 @@ public partial class SimulatorShell : CanvasLayer
             var root = $"Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/{environment}/Workbench";
             var projectPanel = GetNodeOrNull<Control>($"{root}/ProjectDockHost/ProjectOrganization");
             var toolPanel = GetNodeOrNull<Control>($"{root}/EditorAndTasks/ToolDockHost/InstructionAndTags");
+            var compact = split && GetViewport().GetVisibleRect().Size.X < 1900.0f;
+            if (GetNodeOrNull<Control>($"{root}/ProjectDockHost/ReopenProjectDock") is { } projectHandle)
+                projectHandle.Visible = compact;
+            if (GetNodeOrNull<Control>($"{root}/EditorAndTasks/ToolDockHost/ReopenToolDock") is { } toolHandle)
+                toolHandle.Visible = compact;
+            var inspectorRoot = $"{root}/EditorAndTasks/EditorAndInspector";
+            if (GetNodeOrNull<Control>($"{inspectorRoot}/BottomDockHost/InspectorOutputDock") is { } bottomPanel)
+                bottomPanel.Visible = !split;
+            if (GetNodeOrNull<Control>($"{inspectorRoot}/BottomDockHost/ReopenBottomDock") is { } bottomHandle)
+                bottomHandle.Visible = split;
             if (!split || GetViewport().GetVisibleRect().Size.X >= 1900.0f)
             {
                 if (projectPanel is not null) projectPanel.Visible = true;
@@ -2319,7 +2334,7 @@ public partial class SimulatorShell : CanvasLayer
         foreach (var environment in new[] { "TIA Portal", "Studio 5000" })
         {
             var root = $"Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/{environment}/Workbench";
-            if (GetNodeOrNull<HSplitContainer>(root) is { } workSplit) workSplit.SplitOffsets = [180];
+            if (GetNodeOrNull<HSplitContainer>(root) is { } workSplit) workSplit.SplitOffsets = [30];
             if (GetNodeOrNull<HSplitContainer>($"{root}/EditorAndTasks") is { } taskSplit) taskSplit.SplitOffsets = [600];
             if (GetNodeOrNull<VSplitContainer>($"{root}/EditorAndTasks/EditorAndInspector") is { } inspectorSplit) inspectorSplit.SplitOffsets = [400];
             if (GetNodeOrNull<Control>($"{root}/ProjectDockHost/ProjectOrganization") is { } projectPanel)
@@ -2483,16 +2498,17 @@ public partial class SimulatorShell : CanvasLayer
         if (!hasRows) return $"[color=#7fa7ba]No declared {ownerDescription} points.[/color]";
 
         var table = new StringBuilder("[table=4]");
-        table.Append("[cell][b]POINT[/b][/cell]");
-        table.Append("[cell][b]TYPE[/b][/cell]");
-        table.Append("[cell][b]VALUE[/b][/cell]");
-        table.Append("[cell][b]OWNER[/b][/cell]");
+        const string cell = "[cell padding=0,0,14,2]";
+        table.Append(cell).Append("[b]POINT[/b][/cell]");
+        table.Append(cell).Append("[b]TYPE[/b][/cell]");
+        table.Append(cell).Append("[b]VALUE[/b][/cell]");
+        table.Append(cell).Append("[b]OWNER[/b][/cell]");
         foreach (var row in rows)
         {
-            table.Append("[cell]").Append(Escape(row.Point)).Append("[/cell]");
-            table.Append("[cell]").Append(Escape(row.Type)).Append("[/cell]");
-            table.Append("[cell]").Append(Escape(row.Value)).Append("[/cell]");
-            table.Append("[cell]").Append(Escape(row.Owner)).Append("[/cell]");
+            table.Append(cell).Append(Escape(row.Point)).Append("[/cell]");
+            table.Append(cell).Append(Escape(row.Type)).Append("[/cell]");
+            table.Append(cell).Append(Escape(row.Value)).Append("[/cell]");
+            table.Append(cell).Append(Escape(row.Owner)).Append("[/cell]");
         }
         table.Append("[/table]");
         return table.ToString();
@@ -3595,12 +3611,18 @@ public partial class SimulatorShell : CanvasLayer
         margin.AddChild(body);
 
         var header = new HBoxContainer { Name = "LadderHeader" };
-        header.AddChild(Heading("LADDER LOGIC PROGRAMMING", 18, new Color("e9f4f8")));
+        var heading = Heading("LADDER LOGIC PROGRAMMING", 18, new Color("e9f4f8"));
+        heading.ClipText = true;
+        heading.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
+        heading.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        header.AddChild(heading);
         _ladderWorkspaceStatus = Heading(
             "OFFLINE LD RUNTIME · VALIDATED BEFORE LOAD · NO PHYSICAL PLC",
             11,
             new Color("f1aa5b"));
         _ladderWorkspaceStatus.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        _ladderWorkspaceStatus.ClipText = true;
+        _ladderWorkspaceStatus.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
         _ladderWorkspaceStatus.HorizontalAlignment = HorizontalAlignment.Center;
         header.AddChild(_ladderWorkspaceStatus);
         var close = ToolbarButton("CloseLadderButton", "RETURN TO SCENE", new Color("355d73"), 148);
@@ -4870,7 +4892,14 @@ public partial class SimulatorShell : CanvasLayer
             RefreshWatchTable(_virtualSnapshot);
         }
 
-        var instructionChrome = PanelContainer("InstructionToolbarChrome", new Color("eef1f3"), new Color("aeb8bd"));
+        var instructionChrome = new ScrollContainer
+        {
+            Name = "InstructionToolbarChrome",
+            VerticalScrollMode = ScrollContainer.ScrollMode.Disabled,
+            HorizontalScrollMode = ScrollContainer.ScrollMode.Auto,
+            CustomMinimumSize = new Vector2(0, 140),
+        };
+        instructionChrome.AddThemeStyleboxOverride("panel", BoxStyle(new Color("eef1f3"), new Color("aeb8bd")));
         var instructions = new VBoxContainer { Name = "InstructionToolbar" };
         instructions.AddThemeConstantOverride("separation", 4);
         instructionChrome.AddChild(instructions);
@@ -5053,16 +5082,23 @@ public partial class SimulatorShell : CanvasLayer
         {
             Name = "BlockInterfaceSummary",
             BbcodeEnabled = true,
-            FitContent = true,
+            // Bound the summary before its first layout. FitContent measures
+            // wrapped text at the initial narrow width and can force the
+            // entire workbench beyond the viewport and the points dock.
+            FitContent = false,
             CustomMinimumSize = new Vector2(0, 42),
-            ScrollActive = false,
-            MouseFilter = Control.MouseFilterEnum.Ignore,
+            ScrollActive = true,
         };
         blockInterfaceSummary.AddThemeColorOverride("default_color", new Color("263943"));
         blockInterfaceSummary.AddThemeStyleboxOverride("normal", BoxStyle(new Color("e8eef1"), new Color("9aa7ad")));
         center.AddChild(blockInterfaceSummary);
 
-        var scroll = new ScrollContainer { Name = "RoutineView", SizeFlagsVertical = Control.SizeFlags.ExpandFill };
+        var scroll = new ScrollContainer
+        {
+            Name = "RoutineView",
+            SizeFlagsVertical = Control.SizeFlags.ExpandFill,
+            CustomMinimumSize = new Vector2(0, 88),
+        };
         scroll.AddChild(canvas);
         center.AddChild(scroll);
 
@@ -8323,6 +8359,7 @@ public partial class SimulatorShell : CanvasLayer
         var projectRoundTripPath = ProjectSettings.GlobalizePath("res://build/verify-ladder-project.rpproj.json");
         try
         {
+            System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(projectRoundTripPath)!);
             if (System.IO.File.Exists(projectRoundTripPath)) System.IO.File.Delete(projectRoundTripPath);
             var runtimeProgramBeforeOpen = _virtualProgram;
             var runtimeScanBeforeOpen = _virtualSnapshot?.ScanNumber;
@@ -8435,6 +8472,9 @@ public partial class SimulatorShell : CanvasLayer
         reopenProject.EmitSignal(BaseButton.SignalName.Pressed);
         var projectDockReopened = projectPanelNode.Visible && !reopenProject.Visible;
         var projectSplitRestored = projectSplit.SplitOffsets[0] == projectSplitBeforeCollapse;
+        // Start within the current pane: a preferred 600 px offset can exceed
+        // its rendered width after compact layout, making growth impossible.
+        toolSplit.SplitOffsets = [Math.Max(0, (int)toolSplit.Size.X / 2)];
         var toolSplitBeforeCollapse = toolSplit.SplitOffsets[0];
         collapseTools.EmitSignal(BaseButton.SignalName.Pressed);
         var toolDockCollapsed = reopenTools.Visible && !toolPanelNode.Visible;
@@ -8452,6 +8492,8 @@ public partial class SimulatorShell : CanvasLayer
         var docksWorked = projectDockCollapsed && projectSpaceReclaimed && projectDockReopened && projectSplitRestored
             && toolDockCollapsed && toolSpaceReclaimed && toolDockReopened && toolSplitRestored
             && bottomDockCollapsed && bottomSpaceReclaimed && bottomDockReopened && bottomSplitRestored;
+        if (!docksWorked)
+            GD.Print($"DOCK_VERIFY projectSpace={projectSpaceReclaimed} projectRestore={projectSplitRestored} toolSpace={toolSpaceReclaimed} toolRestore={toolSplitRestored} bottomSpace={bottomSpaceReclaimed} bottomRestore={bottomSplitRestored}");
         var splitOffsets = new[]
         {
             projectSplit.SplitOffsets[0],

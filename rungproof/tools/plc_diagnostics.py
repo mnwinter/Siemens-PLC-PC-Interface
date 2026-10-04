@@ -30,13 +30,11 @@ try:
         load_config,
     )
     from siemens_plc_pc_interface.transport import Snap7Transport
-    from snap7 import Client as _Snap7Client
 except ImportError as exc:  # pragma: no cover - exercised by packaged fallback.
     ConfigError = ValueError  # type: ignore[assignment,misc]
     Direction = None  # type: ignore[assignment]
     load_config = None  # type: ignore[assignment]
     Snap7Transport = None  # type: ignore[assignment]
-    _Snap7Client = None  # type: ignore[assignment]
     ADAPTER_IMPORT_ERROR: str | None = str(exc)
 else:
     ADAPTER_IMPORT_ERROR = None
@@ -50,7 +48,7 @@ def _require_adapter() -> None:
     if (
         ADAPTER_IMPORT_ERROR is not None
         or load_config is None
-        or _Snap7Client is None
+        or Snap7Transport is None
     ):
         raise PlcDiagnosticError(
             "The guarded PLC diagnostic adapter is not installed in this "
