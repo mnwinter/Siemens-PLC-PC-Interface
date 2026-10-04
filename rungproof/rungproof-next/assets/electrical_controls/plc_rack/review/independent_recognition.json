@@ -1,0 +1,8 @@
+{
+  "assetId": "controls.plc.modular-rack-six-slot.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-123",
+  "identifiedFamily": "Modular PLC rack with power supply, CPU, and plug-in digital/analog I/O modules",
+  "confidence": 0.98,
+  "concerns": "Stylized generic geometry; rear views resemble a solid enclosure, and no backplane, terminals, wiring connectors, ventilation, or manufacturer-specific features are visible",
+  "sourceReview": "build/blind-review-assets/image_123.readable-labels-b.review.md"
+}

@@ -1,0 +1,8 @@
+{
+  "assetId": "utilities.hydraulic.power-unit.production-skid.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-143",
+  "identifiedFamily": "Hydraulic power unit (reservoir-mounted pump, electric motor, manifold, pressure gauge, and filler/breather)",
+  "confidence": 0.88,
+  "concerns": "Stylized low-detail geometry; hydraulic ports/hoses and pump-to-motor coupling are unclear, while the orange cylinders resemble disconnected fittings rather than realistic fluid connections.",
+  "sourceReview": "build/blind-review-assets/image_143.utilities-round1.review.md"
+}

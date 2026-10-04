@@ -1,0 +1,3170 @@
+{
+  "version": 1,
+  "catalogId": "rungproof-production",
+  "assets": [
+    {
+      "id": "access-control.door.roller-shutter.v1",
+      "displayName": "Motorized Industrial Roller Shutter",
+      "category": "access-control/doors",
+      "tags": [
+        "motorized industrial roller shutter",
+        "motorized roller shutter"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/scene_core/motorized_roller_shutter/source/motorized_roller_shutter.blend",
+        "deliveryGltf": "res://assets/scene_core/motorized_roller_shutter/delivery/motorized_roller_shutter.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/scene_core/motorized_roller_shutter/collision/motorized_roller_shutter_collision.glb",
+        "thumbnailFile": "res://assets/scene_core/motorized_roller_shutter/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 5.3,
+        "heightM": 4.2,
+        "depthM": 0.8
+      },
+      "connectors": [],
+      "kinematics": [
+        {
+          "id": "door_position",
+          "kind": "linear",
+          "nodePath": "KIN_bottom_bar",
+          "minimum": 0,
+          "maximum": 3.2,
+          "unit": "m",
+          "maximumRate": 1.2
+        }
+      ],
+      "signals": [
+        {
+          "id": "open_command",
+          "dataType": "bool",
+          "direction": "input",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Open command."
+        },
+        {
+          "id": "close_command",
+          "dataType": "bool",
+          "direction": "input",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Close command."
+        },
+        {
+          "id": "open_limit",
+          "dataType": "bool",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Open limit."
+        },
+        {
+          "id": "closed_limit",
+          "dataType": "bool",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Closed limit."
+        }
+      ],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-21-shutter-final-review",
+        "recognitionConfidence": 0.95,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "actuation.pneumatic-pusher.1350mm.v1",
+      "displayName": "Pneumatic Product Pusher - 1350 mm Stroke",
+      "category": "actuation/pneumatic/linear",
+      "tags": [
+        "pneumatic product pusher - 1350 mm stroke",
+        "pneumatic pusher"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/scene_core/pneumatic_pusher/source/pneumatic_pusher.blend",
+        "deliveryGltf": "res://assets/scene_core/pneumatic_pusher/delivery/pneumatic_pusher.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/scene_core/pneumatic_pusher/collision/pneumatic_pusher_collision.glb",
+        "thumbnailFile": "res://assets/scene_core/pneumatic_pusher/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 3.1,
+        "heightM": 1.1,
+        "depthM": 0.72
+      },
+      "connectors": [],
+      "kinematics": [
+        {
+          "id": "pusher_position",
+          "kind": "linear",
+          "nodePath": "KIN_pusher_plate",
+          "minimum": 0,
+          "maximum": 1.35,
+          "unit": "m",
+          "maximumRate": 0.65
+        }
+      ],
+      "signals": [
+        {
+          "id": "extend_command",
+          "dataType": "bool",
+          "direction": "input",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Extend command."
+        },
+        {
+          "id": "retract_command",
+          "dataType": "bool",
+          "direction": "input",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Retract command."
+        },
+        {
+          "id": "extended",
+          "dataType": "bool",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Extended."
+        },
+        {
+          "id": "retracted",
+          "dataType": "bool",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Retracted."
+        }
+      ],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "codex-task-01a0ba41-d44d-7bc0-b338-a64c857b61ed-round2",
+        "recognitionConfidence": 0.93,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "air-handling.fan.axial-1900.v1",
+      "displayName": "Industrial Axial Exhaust Fan",
+      "category": "air-handling/fans",
+      "tags": [
+        "industrial axial exhaust fan",
+        "axial exhaust fan"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/scene_core/axial_exhaust_fan/source/axial_exhaust_fan.blend",
+        "deliveryGltf": "res://assets/scene_core/axial_exhaust_fan/delivery/axial_exhaust_fan.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/scene_core/axial_exhaust_fan/collision/axial_exhaust_fan_collision.glb",
+        "thumbnailFile": "res://assets/scene_core/axial_exhaust_fan/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 2.2,
+        "heightM": 2.4,
+        "depthM": 1.3
+      },
+      "connectors": [],
+      "kinematics": [
+        {
+          "id": "fan_rotation",
+          "kind": "rotary_continuous",
+          "nodePath": "KIN_fan_hub",
+          "minimum": 0,
+          "maximum": 1800,
+          "unit": "rpm",
+          "maximumRate": 720
+        }
+      ],
+      "signals": [
+        {
+          "id": "run_command",
+          "dataType": "bool",
+          "direction": "input",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Run command."
+        },
+        {
+          "id": "running",
+          "dataType": "bool",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Running."
+        },
+        {
+          "id": "speed_percent",
+          "dataType": "float32",
+          "direction": "input",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Speed percent."
+        }
+      ],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-21-fan-final-confirmation",
+        "recognitionConfidence": 0.99,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "controls.enclosure.floorstanding.v1",
+      "displayName": "Floorstanding Electrical Enclosure",
+      "category": "controls/enclosures",
+      "tags": [
+        "floorstanding electrical enclosure",
+        "floorstanding electrical enclosure"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/factory_kit/floorstanding_electrical_enclosure/source/floorstanding_electrical_enclosure.blend",
+        "deliveryGltf": "res://assets/factory_kit/floorstanding_electrical_enclosure/delivery/floorstanding_electrical_enclosure.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/factory_kit/floorstanding_electrical_enclosure/collision/floorstanding_electrical_enclosure_collision.glb",
+        "thumbnailFile": "res://assets/factory_kit/floorstanding_electrical_enclosure/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 1.3,
+        "heightM": 2.05,
+        "depthM": 0.55
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-22-floorstanding-enclosure-review",
+        "recognitionConfidence": 0.94,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "controls.enclosure.junction-box.v1",
+      "displayName": "Industrial Junction Box",
+      "category": "controls/enclosures",
+      "tags": [
+        "industrial junction box",
+        "industrial junction box"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/factory_kit/industrial_junction_box/source/industrial_junction_box.blend",
+        "deliveryGltf": "res://assets/factory_kit/industrial_junction_box/delivery/industrial_junction_box.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/factory_kit/industrial_junction_box/collision/industrial_junction_box_collision.glb",
+        "thumbnailFile": "res://assets/factory_kit/industrial_junction_box/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 1.05,
+        "heightM": 0.9,
+        "depthM": 0.55
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-22-junction-box-review",
+        "recognitionConfidence": 0.9,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "controls.operator-station.pushbutton-estop.v1",
+      "displayName": "Pedestal Pushbutton and E-Stop Station",
+      "category": "controls/operator-stations",
+      "tags": [
+        "pushbutton",
+        "emergency stop",
+        "operator station",
+        "pedestal"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/scene_core/operator_pushbutton_station/source/operator_pushbutton_station.blend",
+        "deliveryGltf": "res://assets/scene_core/operator_pushbutton_station/delivery/operator_pushbutton_station.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/scene_core/operator_pushbutton_station/collision/operator_pushbutton_station_collision.glb",
+        "thumbnailFile": "res://assets/scene_core/operator_pushbutton_station/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 0.55,
+        "heightM": 1.35,
+        "depthM": 0.48
+      },
+      "connectors": [],
+      "kinematics": [
+        {
+          "id": "pushbutton_travel",
+          "kind": "linear",
+          "nodePath": "KIN_pushbutton",
+          "minimum": 0,
+          "maximum": 0.018,
+          "unit": "m",
+          "maximumRate": 0.2
+        },
+        {
+          "id": "estop_travel",
+          "kind": "linear",
+          "nodePath": "KIN_estop",
+          "minimum": 0,
+          "maximum": 0.018,
+          "unit": "m",
+          "maximumRate": 0.2
+        }
+      ],
+      "signals": [
+        {
+          "id": "pushbutton_pressed",
+          "dataType": "bool",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": "pushbutton_travel",
+          "description": "Operator pushbutton state."
+        },
+        {
+          "id": "estop_ok",
+          "dataType": "bool",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": "estop_travel",
+          "description": "Simulated E-stop contact state; not a real safety function."
+        }
+      ],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "codex-agent-01a0bac7-4f61-7b32-99b2-30be8c8a7e8a-round3",
+        "recognitionConfidence": 0.98,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "controls.operator-station.selector.v1",
+      "displayName": "Four-Position Selector Station",
+      "category": "controls/operator-stations",
+      "tags": [
+        "four-position selector station",
+        "rotary selector station"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/scene_core/rotary_selector_station/source/rotary_selector_station.blend",
+        "deliveryGltf": "res://assets/scene_core/rotary_selector_station/delivery/rotary_selector_station.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/scene_core/rotary_selector_station/collision/rotary_selector_station_collision.glb",
+        "thumbnailFile": "res://assets/scene_core/rotary_selector_station/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 0.7,
+        "heightM": 1.7,
+        "depthM": 0.6
+      },
+      "connectors": [],
+      "kinematics": [
+        {
+          "id": "selector_position",
+          "kind": "rotary",
+          "nodePath": "KIN_selector_handle",
+          "minimum": -55,
+          "maximum": 55,
+          "unit": "deg",
+          "maximumRate": 180
+        }
+      ],
+      "signals": [
+        {
+          "id": "position",
+          "dataType": "int32",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Position."
+        }
+      ],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "codex-agent-01a0c42b-selector-legibility",
+        "recognitionConfidence": 0.98,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "controls.operator-station.single-pushbutton.v1",
+      "displayName": "Single Pushbutton Pedestal Station",
+      "category": "controls/operator-stations",
+      "tags": [
+        "single pushbutton pedestal station",
+        "single pushbutton station"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/scene_core/single_pushbutton_station/source/single_pushbutton_station.blend",
+        "deliveryGltf": "res://assets/scene_core/single_pushbutton_station/delivery/single_pushbutton_station.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/scene_core/single_pushbutton_station/collision/single_pushbutton_station_collision.glb",
+        "thumbnailFile": "res://assets/scene_core/single_pushbutton_station/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 0.5,
+        "heightM": 1.1,
+        "depthM": 0.4
+      },
+      "connectors": [],
+      "kinematics": [
+        {
+          "id": "button_travel",
+          "kind": "linear",
+          "nodePath": "KIN_pushbutton",
+          "minimum": 0,
+          "maximum": 0.018,
+          "unit": "m",
+          "maximumRate": 0.2
+        }
+      ],
+      "signals": [
+        {
+          "id": "pressed",
+          "dataType": "bool",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Pressed."
+        }
+      ],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-21-single-pushbutton-evidence-final-review",
+        "recognitionConfidence": 0.94,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "controls.stack-light.3-tier.v1",
+      "displayName": "Three-Tier Stack Light with Buzzer",
+      "category": "controls/indication/stack-lights",
+      "tags": [
+        "stack light",
+        "tower light",
+        "red amber green",
+        "buzzer"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/scene_core/stack_light_3_tier/source/stack_light_3_tier.blend",
+        "deliveryGltf": "res://assets/scene_core/stack_light_3_tier/delivery/stack_light_3_tier.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/scene_core/stack_light_3_tier/collision/stack_light_3_tier_collision.glb",
+        "thumbnailFile": "res://assets/scene_core/stack_light_3_tier/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 0.42,
+        "heightM": 1.82,
+        "depthM": 0.38
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [
+        {
+          "id": "red_on",
+          "dataType": "bool",
+          "direction": "input",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Red lens command."
+        },
+        {
+          "id": "amber_on",
+          "dataType": "bool",
+          "direction": "input",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Amber lens command."
+        },
+        {
+          "id": "green_on",
+          "dataType": "bool",
+          "direction": "input",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Green lens command."
+        },
+        {
+          "id": "buzzer_on",
+          "dataType": "bool",
+          "direction": "input",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Audible annunciator command."
+        }
+      ],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "codex-agent-01a0bae6-2f05-7843-b9ea-81827c54d571-round2",
+        "recognitionConfidence": 0.98,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "drives.motor.ac-induction.v1",
+      "displayName": "AC Induction Motor",
+      "category": "drives/motors",
+      "tags": [
+        "ac induction motor",
+        "ac induction motor"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/scene_core/ac_induction_motor/source/ac_induction_motor.blend",
+        "deliveryGltf": "res://assets/scene_core/ac_induction_motor/delivery/ac_induction_motor.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/scene_core/ac_induction_motor/collision/ac_induction_motor_collision.glb",
+        "thumbnailFile": "res://assets/scene_core/ac_induction_motor/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 1.8,
+        "heightM": 1.1,
+        "depthM": 0.9
+      },
+      "connectors": [],
+      "kinematics": [
+        {
+          "id": "motor_rotation",
+          "kind": "rotary_continuous",
+          "nodePath": "KIN_motor_shaft",
+          "minimum": 0,
+          "maximum": 3600,
+          "unit": "rpm",
+          "maximumRate": 1450
+        }
+      ],
+      "signals": [
+        {
+          "id": "run_command",
+          "dataType": "bool",
+          "direction": "input",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Run command."
+        },
+        {
+          "id": "running",
+          "dataType": "bool",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Running."
+        }
+      ],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-17-rerun-image-007",
+        "recognitionConfidence": 0.96,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "facility.access.caged-ladder-4m.v1",
+      "displayName": "Fixed Caged Ladder - 4 m",
+      "category": "facility/access",
+      "tags": [
+        "fixed caged ladder - 4 m",
+        "fixed caged ladder"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/factory_kit/fixed_caged_ladder/source/fixed_caged_ladder.blend",
+        "deliveryGltf": "res://assets/factory_kit/fixed_caged_ladder/delivery/fixed_caged_ladder.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/factory_kit/fixed_caged_ladder/collision/fixed_caged_ladder_collision.glb",
+        "thumbnailFile": "res://assets/factory_kit/fixed_caged_ladder/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 1.1,
+        "heightM": 4.1,
+        "depthM": 1.0
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-22-caged-ladder-independent-final-review",
+        "recognitionConfidence": 0.98,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "facility.access.stair-flight-2m.v1",
+      "displayName": "Industrial Stair Flight - 2 m Rise",
+      "category": "facility/access",
+      "tags": [
+        "industrial stair flight - 2 m rise",
+        "industrial stair flight"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/factory_kit/industrial_stair_flight/source/industrial_stair_flight.blend",
+        "deliveryGltf": "res://assets/factory_kit/industrial_stair_flight/delivery/industrial_stair_flight.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/factory_kit/industrial_stair_flight/collision/industrial_stair_flight_collision.glb",
+        "thumbnailFile": "res://assets/factory_kit/industrial_stair_flight/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 3.0,
+        "heightM": 3.05,
+        "depthM": 1.2
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-22-stair-flight-independent-rereview",
+        "recognitionConfidence": 0.98,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "facility.floor.concrete-6x6.v1",
+      "displayName": "Industrial Concrete Floor Slab - 6 m x 6 m",
+      "category": "facility/floors",
+      "tags": [
+        "industrial concrete floor slab - 6 m x 6 m",
+        "industrial concrete floor slab"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/factory_kit/sealed_concrete_floor_slab/source/sealed_concrete_floor_slab.blend",
+        "deliveryGltf": "res://assets/factory_kit/sealed_concrete_floor_slab/delivery/sealed_concrete_floor_slab.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/factory_kit/sealed_concrete_floor_slab/collision/sealed_concrete_floor_slab_collision.glb",
+        "thumbnailFile": "res://assets/factory_kit/sealed_concrete_floor_slab/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 6.0,
+        "heightM": 0.2,
+        "depthM": 6.0
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-22-concrete-floor-final-review",
+        "recognitionConfidence": 0.93,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "facility.storage.mobile-tool-cabinet.v1",
+      "displayName": "Mobile Tool Cabinet",
+      "category": "facility/storage",
+      "tags": [
+        "mobile tool cabinet",
+        "mobile tool cabinet"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/factory_kit/mobile_tool_cabinet/source/mobile_tool_cabinet.blend",
+        "deliveryGltf": "res://assets/factory_kit/mobile_tool_cabinet/delivery/mobile_tool_cabinet.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/factory_kit/mobile_tool_cabinet/collision/mobile_tool_cabinet_collision.glb",
+        "thumbnailFile": "res://assets/factory_kit/mobile_tool_cabinet/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 1.35,
+        "heightM": 1.45,
+        "depthM": 0.8
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-22-mobile-tool-cabinet-final-review",
+        "recognitionConfidence": 0.97,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "facility.workbench.2400mm.v1",
+      "displayName": "Industrial Workbench - 2400 mm",
+      "category": "facility/workstations",
+      "tags": [
+        "industrial workbench - 2400 mm",
+        "industrial workbench"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/factory_kit/industrial_workbench/source/industrial_workbench.blend",
+        "deliveryGltf": "res://assets/factory_kit/industrial_workbench/delivery/industrial_workbench.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/factory_kit/industrial_workbench/collision/industrial_workbench_collision.glb",
+        "thumbnailFile": "res://assets/factory_kit/industrial_workbench/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 2.5,
+        "heightM": 1.45,
+        "depthM": 1.2
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-22-industrial-workbench-final-review",
+        "recognitionConfidence": 0.92,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "instrumentation.pressure.analog-gauge.v1",
+      "displayName": "Analog Pressure Gauge",
+      "category": "instrumentation/pressure",
+      "tags": [
+        "analog pressure gauge",
+        "analog pressure gauge"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/controls_sensors/analog_pressure_gauge/source/analog_pressure_gauge.blend",
+        "deliveryGltf": "res://assets/controls_sensors/analog_pressure_gauge/delivery/analog_pressure_gauge.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/controls_sensors/analog_pressure_gauge/collision/analog_pressure_gauge_collision.glb",
+        "thumbnailFile": "res://assets/controls_sensors/analog_pressure_gauge/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 0.85,
+        "heightM": 1.15,
+        "depthM": 0.55
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-22-analog-gauge-independent-final-review",
+        "recognitionConfidence": 0.94,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "loads.coil.steel-banded.v1",
+      "displayName": "Banded Steel Coil on Saddles",
+      "category": "loads/metal",
+      "tags": [
+        "banded steel coil on saddles",
+        "steel coil on saddles"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/factory_kit/steel_coil_on_saddles/source/steel_coil_on_saddles.blend",
+        "deliveryGltf": "res://assets/factory_kit/steel_coil_on_saddles/delivery/steel_coil_on_saddles.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/factory_kit/steel_coil_on_saddles/collision/steel_coil_on_saddles_collision.glb",
+        "thumbnailFile": "res://assets/factory_kit/steel_coil_on_saddles/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 1.75,
+        "heightM": 1.55,
+        "depthM": 1.25
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-22-steel-coil-rereview",
+        "recognitionConfidence": 0.95,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "loads.drum.steel-55gal.v1",
+      "displayName": "Steel Shipping Drum - 55 gal",
+      "category": "loads/containers",
+      "tags": [
+        "steel shipping drum - 55 gal",
+        "steel shipping drum"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/factory_kit/steel_shipping_drum/source/steel_shipping_drum.blend",
+        "deliveryGltf": "res://assets/factory_kit/steel_shipping_drum/delivery/steel_shipping_drum.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/factory_kit/steel_shipping_drum/collision/steel_shipping_drum_collision.glb",
+        "thumbnailFile": "res://assets/factory_kit/steel_shipping_drum/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 0.75,
+        "heightM": 1.2,
+        "depthM": 0.75
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-22-steel-shipping-drum-rereview",
+        "recognitionConfidence": 0.9,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "loads.ibc.1000l.v1",
+      "displayName": "Intermediate Bulk Container - 1000 L",
+      "category": "loads/containers",
+      "tags": [
+        "intermediate bulk container - 1000 l",
+        "ibc tote"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/factory_kit/ibc_tote/source/ibc_tote.blend",
+        "deliveryGltf": "res://assets/factory_kit/ibc_tote/delivery/ibc_tote.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/factory_kit/ibc_tote/collision/ibc_tote_collision.glb",
+        "thumbnailFile": "res://assets/factory_kit/ibc_tote/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 1.25,
+        "heightM": 1.6,
+        "depthM": 1.25
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-22-ibc-tote-rereview",
+        "recognitionConfidence": 0.94,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "loads.pallet.gma-48x40.v1",
+      "displayName": "GMA Wood Pallet - 48 x 40 in",
+      "category": "loads/pallets",
+      "tags": [
+        "gma wood pallet - 48 x 40 in",
+        "gma wood pallet"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/factory_kit/gma_wood_pallet/source/gma_wood_pallet.blend",
+        "deliveryGltf": "res://assets/factory_kit/gma_wood_pallet/delivery/gma_wood_pallet.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/factory_kit/gma_wood_pallet/collision/gma_wood_pallet_collision.glb",
+        "thumbnailFile": "res://assets/factory_kit/gma_wood_pallet/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 1.25,
+        "heightM": 0.3,
+        "depthM": 1.05
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-22-gma-wood-pallet-rereview",
+        "recognitionConfidence": 0.98,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "loads.sheet-stack.banded.v1",
+      "displayName": "Banded Sheet-Metal Stack",
+      "category": "loads/metal",
+      "tags": [
+        "banded sheet-metal stack",
+        "banded sheet metal stack"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/factory_kit/banded_sheet_metal_stack/source/banded_sheet_metal_stack.blend",
+        "deliveryGltf": "res://assets/factory_kit/banded_sheet_metal_stack/delivery/banded_sheet_metal_stack.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/factory_kit/banded_sheet_metal_stack/collision/banded_sheet_metal_stack_collision.glb",
+        "thumbnailFile": "res://assets/factory_kit/banded_sheet_metal_stack/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 2.6,
+        "heightM": 0.82,
+        "depthM": 1.3
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-22-sheet-metal-stack-review",
+        "recognitionConfidence": 0.98,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "loads.tote.reusable-plastic.v1",
+      "displayName": "Reusable Plastic Tote",
+      "category": "loads/containers",
+      "tags": [
+        "reusable plastic tote",
+        "reusable plastic tote"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/factory_kit/reusable_plastic_tote/source/reusable_plastic_tote.blend",
+        "deliveryGltf": "res://assets/factory_kit/reusable_plastic_tote/delivery/reusable_plastic_tote.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/factory_kit/reusable_plastic_tote/collision/reusable_plastic_tote_collision.glb",
+        "thumbnailFile": "res://assets/factory_kit/reusable_plastic_tote/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 1.1,
+        "heightM": 0.82,
+        "depthM": 0.82
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-22-reusable-plastic-tote-review",
+        "recognitionConfidence": 0.96,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "machining.drill-press.pedestal.v1",
+      "displayName": "Industrial Pedestal Drill Press",
+      "category": "machining/drilling",
+      "tags": [
+        "industrial pedestal drill press",
+        "industrial drill press"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/scene_core/industrial_drill_press/source/industrial_drill_press.blend",
+        "deliveryGltf": "res://assets/scene_core/industrial_drill_press/delivery/industrial_drill_press.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/scene_core/industrial_drill_press/collision/industrial_drill_press_collision.glb",
+        "thumbnailFile": "res://assets/scene_core/industrial_drill_press/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 1.9,
+        "heightM": 4.1,
+        "depthM": 1.6
+      },
+      "connectors": [],
+      "kinematics": [
+        {
+          "id": "spindle_speed",
+          "kind": "rotary_continuous",
+          "nodePath": "KIN_spindle",
+          "minimum": 0,
+          "maximum": 3000,
+          "unit": "rpm",
+          "maximumRate": 800
+        }
+      ],
+      "signals": [
+        {
+          "id": "run_command",
+          "dataType": "bool",
+          "direction": "input",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Run command."
+        },
+        {
+          "id": "guard_closed",
+          "dataType": "bool",
+          "direction": "input",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Guard closed."
+        },
+        {
+          "id": "spindle_position",
+          "dataType": "float32",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Spindle position."
+        }
+      ],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-21-drill-press-final-pass",
+        "recognitionConfidence": 0.95,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "material-handling.belt-conveyor.600x6000.v1",
+      "displayName": "Belt Conveyor - 600 mm x 6 m",
+      "category": "material-handling/conveyors/belt",
+      "tags": [
+        "belt conveyor",
+        "flat belt",
+        "material handling",
+        "gearmotor",
+        "e-stop pull cord"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/material_handling/belt_conveyor_600x6000/source/belt_conveyor_600x6000.blend",
+        "deliveryGltf": "res://assets/material_handling/belt_conveyor_600x6000/delivery/belt_conveyor_600x6000.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/material_handling/belt_conveyor_600x6000/collision/belt_conveyor_600x6000_collision.glb",
+        "thumbnailFile": "res://assets/material_handling/belt_conveyor_600x6000/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 6.2,
+        "heightM": 1.5,
+        "depthM": 1.55
+      },
+      "connectors": [
+        {
+          "id": "material_in",
+          "kind": "material_flow",
+          "positionM": [
+            -3.0,
+            0.0,
+            1.055
+          ],
+          "rotationDeg": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "compatibleKinds": [
+            "material_flow"
+          ]
+        },
+        {
+          "id": "material_out",
+          "kind": "material_flow",
+          "positionM": [
+            3.0,
+            0.0,
+            1.055
+          ],
+          "rotationDeg": [
+            0.0,
+            180.0,
+            0.0
+          ],
+          "compatibleKinds": [
+            "material_flow"
+          ]
+        },
+        {
+          "id": "power_24vdc",
+          "kind": "electrical_24vdc",
+          "positionM": [
+            0.0,
+            -0.62,
+            0.39
+          ],
+          "rotationDeg": [
+            0.0,
+            -90.0,
+            0.0
+          ],
+          "compatibleKinds": [
+            "electrical_24vdc"
+          ]
+        }
+      ],
+      "kinematics": [
+        {
+          "id": "belt_speed",
+          "kind": "linear_continuous",
+          "nodePath": "KIN_belt_surface",
+          "minimum": -2.0,
+          "maximum": 2.0,
+          "unit": "m/s",
+          "maximumRate": 0.75
+        }
+      ],
+      "signals": [
+        {
+          "id": "run_command",
+          "dataType": "bool",
+          "direction": "input",
+          "unit": null,
+          "kinematicAxis": "belt_speed",
+          "description": "Permissive run request from the simulation logic."
+        },
+        {
+          "id": "speed_setpoint",
+          "dataType": "float32",
+          "direction": "input",
+          "unit": "m/s",
+          "kinematicAxis": "belt_speed",
+          "description": "Signed commanded belt speed."
+        },
+        {
+          "id": "estop_ok",
+          "dataType": "bool",
+          "direction": "input",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Guarded simulator safety permissive; not a real safety function."
+        },
+        {
+          "id": "running",
+          "dataType": "bool",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "True while simulated belt motion is established."
+        },
+        {
+          "id": "actual_speed",
+          "dataType": "float32",
+          "direction": "output",
+          "unit": "m/s",
+          "kinematicAxis": "belt_speed",
+          "description": "Ramp-limited simulated belt speed."
+        }
+      ],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-17-rerun-image-001",
+        "recognitionConfidence": 0.94,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "material-handling.lift.scissor-table.v1",
+      "displayName": "Hydraulic Scissor Lift Table",
+      "category": "material-handling/lifts",
+      "tags": [
+        "hydraulic scissor lift table",
+        "scissor lift table"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/scene_core/scissor_lift_table/source/scissor_lift_table.blend",
+        "deliveryGltf": "res://assets/scene_core/scissor_lift_table/delivery/scissor_lift_table.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/scene_core/scissor_lift_table/collision/scissor_lift_table_collision.glb",
+        "thumbnailFile": "res://assets/scene_core/scissor_lift_table/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 3.1,
+        "heightM": 2.4,
+        "depthM": 2.0
+      },
+      "connectors": [],
+      "kinematics": [
+        {
+          "id": "lift_height",
+          "kind": "linear",
+          "nodePath": "KIN_platform",
+          "minimum": 0,
+          "maximum": 2.2,
+          "unit": "m",
+          "maximumRate": 1.1
+        }
+      ],
+      "signals": [
+        {
+          "id": "raise_command",
+          "dataType": "bool",
+          "direction": "input",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Raise command."
+        },
+        {
+          "id": "lower_command",
+          "dataType": "bool",
+          "direction": "input",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Lower command."
+        },
+        {
+          "id": "top_limit",
+          "dataType": "bool",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Top limit."
+        },
+        {
+          "id": "bottom_limit",
+          "dataType": "bool",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Bottom limit."
+        }
+      ],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-21-lift-opaque-bellows",
+        "recognitionConfidence": 0.95,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "material-handling.pallet-roller-conveyor.1000x4000.v1",
+      "displayName": "Powered Pallet Roller Conveyor - 1000 mm x 4 m",
+      "category": "material-handling/conveyors/roller",
+      "tags": [
+        "pallet conveyor",
+        "powered roller",
+        "chain driven",
+        "photoeye",
+        "gearmotor"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/material_handling/pallet_roller_conveyor_1000x4000/source/pallet_roller_conveyor_1000x4000.blend",
+        "deliveryGltf": "res://assets/material_handling/pallet_roller_conveyor_1000x4000/delivery/pallet_roller_conveyor_1000x4000.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/material_handling/pallet_roller_conveyor_1000x4000/collision/pallet_roller_conveyor_1000x4000_collision.glb",
+        "thumbnailFile": "res://assets/material_handling/pallet_roller_conveyor_1000x4000/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 4.2,
+        "heightM": 1.35,
+        "depthM": 2.25
+      },
+      "connectors": [
+        {
+          "id": "pallet_in",
+          "kind": "pallet_flow",
+          "positionM": [
+            -2.05,
+            0.0,
+            1.1
+          ],
+          "rotationDeg": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "compatibleKinds": [
+            "pallet_flow"
+          ]
+        },
+        {
+          "id": "pallet_out",
+          "kind": "pallet_flow",
+          "positionM": [
+            2.05,
+            0.0,
+            1.1
+          ],
+          "rotationDeg": [
+            0.0,
+            180.0,
+            0.0
+          ],
+          "compatibleKinds": [
+            "pallet_flow"
+          ]
+        },
+        {
+          "id": "power_3phase",
+          "kind": "electrical_3phase",
+          "positionM": [
+            0.0,
+            0.86,
+            0.45
+          ],
+          "rotationDeg": [
+            0.0,
+            90.0,
+            0.0
+          ],
+          "compatibleKinds": [
+            "electrical_3phase"
+          ]
+        }
+      ],
+      "kinematics": [
+        {
+          "id": "roller_speed",
+          "kind": "linear_continuous",
+          "nodePath": "KIN_roller_00",
+          "minimum": -1.0,
+          "maximum": 1.0,
+          "unit": "m/s",
+          "maximumRate": 0.6
+        }
+      ],
+      "signals": [
+        {
+          "id": "run_command",
+          "dataType": "bool",
+          "direction": "input",
+          "unit": null,
+          "kinematicAxis": "roller_speed",
+          "description": "Permissive run request from simulation logic."
+        },
+        {
+          "id": "speed_setpoint",
+          "dataType": "float32",
+          "direction": "input",
+          "unit": "m/s",
+          "kinematicAxis": "roller_speed",
+          "description": "Signed commanded pallet speed."
+        },
+        {
+          "id": "estop_ok",
+          "dataType": "bool",
+          "direction": "input",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Guarded simulator safety permissive; not a real safety function."
+        },
+        {
+          "id": "pallet_present",
+          "dataType": "bool",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "True when the modeled photoeye beam is blocked by a simulated load."
+        },
+        {
+          "id": "running",
+          "dataType": "bool",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "True while roller motion is established."
+        },
+        {
+          "id": "actual_speed",
+          "dataType": "float32",
+          "direction": "output",
+          "unit": "m/s",
+          "kinematicAxis": "roller_speed",
+          "description": "Ramp-limited simulated roller surface speed."
+        }
+      ],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "codex-agent-01a0ba96-3355-76f3-ad87-353f376fb54a-round2",
+        "recognitionConfidence": 0.98,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "material-handling.table.powered-rotary.v1",
+      "displayName": "Powered Indexing Rotary Table",
+      "category": "material-handling/tables",
+      "tags": [
+        "powered indexing rotary table",
+        "powered rotary table"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/scene_core/powered_rotary_table/source/powered_rotary_table.blend",
+        "deliveryGltf": "res://assets/scene_core/powered_rotary_table/delivery/powered_rotary_table.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/scene_core/powered_rotary_table/collision/powered_rotary_table_collision.glb",
+        "thumbnailFile": "res://assets/scene_core/powered_rotary_table/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 2.7,
+        "heightM": 1.2,
+        "depthM": 2.7
+      },
+      "connectors": [],
+      "kinematics": [
+        {
+          "id": "table_angle",
+          "kind": "rotary",
+          "nodePath": "KIN_table",
+          "minimum": -360,
+          "maximum": 360,
+          "unit": "deg",
+          "maximumRate": 90
+        }
+      ],
+      "signals": [
+        {
+          "id": "position_command",
+          "dataType": "int32",
+          "direction": "input",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Position command."
+        },
+        {
+          "id": "at_position",
+          "dataType": "bool",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "At position."
+        }
+      ],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-21-rotary-table-recognition-final",
+        "recognitionConfidence": 0.9,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "process.pipe.flanged-spool.v1",
+      "displayName": "Flanged Process Pipe Spool",
+      "category": "process/piping",
+      "tags": [
+        "flanged process pipe spool",
+        "flanged pipe spool"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/scene_core/flanged_pipe_spool/source/flanged_pipe_spool.blend",
+        "deliveryGltf": "res://assets/scene_core/flanged_pipe_spool/delivery/flanged_pipe_spool.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/scene_core/flanged_pipe_spool/collision/flanged_pipe_spool_collision.glb",
+        "thumbnailFile": "res://assets/scene_core/flanged_pipe_spool/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 3.6,
+        "heightM": 1.2,
+        "depthM": 0.8
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-17-rerun-image-008",
+        "recognitionConfidence": 0.92,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "process.pump.centrifugal-skid.v1",
+      "displayName": "Centrifugal Pump and Motor Skid",
+      "category": "process/pumps",
+      "tags": [
+        "centrifugal pump and motor skid",
+        "centrifugal pump skid"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/scene_core/centrifugal_pump_skid/source/centrifugal_pump_skid.blend",
+        "deliveryGltf": "res://assets/scene_core/centrifugal_pump_skid/delivery/centrifugal_pump_skid.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/scene_core/centrifugal_pump_skid/collision/centrifugal_pump_skid_collision.glb",
+        "thumbnailFile": "res://assets/scene_core/centrifugal_pump_skid/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 3.2,
+        "heightM": 1.5,
+        "depthM": 1.2
+      },
+      "connectors": [],
+      "kinematics": [
+        {
+          "id": "pump_rotation",
+          "kind": "rotary_continuous",
+          "nodePath": "KIN_pump_shaft",
+          "minimum": 0,
+          "maximum": 3600,
+          "unit": "rpm",
+          "maximumRate": 720
+        }
+      ],
+      "signals": [
+        {
+          "id": "run_command",
+          "dataType": "bool",
+          "direction": "input",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Run command."
+        },
+        {
+          "id": "running",
+          "dataType": "bool",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Running."
+        },
+        {
+          "id": "flow_estimate",
+          "dataType": "float32",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Flow estimate."
+        }
+      ],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "codex-agent-01a0bb03-ccc9-7600-a42d-9691c5db8d97-round2",
+        "recognitionConfidence": 0.97,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "process.support.multi-pipe-rack.v1",
+      "displayName": "Multi-Pipe Support Rack",
+      "category": "process/supports",
+      "tags": [
+        "multi-pipe support rack",
+        "industrial pipe support frame"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/factory_kit/trapeze_pipe_support/source/trapeze_pipe_support.blend",
+        "deliveryGltf": "res://assets/factory_kit/trapeze_pipe_support/delivery/trapeze_pipe_support.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/factory_kit/trapeze_pipe_support/collision/trapeze_pipe_support_collision.glb",
+        "thumbnailFile": "res://assets/factory_kit/trapeze_pipe_support/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 2.7,
+        "heightM": 1.85,
+        "depthM": 0.75
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-22-floor-mounted-pipe-rack-independent-review",
+        "recognitionConfidence": 0.96,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "process.tank.vertical-3000x5000.v1",
+      "displayName": "Vertical Process Tank - 3 m x 5 m",
+      "category": "process/tanks",
+      "tags": [
+        "vertical process tank - 3 m x 5 m",
+        "vertical process tank"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/scene_core/vertical_process_tank/source/vertical_process_tank.blend",
+        "deliveryGltf": "res://assets/scene_core/vertical_process_tank/delivery/vertical_process_tank.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/scene_core/vertical_process_tank/collision/vertical_process_tank_collision.glb",
+        "thumbnailFile": "res://assets/scene_core/vertical_process_tank/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 3.4,
+        "heightM": 5.8,
+        "depthM": 3.4
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [
+        {
+          "id": "level_percent",
+          "dataType": "float32",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Level percent."
+        },
+        {
+          "id": "high_level",
+          "dataType": "bool",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "High level."
+        },
+        {
+          "id": "low_level",
+          "dataType": "bool",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Low level."
+        }
+      ],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-17-rerun-image-009",
+        "recognitionConfidence": 0.82,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "process.valve.actuated-ball.v1",
+      "displayName": "Actuated Ball Valve",
+      "category": "process/valves",
+      "tags": [
+        "actuated ball valve",
+        "actuated process valve"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/scene_core/actuated_process_valve/source/actuated_process_valve.blend",
+        "deliveryGltf": "res://assets/scene_core/actuated_process_valve/delivery/actuated_process_valve.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/scene_core/actuated_process_valve/collision/actuated_process_valve_collision.glb",
+        "thumbnailFile": "res://assets/scene_core/actuated_process_valve/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 2.22,
+        "heightM": 1.816,
+        "depthM": 0.77
+      },
+      "connectors": [],
+      "kinematics": [
+        {
+          "id": "valve_position",
+          "kind": "rotary",
+          "nodePath": "KIN_valve_stem",
+          "minimum": 0,
+          "maximum": 90,
+          "unit": "deg",
+          "maximumRate": 90
+        }
+      ],
+      "signals": [
+        {
+          "id": "open_command",
+          "dataType": "bool",
+          "direction": "input",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Open command."
+        },
+        {
+          "id": "close_command",
+          "dataType": "bool",
+          "direction": "input",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Close command."
+        },
+        {
+          "id": "open_limit",
+          "dataType": "bool",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Open limit."
+        },
+        {
+          "id": "closed_limit",
+          "dataType": "bool",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Closed limit."
+        }
+      ],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "codex-agent-01a0bb68-a2e2-7752-8fe0-43dbacd9f606",
+        "recognitionConfidence": 0.98,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "robotics.robot.six-axis-medium.v1",
+      "displayName": "Six-Axis Industrial Robot",
+      "category": "robotics/arms",
+      "tags": [
+        "six-axis industrial robot",
+        "six axis robot"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/scene_core/six_axis_robot/source/six_axis_robot.blend",
+        "deliveryGltf": "res://assets/scene_core/six_axis_robot/delivery/six_axis_robot.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/scene_core/six_axis_robot/collision/six_axis_robot_collision.glb",
+        "thumbnailFile": "res://assets/scene_core/six_axis_robot/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 4.3,
+        "heightM": 3.8,
+        "depthM": 2.0
+      },
+      "connectors": [],
+      "kinematics": [
+        {
+          "id": "axis_1",
+          "kind": "rotary",
+          "nodePath": "KIN_axis_1",
+          "minimum": -170,
+          "maximum": 170,
+          "unit": "deg",
+          "maximumRate": 120
+        }
+      ],
+      "signals": [
+        {
+          "id": "run_command",
+          "dataType": "bool",
+          "direction": "input",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Run command."
+        },
+        {
+          "id": "running",
+          "dataType": "bool",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Running."
+        },
+        {
+          "id": "at_home",
+          "dataType": "bool",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "At home."
+        }
+      ],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-21-robot-recognition-final",
+        "recognitionConfidence": 0.95,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "safety.bollard.120mm.v1",
+      "displayName": "Safety Bollard - 120 mm",
+      "category": "safety/guarding",
+      "tags": [
+        "safety bollard - 120 mm",
+        "safety bollard"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/factory_kit/safety_bollard/source/safety_bollard.blend",
+        "deliveryGltf": "res://assets/factory_kit/safety_bollard/delivery/safety_bollard.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/factory_kit/safety_bollard/collision/safety_bollard_collision.glb",
+        "thumbnailFile": "res://assets/factory_kit/safety_bollard/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 0.5,
+        "heightM": 1.25,
+        "depthM": 0.5
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-21-safety-bollard-postfix-review",
+        "recognitionConfidence": 0.93,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "safety.enclosure.observation-window-panel.v1",
+      "displayName": "Machine-Guarding Enclosure Panel with Observation Window",
+      "category": "safety/guarding",
+      "tags": [
+        "machine-guarding enclosure panel with observation window",
+        "observation window wall module"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/factory_kit/observation_window_wall_module/source/observation_window_wall_module.blend",
+        "deliveryGltf": "res://assets/factory_kit/observation_window_wall_module/delivery/observation_window_wall_module.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/factory_kit/observation_window_wall_module/collision/observation_window_wall_module_collision.glb",
+        "thumbnailFile": "res://assets/factory_kit/observation_window_wall_module/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 4.25,
+        "heightM": 3.15,
+        "depthM": 0.55
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-22-observation-window-panel-final-review",
+        "recognitionConfidence": 0.94,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "safety.enclosure.personnel-door-panel.v1",
+      "displayName": "Machine-Guarding Enclosure Panel with Personnel Door",
+      "category": "safety/guarding",
+      "tags": [
+        "machine-guarding enclosure panel with personnel door",
+        "personnel door wall module"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/factory_kit/personnel_door_wall_module/source/personnel_door_wall_module.blend",
+        "deliveryGltf": "res://assets/factory_kit/personnel_door_wall_module/delivery/personnel_door_wall_module.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/factory_kit/personnel_door_wall_module/collision/personnel_door_wall_module_collision.glb",
+        "thumbnailFile": "res://assets/factory_kit/personnel_door_wall_module/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 4.25,
+        "heightM": 3.15,
+        "depthM": 1.15
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-22-personnel-door-panel-final-review",
+        "recognitionConfidence": 0.94,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "safety.fence.mesh-panel-3m.v1",
+      "displayName": "Machine Safety Fence Panel - 3 m",
+      "category": "safety/guarding",
+      "tags": [
+        "machine safety fence panel - 3 m",
+        "machine safety fence panel"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/factory_kit/machine_safety_fence_panel/source/machine_safety_fence_panel.blend",
+        "deliveryGltf": "res://assets/factory_kit/machine_safety_fence_panel/delivery/machine_safety_fence_panel.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/factory_kit/machine_safety_fence_panel/collision/machine_safety_fence_panel_collision.glb",
+        "thumbnailFile": "res://assets/factory_kit/machine_safety_fence_panel/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 3.5,
+        "heightM": 2.15,
+        "depthM": 0.4
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-22-machine-safety-fence-final-review",
+        "recognitionConfidence": 0.98,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "safety.gate.mesh-swing-2m.v1",
+      "displayName": "Machine Safety Swing Gate - 2 m",
+      "category": "safety/guarding",
+      "tags": [
+        "machine safety swing gate - 2 m",
+        "machine safety swing gate"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/factory_kit/machine_safety_swing_gate/source/machine_safety_swing_gate.blend",
+        "deliveryGltf": "res://assets/factory_kit/machine_safety_swing_gate/delivery/machine_safety_swing_gate.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/factory_kit/machine_safety_swing_gate/collision/machine_safety_swing_gate_collision.glb",
+        "thumbnailFile": "res://assets/factory_kit/machine_safety_swing_gate/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 2.5,
+        "heightM": 2.15,
+        "depthM": 0.45
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [
+        {
+          "id": "gate_closed",
+          "dataType": "bool",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Gate closed."
+        }
+      ],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-22-machine-safety-swing-gate-review",
+        "recognitionConfidence": 0.93,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "safety.guardrail.pedestrian-4m.v1",
+      "displayName": "Pedestrian Guardrail - 4 m",
+      "category": "safety/guarding",
+      "tags": [
+        "pedestrian guardrail - 4 m",
+        "pedestrian guardrail"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/factory_kit/pedestrian_guardrail/source/pedestrian_guardrail.blend",
+        "deliveryGltf": "res://assets/factory_kit/pedestrian_guardrail/delivery/pedestrian_guardrail.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/factory_kit/pedestrian_guardrail/collision/pedestrian_guardrail_collision.glb",
+        "thumbnailFile": "res://assets/factory_kit/pedestrian_guardrail/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 4.1,
+        "heightM": 1.15,
+        "depthM": 0.35
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-22-pedestrian-guardrail-final-review",
+        "recognitionConfidence": 0.93,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "safety.interlock.coded-magnetic-pair.v1",
+      "displayName": "Coded Magnetic Safety Switch Pair",
+      "category": "safety/interlocks",
+      "tags": [
+        "coded magnetic safety switch pair",
+        "coded magnetic safety switch"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/controls_sensors/coded_magnetic_safety_switch/source/coded_magnetic_safety_switch.blend",
+        "deliveryGltf": "res://assets/controls_sensors/coded_magnetic_safety_switch/delivery/coded_magnetic_safety_switch.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/controls_sensors/coded_magnetic_safety_switch/collision/coded_magnetic_safety_switch_collision.glb",
+        "thumbnailFile": "res://assets/controls_sensors/coded_magnetic_safety_switch/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 0.65,
+        "heightM": 0.95,
+        "depthM": 0.5
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [
+        {
+          "id": "guard_closed",
+          "dataType": "bool",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Guard closed."
+        },
+        {
+          "id": "safety_ok",
+          "dataType": "bool",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Safety ok."
+        }
+      ],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-22-coded-magnetic-independent-final-review",
+        "recognitionConfidence": 0.93,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "safety.interlock.tongue-switch.v1",
+      "displayName": "Tongue-Actuated Safety Interlock Switch",
+      "category": "safety/interlocks",
+      "tags": [
+        "tongue-actuated safety interlock switch",
+        "tongue safety interlock"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/controls_sensors/tongue_safety_interlock/source/tongue_safety_interlock.blend",
+        "deliveryGltf": "res://assets/controls_sensors/tongue_safety_interlock/delivery/tongue_safety_interlock.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/controls_sensors/tongue_safety_interlock/collision/tongue_safety_interlock_collision.glb",
+        "thumbnailFile": "res://assets/controls_sensors/tongue_safety_interlock/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 0.85,
+        "heightM": 0.9,
+        "depthM": 0.55
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [
+        {
+          "id": "guard_closed",
+          "dataType": "bool",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Guard closed."
+        },
+        {
+          "id": "safety_ok",
+          "dataType": "bool",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Safety ok."
+        }
+      ],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-22-tongue-interlock-independent-final-review",
+        "recognitionConfidence": 0.9,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "safety.light-curtain.1800mm.v1",
+      "displayName": "Safety Light Curtain Pair - 1800 mm",
+      "category": "safety/presence-sensing",
+      "tags": [
+        "safety light curtain pair - 1800 mm",
+        "safety light curtain pair"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/factory_kit/safety_light_curtain_pair/source/safety_light_curtain_pair.blend",
+        "deliveryGltf": "res://assets/factory_kit/safety_light_curtain_pair/delivery/safety_light_curtain_pair.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/factory_kit/safety_light_curtain_pair/collision/safety_light_curtain_pair_collision.glb",
+        "thumbnailFile": "res://assets/factory_kit/safety_light_curtain_pair/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 2.4,
+        "heightM": 2.1,
+        "depthM": 0.45
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [
+        {
+          "id": "field_clear",
+          "dataType": "bool",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Field clear."
+        }
+      ],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-22-safety-light-curtain-final-review",
+        "recognitionConfidence": 0.96,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "safety.scanner.floor-area.v1",
+      "displayName": "Industrial Safety Laser Scanner",
+      "category": "safety/presence-sensing",
+      "tags": [
+        "industrial safety laser scanner",
+        "safety laser scanner"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/controls_sensors/safety_laser_scanner/source/safety_laser_scanner.blend",
+        "deliveryGltf": "res://assets/controls_sensors/safety_laser_scanner/delivery/safety_laser_scanner.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/controls_sensors/safety_laser_scanner/collision/safety_laser_scanner_collision.glb",
+        "thumbnailFile": "res://assets/controls_sensors/safety_laser_scanner/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 3.2,
+        "heightM": 0.9,
+        "depthM": 3.2
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [
+        {
+          "id": "field_clear",
+          "dataType": "bool",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Field clear."
+        },
+        {
+          "id": "warning_field_clear",
+          "dataType": "bool",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Warning field clear."
+        }
+      ],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-22-safety-scanner-independent-final-review",
+        "recognitionConfidence": 0.94,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "sensing.distance.laser.v1",
+      "displayName": "Industrial Laser Distance Sensor",
+      "category": "sensing/distance",
+      "tags": [
+        "industrial laser distance sensor",
+        "laser distance sensor"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/controls_sensors/laser_distance_sensor/source/laser_distance_sensor.blend",
+        "deliveryGltf": "res://assets/controls_sensors/laser_distance_sensor/delivery/laser_distance_sensor.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/controls_sensors/laser_distance_sensor/collision/laser_distance_sensor_collision.glb",
+        "thumbnailFile": "res://assets/controls_sensors/laser_distance_sensor/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 0.65,
+        "heightM": 0.75,
+        "depthM": 1.45
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [
+        {
+          "id": "distance_mm",
+          "dataType": "float32",
+          "direction": "output",
+          "unit": "mm",
+          "kinematicAxis": null,
+          "description": "Distance mm."
+        },
+        {
+          "id": "in_range",
+          "dataType": "bool",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "In range."
+        }
+      ],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-17-rerun-image-059",
+        "recognitionConfidence": 0.82,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "sensing.distance.ultrasonic-single-transducer.v1",
+      "displayName": "Single-Transducer Ultrasonic Distance Sensor",
+      "category": "sensing/distance",
+      "tags": [
+        "single-transducer ultrasonic distance sensor",
+        "ultrasonic distance sensor"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/controls_sensors/ultrasonic_distance_sensor/source/ultrasonic_distance_sensor.blend",
+        "deliveryGltf": "res://assets/controls_sensors/ultrasonic_distance_sensor/delivery/ultrasonic_distance_sensor.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/controls_sensors/ultrasonic_distance_sensor/collision/ultrasonic_distance_sensor_collision.glb",
+        "thumbnailFile": "res://assets/controls_sensors/ultrasonic_distance_sensor/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 0.65,
+        "heightM": 0.75,
+        "depthM": 0.65
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [
+        {
+          "id": "distance_mm",
+          "dataType": "float32",
+          "direction": "output",
+          "unit": "mm",
+          "kinematicAxis": null,
+          "description": "Distance mm."
+        },
+        {
+          "id": "in_range",
+          "dataType": "bool",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "In range."
+        }
+      ],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-22-ultrasonic-independent-final-review",
+        "recognitionConfidence": 0.94,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "sensing.identification.fixed-barcode-scanner.v1",
+      "displayName": "Fixed Industrial Barcode Scanner",
+      "category": "sensing/identification",
+      "tags": [
+        "fixed industrial barcode scanner",
+        "fixed barcode scanner"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/factory_kit/fixed_barcode_scanner/source/fixed_barcode_scanner.blend",
+        "deliveryGltf": "res://assets/factory_kit/fixed_barcode_scanner/delivery/fixed_barcode_scanner.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/factory_kit/fixed_barcode_scanner/collision/fixed_barcode_scanner_collision.glb",
+        "thumbnailFile": "res://assets/factory_kit/fixed_barcode_scanner/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 0.65,
+        "heightM": 1.85,
+        "depthM": 0.75
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [
+        {
+          "id": "trigger",
+          "dataType": "bool",
+          "direction": "input",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Trigger."
+        },
+        {
+          "id": "code_present",
+          "dataType": "bool",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Code present."
+        }
+      ],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-22-fixed-barcode-scanner-rereview",
+        "recognitionConfidence": 0.91,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "sensing.identification.rfid-read-write-head.v1",
+      "displayName": "Industrial RFID Read/Write Head",
+      "category": "sensing/identification",
+      "tags": [
+        "industrial rfid read/write head",
+        "rfid read write head"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/controls_sensors/rfid_read_write_head/source/rfid_read_write_head.blend",
+        "deliveryGltf": "res://assets/controls_sensors/rfid_read_write_head/delivery/rfid_read_write_head.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/controls_sensors/rfid_read_write_head/collision/rfid_read_write_head_collision.glb",
+        "thumbnailFile": "res://assets/controls_sensors/rfid_read_write_head/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 1.1,
+        "heightM": 0.8,
+        "depthM": 0.65
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [
+        {
+          "id": "read_trigger",
+          "dataType": "bool",
+          "direction": "input",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Read trigger."
+        },
+        {
+          "id": "tag_present",
+          "dataType": "bool",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Tag present."
+        },
+        {
+          "id": "tag_code",
+          "dataType": "int32",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Tag code."
+        }
+      ],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-22-rfid-independent-final-review",
+        "recognitionConfidence": 0.93,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "sensing.level.analog-4-20ma.v1",
+      "displayName": "4-20 mA Level Transmitter",
+      "category": "sensing/level",
+      "tags": [
+        "4-20 ma level transmitter",
+        "level transmitter 4 20ma"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/scene_core/level_transmitter_4_20ma/source/level_transmitter_4_20ma.blend",
+        "deliveryGltf": "res://assets/scene_core/level_transmitter_4_20ma/delivery/level_transmitter_4_20ma.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/scene_core/level_transmitter_4_20ma/collision/level_transmitter_4_20ma_collision.glb",
+        "thumbnailFile": "res://assets/scene_core/level_transmitter_4_20ma/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 0.8305,
+        "heightM": 3.605,
+        "depthM": 0.64
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [
+        {
+          "id": "level_percent",
+          "dataType": "float32",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Level percent."
+        },
+        {
+          "id": "signal_ma",
+          "dataType": "float32",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Signal ma."
+        }
+      ],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "codex-agent-01a0bb94-c227-7002-a698-bd09fee597d7",
+        "recognitionConfidence": 0.96,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "sensing.level.radar.v1",
+      "displayName": "Non-Contact Radar Level Transmitter",
+      "category": "sensing/level",
+      "tags": [
+        "non-contact radar level transmitter",
+        "radar level transmitter"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/scene_core/radar_level_transmitter/source/radar_level_transmitter.blend",
+        "deliveryGltf": "res://assets/scene_core/radar_level_transmitter/delivery/radar_level_transmitter.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/scene_core/radar_level_transmitter/collision/radar_level_transmitter_collision.glb",
+        "thumbnailFile": "res://assets/scene_core/radar_level_transmitter/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 0.771,
+        "heightM": 1.422,
+        "depthM": 0.68
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [
+        {
+          "id": "level_percent",
+          "dataType": "float32",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Level percent."
+        },
+        {
+          "id": "signal_ma",
+          "dataType": "float32",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Signal ma."
+        },
+        {
+          "id": "echo_ok",
+          "dataType": "bool",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Echo ok."
+        }
+      ],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "codex-agent-01a0bbaa-5249-7312-a1f2-1b3daaaf25b6",
+        "recognitionConfidence": 0.96,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "sensing.level.tuning-fork.v1",
+      "displayName": "Tuning-Fork Point Level Switch",
+      "category": "sensing/level",
+      "tags": [
+        "tuning-fork point level switch",
+        "tuning fork level switch"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/scene_core/tuning_fork_level_switch/source/tuning_fork_level_switch.blend",
+        "deliveryGltf": "res://assets/scene_core/tuning_fork_level_switch/delivery/tuning_fork_level_switch.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/scene_core/tuning_fork_level_switch/collision/tuning_fork_level_switch_collision.glb",
+        "thumbnailFile": "res://assets/scene_core/tuning_fork_level_switch/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 0.46,
+        "heightM": 2.104,
+        "depthM": 0.435
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [
+        {
+          "id": "covered",
+          "dataType": "bool",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Covered."
+        }
+      ],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "codex-agent-01a0bb9a-870b-7d63-80c2-30871097158a",
+        "recognitionConfidence": 0.97,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "sensing.photoelectric.diffuse.v1",
+      "displayName": "Diffuse Photoelectric Sensor",
+      "category": "sensing/photoelectric",
+      "tags": [
+        "diffuse photoelectric sensor",
+        "diffuse photoelectric sensor"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/controls_sensors/diffuse_photoelectric_sensor/source/diffuse_photoelectric_sensor.blend",
+        "deliveryGltf": "res://assets/controls_sensors/diffuse_photoelectric_sensor/delivery/diffuse_photoelectric_sensor.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/controls_sensors/diffuse_photoelectric_sensor/collision/diffuse_photoelectric_sensor_collision.glb",
+        "thumbnailFile": "res://assets/controls_sensors/diffuse_photoelectric_sensor/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 0.55,
+        "heightM": 0.7,
+        "depthM": 0.6
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [
+        {
+          "id": "detected",
+          "dataType": "bool",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Detected."
+        }
+      ],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-22-diffuse-photoelectric-independent-final-rereview",
+        "recognitionConfidence": 0.84,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "sensing.photoelectric.through-beam-pair.v1",
+      "displayName": "Through-Beam Photoelectric Sensor Pair",
+      "category": "sensing/photoelectric",
+      "tags": [
+        "through-beam photoelectric sensor pair",
+        "through beam photoelectric pair"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/controls_sensors/through_beam_photoelectric_pair/source/through_beam_photoelectric_pair.blend",
+        "deliveryGltf": "res://assets/controls_sensors/through_beam_photoelectric_pair/delivery/through_beam_photoelectric_pair.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/controls_sensors/through_beam_photoelectric_pair/collision/through_beam_photoelectric_pair_collision.glb",
+        "thumbnailFile": "res://assets/controls_sensors/through_beam_photoelectric_pair/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 1.45,
+        "heightM": 1.3,
+        "depthM": 0.45
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [
+        {
+          "id": "beam_clear",
+          "dataType": "bool",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Beam clear."
+        },
+        {
+          "id": "detected",
+          "dataType": "bool",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Detected."
+        }
+      ],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-22-through-beam-independent-final-review",
+        "recognitionConfidence": 0.92,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "sensing.photoelectric.through-beam.v1",
+      "displayName": "Through-Beam Photoelectric Sensor Pair",
+      "category": "sensing/photoelectric/through-beam",
+      "tags": [
+        "photoeye",
+        "through beam",
+        "emitter receiver",
+        "package detection"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/scene_core/through_beam_photoeye/source/through_beam_photoeye.blend",
+        "deliveryGltf": "res://assets/scene_core/through_beam_photoeye/delivery/through_beam_photoeye.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/scene_core/through_beam_photoeye/collision/through_beam_photoeye_collision.glb",
+        "thumbnailFile": "res://assets/scene_core/through_beam_photoeye/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 0.25,
+        "heightM": 1.04,
+        "depthM": 1.65
+      },
+      "connectors": [
+        {
+          "id": "beam_center",
+          "kind": "detection_volume",
+          "positionM": [
+            0,
+            0,
+            0.94
+          ],
+          "rotationDeg": [
+            0,
+            0,
+            0
+          ],
+          "compatibleKinds": [
+            "material_flow"
+          ]
+        }
+      ],
+      "kinematics": [],
+      "signals": [
+        {
+          "id": "beam_blocked",
+          "dataType": "bool",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "True while a modeled object interrupts the optical beam."
+        }
+      ],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-17-rerun-image-003",
+        "recognitionConfidence": 0.88,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "sensing.position.incremental-encoder.v1",
+      "displayName": "Incremental Rotary Encoder",
+      "category": "sensing/position",
+      "tags": [
+        "incremental rotary encoder",
+        "incremental rotary encoder"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/controls_sensors/incremental_rotary_encoder/source/incremental_rotary_encoder.blend",
+        "deliveryGltf": "res://assets/controls_sensors/incremental_rotary_encoder/delivery/incremental_rotary_encoder.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/controls_sensors/incremental_rotary_encoder/collision/incremental_rotary_encoder_collision.glb",
+        "thumbnailFile": "res://assets/controls_sensors/incremental_rotary_encoder/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 0.75,
+        "heightM": 0.75,
+        "depthM": 0.85
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [
+        {
+          "id": "position_counts",
+          "dataType": "int32",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Position counts."
+        },
+        {
+          "id": "speed_rpm",
+          "dataType": "float32",
+          "direction": "output",
+          "unit": "rpm",
+          "kinematicAxis": null,
+          "description": "Speed rpm."
+        }
+      ],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-22-encoder-independent-final-review",
+        "recognitionConfidence": 0.96,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "sensing.position.roller-lever-limit-switch.v1",
+      "displayName": "Roller-Lever Limit Switch",
+      "category": "sensing/position",
+      "tags": [
+        "roller-lever limit switch",
+        "roller lever limit switch"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/controls_sensors/roller_lever_limit_switch/source/roller_lever_limit_switch.blend",
+        "deliveryGltf": "res://assets/controls_sensors/roller_lever_limit_switch/delivery/roller_lever_limit_switch.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/controls_sensors/roller_lever_limit_switch/collision/roller_lever_limit_switch_collision.glb",
+        "thumbnailFile": "res://assets/controls_sensors/roller_lever_limit_switch/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 0.75,
+        "heightM": 1.05,
+        "depthM": 0.65
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [
+        {
+          "id": "actuated",
+          "dataType": "bool",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Actuated."
+        }
+      ],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-22-roller-lever-independent-final-review",
+        "recognitionConfidence": 0.95,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "sensing.pressure.smart-transmitter.v1",
+      "displayName": "Smart Industrial Pressure Transmitter",
+      "category": "sensing/pressure",
+      "tags": [
+        "smart industrial pressure transmitter",
+        "pressure transmitter"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/controls_sensors/pressure_transmitter/source/pressure_transmitter.blend",
+        "deliveryGltf": "res://assets/controls_sensors/pressure_transmitter/delivery/pressure_transmitter.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/controls_sensors/pressure_transmitter/collision/pressure_transmitter_collision.glb",
+        "thumbnailFile": "res://assets/controls_sensors/pressure_transmitter/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 0.55,
+        "heightM": 1.15,
+        "depthM": 0.55
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [
+        {
+          "id": "pressure_bar",
+          "dataType": "float32",
+          "direction": "output",
+          "unit": "bar",
+          "kinematicAxis": null,
+          "description": "Pressure bar."
+        },
+        {
+          "id": "healthy",
+          "dataType": "bool",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Healthy."
+        }
+      ],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-22-pressure-transmitter-independent-final-review",
+        "recognitionConfidence": 0.9,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "sensing.proximity.capacitive-m30.v1",
+      "displayName": "M30 Capacitive Proximity Sensor",
+      "category": "sensing/proximity",
+      "tags": [
+        "m30 capacitive proximity sensor",
+        "capacitive proximity sensor m30"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/controls_sensors/capacitive_proximity_sensor_m30/source/capacitive_proximity_sensor_m30.blend",
+        "deliveryGltf": "res://assets/controls_sensors/capacitive_proximity_sensor_m30/delivery/capacitive_proximity_sensor_m30.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/controls_sensors/capacitive_proximity_sensor_m30/collision/capacitive_proximity_sensor_m30_collision.glb",
+        "thumbnailFile": "res://assets/controls_sensors/capacitive_proximity_sensor_m30/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 0.65,
+        "heightM": 0.75,
+        "depthM": 0.85
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [
+        {
+          "id": "detected",
+          "dataType": "bool",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Detected."
+        }
+      ],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-22-capacitive-m30-final-review",
+        "recognitionConfidence": 0.89,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "sensing.proximity.inductive-m18.v1",
+      "displayName": "M18 Inductive Proximity Sensor",
+      "category": "sensing/proximity",
+      "tags": [
+        "m18 inductive proximity sensor",
+        "inductive proximity sensor m18"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/controls_sensors/inductive_proximity_sensor_m18/source/inductive_proximity_sensor_m18.blend",
+        "deliveryGltf": "res://assets/controls_sensors/inductive_proximity_sensor_m18/delivery/inductive_proximity_sensor_m18.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/controls_sensors/inductive_proximity_sensor_m18/collision/inductive_proximity_sensor_m18_collision.glb",
+        "thumbnailFile": "res://assets/controls_sensors/inductive_proximity_sensor_m18/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 0.55,
+        "heightM": 0.65,
+        "depthM": 0.75
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [
+        {
+          "id": "detected",
+          "dataType": "bool",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Detected."
+        }
+      ],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-22-inductive-m18-final-review",
+        "recognitionConfidence": 0.86,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "sensing.scale.floor-platform.v1",
+      "displayName": "Industrial Floor Platform Scale",
+      "category": "sensing/weight",
+      "tags": [
+        "industrial floor platform scale",
+        "industrial floor scale"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/factory_kit/industrial_floor_scale/source/industrial_floor_scale.blend",
+        "deliveryGltf": "res://assets/factory_kit/industrial_floor_scale/delivery/industrial_floor_scale.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/factory_kit/industrial_floor_scale/collision/industrial_floor_scale_collision.glb",
+        "thumbnailFile": "res://assets/factory_kit/industrial_floor_scale/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 2.4,
+        "heightM": 1.65,
+        "depthM": 2.0
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [
+        {
+          "id": "weight_kg",
+          "dataType": "float32",
+          "direction": "output",
+          "unit": "kg",
+          "kinematicAxis": null,
+          "description": "Weight kg."
+        },
+        {
+          "id": "overload",
+          "dataType": "bool",
+          "direction": "output",
+          "unit": null,
+          "kinematicAxis": null,
+          "description": "Overload."
+        }
+      ],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-22-industrial-floor-scale-rereview",
+        "recognitionConfidence": 0.92,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "structures.beam.w-section-5m.v1",
+      "displayName": "Structural W-Section Beam - 5 m",
+      "category": "structures/steel",
+      "tags": [
+        "structural w-section beam - 5 m",
+        "structural w beam"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/factory_kit/structural_w_beam/source/structural_w_beam.blend",
+        "deliveryGltf": "res://assets/factory_kit/structural_w_beam/delivery/structural_w_beam.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/factory_kit/structural_w_beam/collision/structural_w_beam_collision.glb",
+        "thumbnailFile": "res://assets/factory_kit/structural_w_beam/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 5.0,
+        "heightM": 0.8,
+        "depthM": 0.55
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-22-structural-beam-independent-review",
+        "recognitionConfidence": 0.93,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "structures.catwalk.platform-4m.v1",
+      "displayName": "Elevated Industrial Catwalk Platform - 4 m",
+      "category": "facility/access",
+      "tags": [
+        "elevated industrial catwalk platform - 4 m",
+        "elevated catwalk platform"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/factory_kit/elevated_catwalk_platform/source/elevated_catwalk_platform.blend",
+        "deliveryGltf": "res://assets/factory_kit/elevated_catwalk_platform/delivery/elevated_catwalk_platform.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/factory_kit/elevated_catwalk_platform/collision/elevated_catwalk_platform_collision.glb",
+        "thumbnailFile": "res://assets/factory_kit/elevated_catwalk_platform/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 4.1,
+        "heightM": 2.4,
+        "depthM": 1.45
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-22-catwalk-independent-rereview",
+        "recognitionConfidence": 0.96,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "structures.column.steel-4m.v1",
+      "displayName": "Structural Steel Support Column - 4 m",
+      "category": "structures/steel",
+      "tags": [
+        "structural steel support column - 4 m",
+        "steel support column"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/factory_kit/structural_w_column/source/structural_w_column.blend",
+        "deliveryGltf": "res://assets/factory_kit/structural_w_column/delivery/structural_w_column.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/factory_kit/structural_w_column/collision/structural_w_column_collision.glb",
+        "thumbnailFile": "res://assets/factory_kit/structural_w_column/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 0.92,
+        "heightM": 4.08,
+        "depthM": 0.92
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-22-steel-column-independent-review",
+        "recognitionConfidence": 0.89,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "tooling.workholding.machine-vise-stock.v1",
+      "displayName": "Machine Vise with Rectangular 4140 Stock",
+      "category": "tooling/workholding",
+      "tags": [
+        "machine vise",
+        "rectangular machining stock",
+        "workholding"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/scene_loads/rectangular_machining_blank/source/rectangular_machining_blank.blend",
+        "deliveryGltf": "res://assets/scene_loads/rectangular_machining_blank/delivery/rectangular_machining_blank.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/scene_loads/rectangular_machining_blank/collision/rectangular_machining_blank_collision.glb",
+        "thumbnailFile": "res://assets/scene_loads/rectangular_machining_blank/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 1.18,
+        "heightM": 0.61,
+        "depthM": 0.8
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-agent-01a0ba35-machine-vise-round2",
+        "recognitionConfidence": 0.91,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    },
+    {
+      "id": "utilities.cable-tray.ladder-4m.v1",
+      "displayName": "Ladder Cable Tray - 4 m",
+      "category": "utilities/cable-management",
+      "tags": [
+        "ladder cable tray - 4 m",
+        "ladder cable tray"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/factory_kit/ladder_cable_tray/source/ladder_cable_tray.blend",
+        "deliveryGltf": "res://assets/factory_kit/ladder_cable_tray/delivery/ladder_cable_tray.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/factory_kit/ladder_cable_tray/collision/ladder_cable_tray_collision.glb",
+        "thumbnailFile": "res://assets/factory_kit/ladder_cable_tray/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 4.1,
+        "heightM": 0.8,
+        "depthM": 1.1
+      },
+      "connectors": [],
+      "kinematics": [],
+      "signals": [],
+      "quality": {
+        "status": "approved",
+        "blindReviewId": "blind-2026-09-22-ladder-cable-tray-final-review",
+        "recognitionConfidence": 0.96,
+        "topologyReviewed": true,
+        "materialReviewed": true,
+        "scaleReviewed": true,
+        "animationReviewed": true
+      }
+    }
+  ]
+}

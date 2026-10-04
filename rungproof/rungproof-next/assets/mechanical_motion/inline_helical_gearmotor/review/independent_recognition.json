@@ -1,0 +1,8 @@
+{
+  "assetId": "drives.gearmotor.inline-helical.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-087",
+  "identifiedFamily": "Foot-mounted electric motor coupled to a flanged industrial gear reducer, with a solid output shaft",
+  "confidence": 0.89,
+  "concerns": "Stylized rendering; reducer housing lacks identifiable seams, lubrication fittings, nameplates, and distinct input coupling geometry, so exact reducer type is uncertain",
+  "sourceReview": "build/blind-review-assets/image_087.mechanical-round1.review.md"
+}

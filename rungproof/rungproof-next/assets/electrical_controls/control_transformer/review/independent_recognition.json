@@ -1,0 +1,8 @@
+{
+  "assetId": "electrical.transformer.control-open-core.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-125",
+  "identifiedFamily": "Laminated-core, open-frame electrical transformer with two separate windings and terminal posts",
+  "confidence": 0.86,
+  "concerns": "Highly simplified geometry; no visible laminated E-I core joints, winding leads, terminal board, insulation barriers, nameplate, or mounting hardware; terminal posts appear oversized and ambiguously placed",
+  "sourceReview": "build/blind-review-assets/image_125.electrical-round1.review.md"
+}

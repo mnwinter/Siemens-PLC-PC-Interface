@@ -1,0 +1,8 @@
+{
+  "assetId": "controls.remote-io.io-link-master-8port.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-072",
+  "identifiedFamily": "IP67 field-mounted IO-Link master/industrial remote-I/O block with M12 ports",
+  "confidence": 0.93,
+  "concerns": "Cable geometry resembles rigid rods; port labeling is illegible/mirrored, and connector proportions/layout appear stylized rather than catalog-accurate",
+  "sourceReview": "build/blind-review-assets/image_072.controls-sol2.review.md"
+}

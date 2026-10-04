@@ -1,0 +1,8 @@
+{
+  "assetId": "controls.operator-station.guarded-foot-switch.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-074",
+  "identifiedFamily": "Guarded industrial foot-operated control switch, single-pedal safety foot switch",
+  "confidence": 0.94,
+  "concerns": "Stylized render; pedal linkage, hinge, cable entry, and protective hood proportions are simplified, so maintained versus momentary and emergency-stop functionality cannot be determined visually",
+  "sourceReview": "build/blind-review-assets/image_074.controls-sol1.review.md"
+}

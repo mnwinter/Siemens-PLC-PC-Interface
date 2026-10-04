@@ -1,0 +1,10 @@
+{
+  "assetId": "training.accessory.destination_conveyor_bank.v1",
+  "reviewerId": "codex-task-01a0ba41-c283-77a3-9ae9-1df82220f7a0",
+  "identifiedFamily": "flat-belt material-handling conveyor (identical generic basis model)",
+  "confidence": 0.98,
+  "result": "pass",
+  "majorDefects": [],
+  "sourceAssetId": "material-handling.belt-conveyor.600x6000.v1",
+  "evidenceBasis": "delivery GLB is byte-identical to the independently reviewed generic basis asset"
+}

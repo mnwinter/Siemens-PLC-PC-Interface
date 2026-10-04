@@ -1,0 +1,382 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-10-05-motor-struct-data",
+  "name": "Lab 10.5 - Motor STRUCT Data",
+  "description": "A structured motor record combines command, power, temperature, and alarm fields for one motor.",
+  "camera": {
+    "position": [
+      11,
+      8,
+      12
+    ],
+    "target": [
+      0,
+      1.1,
+      0
+    ],
+    "fov": 45
+  },
+  "equipment": [
+    {
+      "id": "motor_0",
+      "type": "motor",
+      "label": "Motor STRUCT Data motor",
+      "position": [
+        -3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "running": false
+      }
+    },
+    {
+      "id": "machine_1",
+      "type": "machine",
+      "label": "Motor STRUCT Data machine",
+      "position": [
+        -1.1,
+        0,
+        0
+      ],
+      "config": {
+        "size": [
+          2.1,
+          2.7,
+          1.7
+        ],
+        "color": 5466227,
+        "running": false
+      }
+    },
+    {
+      "id": "indicator_2",
+      "type": "indicator",
+      "label": "Motor STRUCT Data indicator",
+      "position": [
+        1.1,
+        0,
+        0
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    },
+    {
+      "id": "training_accessory_3",
+      "type": "trainingAccessory",
+      "label": "Motor STRUCT Data - motor diagnostic faceplate",
+      "position": [
+        3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "assetName": "motor diagnostic faceplate",
+        "catalogAssetId": "training.accessory.motor_diagnostic_faceplate.v1"
+      }
+    },
+    {
+      "id": "training_accessory_4",
+      "type": "trainingAccessory",
+      "label": "Motor STRUCT Data - temperature display",
+      "position": [
+        -3.3000000000000003,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "temperature display",
+        "catalogAssetId": "training.accessory.temperature_display.v1"
+      }
+    },
+    {
+      "id": "training_accessory_5",
+      "type": "trainingAccessory",
+      "label": "Motor STRUCT Data - structured-data monitor",
+      "position": [
+        -1.1,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "structured-data monitor",
+        "catalogAssetId": "training.accessory.structured_data_monitor.v1"
+      }
+    },
+    {
+      "id": "switch_6",
+      "type": "switch",
+      "label": "Motor STRUCT Data operator input",
+      "position": [
+        1.55,
+        0,
+        2.35
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-motor_record_valid",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "switch_7",
+      "type": "switch",
+      "label": "Motor STRUCT Data operator input",
+      "position": [
+        3.7500000000000004,
+        0,
+        2.35
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-temperature_valid",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "switch_8",
+      "type": "switch",
+      "label": "Motor STRUCT Data operator input",
+      "position": [
+        -2.4000000000000004,
+        0,
+        4.7
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-alarm_clear",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "indicator_9",
+      "type": "indicator",
+      "label": "Motor STRUCT Data output indication",
+      "position": [
+        -0.20000000000000007,
+        0,
+        4.7
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    }
+  ],
+  "simulation": {
+    "type": "booleanPanel",
+    "points": [
+      {
+        "name": "motor_record_valid",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "temperature_valid",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "alarm_clear",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "motor_enable",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "record_ready",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      }
+    ],
+    "actions": [
+      {
+        "id": "toggle-motor_record_valid",
+        "label": "Toggle motor record valid",
+        "type": "toggle",
+        "point": "motor_record_valid"
+      },
+      {
+        "id": "toggle-temperature_valid",
+        "label": "Toggle temperature valid",
+        "type": "toggle",
+        "point": "temperature_valid"
+      },
+      {
+        "id": "toggle-alarm_clear",
+        "label": "Toggle alarm clear",
+        "type": "toggle",
+        "point": "alarm_clear"
+      }
+    ],
+    "rules": [],
+    "edgeRules": [],
+    "pointBindings": [
+      {
+        "point": "motor_record_valid",
+        "equipmentId": "switch_6",
+        "mode": "switch"
+      },
+      {
+        "point": "temperature_valid",
+        "equipmentId": "switch_7",
+        "mode": "switch"
+      },
+      {
+        "point": "alarm_clear",
+        "equipmentId": "switch_8",
+        "mode": "switch"
+      },
+      {
+        "point": "motor_enable",
+        "equipmentId": "indicator_2",
+        "mode": "indicator",
+        "activeColor": "green"
+      },
+      {
+        "point": "record_ready",
+        "equipmentId": "indicator_9",
+        "mode": "indicator",
+        "activeColor": "green"
+      }
+    ]
+  },
+  "training": {
+    "hints": [
+      "Translate the lesson into explicit state and permissive logic: The motor record is accepted only when its required fields are valid and alarms are clear.",
+      "Inputs are simulator feedback (motor_record_valid, temperature_valid, alarm_clear); PLC logic owns motor_enable, record_ready.",
+      "Test the initial state, the valid condition, and at least one missing permissive."
+    ],
+    "solution": {
+      "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
+      "steps": [
+        "Require the documented inputs: motor_record_valid, temperature_valid, alarm_clear.",
+        "Command the documented outputs: motor_enable, record_ready.",
+        "Remove PLC commands when the permissive is lost."
+      ],
+      "acceptance": "The motor record is accepted only when its required fields are valid and alarms are clear."
+    },
+    "assetRequirements": [
+      "motor diagnostic faceplate",
+      "temperature display",
+      "structured-data monitor"
+    ],
+    "machineGuide": {
+      "purpose": "A structured motor record combines command, power, temperature, and alarm fields for one motor.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state."
+      ],
+      "normalSequence": [
+        "Apply the requested input condition.",
+        "Verify only the documented PLC outputs respond."
+      ],
+      "stopBehavior": [
+        "Removing the permissive removes PLC-owned commands.",
+        "Reset returns the module to its initial state."
+      ],
+      "faultBehavior": [
+        "A missing or stale input must fail safe and remain diagnosable."
+      ],
+      "expectedObservations": [
+        "The motor record is accepted only when its required fields are valid and alarms are clear."
+      ]
+    },
+    "sequenceNumber": 63,
+    "inheritsFrom": "lab-10-04-motor-enum-state",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout"
+    ],
+    "addedTags": [
+      "motor_record_valid",
+      "temperature_valid",
+      "alarm_clear",
+      "motor_enable",
+      "record_ready"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-10-04-motor-enum-state"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "initial-safe-state",
+        "expect": {
+          "motor_enable": false,
+          "record_ready": false
+        }
+      }
+    ]
+  },
+  "migration": {
+    "sourceFile": "prototype/scenes/lab-10-05-motor-struct-data.plcscene",
+    "sourceFormat": "plcscene",
+    "assetMappings": {
+      "conveyor": "material-handling.belt-conveyor.600x6000.v1",
+      "photoeye": "sensing.photoelectric.through-beam.v1",
+      "switch": "controls.operator-station.single-pushbutton.v1",
+      "indicator": "controls.beacon.single-tier.v1",
+      "pusher": "actuation.pneumatic-pusher.1350mm.v1",
+      "motor": "drives.motor.ac-induction.v1",
+      "pipe": "process.pipe.flanged-spool.v1",
+      "tank": "process.tank.vertical-3000x5000.v1",
+      "pump": "process.pump.centrifugal-skid.v1",
+      "valve": "process.valve.actuated-ball.v1",
+      "levelSensor": "sensing.level.analog-4-20ma.v1",
+      "radarLevelSensor": "sensing.level.radar.v1",
+      "rotarySwitch": "controls.operator-station.selector.v1",
+      "fan": "air-handling.fan.axial-1900.v1",
+      "liftTable": "material-handling.lift.scissor-table.v1",
+      "drillPress": "machining.drill-press.pedestal.v1",
+      "robotArm": "robotics.robot.six-axis-medium.v1",
+      "rotaryTable": "material-handling.table.powered-rotary.v1",
+      "rollerShutter": "access-control.door.roller-shutter.v1",
+      "machine": "machining.machine.enclosed-center.v1",
+      "palletLoad": "loads.palletized-cases.gma-48x40.v1",
+      "toteFiller": "process.packaging.filler.tote-volumetric.v1",
+      "toteCapper": "process.packaging.capper.tote-inline.v1",
+      "toteLabeler": "process.packaging.labeler.tote-pressure-sensitive.v1",
+      "toteVision": "inspection.vision.tote-multicamera.v1",
+      "meteringSkid": "process.dosing.skid.liquid-metering.v1",
+      "containerReceiver": "material-handling.receiver.container-two-position.v1",
+      "sizeSensorBank": "sensing.dimensioning.parcel-three-height.v1"
+    },
+    "scenePropTypes": [
+      "box"
+    ],
+    "unresolvedAssetTypes": [
+      "trainingAccessory"
+    ],
+    "visualStatus": "partial",
+    "productionApproved": false,
+    "reason": "Production approval requires every reusable asset and the complete scene to pass visual review."
+  }
+}

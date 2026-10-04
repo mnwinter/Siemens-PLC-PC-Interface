@@ -1,0 +1,8 @@
+{
+  "assetId": "tooling.fixture.modular-two-clamp.v1",
+  "reviewerId": "image_188.scene-loads-round1.review.md",
+  "identifiedFamily": "Dual toggle-clamp workholding fixture with two clamping stations",
+  "confidence": 0.91,
+  "concerns": "Simplified geometry lacks visible linkage, spindle, mounting fasteners, and workpiece contact pads; handles appear to press directly on blocks rather than actuate realistic over-center clamps",
+  "sourceReview": "build/blind-review-assets/image_188.scene-loads-round1.review.md"
+}

@@ -1,0 +1,15 @@
+{
+  "assetId": "training.accessory.cable_dancer.v1",
+  "reviewerId": "blind-2026-09-22-ladder-cable-tray-final-review",
+  "identifiedFamily": "ladder-style cable tray carrying routed power/control cables (identical generic basis model)",
+  "confidence": 0.96,
+  "result": "pass",
+  "reviewRound": 2,
+  "defects": [
+    "Cable routing is uniform and idealized.",
+    "Support/hanger, splice, grounding, and fastening details are not modeled.",
+    "Bends, entry/exit routing, and fill constraints are not represented."
+  ],
+  "sourceAssetId": "utilities.cable-tray.ladder-4m.v1",
+  "evidenceBasis": "delivery GLB is byte-identical to the independently reviewed generic basis asset"
+}

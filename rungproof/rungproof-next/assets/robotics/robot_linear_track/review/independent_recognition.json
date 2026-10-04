@@ -1,0 +1,8 @@
+{
+  "assetId": "robotics.positioner.linear-track-seventh-axis.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-167",
+  "identifiedFamily": "Small articulated industrial robot mounted on a linear seventh-axis track",
+  "confidence": 0.97,
+  "concerns": "Stylized render; simplified joints and end effector, inconsistent rail geometry, and no visible cable routing, drive, guarding, or hard stops",
+  "sourceReview": "build/blind-review-assets/image_167.robotics-round2c.review.md"
+}

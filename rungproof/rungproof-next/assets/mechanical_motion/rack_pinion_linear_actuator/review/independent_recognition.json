@@ -1,0 +1,8 @@
+{
+  "assetId": "actuation.electric.linear.rack-pinion.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-093",
+  "identifiedFamily": "Motor-driven linear rack-and-pinion positioning stage",
+  "confidence": 0.86,
+  "concerns": "Stylized geometry; pinion-to-rack engagement is partly obscured, the rack teeth are oversized, and shaft/bearing/support details are incomplete.",
+  "sourceReview": "build/blind-review-assets/image_093.mechanical-round1.review.md"
+}

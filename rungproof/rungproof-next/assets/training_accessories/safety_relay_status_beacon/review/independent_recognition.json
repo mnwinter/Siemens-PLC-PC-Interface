@@ -1,0 +1,10 @@
+{
+  "assetId": "training.accessory.safety_relay_status_beacon.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-131",
+  "identifiedFamily": "DIN-rail dual-channel machine-safety monitoring relay, not a general-purpose control relay or PLC I/O module (identical generic basis model)",
+  "confidence": 0.94,
+  "concerns": "Stylized oversized enclosure, implausible terminal and DIN-rail geometry, mirrored/illegible labeling, and unclear mounting engagement",
+  "sourceReview": "build/blind-review-assets/image_131.electrical-round3.review.md",
+  "sourceAssetId": "safety.relay.dual-channel-din.v1",
+  "evidenceBasis": "delivery GLB is byte-identical to the independently reviewed generic basis asset"
+}

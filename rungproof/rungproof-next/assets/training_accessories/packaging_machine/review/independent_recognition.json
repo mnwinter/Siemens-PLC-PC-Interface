@@ -1,0 +1,10 @@
+{
+  "assetId": "training.accessory.packaging_machine.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-155",
+  "identifiedFamily": "Vertical turret milling machine (knee-mill/bench-mill family) (identical generic basis model)",
+  "confidence": 0.94,
+  "concerns": "Stylized proportions; the knee/elevation mechanism, motor, controls, and spindle tooling are not clearly represented, so it could be a simplified vertical mill rather than a specific catalog model.",
+  "sourceReview": "build/blind-review-assets/image_155.production-machines-round1.review.md",
+  "sourceAssetId": "machines.machining.mill.vertical-knee.v1",
+  "evidenceBasis": "delivery GLB is byte-identical to the independently reviewed generic basis asset"
+}

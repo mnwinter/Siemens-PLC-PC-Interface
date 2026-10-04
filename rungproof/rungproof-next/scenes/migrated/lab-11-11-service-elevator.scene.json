@@ -1,0 +1,397 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-11-11-service-elevator",
+  "name": "Lab 11.11 - Service Elevator",
+  "description": "A lift travels between two landings only with door, position, and direction interlocks satisfied.",
+  "camera": {
+    "position": [
+      11,
+      8,
+      12
+    ],
+    "target": [
+      0,
+      1.1,
+      0
+    ],
+    "fov": 45
+  },
+  "equipment": [
+    {
+      "id": "liftTable_0",
+      "type": "liftTable",
+      "label": "Service Elevator lift Table",
+      "position": [
+        -3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "width": 2.3,
+        "depth": 1.8,
+        "minimumHeight": 0.6,
+        "travel": 2.1,
+        "initialPosition": 0
+      }
+    },
+    {
+      "id": "rollerShutter_1",
+      "type": "rollerShutter",
+      "label": "Service Elevator roller Shutter",
+      "position": [
+        -1.1,
+        0,
+        0
+      ],
+      "config": {
+        "width": 2.2,
+        "height": 2.8,
+        "initialPosition": 0
+      }
+    },
+    {
+      "id": "switch_2",
+      "type": "switch",
+      "label": "Service Elevator switch",
+      "position": [
+        1.1,
+        0,
+        0
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-call_valid",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "indicator_3",
+      "type": "indicator",
+      "label": "Service Elevator indicator",
+      "position": [
+        3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    },
+    {
+      "id": "training_accessory_4",
+      "type": "trainingAccessory",
+      "label": "Service Elevator - elevator car/shaft",
+      "position": [
+        -3.3000000000000003,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "elevator car/shaft",
+        "catalogAssetId": "training.accessory.elevator_car_shaft.v1"
+      }
+    },
+    {
+      "id": "training_accessory_5",
+      "type": "trainingAccessory",
+      "label": "Service Elevator - floor call station",
+      "position": [
+        -1.1,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "floor call station",
+        "catalogAssetId": "training.accessory.floor_call_station.v1"
+      }
+    },
+    {
+      "id": "training_accessory_6",
+      "type": "trainingAccessory",
+      "label": "Service Elevator - landing door",
+      "position": [
+        1.1,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "landing door",
+        "catalogAssetId": "training.accessory.landing_door.v1"
+      }
+    },
+    {
+      "id": "training_accessory_7",
+      "type": "trainingAccessory",
+      "label": "Service Elevator - floor-position sensor",
+      "position": [
+        3.3000000000000003,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "floor-position sensor",
+        "catalogAssetId": "training.accessory.floor_position_sensor.v1"
+      }
+    },
+    {
+      "id": "switch_8",
+      "type": "switch",
+      "label": "Service Elevator operator input",
+      "position": [
+        -2.4000000000000004,
+        0,
+        4.7
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-doors_closed",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "switch_9",
+      "type": "switch",
+      "label": "Service Elevator operator input",
+      "position": [
+        -0.20000000000000007,
+        0,
+        4.7
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-landing_clear",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "indicator_10",
+      "type": "indicator",
+      "label": "Service Elevator output indication",
+      "position": [
+        2,
+        0,
+        4.7
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    }
+  ],
+  "simulation": {
+    "type": "booleanPanel",
+    "points": [
+      {
+        "name": "call_valid",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "doors_closed",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "landing_clear",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "lift_up_cmd",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "lift_down_cmd",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      }
+    ],
+    "actions": [
+      {
+        "id": "toggle-call_valid",
+        "label": "Toggle call valid",
+        "type": "toggle",
+        "point": "call_valid"
+      },
+      {
+        "id": "toggle-doors_closed",
+        "label": "Toggle doors closed",
+        "type": "toggle",
+        "point": "doors_closed"
+      },
+      {
+        "id": "toggle-landing_clear",
+        "label": "Toggle landing clear",
+        "type": "toggle",
+        "point": "landing_clear"
+      }
+    ],
+    "rules": [],
+    "edgeRules": [],
+    "pointBindings": [
+      {
+        "point": "call_valid",
+        "equipmentId": "switch_2",
+        "mode": "switch"
+      },
+      {
+        "point": "doors_closed",
+        "equipmentId": "switch_8",
+        "mode": "switch"
+      },
+      {
+        "point": "landing_clear",
+        "equipmentId": "switch_9",
+        "mode": "switch"
+      },
+      {
+        "point": "lift_up_cmd",
+        "equipmentId": "indicator_3",
+        "mode": "indicator",
+        "activeColor": "green"
+      },
+      {
+        "point": "lift_down_cmd",
+        "equipmentId": "indicator_10",
+        "mode": "indicator",
+        "activeColor": "green"
+      }
+    ]
+  },
+  "training": {
+    "hints": [
+      "Translate the lesson into explicit state and permissive logic: The elevator receives one direction command only when the doors are closed and the landing is clear.",
+      "Inputs are simulator feedback (call_valid, doors_closed, landing_clear); PLC logic owns lift_up_cmd, lift_down_cmd.",
+      "Test the initial state, the valid condition, and at least one missing permissive."
+    ],
+    "solution": {
+      "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
+      "steps": [
+        "Require the documented inputs: call_valid, doors_closed, landing_clear.",
+        "Command the documented outputs: lift_up_cmd, lift_down_cmd.",
+        "Remove PLC commands when the permissive is lost."
+      ],
+      "acceptance": "The elevator receives one direction command only when the doors are closed and the landing is clear."
+    },
+    "assetRequirements": [
+      "elevator car/shaft",
+      "floor call station",
+      "landing door",
+      "floor-position sensor"
+    ],
+    "machineGuide": {
+      "purpose": "A lift travels between two landings only with door, position, and direction interlocks satisfied.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state."
+      ],
+      "normalSequence": [
+        "Apply the requested input condition.",
+        "Verify only the documented PLC outputs respond."
+      ],
+      "stopBehavior": [
+        "Removing the permissive removes PLC-owned commands.",
+        "Reset returns the module to its initial state."
+      ],
+      "faultBehavior": [
+        "A missing or stale input must fail safe and remain diagnosable."
+      ],
+      "expectedObservations": [
+        "The elevator receives one direction command only when the doors are closed and the landing is clear."
+      ]
+    },
+    "sequenceNumber": 67,
+    "inheritsFrom": "lab-11-07-multi-conveyor-pallet-route",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout"
+    ],
+    "addedTags": [
+      "call_valid",
+      "doors_closed",
+      "landing_clear",
+      "lift_up_cmd",
+      "lift_down_cmd"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-11-07-multi-conveyor-pallet-route"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "initial-safe-state",
+        "expect": {
+          "lift_up_cmd": false,
+          "lift_down_cmd": false
+        }
+      }
+    ]
+  },
+  "migration": {
+    "sourceFile": "prototype/scenes/lab-11-11-service-elevator.plcscene",
+    "sourceFormat": "plcscene",
+    "assetMappings": {
+      "conveyor": "material-handling.belt-conveyor.600x6000.v1",
+      "photoeye": "sensing.photoelectric.through-beam.v1",
+      "switch": "controls.operator-station.single-pushbutton.v1",
+      "indicator": "controls.beacon.single-tier.v1",
+      "pusher": "actuation.pneumatic-pusher.1350mm.v1",
+      "motor": "drives.motor.ac-induction.v1",
+      "pipe": "process.pipe.flanged-spool.v1",
+      "tank": "process.tank.vertical-3000x5000.v1",
+      "pump": "process.pump.centrifugal-skid.v1",
+      "valve": "process.valve.actuated-ball.v1",
+      "levelSensor": "sensing.level.analog-4-20ma.v1",
+      "radarLevelSensor": "sensing.level.radar.v1",
+      "rotarySwitch": "controls.operator-station.selector.v1",
+      "fan": "air-handling.fan.axial-1900.v1",
+      "liftTable": "material-handling.lift.scissor-table.v1",
+      "drillPress": "machining.drill-press.pedestal.v1",
+      "robotArm": "robotics.robot.six-axis-medium.v1",
+      "rotaryTable": "material-handling.table.powered-rotary.v1",
+      "rollerShutter": "access-control.door.roller-shutter.v1",
+      "machine": "machining.machine.enclosed-center.v1",
+      "palletLoad": "loads.palletized-cases.gma-48x40.v1",
+      "toteFiller": "process.packaging.filler.tote-volumetric.v1",
+      "toteCapper": "process.packaging.capper.tote-inline.v1",
+      "toteLabeler": "process.packaging.labeler.tote-pressure-sensitive.v1",
+      "toteVision": "inspection.vision.tote-multicamera.v1",
+      "meteringSkid": "process.dosing.skid.liquid-metering.v1",
+      "containerReceiver": "material-handling.receiver.container-two-position.v1",
+      "sizeSensorBank": "sensing.dimensioning.parcel-three-height.v1"
+    },
+    "scenePropTypes": [
+      "box"
+    ],
+    "unresolvedAssetTypes": [
+      "trainingAccessory"
+    ],
+    "visualStatus": "partial",
+    "productionApproved": false,
+    "reason": "Production approval requires every reusable asset and the complete scene to pass visual review."
+  }
+}

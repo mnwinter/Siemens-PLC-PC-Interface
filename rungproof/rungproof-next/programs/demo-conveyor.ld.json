@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "id": "demo-conveyor-seal-in",
+  "name": "Conveyor start/stop with photoeye inhibit",
+  "language": "LD",
+  "scanPeriodMs": 20,
+  "variables": [
+    { "name": "start_command", "type": "BOOL", "role": "input", "initial": false },
+    { "name": "stop_command", "type": "BOOL", "role": "input", "initial": false },
+    { "name": "simulated_photoeye", "type": "BOOL", "role": "input", "initial": false, "binding": "simulated_photoeye" },
+    { "name": "seal_in", "type": "BOOL", "role": "memory", "initial": false },
+    { "name": "conveyor_running", "type": "BOOL", "role": "output", "initial": false, "binding": "conveyor_running" }
+  ],
+  "networks": [
+    {
+      "id": "network-seal-in",
+      "label": "Seal-in with Stop and photoeye inhibit",
+      "logic": {
+        "id": "series-seal-in",
+        "kind": "series",
+        "children": [
+          {
+            "id": "branch-start-or-seal",
+            "kind": "parallel",
+            "children": [
+              { "id": "contact-start", "kind": "contact", "variable": "start_command", "contact": "normallyOpen" },
+              { "id": "contact-seal", "kind": "contact", "variable": "seal_in", "contact": "normallyOpen" }
+            ]
+          },
+          { "id": "contact-stop", "kind": "contact", "variable": "stop_command", "contact": "normallyClosed" },
+          { "id": "contact-photoeye-inhibit", "kind": "contact", "variable": "simulated_photoeye", "contact": "normallyClosed" }
+        ]
+      },
+      "coil": { "id": "coil-seal-in", "variable": "seal_in" }
+    },
+    {
+      "id": "network-conveyor-output",
+      "label": "Conveyor output",
+      "logic": {
+        "id": "series-conveyor-output",
+        "kind": "series",
+        "children": [
+          { "id": "contact-seal-output", "kind": "contact", "variable": "seal_in", "contact": "normallyOpen" },
+          { "id": "contact-photoeye-output", "kind": "contact", "variable": "simulated_photoeye", "contact": "normallyClosed" }
+        ]
+      },
+      "coil": { "id": "coil-conveyor", "variable": "conveyor_running" }
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "assetId": "actuation.electric.linear.ball-screw.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-092",
+  "identifiedFamily": "Lead-screw-driven linear positioning slide with guided carriage",
+  "confidence": 0.91,
+  "concerns": "Stylized geometry omits visible bearings, motor coupling, fasteners, limit switches, and protective screw cover; drive motor placement is ambiguous",
+  "sourceReview": "build/blind-review-assets/image_092.mechanical-round1.review.md"
+}

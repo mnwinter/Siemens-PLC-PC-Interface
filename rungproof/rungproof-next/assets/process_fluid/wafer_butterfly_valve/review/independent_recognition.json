@@ -1,0 +1,8 @@
+{
+  "assetId": "process.valve.butterfly.wafer-lever.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-108",
+  "identifiedFamily": "Flanged, lever-operated butterfly valve installed between pipe sections",
+  "confidence": 0.97,
+  "concerns": "Stylized cutaway-like yellow disc/indicator and simplified fasteners; body proportions and flange/bolt geometry are not fully catalog-realistic",
+  "sourceReview": "build/blind-review-assets/image_108.process-round3b.review.md"
+}

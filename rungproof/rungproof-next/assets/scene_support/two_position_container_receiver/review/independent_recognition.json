@@ -1,0 +1,8 @@
+{
+  "assetId": "material-handling.receiver.container-two-position.v1",
+  "reviewerId": "blind-2026-09-30-authorized-review-image-124",
+  "identifiedFamily": "Dual-container receiver station with guided container carts and front retaining gates",
+  "confidence": 0.96,
+  "concerns": "Stylized render; exact industrial application and actuation details are not visible",
+  "sourceReview": "build/blind-review-assets/image_124.authorized-review.review.md"
+}

@@ -1,0 +1,8 @@
+{
+  "assetId": "drives.gearmotor.right-angle-worm.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-088",
+  "identifiedFamily": "Electric motor-driven worm gear reducer with a right-angle output shaft",
+  "confidence": 0.98,
+  "concerns": "Stylized low-poly model; exposed worm and wheel appear illustrative rather than mechanically connected or realistically enclosed/lubricated",
+  "sourceReview": "build/blind-review-assets/image_088.mechanical-round5.review.md"
+}

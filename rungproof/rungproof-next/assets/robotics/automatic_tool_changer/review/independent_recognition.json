@@ -1,0 +1,8 @@
+{
+  "assetId": "robotics.tooling.changer.automatic-pneumatic.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-168",
+  "identifiedFamily": "Robotic end-of-arm automatic tool changer (robotic tool-change coupling)",
+  "confidence": 0.98,
+  "concerns": "Stylized rendering; interface geometry and actuation details are simplified, so the exact catalog series is ambiguous",
+  "sourceReview": "build/blind-review-assets/image_168.robotics-round1.review.md"
+}

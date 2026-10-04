@@ -1,0 +1,8 @@
+{
+  "assetId": "process.filter.dust-collector.pulse-jet.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-119",
+  "identifiedFamily": "Pulse-jet cartridge dust collector with hopper and rotary airlock discharge",
+  "confidence": 0.91,
+  "concerns": "Simplified pulse-cleaning manifold, ambiguous inlet/outlet connections, and unrealistic rotary-airlock geometry/proportions",
+  "sourceReview": "build/blind-review-assets/image_119.process-round2.review.md"
+}

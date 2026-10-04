@@ -1,0 +1,14 @@
+{
+  "assetId": "training.accessory.coded_safety_gate_switch.v1",
+  "reviewerId": "codex-agent-source-blind-coded-magnetic-final-review",
+  "identifiedFamily": "coded guard-door safety sensor with separate actuator (identical generic basis model)",
+  "confidence": 0.93,
+  "result": "pass",
+  "reviewRound": 4,
+  "defects": [
+    "Role differentiation partly relies on small face labels.",
+    "Door travel, connector, and fastening details are simplified."
+  ],
+  "sourceAssetId": "safety.interlock.coded-magnetic-pair.v1",
+  "evidenceBasis": "delivery GLB is byte-identical to the independently reviewed generic basis asset"
+}

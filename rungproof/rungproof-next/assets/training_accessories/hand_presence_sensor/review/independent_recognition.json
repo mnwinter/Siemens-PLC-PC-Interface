@@ -1,0 +1,10 @@
+{
+  "assetId": "training.accessory.hand_presence_sensor.v1",
+  "reviewerId": "image_185.scene-loads-round3.review.md",
+  "identifiedFamily": "Portable 20-liter coolant dispensing container with screw cap and carry handle (identical generic basis model)",
+  "confidence": 0.86,
+  "concerns": "Stylized geometry; unclear whether the front bars indicate a level gauge, and the oversized vented cap and undersized handle reduce realism",
+  "sourceReview": "build/blind-review-assets/image_185.scene-loads-round3.review.md",
+  "sourceAssetId": "loads.container.jerry-can-hdpe.v1",
+  "evidenceBasis": "delivery GLB is byte-identical to the independently reviewed generic basis asset"
+}

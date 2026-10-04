@@ -1,0 +1,8 @@
+{
+  "assetId": "controls.hmi.touch-panel-10in.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-124",
+  "identifiedFamily": "Industrial operator-interface panel (HMI) in a standalone protective enclosure, not a general-purpose monitor",
+  "confidence": 0.93,
+  "concerns": "Stylized render; no visible touchscreen bezel, controls, cable entries, mounting hardware, manufacturer details, or rear connectors, and the raised text/buttons appear decorative rather than realistic HMI graphics",
+  "sourceReview": "build/blind-review-assets/image_124.readable-labels.review.md"
+}

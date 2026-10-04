@@ -1,0 +1,373 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-4-08-package-grouping",
+  "name": "Lab 4.8 - Package Grouping Station",
+  "description": "A conveyor groups a fixed number of cartons before releasing the group to the next station.",
+  "camera": {
+    "position": [
+      11,
+      8,
+      12
+    ],
+    "target": [
+      0,
+      1.1,
+      0
+    ],
+    "fov": 45
+  },
+  "equipment": [
+    {
+      "id": "conveyor_0",
+      "type": "conveyor",
+      "label": "Package Grouping Station conveyor",
+      "position": [
+        -3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "length": 6.5,
+        "width": 1.4,
+        "deckHeight": 0.9,
+        "beltColor": 2568760,
+        "running": false
+      }
+    },
+    {
+      "id": "box_1",
+      "type": "box",
+      "label": "Package Grouping Station box",
+      "position": [
+        -1.1,
+        0,
+        0
+      ],
+      "config": {
+        "size": [
+          0.85,
+          0.72,
+          0.72
+        ],
+        "color": 13142603
+      }
+    },
+    {
+      "id": "photoeye_2",
+      "type": "photoeye",
+      "label": "Package Grouping Station photoeye",
+      "position": [
+        1.1,
+        0,
+        0
+      ],
+      "config": {
+        "span": 2.05,
+        "height": 0.7,
+        "beamCenterHeightM": 1.1,
+        "blocked": false
+      }
+    },
+    {
+      "id": "indicator_3",
+      "type": "indicator",
+      "label": "Package Grouping Station indicator",
+      "position": [
+        3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    },
+    {
+      "id": "training_accessory_4",
+      "type": "trainingAccessory",
+      "label": "Package Grouping Station - powered roller conveyor",
+      "position": [
+        -3.3000000000000003,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "powered roller conveyor",
+        "catalogAssetId": "training.accessory.powered_roller_conveyor.v1"
+      }
+    },
+    {
+      "id": "training_accessory_5",
+      "type": "trainingAccessory",
+      "label": "Package Grouping Station - package spacing sensor",
+      "position": [
+        -1.1,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "package spacing sensor",
+        "catalogAssetId": "training.accessory.package_spacing_sensor.v1"
+      }
+    },
+    {
+      "id": "training_accessory_6",
+      "type": "trainingAccessory",
+      "label": "Package Grouping Station - pallet receiver",
+      "position": [
+        1.1,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "pallet receiver",
+        "catalogAssetId": "training.accessory.pallet_receiver.v1"
+      }
+    },
+    {
+      "id": "training_accessory_7",
+      "type": "trainingAccessory",
+      "label": "Package Grouping Station - guided group stop",
+      "position": [
+        3.3000000000000003,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "guided group stop",
+        "catalogAssetId": "training.accessory.guided_group_stop.v1"
+      }
+    },
+    {
+      "id": "switch_8",
+      "type": "switch",
+      "label": "Package Grouping Station operator input",
+      "position": [
+        -2.4000000000000004,
+        0,
+        4.7
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-package_detected",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "switch_9",
+      "type": "switch",
+      "label": "Package Grouping Station operator input",
+      "position": [
+        -0.20000000000000007,
+        0,
+        4.7
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-group_count_reached",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "switch_10",
+      "type": "switch",
+      "label": "Package Grouping Station operator input",
+      "position": [
+        2,
+        0,
+        4.7
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-release_clear",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "indicator_11",
+      "type": "indicator",
+      "label": "Package Grouping Station output indication",
+      "position": [
+        4.2,
+        0,
+        4.7
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    }
+  ],
+  "simulation": {
+    "type": "booleanPanel",
+    "points": [
+      {
+        "name": "package_detected",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "group_count_reached",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "release_clear",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "group_conveyor_run",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "group_release",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      }
+    ],
+    "actions": [
+      {
+        "id": "toggle-package_detected",
+        "label": "Toggle package detected",
+        "type": "toggle",
+        "point": "package_detected"
+      },
+      {
+        "id": "toggle-group_count_reached",
+        "label": "Toggle group count reached",
+        "type": "toggle",
+        "point": "group_count_reached"
+      },
+      {
+        "id": "toggle-release_clear",
+        "label": "Toggle release clear",
+        "type": "toggle",
+        "point": "release_clear"
+      }
+    ],
+    "rules": [],
+    "edgeRules": [],
+    "pointBindings": [
+      {
+        "point": "package_detected",
+        "equipmentId": "switch_8",
+        "mode": "switch"
+      },
+      {
+        "point": "group_count_reached",
+        "equipmentId": "switch_9",
+        "mode": "switch"
+      },
+      {
+        "point": "release_clear",
+        "equipmentId": "switch_10",
+        "mode": "switch"
+      },
+      {
+        "point": "group_conveyor_run",
+        "equipmentId": "indicator_3",
+        "mode": "indicator",
+        "activeColor": "green"
+      },
+      {
+        "point": "group_release",
+        "equipmentId": "indicator_11",
+        "mode": "indicator",
+        "activeColor": "green"
+      }
+    ]
+  },
+  "training": {
+    "hints": [
+      "Translate the lesson into explicit state and permissive logic: The release command occurs only after the target group count and downstream clear signal.",
+      "Inputs are simulator feedback (package_detected, group_count_reached, release_clear); PLC logic owns group_conveyor_run, group_release.",
+      "Test the initial state, the valid condition, and at least one missing permissive."
+    ],
+    "solution": {
+      "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
+      "steps": [
+        "Require the documented inputs: package_detected, group_count_reached, release_clear.",
+        "Command the documented outputs: group_conveyor_run, group_release.",
+        "Remove PLC commands when the permissive is lost."
+      ],
+      "acceptance": "The release command occurs only after the target group count and downstream clear signal."
+    },
+    "assetRequirements": [
+      "powered roller conveyor",
+      "package spacing sensor",
+      "pallet receiver",
+      "guided group stop"
+    ],
+    "machineGuide": {
+      "purpose": "A conveyor groups a fixed number of cartons before releasing the group to the next station.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state."
+      ],
+      "normalSequence": [
+        "Apply the requested input condition.",
+        "Verify only the documented PLC outputs respond."
+      ],
+      "stopBehavior": [
+        "Removing the permissive removes PLC-owned commands.",
+        "Reset returns the module to its initial state."
+      ],
+      "faultBehavior": [
+        "A missing or stale input must fail safe and remain diagnosable."
+      ],
+      "expectedObservations": [
+        "The release command occurs only after the target group count and downstream clear signal."
+      ]
+    },
+    "sequenceNumber": 35,
+    "inheritsFrom": "lab-4-07-parking-garage-entry",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout"
+    ],
+    "addedTags": [
+      "package_detected",
+      "group_count_reached",
+      "release_clear",
+      "group_conveyor_run",
+      "group_release"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-4-07-parking-garage-entry"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "initial-safe-state",
+        "expect": {
+          "group_conveyor_run": false,
+          "group_release": false
+        }
+      }
+    ]
+  }
+}

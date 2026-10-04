@@ -1,0 +1,8 @@
+{
+  "assetId": "machines.plastics.injection-molder.horizontal.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-156",
+  "identifiedFamily": "Horizontal injection molding machine (injection unit with barrel, hopper, nozzle, and mold-clamping platens)",
+  "confidence": 0.86,
+  "concerns": "Simplified geometry; hopper, barrel, nozzle, and clamping assembly proportions are not production-realistic, and mold details are absent.",
+  "sourceReview": "build/blind-review-assets/image_156.production-machines-round1.review.md"
+}

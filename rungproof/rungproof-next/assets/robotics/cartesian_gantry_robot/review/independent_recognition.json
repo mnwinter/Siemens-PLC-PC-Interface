@@ -1,0 +1,8 @@
+{
+  "assetId": "robotics.robot.cartesian-xyz-gantry.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-165",
+  "identifiedFamily": "Overhead Cartesian gantry robot (XYZ gantry system)",
+  "confidence": 0.97,
+  "concerns": "Stylized render with no visible end effector or drive components; exact axis arrangement and catalog model remain ambiguous",
+  "sourceReview": "build/blind-review-assets/image_165.robotics-round1.review.md"
+}

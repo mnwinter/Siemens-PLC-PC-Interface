@@ -1,0 +1,9 @@
+{
+  "assetId": "process.pump.centrifugal-skid.v1",
+  "reviewerId": "codex-agent-01a0bb03-ccc9-7600-a42d-9691c5db8d97",
+  "identifiedFamily": "motor-driven horizontal end-suction centrifugal pump skid",
+  "confidence": 0.97,
+  "result": "pass",
+  "reviewRound": 2,
+  "majorDefects": []
+}

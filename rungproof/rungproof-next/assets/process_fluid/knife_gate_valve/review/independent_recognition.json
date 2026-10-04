@@ -1,0 +1,8 @@
+{
+  "assetId": "process.valve.knife-gate.handwheel.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-110",
+  "identifiedFamily": "Handwheel-operated rising-stem knife gate valve for pipeline isolation",
+  "confidence": 0.96,
+  "concerns": "Stylized rendering; bonnet/yoke, stem-to-gate connection, flange bolt patterns, and body sealing details are simplified or mechanically incomplete.",
+  "sourceReview": "build/blind-review-assets/image_110.process-round1.review.md"
+}

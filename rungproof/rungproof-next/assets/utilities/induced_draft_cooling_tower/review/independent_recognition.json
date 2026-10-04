@@ -1,0 +1,8 @@
+{
+  "assetId": "utilities.cooling.tower.induced-draft-package.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-139",
+  "identifiedFamily": "Packaged induced-draft counterflow cooling tower with top-mounted axial fan and side air-intake louvers",
+  "confidence": 0.94,
+  "concerns": "Stylized render; water piping, access panels, fan guard, motor/drive, drift eliminators, and basin details are simplified or absent, and the ladder placement varies between views",
+  "sourceReview": "build/blind-review-assets/image_139.readable-labels.review.md"
+}

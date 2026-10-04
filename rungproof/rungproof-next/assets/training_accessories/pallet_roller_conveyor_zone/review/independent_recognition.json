@@ -1,0 +1,11 @@
+{
+  "assetId": "training.accessory.pallet_roller_conveyor_zone.v1",
+  "reviewerId": "codex-agent-01a0ba96-3355-76f3-ad87-353f376fb54a",
+  "identifiedFamily": "powered pallet roller conveyor (identical generic basis model)",
+  "confidence": 0.98,
+  "result": "pass",
+  "reviewRound": 2,
+  "majorDefects": [],
+  "sourceAssetId": "material-handling.pallet-roller-conveyor.1000x4000.v1",
+  "evidenceBasis": "delivery GLB is byte-identical to the independently reviewed generic basis asset"
+}

@@ -1,0 +1,10 @@
+{
+  "assetId": "training.accessory.guided_group_stop.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-079",
+  "identifiedFamily": "Pneumatic guided cylinder (compact multi-rod linear actuator with an external tooling plate) (identical generic basis model)",
+  "confidence": 0.88,
+  "concerns": "Three protruding rods and top-mounted lever-like fittings are atypical; rod spacing, guidance geometry, and actuation details are mechanically ambiguous.",
+  "sourceReview": "build/blind-review-assets/image_079.mechanical-round2.review.md",
+  "sourceAssetId": "actuation.pneumatic.cylinder.guided.v1",
+  "evidenceBasis": "delivery GLB is byte-identical to the independently reviewed generic basis asset"
+}

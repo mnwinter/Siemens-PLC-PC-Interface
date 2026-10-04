@@ -1,0 +1,266 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "scene-2-conveyor-pusher",
+  "plcTestProfile": "scene-2-db14-pusher-interface.json",
+  "name": "Conveyor Pusher",
+  "description": "The established production sequence: run to the photoeye, stop, extend the single-solenoid pusher, transfer the package, retract, and admit the next package.",
+  "camera": {
+    "position": [
+      10.8,
+      7.0,
+      10.8
+    ],
+    "target": [
+      0,
+      1.0,
+      0
+    ],
+    "fov": 43
+  },
+  "equipment": [
+    {
+      "id": "scene2_conveyor",
+      "type": "conveyor",
+      "label": "Scene 2 conveyor",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "config": {
+        "length": 7,
+        "width": 1.55,
+        "deckHeight": 0.9,
+        "beltColor": 2436137
+      }
+    },
+    {
+      "id": "scene2_product",
+      "type": "box",
+      "label": "Scene 2 package",
+      "position": [
+        -3.3,
+        0.99,
+        0
+      ],
+      "config": {
+        "size": [
+          0.85,
+          0.72,
+          0.72
+        ],
+        "color": 13142598
+      }
+    },
+    {
+      "id": "scene2_photoeye",
+      "type": "photoeye",
+      "label": "Part-at-pusher photoeye",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "config": {
+        "span": 2.08,
+        "height": 1.1,
+        "beamCenterHeightM": 1.35,
+        "blocked": false
+      }
+    },
+    {
+      "id": "scene2_pusher",
+      "type": "pusher",
+      "label": "Single-solenoid spring-return pusher",
+      "position": [
+        0,
+        0,
+        -2.15
+      ],
+      "rotation": [
+        0,
+        -90,
+        0
+      ],
+      "config": {
+        "stroke": 1.35,
+        "travelAxis": "z",
+        "centerHeight": 1.38,
+        "initialPosition": 0
+      }
+    },
+    {
+      "id": "scene2_station",
+      "type": "switch",
+      "label": "Scene Start / Stop",
+      "position": [
+        -3.0,
+        0,
+        2.1
+      ],
+      "rotation": [
+        0,
+        -22,
+        0
+      ],
+      "config": {
+        "style": "pushbutton",
+        "color": 2200422,
+        "action": "scene-toggle"
+      }
+    },
+    {
+      "id": "scene2_stacklight",
+      "type": "indicator",
+      "label": "Scene 2 status light",
+      "position": [
+        3.15,
+        0,
+        -1.75
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "amber"
+      }
+    }
+  ],
+  "simulation": {
+    "type": "conveyorPusher",
+    "points": [
+      {
+        "name": "part_at_pusher",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false,
+        "purpose": "Simulator photoeye feedback that turns TRUE when a package reaches the pusher."
+      },
+      {
+        "name": "pusher_extended",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false,
+        "purpose": "Simulator extended-limit feedback from the pusher."
+      },
+      {
+        "name": "pusher_retracted",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": true,
+        "purpose": "Simulator retracted-limit feedback from the pusher."
+      },
+      {
+        "name": "conveyor_running",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output",
+        "purpose": "PLC motor command that runs the Scene 2 conveyor."
+      },
+      {
+        "name": "pusher_extend",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output",
+        "purpose": "PLC solenoid command that extends the spring-return pusher."
+      },
+      {
+        "name": "pusher_position",
+        "type": "REAL",
+        "owner": "SIM",
+        "initial": 0,
+        "unit": "%",
+        "purpose": "Internal pusher stroke position used by the scene physics."
+      },
+      {
+        "name": "component_state",
+        "type": "STRING",
+        "owner": "SIM",
+        "initial": "stopped_loaded",
+        "purpose": "Internal readable state of the conveyor, package, and pusher."
+      },
+      {
+        "name": "parts_completed",
+        "type": "DINT",
+        "owner": "SIM",
+        "initial": 0,
+        "purpose": "Internal count of packages transferred by the pusher."
+      }
+    ],
+    "actions": [
+      {
+        "id": "scene-toggle",
+        "label": "Start / stop conveyor",
+        "type": "toggle",
+        "point": "conveyor_running"
+      }
+    ],
+    "pointBindings": [
+      {
+        "point": "conveyor_running",
+        "equipmentId": "scene2_conveyor",
+        "mode": "running"
+      }
+    ],
+    "sourceBehavior": "Scene 2 - Conveyor Pusher",
+    "conveyorId": "scene2_conveyor",
+    "photoeyeId": "scene2_photoeye",
+    "productId": "scene2_product",
+    "pusherId": "scene2_pusher",
+    "indicatorId": "scene2_stacklight",
+    "lengthM": 1.0,
+    "speedMps": 0.5,
+    "objectLengthM": 0.2,
+    "photoeyePositionM": 0.5,
+    "minimumPhotoeyeOnS": 0.1,
+    "pusherStrokeTimeS": 0.3,
+    "transferPositionFraction": 0.8,
+    "repeatLoadSeconds": 2.5
+  },
+  "migration": {
+    "sourceFile": "prototype/scenes/scene-2-conveyor-pusher.plcscene",
+    "sourceFormat": "plcscene",
+    "assetMappings": {
+      "conveyor": "material-handling.belt-conveyor.600x6000.v1",
+      "photoeye": "sensing.photoelectric.through-beam.v1",
+      "switch": "controls.operator-station.single-pushbutton.v1",
+      "indicator": "controls.beacon.single-tier.v1",
+      "pusher": "actuation.pneumatic-pusher.1350mm.v1",
+      "motor": "drives.motor.ac-induction.v1",
+      "pipe": "process.pipe.flanged-spool.v1",
+      "tank": "process.tank.vertical-3000x5000.v1",
+      "pump": "process.pump.centrifugal-skid.v1",
+      "valve": "process.valve.actuated-ball.v1",
+      "levelSensor": "sensing.level.analog-4-20ma.v1",
+      "radarLevelSensor": "sensing.level.radar.v1",
+      "rotarySwitch": "controls.operator-station.selector.v1",
+      "fan": "air-handling.fan.axial-1900.v1",
+      "liftTable": "material-handling.lift.scissor-table.v1",
+      "drillPress": "machining.drill-press.pedestal.v1",
+      "robotArm": "robotics.robot.six-axis-medium.v1",
+      "rotaryTable": "material-handling.table.powered-rotary.v1",
+      "rollerShutter": "access-control.door.roller-shutter.v1",
+      "machine": "machining.machine.enclosed-center.v1",
+      "palletLoad": "loads.palletized-cases.gma-48x40.v1",
+      "toteFiller": "process.packaging.filler.tote-volumetric.v1",
+      "toteCapper": "process.packaging.capper.tote-inline.v1",
+      "toteLabeler": "process.packaging.labeler.tote-pressure-sensitive.v1",
+      "toteVision": "inspection.vision.tote-multicamera.v1",
+      "meteringSkid": "process.dosing.skid.liquid-metering.v1",
+      "containerReceiver": "material-handling.receiver.container-two-position.v1",
+      "sizeSensorBank": "sensing.dimensioning.parcel-three-height.v1"
+    },
+    "scenePropTypes": [
+      "box"
+    ],
+    "unresolvedAssetTypes": [],
+    "visualStatus": "mapped",
+    "productionApproved": false,
+    "reason": "Production approval requires every reusable asset and the complete scene to pass visual review."
+  }
+}

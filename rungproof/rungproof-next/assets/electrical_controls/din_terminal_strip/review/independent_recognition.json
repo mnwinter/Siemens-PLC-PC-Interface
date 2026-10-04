@@ -1,0 +1,8 @@
+{
+  "assetId": "electrical.terminal-strip.din-rail-14way.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-128",
+  "identifiedFamily": "Modular DIN-rail terminal block assembly with end stops, feed-through terminals, and colored separator/grounding blocks",
+  "confidence": 0.89,
+  "concerns": "Stylized render; terminal blocks lack visible wire-entry ports, labeling, jumpers, and realistic DIN-rail/profile detail, so exact terminal function is ambiguous",
+  "sourceReview": "build/blind-review-assets/image_128.electrical-round1.review.md"
+}

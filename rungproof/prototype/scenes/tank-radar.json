@@ -1,0 +1,271 @@
+{
+  "version": 1,
+  "machineGuide": {
+    "purpose": "A top-mounted radar transmitter reports level, distance, signal, and echo health from one liquid surface.",
+    "startConditions": [
+      "Common PLC/watchdog foundation is healthy.",
+      "Both pump and drain commands are FALSE; initial level is 35%."
+    ],
+    "normalSequence": [
+      "PLC commands the inlet pump or drain valve.",
+      "The liquid surface moves.",
+      "Radar level rises with the surface, distance falls, and radar_signal follows the idealized range."
+    ],
+    "stopBehavior": [
+      "Removing both commands stops level movement while feedback holds the measured state."
+    ],
+    "faultBehavior": [
+      "A missing or stale radar feedback value is not replaced by the simulator.",
+      "The echo state remains the actual configured feedback."
+    ],
+    "expectedObservations": [
+      "The measurement cone terminates at the same liquid surface shown by the tank."
+    ]
+  },
+  "id": "tank-radar",
+  "name": "Water Tank \u2014 Radar Level",
+  "description": "A non-contact radar level example. The top-mounted transmitter shows its measurement cone while distance, percent level, echo status, and idealized 4\u201320 mA feedback follow the water surface.",
+  "camera": {
+    "position": [
+      10.5,
+      8.2,
+      10.5
+    ],
+    "target": [
+      0,
+      2.5,
+      0
+    ],
+    "fov": 42
+  },
+  "equipment": [
+    {
+      "id": "water_tank_radar",
+      "type": "tank",
+      "label": "Water tank T-301",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "config": {
+        "height": 5,
+        "diameter": 3,
+        "initialLevel": 0.35,
+        "fluidColor": 1415124
+      }
+    },
+    {
+      "id": "radar_inlet_pump",
+      "type": "pump",
+      "label": "Water inlet pump P-301",
+      "position": [
+        -4.25,
+        0,
+        0.2
+      ],
+      "config": {
+        "running": false,
+        "color": 1534855
+      }
+    },
+    {
+      "id": "radar_inlet_pipe",
+      "type": "pipe",
+      "label": "Tank inlet pipe",
+      "position": [
+        -2.45,
+        3.9,
+        0.2
+      ],
+      "config": {
+        "length": 4.2,
+        "diameter": 0.28,
+        "axis": "x",
+        "color": 7109504
+      }
+    },
+    {
+      "id": "radar_outlet_pipe",
+      "type": "pipe",
+      "label": "Tank outlet pipe",
+      "position": [
+        2.25,
+        0.5,
+        0
+      ],
+      "config": {
+        "length": 1.8,
+        "diameter": 0.3,
+        "axis": "x",
+        "color": 7109504
+      }
+    },
+    {
+      "id": "radar_transmitter",
+      "type": "radarLevelSensor",
+      "label": "Radar level transmitter LT-301",
+      "position": [
+        0,
+        5.6,
+        0
+      ],
+      "config": {
+        "initialLevel": 0.35,
+        "mountSpan": 2.9,
+        "beamRadius": 1.05,
+        "range": "4-20 mA",
+        "engineeringRange": "0-100 %",
+        "measurement": "non-contact radar"
+      }
+    },
+    {
+      "id": "radar_pump_station",
+      "type": "switch",
+      "label": "Pump local station",
+      "position": [
+        -3.15,
+        0,
+        2.2
+      ],
+      "rotation": [
+        0,
+        15,
+        0
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-pump"
+      }
+    },
+    {
+      "id": "radar_drain_station",
+      "type": "switch",
+      "label": "Drain valve local station",
+      "position": [
+        -2.15,
+        0,
+        2.2
+      ],
+      "rotation": [
+        0,
+        8,
+        0
+      ],
+      "config": {
+        "style": "pushbutton",
+        "color": 15906565,
+        "action": "toggle-drain"
+      }
+    },
+    {
+      "id": "radar_stacklight",
+      "type": "indicator",
+      "label": "Tank status light",
+      "position": [
+        3.15,
+        0,
+        -2.05
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "amber"
+      }
+    }
+  ],
+  "simulation": {
+    "type": "tank",
+    "actions": [
+      {
+        "id": "run-simulation",
+        "label": "Run simulated process",
+        "type": "run"
+      },
+      {
+        "id": "toggle-pump",
+        "label": "Toggle inlet pump (simulated)",
+        "type": "toggle",
+        "point": "inlet_pump_run"
+      },
+      {
+        "id": "toggle-drain",
+        "label": "Toggle drain valve (simulated)",
+        "type": "toggle",
+        "point": "drain_valve_open"
+      },
+      {
+        "id": "stop-simulation",
+        "label": "Stop simulated process",
+        "type": "stop"
+      }
+    ],
+    "points": [
+      {
+        "name": "inlet_pump_run",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output",
+        "purpose": "PLC command that runs the radar-tank inlet pump."
+      },
+      {
+        "name": "drain_valve_open",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output",
+        "purpose": "PLC command that opens the radar-tank drain valve."
+      },
+      {
+        "name": "tank_level",
+        "type": "REAL",
+        "owner": "SIM",
+        "initial": 35,
+        "unit": "%",
+        "purpose": "Internal process level used by the tank physics."
+      },
+      {
+        "name": "radar_level",
+        "type": "REAL",
+        "owner": "PC",
+        "initial": 35,
+        "unit": "%",
+        "purpose": "Simulator radar level in engineering percent read by the PLC."
+      },
+      {
+        "name": "radar_distance",
+        "type": "REAL",
+        "owner": "PC",
+        "initial": 2.754,
+        "unit": "m",
+        "purpose": "Simulator radar distance from the antenna to the liquid surface."
+      },
+      {
+        "name": "radar_signal",
+        "type": "REAL",
+        "owner": "PC",
+        "initial": 9.6,
+        "unit": "mA",
+        "purpose": "Simulator idealized 4-20 mA radar level signal read by the PLC."
+      },
+      {
+        "name": "radar_echo_ok",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": true,
+        "purpose": "Simulator radar echo-health feedback read by the PLC."
+      }
+    ],
+    "tankId": "water_tank_radar",
+    "pumpId": "radar_inlet_pump",
+    "transmitterId": "radar_transmitter",
+    "indicatorId": "radar_stacklight",
+    "initialLevel": 0.35,
+    "inletRatePerSecond": 0.07,
+    "outletRatePerSecond": 0.045
+  }
+}

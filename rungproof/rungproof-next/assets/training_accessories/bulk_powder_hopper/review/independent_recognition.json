@@ -1,0 +1,10 @@
+{
+  "assetId": "training.accessory.bulk_powder_hopper.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-103",
+  "identifiedFamily": "Square bulk-material surge hopper/bin with steep converging walls and a pneumatically actuated slide-gate discharge (identical generic basis model)",
+  "confidence": 0.91,
+  "concerns": "Stylized render; the outlet/gate geometry and actuator linkage are partly obscured and appear mechanically simplified, so exact hopper and slide-gate subtype is uncertain",
+  "sourceReview": "build/blind-review-assets/image_103.material-round1.review.md",
+  "sourceAssetId": "material-handling.hopper.bulk-slide-gate.v1",
+  "evidenceBasis": "delivery GLB is byte-identical to the independently reviewed generic basis asset"
+}

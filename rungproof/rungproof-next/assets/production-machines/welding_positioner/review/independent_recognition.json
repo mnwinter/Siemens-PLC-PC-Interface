@@ -1,0 +1,8 @@
+{
+  "assetId": "machines.welding.positioner.tilt-rotate.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-157",
+  "identifiedFamily": "Industrial welding positioner/tilting rotary fixture with foot-pedal control",
+  "confidence": 0.86,
+  "concerns": "The bowl-like circular fixture and over-center arm are stylized, so it could represent a specialized weld-positioning or pipe-fixturing machine rather than a standard rotary table.",
+  "sourceReview": "build/blind-review-assets/image_157.production-machines-round2.review.md"
+}

@@ -1,0 +1,8 @@
+{
+  "assetId": "material-handling.conveyor.modular-plastic-belt.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-097",
+  "identifiedFamily": "Motor-driven tabletop slat conveyor with dual tall side-guide rails",
+  "confidence": 0.96,
+  "concerns": "Drive connection and sprocket/shaft geometry are hidden; slat proportions and oversized guide panels are simplified and not fully realistic",
+  "sourceReview": "build/blind-review-assets/image_097.material-round1.review.md"
+}

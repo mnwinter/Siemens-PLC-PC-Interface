@@ -1,0 +1,10 @@
+{
+  "assetId": "training.accessory.function_block_calculation_panel.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-089",
+  "identifiedFamily": "Split plummer-block (pillow-block) bearing housing with a horizontal shaft, distinct from a one-piece mounted pillow-block bearing (identical generic basis model)",
+  "confidence": 0.89,
+  "concerns": "Stylized render; the cap-to-base split, cap fasteners, seals, and four-bolt mounting pattern are incomplete or unrealistic, and the brass top fitting is ambiguous",
+  "sourceReview": "build/blind-review-assets/image_089.mechanical-round1.review.md",
+  "sourceAssetId": "mechanical.bearing.pillow-block.v1",
+  "evidenceBasis": "delivery GLB is byte-identical to the independently reviewed generic basis asset"
+}

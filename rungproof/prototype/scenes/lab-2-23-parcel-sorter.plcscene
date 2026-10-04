@@ -1,0 +1,534 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-2-23-parcel-sorter",
+  "name": "Lab 2.23 - Parcel Size Sorter",
+  "description": "Three parcels are classified by a sensor bank and routed onto large, medium, and small takeaway lanes.",
+  "camera": {
+    "position": [
+      16,
+      11,
+      16
+    ],
+    "target": [
+      0,
+      1,
+      0
+    ],
+    "fov": 50
+  },
+  "equipment": [
+    {
+      "id": "sort_infeed",
+      "type": "conveyor",
+      "label": "Parcel infeed",
+      "position": [
+        -3.8,
+        0,
+        0
+      ],
+      "config": {
+        "length": 6,
+        "width": 1.5,
+        "deckHeight": 0.9,
+        "beltColor": 2568760,
+        "running": false
+      }
+    },
+    {
+      "id": "large_lane",
+      "type": "conveyor",
+      "label": "Large parcel lane",
+      "position": [
+        3.2,
+        0,
+        -3
+      ],
+      "config": {
+        "length": 6,
+        "width": 1.5,
+        "deckHeight": 0.9,
+        "beltColor": 2568760,
+        "running": false
+      }
+    },
+    {
+      "id": "medium_lane",
+      "type": "conveyor",
+      "label": "Medium parcel lane",
+      "position": [
+        3.2,
+        0,
+        0
+      ],
+      "config": {
+        "length": 6,
+        "width": 1.5,
+        "deckHeight": 0.9,
+        "beltColor": 2568760,
+        "running": false
+      }
+    },
+    {
+      "id": "small_lane",
+      "type": "conveyor",
+      "label": "Small parcel lane",
+      "position": [
+        3.2,
+        0,
+        3
+      ],
+      "config": {
+        "length": 6,
+        "width": 1.5,
+        "deckHeight": 0.9,
+        "beltColor": 2568760,
+        "running": false
+      }
+    },
+    {
+      "id": "sort_turntable_a",
+      "type": "rotaryTable",
+      "label": "Primary routing table",
+      "position": [
+        -0.2,
+        0,
+        0
+      ],
+      "config": {
+        "radius": 1.35,
+        "angleRangeDeg": 90,
+        "initialPosition": 0
+      }
+    },
+    {
+      "id": "sort_turntable_b",
+      "type": "rotaryTable",
+      "label": "Secondary routing table",
+      "position": [
+        1.4,
+        0,
+        1.5
+      ],
+      "config": {
+        "radius": 1.2,
+        "angleRangeDeg": 90,
+        "initialPosition": 0
+      }
+    },
+    {
+      "id": "large_parcel",
+      "type": "box",
+      "label": "Large parcel",
+      "position": [
+        -5,
+        0.99,
+        0
+      ],
+      "config": {
+        "size": [
+          1.3,
+          1.1,
+          1
+        ],
+        "color": 11893054
+      }
+    },
+    {
+      "id": "medium_parcel",
+      "type": "box",
+      "label": "Medium parcel",
+      "position": [
+        -5.9,
+        0.99,
+        0
+      ],
+      "config": {
+        "size": [
+          0.9,
+          0.8,
+          0.8
+        ],
+        "color": 13804655
+      }
+    },
+    {
+      "id": "small_parcel",
+      "type": "box",
+      "label": "Small parcel",
+      "position": [
+        -6.7,
+        0.99,
+        0
+      ],
+      "config": {
+        "size": [
+          0.6,
+          0.5,
+          0.6
+        ],
+        "color": 14796704
+      }
+    },
+    {
+      "id": "size_sensor_bank",
+      "type": "sizeSensorBank",
+      "label": "Three-height size sensor bank",
+      "position": [
+        -2.2,
+        0,
+        0
+      ],
+      "config": {
+        "span": 2.05,
+        "beamHeightsM": [
+          0.95,
+          1.3,
+          1.65
+        ],
+        "blocked": false
+      }
+    },
+    {
+      "id": "sorter_start",
+      "type": "switch",
+      "label": "Start parcel batch",
+      "position": [
+        -5.4,
+        0,
+        2.2
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "start-sort",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "sorter_status",
+      "type": "indicator",
+      "label": "Sorter status",
+      "position": [
+        5.5,
+        0,
+        -4.3
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "amber"
+      }
+    }
+  ],
+  "simulation": {
+    "type": "sequence",
+    "points": [
+      {
+        "name": "conveyors_run",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false
+      },
+      {
+        "name": "large_detected",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "medium_detected",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "small_detected",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "route_position",
+        "type": "REAL",
+        "owner": "PLC",
+        "initial": 0
+      },
+      {
+        "name": "sorted_count",
+        "type": "DINT",
+        "owner": "SIM",
+        "initial": 0
+      },
+      {
+        "name": "status_color",
+        "type": "STRING",
+        "owner": "SIM",
+        "initial": "amber"
+      },
+      {
+        "name": "cycle_complete",
+        "type": "BOOL",
+        "owner": "SIM",
+        "initial": false
+      }
+    ],
+    "actions": [
+      {
+        "id": "start-sort",
+        "label": "Sort three-parcel batch",
+        "type": "start",
+        "sequence": "sort-batch"
+      },
+      {
+        "id": "stop-sort",
+        "label": "Stop sorter",
+        "type": "stop"
+      },
+      {
+        "id": "reset-sort",
+        "label": "Reset parcels",
+        "type": "reset"
+      }
+    ],
+    "pointBindings": [
+      {
+        "point": "conveyors_run",
+        "equipmentId": "sort_infeed",
+        "mode": "running"
+      },
+      {
+        "point": "conveyors_run",
+        "equipmentId": "large_lane",
+        "mode": "running"
+      },
+      {
+        "point": "conveyors_run",
+        "equipmentId": "medium_lane",
+        "mode": "running"
+      },
+      {
+        "point": "conveyors_run",
+        "equipmentId": "small_lane",
+        "mode": "running"
+      },
+      {
+        "point": "large_detected",
+        "equipmentId": "size_sensor_bank",
+        "mode": "photoeye"
+      },
+      {
+        "point": "route_position",
+        "equipmentId": "sort_turntable_a",
+        "mode": "position"
+      },
+      {
+        "point": "status_color",
+        "equipmentId": "sorter_status",
+        "mode": "indicator"
+      }
+    ],
+    "sequences": {
+      "sort-batch": [
+        {
+          "name": "route large",
+          "durationS": 1.7,
+          "set": {
+            "conveyors_run": true,
+            "large_detected": true,
+            "medium_detected": false,
+            "small_detected": false,
+            "route_position": 0,
+            "sorted_count": 0,
+            "cycle_complete": false,
+            "status_color": "green"
+          },
+          "motions": [
+            {
+              "type": "translate",
+              "equipmentId": "large_parcel",
+              "axis": "x",
+              "from": -5,
+              "to": 3.2
+            },
+            {
+              "type": "translate",
+              "equipmentId": "large_parcel",
+              "axis": "z",
+              "from": 0,
+              "to": -3
+            }
+          ]
+        },
+        {
+          "name": "large complete",
+          "durationS": 0.2,
+          "set": {
+            "large_detected": false,
+            "sorted_count": 1
+          }
+        },
+        {
+          "name": "route medium",
+          "durationS": 1.7,
+          "set": {
+            "medium_detected": true,
+            "route_position": 0.5
+          },
+          "motions": [
+            {
+              "type": "translate",
+              "equipmentId": "medium_parcel",
+              "axis": "x",
+              "from": -5.9,
+              "to": 3.2
+            }
+          ]
+        },
+        {
+          "name": "medium complete",
+          "durationS": 0.2,
+          "set": {
+            "medium_detected": false,
+            "sorted_count": 2
+          }
+        },
+        {
+          "name": "route small",
+          "durationS": 1.7,
+          "set": {
+            "small_detected": true,
+            "route_position": 1
+          },
+          "motions": [
+            {
+              "type": "translate",
+              "equipmentId": "small_parcel",
+              "axis": "x",
+              "from": -6.7,
+              "to": 3.2
+            },
+            {
+              "type": "translate",
+              "equipmentId": "small_parcel",
+              "axis": "z",
+              "from": 0,
+              "to": 3
+            }
+          ]
+        },
+        {
+          "name": "batch complete",
+          "durationS": 0.1,
+          "set": {
+            "small_detected": false,
+            "conveyors_run": false,
+            "sorted_count": 3,
+            "cycle_complete": true,
+            "status_color": "amber"
+          }
+        }
+      ]
+    },
+    "defaultSequence": "sort-batch",
+    "safeState": {
+      "conveyors_run": false,
+      "status_color": "red"
+    },
+    "completionState": {},
+    "conveyorSpeedMps": 0.9
+  },
+  "training": {
+    "hints": [
+      "Define the required result before writing logic: One parcel reaches each lane and the sorted count ends at three.",
+      "Treat large_detected, medium_detected, small_detected as simulator-to-PLC inputs. The PLC should command only conveyors_run, route_position.",
+      "Use a step/state approach and prove the transition order: route large \u2192 large complete \u2192 route medium \u2192 medium complete \u2192 route small \u2192 batch complete."
+    ],
+    "solution": {
+      "summary": "This is one valid functional reference. The same behavior may be implemented in LAD, FBD, or SCL; the rung layout is not prescribed.",
+      "steps": [
+        "route large: conveyors_run = true, route_position = 0.",
+        "large complete: no PLC command changes.",
+        "route medium: route_position = 0.5.",
+        "medium complete: no PLC command changes.",
+        "route small: route_position = 1.",
+        "batch complete: conveyors_run = false."
+      ],
+      "acceptance": "One parcel reaches each lane and the sorted count ends at three."
+    },
+    "machineGuide": {
+      "purpose": "Three parcels are classified by a sensor bank and routed onto large, medium, and small takeaway lanes.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state.",
+        "The PLC is ready to command conveyors_run, route_position."
+      ],
+      "normalSequence": [
+        "route large",
+        "large complete",
+        "route medium",
+        "medium complete",
+        "route small",
+        "batch complete"
+      ],
+      "stopBehavior": [
+        "A normal stop removes PLC-owned commands and leaves the equipment in a safe state.",
+        "Reset returns the scene to its documented initial condition."
+      ],
+      "faultBehavior": [
+        "A missing, stale, or incorrectly typed input must not be replaced by simulator logic.",
+        "A missing PLC command leaves the affected equipment stopped and the test diagnosable."
+      ],
+      "expectedObservations": [
+        "One parcel reaches each lane and the sorted count ends at three."
+      ]
+    },
+    "sequenceNumber": 23,
+    "inheritsFrom": "lab-2-22-dual-spindle",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout",
+      "status_color",
+      "cycle_complete"
+    ],
+    "addedTags": [
+      "conveyors_run",
+      "large_detected",
+      "medium_detected",
+      "small_detected",
+      "route_position",
+      "sorted_count"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-2-22-dual-spindle"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "three-way-sort",
+        "phases": [
+          {
+            "action": "start-sort",
+            "runForS": 5.9
+          }
+        ],
+        "expect": {
+          "conveyors_run": false,
+          "sorted_count": 3,
+          "cycle_complete": true,
+          "large_detected": false,
+          "medium_detected": false,
+          "small_detected": false
+        }
+      }
+    ]
+  }
+}

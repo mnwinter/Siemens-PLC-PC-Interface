@@ -1,0 +1,8 @@
+{
+  "assetId": "actuation.pneumatic.cylinder.rodless.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-080",
+  "identifiedFamily": "Rodless linear actuator with an externally guided top carriage",
+  "confidence": 0.88,
+  "concerns": "Stylized render omits visible air ports, seals, guide bearings, and mounting details, so pneumatic versus belt- or screw-driven actuation is ambiguous.",
+  "sourceReview": "build/blind-review-assets/image_080.mechanical-round1.review.md"
+}

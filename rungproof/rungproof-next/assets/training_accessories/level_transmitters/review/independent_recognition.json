@@ -1,0 +1,11 @@
+{
+  "assetId": "training.accessory.level_transmitters.v1",
+  "reviewerId": "codex-agent-01a0bb94-c227-7002-a698-bd09fee597d7",
+  "identifiedFamily": "flange-mounted continuous level transmitter with long insertion probe and 4-20 mA output (identical generic basis model)",
+  "confidence": 0.96,
+  "result": "pass",
+  "reviewRound": 1,
+  "majorDefects": [],
+  "sourceAssetId": "sensing.level.analog-4-20ma.v1",
+  "evidenceBasis": "delivery GLB is byte-identical to the independently reviewed generic basis asset"
+}

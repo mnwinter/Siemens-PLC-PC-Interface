@@ -1,0 +1,8 @@
+{
+  "assetId": "machines.forming.press.hydraulic-c-frame.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-148",
+  "identifiedFamily": "Benchtop hydraulic C-frame shop press",
+  "confidence": 0.98,
+  "concerns": "Stylized rendering; hydraulic plumbing, controls, guarding, and structural proportions are simplified or not shown.",
+  "sourceReview": "build/blind-review-assets/image_148.production-machines-round1.review.md"
+}

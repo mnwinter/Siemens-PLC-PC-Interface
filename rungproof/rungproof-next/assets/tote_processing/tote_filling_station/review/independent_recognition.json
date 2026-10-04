@@ -1,0 +1,8 @@
+{
+  "assetId": "process.packaging.filler.tote-volumetric.v1",
+  "reviewerId": "context-free-tote-processing-round10-image-176",
+  "identifiedFamily": "IBC tote filling machine with an overhead dispensing nozzle and container-positioning frame",
+  "confidence": 0.89,
+  "concerns": "Stylized geometry; nozzle, support rods, and upper drive/tooling arrangement are mechanically ambiguous and lack visible hose, valve, guarding, and spill containment details",
+  "sourceReview": "build/blind-review-assets/image_176.tote-processing-round10.review.md"
+}

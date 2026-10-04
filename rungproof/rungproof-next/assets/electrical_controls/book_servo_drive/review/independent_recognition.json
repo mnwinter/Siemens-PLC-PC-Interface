@@ -1,0 +1,8 @@
+{
+  "assetId": "drives.servo.book-form.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-122",
+  "identifiedFamily": "Industrial AC servo drive/amplifier with integrated heat sink and pluggable motor, feedback, I/O, and power terminals",
+  "confidence": 0.91,
+  "concerns": "Stylized generic geometry; connector layout, terminal count, labels, proportions, and heat-sink arrangement do not establish a specific manufacturer or model family",
+  "sourceReview": "build/blind-review-assets/image_122.readable-labels.review.md"
+}

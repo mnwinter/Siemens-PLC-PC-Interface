@@ -1,0 +1,187 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-2-01-workstation-call",
+  "name": "Lab 2.1 - Workstation Call Lamp",
+  "description": "A workstation call button directly controls a blue material-request lamp while the button is held.",
+  "camera": {
+    "position": [
+      10,
+      7,
+      10
+    ],
+    "target": [
+      0,
+      1.2,
+      0
+    ],
+    "fov": 43
+  },
+  "equipment": [
+    {
+      "id": "material_call_button",
+      "type": "switch",
+      "label": "Material call button",
+      "position": [
+        -1.6,
+        0,
+        0
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-material-call",
+        "color": 3050449
+      }
+    },
+    {
+      "id": "material_call_lamp",
+      "type": "indicator",
+      "label": "Material request lamp",
+      "position": [
+        0.8,
+        0,
+        0
+      ],
+      "config": {
+        "colors": [
+          "blue"
+        ],
+        "active": null
+      }
+    }
+  ],
+  "simulation": {
+    "type": "booleanPanel",
+    "points": [
+      {
+        "name": "material_call_pressed",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "material_call_on",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      }
+    ],
+    "actions": [
+      {
+        "id": "toggle-material-call",
+        "label": "Press / release material call",
+        "type": "toggle",
+        "point": "material_call_pressed"
+      }
+    ],
+    "rules": [
+      {
+        "when": {
+          "material_call_pressed": false
+        },
+        "set": {
+          "material_call_on": false
+        }
+      },
+      {
+        "when": {
+          "material_call_pressed": true
+        },
+        "set": {
+          "material_call_on": true
+        }
+      }
+    ],
+    "edgeRules": [],
+    "pointBindings": [
+      {
+        "point": "material_call_pressed",
+        "equipmentId": "material_call_button",
+        "mode": "switch"
+      },
+      {
+        "point": "material_call_on",
+        "equipmentId": "material_call_lamp",
+        "mode": "indicator",
+        "activeColor": "blue"
+      }
+    ]
+  },
+  "training": {
+    "hints": [
+      "Define the required result before writing logic: The call lamp follows the button state: off when released and on when pressed.",
+      "Treat material_call_pressed as simulator-to-PLC inputs. The PLC should command only material_call_on.",
+      "List the required input and memory states before assigning any output. Test every state, including the all-false state."
+    ],
+    "solution": {
+      "summary": "This is one valid functional reference. The same behavior may be implemented in LAD, FBD, or SCL; the rung layout is not prescribed.",
+      "steps": [
+        "When material_call_pressed = false, set material_call_on = false.",
+        "When material_call_pressed = true, set material_call_on = true."
+      ],
+      "acceptance": "The call lamp follows the button state: off when released and on when pressed."
+    },
+    "machineGuide": {
+      "purpose": "A workstation call button directly controls a blue material-request lamp while the button is held.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state.",
+        "The PLC is ready to command material_call_on."
+      ],
+      "normalSequence": [
+        "Observe the initial input state.",
+        "Apply material_call_pressed.",
+        "Verify the PLC produces only the required material_call_on."
+      ],
+      "stopBehavior": [
+        "A normal stop removes PLC-owned commands and leaves the equipment in a safe state.",
+        "Reset returns the scene to its documented initial condition."
+      ],
+      "faultBehavior": [
+        "A missing, stale, or incorrectly typed input must not be replaced by simulator logic.",
+        "A missing PLC command leaves the affected equipment stopped and the test diagnosable."
+      ],
+      "expectedObservations": [
+        "The call lamp follows the button state: off when released and on when pressed."
+      ]
+    },
+    "sequenceNumber": 1,
+    "inheritsFrom": "common-plc-watchdog-foundation",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout"
+    ],
+    "addedTags": [
+      "material_call_pressed",
+      "material_call_on"
+    ],
+    "changedTags": [],
+    "previousAcceptance": []
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "released",
+        "expect": {
+          "material_call_pressed": false,
+          "material_call_on": false
+        }
+      },
+      {
+        "name": "pressed",
+        "actions": [
+          "toggle-material-call"
+        ],
+        "expect": {
+          "material_call_pressed": true,
+          "material_call_on": true
+        }
+      }
+    ]
+  }
+}

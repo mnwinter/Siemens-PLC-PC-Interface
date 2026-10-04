@@ -1,0 +1,315 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-10-04-motor-enum-state",
+  "name": "Lab 10.4 - Motor Operating-State Enum",
+  "description": "A motor state machine exposes one named operating state at a time and rejects conflicting commands.",
+  "camera": {
+    "position": [
+      11,
+      8,
+      12
+    ],
+    "target": [
+      0,
+      1.1,
+      0
+    ],
+    "fov": 45
+  },
+  "equipment": [
+    {
+      "id": "motor_0",
+      "type": "motor",
+      "label": "Motor Operating-State Enum motor",
+      "position": [
+        -3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "running": false
+      }
+    },
+    {
+      "id": "switch_1",
+      "type": "switch",
+      "label": "Motor Operating-State Enum switch",
+      "position": [
+        -1.1,
+        0,
+        0
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-start_request",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "indicator_2",
+      "type": "indicator",
+      "label": "Motor Operating-State Enum indicator",
+      "position": [
+        1.1,
+        0,
+        0
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    },
+    {
+      "id": "switch_3",
+      "type": "switch",
+      "label": "Motor Operating-State Enum operator input",
+      "position": [
+        3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-stop_request",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "switch_4",
+      "type": "switch",
+      "label": "Motor Operating-State Enum operator input",
+      "position": [
+        -2.85,
+        0,
+        2.35
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-fault_active",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "indicator_5",
+      "type": "indicator",
+      "label": "Motor Operating-State Enum output indication",
+      "position": [
+        -0.6500000000000001,
+        0,
+        2.35
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    }
+  ],
+  "simulation": {
+    "type": "booleanPanel",
+    "points": [
+      {
+        "name": "start_request",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "stop_request",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "fault_active",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "motor_running",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "state_valid",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      }
+    ],
+    "actions": [
+      {
+        "id": "toggle-start_request",
+        "label": "Toggle start request",
+        "type": "toggle",
+        "point": "start_request"
+      },
+      {
+        "id": "toggle-stop_request",
+        "label": "Toggle stop request",
+        "type": "toggle",
+        "point": "stop_request"
+      },
+      {
+        "id": "toggle-fault_active",
+        "label": "Toggle fault active",
+        "type": "toggle",
+        "point": "fault_active"
+      }
+    ],
+    "rules": [],
+    "edgeRules": [],
+    "pointBindings": [
+      {
+        "point": "start_request",
+        "equipmentId": "switch_1",
+        "mode": "switch"
+      },
+      {
+        "point": "stop_request",
+        "equipmentId": "switch_3",
+        "mode": "switch"
+      },
+      {
+        "point": "fault_active",
+        "equipmentId": "switch_4",
+        "mode": "switch"
+      },
+      {
+        "point": "motor_running",
+        "equipmentId": "indicator_2",
+        "mode": "indicator",
+        "activeColor": "green"
+      },
+      {
+        "point": "state_valid",
+        "equipmentId": "indicator_5",
+        "mode": "indicator",
+        "activeColor": "green"
+      }
+    ]
+  },
+  "training": {
+    "hints": [
+      "Translate the lesson into explicit state and permissive logic: A fault or stop request dominates start and leaves the motor in a safe stopped state.",
+      "Inputs are simulator feedback (start_request, stop_request, fault_active); PLC logic owns motor_running, state_valid.",
+      "Test the initial state, the valid condition, and at least one missing permissive."
+    ],
+    "solution": {
+      "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
+      "steps": [
+        "Require the documented inputs: start_request, stop_request, fault_active.",
+        "Command the documented outputs: motor_running, state_valid.",
+        "Remove PLC commands when the permissive is lost."
+      ],
+      "acceptance": "A fault or stop request dominates start and leaves the motor in a safe stopped state."
+    },
+    "assetRequirements": [],
+    "machineGuide": {
+      "purpose": "A motor state machine exposes one named operating state at a time and rejects conflicting commands.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state."
+      ],
+      "normalSequence": [
+        "Apply the requested input condition.",
+        "Verify only the documented PLC outputs respond."
+      ],
+      "stopBehavior": [
+        "Removing the permissive removes PLC-owned commands.",
+        "Reset returns the module to its initial state."
+      ],
+      "faultBehavior": [
+        "A missing or stale input must fail safe and remain diagnosable."
+      ],
+      "expectedObservations": [
+        "A fault or stop request dominates start and leaves the motor in a safe stopped state."
+      ]
+    },
+    "sequenceNumber": 62,
+    "inheritsFrom": "lab-10-03-vision-package-sorter",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout"
+    ],
+    "addedTags": [
+      "start_request",
+      "stop_request",
+      "fault_active",
+      "motor_running",
+      "state_valid"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-10-03-vision-package-sorter"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "initial-safe-state",
+        "expect": {
+          "motor_running": false,
+          "state_valid": false
+        }
+      }
+    ]
+  },
+  "migration": {
+    "sourceFile": "prototype/scenes/lab-10-04-motor-enum-state.plcscene",
+    "sourceFormat": "plcscene",
+    "assetMappings": {
+      "conveyor": "material-handling.belt-conveyor.600x6000.v1",
+      "photoeye": "sensing.photoelectric.through-beam.v1",
+      "switch": "controls.operator-station.single-pushbutton.v1",
+      "indicator": "controls.beacon.single-tier.v1",
+      "pusher": "actuation.pneumatic-pusher.1350mm.v1",
+      "motor": "drives.motor.ac-induction.v1",
+      "pipe": "process.pipe.flanged-spool.v1",
+      "tank": "process.tank.vertical-3000x5000.v1",
+      "pump": "process.pump.centrifugal-skid.v1",
+      "valve": "process.valve.actuated-ball.v1",
+      "levelSensor": "sensing.level.analog-4-20ma.v1",
+      "radarLevelSensor": "sensing.level.radar.v1",
+      "rotarySwitch": "controls.operator-station.selector.v1",
+      "fan": "air-handling.fan.axial-1900.v1",
+      "liftTable": "material-handling.lift.scissor-table.v1",
+      "drillPress": "machining.drill-press.pedestal.v1",
+      "robotArm": "robotics.robot.six-axis-medium.v1",
+      "rotaryTable": "material-handling.table.powered-rotary.v1",
+      "rollerShutter": "access-control.door.roller-shutter.v1",
+      "machine": "machining.machine.enclosed-center.v1",
+      "palletLoad": "loads.palletized-cases.gma-48x40.v1",
+      "toteFiller": "process.packaging.filler.tote-volumetric.v1",
+      "toteCapper": "process.packaging.capper.tote-inline.v1",
+      "toteLabeler": "process.packaging.labeler.tote-pressure-sensitive.v1",
+      "toteVision": "inspection.vision.tote-multicamera.v1",
+      "meteringSkid": "process.dosing.skid.liquid-metering.v1",
+      "containerReceiver": "material-handling.receiver.container-two-position.v1",
+      "sizeSensorBank": "sensing.dimensioning.parcel-three-height.v1"
+    },
+    "scenePropTypes": [
+      "box"
+    ],
+    "unresolvedAssetTypes": [],
+    "visualStatus": "mapped",
+    "productionApproved": false,
+    "reason": "Production approval requires every reusable asset and the complete scene to pass visual review."
+  }
+}

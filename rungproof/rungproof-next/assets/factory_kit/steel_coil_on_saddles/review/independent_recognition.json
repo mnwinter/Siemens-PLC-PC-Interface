@@ -1,0 +1,13 @@
+{
+  "assetId": "loads.coil.steel-banded.v1",
+  "reviewerId": "codex-agent-steel-coil-rereview",
+  "identifiedFamily": "horizontal rolled-strip coil on V-block or saddle supports",
+  "confidence": 0.95,
+  "result": "pass",
+  "reviewRound": 2,
+  "defects": [
+    "Circumferential wrap lines are stylized and material remains uniformly clean.",
+    "Hero framing partly obscures saddle contact and restraint geometry.",
+    "No visual evidence proves metal grade, coil weight, or safe handling clearance."
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "assetId": "drives.motor.ac-induction.v1",
+  "reviewerId": "codex-task-01a0ba41-db09-7d11-aca4-06c6b3c11b75",
+  "identifiedFamily": "foot-mounted TEFC AC induction motor",
+  "confidence": 0.95,
+  "result": "pass",
+  "majorDefects": []
+}

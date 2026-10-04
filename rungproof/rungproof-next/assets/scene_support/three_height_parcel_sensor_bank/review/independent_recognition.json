@@ -1,0 +1,8 @@
+{
+  "assetId": "sensing.dimensioning.parcel-three-height.v1",
+  "reviewerId": "blind-2026-09-30-authorized-review-image-125",
+  "identifiedFamily": "Parcel/package height measurement gauge with photoelectric sensing",
+  "confidence": 0.97,
+  "concerns": "Height-only measurement is clear, but the sensing and calibration geometry appears stylized rather than production-grade; no visible conveyor or full dimensional scanner.",
+  "sourceReview": "build/blind-review-assets/image_125.authorized-review.review.md"
+}

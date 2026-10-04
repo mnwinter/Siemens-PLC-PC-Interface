@@ -1,0 +1,8 @@
+{
+  "assetId": "robotics.end-effector.parallel-two-jaw.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-083",
+  "identifiedFamily": "Electrically actuated two-jaw parallel gripper with an integrated gearmotor",
+  "confidence": 0.96,
+  "concerns": "Stylized render; jaw guidance and transmission are not visible, the cylindrical workpiece appears inconsistently positioned, and loose exposed leads reduce realism.",
+  "sourceReview": "build/blind-review-assets/image_083.mechanical-round4.review.md"
+}

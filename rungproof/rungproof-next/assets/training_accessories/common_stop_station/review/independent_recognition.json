@@ -1,0 +1,10 @@
+{
+  "assetId": "training.accessory.common_stop_station.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-024",
+  "identifiedFamily": "Pedestal-mounted emergency-stop pushbutton station. (identical generic basis model)",
+  "confidence": 0.98,
+  "concerns": "- Slightly toy-like, overly rounded rendering.",
+  "sourceReview": "build/blind-review-assets/image_024.review.md",
+  "sourceAssetId": "controls.operator-station.emergency-stop.v1",
+  "evidenceBasis": "delivery GLB is byte-identical to the independently reviewed generic basis asset"
+}

@@ -1,0 +1,8 @@
+{
+  "assetId": "utilities.compressed-air.compressor.rotary-screw-enclosed.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-134",
+  "identifiedFamily": "Enclosed rotary-screw industrial air compressor",
+  "confidence": 0.97,
+  "concerns": "Simplified render; ventilation, service access, piping, and control-panel details are not fully realistic, and the isolated side pipe lacks visible fittings.",
+  "sourceReview": "build/blind-review-assets/image_134.readable-labels.review.md"
+}

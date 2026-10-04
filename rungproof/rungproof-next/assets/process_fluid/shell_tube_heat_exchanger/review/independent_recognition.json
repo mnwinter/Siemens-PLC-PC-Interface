@@ -1,0 +1,8 @@
+{
+  "assetId": "process.heat-exchanger.shell-tube-horizontal.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-117",
+  "identifiedFamily": "Horizontal shell-and-tube heat exchanger with flanged channel heads, saddle supports, and shell-side nozzles",
+  "confidence": 0.91,
+  "concerns": "Simplified stylized geometry; end closures and nozzle/flange details are oversized and lack visible bolts, tubesheet features, and realistic piping connections",
+  "sourceReview": "build/blind-review-assets/image_117.process-round1.review.md"
+}

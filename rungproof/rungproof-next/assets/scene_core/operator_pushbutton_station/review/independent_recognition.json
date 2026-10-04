@@ -1,0 +1,9 @@
+{
+  "assetId": "controls.operator-station.pushbutton-estop.v1",
+  "reviewerId": "codex-agent-01a0bac7-4f61-7b32-99b2-30be8c8a7e8a",
+  "identifiedFamily": "floor-mounted industrial operator pushbutton station with emergency stop",
+  "confidence": 0.98,
+  "result": "pass",
+  "reviewRound": 3,
+  "majorDefects": []
+}

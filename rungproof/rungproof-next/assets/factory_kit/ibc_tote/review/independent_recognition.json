@@ -1,0 +1,14 @@
+{
+  "assetId": "loads.ibc.1000l.v1",
+  "reviewerId": "codex-agent-ibc-tote-rereview",
+  "identifiedFamily": "caged intermediate bulk container for bulk liquid storage or transfer",
+  "confidence": 0.94,
+  "result": "pass",
+  "reviewRound": 2,
+  "defects": [
+    "Container remains visually clean and simplified.",
+    "Discharge assembly is oversized and stylized compared with a typical IBC valve.",
+    "No visible label placard or standardized hose/valve cue is modeled.",
+    "Tight hero framing clips part of the cage."
+  ]
+}

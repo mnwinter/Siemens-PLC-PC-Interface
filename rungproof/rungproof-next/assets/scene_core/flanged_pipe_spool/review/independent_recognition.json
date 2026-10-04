@@ -1,0 +1,8 @@
+{
+  "assetId": "process.pipe.flanged-spool.v1",
+  "reviewerId": "codex-task-01a0ba41-e21a-7d83-b121-46fbfbc7587d",
+  "identifiedFamily": "supported flanged process-pipe spool with instrument branch",
+  "confidence": 0.91,
+  "result": "pass",
+  "majorDefects": []
+}

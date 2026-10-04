@@ -1,0 +1,12 @@
+{
+  "assetId": "safety.bollard.120mm.v1",
+  "reviewerId": "codex-agent-01a0c42b-safety-bollard-postfix-review",
+  "identifiedFamily": "bolt-down industrial safety/protective bollard",
+  "confidence": 0.93,
+  "result": "pass",
+  "reviewRound": 2,
+  "defects": [
+    "Reflective sleeve and dome cap remain stylized at close inspection.",
+    "Asset does not claim crash rating or site-specific anchor performance."
+  ]
+}

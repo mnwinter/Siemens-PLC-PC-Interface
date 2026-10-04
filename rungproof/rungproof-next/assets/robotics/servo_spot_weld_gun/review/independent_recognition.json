@@ -1,0 +1,8 @@
+{
+  "assetId": "robotics.end-effector.welding.servo-spot-gun.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-170",
+  "identifiedFamily": "Robotic servo resistance spot-welding gun (C-type electrode gun)",
+  "confidence": 0.98,
+  "concerns": "Stylized, simplified geometry; electrodes and workpiece-contact details are not fully realistic.",
+  "sourceReview": "build/blind-review-assets/image_170.robotics-round1.review.md"
+}

@@ -1,0 +1,10 @@
+{
+  "assetId": "training.accessory.flow_meter.v1",
+  "reviewerId": "blind-2026-09-30-authorized-review-image-123",
+  "identifiedFamily": "Industrial flow-metering skid / pipeline metering assembly (identical generic basis model)",
+  "confidence": 0.96,
+  "concerns": "Stylized render; exact meter technology and service are not identifiable, and proportions/valve geometry appear schematic.",
+  "sourceReview": "build/blind-review-assets/image_123.authorized-review.review.md",
+  "sourceAssetId": "process.dosing.skid.liquid-metering.v1",
+  "evidenceBasis": "delivery GLB is byte-identical to the independently reviewed generic basis asset"
+}

@@ -1,0 +1,8 @@
+{
+  "assetId": "inspection.vision.tote-multicamera.v1",
+  "reviewerId": "context-free-tote-processing-round10-image-179",
+  "identifiedFamily": "Vision-inspection station with three industrial cameras aimed at a caged tote/container",
+  "confidence": 0.82,
+  "concerns": "Cameras lack visible lenses/cabling and mounting adjustability; the tote may also read as an IBC or bulk-material container, and no conveyor or handling mechanism is shown",
+  "sourceReview": "build/blind-review-assets/image_179.tote-processing-round10.review.md"
+}

@@ -1,0 +1,8 @@
+{
+  "assetId": "machines.cleaning.parts-washer.front-load-aqueous.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-159",
+  "identifiedFamily": "Compact front-loading aqueous industrial parts washer cabinet",
+  "confidence": 0.98,
+  "concerns": "Controls, access-door mechanism, basin, spray hardware, and internal cleaning process are not visible; proportions appear somewhat stylized.",
+  "sourceReview": "build/blind-review-assets/image_159.production-machines-round1.review.md"
+}

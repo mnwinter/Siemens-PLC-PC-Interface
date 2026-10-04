@@ -1,0 +1,10 @@
+{
+  "assetId": "training.accessory.pipe_manifold.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-116",
+  "identifiedFamily": "Modular pneumatic solenoid valve manifold (multi-station directional-control valve terminal) (identical generic basis model)",
+  "confidence": 0.91,
+  "concerns": "Stylized geometry; pneumatic ports, electrical connectors, tubing, and exhaust silencers are simplified and inconsistently proportioned.",
+  "sourceReview": "build/blind-review-assets/image_116.process-round4.review.md",
+  "sourceAssetId": "pneumatics.valve-manifold.seven-station.v1",
+  "evidenceBasis": "delivery GLB is byte-identical to the independently reviewed generic basis asset"
+}

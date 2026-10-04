@@ -1,0 +1,8 @@
+{
+  "assetId": "process.valve.globe.flanged-handwheel.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-107",
+  "identifiedFamily": "Handwheel-operated flanged globe valve",
+  "confidence": 0.86,
+  "concerns": "Simplified spherical body lacks a clearly modeled bonnet, packing gland, flange holes, and realistic stem-to-disc geometry; could be mistaken for a generic stop valve.",
+  "sourceReview": "build/blind-review-assets/image_107.process-round1.review.md"
+}

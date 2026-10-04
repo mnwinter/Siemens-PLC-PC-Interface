@@ -1,0 +1,53 @@
+# Water Tank — Radar Level help
+
+Scene ID: `tank-radar`  
+Migrated source: `prototype/scenes/tank-radar.json`  
+Scene contract: `res://scenes/migrated/tank-radar.scene.json`
+
+## Purpose
+
+A non-contact radar level example. The top-mounted transmitter shows its measurement cone while distance, percent level, echo status, and idealized 4–20 mA feedback follow the water surface.
+
+## Expected I/O to operate this scene
+
+All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or hardware addresses. PC-owned points are simulator feedback; PLC-owned points are commands supplied by the controller; SIM points are internal and should not be wired as external I/O.
+
+| Point | Type | Owner | Initial value |
+| --- | --- | --- | --- |
+| `inlet_pump_run` | `BOOL` | **PLC** | `False` |
+| `drain_valve_open` | `BOOL` | **PLC** | `False` |
+| `tank_level` | `REAL` | **SIM** | `35` |
+| `radar_level` | `REAL` | **PC** | `35` |
+| `radar_distance` | `REAL` | **PC** | `2.754` |
+| `radar_signal` | `REAL` | **PC** | `9.6` |
+| `radar_echo_ok` | `BOOL` | **PC** | `True` |
+
+## Operator actions
+
+| Action | Type | Bound point/sequence |
+| --- | --- | --- |
+| `Run simulated process` | `run` | `` |
+| `Toggle inlet pump (simulated)` | `toggle` | `inlet_pump_run` |
+| `Toggle drain valve (simulated)` | `toggle` | `drain_valve_open` |
+| `Stop simulated process` | `stop` | `` |
+
+## Equipment bindings
+
+No point-to-equipment bindings are declared.
+
+## Expected equipment
+
+| ID | Type | Label |
+| --- | --- | --- |
+| `water_tank_radar` | `tank` | Water tank T-301 |
+| `radar_inlet_pump` | `pump` | Water inlet pump P-301 |
+| `radar_inlet_pipe` | `pipe` | Tank inlet pipe |
+| `radar_outlet_pipe` | `pipe` | Tank outlet pipe |
+| `radar_transmitter` | `radarLevelSensor` | Radar level transmitter LT-301 |
+| `radar_pump_station` | `switch` | Pump local station |
+| `radar_drain_station` | `switch` | Drain valve local station |
+| `radar_stacklight` | `indicator` | Tank status light |
+
+## Stop and safety boundary
+
+A normal Stop removes PLC-owned commands according to the scene runtime. This document does not prove a safety function, a real E-stop circuit, a PLC watchdog, or live-machine commissioning.

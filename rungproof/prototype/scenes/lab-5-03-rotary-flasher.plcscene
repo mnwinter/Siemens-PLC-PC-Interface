@@ -1,0 +1,195 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-5-03-rotary-flasher",
+  "name": "Lab 5.3 - Rotary Flasher",
+  "description": "A mode selector enables a periodic lamp flasher with a clear off position.",
+  "camera": {
+    "position": [
+      11,
+      8,
+      12
+    ],
+    "target": [
+      0,
+      1.1,
+      0
+    ],
+    "fov": 45
+  },
+  "equipment": [
+    {
+      "id": "switch_0",
+      "type": "switch",
+      "label": "Rotary Flasher switch",
+      "position": [
+        -3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-flash_mode_selected",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "indicator_1",
+      "type": "indicator",
+      "label": "Rotary Flasher indicator",
+      "position": [
+        -1.1,
+        0,
+        0
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    },
+    {
+      "id": "switch_2",
+      "type": "switch",
+      "label": "Rotary Flasher operator input",
+      "position": [
+        1.1,
+        0,
+        0
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-flash_tick",
+        "color": 2204518
+      }
+    }
+  ],
+  "simulation": {
+    "type": "booleanPanel",
+    "points": [
+      {
+        "name": "flash_mode_selected",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "flash_tick",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "flash_lamp",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      }
+    ],
+    "actions": [
+      {
+        "id": "toggle-flash_mode_selected",
+        "label": "Toggle flash mode selected",
+        "type": "toggle",
+        "point": "flash_mode_selected"
+      },
+      {
+        "id": "toggle-flash_tick",
+        "label": "Toggle flash tick",
+        "type": "toggle",
+        "point": "flash_tick"
+      }
+    ],
+    "rules": [],
+    "edgeRules": [],
+    "pointBindings": [
+      {
+        "point": "flash_mode_selected",
+        "equipmentId": "switch_0",
+        "mode": "switch"
+      },
+      {
+        "point": "flash_tick",
+        "equipmentId": "switch_2",
+        "mode": "switch"
+      },
+      {
+        "point": "flash_lamp",
+        "equipmentId": "indicator_1",
+        "mode": "indicator",
+        "activeColor": "green"
+      }
+    ]
+  },
+  "training": {
+    "hints": [
+      "Translate the lesson into explicit state and permissive logic: The lamp flashes only in the selected mode and is off when the selector is cleared.",
+      "Inputs are simulator feedback (flash_mode_selected, flash_tick); PLC logic owns flash_lamp.",
+      "Test the initial state, the valid condition, and at least one missing permissive."
+    ],
+    "solution": {
+      "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
+      "steps": [
+        "Require the documented inputs: flash_mode_selected, flash_tick.",
+        "Command the documented outputs: flash_lamp.",
+        "Remove PLC commands when the permissive is lost."
+      ],
+      "acceptance": "The lamp flashes only in the selected mode and is off when the selector is cleared."
+    },
+    "assetRequirements": [],
+    "machineGuide": {
+      "purpose": "A mode selector enables a periodic lamp flasher with a clear off position.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state."
+      ],
+      "normalSequence": [
+        "Apply the requested input condition.",
+        "Verify only the documented PLC outputs respond."
+      ],
+      "stopBehavior": [
+        "Removing the permissive removes PLC-owned commands.",
+        "Reset returns the module to its initial state."
+      ],
+      "faultBehavior": [
+        "A missing or stale input must fail safe and remain diagnosable."
+      ],
+      "expectedObservations": [
+        "The lamp flashes only in the selected mode and is off when the selector is cleared."
+      ]
+    },
+    "sequenceNumber": 42,
+    "inheritsFrom": "lab-5-02-timed-lamp-off",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout"
+    ],
+    "addedTags": [
+      "flash_mode_selected",
+      "flash_tick",
+      "flash_lamp"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-5-02-timed-lamp-off"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "initial-safe-state",
+        "expect": {
+          "flash_lamp": false
+        }
+      }
+    ]
+  }
+}

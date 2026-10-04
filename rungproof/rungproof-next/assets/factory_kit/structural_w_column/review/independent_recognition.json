@@ -1,0 +1,13 @@
+{
+  "assetId": "structures.column.steel-4m.v1",
+  "reviewerId": "codex-agent-steel-column-independent-review",
+  "identifiedFamily": "wide-flange/I-section steel support column",
+  "confidence": 0.89,
+  "result": "pass",
+  "reviewRound": 2,
+  "defects": [
+    "Base fastener, grout, weld, and stiffener detail is simplified.",
+    "The cap plate hides the upper cross-section and has no modeled framing connection.",
+    "The clean kit-asset finish is not fabrication or structural-engineering evidence."
+  ]
+}

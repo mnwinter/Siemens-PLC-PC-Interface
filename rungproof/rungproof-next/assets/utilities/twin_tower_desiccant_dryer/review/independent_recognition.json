@@ -1,0 +1,8 @@
+{
+  "assetId": "utilities.compressed-air.dryer.desiccant-twin-tower.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-137",
+  "identifiedFamily": "Twin-tower compressed-air desiccant dryer (heatless regenerative adsorption dryer)",
+  "confidence": 0.83,
+  "concerns": "Simplified render lacks valves, switching manifold, purge exhaust, gauges, and distinct inlet/outlet ports; top and bottom piping geometry is schematic and could resemble a duplex filter/separator.",
+  "sourceReview": "build/blind-review-assets/image_137.readable-labels-b.review.md"
+}

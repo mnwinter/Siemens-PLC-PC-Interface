@@ -1,0 +1,8 @@
+{
+  "assetId": "machines.finishing.tumbler.rotary-barrel.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-160",
+  "identifiedFamily": "Industrial rotary drum tumbler/parts feeder with an enclosed rotating barrel and discharge conveyor",
+  "confidence": 0.82,
+  "concerns": "The faceted drum and product-flow path are stylized, so it is ambiguous whether this represents a tumbler, rotary sorter, or tablet/parts-coating machine",
+  "sourceReview": "build/blind-review-assets/image_160.production-machines-round6.review.md"
+}

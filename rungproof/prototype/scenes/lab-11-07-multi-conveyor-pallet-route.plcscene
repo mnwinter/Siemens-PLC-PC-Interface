@@ -1,0 +1,439 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-11-07-multi-conveyor-pallet-route",
+  "name": "Lab 11.7 - Multi-Conveyor Pallet Route",
+  "description": "Several conveyor zones start only from a clear leading edge and stop together from a common stop request.",
+  "camera": {
+    "position": [
+      11,
+      8,
+      12
+    ],
+    "target": [
+      0,
+      1.1,
+      0
+    ],
+    "fov": 45
+  },
+  "equipment": [
+    {
+      "id": "conveyor_0",
+      "type": "conveyor",
+      "label": "Multi-Conveyor Pallet Route conveyor",
+      "position": [
+        -3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "length": 6.5,
+        "width": 1.4,
+        "deckHeight": 0.9,
+        "beltColor": 2568760,
+        "running": false
+      }
+    },
+    {
+      "id": "conveyor_1",
+      "type": "conveyor",
+      "label": "Multi-Conveyor Pallet Route conveyor",
+      "position": [
+        -1.1,
+        0,
+        0
+      ],
+      "config": {
+        "length": 6.5,
+        "width": 1.4,
+        "deckHeight": 0.9,
+        "beltColor": 2568760,
+        "running": false
+      }
+    },
+    {
+      "id": "conveyor_2",
+      "type": "conveyor",
+      "label": "Multi-Conveyor Pallet Route conveyor",
+      "position": [
+        1.1,
+        0,
+        0
+      ],
+      "config": {
+        "length": 6.5,
+        "width": 1.4,
+        "deckHeight": 0.9,
+        "beltColor": 2568760,
+        "running": false
+      }
+    },
+    {
+      "id": "photoeye_3",
+      "type": "photoeye",
+      "label": "Multi-Conveyor Pallet Route photoeye",
+      "position": [
+        3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "span": 2.05,
+        "height": 0.7,
+        "beamCenterHeightM": 1.1,
+        "blocked": false
+      }
+    },
+    {
+      "id": "photoeye_4",
+      "type": "photoeye",
+      "label": "Multi-Conveyor Pallet Route photoeye",
+      "position": [
+        -2.85,
+        0,
+        2.35
+      ],
+      "config": {
+        "span": 2.05,
+        "height": 0.7,
+        "beamCenterHeightM": 1.1,
+        "blocked": false
+      }
+    },
+    {
+      "id": "photoeye_5",
+      "type": "photoeye",
+      "label": "Multi-Conveyor Pallet Route photoeye",
+      "position": [
+        -0.6500000000000001,
+        0,
+        2.35
+      ],
+      "config": {
+        "span": 2.05,
+        "height": 0.7,
+        "beamCenterHeightM": 1.1,
+        "blocked": false
+      }
+    },
+    {
+      "id": "training_accessory_6",
+      "type": "trainingAccessory",
+      "label": "Multi-Conveyor Pallet Route - pallet roller conveyor zone",
+      "position": [
+        1.1,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "pallet roller conveyor zone",
+        "catalogAssetId": "training.accessory.pallet_roller_conveyor_zone.v1"
+      }
+    },
+    {
+      "id": "training_accessory_7",
+      "type": "trainingAccessory",
+      "label": "Multi-Conveyor Pallet Route - zone handoff sensor",
+      "position": [
+        3.3000000000000003,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "zone handoff sensor",
+        "catalogAssetId": "training.accessory.zone_handoff_sensor.v1"
+      }
+    },
+    {
+      "id": "training_accessory_8",
+      "type": "trainingAccessory",
+      "label": "Multi-Conveyor Pallet Route - common stop station",
+      "position": [
+        -3.3000000000000003,
+        0,
+        3.6
+      ],
+      "config": {
+        "assetName": "common stop station",
+        "catalogAssetId": "training.accessory.common_stop_station.v1"
+      }
+    },
+    {
+      "id": "switch_9",
+      "type": "switch",
+      "label": "Multi-Conveyor Pallet Route operator input",
+      "position": [
+        -0.20000000000000007,
+        0,
+        4.7
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-zone_1_clear",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "switch_10",
+      "type": "switch",
+      "label": "Multi-Conveyor Pallet Route operator input",
+      "position": [
+        2,
+        0,
+        4.7
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-zone_2_clear",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "switch_11",
+      "type": "switch",
+      "label": "Multi-Conveyor Pallet Route operator input",
+      "position": [
+        4.2,
+        0,
+        4.7
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-zone_3_clear",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "indicator_12",
+      "type": "indicator",
+      "label": "Multi-Conveyor Pallet Route output indication",
+      "position": [
+        -1.9500000000000002,
+        0,
+        7.050000000000001
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    },
+    {
+      "id": "indicator_13",
+      "type": "indicator",
+      "label": "Multi-Conveyor Pallet Route output indication",
+      "position": [
+        0.25,
+        0,
+        7.050000000000001
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    },
+    {
+      "id": "indicator_14",
+      "type": "indicator",
+      "label": "Multi-Conveyor Pallet Route output indication",
+      "position": [
+        2.45,
+        0,
+        7.050000000000001
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    }
+  ],
+  "simulation": {
+    "type": "booleanPanel",
+    "points": [
+      {
+        "name": "zone_1_clear",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "zone_2_clear",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "zone_3_clear",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "zone_1_run",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "zone_2_run",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "zone_3_run",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      }
+    ],
+    "actions": [
+      {
+        "id": "toggle-zone_1_clear",
+        "label": "Toggle zone 1 clear",
+        "type": "toggle",
+        "point": "zone_1_clear"
+      },
+      {
+        "id": "toggle-zone_2_clear",
+        "label": "Toggle zone 2 clear",
+        "type": "toggle",
+        "point": "zone_2_clear"
+      },
+      {
+        "id": "toggle-zone_3_clear",
+        "label": "Toggle zone 3 clear",
+        "type": "toggle",
+        "point": "zone_3_clear"
+      }
+    ],
+    "rules": [],
+    "edgeRules": [],
+    "pointBindings": [
+      {
+        "point": "zone_1_clear",
+        "equipmentId": "switch_9",
+        "mode": "switch"
+      },
+      {
+        "point": "zone_2_clear",
+        "equipmentId": "switch_10",
+        "mode": "switch"
+      },
+      {
+        "point": "zone_3_clear",
+        "equipmentId": "switch_11",
+        "mode": "switch"
+      },
+      {
+        "point": "zone_1_run",
+        "equipmentId": "indicator_12",
+        "mode": "indicator",
+        "activeColor": "green"
+      },
+      {
+        "point": "zone_2_run",
+        "equipmentId": "indicator_13",
+        "mode": "indicator",
+        "activeColor": "green"
+      },
+      {
+        "point": "zone_3_run",
+        "equipmentId": "indicator_14",
+        "mode": "indicator",
+        "activeColor": "green"
+      }
+    ]
+  },
+  "training": {
+    "hints": [
+      "Translate the lesson into explicit state and permissive logic: A blocked zone removes the affected run command while preserving a diagnosable handoff state.",
+      "Inputs are simulator feedback (zone_1_clear, zone_2_clear, zone_3_clear); PLC logic owns zone_1_run, zone_2_run, zone_3_run.",
+      "Test the initial state, the valid condition, and at least one missing permissive."
+    ],
+    "solution": {
+      "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
+      "steps": [
+        "Require the documented inputs: zone_1_clear, zone_2_clear, zone_3_clear.",
+        "Command the documented outputs: zone_1_run, zone_2_run, zone_3_run.",
+        "Remove PLC commands when the permissive is lost."
+      ],
+      "acceptance": "A blocked zone removes the affected run command while preserving a diagnosable handoff state."
+    },
+    "assetRequirements": [
+      "pallet roller conveyor zone",
+      "zone handoff sensor",
+      "common stop station"
+    ],
+    "machineGuide": {
+      "purpose": "Several conveyor zones start only from a clear leading edge and stop together from a common stop request.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state."
+      ],
+      "normalSequence": [
+        "Apply the requested input condition.",
+        "Verify only the documented PLC outputs respond."
+      ],
+      "stopBehavior": [
+        "Removing the permissive removes PLC-owned commands.",
+        "Reset returns the module to its initial state."
+      ],
+      "faultBehavior": [
+        "A missing or stale input must fail safe and remain diagnosable."
+      ],
+      "expectedObservations": [
+        "A blocked zone removes the affected run command while preserving a diagnosable handoff state."
+      ]
+    },
+    "sequenceNumber": 66,
+    "inheritsFrom": "lab-11-06-wastewater-collection",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout"
+    ],
+    "addedTags": [
+      "zone_1_clear",
+      "zone_2_clear",
+      "zone_3_clear",
+      "zone_1_run",
+      "zone_2_run",
+      "zone_3_run"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-11-06-wastewater-collection"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "initial-safe-state",
+        "expect": {
+          "zone_1_run": false,
+          "zone_2_run": false,
+          "zone_3_run": false
+        }
+      }
+    ]
+  }
+}

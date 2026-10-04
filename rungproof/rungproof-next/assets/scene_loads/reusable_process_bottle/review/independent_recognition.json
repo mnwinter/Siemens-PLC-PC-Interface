@@ -1,0 +1,8 @@
+{
+  "assetId": "loads.container.process-bottle.v1",
+  "reviewerId": "image_186.scene-loads-round5.review.md",
+  "identifiedFamily": "Family of plastic chemical/process-fluid storage bottles with vented screw caps, distinct from fixed tanks or dosing pumps",
+  "confidence": 0.82,
+  "concerns": "Stylized geometry; oversized vented caps and control-panel-like labels are unrealistic, and no piping, fittings, level markings, or mounting details confirm a specific industrial vessel type",
+  "sourceReview": "build/blind-review-assets/image_186.scene-loads-round5.review.md"
+}

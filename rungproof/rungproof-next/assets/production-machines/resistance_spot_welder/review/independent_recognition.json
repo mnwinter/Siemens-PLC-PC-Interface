@@ -1,0 +1,8 @@
+{
+  "assetId": "machines.welding.resistance.pedestal-spot.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-158",
+  "identifiedFamily": "Pedestal-mounted resistance spot-welding machine with upper/lower electrodes and foot pedal",
+  "confidence": 0.98,
+  "concerns": "Stylized geometry; electrode alignment and proportions are somewhat ambiguous, but the spot-welder family is clear",
+  "sourceReview": "build/blind-review-assets/image_158.production-machines-round2.review.md"
+}

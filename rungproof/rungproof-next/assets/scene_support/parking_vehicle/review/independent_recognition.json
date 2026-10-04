@@ -1,0 +1,8 @@
+{
+  "assetId": "loads.vehicle.compact-passenger.v1",
+  "reviewerId": "blind-2026-09-30-parking-round3-image-126",
+  "identifiedFamily": "Low-profile autonomous mobile robot (AMR/AGV) transport platform or pallet carrier",
+  "confidence": 0.86,
+  "concerns": "Upper load deck appears unusually elevated and floating; no visible sensors, drive mechanisms, or clear payload interface to distinguish AMR from a generic robotic vehicle chassis",
+  "sourceReview": "build/blind-review-assets/image_126.parking-round1.review.md"
+}

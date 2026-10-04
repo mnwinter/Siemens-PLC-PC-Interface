@@ -1,0 +1,1109 @@
+{
+  "schemaVersion": 1,
+  "kind": "rungproof-ladder-project",
+  "id": "demo-05",
+  "name": "Demo 5 - Integrated Cell Multi-FB/FC",
+  "sourceSceneId": "conveyor-cell",
+  "scanPeriodMs": 20,
+  "activeBlockIndex": 0,
+  "entryBlockId": "ob1",
+  "nextId": 900,
+  "tags": [
+    {
+      "name": "estop_ok",
+      "type": "Bool",
+      "role": "Memory",
+      "initial": true,
+      "binding": ""
+    },
+    {
+      "name": "always_true",
+      "type": "Bool",
+      "role": "Memory",
+      "initial": true,
+      "binding": ""
+    },
+    {
+      "name": "guard_closed",
+      "type": "Bool",
+      "role": "Input",
+      "initial": true,
+      "binding": ""
+    },
+    {
+      "name": "drive_ready",
+      "type": "Bool",
+      "role": "Input",
+      "initial": true,
+      "binding": ""
+    },
+    {
+      "name": "start_cycle",
+      "type": "Bool",
+      "role": "Input",
+      "initial": false,
+      "binding": ""
+    },
+    {
+      "name": "photoeye_blocked",
+      "type": "Bool",
+      "role": "Input",
+      "initial": false,
+      "binding": "photoeye_blocked"
+    },
+    {
+      "name": "report_request",
+      "type": "Bool",
+      "role": "Input",
+      "initial": false,
+      "binding": ""
+    },
+    {
+      "name": "analog_valid",
+      "type": "Bool",
+      "role": "Input",
+      "initial": true,
+      "binding": ""
+    },
+    {
+      "name": "safe_ok",
+      "type": "Bool",
+      "role": "Memory",
+      "initial": false,
+      "binding": ""
+    },
+    {
+      "name": "safety_latched",
+      "type": "Bool",
+      "role": "Memory",
+      "initial": false,
+      "binding": ""
+    },
+    {
+      "name": "sequence_run",
+      "type": "Bool",
+      "role": "Memory",
+      "initial": false,
+      "binding": ""
+    },
+    {
+      "name": "pressure_high",
+      "type": "Bool",
+      "role": "Memory",
+      "initial": false,
+      "binding": ""
+    },
+    {
+      "name": "sequence_timer",
+      "type": "Timer",
+      "role": "Memory",
+      "initial": 0,
+      "binding": ""
+    },
+    {
+      "name": "cycle_count",
+      "type": "Counter",
+      "role": "Memory",
+      "initial": 0,
+      "binding": ""
+    },
+    {
+      "name": "pressure_raw",
+      "type": "Real",
+      "role": "Memory",
+      "initial": 4,
+      "binding": ""
+    },
+    {
+      "name": "pressure_bar",
+      "type": "Real",
+      "role": "Memory",
+      "initial": 0,
+      "binding": ""
+    },
+    {
+      "name": "base_speed",
+      "type": "Real",
+      "role": "Memory",
+      "initial": 1,
+      "binding": ""
+    },
+    {
+      "name": "speed_trim",
+      "type": "Real",
+      "role": "Memory",
+      "initial": 0.1,
+      "binding": ""
+    },
+    {
+      "name": "speed_setpoint",
+      "type": "Real",
+      "role": "Memory",
+      "initial": 0,
+      "binding": ""
+    },
+    {
+      "name": "parts_completed",
+      "type": "DInt",
+      "role": "Memory",
+      "initial": 0,
+      "binding": ""
+    },
+    {
+      "name": "batch_total",
+      "type": "DInt",
+      "role": "Memory",
+      "initial": 0,
+      "binding": ""
+    },
+    {
+      "name": "conveyor_run",
+      "type": "Bool",
+      "role": "Output",
+      "initial": false,
+      "binding": "conveyor_run"
+    }
+  ],
+  "blocks": [
+    {
+      "id": "ob1",
+      "name": "Main [OB1]",
+      "rungs": [
+        {
+          "id": "m1",
+          "label": "Safety permissive",
+          "coilVariable": "safe_ok",
+          "coilMode": "Assign",
+          "timerVariable": "",
+          "timerPresetMs": 1000,
+          "timerKind": "OnDelay",
+          "isTimer": false,
+          "isTimerReset": false,
+          "isCounter": false,
+          "isCounterReset": false,
+          "isCounterLoad": false,
+          "counterKind": "CountUp",
+          "counterVariable": "",
+          "counterPreset": 10,
+          "isNumericOperation": false,
+          "numericOperationKind": "Move",
+          "numericSourceA": "0",
+          "numericSourceB": "0",
+          "numericSourceC": "0",
+          "numericDestination": "",
+          "isCall": false,
+          "callTarget": "",
+          "isReturn": false,
+          "isJump": false,
+          "isLabel": false,
+          "programControlLabel": "",
+          "branches": [
+            {
+              "id": "m1-branch",
+              "contacts": [
+                {
+                  "id": "m1c",
+                  "variable": "estop_ok",
+                  "normallyClosed": false,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "None"
+                },
+                {
+                  "id": "m1d",
+                  "variable": "guard_closed",
+                  "normallyClosed": false,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "None"
+                },
+                {
+                  "id": "m1e",
+                  "variable": "drive_ready",
+                  "normallyClosed": false,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "None"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "m2",
+          "label": "Call safety FB",
+          "coilVariable": "",
+          "coilMode": "Assign",
+          "timerVariable": "",
+          "timerPresetMs": 1000,
+          "timerKind": "OnDelay",
+          "isTimer": false,
+          "isTimerReset": false,
+          "isCounter": false,
+          "isCounterReset": false,
+          "isCounterLoad": false,
+          "counterKind": "CountUp",
+          "counterVariable": "",
+          "counterPreset": 10,
+          "isNumericOperation": false,
+          "numericOperationKind": "Move",
+          "numericSourceA": "0",
+          "numericSourceB": "0",
+          "numericSourceC": "0",
+          "numericDestination": "",
+          "isCall": true,
+          "callTarget": "fb-safety",
+          "isReturn": false,
+          "isJump": false,
+          "isLabel": false,
+          "programControlLabel": "",
+          "branches": [
+            {
+              "id": "m2-branch",
+              "contacts": [
+                {
+                  "id": "m2c",
+                  "variable": "always_true",
+                  "normallyClosed": false,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "None"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "m3",
+          "label": "Call analog FC",
+          "coilVariable": "",
+          "coilMode": "Assign",
+          "timerVariable": "",
+          "timerPresetMs": 1000,
+          "timerKind": "OnDelay",
+          "isTimer": false,
+          "isTimerReset": false,
+          "isCounter": false,
+          "isCounterReset": false,
+          "isCounterLoad": false,
+          "counterKind": "CountUp",
+          "counterVariable": "",
+          "counterPreset": 10,
+          "isNumericOperation": false,
+          "numericOperationKind": "Move",
+          "numericSourceA": "0",
+          "numericSourceB": "0",
+          "numericSourceC": "0",
+          "numericDestination": "",
+          "isCall": true,
+          "callTarget": "fc-analog",
+          "isReturn": false,
+          "isJump": false,
+          "isLabel": false,
+          "programControlLabel": "",
+          "branches": [
+            {
+              "id": "m3-branch",
+              "contacts": [
+                {
+                  "id": "m3c",
+                  "variable": "always_true",
+                  "normallyClosed": false,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "None"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "m4",
+          "label": "Call sequence FB",
+          "coilVariable": "",
+          "coilMode": "Assign",
+          "timerVariable": "",
+          "timerPresetMs": 1000,
+          "timerKind": "OnDelay",
+          "isTimer": false,
+          "isTimerReset": false,
+          "isCounter": false,
+          "isCounterReset": false,
+          "isCounterLoad": false,
+          "counterKind": "CountUp",
+          "counterVariable": "",
+          "counterPreset": 10,
+          "isNumericOperation": false,
+          "numericOperationKind": "Move",
+          "numericSourceA": "0",
+          "numericSourceB": "0",
+          "numericSourceC": "0",
+          "numericDestination": "",
+          "isCall": true,
+          "callTarget": "fb-sequence",
+          "isReturn": false,
+          "isJump": false,
+          "isLabel": false,
+          "programControlLabel": "",
+          "branches": [
+            {
+              "id": "m4-branch",
+              "contacts": [
+                {
+                  "id": "m4c",
+                  "variable": "always_true",
+                  "normallyClosed": false,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "None"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "m5",
+          "label": "Call report FC",
+          "coilVariable": "",
+          "coilMode": "Assign",
+          "timerVariable": "",
+          "timerPresetMs": 1000,
+          "timerKind": "OnDelay",
+          "isTimer": false,
+          "isTimerReset": false,
+          "isCounter": false,
+          "isCounterReset": false,
+          "isCounterLoad": false,
+          "counterKind": "CountUp",
+          "counterVariable": "",
+          "counterPreset": 10,
+          "isNumericOperation": false,
+          "numericOperationKind": "Move",
+          "numericSourceA": "0",
+          "numericSourceB": "0",
+          "numericSourceC": "0",
+          "numericDestination": "",
+          "isCall": true,
+          "callTarget": "fc-report",
+          "isReturn": false,
+          "isJump": false,
+          "isLabel": false,
+          "programControlLabel": "",
+          "branches": [
+            {
+              "id": "m5-branch",
+              "contacts": [
+                {
+                  "id": "m5c",
+                  "variable": "always_true",
+                  "normallyClosed": false,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "None"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "m6",
+          "label": "Final conveyor command",
+          "coilVariable": "conveyor_run",
+          "coilMode": "Assign",
+          "timerVariable": "",
+          "timerPresetMs": 1000,
+          "timerKind": "OnDelay",
+          "isTimer": false,
+          "isTimerReset": false,
+          "isCounter": false,
+          "isCounterReset": false,
+          "isCounterLoad": false,
+          "counterKind": "CountUp",
+          "counterVariable": "",
+          "counterPreset": 10,
+          "isNumericOperation": false,
+          "numericOperationKind": "Move",
+          "numericSourceA": "0",
+          "numericSourceB": "0",
+          "numericSourceC": "0",
+          "numericDestination": "",
+          "isCall": false,
+          "callTarget": "",
+          "isReturn": false,
+          "isJump": false,
+          "isLabel": false,
+          "programControlLabel": "",
+          "branches": [
+            {
+              "id": "m6-branch",
+              "contacts": [
+                {
+                  "id": "m6c",
+                  "variable": "safe_ok",
+                  "normallyClosed": false,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "None"
+                },
+                {
+                  "id": "m6d",
+                  "variable": "sequence_run",
+                  "normallyClosed": false,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "None"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fb-safety",
+      "name": "FB_SafetyInterlocks",
+      "rungs": [
+        {
+          "id": "s1",
+          "label": "Latch safety ready",
+          "coilVariable": "safety_latched",
+          "coilMode": "Assign",
+          "timerVariable": "",
+          "timerPresetMs": 1000,
+          "timerKind": "OnDelay",
+          "isTimer": false,
+          "isTimerReset": false,
+          "isCounter": false,
+          "isCounterReset": false,
+          "isCounterLoad": false,
+          "counterKind": "CountUp",
+          "counterVariable": "",
+          "counterPreset": 10,
+          "isNumericOperation": false,
+          "numericOperationKind": "Move",
+          "numericSourceA": "0",
+          "numericSourceB": "0",
+          "numericSourceC": "0",
+          "numericDestination": "",
+          "isCall": false,
+          "callTarget": "",
+          "isReturn": false,
+          "isJump": false,
+          "isLabel": false,
+          "programControlLabel": "",
+          "branches": [
+            {
+              "id": "s1-branch",
+              "contacts": [
+                {
+                  "id": "s1c",
+                  "variable": "safe_ok",
+                  "normallyClosed": false,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "None"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "s2",
+          "label": "Safety return",
+          "coilVariable": "",
+          "coilMode": "Assign",
+          "timerVariable": "",
+          "timerPresetMs": 1000,
+          "timerKind": "OnDelay",
+          "isTimer": false,
+          "isTimerReset": false,
+          "isCounter": false,
+          "isCounterReset": false,
+          "isCounterLoad": false,
+          "counterKind": "CountUp",
+          "counterVariable": "",
+          "counterPreset": 10,
+          "isNumericOperation": false,
+          "numericOperationKind": "Move",
+          "numericSourceA": "0",
+          "numericSourceB": "0",
+          "numericSourceC": "0",
+          "numericDestination": "",
+          "isCall": false,
+          "callTarget": "",
+          "isReturn": true,
+          "isJump": false,
+          "isLabel": false,
+          "programControlLabel": "",
+          "branches": [
+            {
+              "id": "s2-branch",
+              "contacts": [
+                {
+                  "id": "s2c",
+                  "variable": "always_true",
+                  "normallyClosed": false,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "None"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fb-sequence",
+      "name": "FB_CellSequence",
+      "rungs": [
+        {
+          "id": "q1",
+          "label": "Start sequence timer",
+          "coilVariable": "sequence_timer",
+          "coilMode": "Assign",
+          "timerVariable": "sequence_timer",
+          "timerPresetMs": 3000,
+          "timerKind": "OnDelay",
+          "isTimer": true,
+          "isTimerReset": false,
+          "isCounter": false,
+          "isCounterReset": false,
+          "isCounterLoad": false,
+          "counterKind": "CountUp",
+          "counterVariable": "",
+          "counterPreset": 10,
+          "isNumericOperation": false,
+          "numericOperationKind": "Move",
+          "numericSourceA": "0",
+          "numericSourceB": "0",
+          "numericSourceC": "0",
+          "numericDestination": "",
+          "isCall": false,
+          "callTarget": "",
+          "isReturn": false,
+          "isJump": false,
+          "isLabel": false,
+          "programControlLabel": "",
+          "branches": [
+            {
+              "id": "q1-branch",
+              "contacts": [
+                {
+                  "id": "q1c",
+                  "variable": "start_cycle",
+                  "normallyClosed": false,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "Rising"
+                },
+                {
+                  "id": "q1d",
+                  "variable": "safe_ok",
+                  "normallyClosed": false,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "None"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "q2",
+          "label": "Count photoeye events",
+          "coilVariable": "cycle_count",
+          "coilMode": "Assign",
+          "timerVariable": "",
+          "timerPresetMs": 1000,
+          "timerKind": "OnDelay",
+          "isTimer": false,
+          "isTimerReset": false,
+          "isCounter": true,
+          "isCounterReset": false,
+          "isCounterLoad": false,
+          "counterKind": "CountUp",
+          "counterVariable": "cycle_count",
+          "counterPreset": 20,
+          "isNumericOperation": false,
+          "numericOperationKind": "Move",
+          "numericSourceA": "0",
+          "numericSourceB": "0",
+          "numericSourceC": "0",
+          "numericDestination": "",
+          "isCall": false,
+          "callTarget": "",
+          "isReturn": false,
+          "isJump": false,
+          "isLabel": false,
+          "programControlLabel": "",
+          "branches": [
+            {
+              "id": "q2-branch",
+              "contacts": [
+                {
+                  "id": "q2c",
+                  "variable": "photoeye_blocked",
+                  "normallyClosed": false,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "Rising"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "q3",
+          "label": "Move setpoint",
+          "coilVariable": "speed_setpoint",
+          "coilMode": "Assign",
+          "timerVariable": "",
+          "timerPresetMs": 1000,
+          "timerKind": "OnDelay",
+          "isTimer": false,
+          "isTimerReset": false,
+          "isCounter": false,
+          "isCounterReset": false,
+          "isCounterLoad": false,
+          "counterKind": "CountUp",
+          "counterVariable": "",
+          "counterPreset": 10,
+          "isNumericOperation": true,
+          "numericOperationKind": "Add",
+          "numericSourceA": "base_speed",
+          "numericSourceB": "speed_trim",
+          "numericSourceC": "0",
+          "numericDestination": "speed_setpoint",
+          "isCall": false,
+          "callTarget": "",
+          "isReturn": false,
+          "isJump": false,
+          "isLabel": false,
+          "programControlLabel": "",
+          "branches": [
+            {
+              "id": "q3-branch",
+              "contacts": [
+                {
+                  "id": "q3c",
+                  "variable": "sequence_timer.Q",
+                  "normallyClosed": false,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "None"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "q4",
+          "label": "Jump to complete",
+          "coilVariable": "",
+          "coilMode": "Assign",
+          "timerVariable": "",
+          "timerPresetMs": 1000,
+          "timerKind": "OnDelay",
+          "isTimer": false,
+          "isTimerReset": false,
+          "isCounter": false,
+          "isCounterReset": false,
+          "isCounterLoad": false,
+          "counterKind": "CountUp",
+          "counterVariable": "",
+          "counterPreset": 10,
+          "isNumericOperation": false,
+          "numericOperationKind": "Move",
+          "numericSourceA": "0",
+          "numericSourceB": "0",
+          "numericSourceC": "0",
+          "numericDestination": "",
+          "isCall": false,
+          "callTarget": "",
+          "isReturn": false,
+          "isJump": true,
+          "isLabel": false,
+          "programControlLabel": "complete",
+          "branches": [
+            {
+              "id": "q4-branch",
+              "contacts": [
+                {
+                  "id": "q4c",
+                  "variable": "always_true",
+                  "normallyClosed": false,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "None"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "q5",
+          "label": "Complete label",
+          "coilVariable": "",
+          "coilMode": "Assign",
+          "timerVariable": "",
+          "timerPresetMs": 1000,
+          "timerKind": "OnDelay",
+          "isTimer": false,
+          "isTimerReset": false,
+          "isCounter": false,
+          "isCounterReset": false,
+          "isCounterLoad": false,
+          "counterKind": "CountUp",
+          "counterVariable": "",
+          "counterPreset": 10,
+          "isNumericOperation": false,
+          "numericOperationKind": "Move",
+          "numericSourceA": "0",
+          "numericSourceB": "0",
+          "numericSourceC": "0",
+          "numericDestination": "",
+          "isCall": false,
+          "callTarget": "",
+          "isReturn": false,
+          "isJump": false,
+          "isLabel": true,
+          "programControlLabel": "complete",
+          "branches": [
+            {
+              "id": "q5-branch",
+              "contacts": [
+                {
+                  "id": "q5c",
+                  "variable": "always_true",
+                  "normallyClosed": false,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "None"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "q6",
+          "label": "Sequence return",
+          "coilVariable": "",
+          "coilMode": "Assign",
+          "timerVariable": "",
+          "timerPresetMs": 1000,
+          "timerKind": "OnDelay",
+          "isTimer": false,
+          "isTimerReset": false,
+          "isCounter": false,
+          "isCounterReset": false,
+          "isCounterLoad": false,
+          "counterKind": "CountUp",
+          "counterVariable": "",
+          "counterPreset": 10,
+          "isNumericOperation": false,
+          "numericOperationKind": "Move",
+          "numericSourceA": "0",
+          "numericSourceB": "0",
+          "numericSourceC": "0",
+          "numericDestination": "",
+          "isCall": false,
+          "callTarget": "",
+          "isReturn": true,
+          "isJump": false,
+          "isLabel": false,
+          "programControlLabel": "",
+          "branches": [
+            {
+              "id": "q6-branch",
+              "contacts": [
+                {
+                  "id": "q6c",
+                  "variable": "always_true",
+                  "normallyClosed": false,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "None"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fc-analog",
+      "name": "FC_AnalogScaling",
+      "rungs": [
+        {
+          "id": "a1",
+          "label": "Scale raw pressure",
+          "coilVariable": "pressure_bar",
+          "coilMode": "Assign",
+          "timerVariable": "",
+          "timerPresetMs": 1000,
+          "timerKind": "OnDelay",
+          "isTimer": false,
+          "isTimerReset": false,
+          "isCounter": false,
+          "isCounterReset": false,
+          "isCounterLoad": false,
+          "counterKind": "CountUp",
+          "counterVariable": "",
+          "counterPreset": 10,
+          "isNumericOperation": true,
+          "numericOperationKind": "Scale",
+          "numericSourceA": "pressure_raw",
+          "numericSourceB": "0",
+          "numericSourceC": "1000",
+          "numericDestination": "pressure_bar",
+          "isCall": false,
+          "callTarget": "",
+          "isReturn": false,
+          "isJump": false,
+          "isLabel": false,
+          "programControlLabel": "",
+          "branches": [
+            {
+              "id": "a1-branch",
+              "contacts": [
+                {
+                  "id": "a1c",
+                  "variable": "analog_valid",
+                  "normallyClosed": false,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "None"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "a2",
+          "label": "High pressure alarm",
+          "coilVariable": "pressure_high",
+          "coilMode": "Assign",
+          "timerVariable": "",
+          "timerPresetMs": 1000,
+          "timerKind": "OnDelay",
+          "isTimer": false,
+          "isTimerReset": false,
+          "isCounter": false,
+          "isCounterReset": false,
+          "isCounterLoad": false,
+          "counterKind": "CountUp",
+          "counterVariable": "",
+          "counterPreset": 10,
+          "isNumericOperation": false,
+          "numericOperationKind": "Move",
+          "numericSourceA": "0",
+          "numericSourceB": "0",
+          "numericSourceC": "0",
+          "numericDestination": "",
+          "isCall": false,
+          "callTarget": "",
+          "isReturn": false,
+          "isJump": false,
+          "isLabel": false,
+          "programControlLabel": "",
+          "branches": [
+            {
+              "id": "a2-branch",
+              "contacts": [
+                {
+                  "id": "a2c",
+                  "variable": "pressure_bar",
+                  "normallyClosed": false,
+                  "isComparison": true,
+                  "compareOperator": "GreaterThan",
+                  "rightOperand": "8.0",
+                  "edgeMode": "None"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "a3",
+          "label": "Analog return",
+          "coilVariable": "",
+          "coilMode": "Assign",
+          "timerVariable": "",
+          "timerPresetMs": 1000,
+          "timerKind": "OnDelay",
+          "isTimer": false,
+          "isTimerReset": false,
+          "isCounter": false,
+          "isCounterReset": false,
+          "isCounterLoad": false,
+          "counterKind": "CountUp",
+          "counterVariable": "",
+          "counterPreset": 10,
+          "isNumericOperation": false,
+          "numericOperationKind": "Move",
+          "numericSourceA": "0",
+          "numericSourceB": "0",
+          "numericSourceC": "0",
+          "numericDestination": "",
+          "isCall": false,
+          "callTarget": "",
+          "isReturn": true,
+          "isJump": false,
+          "isLabel": false,
+          "programControlLabel": "",
+          "branches": [
+            {
+              "id": "a3-branch",
+              "contacts": [
+                {
+                  "id": "a3c",
+                  "variable": "always_true",
+                  "normallyClosed": false,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "None"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fc-report",
+      "name": "FC_ProductionReport",
+      "rungs": [
+        {
+          "id": "r1",
+          "label": "Publish total",
+          "coilVariable": "batch_total",
+          "coilMode": "Assign",
+          "timerVariable": "",
+          "timerPresetMs": 1000,
+          "timerKind": "OnDelay",
+          "isTimer": false,
+          "isTimerReset": false,
+          "isCounter": false,
+          "isCounterReset": false,
+          "isCounterLoad": false,
+          "counterKind": "CountUp",
+          "counterVariable": "",
+          "counterPreset": 10,
+          "isNumericOperation": true,
+          "numericOperationKind": "Add",
+          "numericSourceA": "cycle_count.ACC",
+          "numericSourceB": "parts_completed",
+          "numericSourceC": "0",
+          "numericDestination": "batch_total",
+          "isCall": false,
+          "callTarget": "",
+          "isReturn": false,
+          "isJump": false,
+          "isLabel": false,
+          "programControlLabel": "",
+          "branches": [
+            {
+              "id": "r1-branch",
+              "contacts": [
+                {
+                  "id": "r1c",
+                  "variable": "report_request",
+                  "normallyClosed": false,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "None"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "r2",
+          "label": "Report return",
+          "coilVariable": "",
+          "coilMode": "Assign",
+          "timerVariable": "",
+          "timerPresetMs": 1000,
+          "timerKind": "OnDelay",
+          "isTimer": false,
+          "isTimerReset": false,
+          "isCounter": false,
+          "isCounterReset": false,
+          "isCounterLoad": false,
+          "counterKind": "CountUp",
+          "counterVariable": "",
+          "counterPreset": 10,
+          "isNumericOperation": false,
+          "numericOperationKind": "Move",
+          "numericSourceA": "0",
+          "numericSourceB": "0",
+          "numericSourceC": "0",
+          "numericDestination": "",
+          "isCall": false,
+          "callTarget": "",
+          "isReturn": true,
+          "isJump": false,
+          "isLabel": false,
+          "programControlLabel": "",
+          "branches": [
+            {
+              "id": "r2-branch",
+              "contacts": [
+                {
+                  "id": "r2c",
+                  "variable": "always_true",
+                  "normallyClosed": false,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "None"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "task-main",
+      "name": "MainTask",
+      "kind": "Continuous",
+      "periodMs": 20,
+      "priority": 10,
+      "entryBlock": "ob1"
+    },
+    {
+      "id": "task-diagnostics",
+      "name": "DiagnosticsTask",
+      "kind": "Periodic",
+      "periodMs": 100,
+      "priority": 20,
+      "entryBlock": "fc-report"
+    }
+  ],
+  "watchVariables": []
+}

@@ -1,0 +1,8 @@
+{
+  "assetId": "utilities.steam.boiler.horizontal-firetube.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-140",
+  "identifiedFamily": "Horizontal fire-tube steam boiler with front-mounted forced-draft burner",
+  "confidence": 0.91,
+  "concerns": "Simplified render; missing supports, piping, valves, flue details, and realistic burner controls obscure exact boiler subtype and scale.",
+  "sourceReview": "build/blind-review-assets/image_140.readable-labels.review.md"
+}

@@ -1,0 +1,374 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-4-09-chain-drive-lift",
+  "name": "Lab 4.9 - Chain-Drive Lift",
+  "description": "A chain-driven transfer moves a box only when the lift is at a valid home position.",
+  "camera": {
+    "position": [
+      11,
+      8,
+      12
+    ],
+    "target": [
+      0,
+      1.1,
+      0
+    ],
+    "fov": 45
+  },
+  "equipment": [
+    {
+      "id": "conveyor_0",
+      "type": "conveyor",
+      "label": "Chain-Drive Lift conveyor",
+      "position": [
+        -3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "length": 6.5,
+        "width": 1.4,
+        "deckHeight": 0.9,
+        "beltColor": 2568760,
+        "running": false
+      }
+    },
+    {
+      "id": "liftTable_1",
+      "type": "liftTable",
+      "label": "Chain-Drive Lift lift Table",
+      "position": [
+        -1.1,
+        0,
+        0
+      ],
+      "config": {
+        "width": 2.3,
+        "depth": 1.8,
+        "minimumHeight": 0.6,
+        "travel": 2.1,
+        "initialPosition": 0
+      }
+    },
+    {
+      "id": "box_2",
+      "type": "box",
+      "label": "Chain-Drive Lift box",
+      "position": [
+        1.1,
+        0,
+        0
+      ],
+      "config": {
+        "size": [
+          0.85,
+          0.72,
+          0.72
+        ],
+        "color": 13142603
+      }
+    },
+    {
+      "id": "indicator_3",
+      "type": "indicator",
+      "label": "Chain-Drive Lift indicator",
+      "position": [
+        3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    },
+    {
+      "id": "training_accessory_4",
+      "type": "trainingAccessory",
+      "label": "Chain-Drive Lift - chain conveyor",
+      "position": [
+        -3.3000000000000003,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "chain conveyor",
+        "catalogAssetId": "training.accessory.chain_conveyor.v1"
+      }
+    },
+    {
+      "id": "training_accessory_5",
+      "type": "trainingAccessory",
+      "label": "Chain-Drive Lift - chain hoist/vertical lift",
+      "position": [
+        -1.1,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "chain hoist/vertical lift",
+        "catalogAssetId": "training.accessory.chain_hoist_vertical_lift.v1"
+      }
+    },
+    {
+      "id": "training_accessory_6",
+      "type": "trainingAccessory",
+      "label": "Chain-Drive Lift - lift limit switches",
+      "position": [
+        1.1,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "lift limit switches",
+        "catalogAssetId": "training.accessory.lift_limit_switches.v1"
+      }
+    },
+    {
+      "id": "training_accessory_7",
+      "type": "trainingAccessory",
+      "label": "Chain-Drive Lift - mechanical stop",
+      "position": [
+        3.3000000000000003,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "mechanical stop",
+        "catalogAssetId": "training.accessory.mechanical_stop.v1"
+      }
+    },
+    {
+      "id": "switch_8",
+      "type": "switch",
+      "label": "Chain-Drive Lift operator input",
+      "position": [
+        -2.4000000000000004,
+        0,
+        4.7
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-box_present",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "switch_9",
+      "type": "switch",
+      "label": "Chain-Drive Lift operator input",
+      "position": [
+        -0.20000000000000007,
+        0,
+        4.7
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-lift_home",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "switch_10",
+      "type": "switch",
+      "label": "Chain-Drive Lift operator input",
+      "position": [
+        2,
+        0,
+        4.7
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-destination_clear",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "indicator_11",
+      "type": "indicator",
+      "label": "Chain-Drive Lift output indication",
+      "position": [
+        4.2,
+        0,
+        4.7
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    }
+  ],
+  "simulation": {
+    "type": "booleanPanel",
+    "points": [
+      {
+        "name": "box_present",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "lift_home",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "destination_clear",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "chain_run",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "lift_enable",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      }
+    ],
+    "actions": [
+      {
+        "id": "toggle-box_present",
+        "label": "Toggle box present",
+        "type": "toggle",
+        "point": "box_present"
+      },
+      {
+        "id": "toggle-lift_home",
+        "label": "Toggle lift home",
+        "type": "toggle",
+        "point": "lift_home"
+      },
+      {
+        "id": "toggle-destination_clear",
+        "label": "Toggle destination clear",
+        "type": "toggle",
+        "point": "destination_clear"
+      }
+    ],
+    "rules": [],
+    "edgeRules": [],
+    "pointBindings": [
+      {
+        "point": "box_present",
+        "equipmentId": "switch_8",
+        "mode": "switch"
+      },
+      {
+        "point": "lift_home",
+        "equipmentId": "switch_9",
+        "mode": "switch"
+      },
+      {
+        "point": "destination_clear",
+        "equipmentId": "switch_10",
+        "mode": "switch"
+      },
+      {
+        "point": "chain_run",
+        "equipmentId": "indicator_3",
+        "mode": "indicator",
+        "activeColor": "green"
+      },
+      {
+        "point": "lift_enable",
+        "equipmentId": "indicator_11",
+        "mode": "indicator",
+        "activeColor": "green"
+      }
+    ]
+  },
+  "training": {
+    "hints": [
+      "Translate the lesson into explicit state and permissive logic: The chain and lift are enabled only with a box present, valid home, and clear destination.",
+      "Inputs are simulator feedback (box_present, lift_home, destination_clear); PLC logic owns chain_run, lift_enable.",
+      "Test the initial state, the valid condition, and at least one missing permissive."
+    ],
+    "solution": {
+      "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
+      "steps": [
+        "Require the documented inputs: box_present, lift_home, destination_clear.",
+        "Command the documented outputs: chain_run, lift_enable.",
+        "Remove PLC commands when the permissive is lost."
+      ],
+      "acceptance": "The chain and lift are enabled only with a box present, valid home, and clear destination."
+    },
+    "assetRequirements": [
+      "chain conveyor",
+      "chain hoist/vertical lift",
+      "lift limit switches",
+      "mechanical stop"
+    ],
+    "machineGuide": {
+      "purpose": "A chain-driven transfer moves a box only when the lift is at a valid home position.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state."
+      ],
+      "normalSequence": [
+        "Apply the requested input condition.",
+        "Verify only the documented PLC outputs respond."
+      ],
+      "stopBehavior": [
+        "Removing the permissive removes PLC-owned commands.",
+        "Reset returns the module to its initial state."
+      ],
+      "faultBehavior": [
+        "A missing or stale input must fail safe and remain diagnosable."
+      ],
+      "expectedObservations": [
+        "The chain and lift are enabled only with a box present, valid home, and clear destination."
+      ]
+    },
+    "sequenceNumber": 36,
+    "inheritsFrom": "lab-4-08-package-grouping",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout"
+    ],
+    "addedTags": [
+      "box_present",
+      "lift_home",
+      "destination_clear",
+      "chain_run",
+      "lift_enable"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-4-08-package-grouping"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "initial-safe-state",
+        "expect": {
+          "chain_run": false,
+          "lift_enable": false
+        }
+      }
+    ]
+  }
+}

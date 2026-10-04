@@ -1,0 +1,8 @@
+{
+  "assetId": "machines.forming.press.mechanical-gap-frame.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-149",
+  "identifiedFamily": "Small benchtop mechanical stamping/punch press with a vertical ram, flywheel drive, work table, and foot pedal",
+  "confidence": 0.88,
+  "concerns": "Stylized geometry obscures the drive and ram mechanism; die tooling, guarding, and exact press subtype are not clearly visible",
+  "sourceReview": "build/blind-review-assets/image_149.production-machines-round1.review.md"
+}

@@ -1,0 +1,8 @@
+{
+  "assetId": "process.valve.control.globe-diaphragm.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-111",
+  "identifiedFamily": "Pneumatically actuated flanged globe control valve with a top-mounted diaphragm actuator and side positioner",
+  "confidence": 0.89,
+  "concerns": "Stylized geometry; actuator resembles a diaphragm housing but lacks visible yoke/spring details, and the spherical body oversimplifies a globe-valve flow path",
+  "sourceReview": "build/blind-review-assets/image_111.process-round1.review.md"
+}

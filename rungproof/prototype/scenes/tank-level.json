@@ -1,0 +1,359 @@
+{
+  "version": 1,
+  "machineGuide": {
+    "purpose": "A pump-fed tank produces discrete and analog level feedback from one liquid surface.",
+    "startConditions": [
+      "Common PLC/watchdog foundation is healthy.",
+      "Both pump and drain commands are FALSE; initial level is 42%."
+    ],
+    "normalSequence": [
+      "PLC commands inlet_pump_run or drain_valve_open.",
+      "The liquid surface moves.",
+      "Switches and level_transmitter follow the same surface."
+    ],
+    "stopBehavior": [
+      "Removing both commands holds the process and returns actual rates to zero."
+    ],
+    "faultBehavior": [
+      "A missing command does not start equipment.",
+      "Stale feedback remains stale and is not replaced by the simulator."
+    ],
+    "expectedObservations": [
+      "The idealized transmitter follows 4 + 16 x level_fraction mA."
+    ]
+  },
+  "id": "tank-level",
+  "name": "Tank Level / 4\u201320 mA",
+  "description": "Run the scene, start the inlet pump, and open or close the drain. Fluid level, discrete low/high switches, and a linear 4\u201320 mA transmitter update together.",
+  "camera": {
+    "position": [
+      10.5,
+      7.5,
+      10.5
+    ],
+    "target": [
+      0,
+      2,
+      0
+    ],
+    "fov": 42
+  },
+  "equipment": [
+    {
+      "id": "process_tank",
+      "type": "tank",
+      "label": "Process tank T-101",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "config": {
+        "height": 5,
+        "diameter": 3,
+        "initialLevel": 0.42,
+        "fluidColor": 1415124
+      }
+    },
+    {
+      "id": "inlet_pump",
+      "type": "pump",
+      "label": "Inlet pump P-101",
+      "position": [
+        -4.25,
+        0,
+        0.2
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "config": {
+        "running": false,
+        "color": 1534855
+      }
+    },
+    {
+      "id": "inlet_pipe",
+      "type": "pipe",
+      "label": "Tank inlet pipe",
+      "position": [
+        -2.45,
+        3.9,
+        0.2
+      ],
+      "config": {
+        "length": 4.2,
+        "diameter": 0.28,
+        "axis": "x",
+        "color": 7109504
+      }
+    },
+    {
+      "id": "outlet_pipe",
+      "type": "pipe",
+      "label": "Tank outlet pipe",
+      "position": [
+        2.25,
+        0.5,
+        0
+      ],
+      "config": {
+        "length": 1.8,
+        "diameter": 0.3,
+        "axis": "x",
+        "color": 7109504
+      }
+    },
+    {
+      "id": "low_level_switch",
+      "type": "levelSensor",
+      "label": "Low level switch LSL-101",
+      "position": [
+        2.05,
+        1.05,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "config": {
+        "sensorType": "discrete",
+        "threshold": 0.2,
+        "mode": "low",
+        "active": false
+      }
+    },
+    {
+      "id": "high_level_switch",
+      "type": "levelSensor",
+      "label": "High level switch LSH-101",
+      "position": [
+        2.05,
+        4.0,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "config": {
+        "sensorType": "discrete",
+        "threshold": 0.8,
+        "mode": "high",
+        "active": false
+      }
+    },
+    {
+      "id": "level_transmitter",
+      "type": "levelSensor",
+      "label": "Level transmitter LT-101",
+      "position": [
+        1.95,
+        2.45,
+        0.85
+      ],
+      "rotation": [
+        0,
+        -25,
+        0
+      ],
+      "config": {
+        "sensorType": "analog",
+        "range": "4-20 mA",
+        "engineeringRange": "0-100 %",
+        "active": true
+      }
+    },
+    {
+      "id": "pump_station",
+      "type": "switch",
+      "label": "Pump local station",
+      "position": [
+        -3.15,
+        0,
+        2.2
+      ],
+      "rotation": [
+        0,
+        15,
+        0
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-pump"
+      }
+    },
+    {
+      "id": "drain_station",
+      "type": "switch",
+      "label": "Drain valve local station",
+      "position": [
+        -2.15,
+        0,
+        2.2
+      ],
+      "rotation": [
+        0,
+        8,
+        0
+      ],
+      "config": {
+        "style": "pushbutton",
+        "color": 15906565,
+        "action": "toggle-drain"
+      }
+    },
+    {
+      "id": "tank_stacklight",
+      "type": "indicator",
+      "label": "Tank status light",
+      "position": [
+        3.15,
+        0,
+        -2.05
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "amber"
+      }
+    }
+  ],
+  "simulation": {
+    "type": "tank",
+    "actions": [
+      {
+        "id": "run-simulation",
+        "label": "Run simulated process",
+        "type": "run"
+      },
+      {
+        "id": "toggle-pump",
+        "label": "Toggle inlet pump (simulated)",
+        "type": "toggle",
+        "point": "inlet_pump_run"
+      },
+      {
+        "id": "toggle-drain",
+        "label": "Toggle drain valve (simulated)",
+        "type": "toggle",
+        "point": "drain_valve_open"
+      },
+      {
+        "id": "stop-simulation",
+        "label": "Stop simulated process",
+        "type": "stop"
+      }
+    ],
+    "points": [
+      {
+        "name": "inlet_pump_run",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output",
+        "purpose": "PLC command that runs the tank inlet pump."
+      },
+      {
+        "name": "drain_valve_open",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output",
+        "purpose": "PLC command that opens the tank drain valve."
+      },
+      {
+        "name": "tank_level",
+        "type": "REAL",
+        "owner": "SIM",
+        "initial": 42,
+        "unit": "%",
+        "purpose": "Internal process level used by the tank physics."
+      },
+      {
+        "name": "level_transmitter",
+        "type": "REAL",
+        "owner": "PC",
+        "initial": 10.72,
+        "unit": "mA",
+        "purpose": "Simulator 4-20 mA level-transmitter feedback read by the PLC."
+      },
+      {
+        "name": "low_level_switch",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false,
+        "purpose": "Simulator low-level switch feedback read by the PLC."
+      },
+      {
+        "name": "high_level_switch",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false,
+        "purpose": "Simulator high-level switch feedback read by the PLC."
+      }
+    ],
+    "tankId": "process_tank",
+    "pumpId": "inlet_pump",
+    "lowSensorId": "low_level_switch",
+    "highSensorId": "high_level_switch",
+    "transmitterId": "level_transmitter",
+    "indicatorId": "tank_stacklight",
+    "initialLevel": 0.42,
+    "inletRatePerSecond": 0.07,
+    "outletRatePerSecond": 0.045,
+    "lowThreshold": 0.2,
+    "highThreshold": 0.8
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "inlet pump raises level and transmitter together",
+        "actions": [
+          "run-simulation",
+          "toggle-pump"
+        ],
+        "phases": [
+          {
+            "runForS": 1.0
+          }
+        ],
+        "expect": {
+          "inlet_pump_run": true,
+          "tank_level": 49.05833333333316,
+          "level_transmitter": 11.849333333333306
+        }
+      },
+      {
+        "name": "stopped process holds its level and clears commands",
+        "actions": [
+          "run-simulation",
+          "toggle-pump"
+        ],
+        "phases": [
+          {
+            "runForS": 1.0
+          },
+          {
+            "action": "stop-simulation",
+            "runForS": 1.0
+          }
+        ],
+        "expect": {
+          "inlet_pump_run": false,
+          "drain_valve_open": false,
+          "tank_level": 49.05833333333316,
+          "level_transmitter": 11.849333333333306
+        }
+      }
+    ]
+  }
+}

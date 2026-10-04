@@ -1,0 +1,374 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-5-09-bag-indexing-conveyor",
+  "name": "Lab 5.9 - Bag Indexing Conveyor",
+  "description": "A bag is indexed between two sensors, paused for operator action, and restarted from a known direction.",
+  "camera": {
+    "position": [
+      11,
+      8,
+      12
+    ],
+    "target": [
+      0,
+      1.1,
+      0
+    ],
+    "fov": 45
+  },
+  "equipment": [
+    {
+      "id": "conveyor_0",
+      "type": "conveyor",
+      "label": "Bag Indexing Conveyor conveyor",
+      "position": [
+        -3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "length": 6.5,
+        "width": 1.4,
+        "deckHeight": 0.9,
+        "beltColor": 2568760,
+        "running": false
+      }
+    },
+    {
+      "id": "box_1",
+      "type": "box",
+      "label": "Bag Indexing Conveyor box",
+      "position": [
+        -1.1,
+        0,
+        0
+      ],
+      "config": {
+        "size": [
+          0.85,
+          0.72,
+          0.72
+        ],
+        "color": 13142603
+      }
+    },
+    {
+      "id": "photoeye_2",
+      "type": "photoeye",
+      "label": "Bag Indexing Conveyor photoeye",
+      "position": [
+        1.1,
+        0,
+        0
+      ],
+      "config": {
+        "span": 2.05,
+        "height": 0.7,
+        "beamCenterHeightM": 1.1,
+        "blocked": false
+      }
+    },
+    {
+      "id": "photoeye_3",
+      "type": "photoeye",
+      "label": "Bag Indexing Conveyor photoeye",
+      "position": [
+        3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "span": 2.05,
+        "height": 0.7,
+        "beamCenterHeightM": 1.1,
+        "blocked": false
+      }
+    },
+    {
+      "id": "switch_4",
+      "type": "switch",
+      "label": "Bag Indexing Conveyor switch",
+      "position": [
+        -2.85,
+        0,
+        2.35
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-bag_at_entry",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "training_accessory_5",
+      "type": "trainingAccessory",
+      "label": "Bag Indexing Conveyor - bag product load",
+      "position": [
+        -1.1,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "bag product load",
+        "catalogAssetId": "training.accessory.bag_product_load.v1"
+      }
+    },
+    {
+      "id": "training_accessory_6",
+      "type": "trainingAccessory",
+      "label": "Bag Indexing Conveyor - reversible drive",
+      "position": [
+        1.1,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "reversible drive",
+        "catalogAssetId": "training.accessory.reversible_drive.v1"
+      }
+    },
+    {
+      "id": "training_accessory_7",
+      "type": "trainingAccessory",
+      "label": "Bag Indexing Conveyor - manual pause station",
+      "position": [
+        3.3000000000000003,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "manual pause station",
+        "catalogAssetId": "training.accessory.manual_pause_station.v1"
+      }
+    },
+    {
+      "id": "switch_8",
+      "type": "switch",
+      "label": "Bag Indexing Conveyor operator input",
+      "position": [
+        -2.4000000000000004,
+        0,
+        4.7
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-bag_at_exit",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "switch_9",
+      "type": "switch",
+      "label": "Bag Indexing Conveyor operator input",
+      "position": [
+        -0.20000000000000007,
+        0,
+        4.7
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-pause_clear",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "indicator_10",
+      "type": "indicator",
+      "label": "Bag Indexing Conveyor output indication",
+      "position": [
+        2,
+        0,
+        4.7
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    },
+    {
+      "id": "indicator_11",
+      "type": "indicator",
+      "label": "Bag Indexing Conveyor output indication",
+      "position": [
+        4.2,
+        0,
+        4.7
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    }
+  ],
+  "simulation": {
+    "type": "booleanPanel",
+    "points": [
+      {
+        "name": "bag_at_entry",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "bag_at_exit",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "pause_clear",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "conveyor_run",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "conveyor_reverse",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      }
+    ],
+    "actions": [
+      {
+        "id": "toggle-bag_at_entry",
+        "label": "Toggle bag at entry",
+        "type": "toggle",
+        "point": "bag_at_entry"
+      },
+      {
+        "id": "toggle-bag_at_exit",
+        "label": "Toggle bag at exit",
+        "type": "toggle",
+        "point": "bag_at_exit"
+      },
+      {
+        "id": "toggle-pause_clear",
+        "label": "Toggle pause clear",
+        "type": "toggle",
+        "point": "pause_clear"
+      }
+    ],
+    "rules": [],
+    "edgeRules": [],
+    "pointBindings": [
+      {
+        "point": "bag_at_entry",
+        "equipmentId": "switch_4",
+        "mode": "switch"
+      },
+      {
+        "point": "bag_at_exit",
+        "equipmentId": "switch_8",
+        "mode": "switch"
+      },
+      {
+        "point": "pause_clear",
+        "equipmentId": "switch_9",
+        "mode": "switch"
+      },
+      {
+        "point": "conveyor_run",
+        "equipmentId": "indicator_10",
+        "mode": "indicator",
+        "activeColor": "green"
+      },
+      {
+        "point": "conveyor_reverse",
+        "equipmentId": "indicator_11",
+        "mode": "indicator",
+        "activeColor": "green"
+      }
+    ]
+  },
+  "training": {
+    "hints": [
+      "Translate the lesson into explicit state and permissive logic: The bag stops at the requested station and reverse motion is permitted only after pause_clear.",
+      "Inputs are simulator feedback (bag_at_entry, bag_at_exit, pause_clear); PLC logic owns conveyor_run, conveyor_reverse.",
+      "Test the initial state, the valid condition, and at least one missing permissive."
+    ],
+    "solution": {
+      "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
+      "steps": [
+        "Require the documented inputs: bag_at_entry, bag_at_exit, pause_clear.",
+        "Command the documented outputs: conveyor_run, conveyor_reverse.",
+        "Remove PLC commands when the permissive is lost."
+      ],
+      "acceptance": "The bag stops at the requested station and reverse motion is permitted only after pause_clear."
+    },
+    "assetRequirements": [
+      "bag product load",
+      "reversible drive",
+      "manual pause station"
+    ],
+    "machineGuide": {
+      "purpose": "A bag is indexed between two sensors, paused for operator action, and restarted from a known direction.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state."
+      ],
+      "normalSequence": [
+        "Apply the requested input condition.",
+        "Verify only the documented PLC outputs respond."
+      ],
+      "stopBehavior": [
+        "Removing the permissive removes PLC-owned commands.",
+        "Reset returns the module to its initial state."
+      ],
+      "faultBehavior": [
+        "A missing or stale input must fail safe and remain diagnosable."
+      ],
+      "expectedObservations": [
+        "The bag stops at the requested station and reverse motion is permitted only after pause_clear."
+      ]
+    },
+    "sequenceNumber": 48,
+    "inheritsFrom": "lab-5-08-drawbridge-control",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout"
+    ],
+    "addedTags": [
+      "bag_at_entry",
+      "bag_at_exit",
+      "pause_clear",
+      "conveyor_run",
+      "conveyor_reverse"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-5-08-drawbridge-control"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "initial-safe-state",
+        "expect": {
+          "conveyor_run": false,
+          "conveyor_reverse": false
+        }
+      }
+    ]
+  }
+}

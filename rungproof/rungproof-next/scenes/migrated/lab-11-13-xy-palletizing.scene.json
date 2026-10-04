@@ -1,0 +1,461 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-11-13-xy-palletizing",
+  "name": "Lab 11.13 - XY Palletizing Cell",
+  "description": "A gantry places cartons at indexed pallet positions and reports a full-layer condition.",
+  "camera": {
+    "position": [
+      11,
+      8,
+      12
+    ],
+    "target": [
+      0,
+      1.1,
+      0
+    ],
+    "fov": 45
+  },
+  "equipment": [
+    {
+      "id": "robotArm_0",
+      "type": "robotArm",
+      "label": "XY Palletizing Cell robot Arm",
+      "position": [
+        -3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "running": false
+      }
+    },
+    {
+      "id": "conveyor_1",
+      "type": "conveyor",
+      "label": "XY Palletizing Cell conveyor",
+      "position": [
+        -1.1,
+        0,
+        0
+      ],
+      "config": {
+        "length": 6.5,
+        "width": 1.4,
+        "deckHeight": 0.9,
+        "beltColor": 2568760,
+        "running": false
+      }
+    },
+    {
+      "id": "box_2",
+      "type": "box",
+      "label": "XY Palletizing Cell box",
+      "position": [
+        1.1,
+        0,
+        0
+      ],
+      "config": {
+        "size": [
+          0.85,
+          0.72,
+          0.72
+        ],
+        "color": 13142603
+      }
+    },
+    {
+      "id": "indicator_3",
+      "type": "indicator",
+      "label": "XY Palletizing Cell indicator",
+      "position": [
+        3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    },
+    {
+      "id": "training_accessory_4",
+      "type": "trainingAccessory",
+      "label": "XY Palletizing Cell - XY gantry",
+      "position": [
+        -3.3000000000000003,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "XY gantry",
+        "catalogAssetId": "training.accessory.xy_gantry.v1"
+      }
+    },
+    {
+      "id": "training_accessory_5",
+      "type": "trainingAccessory",
+      "label": "XY Palletizing Cell - vacuum gripper",
+      "position": [
+        -1.1,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "vacuum gripper",
+        "catalogAssetId": "training.accessory.vacuum_gripper.v1"
+      }
+    },
+    {
+      "id": "training_accessory_6",
+      "type": "trainingAccessory",
+      "label": "XY Palletizing Cell - pallet magazine",
+      "position": [
+        1.1,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "pallet magazine",
+        "catalogAssetId": "training.accessory.pallet_magazine.v1"
+      }
+    },
+    {
+      "id": "training_accessory_7",
+      "type": "trainingAccessory",
+      "label": "XY Palletizing Cell - carton load",
+      "position": [
+        3.3000000000000003,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "carton load",
+        "catalogAssetId": "training.accessory.carton_load.v1"
+      }
+    },
+    {
+      "id": "training_accessory_8",
+      "type": "trainingAccessory",
+      "label": "XY Palletizing Cell - coordinate sensors",
+      "position": [
+        -3.3000000000000003,
+        0,
+        3.6
+      ],
+      "config": {
+        "assetName": "coordinate sensors",
+        "catalogAssetId": "training.accessory.coordinate_sensors.v1"
+      }
+    },
+    {
+      "id": "switch_9",
+      "type": "switch",
+      "label": "XY Palletizing Cell operator input",
+      "position": [
+        -0.20000000000000007,
+        0,
+        4.7
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-carton_at_pick",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "switch_10",
+      "type": "switch",
+      "label": "XY Palletizing Cell operator input",
+      "position": [
+        2,
+        0,
+        4.7
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-gantry_home",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "switch_11",
+      "type": "switch",
+      "label": "XY Palletizing Cell operator input",
+      "position": [
+        4.2,
+        0,
+        4.7
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-pallet_position_valid",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "indicator_12",
+      "type": "indicator",
+      "label": "XY Palletizing Cell output indication",
+      "position": [
+        -1.9500000000000002,
+        0,
+        7.050000000000001
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    },
+    {
+      "id": "indicator_13",
+      "type": "indicator",
+      "label": "XY Palletizing Cell output indication",
+      "position": [
+        0.25,
+        0,
+        7.050000000000001
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    }
+  ],
+  "simulation": {
+    "type": "booleanPanel",
+    "points": [
+      {
+        "name": "carton_at_pick",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "gantry_home",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "pallet_position_valid",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "vacuum_pick",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "gantry_cycle",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "layer_complete",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      }
+    ],
+    "actions": [
+      {
+        "id": "toggle-carton_at_pick",
+        "label": "Toggle carton at pick",
+        "type": "toggle",
+        "point": "carton_at_pick"
+      },
+      {
+        "id": "toggle-gantry_home",
+        "label": "Toggle gantry home",
+        "type": "toggle",
+        "point": "gantry_home"
+      },
+      {
+        "id": "toggle-pallet_position_valid",
+        "label": "Toggle pallet position valid",
+        "type": "toggle",
+        "point": "pallet_position_valid"
+      }
+    ],
+    "rules": [],
+    "edgeRules": [],
+    "pointBindings": [
+      {
+        "point": "carton_at_pick",
+        "equipmentId": "switch_9",
+        "mode": "switch"
+      },
+      {
+        "point": "gantry_home",
+        "equipmentId": "switch_10",
+        "mode": "switch"
+      },
+      {
+        "point": "pallet_position_valid",
+        "equipmentId": "switch_11",
+        "mode": "switch"
+      },
+      {
+        "point": "vacuum_pick",
+        "equipmentId": "indicator_3",
+        "mode": "indicator",
+        "activeColor": "green"
+      },
+      {
+        "point": "gantry_cycle",
+        "equipmentId": "indicator_12",
+        "mode": "indicator",
+        "activeColor": "green"
+      },
+      {
+        "point": "layer_complete",
+        "equipmentId": "indicator_13",
+        "mode": "indicator",
+        "activeColor": "green"
+      }
+    ]
+  },
+  "training": {
+    "hints": [
+      "Translate the lesson into explicit state and permissive logic: A carton is picked only at home and placed only at a valid pallet position.",
+      "Inputs are simulator feedback (carton_at_pick, gantry_home, pallet_position_valid); PLC logic owns vacuum_pick, gantry_cycle, layer_complete.",
+      "Test the initial state, the valid condition, and at least one missing permissive."
+    ],
+    "solution": {
+      "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
+      "steps": [
+        "Require the documented inputs: carton_at_pick, gantry_home, pallet_position_valid.",
+        "Command the documented outputs: vacuum_pick, gantry_cycle, layer_complete.",
+        "Remove PLC commands when the permissive is lost."
+      ],
+      "acceptance": "A carton is picked only at home and placed only at a valid pallet position."
+    },
+    "assetRequirements": [
+      "XY gantry",
+      "vacuum gripper",
+      "pallet magazine",
+      "carton load",
+      "coordinate sensors"
+    ],
+    "machineGuide": {
+      "purpose": "A gantry places cartons at indexed pallet positions and reports a full-layer condition.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state."
+      ],
+      "normalSequence": [
+        "Apply the requested input condition.",
+        "Verify only the documented PLC outputs respond."
+      ],
+      "stopBehavior": [
+        "Removing the permissive removes PLC-owned commands.",
+        "Reset returns the module to its initial state."
+      ],
+      "faultBehavior": [
+        "A missing or stale input must fail safe and remain diagnosable."
+      ],
+      "expectedObservations": [
+        "A carton is picked only at home and placed only at a valid pallet position."
+      ]
+    },
+    "sequenceNumber": 69,
+    "inheritsFrom": "lab-11-12-mobile-traffic-lights",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout"
+    ],
+    "addedTags": [
+      "carton_at_pick",
+      "gantry_home",
+      "pallet_position_valid",
+      "vacuum_pick",
+      "gantry_cycle",
+      "layer_complete"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-11-12-mobile-traffic-lights"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "initial-safe-state",
+        "expect": {
+          "vacuum_pick": false,
+          "gantry_cycle": false,
+          "layer_complete": false
+        }
+      }
+    ]
+  },
+  "migration": {
+    "sourceFile": "prototype/scenes/lab-11-13-xy-palletizing.plcscene",
+    "sourceFormat": "plcscene",
+    "assetMappings": {
+      "conveyor": "material-handling.belt-conveyor.600x6000.v1",
+      "photoeye": "sensing.photoelectric.through-beam.v1",
+      "switch": "controls.operator-station.single-pushbutton.v1",
+      "indicator": "controls.beacon.single-tier.v1",
+      "pusher": "actuation.pneumatic-pusher.1350mm.v1",
+      "motor": "drives.motor.ac-induction.v1",
+      "pipe": "process.pipe.flanged-spool.v1",
+      "tank": "process.tank.vertical-3000x5000.v1",
+      "pump": "process.pump.centrifugal-skid.v1",
+      "valve": "process.valve.actuated-ball.v1",
+      "levelSensor": "sensing.level.analog-4-20ma.v1",
+      "radarLevelSensor": "sensing.level.radar.v1",
+      "rotarySwitch": "controls.operator-station.selector.v1",
+      "fan": "air-handling.fan.axial-1900.v1",
+      "liftTable": "material-handling.lift.scissor-table.v1",
+      "drillPress": "machining.drill-press.pedestal.v1",
+      "robotArm": "robotics.robot.six-axis-medium.v1",
+      "rotaryTable": "material-handling.table.powered-rotary.v1",
+      "rollerShutter": "access-control.door.roller-shutter.v1",
+      "machine": "machining.machine.enclosed-center.v1",
+      "palletLoad": "loads.palletized-cases.gma-48x40.v1",
+      "toteFiller": "process.packaging.filler.tote-volumetric.v1",
+      "toteCapper": "process.packaging.capper.tote-inline.v1",
+      "toteLabeler": "process.packaging.labeler.tote-pressure-sensitive.v1",
+      "toteVision": "inspection.vision.tote-multicamera.v1",
+      "meteringSkid": "process.dosing.skid.liquid-metering.v1",
+      "containerReceiver": "material-handling.receiver.container-two-position.v1",
+      "sizeSensorBank": "sensing.dimensioning.parcel-three-height.v1"
+    },
+    "scenePropTypes": [
+      "box"
+    ],
+    "unresolvedAssetTypes": [
+      "trainingAccessory"
+    ],
+    "visualStatus": "partial",
+    "productionApproved": false,
+    "reason": "Production approval requires every reusable asset and the complete scene to pass visual review."
+  }
+}

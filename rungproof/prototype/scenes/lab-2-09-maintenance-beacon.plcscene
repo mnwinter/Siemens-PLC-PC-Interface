@@ -1,0 +1,262 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-2-09-maintenance-beacon",
+  "name": "Lab 2.9 - Maintenance Beacon Selector",
+  "description": "A four-position selector chooses off, lockout red, service amber, or released green on a maintenance beacon.",
+  "camera": {
+    "position": [
+      10,
+      7,
+      10
+    ],
+    "target": [
+      0,
+      1.2,
+      0
+    ],
+    "fov": 43
+  },
+  "equipment": [
+    {
+      "id": "beacon_selector",
+      "type": "rotarySwitch",
+      "label": "Maintenance state selector",
+      "position": [
+        -1.8,
+        0,
+        0
+      ],
+      "config": {
+        "action": "next-beacon-state",
+        "positionCount": 4,
+        "initialPosition": 0
+      }
+    },
+    {
+      "id": "maintenance_beacon",
+      "type": "indicator",
+      "label": "Maintenance beacon",
+      "position": [
+        0.8,
+        0,
+        0
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": null
+      }
+    }
+  ],
+  "simulation": {
+    "type": "booleanPanel",
+    "points": [
+      {
+        "name": "beacon_position",
+        "type": "DINT",
+        "owner": "PC",
+        "initial": 0
+      },
+      {
+        "name": "red_beacon",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "amber_beacon",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "green_beacon",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      }
+    ],
+    "actions": [
+      {
+        "id": "next-beacon-state",
+        "label": "Advance beacon selector",
+        "type": "cycle",
+        "point": "beacon_position",
+        "values": [
+          0,
+          1,
+          2,
+          3
+        ]
+      }
+    ],
+    "rules": [
+      {
+        "when": {
+          "beacon_position": 0
+        },
+        "set": {}
+      },
+      {
+        "when": {
+          "beacon_position": 1
+        },
+        "set": {
+          "red_beacon": true
+        }
+      },
+      {
+        "when": {
+          "beacon_position": 2
+        },
+        "set": {
+          "amber_beacon": true
+        }
+      },
+      {
+        "when": {
+          "beacon_position": 3
+        },
+        "set": {
+          "green_beacon": true
+        }
+      }
+    ],
+    "edgeRules": [],
+    "pointBindings": [
+      {
+        "point": "beacon_position",
+        "equipmentId": "beacon_selector",
+        "mode": "selector"
+      },
+      {
+        "point": "red_beacon",
+        "equipmentId": "maintenance_beacon",
+        "mode": "indicator",
+        "activeColor": "red"
+      },
+      {
+        "point": "amber_beacon",
+        "equipmentId": "maintenance_beacon",
+        "mode": "indicator",
+        "activeColor": "amber"
+      },
+      {
+        "point": "green_beacon",
+        "equipmentId": "maintenance_beacon",
+        "mode": "indicator",
+        "activeColor": "green"
+      }
+    ]
+  },
+  "training": {
+    "hints": [
+      "Define the required result before writing logic: Each selector position produces exactly the documented beacon state.",
+      "Treat beacon_position as simulator-to-PLC inputs. The PLC should command only red_beacon, amber_beacon, green_beacon.",
+      "List the required input and memory states before assigning any output. Test every state, including the all-false state."
+    ],
+    "solution": {
+      "summary": "This is one valid functional reference. The same behavior may be implemented in LAD, FBD, or SCL; the rung layout is not prescribed.",
+      "steps": [
+        "When beacon_position = 0, set the step is active.",
+        "When beacon_position = 1, set red_beacon = true.",
+        "When beacon_position = 2, set amber_beacon = true.",
+        "When beacon_position = 3, set green_beacon = true."
+      ],
+      "acceptance": "Each selector position produces exactly the documented beacon state."
+    },
+    "machineGuide": {
+      "purpose": "A four-position selector chooses off, lockout red, service amber, or released green on a maintenance beacon.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state.",
+        "The PLC is ready to command red_beacon, amber_beacon, green_beacon."
+      ],
+      "normalSequence": [
+        "Observe the initial input state.",
+        "Apply beacon_position.",
+        "Verify the PLC produces only the required red_beacon, amber_beacon, green_beacon."
+      ],
+      "stopBehavior": [
+        "A normal stop removes PLC-owned commands and leaves the equipment in a safe state.",
+        "Reset returns the scene to its documented initial condition."
+      ],
+      "faultBehavior": [
+        "A missing, stale, or incorrectly typed input must not be replaced by simulator logic.",
+        "A missing PLC command leaves the affected equipment stopped and the test diagnosable."
+      ],
+      "expectedObservations": [
+        "Each selector position produces exactly the documented beacon state."
+      ]
+    },
+    "sequenceNumber": 9,
+    "inheritsFrom": "lab-2-08-inspection-vote",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout"
+    ],
+    "addedTags": [
+      "beacon_position",
+      "red_beacon",
+      "amber_beacon",
+      "green_beacon"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-2-08-inspection-vote"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "off",
+        "expect": {
+          "red_beacon": false,
+          "amber_beacon": false,
+          "green_beacon": false
+        }
+      },
+      {
+        "name": "lockout",
+        "actions": [
+          "next-beacon-state"
+        ],
+        "expect": {
+          "red_beacon": true
+        }
+      },
+      {
+        "name": "service",
+        "actions": [
+          "next-beacon-state",
+          "next-beacon-state"
+        ],
+        "expect": {
+          "amber_beacon": true
+        }
+      },
+      {
+        "name": "released",
+        "actions": [
+          "next-beacon-state",
+          "next-beacon-state",
+          "next-beacon-state"
+        ],
+        "expect": {
+          "green_beacon": true
+        }
+      }
+    ]
+  }
+}

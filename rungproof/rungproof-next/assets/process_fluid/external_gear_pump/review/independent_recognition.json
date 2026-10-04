@@ -1,0 +1,8 @@
+{
+  "assetId": "training.hydraulics.power-unit.external-gear-cutaway.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-114",
+  "identifiedFamily": "Cutaway external gear pump training demonstrator with two meshing spur gears",
+  "confidence": 0.98,
+  "concerns": "Stylized geometry; ports, shaft/seals, bearings, internal flow passages, and pressure-gauge connection are simplified or unclear, while the motor-like cylinder may misleadingly suggest an integrated drive unit",
+  "sourceReview": "build/blind-review-assets/image_114.readable-labels-b.review.md"
+}

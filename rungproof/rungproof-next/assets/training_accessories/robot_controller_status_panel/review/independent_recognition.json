@@ -1,0 +1,10 @@
+{
+  "assetId": "training.accessory.robot_controller_status_panel.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-174",
+  "identifiedFamily": "Robotic pallet-fork end effector for engaging and carrying pallets (identical generic basis model)",
+  "confidence": 0.99,
+  "concerns": "Stylized rendering; fork proportions and attachment geometry are simplified, with no visible robot wrist interface or functional fork insertion details",
+  "sourceReview": "build/blind-review-assets/image_174.robotics-round1.review.md",
+  "sourceAssetId": "robotics.end-effector.fork.adjustable-pallet.v1",
+  "evidenceBasis": "delivery GLB is byte-identical to the independently reviewed generic basis asset"
+}

@@ -1,0 +1,404 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-2-16-safe-drill",
+  "name": "Lab 2.16 - Fixture-Safe Drill Station",
+  "description": "A guarded drill cycle requires a present workpiece and both hand-request inputs before the spindle can descend.",
+  "camera": {
+    "position": [
+      9.5,
+      7.2,
+      10
+    ],
+    "target": [
+      0.5,
+      1.5,
+      0
+    ],
+    "fov": 43
+  },
+  "equipment": [
+    {
+      "id": "safe_drill",
+      "type": "drillPress",
+      "label": "Guarded drill press",
+      "position": [
+        0.7,
+        0,
+        0
+      ],
+      "config": {
+        "travel": 1.3,
+        "initialPosition": 0,
+        "running": false
+      }
+    },
+    {
+      "id": "drill_workpiece",
+      "type": "box",
+      "label": "Clamped workpiece",
+      "position": [
+        1,
+        1.16,
+        0
+      ],
+      "config": {
+        "size": [
+          1.3,
+          0.2,
+          0.9
+        ],
+        "color": 6187891
+      }
+    },
+    {
+      "id": "left_hand_button",
+      "type": "switch",
+      "label": "Left hand request",
+      "position": [
+        -3,
+        0,
+        0
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-left-hand",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "right_hand_button",
+      "type": "switch",
+      "label": "Right hand request",
+      "position": [
+        -1.4,
+        0,
+        0
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-right-hand",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "drill_cycle_button",
+      "type": "switch",
+      "label": "Initiate guarded cycle",
+      "position": [
+        -1,
+        0,
+        1.8
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "start-drill",
+        "color": 3050449
+      }
+    },
+    {
+      "id": "drill_status",
+      "type": "indicator",
+      "label": "Drill status",
+      "position": [
+        3.2,
+        0,
+        -1.5
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "amber"
+      }
+    }
+  ],
+  "simulation": {
+    "type": "sequence",
+    "points": [
+      {
+        "name": "left_hand_request",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "right_hand_request",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "workpiece_present",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": true
+      },
+      {
+        "name": "drill_run",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false
+      },
+      {
+        "name": "drill_at_bottom",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "drill_at_top",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": true
+      },
+      {
+        "name": "cycle_color",
+        "type": "STRING",
+        "owner": "SIM",
+        "initial": "amber"
+      },
+      {
+        "name": "cycle_complete",
+        "type": "BOOL",
+        "owner": "SIM",
+        "initial": false
+      }
+    ],
+    "actions": [
+      {
+        "id": "toggle-left-hand",
+        "label": "Toggle left hand request",
+        "type": "togglePoint",
+        "point": "left_hand_request"
+      },
+      {
+        "id": "toggle-right-hand",
+        "label": "Toggle right hand request",
+        "type": "togglePoint",
+        "point": "right_hand_request"
+      },
+      {
+        "id": "start-drill",
+        "label": "Start guarded drill cycle",
+        "type": "start",
+        "sequence": "drill-cycle",
+        "requires": {
+          "left_hand_request": true,
+          "right_hand_request": true,
+          "workpiece_present": true
+        },
+        "blockedMessage": "Start blocked - workpiece and both hand requests are required"
+      },
+      {
+        "id": "stop-drill",
+        "label": "Stop and retract",
+        "type": "stop"
+      },
+      {
+        "id": "reset-drill",
+        "label": "Reset drill",
+        "type": "reset"
+      }
+    ],
+    "pointBindings": [
+      {
+        "point": "left_hand_request",
+        "equipmentId": "left_hand_button",
+        "mode": "switch"
+      },
+      {
+        "point": "right_hand_request",
+        "equipmentId": "right_hand_button",
+        "mode": "switch"
+      },
+      {
+        "point": "drill_run",
+        "equipmentId": "safe_drill",
+        "mode": "running"
+      },
+      {
+        "point": "cycle_color",
+        "equipmentId": "drill_status",
+        "mode": "indicator"
+      }
+    ],
+    "sequences": {
+      "drill-cycle": [
+        {
+          "name": "spindle start",
+          "durationS": 0.35,
+          "set": {
+            "drill_run": true,
+            "drill_at_top": true,
+            "drill_at_bottom": false,
+            "cycle_complete": false,
+            "cycle_color": "green"
+          }
+        },
+        {
+          "name": "drilling",
+          "durationS": 1.4,
+          "set": {
+            "drill_at_top": false,
+            "cycle_color": "amber"
+          },
+          "motions": [
+            {
+              "type": "position",
+              "equipmentId": "safe_drill",
+              "from": 0,
+              "to": 1
+            }
+          ]
+        },
+        {
+          "name": "bottom dwell",
+          "durationS": 0.35,
+          "set": {
+            "drill_at_bottom": true
+          }
+        },
+        {
+          "name": "retracting",
+          "durationS": 1.4,
+          "set": {
+            "drill_at_bottom": false
+          },
+          "motions": [
+            {
+              "type": "position",
+              "equipmentId": "safe_drill",
+              "from": 1,
+              "to": 0
+            }
+          ]
+        },
+        {
+          "name": "cycle complete",
+          "durationS": 0.1,
+          "set": {
+            "drill_run": false,
+            "drill_at_top": true,
+            "cycle_complete": true,
+            "cycle_color": "amber"
+          }
+        }
+      ]
+    },
+    "defaultSequence": "drill-cycle",
+    "safeState": {
+      "drill_run": false,
+      "cycle_color": "red"
+    },
+    "completionState": {},
+    "conveyorSpeedMps": 0.75
+  },
+  "training": {
+    "hints": [
+      "Define the required result before writing logic: Start is blocked without both requests; a valid cycle drills, retracts, and stops at top.",
+      "Treat left_hand_request, right_hand_request, workpiece_present, drill_at_top, drill_at_bottom as simulator-to-PLC inputs. The PLC should command only drill_run.",
+      "Use a step/state approach and prove the transition order: spindle start \u2192 drilling \u2192 bottom dwell \u2192 retracting \u2192 cycle complete."
+    ],
+    "solution": {
+      "summary": "This is one valid functional reference. The same behavior may be implemented in LAD, FBD, or SCL; the rung layout is not prescribed.",
+      "steps": [
+        "spindle start: drill_run = true.",
+        "drilling: no PLC command changes.",
+        "bottom dwell: no PLC command changes.",
+        "retracting: no PLC command changes.",
+        "cycle complete: drill_run = false."
+      ],
+      "acceptance": "Start is blocked without both requests; a valid cycle drills, retracts, and stops at top."
+    },
+    "machineGuide": {
+      "purpose": "A guarded drill cycle requires a present workpiece and both hand-request inputs before the spindle can descend.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state.",
+        "The PLC is ready to command drill_run."
+      ],
+      "normalSequence": [
+        "spindle start",
+        "drilling",
+        "bottom dwell",
+        "retracting",
+        "cycle complete"
+      ],
+      "stopBehavior": [
+        "A normal stop removes PLC-owned commands and leaves the equipment in a safe state.",
+        "Reset returns the scene to its documented initial condition."
+      ],
+      "faultBehavior": [
+        "A missing, stale, or incorrectly typed input must not be replaced by simulator logic.",
+        "A missing PLC command leaves the affected equipment stopped and the test diagnosable."
+      ],
+      "expectedObservations": [
+        "Start is blocked without both requests; a valid cycle drills, retracts, and stops at top."
+      ]
+    },
+    "sequenceNumber": 16,
+    "inheritsFrom": "lab-2-15-fume-extractor",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout"
+    ],
+    "addedTags": [
+      "left_hand_request",
+      "right_hand_request",
+      "workpiece_present",
+      "drill_run",
+      "drill_at_bottom",
+      "drill_at_top",
+      "cycle_color",
+      "cycle_complete"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-2-15-fume-extractor"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "blocked-without-hands",
+        "phases": [
+          {
+            "action": "start-drill",
+            "runForS": 0.5
+          }
+        ],
+        "expect": {
+          "drill_run": false,
+          "cycle_complete": false
+        }
+      },
+      {
+        "name": "guarded-cycle",
+        "phases": [
+          {
+            "action": "toggle-left-hand"
+          },
+          {
+            "action": "toggle-right-hand"
+          },
+          {
+            "action": "start-drill",
+            "runForS": 4
+          }
+        ],
+        "expect": {
+          "drill_run": false,
+          "drill_at_top": true,
+          "cycle_complete": true
+        }
+      }
+    ]
+  }
+}

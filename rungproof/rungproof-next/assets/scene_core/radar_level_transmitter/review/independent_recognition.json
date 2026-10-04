@@ -1,0 +1,9 @@
+{
+  "assetId": "sensing.level.radar.v1",
+  "reviewerId": "codex-agent-01a0bbaa-5249-7312-a1f2-1b3daaaf25b6",
+  "identifiedFamily": "flange-mounted radar level transmitter with local display and downward-facing horn antenna",
+  "confidence": 0.96,
+  "result": "pass",
+  "reviewRound": 2,
+  "majorDefects": []
+}

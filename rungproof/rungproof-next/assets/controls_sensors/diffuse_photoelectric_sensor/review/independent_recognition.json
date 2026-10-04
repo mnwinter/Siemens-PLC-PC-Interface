@@ -1,0 +1,1 @@
+{"assetId":"sensing.photoelectric.diffuse.v1","reviewerId":"codex-agent-source-blind-diffuse-final-rereview","identifiedFamily":"single-head diffuse-reflective photoelectric object sensor","confidence":0.84,"result":"pass","reviewRound":3,"defects":["Optical return path is subtle.","Connector, cable, and face text are not readable at scene distance."]}

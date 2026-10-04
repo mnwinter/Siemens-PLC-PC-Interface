@@ -1,0 +1,9257 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Text.Json;
+using Godot;
+using RungProof.Next.Catalog;
+using RungProof.Next.Connections;
+using RungProof.Next.Diagnostics;
+using RungProof.Next.Scenes;
+using RungProof.Next.VirtualController;
+using RungProof.Next.Workspace;
+
+namespace RungProof.Next.App;
+
+/// <summary>
+/// Main operator/authoring shell. It presents project data and delegates all
+/// plant behavior to SceneSimulationRuntime; it never owns PLC transport.
+/// </summary>
+public partial class SimulatorShell : CanvasLayer
+{
+    private static TreeItem? FindIndexedTreeRow(Tree tree, int index)
+    {
+        var root = tree.GetRoot();
+        for (var row = root?.GetFirstChild(); row is not null; row = row.GetNext())
+        {
+            if (row.GetMetadata(0).AsString() == $"tag:{index}") return row;
+        }
+        return null;
+    }
+
+    private static void SelectIndexedTreeRow(Tree tree, int index)
+    {
+        FindIndexedTreeRow(tree, index)?.Select(0);
+    }
+
+    private static int SelectedTreeRowIndex(Tree tree)
+    {
+        var metadata = tree.GetSelected()?.GetMetadata(0).AsString() ?? string.Empty;
+        return metadata.StartsWith("tag:", StringComparison.Ordinal)
+            && int.TryParse(metadata.AsSpan(4), out var index) ? index : -1;
+    }
+
+    private readonly AssetCatalogDocument _assets;
+    private readonly SceneCatalogDocument _sceneCatalog;
+    private readonly IReadOnlyList<SceneCatalogEntry> _orderedScenes;
+    private readonly List<SceneCatalogEntry?> _scenarioBrowserRows = [];
+    private static readonly (string Label, string SceneId)[] AuthoredDemos =
+    [
+        ("Demo 1 - Press Count Starter", "lab-4-01-press-count-lamp"),
+        ("Demo 2 - Delayed Lamp Timer", "lab-5-01-delayed-lamp"),
+        ("Demo 3 - Conveyor Sequence", "scene-1-conveyor-stop"),
+        ("Demo 4 - Batch Process Blocks", "lab-9-11-pallet-counting"),
+        ("Demo 5 - Integrated Palletizing Cell Multi-FB/FC", "lab-11-13-xy-palletizing"),
+    ];
+    private readonly IReadOnlyList<DiagnosticIssue> _diagnostics;
+    private readonly IGuardedRuntimeClient _connection;
+    private readonly List<AssetDefinition> _filteredAssets = [];
+    private SceneSimulationRuntime? _runtime;
+    private SceneDefinition? _activeScene;
+    private AssetDefinition? _selectedAsset;
+
+    private ItemList _sceneList = null!;
+    private ItemList _assetList = null!;
+    private LineEdit _assetSearch = null!;
+    private RichTextLabel _inspector = null!;
+    private RichTextLabel _ioInspector = null!;
+    private RichTextLabel _connectionInspector = null!;
+    private OptionButton _fromInstance = null!;
+    private OptionButton _fromConnector = null!;
+    private OptionButton _toInstance = null!;
+    private OptionButton _toConnector = null!;
+    private OptionButton _signalInstance = null!;
+    private OptionButton _signal = null!;
+    private OptionButton _scenePoint = null!;
+    private ItemList _connectorLinkList = null!;
+    private ItemList _signalLinkList = null!;
+    private Label _signalMappingSummary = null!;
+    private PanelContainer _leftDock = null!;
+    private PanelContainer _rightDock = null!;
+    private PanelContainer _diagnosticsDock = null!;
+    private PanelContainer _transportDock = null!;
+    private bool _diagnosticsExpanded;
+    private string _activeSceneName = "Loading project…";
+    private ItemList _diagnosticList = null!;
+    private Label _sceneTitle = null!;
+    private Label _runtimeStatus = null!;
+    private Label _connectionStatus = null!;
+    private Label _cycleStatus = null!;
+    private Label _diagnosticSummary = null!;
+    private Label _workspaceStatus = null!;
+    private Label _transportScene = null!;
+    private RichTextLabel _operatorSceneSummary = null!;
+    private RichTextLabel _operatorRuntimeSummary = null!;
+    private RichTextLabel _operatorEquipment = null!;
+    private RichTextLabel _operatorInputPoints = null!;
+    private RichTextLabel _operatorOutputPoints = null!;
+    private Control _operatorPointTables = null!;
+    private PanelContainer _tagWatchPanel = null!;
+    private ItemList _tagWatchList = null!;
+    private readonly List<string> _watchablePointNames = [];
+    private Button _placeAsset = null!;
+    private Button _viewAsset = null!;
+    private Button _assetHelp = null!;
+    private Button _returnFromAssetPreview = null!;
+    private AcceptDialog _assetHelpDialog = null!;
+    private RichTextLabel _assetHelpContent = null!;
+    private TabContainer _leftTabs = null!;
+    private TabContainer _inspectorTabs = null!;
+    private ItemList _operatorSceneList = null!;
+    private LineEdit _viewerSearch = null!;
+    private ItemList _viewerHierarchy = null!;
+    private readonly List<(string Kind, string Id)> _viewerItems = [];
+    private Button _viewerReturn = null!;
+    private VBoxContainer _operatorActions = null!;
+    private RichTextLabel _operatorHealth = null!;
+    private readonly Dictionary<string, Button> _productViewButtons = [];
+    private Button? _sceneQuickTab;
+    private Button? _logicQuickTab;
+    private string _productView = "classic";
+    private ItemList _workspaceList = null!;
+    private readonly List<IReadOnlyList<string>> _workspaceListSelectionTargets = [];
+    private Button _deletePlacement = null!;
+    private Button _undo = null!;
+    private Button _redo = null!;
+    private CheckButton _snapEnabled = null!;
+    private SpinBox _positionSnap = null!;
+    private SpinBox _rotationSnap = null!;
+    private readonly SpinBox[] _positionInputs = new SpinBox[3];
+    private readonly SpinBox[] _rotationInputs = new SpinBox[3];
+    private readonly SpinBox[] _scaleInputs = new SpinBox[3];
+    private IReadOnlyList<WorkspacePlacement> _workspacePlacements = [];
+    private string? _selectedPlacementId;
+    private readonly HashSet<string> _selectedPlacementIds = new(StringComparer.Ordinal);
+    private bool _updatingTransformInputs;
+    private IReadOnlyList<WorkspaceConnectorLink> _connectorLinks = [];
+    private IReadOnlyList<WorkspaceSignalLink> _signalLinks = [];
+    private IReadOnlyDictionary<string, SignalMappingRuntimeStatus> _signalStatuses =
+        new Dictionary<string, SignalMappingRuntimeStatus>();
+    private readonly Dictionary<WorkspaceTransformMode, Button> _transformModeButtons = [];
+    private readonly Dictionary<WorkspaceTransformSpace, Button> _transformSpaceButtons = [];
+    private IReadOnlyList<WorkspaceGroup> _workspaceGroups = [];
+    private Panel _selectionMarquee = null!;
+    private MenuButton _arrangeMenu = null!;
+    private ConfirmationDialog _renameGroupDialog = null!;
+    private LineEdit _renameGroupInput = null!;
+    private string? _renameGroupId;
+    private ConfirmationDialog _pivotDialog = null!;
+    private readonly SpinBox[] _pivotInputs = new SpinBox[3];
+    private CheckBox _centroidPivot = null!;
+    private string? _pivotGroupId;
+    private AcceptDialog _simulatorModeDialog = null!;
+    private AcceptDialog _workspaceFeedbackDialog = null!;
+    private Label _virtualControllerStatus = null!;
+    private RichTextLabel _virtualControllerLadder = null!;
+    private RichTextLabel _virtualControllerVariables = null!;
+    private OptionButton _virtualForceVariable = null!;
+    private OptionButton _virtualForceValue = null!;
+    private Label _virtualForceStatus = null!;
+    private LadderProgram? _virtualProgram;
+    private VirtualControllerSnapshot? _virtualSnapshot;
+    private PanelContainer _ladderWorkspace = null!;
+    private Panel _splitDivider = null!;
+    private float _splitDividerRatio = 0.27f;
+    private bool _draggingSplitDivider;
+    private bool _draggingInstruction;
+    private string _draggedInstructionKind = string.Empty;
+    private LadderEditorCanvas? _draggedInstructionCanvas;
+    private TabContainer _ladderEnvironmentTabs = null!;
+    private Label _ladderWorkspaceStatus = null!;
+    private readonly LadderEditorDocument _ladderDocument = LadderEditorDocument.CreateConveyorExample();
+    private readonly LadderEditorHistory _ladderHistory = new(150);
+    private readonly List<LadderEditorCanvas> _ladderCanvases = [];
+    private EditableRung? _ladderRungClipboard;
+    private EditableContact? _ladderContactClipboard;
+    private bool _ladderMonitorMatchesLoadedProgram;
+    private readonly List<Action> _ladderEditorRefreshers = [];
+    private readonly List<Action<VirtualControllerSnapshot?>> _ladderWatchRefreshers = [];
+    private FileDialog _ladderSaveDialog = null!;
+    private FileDialog _ladderLoadDialog = null!;
+    private FileDialog _workspaceSaveDialog = null!;
+    private FileDialog _workspaceLoadDialog = null!;
+    private string? _ladderSavedProjectJson;
+    private string? _ladderProjectPath;
+    private AcceptDialog _applicationSettingsDialog = null!;
+    private AcceptDialog _externalPlcDialog = null!;
+    private OptionButton _externalProfileSelector = null!;
+    private RichTextLabel _externalProfileDetails = null!;
+    private CheckButton _externalAuthorization = null!;
+    private bool _externalMode;
+    private CheckButton _mcpUiEnabled = null!;
+    private CheckButton _showSafetyNotices = null!;
+    private PopupMenu _toolsPopup = null!;
+    private const int McpToggleMenuId = 100;
+    private const int ApplicationSettingsMenuId = 101;
+    private const string SettingsPath = "user://rungproof-settings.json";
+
+    public event Action<string>? SceneRequested;
+    public event Action<AssetDefinition>? AssetPlacementRequested;
+    /// <summary>
+    /// Requests a read-only, isolated render of the selected catalog model.
+    /// This does not place an object or alter the authored workspace.
+    /// </summary>
+    public event Action<AssetDefinition>? AssetPreviewRequested;
+    public event Action? AssetPreviewClosed;
+    public event Action? SaveWorkspaceRequested;
+    public event Action? LoadWorkspaceRequested;
+    public event Action<string>? SaveWorkspaceToPathRequested;
+    public event Action<string>? LoadWorkspaceFromPathRequested;
+    public event Action<IReadOnlyList<string>>? PlacementSelectionSetRequested;
+    public event Action<string, Vector3, Vector3, Vector3>? PlacementTransformRequested;
+    public event Action? UndoRequested;
+    public event Action? RedoRequested;
+    public event Action? DuplicateSelectionRequested;
+    public event Action? CopySelectionRequested;
+    public event Action? PasteSelectionRequested;
+    public event Action? DeleteSelectionRequested;
+    public event Action? GroupSelectionRequested;
+    public event Action? UngroupSelectionRequested;
+    public event Action<string, string>? RenameGroupRequested;
+    public event Action<string, double[]?>? GroupPivotRequested;
+    public event Action<string>? FocusPlacementRequested;
+    public event Action<string>? ResetPlacementTransformRequested;
+    public event Action<bool, double, double>? SnapSettingsChanged;
+    public event Action<WorkspaceTransformMode>? TransformModeRequested;
+    public event Action<WorkspaceTransformSpace>? TransformSpaceRequested;
+    public event Action<WorkspaceArrangeOperation>? ArrangeSelectionRequested;
+    public event Action<string, string, string, string>? ConnectorLinkRequested;
+    public event Action<string, string, string>? SignalLinkRequested;
+    public event Action<string>? ConnectorLinkDeleteRequested;
+    public event Action<string>? SignalLinkDeleteRequested;
+    public event Action? RunRequested;
+    public event Action? StopRequested;
+    public event Action? ResetRequested;
+    public event Action? VirtualControllerDemoRequested;
+    public event Action<LadderProgram>? VirtualControllerProgramRequested;
+    public event Action? VirtualControllerDisabled;
+    public event Action<string, bool>? VirtualForceRequested;
+    public event Action<string>? VirtualForceRemoveRequested;
+    public event Action? VirtualForceClearRequested;
+    public event Action? VirtualStartRequested;
+    public event Action? VirtualStopRequested;
+    public event Action<string>? ProductViewChanged;
+
+    public SimulatorShell(
+        AssetCatalogDocument assets,
+        SceneCatalogDocument sceneCatalog,
+        IReadOnlyList<DiagnosticIssue> diagnostics,
+        IGuardedRuntimeClient connection
+    )
+    {
+        _assets = assets;
+        _sceneCatalog = sceneCatalog;
+        _orderedScenes = sceneCatalog.Scenes
+            .OrderBy(ScenarioSortGroup)
+            .ThenBy(scene => ScenarioSortGroup(scene) == 2
+                ? ScenarioDemoIndex(scene)
+                : 0)
+            .ThenBy(ScenarioSortMajor)
+            .ThenBy(ScenarioSortMinor)
+            .ThenBy(scene => scene.Name, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+        _diagnostics = diagnostics;
+        _connection = connection;
+        Name = "SimulatorShell";
+    }
+
+    public override void _Ready()
+    {
+        BuildInterface();
+        PopulateScenes();
+        FilterAssets(string.Empty);
+        FilterViewerHierarchy(string.Empty);
+        PopulateDiagnostics();
+        RefreshConnection();
+        _connection.StateChanged += RefreshConnection;
+    }
+
+    public override void _ExitTree()
+    {
+        _connection.StateChanged -= RefreshConnection;
+        if (_runtime is not null)
+        {
+            _runtime.StateChanged -= RefreshRuntimeState;
+        }
+    }
+
+    public override void _Input(InputEvent input)
+    {
+        if (_draggingInstruction && _draggedInstructionCanvas is not null)
+        {
+            var canvas = _draggedInstructionCanvas;
+            if (input is InputEventMouseMotion dragMotion)
+            {
+                var local = canvas.GetGlobalTransformWithCanvas().AffineInverse() * dragMotion.Position;
+                canvas.PreviewInsertionAt(local);
+                GetViewport().SetInputAsHandled();
+                return;
+            }
+            if (input is InputEventMouseButton { ButtonIndex: MouseButton.Left, Pressed: false } release)
+            {
+                var local = canvas.GetGlobalTransformWithCanvas().AffineInverse() * release.Position;
+                canvas.DropInstructionAt(_draggedInstructionKind, local);
+                _draggingInstruction = false;
+                _draggedInstructionKind = string.Empty;
+                _draggedInstructionCanvas = null;
+                GetViewport().SetInputAsHandled();
+                return;
+            }
+        }
+
+        if (_productView != "split" || _splitDivider is null) return;
+
+        if (input is InputEventMouseButton { ButtonIndex: MouseButton.Left } button)
+        {
+            if (button.Pressed && _splitDivider.GetGlobalRect().HasPoint(button.Position))
+            {
+                _draggingSplitDivider = true;
+                GetViewport().SetInputAsHandled();
+            }
+            else if (!button.Pressed && _draggingSplitDivider)
+            {
+                _draggingSplitDivider = false;
+                GetViewport().SetInputAsHandled();
+            }
+            return;
+        }
+
+        if (input is InputEventMouseMotion motion && _draggingSplitDivider)
+        {
+            var viewport = GetViewport().GetVisibleRect();
+            var width = viewport.Size.X;
+            if (width > 0.0f)
+            {
+                var minimumLadderWidth = _ladderWorkspace.GetCombinedMinimumSize().X + 16.0f;
+                var maximumRatio = 1.0f - minimumLadderWidth / width;
+                var minimumRatio = Mathf.Clamp(320.0f / width, 0.18f, 0.42f);
+                _splitDividerRatio = Mathf.Clamp(
+                    (motion.Position.X - viewport.Position.X) / width,
+                    minimumRatio,
+                    Mathf.Max(minimumRatio, maximumRatio));
+                ApplySplitLayout();
+                GetViewport().SetInputAsHandled();
+            }
+        }
+    }
+
+    public void AttachScene(
+        SceneDefinition scene,
+        SceneSimulationRuntime runtime,
+        SceneComposition composition
+    )
+    {
+        if (_runtime is not null)
+        {
+            _runtime.StateChanged -= RefreshRuntimeState;
+        }
+        _activeScene = scene;
+        _activeSceneName = ScenarioDisplayName(scene);
+        _runtime = runtime;
+        _runtime.StateChanged += RefreshRuntimeState;
+        LoadAuthoredDemoLadder(scene.Id);
+        AlignDefaultConveyorBindings(scene);
+        _sceneTitle.Text = _activeSceneName;
+        _selectedAsset = null;
+        _placeAsset.Disabled = true;
+        RefreshSceneInspector(composition);
+        RefreshIoInspector();
+        RefreshRuntimeState();
+        RefreshOperatorPanels();
+        RefreshOperatorPointTables();
+        UpdateWorkspace([], null, canUndo: false, canRedo: false, [], []);
+        foreach (var refresh in _ladderEditorRefreshers) refresh();
+    }
+
+    private void LoadAuthoredDemoLadder(string sceneId)
+    {
+        if (!AuthoredDemoLadderPrograms.TryCreate(sceneId, out var authoredProgram)) return;
+
+        _ladderDocument.RestoreSnapshot(authoredProgram.CaptureSnapshot());
+        _ladderSavedProjectJson = LadderEditorProjectJson.Save(_ladderDocument);
+        _ladderHistory.Clear();
+        _ladderRungClipboard = null;
+        _ladderContactClipboard = null;
+        if (_ladderWorkspaceStatus is not null)
+        {
+            var blockSummary = string.Join(", ", _ladderDocument.Blocks
+                .Select(block => block.BlockType switch
+                {
+                    LadderBlockType.OrganizationBlock => "OB",
+                    LadderBlockType.FunctionBlock => "FB",
+                    LadderBlockType.Function => "FC",
+                    LadderBlockType.DataBlock => "DB",
+                    _ => "BLOCK",
+                }));
+            _ladderWorkspaceStatus.Text = $"AUTHORED LADDER LOADED · {blockSummary}";
+            _ladderWorkspaceStatus.AddThemeColorOverride("font_color", new Color("65d49a"));
+        }
+    }
+
+    private void AlignDefaultConveyorBindings(SceneDefinition scene)
+    {
+        // The editor keeps stable ladder symbols for training, while bindings
+        // must match the symbolic points declared by the active scene.
+        var photoeyeBinding = scene.Id == "conveyor-cell"
+            ? "photoeye_blocked"
+            : "simulated_photoeye";
+        var conveyorBinding = scene.Id == "conveyor-cell"
+            ? "conveyor_run"
+            : "conveyor_running";
+
+        var photoeye = _ladderDocument.Tags.FirstOrDefault(tag => tag.Name == "simulated_photoeye");
+        if (photoeye is not null && !photoeye.Binding.Equals(photoeyeBinding, StringComparison.Ordinal))
+        {
+            _ladderDocument.UpdateTag(photoeye.Name, photoeye.Name, photoeye.Type, photoeye.Role,
+                photoeyeBinding, photoeye.InitialValue);
+        }
+
+        var conveyor = _ladderDocument.Tags.FirstOrDefault(tag => tag.Name == "conveyor_running");
+        if (conveyor is not null && !conveyor.Binding.Equals(conveyorBinding, StringComparison.Ordinal))
+        {
+            _ladderDocument.UpdateTag(conveyor.Name, conveyor.Name, conveyor.Type, conveyor.Role,
+                conveyorBinding, conveyor.InitialValue);
+        }
+    }
+
+    public bool VerifyStructure(out string result)
+    {
+        var required = new[]
+        {
+            "Workspace/Toolbar/ToolbarMargin/ToolbarRow/FileMenu",
+            "Workspace/Toolbar/ToolbarMargin/ToolbarRow/ViewMenu",
+            "Workspace/Toolbar/ToolbarMargin/ToolbarRow/PlaybackMenu",
+            "Workspace/Toolbar/ToolbarMargin/ToolbarRow/SceneMenu",
+            "Workspace/Toolbar/ToolbarMargin/ToolbarRow/ToolsMenu",
+            "Workspace/Toolbar/ToolbarMargin/ToolbarRow/PlcMenu",
+            "Workspace/Toolbar/ToolbarMargin/ToolbarRow/HelpMenu",
+            "Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/TIA Portal",
+            "Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/Studio 5000",
+            "Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/TIA Portal/Workbench/EditorAndTasks/EditorAndInspector/ProgramEditor/InstructionToolbarChrome/InstructionToolbar/InstructionPalette/Bit Logic/AddNormallyOpen",
+            "Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/TIA Portal/Workbench/EditorAndTasks/EditorAndInspector/ProgramEditor/InstructionToolbarChrome/InstructionToolbar/InstructionPalette/Bit Logic/AddNormallyClosed",
+            "Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/TIA Portal/Workbench/EditorAndTasks/EditorAndInspector/ProgramEditor/InstructionToolbarChrome/InstructionToolbar/InstructionPalette/Bit Logic/AddBranch",
+            "Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/TIA Portal/Workbench/EditorAndTasks/EditorAndInspector/ProgramEditor/RoutineView/GraphicalLadderCanvas",
+            "Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/Studio 5000/Workbench/EditorAndTasks/EditorAndInspector/ProgramEditor/RoutineView/GraphicalLadderCanvas",
+            "Workspace/Transport/TransportMargin/TransportRow/RunButton",
+            "Workspace/Transport/TransportMargin/TransportRow/StopButton",
+            "Workspace/Transport/TransportMargin/TransportRow/ResetButton",
+            "Workspace/Transport/TransportMargin/TransportRow/SaveButton",
+            "Workspace/Transport/TransportMargin/TransportRow/LoadButton",
+            "Workspace/LeftDock/LeftTabs/Scenes/SceneList",
+             "Workspace/LeftDock/LeftTabs/Assets/AssetList",
+             "Workspace/LeftDock/LeftTabs/Assets/ViewAssetButton",
+             "Workspace/LeftDock/LeftTabs/Assets/AssetHelpButton",
+             "Workspace/LeftDock/LeftTabs/Assets/ReturnFromAssetPreviewButton",
+             "AssetHelpDialog",
+             "AssetHelpDialog/AssetHelpScroll/AssetHelpContent",
+            "Workspace/LeftDock/LeftTabs/Workspace/WorkspaceList",
+            "Workspace/LeftDock/LeftTabs/Workspace/EditorButtons/UndoButton",
+            "Workspace/LeftDock/LeftTabs/Workspace/EditorButtons/RedoButton",
+            "Workspace/LeftDock/LeftTabs/Workspace/EditorButtons/ArrangeMenu",
+            "Workspace/LeftDock/LeftTabs/Workspace/DeletePlacementButton",
+            "Workspace/LeftDock/LeftTabs/Workspace/ObjectButtons/DuplicatePlacementButton",
+            "Workspace/LeftDock/LeftTabs/Workspace/ObjectButtons/FocusPlacementButton",
+            "Workspace/LeftDock/LeftTabs/Workspace/SnapSettings/SnapEnabled",
+            "Workspace/LeftDock/LeftTabs/Workspace/TransformModes/MoveModeButton",
+            "Workspace/LeftDock/LeftTabs/Workspace/TransformModes/RotateModeButton",
+            "Workspace/LeftDock/LeftTabs/Workspace/TransformModes/ScaleModeButton",
+            "Workspace/LeftDock/LeftTabs/Workspace/ClipboardButtons/CopySelectionButton",
+            "Workspace/LeftDock/LeftTabs/Workspace/ClipboardButtons/PasteSelectionButton",
+            "Workspace/LeftDock/LeftTabs/Workspace/GroupButtons/GroupSelectionButton",
+            "Workspace/LeftDock/LeftTabs/Workspace/GroupButtons/UngroupSelectionButton",
+            "Workspace/LeftDock/LeftTabs/Workspace/GroupButtons/RenameGroupButton",
+            "Workspace/LeftDock/LeftTabs/Workspace/GroupButtons/PivotGroupButton",
+            "Workspace/LeftDock/LeftTabs/Workspace/TransformSpace/WorldSpaceButton",
+            "Workspace/LeftDock/LeftTabs/Workspace/TransformSpace/LocalSpaceButton",
+            "Workspace/RightDock/InspectorTabs/Inspector",
+            "Workspace/RightDock/InspectorTabs/Signals",
+            "Workspace/RightDock/InspectorTabs/Connections",
+            "Workspace/RightDock/InspectorTabs/Connections/ConnectionEditorBody/SignalMappingSummary",
+            "Workspace/RightDock/InspectorTabs/PLC",
+            "Workspace/RightDock/InspectorTabs/Virtual Controller",
+            "Workspace/LeftDock/LeftTabs/Operator/OperatorSceneSummary",
+            "Workspace/LeftDock/LeftTabs/Operator/OperatorRuntimeSummary",
+            "Workspace/RightDock/InspectorTabs/Health/OperatorEquipment",
+            "Workspace/RightDock/InspectorTabs/Health/OperatorHealth",
+            "Workspace/DiagnosticsDock/DiagnosticsBody/DiagnosticList",
+            "Workspace/DiagnosticsDock/DiagnosticsBody/DiagnosticsHeader/DiagnosticsToggle",
+            "Workspace/SelectionMarquee",
+        };
+        var missing = required.Where(path => GetNodeOrNull(path) is null).ToArray();
+        var errors = new List<string>();
+        if (missing.Length > 0) errors.Add($"missing nodes: {string.Join(", ", missing)}");
+        var scenarioRows = _scenarioBrowserRows.Count(scene => scene is not null);
+        if (scenarioRows != _sceneCatalog.Scenes.Count)
+            errors.Add($"scene list {scenarioRows}/{_sceneCatalog.Scenes.Count}");
+        if (_assetList.ItemCount != _assets.Assets.Count)
+            errors.Add($"asset list {_assetList.ItemCount}/{_assets.Assets.Count}");
+        var lab21Index = _orderedScenes.ToList().FindIndex(scene => scene.Name.StartsWith("Lab 2.1 ", StringComparison.Ordinal));
+        var lab101Index = _orderedScenes.ToList().FindIndex(scene => scene.Name.StartsWith("Lab 10.1 ", StringComparison.Ordinal));
+        if (lab21Index < 0 || lab101Index < 0 || lab21Index >= lab101Index)
+            errors.Add($"scenario numeric order missing: lab2.1={lab21Index} lab10.1={lab101Index}");
+        var scenarioMenu = GetNodeOrNull<MenuButton>("Workspace/Toolbar/ToolbarMargin/ToolbarRow/SceneMenu");
+        var scenarioPopup = scenarioMenu?.GetPopup();
+        var demoMenuItems = scenarioPopup is null
+            ? 0
+            : Enumerable.Range(0, scenarioPopup.GetItemCount())
+                .Count(index => scenarioPopup.GetItemText(index).StartsWith("Demo ", StringComparison.Ordinal));
+        var demoMenuOrder = scenarioPopup is null
+            ? []
+            : Enumerable.Range(0, scenarioPopup.GetItemCount())
+                .Select(index => scenarioPopup.GetItemText(index))
+                .Where(label => label.StartsWith("Demo ", StringComparison.Ordinal))
+                .ToArray();
+        var expectedDemoOrder = AuthoredDemos.Select(demo => demo.Label).ToArray();
+        var groupMenuItems = scenarioPopup is null
+            ? 0
+            : new[] { "USER CREATED", "LABS", "DEMOS" }
+                .Count(group => Enumerable.Range(0, scenarioPopup.GetItemCount())
+                    .Any(index => scenarioPopup.GetItemText(index) == group));
+        if (scenarioMenu is null
+            || scenarioMenu.Text != "Scenario"
+            || scenarioPopup is null
+            || scenarioPopup.GetItemText(0) != "Scenario Browser"
+            || demoMenuItems != AuthoredDemos.Length
+            || !demoMenuOrder.SequenceEqual(expectedDemoOrder, StringComparer.Ordinal)
+            || groupMenuItems != 3
+            || _sceneQuickTab?.Text != "SCENARIO"
+            || _leftTabs.GetTabTitle(1) != "Scenarios")
+            errors.Add($"scenario menu contract missing: menu={scenarioMenu?.Text ?? "<missing>"} demos={demoMenuItems}/{AuthoredDemos.Length} order={string.Join(" | ", demoMenuOrder)} groups={groupMenuItems}/3");
+        var toolbarRow = GetNodeOrNull<HBoxContainer>("Workspace/Toolbar/ToolbarMargin/ToolbarRow");
+        var titleIndex = _sceneTitle?.GetIndex() ?? -1;
+        var sceneTabIndex = _sceneQuickTab?.GetIndex() ?? -1;
+        var logicTabIndex = _logicQuickTab?.GetIndex() ?? -1;
+        if (toolbarRow is null
+            || titleIndex < 0
+            || sceneTabIndex <= titleIndex
+            || logicTabIndex <= sceneTabIndex)
+            errors.Add($"view tabs are not ordered after scene title: title={titleIndex} scenario={sceneTabIndex} logic={logicTabIndex}");
+        if (!_sceneList.HasThemeColorOverride("font_selected_color")
+            || !_sceneList.HasThemeStyleboxOverride("selected")
+            || !_assetList.HasThemeColorOverride("font_selected_color")
+            || !_workspaceList.HasThemeStyleboxOverride("selected"))
+            errors.Add("browser selection contrast contract is missing");
+        if (_connection.State != ConnectionState.Disconnected)
+            errors.Add($"unsafe default connection state: {_connection.State}");
+        if (_activeScene is null || _runtime is null) errors.Add("no active scene/runtime");
+        if (_activeScene?.Id == "lab-11-13-xy-palletizing")
+        {
+            if (_sceneTitle?.Text != AuthoredDemos[4].Label)
+                errors.Add($"starting scenario title is stale: {_sceneTitle?.Text ?? "<missing>"}");
+            var cartonBinding = _ladderDocument.Tags.FirstOrDefault(tag => tag.Name == "carton_at_pick")?.Binding;
+            var vacuumBinding = _ladderDocument.Tags.FirstOrDefault(tag => tag.Name == "vacuum_pick")?.Binding;
+            var hasFunctionBlock = _ladderDocument.Blocks.Any(block => block.BlockType == LadderBlockType.FunctionBlock);
+            var hasFunction = _ladderDocument.Blocks.Any(block => block.BlockType == LadderBlockType.Function);
+            if (cartonBinding != "carton_at_pick" || vacuumBinding != "vacuum_pick")
+                errors.Add($"starting-scene bindings are stale: carton={cartonBinding ?? "<missing>"} vacuum={vacuumBinding ?? "<missing>"}");
+            if (!hasFunctionBlock || !hasFunction || _ladderDocument.Blocks.Count < 6)
+                errors.Add($"Demo 5 ladder complexity missing: blocks={_ladderDocument.Blocks.Count} FB={hasFunctionBlock} FC={hasFunction}");
+        }
+        foreach (var demo in AuthoredDemos)
+        {
+            if (!AuthoredDemoLadderPrograms.TryCreate(demo.SceneId, out var demoDocument))
+            {
+                errors.Add($"authored ladder missing: {demo.Label}");
+                continue;
+            }
+            if (demoDocument.SourceSceneId != demo.SceneId)
+                errors.Add($"authored ladder scene mismatch: {demo.Label} -> {demoDocument.SourceSceneId}");
+            var compile = LadderCompiler.Compile(demoDocument.BuildProgram());
+            if (!compile.IsValid)
+                errors.Add($"authored ladder invalid: {demo.Label} ({string.Join(", ", compile.Issues.Select(issue => issue.Code))})");
+        }
+        if (_productView != "operator" || !_leftDock.Visible || !_rightDock.Visible
+            || !_diagnosticsDock.Visible || !_transportDock.Visible)
+            errors.Add("original operator-console layout is not the visible default");
+        result = errors.Count == 0
+            ? $"scenes={scenarioRows} groups=3 demos={AuthoredDemos.Length} assets={_assetList.ItemCount} diagnostics={_diagnostics.Count} connection={_connection.State.ToString().ToUpperInvariant()}"
+            : string.Join("; ", errors);
+        return errors.Count == 0;
+    }
+
+    public bool VerifyLayout(out string result)
+    {
+        var errors = new List<string>();
+        var viewport = GetViewport().GetVisibleRect();
+        var toolbar = GetNode<Control>("Workspace/Toolbar").GetGlobalRect();
+        var left = _leftDock.GetGlobalRect();
+        var right = _rightDock.GetGlobalRect();
+        var diagnostics = _diagnosticsDock.GetGlobalRect();
+        var centerWidth = right.Position.X - left.End.X;
+        var centerHeight = diagnostics.Position.Y - toolbar.End.Y;
+        if (viewport.Size.X < 1200 || viewport.Size.Y < 675)
+            errors.Add($"logical viewport too small: {viewport.Size.X:0}x{viewport.Size.Y:0}");
+        if (toolbar.End.Y > left.Position.Y + 4.0f || toolbar.End.Y > right.Position.Y + 4.0f)
+            errors.Add($"toolbar overlaps side docks: toolbarEnd={toolbar.End.Y:0.##} sideTop={left.Position.Y:0.##}");
+        if (left.End.Y > diagnostics.Position.Y + 4.0f || right.End.Y > diagnostics.Position.Y + 4.0f)
+            errors.Add($"side dock overlaps diagnostics: sideEnd={left.End.Y:0.##} diagnosticsTop={diagnostics.Position.Y:0.##}");
+        if (left.End.X > right.Position.X)
+            errors.Add("left and right docks overlap");
+        if (centerWidth < 480 || centerHeight < 420)
+            errors.Add($"3D viewport aperture is too small: {centerWidth:0}x{centerHeight:0}");
+        foreach (var path in new[]
+                 {
+                     "Workspace/Transport/TransportMargin/TransportRow/RunButton",
+                     "Workspace/Transport/TransportMargin/TransportRow/StopButton",
+                     "Workspace/Transport/TransportMargin/TransportRow/ResetButton",
+                     "Workspace/Transport/TransportMargin/TransportRow/SaveButton",
+                     "Workspace/Transport/TransportMargin/TransportRow/LoadButton",
+                 })
+        {
+            var rect = GetNode<Control>(path).GetGlobalRect();
+            if (rect.Position.X < viewport.Position.X || rect.End.X > viewport.End.X
+                || rect.Position.Y < viewport.Position.Y || rect.End.Y > viewport.End.Y)
+                errors.Add($"transport control outside viewport: {path}");
+        }
+        var connectionPanel = GetNode<Control>("Workspace/RightDock/InspectorTabs/Connections").GetGlobalRect();
+        foreach (var path in new[]
+                 {
+                     "Workspace/RightDock/InspectorTabs/Connections/ConnectionEditorBody/CreateConnectorLink",
+                     "Workspace/RightDock/InspectorTabs/Connections/ConnectionEditorBody/DeleteConnectorLink",
+                     "Workspace/RightDock/InspectorTabs/Connections/ConnectionEditorBody/CreateSignalLink",
+                     "Workspace/RightDock/InspectorTabs/Connections/ConnectionEditorBody/SignalLinks",
+                     "Workspace/RightDock/InspectorTabs/Connections/ConnectionEditorBody/SignalMappingSummary",
+                     "Workspace/RightDock/InspectorTabs/Connections/ConnectionEditorBody/DeleteSignalLink",
+                 })
+        {
+            var rect = GetNode<Control>(path).GetGlobalRect();
+            if (rect.Position.X < connectionPanel.Position.X - 2.0f
+                || rect.End.X > connectionPanel.End.X + 2.0f
+                || rect.Position.Y < connectionPanel.Position.Y - 2.0f
+                || rect.End.Y > connectionPanel.End.Y + 2.0f)
+                errors.Add($"connection control clipped or requires scrolling: {path}");
+        }
+        _leftTabs.CurrentTab = 3;
+        var workspacePanel = GetNode<Control>("Workspace/LeftDock/LeftTabs/Workspace").GetGlobalRect();
+        foreach (var path in new[]
+                 {
+                     "Workspace/LeftDock/LeftTabs/Workspace/TransformModes/MoveModeButton",
+                     "Workspace/LeftDock/LeftTabs/Workspace/ObjectButtons/DuplicatePlacementButton",
+                     "Workspace/LeftDock/LeftTabs/Workspace/ClipboardButtons/PasteSelectionButton",
+                     "Workspace/LeftDock/LeftTabs/Workspace/SnapSettings/SnapEnabled",
+                     "Workspace/LeftDock/LeftTabs/Workspace/DeletePlacementButton",
+                 })
+        {
+            var rect = GetNode<Control>(path).GetGlobalRect();
+            if (rect.Position.X < workspacePanel.Position.X - 2.0f
+                || rect.End.X > workspacePanel.End.X + 2.0f
+                || rect.Position.Y < workspacePanel.Position.Y - 2.0f
+                || rect.End.Y > workspacePanel.End.Y + 2.0f)
+                errors.Add($"workspace control clipped: {path}");
+        }
+        result = errors.Count == 0
+            ? $"logical={viewport.Size.X:0}x{viewport.Size.Y:0} toolbarEnd={toolbar.End.Y:0.##} sideTop={left.Position.Y:0.##} aperture={centerWidth:0}x{centerHeight:0} diagnostics={diagnostics.Size.Y:0}"
+            : string.Join("; ", errors);
+        return errors.Count == 0;
+    }
+
+    public bool VerifySplitLayout(out string result)
+    {
+        SetProductView("split");
+        var errors = new List<string>();
+        var viewport = GetViewport().GetVisibleRect();
+        var toolbar = GetNode<Control>("Workspace/Toolbar").GetGlobalRect();
+        var ladder = _ladderWorkspace.GetGlobalRect();
+        var scene = SceneViewportRect();
+        var ladderCanvas = GetNodeOrNull<Control>(
+            "Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/TIA Portal/Workbench/EditorAndTasks/EditorAndInspector/ProgramEditor/RoutineView/GraphicalLadderCanvas");
+        if (!_ladderWorkspace.Visible) errors.Add("ladder split panel is hidden");
+        if (ladder.Position.X <= viewport.Position.X + 100.0f)
+            errors.Add($"ladder pane is not on the right: x={ladder.Position.X:0.##}");
+        if (ladder.Position.Y < toolbar.End.Y - 1.0f)
+            errors.Add($"ladder pane overlaps toolbar: toolbarEnd={toolbar.End.Y:0.##} paneTop={ladder.Position.Y:0.##}");
+        if (ladder.End.X > viewport.End.X + 1.0f || ladder.End.Y > viewport.End.Y + 1.0f)
+            errors.Add($"ladder pane exceeds viewport: pane={ladder} viewport={viewport}");
+        var localModel = _diagnosticsDock.GetGlobalRect();
+        if (ladder.End.Y > localModel.Position.Y + 1.0f)
+            errors.Add($"ladder pane overlaps local model points: ladderBottom={ladder.End.Y:0.##} pointsTop={localModel.Position.Y:0.##}");
+        if (scene.Size.X < 400.0f || scene.Size.Y < 300.0f)
+            errors.Add($"scene pane is too small: {scene.Size.X:0.##}x{scene.Size.Y:0.##}");
+        if (ladderCanvas is null || !ladderCanvas.Visible)
+            errors.Add("ladder canvas is not visible");
+        if (!_leftDock.Visible || !_rightDock.Visible || !_diagnosticsDock.Visible || !_operatorPointTables.Visible)
+            errors.Add("operator console or local model points are missing from split view");
+        result = errors.Count == 0
+            ? $"scene={scene.Size.X:0}x{scene.Size.Y:0} ladder={ladder.Size.X:0}x{ladder.Size.Y:0}"
+            : string.Join("; ", errors);
+        return errors.Count == 0;
+    }
+
+    public Rect2 SceneViewportRect()
+    {
+        var toolbar = GetNode<Control>("Workspace/Toolbar").GetGlobalRect();
+        if (_productView == "split")
+        {
+            var viewport = GetViewport().GetVisibleRect();
+            var ladder = _ladderWorkspace.GetGlobalRect();
+            return new Rect2(
+                new Vector2(viewport.Position.X, toolbar.End.Y),
+                new Vector2(ladder.Position.X - viewport.Position.X - 8.0f,
+                    GetViewport().GetVisibleRect().End.Y - toolbar.End.Y - 50.0f));
+        }
+        if (_productView == "operator")
+        {
+            var operatorLeft = _leftDock.GetGlobalRect();
+            var operatorRight = _rightDock.GetGlobalRect();
+            var operatorDiagnostics = _diagnosticsDock.GetGlobalRect();
+            return new Rect2(
+                new Vector2(operatorLeft.End.X, toolbar.End.Y),
+                new Vector2(operatorRight.Position.X - operatorLeft.End.X,
+                    operatorDiagnostics.Position.Y - toolbar.End.Y)
+            );
+        }
+        var left = _leftDock.GetGlobalRect();
+        var right = _rightDock.GetGlobalRect();
+        var diagnostics = _diagnosticsDock.GetGlobalRect();
+        return new Rect2(
+            new Vector2(left.End.X, toolbar.End.Y),
+            new Vector2(right.Position.X - left.End.X, diagnostics.Position.Y - toolbar.End.Y));
+    }
+
+    public void SetSelectionMarquee(Vector2 start, Vector2 end, bool visible)
+    {
+        _selectionMarquee.Visible = visible;
+        if (!visible) return;
+        var position = new Vector2(MathF.Min(start.X, end.X), MathF.Min(start.Y, end.Y));
+        _selectionMarquee.Position = position;
+        _selectionMarquee.Size = new Vector2(MathF.Abs(end.X - start.X), MathF.Abs(end.Y - start.Y));
+    }
+
+    public void ShowArrangeMenu() => _arrangeMenu.ShowPopup();
+
+    public void SetReviewState(string view, string search)
+    {
+        if (search.Length > 0)
+        {
+            _assetSearch.Text = search;
+            FilterAssets(search);
+        }
+        switch (view.ToLowerInvariant())
+        {
+            case "assets":
+                ShowClassicTool("assets");
+                if (_filteredAssets.Count > 0)
+                {
+                    _assetList.Select(0);
+                    SelectAsset(0);
+                }
+                break;
+            case "signals":
+                ShowClassicTool("signals");
+                break;
+            case "connection":
+                ShowClassicTool("connection");
+                break;
+            case "connections":
+                ShowClassicTool("connections");
+                break;
+            case "workspace":
+                ShowClassicTool("workspace");
+                break;
+            case "ladder":
+                ShowClassicTool("ladder");
+                break;
+            case "ladder-edit":
+                ShowClassicTool("ladder");
+                GetNodeOrNull<LadderEditorCanvas>(
+                    "Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/TIA Portal/Workbench/EditorAndTasks/EditorAndInspector/ProgramEditor/RoutineView/GraphicalLadderCanvas")
+                    ?.SelectElement(0, 0, 1);
+                break;
+            case "ladder-insertion":
+                ShowClassicTool("ladder");
+                GetNodeOrNull<LadderEditorCanvas>(
+                    "Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/TIA Portal/Workbench/EditorAndTasks/EditorAndInspector/ProgramEditor/RoutineView/GraphicalLadderCanvas")
+                    ?.SelectInsertionPoint(0, 0, 1);
+                break;
+            case "ladder-errors":
+                ShowClassicTool("ladder");
+                _ladderDocument.Rungs[0].CoilVariable = "start_command";
+                GetNodeOrNull<Button>(
+                    "Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/TIA Portal/Workbench/ProjectDockHost/ProjectOrganization/ProjectBody/ProjectTreeAndTags/PLC tags/ValidateAndLoadButton")
+                    ?.EmitSignal(BaseButton.SignalName.Pressed);
+                break;
+            case "ladder-bindings":
+            case "ladder-bindings-ab":
+            {
+                ShowClassicTool("ladder");
+                var logix = view.EndsWith("-ab", StringComparison.OrdinalIgnoreCase);
+                if (logix) _ladderEnvironmentTabs.CurrentTab = 1;
+                var outputPoint = ScenePoints().FirstOrDefault(point =>
+                    point.Type.Equals("BOOL", StringComparison.OrdinalIgnoreCase)
+                    && point.Owner.Equals("PLC", StringComparison.OrdinalIgnoreCase));
+                var tagIndex = _ladderDocument.Tags.FindIndex(tag => tag.Name == "conveyor_running");
+                if (outputPoint is not null && tagIndex >= 0)
+                    _ladderDocument.Tags[tagIndex] = _ladderDocument.Tags[tagIndex] with { Binding = outputPoint.Name };
+                foreach (var refresh in _ladderEditorRefreshers) refresh();
+                var environmentName = logix ? "Studio 5000" : "TIA Portal";
+                var bindingRoot =
+                    $"Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/{environmentName}/Workbench/ProjectDockHost/ProjectOrganization/ProjectBody/ProjectTreeAndTags";
+                GetNodeOrNull<TabContainer>(bindingRoot)?.Set("current_tab", 1);
+                var tagPageName = logix ? "Controller Tags" : "PLC tags";
+                var tagList = GetNodeOrNull<Tree>($"{bindingRoot}/{tagPageName}/TagTable");
+                if (tagList is not null && tagIndex >= 0)
+                {
+                    SelectIndexedTreeRow(tagList, tagIndex);
+                    tagList.EmitSignal(Tree.SignalName.ItemSelected);
+                }
+                break;
+            }
+            case "ladder-numeric-bindings":
+            case "ladder-numeric-bindings-ab":
+            {
+                ShowClassicTool("ladder");
+                var logix = view.EndsWith("-ab", StringComparison.OrdinalIgnoreCase);
+                if (logix) _ladderEnvironmentTabs.CurrentTab = 1;
+                var environmentName = logix ? "Studio 5000" : "TIA Portal";
+                var mathPalette = GetNodeOrNull<TabContainer>(
+                    $"Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/{environmentName}/Workbench/EditorAndTasks/EditorAndInspector/ProgramEditor/InstructionToolbarChrome/InstructionToolbar/InstructionPalette");
+                if (mathPalette is not null) mathPalette.CurrentTab = 4;
+                var inputPoint = ScenePoints().FirstOrDefault(point =>
+                    point.Owner.Equals("PC", StringComparison.OrdinalIgnoreCase)
+                    && point.Type is "REAL" or "DINT" or "INT");
+                if (inputPoint is null) break;
+                var type = inputPoint.Type.ToUpperInvariant() switch
+                {
+                    "REAL" => PlcVariableType.Real,
+                    "DINT" => PlcVariableType.DInt,
+                    _ => PlcVariableType.Int,
+                };
+                const string tagName = "scene_numeric_input";
+                var tagIndex = _ladderDocument.Tags.FindIndex(tag => tag.Name == tagName);
+                if (tagIndex < 0)
+                {
+                    _ladderDocument.AddTag(tagName, PlcVariableRole.Input, inputPoint.Name, type);
+                    tagIndex = _ladderDocument.Tags.Count - 1;
+                }
+                else
+                {
+                    _ladderDocument.Tags[tagIndex] = _ladderDocument.Tags[tagIndex] with
+                    {
+                        Type = type,
+                        Role = PlcVariableRole.Input,
+                        Binding = inputPoint.Name,
+                    };
+                }
+                foreach (var refresh in _ladderEditorRefreshers) refresh();
+                var environment = logix ? "Studio 5000" : "TIA Portal";
+                var bindingRoot =
+                    $"Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/{environment}/Workbench/ProjectDockHost/ProjectOrganization/ProjectBody/ProjectTreeAndTags";
+                var tagPageName = logix ? "Controller Tags" : "PLC tags";
+                GetNodeOrNull<TabContainer>(bindingRoot)?.Set("current_tab", 1);
+                var tagList = GetNodeOrNull<Tree>($"{bindingRoot}/{tagPageName}/TagTable");
+                if (tagList is not null)
+                {
+                    SelectIndexedTreeRow(tagList, tagIndex);
+                    tagList.EmitSignal(Tree.SignalName.ItemSelected);
+                }
+                break;
+            }
+            case "ladder-monitor":
+                ShowClassicTool("ladder");
+                var monitorProgram = _ladderDocument.BuildProgram();
+                var monitorCompilation = LadderCompiler.Compile(monitorProgram);
+                if (monitorCompilation.IsValid && monitorCompilation.Program is not null)
+                {
+                    var monitorRuntime = new VirtualControllerRuntime(monitorCompilation.Program);
+                    monitorRuntime.Run();
+                    var monitorSnapshot = monitorRuntime.Scan(new Dictionary<string, bool>(StringComparer.Ordinal)
+                    {
+                        ["start_command"] = true,
+                        ["stop_command"] = false,
+                        ["simulated_photoeye"] = false,
+                    });
+                    AttachVirtualController(monitorProgram, monitorSnapshot);
+                }
+                break;
+            case "ladder-watch":
+            case "ladder-watch-ab":
+            {
+                ShowClassicTool("ladder");
+                var logix = view.EndsWith("-ab", StringComparison.OrdinalIgnoreCase);
+                if (logix) _ladderEnvironmentTabs.CurrentTab = 1;
+                var watchProgram = _ladderDocument.BuildProgram();
+                var watchCompilation = LadderCompiler.Compile(watchProgram);
+                if (watchCompilation.IsValid && watchCompilation.Program is not null)
+                {
+                    var watchRuntime = new VirtualControllerRuntime(watchCompilation.Program);
+                    watchRuntime.Run();
+                    var watchSnapshot = watchRuntime.Scan(new Dictionary<string, bool>(StringComparer.Ordinal)
+                    {
+                        ["start_command"] = true,
+                        ["stop_command"] = false,
+                        ["simulated_photoeye"] = false,
+                    });
+                    AttachVirtualController(watchProgram, watchSnapshot);
+                }
+                var environment = logix ? "Studio 5000" : "TIA Portal";
+                var workbenchRoot = $"Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/{environment}/Workbench/EditorAndTasks/EditorAndInspector";
+                GetNodeOrNull<TabContainer>($"{workbenchRoot}/BottomDockHost/InspectorOutputDock/InspectorOutputBody/InspectorOutputTabs")
+                    ?.Set("current_tab", 2);
+                var split = GetNodeOrNull<VSplitContainer>(workbenchRoot);
+                if (split is not null) split.SplitOffsets = [540];
+                break;
+            }
+            case "ladder-edges":
+            case "ladder-edges-ab":
+            {
+                ShowClassicTool("ladder");
+                var logix = view.EndsWith("-ab", StringComparison.OrdinalIgnoreCase);
+                if (logix) _ladderEnvironmentTabs.CurrentTab = 1;
+                var rising = _ladderDocument.Rungs[0].Branches[0].Contacts[0];
+                _ladderDocument.ReplaceContact(0, 0, 0,
+                    rising with { NormallyClosed = false, EdgeMode = LadderEdgeMode.Rising });
+                var falling = _ladderDocument.Rungs[1].Branches[0].Contacts[0];
+                _ladderDocument.ReplaceContact(1, 0, 0,
+                    falling with { NormallyClosed = false, EdgeMode = LadderEdgeMode.Falling });
+                foreach (var refresh in _ladderEditorRefreshers) refresh();
+                var edgeProgram = _ladderDocument.BuildProgram();
+                var edgeCompilation = LadderCompiler.Compile(edgeProgram);
+                if (edgeCompilation.IsValid && edgeCompilation.Program is not null)
+                {
+                    var edgeRuntime = new VirtualControllerRuntime(edgeCompilation.Program);
+                    edgeRuntime.Run();
+                    edgeRuntime.Scan(new Dictionary<string, bool>(StringComparer.Ordinal)
+                    {
+                        ["start_command"] = false,
+                        ["stop_command"] = false,
+                        ["simulated_photoeye"] = false,
+                    });
+                    var edgeSnapshot = edgeRuntime.Scan(new Dictionary<string, bool>(StringComparer.Ordinal)
+                    {
+                        ["start_command"] = true,
+                        ["stop_command"] = false,
+                        ["simulated_photoeye"] = false,
+                    });
+                    AttachVirtualController(edgeProgram, edgeSnapshot);
+                }
+                break;
+            }
+            case "ladder-math":
+            case "ladder-math-ab":
+            {
+                ShowClassicTool("ladder");
+                var logix = view.EndsWith("-ab", StringComparison.OrdinalIgnoreCase);
+                if (logix) _ladderEnvironmentTabs.CurrentTab = 1;
+                var environmentName = logix ? "Studio 5000" : "TIA Portal";
+                var mathPalette = GetNodeOrNull<TabContainer>(
+                    $"Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/{environmentName}/Workbench/EditorAndTasks/EditorAndInspector/ProgramEditor/InstructionToolbarChrome/InstructionToolbar/InstructionPalette");
+                if (mathPalette is not null) mathPalette.CurrentTab = 4;
+                if (_ladderDocument.Tags.All(tag => tag.Name != "sqrt_result"))
+                    _ladderDocument.AddTag("sqrt_result", PlcVariableRole.Memory, type: PlcVariableType.Real);
+                if (_ladderDocument.Tags.All(tag => tag.Name != "remainder"))
+                    _ladderDocument.AddTag("remainder", PlcVariableRole.Memory, type: PlcVariableType.DInt);
+                void ConfigureMath(EditableRung rung, LadderNumericOperationKind kind,
+                    string sourceA, string sourceB, string destination)
+                {
+                    rung.IsTimer = false;
+                    rung.IsTimerReset = false;
+                    rung.IsCounter = false;
+                    rung.IsCounterReset = false;
+                    rung.IsCounterLoad = false;
+                    rung.IsCall = false;
+                    rung.IsReturn = false;
+                    rung.IsJump = false;
+                    rung.IsLabel = false;
+                    rung.IsNumericOperation = true;
+                    rung.NumericOperationKind = kind;
+                    rung.NumericSourceA = sourceA;
+                    rung.NumericSourceB = sourceB;
+                    rung.NumericDestination = destination;
+                }
+                ConfigureMath(_ladderDocument.Rungs[0], LadderNumericOperationKind.SquareRoot,
+                    "81", "0", "sqrt_result");
+                ConfigureMath(_ladderDocument.Rungs[1], LadderNumericOperationKind.Modulo,
+                    "17", "5", "remainder");
+                foreach (var refresh in _ladderEditorRefreshers) refresh();
+                var mathProgram = _ladderDocument.BuildProgram();
+                var mathCompilation = LadderCompiler.Compile(mathProgram);
+                if (mathCompilation.IsValid && mathCompilation.Program is not null)
+                {
+                    var mathRuntime = new VirtualControllerRuntime(mathCompilation.Program);
+                    mathRuntime.Run();
+                    var mathSnapshot = mathRuntime.Scan(new Dictionary<string, bool>(StringComparer.Ordinal)
+                    {
+                        ["start_command"] = true,
+                        ["stop_command"] = false,
+                        ["simulated_photoeye"] = false,
+                    });
+                    AttachVirtualController(mathProgram, mathSnapshot);
+                }
+                break;
+            }
+            case "ladder-scientific":
+            case "ladder-scientific-ab":
+            {
+                ShowClassicTool("ladder");
+                var logix = view.EndsWith("-ab", StringComparison.OrdinalIgnoreCase);
+                if (logix) _ladderEnvironmentTabs.CurrentTab = 1;
+                var environmentName = logix ? "Studio 5000" : "TIA Portal";
+                var scientificPalette = GetNodeOrNull<TabContainer>(
+                    $"Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/{environmentName}/Workbench/EditorAndTasks/EditorAndInspector/ProgramEditor/InstructionToolbarChrome/InstructionToolbar/InstructionPalette");
+                if (scientificPalette is not null) scientificPalette.CurrentTab = 5;
+                if (_ladderDocument.Tags.All(tag => tag.Name != "power_result"))
+                    _ladderDocument.AddTag("power_result", PlcVariableRole.Memory, type: PlcVariableType.Real);
+                if (_ladderDocument.Tags.All(tag => tag.Name != "log_result"))
+                    _ladderDocument.AddTag("log_result", PlcVariableRole.Memory, type: PlcVariableType.Real);
+                void ConfigureScientific(EditableRung rung, LadderNumericOperationKind kind,
+                    string sourceA, string sourceB, string destination)
+                {
+                    rung.IsTimer = false;
+                    rung.IsTimerReset = false;
+                    rung.IsCounter = false;
+                    rung.IsCounterReset = false;
+                    rung.IsCounterLoad = false;
+                    rung.IsCall = false;
+                    rung.IsReturn = false;
+                    rung.IsJump = false;
+                    rung.IsLabel = false;
+                    rung.IsNumericOperation = true;
+                    rung.NumericOperationKind = kind;
+                    rung.NumericSourceA = sourceA;
+                    rung.NumericSourceB = sourceB;
+                    rung.NumericDestination = destination;
+                }
+                ConfigureScientific(_ladderDocument.Rungs[0], LadderNumericOperationKind.Exponentiate,
+                    "2", "8", "power_result");
+                ConfigureScientific(_ladderDocument.Rungs[1], LadderNumericOperationKind.NaturalLog,
+                    "1", "0", "log_result");
+                foreach (var refresh in _ladderEditorRefreshers) refresh();
+                var program = _ladderDocument.BuildProgram();
+                var compilation = LadderCompiler.Compile(program);
+                if (compilation.IsValid && compilation.Program is not null)
+                {
+                    var runtime = new VirtualControllerRuntime(compilation.Program);
+                    runtime.Run();
+                    var snapshot = runtime.Scan(new Dictionary<string, bool>(StringComparer.Ordinal)
+                    {
+                        ["start_command"] = true,
+                        ["stop_command"] = false,
+                        ["simulated_photoeye"] = false,
+                    });
+                    AttachVirtualController(program, snapshot);
+                }
+                break;
+            }
+            case "ladder-scaling":
+            case "ladder-scaling-ab":
+            {
+                ShowClassicTool("ladder");
+                var logix = view.EndsWith("-ab", StringComparison.OrdinalIgnoreCase);
+                if (logix) _ladderEnvironmentTabs.CurrentTab = 1;
+                var environmentName = logix ? "Studio 5000" : "TIA Portal";
+                var conversionPalette = GetNodeOrNull<TabContainer>(
+                    $"Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/{environmentName}/Workbench/EditorAndTasks/EditorAndInspector/ProgramEditor/InstructionToolbarChrome/InstructionToolbar/InstructionPalette");
+                if (conversionPalette is not null) conversionPalette.CurrentTab = 6;
+                if (_ladderDocument.Tags.All(tag => tag.Name != "normalized_value"))
+                    _ladderDocument.AddTag("normalized_value", PlcVariableRole.Memory, type: PlcVariableType.Real);
+                if (_ladderDocument.Tags.All(tag => tag.Name != "engineering_value"))
+                    _ladderDocument.AddTag("engineering_value", PlcVariableRole.Memory, type: PlcVariableType.Real);
+                void ConfigureScaling(EditableRung rung, LadderNumericOperationKind kind,
+                    string minimum, string value, string maximum, string destination)
+                {
+                    rung.IsTimer = false;
+                    rung.IsTimerReset = false;
+                    rung.IsCounter = false;
+                    rung.IsCounterReset = false;
+                    rung.IsCounterLoad = false;
+                    rung.IsCall = false;
+                    rung.IsReturn = false;
+                    rung.IsJump = false;
+                    rung.IsLabel = false;
+                    rung.IsNumericOperation = true;
+                    rung.NumericOperationKind = kind;
+                    rung.NumericSourceA = minimum;
+                    rung.NumericSourceB = value;
+                    rung.NumericSourceC = maximum;
+                    rung.NumericDestination = destination;
+                }
+                ConfigureScaling(_ladderDocument.Rungs[0], LadderNumericOperationKind.Normalize,
+                    "0", "13824", "27648", "normalized_value");
+                ConfigureScaling(_ladderDocument.Rungs[1], LadderNumericOperationKind.Scale,
+                    "0", "0.5", "100", "engineering_value");
+                foreach (var refresh in _ladderEditorRefreshers) refresh();
+                var program = _ladderDocument.BuildProgram();
+                var compilation = LadderCompiler.Compile(program);
+                if (compilation.IsValid && compilation.Program is not null)
+                {
+                    var runtime = new VirtualControllerRuntime(compilation.Program);
+                    runtime.Run();
+                    var snapshot = runtime.Scan(new Dictionary<string, bool>(StringComparer.Ordinal)
+                    {
+                        ["start_command"] = true,
+                        ["stop_command"] = false,
+                        ["simulated_photoeye"] = false,
+                    });
+                    AttachVirtualController(program, snapshot);
+                }
+                break;
+            }
+            case "ladder-conversion":
+            case "ladder-conversion-ab":
+            {
+                ShowClassicTool("ladder");
+                var logix = view.EndsWith("-ab", StringComparison.OrdinalIgnoreCase);
+                if (logix) _ladderEnvironmentTabs.CurrentTab = 1;
+                var environmentName = logix ? "Studio 5000" : "TIA Portal";
+                var conversionPalette = GetNodeOrNull<TabContainer>(
+                    $"Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/{environmentName}/Workbench/EditorAndTasks/EditorAndInspector/ProgramEditor/InstructionToolbarChrome/InstructionToolbar/InstructionPalette");
+                if (conversionPalette is not null) conversionPalette.CurrentTab = 6;
+                if (_ladderDocument.Tags.All(tag => tag.Name != "rounded_count"))
+                    _ladderDocument.AddTag("rounded_count", PlcVariableRole.Memory, type: PlcVariableType.DInt);
+                if (_ladderDocument.Tags.All(tag => tag.Name != "truncated_count"))
+                    _ladderDocument.AddTag("truncated_count", PlcVariableRole.Memory, type: PlcVariableType.DInt);
+                void ConfigureConversion(EditableRung rung, LadderNumericOperationKind kind,
+                    string source, string destination)
+                {
+                    rung.IsTimer = false;
+                    rung.IsTimerReset = false;
+                    rung.IsCounter = false;
+                    rung.IsCounterReset = false;
+                    rung.IsCounterLoad = false;
+                    rung.IsCall = false;
+                    rung.IsReturn = false;
+                    rung.IsJump = false;
+                    rung.IsLabel = false;
+                    rung.IsNumericOperation = true;
+                    rung.NumericOperationKind = kind;
+                    rung.NumericSourceA = source;
+                    rung.NumericSourceB = "0";
+                    rung.NumericSourceC = "0";
+                    rung.NumericDestination = destination;
+                }
+                ConfigureConversion(_ladderDocument.Rungs[0], LadderNumericOperationKind.Round,
+                    "3.5", "rounded_count");
+                ConfigureConversion(_ladderDocument.Rungs[1], LadderNumericOperationKind.Truncate,
+                    "-3.9", "truncated_count");
+                foreach (var refresh in _ladderEditorRefreshers) refresh();
+                var program = _ladderDocument.BuildProgram();
+                var compilation = LadderCompiler.Compile(program);
+                if (compilation.IsValid && compilation.Program is not null)
+                {
+                    var runtime = new VirtualControllerRuntime(compilation.Program);
+                    runtime.Run();
+                    var snapshot = runtime.Scan(new Dictionary<string, bool>(StringComparer.Ordinal)
+                    {
+                        ["start_command"] = true,
+                        ["stop_command"] = false,
+                        ["simulated_photoeye"] = false,
+                    });
+                    AttachVirtualController(program, snapshot);
+                }
+                break;
+            }
+            case "ladder-retentive-timer":
+            case "ladder-retentive-timer-ab":
+            {
+                ShowClassicTool("ladder");
+                var logix = view.EndsWith("-ab", StringComparison.OrdinalIgnoreCase);
+                if (logix) _ladderEnvironmentTabs.CurrentTab = 1;
+                var environmentName = logix ? "Studio 5000" : "TIA Portal";
+                var timerPalette = GetNodeOrNull<TabContainer>(
+                    $"Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/{environmentName}/Workbench/EditorAndTasks/EditorAndInspector/ProgramEditor/InstructionToolbarChrome/InstructionToolbar/InstructionPalette");
+                if (timerPalette is not null) timerPalette.CurrentTab = 1;
+                if (_ladderDocument.Tags.All(tag => tag.Name != "process_time"))
+                    _ladderDocument.AddTag("process_time", PlcVariableRole.Memory, type: PlcVariableType.Timer);
+                void ClearOtherOutputs(EditableRung rung)
+                {
+                    rung.IsCounter = false;
+                    rung.IsCounterReset = false;
+                    rung.IsCounterLoad = false;
+                    rung.IsNumericOperation = false;
+                    rung.IsCall = false;
+                    rung.IsReturn = false;
+                    rung.IsJump = false;
+                    rung.IsLabel = false;
+                }
+                var timerRung = _ladderDocument.Rungs[0];
+                ClearOtherOutputs(timerRung);
+                timerRung.IsTimer = true;
+                timerRung.IsTimerReset = false;
+                timerRung.TimerKind = LadderTimerKind.RetentiveOnDelay;
+                timerRung.TimerVariable = "process_time";
+                timerRung.TimerPreset = TimeSpan.FromMilliseconds(1000);
+                var resetRung = _ladderDocument.Rungs[1];
+                ClearOtherOutputs(resetRung);
+                resetRung.IsTimer = false;
+                resetRung.IsTimerReset = true;
+                resetRung.TimerVariable = "process_time";
+                foreach (var refresh in _ladderEditorRefreshers) refresh();
+                var program = _ladderDocument.BuildProgram();
+                var compilation = LadderCompiler.Compile(program);
+                if (compilation.IsValid && compilation.Program is not null)
+                {
+                    var runtime = new VirtualControllerRuntime(compilation.Program);
+                    runtime.Run();
+                    var snapshot = runtime.Scan(new Dictionary<string, bool>(StringComparer.Ordinal)
+                    {
+                        ["start_command"] = true,
+                        ["stop_command"] = false,
+                        ["simulated_photoeye"] = false,
+                    });
+                    AttachVirtualController(program, snapshot);
+                }
+                break;
+            }
+            case "ladder-project":
+            case "ladder-project-ab":
+            {
+                ShowClassicTool("ladder");
+                var logix = view.EndsWith("-ab", StringComparison.OrdinalIgnoreCase);
+                if (logix) _ladderEnvironmentTabs.CurrentTab = 1;
+                var block = _ladderDocument.Blocks.FirstOrDefault(candidate => candidate.Name == "MotionSequence");
+                if (block is null)
+                {
+                    block = _ladderDocument.AddBlock("MotionSequence");
+                    _ladderDocument.SelectBlock(_ladderDocument.Blocks.Count - 1);
+                    _ladderDocument.AddRung(logix ? "Start motion sequence" : "Start motion sequence", "conveyor_running");
+                    _ladderDocument.AddContact(0, 0, "start_command", false);
+                }
+                else
+                {
+                    _ladderDocument.SelectBlock(_ladderDocument.Blocks.IndexOf(block));
+                }
+                if (_ladderDocument.Tasks.All(task => task.Name != "Periodic100ms"))
+                    _ladderDocument.AddTask("Periodic100ms", LadderTaskKind.Periodic,
+                        TimeSpan.FromMilliseconds(100), 20, block.Id);
+                foreach (var refresh in _ladderEditorRefreshers) refresh();
+                var environmentName = logix ? "Studio 5000" : "TIA Portal";
+                var projectTabs = GetNodeOrNull<TabContainer>(
+                    $"Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/{environmentName}/Workbench/ProjectDockHost/ProjectOrganization/ProjectBody/ProjectTreeAndTags");
+                if (projectTabs is not null) projectTabs.CurrentTab = 2;
+                break;
+            }
+            case "ladder-new-project":
+            case "ladder-new-project-ab":
+            {
+                ShowClassicTool("ladder");
+                var logix = view.EndsWith("-ab", StringComparison.OrdinalIgnoreCase);
+                if (logix) _ladderEnvironmentTabs.CurrentTab = 1;
+                var environmentName = logix ? "Studio 5000" : "TIA Portal";
+                GetNodeOrNull<MenuButton>(
+                    $"Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/{environmentName}/VendorChrome/VendorMenuBar/LadderProjectMenu")
+                    ?.GetPopup().EmitSignal(PopupMenu.SignalName.IdPressed, 0L);
+                break;
+            }
+            case "ladder-properties":
+            case "ladder-properties-ab":
+            {
+                ShowClassicTool("ladder");
+                var logix = view.EndsWith("-ab", StringComparison.OrdinalIgnoreCase);
+                if (logix) _ladderEnvironmentTabs.CurrentTab = 1;
+                var environmentName = logix ? "Studio 5000" : "TIA Portal";
+                var ladderCanvas = GetNodeOrNull<LadderEditorCanvas>(
+                    $"Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/{environmentName}/Workbench/EditorAndTasks/EditorAndInspector/ProgramEditor/RoutineView/GraphicalLadderCanvas");
+                if (ladderCanvas is not null)
+                {
+                    ladderCanvas._GuiInput(new InputEventMouseButton
+                    {
+                        ButtonIndex = MouseButton.Left,
+                        Pressed = true,
+                        DoubleClick = true,
+                        Position = ladderCanvas.GetElementPosition(0, 0, 0),
+                    });
+                }
+                break;
+            }
+            case "ladder-ab":
+                ShowClassicTool("ladder");
+                _ladderEnvironmentTabs.CurrentTab = 1;
+                break;
+            case "ladder-return":
+                ShowClassicTool("ladder");
+                GetNodeOrNull<Button>(
+                    "Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/TIA Portal/Workbench/EditorAndTasks/EditorAndInspector/ProgramEditor/InstructionToolbarChrome/InstructionToolbar/InstructionPalette/Program Control/AddReturn")
+                    ?.EmitSignal(BaseButton.SignalName.Pressed);
+                break;
+            case "ladder-return-ab":
+                ShowClassicTool("ladder");
+                _ladderEnvironmentTabs.CurrentTab = 1;
+                GetNodeOrNull<Button>(
+                    "Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/Studio 5000/Workbench/EditorAndTasks/EditorAndInspector/ProgramEditor/InstructionToolbarChrome/InstructionToolbar/InstructionPalette/Program Control/AddReturn")
+                    ?.EmitSignal(BaseButton.SignalName.Pressed);
+                break;
+            case "ladder-jump":
+            case "ladder-jump-ab":
+            {
+                ShowClassicTool("ladder");
+                var logix = view.EndsWith("-ab", StringComparison.OrdinalIgnoreCase);
+                if (logix) _ladderEnvironmentTabs.CurrentTab = 1;
+                var block = _ladderDocument.Blocks.FirstOrDefault(candidate => candidate.Name == "JumpSequence");
+                if (block is null)
+                {
+                    block = _ladderDocument.AddBlock("JumpSequence");
+                    _ladderDocument.SelectBlock(_ladderDocument.Blocks.Count - 1);
+                    var jumpRung = _ladderDocument.AddJumpRung("Skip optional processing", "finish");
+                    _ladderDocument.AddContact(0, 0, "stop_command", false);
+                    _ladderDocument.AddRung("Intervening logic skipped while condition is true", "seal_in");
+                    _ladderDocument.AddContact(1, 0, "start_command", false);
+                    _ladderDocument.AddLabelRung("Block-local jump destination", "finish");
+                }
+                else
+                {
+                    _ladderDocument.SelectBlock(_ladderDocument.Blocks.IndexOf(block));
+                }
+                foreach (var refresh in _ladderEditorRefreshers) refresh();
+                var environmentName = logix ? "Studio 5000" : "TIA Portal";
+                var reviewEditorRoot =
+                    $"Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/{environmentName}/Workbench/EditorAndTasks/EditorAndInspector";
+                var reviewPalette = GetNodeOrNull<TabContainer>(
+                    $"{reviewEditorRoot}/ProgramEditor/InstructionToolbarChrome/InstructionToolbar/InstructionPalette");
+                if (reviewPalette is not null)
+                    reviewPalette.CurrentTab = reviewPalette.GetTabCount() - 1;
+                GetNodeOrNull<Button>(
+                    $"{reviewEditorRoot}/BottomDockHost/InspectorOutputDock/InspectorOutputBody/InspectorOutputTitle/CollapseBottomDock")
+                    ?.EmitSignal(BaseButton.SignalName.Pressed);
+                break;
+            }
+            case "ladder-clipboard":
+            case "ladder-clipboard-ab":
+            {
+                ShowClassicTool("ladder");
+                var logix = view.EndsWith("-ab", StringComparison.OrdinalIgnoreCase);
+                if (logix) _ladderEnvironmentTabs.CurrentTab = 1;
+                var environmentName = logix ? "Studio 5000" : "TIA Portal";
+                GetNodeOrNull<MenuButton>(
+                    $"Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/{environmentName}/VendorChrome/VendorMenuBar/LadderEditMenu")
+                    ?.CallDeferred("show_popup");
+                break;
+            }
+            case "ladder-timers":
+                ShowClassicTool("ladder");
+                GetNodeOrNull<Button>(
+                    "Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/TIA Portal/Workbench/EditorAndTasks/EditorAndInspector/ProgramEditor/InstructionToolbarChrome/InstructionToolbar/InstructionPalette/Timers/AddTimerOffDelay")
+                    ?.EmitSignal(BaseButton.SignalName.Pressed);
+                break;
+            case "ladder-search":
+                ShowClassicTool("ladder");
+                const string searchRoot = "Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/TIA Portal/Workbench/EditorAndTasks/ToolDockHost/InstructionAndTags/ToolBody/ToolTabsHost/ToolTabs";
+                var tabs = GetNodeOrNull<TabContainer>(searchRoot);
+                var query = GetNodeOrNull<LineEdit>($"{searchRoot}/Find and cross-reference/ProjectSearchQuery");
+                var xref = GetNodeOrNull<Button>($"{searchRoot}/Find and cross-reference/SearchActions/CrossReferenceButton");
+                if (tabs is not null) tabs.CurrentTab = 1;
+                if (query is not null && search.Length > 0)
+                {
+                    query.Text = search;
+                    xref?.EmitSignal(BaseButton.SignalName.Pressed);
+                }
+                break;
+            case "ladder-help":
+                ShowClassicTool("ladder");
+                ShowLadderInstructionHelp();
+                if (search.Length > 0)
+                {
+                    const string helpRoot = "Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/TIA Portal/Workbench/EditorAndTasks/ToolDockHost/InstructionAndTags/ToolBody/ToolTabsHost/ToolTabs/Instruction help";
+                    var selector = GetNodeOrNull<OptionButton>($"{helpRoot}/HelpInstructionSelector");
+                    if (selector is not null)
+                    {
+                        var item = Enumerable.Range(0, selector.ItemCount)
+                            .FirstOrDefault(index => selector.GetItemMetadata(index).AsString().Equals(search, StringComparison.OrdinalIgnoreCase), -1);
+                        if (item >= 0)
+                        {
+                            selector.Select(item);
+                            selector.EmitSignal(OptionButton.SignalName.ItemSelected, item);
+                        }
+                    }
+                }
+                break;
+            case "virtual-controller":
+                ShowClassicTool("virtual-controller");
+                break;
+        }
+    }
+
+    private void BuildInterface()
+    {
+        var workspace = new Control { Name = "Workspace" };
+        workspace.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
+        AddChild(workspace);
+
+        var toolbar = PanelContainer("Toolbar", new Color("101a22e8"), new Color("294252"));
+        toolbar.AnchorRight = 1.0f;
+        toolbar.OffsetLeft = 0;
+        toolbar.OffsetTop = 0;
+        toolbar.OffsetRight = 0;
+        // The brand mark plus row/margins produces an 84 px minimum toolbar.
+        // Use that rendered boundary for every dock below it.
+        toolbar.OffsetBottom = 84;
+        workspace.AddChild(toolbar);
+        var toolbarMargin = Margin("ToolbarMargin", 14, 14, 8, 8);
+        toolbar.AddChild(toolbarMargin);
+        var toolbarRow = new HBoxContainer { Name = "ToolbarRow" };
+        toolbarRow.AddThemeConstantOverride("separation", 10);
+        toolbarMargin.AddChild(toolbarRow);
+
+        var brandMark = new RungProofMark
+        {
+            Name = "BrandMark",
+            CustomMinimumSize = new Vector2(36, 36),
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        toolbarRow.AddChild(brandMark);
+
+        var brand = new HBoxContainer { Name = "BrandWordmark" };
+        brand.AddThemeConstantOverride("separation", 0);
+        brand.AddChild(Heading("Rung", 20, new Color("e9f4f8")));
+        brand.AddChild(Heading("Proof", 20, new Color("16a34a")));
+        toolbarRow.AddChild(brand);
+        var subtitle = Heading("PLC VISUAL SIMULATOR", 9, new Color("7fa7ba"));
+        toolbarRow.AddChild(subtitle);
+        toolbarRow.AddChild(VRule());
+        toolbarRow.AddChild(VRule());
+        var file = TopMenu("FileMenu", "File");
+        file.GetPopup().AddItem("Save Workspace As…", 0);
+        file.GetPopup().AddItem("Load Last Workspace", 1);
+        file.GetPopup().AddSeparator();
+        file.GetPopup().AddItem("Open Ladder Agent Project…", 2);
+        file.GetPopup().AddItem("Open RungProof Workspace…", 3);
+        file.GetPopup().IdPressed += id =>
+        {
+            if (id == 0) SaveWorkspaceRequested?.Invoke();
+            if (id == 1) LoadWorkspaceRequested?.Invoke();
+            if (id == 2)
+            {
+                ShowClassicTool("ladder");
+                CallDeferred(nameof(ShowLadderLoadDialog));
+            }
+            if (id == 3) CallDeferred(nameof(ShowWorkspaceLoadDialog));
+        };
+        toolbarRow.AddChild(file);
+
+        var view = TopMenu("ViewMenu", "View");
+        var viewItems = new (string Label, string View)[]
+        {
+            ("Operator Console", "operator"),
+            ("Viewer Hierarchy", "viewer"),
+            ("Engineering Layout", "engineering"),
+            ("Immersive Scenario", "floor"),
+            ("Scenario + Ladder Split", "split"),
+        };
+        for (var index = 0; index < viewItems.Length; index++) view.GetPopup().AddItem(viewItems[index].Label, index);
+        view.GetPopup().IdPressed += id =>
+        {
+            if (id >= 0 && id < viewItems.Length) ShowClassicTool(viewItems[id].View);
+        };
+        toolbarRow.AddChild(view);
+
+        var quickTabGroup = new ButtonGroup { AllowUnpress = false };
+        _sceneQuickTab = ToolbarButton("SceneQuickTab", "SCENARIO", new Color("355d73"), 92);
+        _sceneQuickTab.ToggleMode = true;
+        _sceneQuickTab.ButtonGroup = quickTabGroup;
+        _sceneQuickTab.TooltipText = "Switch to the scenario/operator view";
+        _sceneQuickTab.Pressed += () => SetProductView("operator");
+        _logicQuickTab = ToolbarButton("LogicEditorQuickTab", "LOGIC EDITOR", new Color("355d73"), 116);
+        _logicQuickTab.ToggleMode = true;
+        _logicQuickTab.ButtonGroup = quickTabGroup;
+        _logicQuickTab.TooltipText = "Switch to the ladder logic editor";
+        _logicQuickTab.Pressed += () => SetProductView("ladder");
+
+        var playback = TopMenu("PlaybackMenu", "Playback");
+        playback.GetPopup().AddItem("Run", 0);
+        playback.GetPopup().AddItem("Stop", 1);
+        playback.GetPopup().AddItem("Reset", 2);
+        playback.GetPopup().IdPressed += id =>
+        {
+            if (id == 0) RunRequested?.Invoke();
+            if (id == 1) StopRequested?.Invoke();
+            if (id == 2) ResetRequested?.Invoke();
+        };
+        toolbarRow.AddChild(playback);
+
+        var sceneMenu = TopMenu("SceneMenu", "Scenario");
+        sceneMenu.TooltipText = "Browse and open demonstration scenarios";
+        sceneMenu.GetPopup().AddItem("Scenario Browser", 0);
+        sceneMenu.GetPopup().AddItem("Operator Console", 1);
+        sceneMenu.GetPopup().AddSeparator();
+        const int scenarioMenuBase = 1000;
+        var menuScenes = new List<SceneCatalogEntry>();
+        for (var group = 0; group <= 2; group++)
+        {
+            if (group > 0) sceneMenu.GetPopup().AddSeparator();
+            sceneMenu.GetPopup().AddItem(ScenarioGroupLabel(group), 900 + group);
+            sceneMenu.GetPopup().SetItemDisabled(sceneMenu.GetPopup().GetItemIndex(900 + group), true);
+            foreach (var scenario in _orderedScenes.Where(scene => ScenarioSortGroup(scene) == group))
+            {
+                var menuIndex = menuScenes.Count;
+                menuScenes.Add(scenario);
+                var menuId = scenarioMenuBase + menuIndex;
+                var label = group == 2
+                    ? AuthoredDemos[ScenarioDemoIndex(scenario)].Label
+                    : scenario.Name;
+                sceneMenu.GetPopup().AddItem(label, menuId);
+                sceneMenu.GetPopup().SetItemTooltip(
+                    sceneMenu.GetPopup().GetItemIndex(menuId),
+                    $"Open {scenario.Name} ({scenario.Id})");
+            }
+        }
+        sceneMenu.GetPopup().IdPressed += id =>
+        {
+            if (id == 0)
+            {
+                ShowClassicTool("scenes");
+                return;
+            }
+            if (id == 1)
+            {
+                ShowClassicTool("operator");
+                return;
+            }
+            var scenarioIndex = (int)id - scenarioMenuBase;
+            if (scenarioIndex >= 0 && scenarioIndex < menuScenes.Count)
+            {
+                SetProductView("operator");
+                SetWorkspaceStatus($"OPENING SCENARIO · {menuScenes[scenarioIndex].Name}");
+                SceneRequested?.Invoke(menuScenes[scenarioIndex].Id);
+            }
+        };
+        toolbarRow.AddChild(sceneMenu);
+
+        var tools = TopMenu("ToolsMenu", "Tools");
+        _toolsPopup = tools.GetPopup();
+        tools.TooltipText = "Open engineering, Ladder, and inspection tools.";
+        var toolItems = new (string Label, string Tool)[]
+        {
+            ("Ladder Logic", "ladder"),
+            ("Asset Library", "assets"),
+            ("Workspace Editor", "workspace"),
+            ("Inspector", "inspector"),
+            ("Symbolic Signals", "signals"),
+            ("Connections", "connections"),
+            ("Virtual Controller Monitor", "virtual-controller"),
+            ("Diagnostics", "diagnostics"),
+        };
+        for (var index = 0; index < toolItems.Length; index++)
+            tools.GetPopup().AddItem(toolItems[index].Label, index);
+        tools.GetPopup().AddSeparator();
+        tools.GetPopup().AddItem("MCP Integration: Enabled", McpToggleMenuId);
+        tools.GetPopup().AddItem("MCP & Application Settings…", ApplicationSettingsMenuId);
+        tools.GetPopup().IdPressed += id =>
+        {
+            if (id == McpToggleMenuId)
+                SetMcpUiEnabled(!_mcpUiEnabled.ButtonPressed);
+            else if (id == ApplicationSettingsMenuId)
+                _applicationSettingsDialog.PopupCenteredRatio(0.55f);
+            else if (id >= 0 && id < toolItems.Length)
+                ShowClassicTool(toolItems[id].Tool);
+        };
+        toolbarRow.AddChild(tools);
+
+        var plc = TopMenu("PlcMenu", "PLC");
+        plc.GetPopup().AddItem("PLC Status", 0);
+        plc.GetPopup().AddItem("Virtual Controller Monitor", 1);
+        plc.GetPopup().AddSeparator();
+        plc.GetPopup().AddCheckItem("Built-in Simulator", 10);
+        plc.GetPopup().AddCheckItem("External PLC", 11);
+        plc.GetPopup().AddItem("External PLC Settings / Tests…", 12);
+        plc.GetPopup().SetItemChecked(plc.GetPopup().GetItemIndex(10), true);
+        plc.GetPopup().IdPressed += id =>
+        {
+            if (id == 0) ShowClassicTool("connection");
+            else if (id == 1) ShowClassicTool("virtual-controller");
+            else if (id == 10) SetExternalMode(false);
+            else if (id == 11) SetExternalMode(true);
+            else if (id == 12) ShowExternalPlcDialog();
+        };
+        toolbarRow.AddChild(plc);
+
+        var help = TopMenu("HelpMenu", "Help");
+        help.GetPopup().AddItem("Simulator Mode and Safety Boundary", 0);
+        help.GetPopup().IdPressed += _ =>
+        {
+            if (_showSafetyNotices.ButtonPressed) ShowSimulatorModeNotice();
+        };
+        toolbarRow.AddChild(help);
+        toolbarRow.AddChild(VRule());
+        _sceneTitle = Heading("Loading project…", 17, new Color("bcd3df"));
+        _sceneTitle.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        toolbarRow.AddChild(_sceneTitle);
+        // Keep the two primary view switches beside the current scene title.
+        // The Scenario menu remains the browser; these are direct view tabs.
+        toolbarRow.AddChild(_sceneQuickTab);
+        toolbarRow.AddChild(_logicQuickTab);
+
+        var statuses = new VBoxContainer { CustomMinimumSize = new Vector2(190, 0) };
+        _runtimeStatus = SmallStatus("LOCAL RUNTIME  •  STOPPED", new Color("8aa5b4"));
+        _connectionStatus = SmallStatus("PLC  •  DISCONNECTED", new Color("f1aa5b"));
+        _cycleStatus = SmallStatus("CYCLE  —  ·  SCAN  —", new Color("7fa7ba"));
+        statuses.AddChild(_runtimeStatus);
+        statuses.AddChild(_connectionStatus);
+        statuses.AddChild(_cycleStatus);
+        toolbarRow.AddChild(statuses);
+
+        BuildApplicationSettingsDialog();
+        BuildExternalPlcDialog();
+
+        _workspaceStatus = new Label
+        {
+            Name = "WorkspaceStatus",
+            Text = "RMB orbit · MMB pan · wheel zoom",
+            HorizontalAlignment = HorizontalAlignment.Center,
+        };
+        _workspaceStatus.AddThemeFontSizeOverride("font_size", 11);
+        _workspaceStatus.AddThemeColorOverride("font_color", new Color("7fa7ba"));
+
+        _leftDock = PanelContainer("LeftDock", new Color("101a22e8"), new Color("294252"));
+        _leftDock.AnchorBottom = 1.0f;
+        _leftDock.OffsetLeft = 0;
+        _leftDock.OffsetTop = 70;
+        _leftDock.OffsetRight = 212;
+        _leftDock.OffsetBottom = -296;
+        workspace.AddChild(_leftDock);
+        _leftTabs = new TabContainer { Name = "LeftTabs" };
+        _leftTabs.AddThemeFontSizeOverride("font_size", 15);
+        _leftDock.AddChild(_leftTabs);
+        _leftTabs.AddChild(BuildOperatorConsole());
+        _leftTabs.AddChild(BuildSceneBrowser());
+        _leftTabs.SetTabTitle(0, "Operator");
+        _leftTabs.SetTabTitle(1, "Scenarios");
+        _leftTabs.AddChild(BuildAssetBrowser());
+        _leftTabs.AddChild(BuildWorkspaceEditor());
+        _leftTabs.AddChild(BuildViewerBrowser());
+
+        _rightDock = PanelContainer("RightDock", new Color("101a22e8"), new Color("294252"));
+        _rightDock.AnchorLeft = 1.0f;
+        _rightDock.AnchorRight = 1.0f;
+        _rightDock.AnchorBottom = 1.0f;
+        _rightDock.OffsetLeft = -216;
+        _rightDock.OffsetTop = 70;
+        _rightDock.OffsetRight = 0;
+        _rightDock.OffsetBottom = -296;
+        workspace.AddChild(_rightDock);
+        _inspectorTabs = new TabContainer { Name = "InspectorTabs" };
+        _inspectorTabs.AddThemeFontSizeOverride("font_size", 15);
+        _rightDock.AddChild(_inspectorTabs);
+        _inspectorTabs.AddChild(BuildOperatorHealth());
+        _inspector = Inspector("Inspector");
+        _ioInspector = Inspector("Signals");
+        var linkInspector = BuildConnectionEditor();
+        _connectionInspector = Inspector("PLC");
+        _inspectorTabs.AddChild(_inspector);
+        _inspectorTabs.AddChild(_ioInspector);
+        _inspectorTabs.AddChild(linkInspector);
+        _inspectorTabs.AddChild(_connectionInspector);
+        _inspectorTabs.AddChild(BuildVirtualControllerPanel());
+
+        _diagnosticsDock = PanelContainer("DiagnosticsDock", new Color("0c141beF"), new Color("294252"));
+        _diagnosticsDock.AnchorTop = 1.0f;
+        _diagnosticsDock.AnchorRight = 1.0f;
+        _diagnosticsDock.AnchorBottom = 1.0f;
+        _diagnosticsDock.OffsetLeft = 0;
+        _diagnosticsDock.OffsetTop = -288;
+        _diagnosticsDock.OffsetRight = 0;
+        _diagnosticsDock.OffsetBottom = -50;
+        workspace.AddChild(_diagnosticsDock);
+        var diagnosticsBody = new VBoxContainer { Name = "DiagnosticsBody" };
+        _diagnosticsDock.AddChild(diagnosticsBody);
+        var diagnosticsHeader = new HBoxContainer { Name = "DiagnosticsHeader" };
+        diagnosticsBody.AddChild(diagnosticsHeader);
+        _diagnosticSummary = Heading("PROJECT DIAGNOSTICS", 14, new Color("bcd3df"));
+        _diagnosticSummary.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        diagnosticsHeader.AddChild(_diagnosticSummary);
+        diagnosticsHeader.AddChild(_workspaceStatus);
+        var diagnosticsToggle = new Button { Name = "DiagnosticsToggle", Text = "EXPAND", Flat = true };
+        diagnosticsToggle.Pressed += () =>
+        {
+            _diagnosticsExpanded = !_diagnosticsExpanded;
+            diagnosticsToggle.Text = _diagnosticsExpanded ? "COLLAPSE" : "EXPAND";
+            ApplyDiagnosticsLayout();
+        };
+        diagnosticsHeader.AddChild(diagnosticsToggle);
+        _operatorPointTables = new HBoxContainer { Name = "OperatorPointTables" };
+        _operatorPointTables.AddThemeConstantOverride("separation", 8);
+        _tagWatchPanel = PanelContainer("TagWatch", new Color("0b171deF"), new Color("294252"));
+        _tagWatchPanel.CustomMinimumSize = new Vector2(230, 0);
+        _tagWatchPanel.Visible = false;
+        var watchBody = new VBoxContainer();
+        _tagWatchPanel.AddChild(watchBody);
+        watchBody.AddChild(SectionLabel("TAG WATCH · CTRL-CLICK"));
+        _tagWatchList = new ItemList
+        {
+            Name = "TagWatchList",
+            SizeFlagsVertical = Control.SizeFlags.ExpandFill,
+            SelectMode = ItemList.SelectModeEnum.Multi,
+            AllowReselect = true,
+            TooltipText = "Select one or more declared symbolic tags to focus the tables. With none selected, all declared tags remain visible.",
+        };
+        _tagWatchList.MultiSelected += (_, _) => RefreshOperatorPointTables();
+        watchBody.AddChild(_tagWatchList);
+        _operatorPointTables.AddChild(_tagWatchPanel);
+        var inputPanel = PanelContainer("SimulatorToPlcPoints", new Color("0b171deF"), new Color("294252"));
+        inputPanel.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        var inputBody = new VBoxContainer();
+        inputPanel.AddChild(inputBody);
+        inputBody.AddChild(SectionLabel("SIMULATOR → PLC · LOCAL MODEL"));
+        _operatorInputPoints = Inspector("SimulatorToPlcPointTable");
+        _operatorInputPoints.CustomMinimumSize = new Vector2(0, 128);
+        _operatorInputPoints.FitContent = true;
+        _operatorInputPoints.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
+        inputBody.AddChild(_operatorInputPoints);
+        var outputPanel = PanelContainer("PlcToSimulatorPoints", new Color("0b171deF"), new Color("294252"));
+        outputPanel.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        var outputBody = new VBoxContainer();
+        outputPanel.AddChild(outputBody);
+        outputBody.AddChild(SectionLabel("PLC → SIMULATOR · LOCAL MODEL"));
+        _operatorOutputPoints = Inspector("PlcToSimulatorPointTable");
+        _operatorOutputPoints.CustomMinimumSize = new Vector2(0, 128);
+        _operatorOutputPoints.FitContent = true;
+        _operatorOutputPoints.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
+        outputBody.AddChild(_operatorOutputPoints);
+        _operatorPointTables.AddChild(inputPanel);
+        _operatorPointTables.AddChild(outputPanel);
+        diagnosticsBody.AddChild(_operatorPointTables);
+        _diagnosticList = new ItemList
+        {
+            Name = "DiagnosticList",
+            SizeFlagsVertical = Control.SizeFlags.ExpandFill,
+            AllowReselect = true,
+        };
+        diagnosticsBody.AddChild(_diagnosticList);
+
+        _transportDock = PanelContainer("Transport", new Color("101a22f2"), new Color("294252"));
+        _transportDock.AnchorTop = 1.0f;
+        _transportDock.AnchorRight = 1.0f;
+        _transportDock.AnchorBottom = 1.0f;
+        _transportDock.OffsetLeft = 0;
+        _transportDock.OffsetTop = -50;
+        _transportDock.OffsetRight = 0;
+        _transportDock.OffsetBottom = 0;
+        workspace.AddChild(_transportDock);
+        var transportMargin = Margin("TransportMargin", 10, 10, 6, 6);
+        _transportDock.AddChild(transportMargin);
+        var transportRow = new HBoxContainer { Name = "TransportRow" };
+        transportRow.AddThemeConstantOverride("separation", 7);
+        transportMargin.AddChild(transportRow);
+        var run = ToolbarButton("RunButton", "RUN", new Color("1f8a58"), 62);
+        var stop = ToolbarButton("StopButton", "STOP", new Color("355d73"), 62);
+        var reset = ToolbarButton("ResetButton", "RESET", new Color("355d73"), 68);
+        run.Pressed += () => RunRequested?.Invoke();
+        stop.Pressed += () => StopRequested?.Invoke();
+        reset.Pressed += () => ResetRequested?.Invoke();
+        transportRow.AddChild(run);
+        transportRow.AddChild(stop);
+        transportRow.AddChild(reset);
+        var save = ToolbarButton("SaveButton", "SAVE", new Color("3d5868"), 60);
+        var load = ToolbarButton("LoadButton", "LOAD", new Color("3d5868"), 60);
+        save.Pressed += () =>
+        {
+            if (_productView == "ladder") _ladderSaveDialog.PopupCenteredRatio(0.72f);
+            else ShowWorkspaceSaveDialog();
+        };
+        load.Pressed += () =>
+        {
+            if (_productView == "ladder") _ladderLoadDialog.PopupCenteredRatio(0.72f);
+            else ShowWorkspaceLoadDialog();
+        };
+        transportRow.AddChild(save);
+        transportRow.AddChild(load);
+        transportRow.AddChild(VRule());
+        var nowPlaying = Heading("NOW PLAYING", 10, new Color("7fa7ba"));
+        transportRow.AddChild(nowPlaying);
+        _transportScene = Heading("LOCAL MODEL · STOPPED", 12, new Color("bcd3df"));
+        _transportScene.Name = "TransportScene";
+        _transportScene.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        transportRow.AddChild(_transportScene);
+        var localOnly = SmallStatus("LOCAL ONLY", new Color("f1aa5b"));
+        transportRow.AddChild(localOnly);
+
+        _ladderWorkspace = BuildLadderWorkspace();
+        workspace.AddChild(_ladderWorkspace);
+
+        _splitDivider = new Panel
+        {
+            Name = "SplitViewDivider",
+            MouseFilter = Control.MouseFilterEnum.Stop,
+            ZIndex = 40,
+            Visible = false,
+            TooltipText = "Drag to resize the operator and ladder panes",
+        };
+        _splitDivider.AddThemeStyleboxOverride("panel", BoxStyle(new Color("4f879d"), new Color("9ee8c0")));
+        _splitDivider.GuiInput += input =>
+        {
+            if (input is InputEventMouseButton { ButtonIndex: MouseButton.Left } button)
+            {
+                _draggingSplitDivider = button.Pressed;
+                if (_draggingSplitDivider) _splitDivider.AcceptEvent();
+            }
+            else if (input is InputEventMouseMotion motion && _draggingSplitDivider)
+            {
+                var width = GetViewport().GetVisibleRect().Size.X;
+                if (width > 0.0f)
+                {
+                    _splitDividerRatio = Mathf.Clamp(
+                        (motion.GlobalPosition.X - GetViewport().GetVisibleRect().Position.X) / width,
+                        0.24f,
+                        0.68f);
+                    ApplySplitLayout();
+                    _splitDivider.AcceptEvent();
+                }
+            }
+        };
+        workspace.AddChild(_splitDivider);
+
+        _selectionMarquee = new Panel
+        {
+            Name = "SelectionMarquee",
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+            Visible = false,
+            ZIndex = 100,
+        };
+        var marqueeStyle = new StyleBoxFlat
+        {
+            BgColor = new Color("32bfe128"),
+            BorderColor = new Color("50d8f4"),
+            BorderWidthLeft = 2,
+            BorderWidthTop = 2,
+            BorderWidthRight = 2,
+            BorderWidthBottom = 2,
+        };
+        _selectionMarquee.AddThemeStyleboxOverride("panel", marqueeStyle);
+        workspace.AddChild(_selectionMarquee);
+
+        // The operator console mirrors the established RungProof hierarchy:
+        // scene/routine rail, central machine, health/equipment rail, points
+        // below, and compact transport. Authoring remains deliberate.
+        SetProductView("operator");
+
+        _renameGroupDialog = new ConfirmationDialog
+        {
+            Name = "RenameGroupDialog",
+            Title = "Rename equipment group",
+            Exclusive = true,
+            MinSize = new Vector2I(420, 150),
+        };
+        var renameBody = new VBoxContainer
+        {
+            AnchorsPreset = (int)Control.LayoutPreset.FullRect,
+            OffsetLeft = 16,
+            OffsetTop = 12,
+            OffsetRight = -16,
+            OffsetBottom = -48,
+        };
+        renameBody.AddChild(Heading("GROUP NAME", 13, new Color("9db4c0")));
+        _renameGroupInput = new LineEdit
+        {
+            Name = "GroupNameInput",
+            MaxLength = 64,
+            PlaceholderText = "Enter a unique group name",
+        };
+        renameBody.AddChild(_renameGroupInput);
+        _renameGroupDialog.AddChild(renameBody);
+        _renameGroupDialog.Confirmed += () =>
+        {
+            if (_renameGroupId is not null)
+                RenameGroupRequested?.Invoke(_renameGroupId, _renameGroupInput.Text);
+        };
+        AddChild(_renameGroupDialog);
+
+        _pivotDialog = new ConfirmationDialog
+        {
+            Name = "GroupPivotDialog",
+            Title = "Edit group pivot",
+            Exclusive = true,
+            MinSize = new Vector2I(420, 230),
+        };
+        var pivotBody = new VBoxContainer
+        {
+            AnchorsPreset = (int)Control.LayoutPreset.FullRect,
+            OffsetLeft = 16,
+            OffsetTop = 12,
+            OffsetRight = -16,
+            OffsetBottom = -48,
+        };
+        _centroidPivot = new CheckBox { Name = "CentroidPivot", Text = "Use member centroid" };
+        pivotBody.AddChild(_centroidPivot);
+        var pivotGrid = new GridContainer { Columns = 2 };
+        foreach (var (axis, index) in new[] { ("X", 0), ("Y", 1), ("Z", 2) })
+        {
+            pivotGrid.AddChild(Heading(axis, 13, new Color("9db4c0")));
+            var input = new SpinBox
+            {
+                Name = $"Pivot{axis}",
+                MinValue = -1000,
+                MaxValue = 1000,
+                Step = 0.01,
+                AllowGreater = true,
+                AllowLesser = true,
+            };
+            _pivotInputs[index] = input;
+            pivotGrid.AddChild(input);
+        }
+        _centroidPivot.Toggled += useCentroid =>
+        {
+            foreach (var input in _pivotInputs) input.Editable = !useCentroid;
+        };
+        pivotBody.AddChild(pivotGrid);
+        _pivotDialog.AddChild(pivotBody);
+        _pivotDialog.Confirmed += () =>
+        {
+            if (_pivotGroupId is not null)
+                GroupPivotRequested?.Invoke(_pivotGroupId, _centroidPivot.ButtonPressed
+                    ? null
+                    : _pivotInputs.Select(input => input.Value).ToArray());
+        };
+        AddChild(_pivotDialog);
+
+        _simulatorModeDialog = new AcceptDialog
+        {
+            Name = "SimulatorModeDialog",
+            Title = "Simulator mode",
+            DialogText = "RungProof Next is running a local visual simulation.\n\n" +
+                         "Run, Stop, and Reset control this scene. PLC status remains visible in the toolbar and is disconnected until you deliberately configure a connection.",
+            Exclusive = true,
+            MinSize = new Vector2I(500, 210),
+        };
+        _simulatorModeDialog.OkButtonText = "CONTINUE";
+        AddChild(_simulatorModeDialog);
+
+        _workspaceFeedbackDialog = new AcceptDialog
+        {
+            Name = "WorkspaceFeedbackDialog",
+            Title = "Workspace",
+            Exclusive = true,
+            MinSize = new Vector2I(560, 180),
+        };
+        _workspaceFeedbackDialog.OkButtonText = "OK";
+        AddChild(_workspaceFeedbackDialog);
+
+        _workspaceSaveDialog = new FileDialog
+        {
+            Name = "SaveWorkspaceDialog",
+            FileMode = FileDialog.FileModeEnum.SaveFile,
+            Access = FileDialog.AccessEnum.Filesystem,
+            Title = "Save RungProof workspace",
+            CurrentDir = ProjectSettings.GlobalizePath("user://workspaces"),
+            CurrentFile = "scene-workspace.rungproof.json",
+            Filters = ["*.rungproof.json ; RungProof scene workspace"],
+        };
+        _workspaceSaveDialog.FileSelected += path =>
+            SaveWorkspaceToPathRequested?.Invoke(EnsureWorkspaceExtension(path));
+        AddChild(_workspaceSaveDialog);
+
+        _workspaceLoadDialog = new FileDialog
+        {
+            Name = "OpenWorkspaceDialog",
+            FileMode = FileDialog.FileModeEnum.OpenFile,
+            Access = FileDialog.AccessEnum.Filesystem,
+            Title = "Open RungProof workspace",
+            CurrentDir = ProjectSettings.GlobalizePath("user://workspaces"),
+            Filters = ["*.rungproof.json ; RungProof scene workspace"],
+        };
+        _workspaceLoadDialog.FileSelected += path =>
+            LoadWorkspaceFromPathRequested?.Invoke(path);
+        AddChild(_workspaceLoadDialog);
+
+        _assetHelpDialog = new AcceptDialog
+        {
+            Name = "AssetHelpDialog",
+            Title = "ASSET HELP",
+            Exclusive = false,
+            MinSize = new Vector2I(760, 620),
+        };
+        var helpScroll = new ScrollContainer
+        {
+            Name = "AssetHelpScroll",
+            CustomMinimumSize = new Vector2(720, 520),
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+            SizeFlagsVertical = Control.SizeFlags.ExpandFill,
+            HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
+        };
+        _assetHelpContent = new RichTextLabel
+        {
+            Name = "AssetHelpContent",
+            BbcodeEnabled = false,
+            FitContent = true,
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+            CustomMinimumSize = new Vector2(700, 520),
+            Text = "Select an asset and choose OPEN ASSET HELP.",
+        };
+        helpScroll.AddChild(_assetHelpContent);
+        _assetHelpDialog.AddChild(helpScroll);
+        AddChild(_assetHelpDialog);
+    }
+
+    private WorkspaceGroup? SelectedExactGroup()
+    {
+        var selected = _selectedPlacementIds.ToHashSet(StringComparer.Ordinal);
+        return _workspaceGroups.FirstOrDefault(group => group.MemberInstanceIds.Count == selected.Count
+            && group.MemberInstanceIds.All(selected.Contains));
+    }
+
+    private void OpenRenameGroupDialog()
+    {
+        var group = SelectedExactGroup();
+        if (group is null)
+        {
+            SetWorkspaceStatus("Rename rejected · select exactly one complete group", isError: true);
+            return;
+        }
+        _renameGroupId = group.Id;
+        _renameGroupInput.Text = group.Name;
+        _renameGroupDialog.PopupCentered(new Vector2I(420, 150));
+        _renameGroupInput.GrabFocus();
+        _renameGroupInput.SelectAll();
+    }
+
+    public void ShowRenameGroupDialog() => OpenRenameGroupDialog();
+
+    private void OpenPivotDialog()
+    {
+        var group = SelectedExactGroup();
+        if (group is null)
+        {
+            SetWorkspaceStatus("Pivot rejected · select exactly one complete group", isError: true);
+            return;
+        }
+        _pivotGroupId = group.Id;
+        var centroid = group.MemberInstanceIds.Select(id => _workspacePlacements
+            .First(item => item.InstanceId == id).Position).Aggregate(new double[3], (sum, position) => new[]
+            { sum[0] + position[0], sum[1] + position[1], sum[2] + position[2] });
+        centroid = centroid.Select(value => value / group.MemberInstanceIds.Count).ToArray();
+        var values = group.Pivot ?? centroid;
+        _centroidPivot.ButtonPressed = group.Pivot is null;
+        for (var index = 0; index < 3; index++) _pivotInputs[index].Value = values[index];
+        foreach (var input in _pivotInputs) input.Editable = !_centroidPivot.ButtonPressed;
+        _pivotDialog.PopupCentered(new Vector2I(420, 230));
+    }
+
+    public void ShowPivotDialog() => OpenPivotDialog();
+
+    /// <summary>
+    /// Announces the local-simulator boundary once at an interactive launch.
+    /// Inspector panels remain focused on working scene data after dismissal.
+    /// </summary>
+    public void ShowSimulatorModeNotice()
+    {
+        _simulatorModeDialog.PopupCentered(new Vector2I(500, 210));
+    }
+
+    public void ShowWorkspaceFeedback(string message, bool isError = false)
+    {
+        _workspaceFeedbackDialog.Title = isError ? "Workspace load failed" : "Workspace";
+        _workspaceFeedbackDialog.DialogText = message;
+        _workspaceFeedbackDialog.PopupCentered(new Vector2I(560, 180));
+    }
+
+    public void ShowWorkspaceSaveDialog() => _workspaceSaveDialog.PopupCenteredRatio(0.72f);
+
+    public void ShowWorkspaceLoadDialog() => _workspaceLoadDialog.PopupCenteredRatio(0.72f);
+
+    private static string EnsureWorkspaceExtension(string path)
+    {
+        return path.EndsWith(".rungproof.json", StringComparison.OrdinalIgnoreCase)
+            ? path
+            : System.IO.Path.ChangeExtension(path, null) + ".rungproof.json";
+    }
+
+    /// <summary>
+    /// The operator console is the primary RungProof run surface. Scene
+    /// selection and authoring are tools; the current scenario and its safe
+    /// local-model state stay readable without opening an editor dock.
+    /// </summary>
+    private Control BuildOperatorConsole()
+    {
+        var body = new VBoxContainer { Name = "Operator" };
+        body.AddThemeConstantOverride("separation", 8);
+        body.AddChild(SectionLabel("SCENARIO"));
+        _operatorSceneSummary = Inspector("OperatorSceneSummary");
+        _operatorSceneSummary.CustomMinimumSize = new Vector2(0, 118);
+        _operatorSceneSummary.FitContent = true;
+        body.AddChild(_operatorSceneSummary);
+        body.AddChild(SectionLabel("DECLARED MACHINE ACTIONS"));
+        _operatorActions = new VBoxContainer { Name = "OperatorActions" };
+        body.AddChild(_operatorActions);
+        body.AddChild(SectionLabel("RUNTIME"));
+        _operatorRuntimeSummary = Inspector("OperatorRuntimeSummary");
+        _operatorRuntimeSummary.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
+        body.AddChild(_operatorRuntimeSummary);
+        var ladder = ToolbarButton("OpenLadderButton", "BASIC LOGIC / LADDER", new Color("276b89"));
+        ladder.Pressed += () => SetProductView("ladder");
+        body.AddChild(ladder);
+        var engineering = ToolbarButton("OpenEngineeringButton", "OPEN ENGINEERING VIEW", new Color("355d73"));
+        engineering.Pressed += () => SetProductView("engineering");
+        body.AddChild(engineering);
+
+        // Scene browsing remains available under TOOLS. This hidden list keeps
+        // the original population/verification contract without replacing the
+        // current-scene operator rail with a catalog browser.
+        _operatorSceneList = new ItemList { Name = "OperatorSceneList", Visible = false };
+        body.AddChild(_operatorSceneList);
+        return body;
+    }
+
+    private Control BuildViewerBrowser()
+    {
+        var body = new VBoxContainer { Name = "Viewer" };
+        body.AddThemeConstantOverride("separation", 5);
+        body.AddChild(SectionLabel("SITE / SCENE HIERARCHY"));
+        _viewerSearch = new LineEdit
+        {
+            Name = "ViewerSearch",
+            PlaceholderText = "Search scenes and assets…",
+            ClearButtonEnabled = true,
+        };
+        _viewerSearch.TextChanged += FilterViewerHierarchy;
+        body.AddChild(_viewerSearch);
+        _viewerHierarchy = new ItemList
+        {
+            Name = "ViewerHierarchy",
+            SizeFlagsVertical = Control.SizeFlags.ExpandFill,
+            AllowReselect = true,
+        };
+        ConfigureSelectableList(_viewerHierarchy);
+        _viewerHierarchy.ItemSelected += index => SelectViewerItem((int)index);
+        body.AddChild(_viewerHierarchy);
+        _viewerReturn = ToolbarButton("ViewerReturnButton", "RETURN TO SCENE", new Color("355d73"));
+        _viewerReturn.Visible = false;
+        _viewerReturn.Pressed += () => AssetPreviewClosed?.Invoke();
+        body.AddChild(_viewerReturn);
+
+        return body;
+    }
+
+    private Control BuildOperatorHealth()
+    {
+        var body = new VBoxContainer { Name = "Health" };
+        body.AddThemeConstantOverride("separation", 7);
+        body.AddChild(SectionLabel("EVENT HISTORY"));
+        var eventHistory = Heading("LOCAL ONLY\nNo active events", 11, new Color("8aa5b4"));
+        eventHistory.CustomMinimumSize = new Vector2(0, 48);
+        body.AddChild(eventHistory);
+        body.AddChild(SectionLabel("SCENE EQUIPMENT"));
+        _operatorEquipment = Inspector("OperatorEquipment");
+        _operatorEquipment.CustomMinimumSize = new Vector2(0, 136);
+        body.AddChild(_operatorEquipment);
+        body.AddChild(SectionLabel("PLC HEALTH"));
+        _operatorHealth = Inspector("OperatorHealth");
+        _operatorHealth.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
+        body.AddChild(_operatorHealth);
+        return body;
+    }
+
+    private void SetProductView(string view)
+    {
+        _productView = view;
+        var engineering = view == "engineering";
+        var floor = view == "floor";
+        var operatorConsole = view == "operator";
+        var ladder = view == "ladder";
+        var split = view == "split";
+        _leftDock.Visible = engineering || operatorConsole || split;
+        _rightDock.Visible = engineering || operatorConsole || split;
+        _diagnosticsDock.Visible = engineering || operatorConsole || split;
+        // Ladder workspace is elevated above the scene in split mode. Raise
+        // the shared local-model dock with it so the point tables remain a
+        // real bottom region instead of being painted underneath the ladder.
+        _diagnosticsDock.ZIndex = split ? 30 : 0;
+        _transportDock.Visible = operatorConsole || ladder || split;
+        _ladderWorkspace.Visible = ladder || split;
+        // The ladder editor has a substantial minimum width from its existing
+        // workbench controls. Give it enough room to stay inside a 1600 px
+        // viewport while preserving a useful scene pane on the left.
+        _ladderWorkspace.AnchorLeft = split ? _splitDividerRatio : 0.0f;
+        _ladderWorkspace.AnchorRight = split ? 1.0f : 1.0f;
+        _ladderWorkspace.OffsetLeft = split ? 8.0f : 0.0f;
+        _ladderWorkspace.OffsetRight = split ? -8.0f : 0.0f;
+        _leftTabs.TabsVisible = engineering;
+        _inspectorTabs.TabsVisible = engineering;
+        if (engineering)
+        {
+            _leftDock.AnchorLeft = 0.0f;
+            _leftDock.AnchorRight = 0.0f;
+            _rightDock.AnchorLeft = 1.0f;
+            _rightDock.AnchorRight = 1.0f;
+            _leftDock.OffsetTop = 84;
+            _leftDock.OffsetRight = 350;
+            _leftDock.OffsetBottom = -126;
+            _rightDock.OffsetLeft = -428;
+            _rightDock.OffsetTop = 84;
+            _rightDock.OffsetBottom = -126;
+            _diagnosticsDock.OffsetTop = -118;
+            _diagnosticsDock.OffsetBottom = -8;
+            _leftTabs.CurrentTab = 1;
+            _inspectorTabs.CurrentTab = 1;
+        }
+        else if (operatorConsole)
+        {
+            _leftDock.AnchorLeft = 0.0f;
+            _leftDock.AnchorRight = 0.0f;
+            _rightDock.AnchorLeft = 1.0f;
+            _rightDock.AnchorRight = 1.0f;
+            // Keep both operator docks below the toolbar's actual 84 px
+            // minimum height; 70 px cuts into the toolbar row at 125% scale.
+            _leftDock.OffsetTop = 84;
+            _leftDock.OffsetRight = 290;
+            _leftDock.OffsetBottom = -296;
+            _rightDock.OffsetLeft = -250;
+            _rightDock.OffsetTop = 84;
+            _rightDock.OffsetBottom = -296;
+            _diagnosticsDock.OffsetTop = -288;
+            _diagnosticsDock.OffsetBottom = -58;
+            _leftTabs.CurrentTab = 0;
+            _inspectorTabs.CurrentTab = 0;
+        }
+        else if (split)
+        {
+            // The operator console lives entirely in the left pane. Keep the
+            // two information rails inside that pane instead of letting the
+            // right rail cover the Ladder workbench.
+            _leftDock.AnchorLeft = 0.0f;
+            _leftDock.AnchorRight = _splitDividerRatio;
+            _leftDock.OffsetLeft = 0;
+            _leftDock.OffsetTop = 84;
+            _leftDock.OffsetRight = -196;
+            _leftDock.OffsetBottom = -296;
+            _rightDock.AnchorLeft = _splitDividerRatio;
+            _rightDock.AnchorRight = _splitDividerRatio;
+            _rightDock.OffsetLeft = -188;
+            _rightDock.OffsetTop = 84;
+            _rightDock.OffsetRight = -8;
+            _rightDock.OffsetBottom = -296;
+            _leftTabs.TabsVisible = false;
+            _inspectorTabs.TabsVisible = false;
+            _leftTabs.CurrentTab = 0;
+            _inspectorTabs.CurrentTab = 0;
+        }
+        ApplySplitLayout();
+        _operatorPointTables.Visible = operatorConsole || split;
+        _diagnosticList.Visible = engineering;
+        _diagnosticSummary.Text = operatorConsole || split
+            ? "LOCAL MODEL POINTS"
+            : DiagnosticSummaryText();
+        foreach (var item in _productViewButtons)
+        {
+            item.Value.Modulate = item.Key == view ? new Color("9ee8c0") : Colors.White;
+        }
+        _sceneQuickTab?.SetPressedNoSignal(!IsLadderView);
+        _logicQuickTab?.SetPressedNoSignal(IsLadderView);
+        _workspaceStatus.Text = floor
+            ? "IMMERSIVE FLOOR · RMB orbit · MMB pan · wheel zoom"
+            : engineering
+                ? "ENGINEERING SPLIT · authoring and connection review"
+                : split
+                    ? "SCENE + LADDER SPLIT · live offline logic beside the scene"
+                : operatorConsole
+                    ? "LOCAL MODEL · symbolic points only · no PLC transport"
+                : "CLASSIC VIEW · use TOOLS to open scenes, assets, or inspection";
+        _workspaceStatus.AddThemeColorOverride("font_color", new Color("7fa7ba"));
+        ProductViewChanged?.Invoke(view);
+        CallDeferred(nameof(ApplyToolbarClearance));
+    }
+
+    private float ToolbarClearanceOffset()
+    {
+        var workspace = GetNodeOrNull<Control>("Workspace");
+        var toolbar = GetNodeOrNull<Control>("Workspace/Toolbar");
+        if (workspace is null || toolbar is null || toolbar.Size.Y <= 0.0f) return 84.0f;
+        return Mathf.Max(84.0f, toolbar.GetGlobalRect().End.Y - workspace.GetGlobalRect().Position.Y + 4.0f);
+    }
+
+    private void ApplyToolbarClearance()
+    {
+        var top = ToolbarClearanceOffset();
+        _leftDock.OffsetTop = top;
+        _rightDock.OffsetTop = top;
+        _ladderWorkspace.OffsetTop = top;
+        _splitDivider.OffsetTop = top;
+    }
+
+    private void ApplySplitLayout()
+    {
+        var split = _productView == "split";
+        _splitDivider.Visible = split;
+        foreach (var environment in new[] { "TIA Portal", "Studio 5000" })
+        {
+            var root = $"Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/{environment}/Workbench";
+            var projectPanel = GetNodeOrNull<Control>($"{root}/ProjectDockHost/ProjectOrganization");
+            var toolPanel = GetNodeOrNull<Control>($"{root}/EditorAndTasks/ToolDockHost/InstructionAndTags");
+            if (!split || GetViewport().GetVisibleRect().Size.X >= 1900.0f)
+            {
+                if (projectPanel is not null) projectPanel.Visible = true;
+                if (toolPanel is not null) toolPanel.Visible = true;
+            }
+            else
+            {
+                // At 1600-class widths preserve the full ladder canvas and
+                // monitor; these auxiliary docks remain available in the
+                // standalone Logic Editor and can be reopened there.
+                if (projectPanel is not null) projectPanel.Visible = false;
+                if (toolPanel is not null) toolPanel.Visible = false;
+            }
+        }
+        if (!split) return;
+
+        _ladderWorkspace.AnchorLeft = _splitDividerRatio;
+        // Keep the operator scene rail narrow. Anchoring its right edge to
+        // the divider makes it expand across the entire left pane and hides
+        // the 3D scene; the divider belongs only to the ladder pane.
+        _leftDock.AnchorRight = 0.0f;
+        _leftDock.OffsetRight = 196;
+        _rightDock.AnchorLeft = _splitDividerRatio;
+        _rightDock.AnchorRight = _splitDividerRatio;
+        _splitDivider.AnchorLeft = _splitDividerRatio;
+        _splitDivider.AnchorRight = _splitDividerRatio;
+        _splitDivider.AnchorTop = 0.0f;
+        _splitDivider.AnchorBottom = 1.0f;
+        _splitDivider.OffsetLeft = -5;
+        _splitDivider.OffsetRight = 5;
+        _splitDivider.OffsetTop = ToolbarClearanceOffset();
+        _splitDivider.OffsetBottom = -50;
+
+        // Local Model Points is the bottom dock in split mode. Keep the
+        // ladder workbench in the space above it instead of letting the
+        // workbench continue underneath the dock's opaque panel.
+        _ladderWorkspace.OffsetTop = ToolbarClearanceOffset();
+        _ladderWorkspace.OffsetBottom = _diagnosticsDock.OffsetTop - 8.0f;
+
+        // The full workbench is deliberately wide in the standalone Logic
+        // Editor. In split mode its three internal dividers must start at
+        // compact positions so their preferred widths do not force the whole
+        // right pane outside the application window.
+        foreach (var environment in new[] { "TIA Portal", "Studio 5000" })
+        {
+            var root = $"Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/{environment}/Workbench";
+            if (GetNodeOrNull<HSplitContainer>(root) is { } workSplit) workSplit.SplitOffsets = [180];
+            if (GetNodeOrNull<HSplitContainer>($"{root}/EditorAndTasks") is { } taskSplit) taskSplit.SplitOffsets = [600];
+            if (GetNodeOrNull<VSplitContainer>($"{root}/EditorAndTasks/EditorAndInspector") is { } inspectorSplit) inspectorSplit.SplitOffsets = [400];
+            if (GetNodeOrNull<Control>($"{root}/ProjectDockHost/ProjectOrganization") is { } projectPanel)
+                projectPanel.CustomMinimumSize = new Vector2(150, 0);
+            if (GetNodeOrNull<Control>($"{root}/EditorAndTasks/ToolDockHost/InstructionAndTags") is { } toolPanel)
+                toolPanel.CustomMinimumSize = new Vector2(300, 0);
+        }
+    }
+
+    /// <summary>
+    /// Restores the older RungProof interaction pattern: tools are drawers,
+    /// not a permanent HUD. Exactly one tool region is visible at a time.
+    /// </summary>
+    private void ShowClassicTool(string tool)
+    {
+        if (tool == "operator" || tool == "engineering" || tool == "floor" || tool == "ladder" || tool == "split")
+        {
+            SetProductView(tool);
+            return;
+        }
+        SetProductView("engineering");
+        switch (tool)
+        {
+            case "scenes":
+                _leftTabs.CurrentTab = 1;
+                break;
+            case "assets":
+                _leftTabs.CurrentTab = 2;
+                break;
+            case "workspace":
+                _leftTabs.CurrentTab = 3;
+                break;
+            case "viewer":
+                _leftTabs.CurrentTab = 4;
+                break;
+            case "inspector":
+                _inspectorTabs.CurrentTab = 1;
+                break;
+            case "signals":
+                _inspectorTabs.CurrentTab = 2;
+                break;
+            case "connections":
+                _inspectorTabs.CurrentTab = 3;
+                break;
+            case "connection":
+                _inspectorTabs.CurrentTab = 4;
+                break;
+            case "virtual-controller":
+                _inspectorTabs.CurrentTab = 5;
+                break;
+            case "diagnostics":
+                _diagnosticList.Visible = true;
+                _operatorPointTables.Visible = false;
+                break;
+            default:
+                SetProductView("operator");
+                return;
+        }
+        _workspaceStatus.Text = $"ENGINEERING TOOL · {tool.ToUpperInvariant()} · return with TOOLS > Operator console";
+        _workspaceStatus.AddThemeColorOverride("font_color", new Color("7fa7ba"));
+    }
+
+    private void RefreshOperatorPanels()
+    {
+        if (_runtime is null || _activeScene is null || _operatorActions is null) return;
+        foreach (var child in _operatorActions.GetChildren()) child.QueueFree();
+        foreach (var action in _runtime.GetActions())
+        {
+            var button = ToolbarButton($"Action_{action.Id.Replace('-', '_')}", action.Label.ToUpperInvariant(), new Color("276b89"));
+            button.Pressed += () => _runtime?.ExecuteAction(action.Id);
+            _operatorActions.AddChild(button);
+        }
+        if (_operatorActions.GetChildCount() == 0)
+            _operatorActions.AddChild(SectionLabel("No scene-specific actions declared."));
+
+        _transportScene.Text = $"{Escape(_activeScene.Name)} · {(_runtime.IsRunning ? "RUNNING" : "STOPPED")}";
+        _operatorSceneSummary.Text =
+            $"[font_size=18][b]{Escape(_activeScene.Name)}[/b][/font_size]\n" +
+            $"[color=#9db4c0]{Escape(_activeScene.Description)}[/color]\n\n" +
+            $"[color=#7fa7ba]{_activeScene.Equipment.Count} declared equipment items · symbolic local model[/color]";
+        var external = _connection is ExternalPlcRuntimeClient;
+        _operatorRuntimeSummary.Text =
+            $"[b]Player[/b]  {(external ? "EXTERNAL PLC" : "BUILT-IN SIMULATOR")}\n" +
+            $"[b]State[/b]  {(_runtime.IsRunning ? "RUNNING" : "STOPPED")}\n" +
+            $"[b]Scene[/b]  {Escape(_activeScene.Id)}\n" +
+            $"[b]Points[/b]  {_runtime.Points.Count}\n" +
+            $"[b]PLC exchange[/b]  {(external ? _connection.State.ToString().ToUpperInvariant() : "LOCAL MODEL")}";
+        var equipment = new StringBuilder();
+        equipment.AppendLine($"[b]{Escape(_activeScene.Name)}[/b]");
+        foreach (var item in _activeScene.Equipment.Take(8))
+            equipment.AppendLine($"• {Escape(item.Label)}");
+        if (_activeScene.Equipment.Count > 8)
+            equipment.AppendLine($"[color=#7fa7ba]+ {_activeScene.Equipment.Count - 8} more[/color]");
+        _operatorEquipment.Text = equipment.ToString();
+        var health = new StringBuilder();
+        health.AppendLine($"[b]Health[/b]  {_connection.State.ToString().ToUpperInvariant()}");
+        if (external)
+        {
+            health.AppendLine("Heartbeat  guarded live runtime");
+            health.AppendLine("Echo  PLC readback");
+            health.AppendLine($"Connection  {_connection.EndpointDescription}");
+            health.AppendLine("Timeout  profile watchdog");
+        }
+        else
+        {
+            health.AppendLine("Heartbeat  local runtime only");
+            health.AppendLine("Echo  none");
+            health.AppendLine("Connection  disabled");
+            health.AppendLine("Timeout  —");
+        }
+        _operatorHealth.Text = health.ToString();
+        if (_productView == "operator") _diagnosticSummary.Text = "LOCAL MODEL POINTS";
+        RefreshOperatorPointTables();
+    }
+
+    private void RefreshOperatorPointTables()
+    {
+        if (_activeScene is null || _runtime is null) return;
+        RefreshTagWatchList();
+        var watched = _watchablePointNames
+            .Where((_, index) => _tagWatchList.IsSelected(index))
+            .ToHashSet(StringComparer.Ordinal);
+        var simulatorRows = new List<(string Point, string Type, string Value, string Owner)>();
+        var plcRows = new List<(string Point, string Type, string Value, string Owner)>();
+        var hasSimulatorPoints = false;
+        var hasPlcPoints = false;
+        if (_activeScene.Simulation.ValueKind == JsonValueKind.Object
+            && _activeScene.Simulation.TryGetProperty("points", out var points)
+            && points.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var point in points.EnumerateArray())
+            {
+                var name = Text(point, "name");
+                var type = Text(point, "type");
+                var owner = Text(point, "owner");
+                if (name.Length == 0) continue;
+                if (watched.Count > 0 && !watched.Contains(name)) continue;
+                _runtime.Points.TryGetValue(name, out var value);
+                var row = (name, type, Convert.ToString(value) ?? "—", owner);
+                if (owner.Equals("PLC", StringComparison.OrdinalIgnoreCase))
+                {
+                    plcRows.Add(row);
+                    hasPlcPoints = true;
+                }
+                else
+                {
+                    simulatorRows.Add(row);
+                    hasSimulatorPoints = true;
+                }
+            }
+        }
+        _operatorInputPoints.Text = BuildPointTable(simulatorRows, hasSimulatorPoints, "simulator-owned");
+        _operatorOutputPoints.Text = BuildPointTable(plcRows, hasPlcPoints, "PLC-owned");
+    }
+
+    private static string BuildPointTable(
+        IReadOnlyList<(string Point, string Type, string Value, string Owner)> rows,
+        bool hasRows,
+        string ownerDescription)
+    {
+        if (!hasRows) return $"[color=#7fa7ba]No declared {ownerDescription} points.[/color]";
+
+        var table = new StringBuilder("[table=4]");
+        table.Append("[cell][b]POINT[/b][/cell]");
+        table.Append("[cell][b]TYPE[/b][/cell]");
+        table.Append("[cell][b]VALUE[/b][/cell]");
+        table.Append("[cell][b]OWNER[/b][/cell]");
+        foreach (var row in rows)
+        {
+            table.Append("[cell]").Append(Escape(row.Point)).Append("[/cell]");
+            table.Append("[cell]").Append(Escape(row.Type)).Append("[/cell]");
+            table.Append("[cell]").Append(Escape(row.Value)).Append("[/cell]");
+            table.Append("[cell]").Append(Escape(row.Owner)).Append("[/cell]");
+        }
+        table.Append("[/table]");
+        return table.ToString();
+    }
+
+    private void RefreshTagWatchList()
+    {
+        if (_activeScene?.Simulation.ValueKind != JsonValueKind.Object
+            || !_activeScene.Simulation.TryGetProperty("points", out var points)
+            || points.ValueKind != JsonValueKind.Array) return;
+        var names = points.EnumerateArray()
+            .Select(point => Text(point, "name"))
+            .Where(name => name.Length > 0)
+            .OrderBy(name => name, StringComparer.Ordinal)
+            .ToArray();
+        if (names.SequenceEqual(_watchablePointNames, StringComparer.Ordinal)) return;
+        var selected = _watchablePointNames
+            .Where((_, index) => _tagWatchList.IsSelected(index))
+            .ToHashSet(StringComparer.Ordinal);
+        _watchablePointNames.Clear();
+        _tagWatchList.Clear();
+        foreach (var name in names)
+        {
+            var index = _tagWatchList.ItemCount;
+            _tagWatchList.AddItem(name);
+            if (selected.Contains(name)) _tagWatchList.Select(index, false);
+            _watchablePointNames.Add(name);
+        }
+    }
+
+    private Control BuildSceneBrowser()
+    {
+        var body = new VBoxContainer { Name = "Scenes" };
+        body.AddThemeConstantOverride("separation", 7);
+        body.AddChild(SectionLabel("SCENARIO BROWSER"));
+        _sceneList = new ItemList
+        {
+            Name = "SceneList",
+            SizeFlagsVertical = Control.SizeFlags.ExpandFill,
+            AllowReselect = true,
+        };
+        ConfigureSelectableList(_sceneList);
+        _sceneList.ItemSelected += index =>
+        {
+            if (index >= 0 && index < _scenarioBrowserRows.Count
+                && _scenarioBrowserRows[(int)index] is { } scenario)
+                SceneRequested?.Invoke(scenario.Id);
+        };
+        body.AddChild(_sceneList);
+        return body;
+    }
+
+    private Control BuildAssetBrowser()
+    {
+        var body = new VBoxContainer { Name = "Assets" };
+        body.AddThemeConstantOverride("separation", 7);
+        body.AddChild(SectionLabel("ASSET CATALOG"));
+        _assetSearch = new LineEdit
+        {
+            Name = "AssetSearch",
+            PlaceholderText = "Search name, category, or tag…",
+            ClearButtonEnabled = true,
+        };
+        _assetSearch.TextChanged += FilterAssets;
+        body.AddChild(_assetSearch);
+        _assetList = new ItemList
+        {
+            Name = "AssetList",
+            SizeFlagsVertical = Control.SizeFlags.ExpandFill,
+            AllowReselect = true,
+        };
+        ConfigureSelectableList(_assetList);
+        _assetList.ItemSelected += index => SelectAsset((int)index);
+        body.AddChild(_assetList);
+        _placeAsset = ToolbarButton("PlaceAssetButton", "+  PLACE SELECTED", new Color("276b89"));
+        _placeAsset.Disabled = true;
+        _placeAsset.Pressed += () =>
+        {
+            if (_selectedAsset is not null) AssetPlacementRequested?.Invoke(_selectedAsset);
+        };
+        body.AddChild(_placeAsset);
+        _viewAsset = ToolbarButton("ViewAssetButton", "VIEW 3D PREVIEW", new Color("355d73"));
+        _viewAsset.TooltipText = "Isolate the selected catalog GLB for inspection. It does not place or run the asset.";
+        _viewAsset.Disabled = true;
+        _viewAsset.Pressed += () =>
+        {
+            if (_selectedAsset is not null) AssetPreviewRequested?.Invoke(_selectedAsset);
+        };
+        body.AddChild(_viewAsset);
+        _assetHelp = ToolbarButton("AssetHelpButton", "OPEN ASSET HELP", new Color("4f6f82"));
+        _assetHelp.TooltipText = "Open the generated usage, tag, motion, provenance, and verification guide for the selected asset.";
+        _assetHelp.Disabled = true;
+        _assetHelp.Pressed += ShowSelectedAssetHelp;
+        body.AddChild(_assetHelp);
+        _returnFromAssetPreview = ToolbarButton("ReturnFromAssetPreviewButton", "RETURN TO SCENE", new Color("3d5868"));
+        _returnFromAssetPreview.TooltipText = "Return to the authored scene without modifying its workspace.";
+        _returnFromAssetPreview.Visible = false;
+        _returnFromAssetPreview.Pressed += () => AssetPreviewClosed?.Invoke();
+        body.AddChild(_returnFromAssetPreview);
+        return body;
+    }
+
+    private Control BuildWorkspaceEditor()
+    {
+        var body = new VBoxContainer { Name = "Workspace" };
+        body.AddThemeConstantOverride("separation", 6);
+        body.AddChild(SectionLabel("WORKSPACE HIERARCHY"));
+        _workspaceList = new ItemList
+        {
+            Name = "WorkspaceList",
+            SizeFlagsVertical = Control.SizeFlags.ExpandFill,
+            AllowReselect = true,
+            SelectMode = ItemList.SelectModeEnum.Multi,
+        };
+        ConfigureSelectableList(_workspaceList);
+        _workspaceList.MultiSelected += (_, _) => EmitWorkspaceSelectionSet();
+        body.AddChild(_workspaceList);
+
+        var history = new HBoxContainer { Name = "EditorButtons" };
+        history.AddThemeConstantOverride("separation", 6);
+        _undo = ToolbarButton("UndoButton", "UNDO", new Color("3d5868"), 92);
+        _redo = ToolbarButton("RedoButton", "REDO", new Color("3d5868"), 92);
+        _undo.Pressed += () => UndoRequested?.Invoke();
+        _redo.Pressed += () => RedoRequested?.Invoke();
+        history.AddChild(_undo);
+        history.AddChild(_redo);
+        _arrangeMenu = new MenuButton
+        {
+            Name = "ArrangeMenu",
+            Text = "ARRANGE ▾",
+            CustomMinimumSize = new Vector2(120, 36),
+        };
+        var arrangePopup = _arrangeMenu.GetPopup();
+        foreach (var operation in Enum.GetValues<WorkspaceArrangeOperation>())
+            arrangePopup.AddItem(operation switch
+            {
+                WorkspaceArrangeOperation.AlignX => "ALIGN X TO PRIMARY",
+                WorkspaceArrangeOperation.AlignY => "ALIGN Y TO PRIMARY",
+                WorkspaceArrangeOperation.AlignZ => "ALIGN Z TO PRIMARY",
+                WorkspaceArrangeOperation.DistributeX => "DISTRIBUTE X EVENLY",
+                WorkspaceArrangeOperation.DistributeY => "DISTRIBUTE Y EVENLY",
+                _ => "DISTRIBUTE Z EVENLY",
+            }, (int)operation);
+        arrangePopup.IdPressed += id => ArrangeSelectionRequested?.Invoke((WorkspaceArrangeOperation)id);
+        history.AddChild(_arrangeMenu);
+        body.AddChild(history);
+
+        var transformModes = new HBoxContainer { Name = "TransformModes" };
+        transformModes.AddThemeConstantOverride("separation", 6);
+        var modeGroup = new ButtonGroup();
+        foreach (var (name, text, mode) in new[]
+                 {
+                     ("MoveModeButton", "W  MOVE", WorkspaceTransformMode.Move),
+                     ("RotateModeButton", "E  ROTATE", WorkspaceTransformMode.Rotate),
+                     ("ScaleModeButton", "R  SCALE", WorkspaceTransformMode.Scale),
+                 })
+        {
+            var button = ToolbarButton(name, text, new Color("355d73"), 96);
+            button.ToggleMode = true;
+            button.ButtonGroup = modeGroup;
+            button.ButtonPressed = mode == WorkspaceTransformMode.Move;
+            button.Pressed += () => TransformModeRequested?.Invoke(mode);
+            _transformModeButtons[mode] = button;
+            transformModes.AddChild(button);
+        }
+        body.AddChild(transformModes);
+
+        var transformSpace = new HBoxContainer { Name = "TransformSpace" };
+        transformSpace.AddThemeConstantOverride("separation", 6);
+        var spaceGroup = new ButtonGroup();
+        foreach (var (name, text, space) in new[]
+                 {
+                     ("WorldSpaceButton", "WORLD AXES", WorkspaceTransformSpace.World),
+                     ("LocalSpaceButton", "LOCAL AXES", WorkspaceTransformSpace.Local),
+                 })
+        {
+            var button = ToolbarButton(name, text, new Color("314d61"), 145);
+            button.ToggleMode = true;
+            button.ButtonGroup = spaceGroup;
+            button.ButtonPressed = space == WorkspaceTransformSpace.World;
+            button.Pressed += () => TransformSpaceRequested?.Invoke(space);
+            _transformSpaceButtons[space] = button;
+            transformSpace.AddChild(button);
+        }
+        body.AddChild(transformSpace);
+
+        var objectButtons = new HBoxContainer { Name = "ObjectButtons" };
+        objectButtons.AddThemeConstantOverride("separation", 6);
+        var duplicate = ToolbarButton("DuplicatePlacementButton", "DUPLICATE", new Color("3d5868"), 92);
+        var focus = ToolbarButton("FocusPlacementButton", "FOCUS", new Color("3d5868"), 92);
+        var resetTransform = ToolbarButton("ResetPlacementTransformButton", "RESET XFORM", new Color("3d5868"), 112);
+        duplicate.Pressed += () =>
+        {
+            if (_selectedPlacementIds.Count > 0) DuplicateSelectionRequested?.Invoke();
+        };
+        focus.Pressed += () =>
+        {
+            if (_selectedPlacementId is not null) FocusPlacementRequested?.Invoke(_selectedPlacementId);
+        };
+        resetTransform.Pressed += () =>
+        {
+            if (_selectedPlacementId is not null) ResetPlacementTransformRequested?.Invoke(_selectedPlacementId);
+        };
+        objectButtons.AddChild(duplicate);
+        objectButtons.AddChild(focus);
+        objectButtons.AddChild(resetTransform);
+        body.AddChild(objectButtons);
+
+        var clipboardButtons = new HBoxContainer { Name = "ClipboardButtons" };
+        clipboardButtons.AddThemeConstantOverride("separation", 6);
+        var copy = ToolbarButton("CopySelectionButton", "CTRL+C  COPY", new Color("3d5868"), 145);
+        var paste = ToolbarButton("PasteSelectionButton", "CTRL+V  PASTE", new Color("3d5868"), 145);
+        copy.Pressed += () => CopySelectionRequested?.Invoke();
+        paste.Pressed += () => PasteSelectionRequested?.Invoke();
+        clipboardButtons.AddChild(copy);
+        clipboardButtons.AddChild(paste);
+        body.AddChild(clipboardButtons);
+
+        var groupButtons = new HBoxContainer { Name = "GroupButtons" };
+        groupButtons.AddThemeConstantOverride("separation", 6);
+        var group = ToolbarButton("GroupSelectionButton", "GROUP", new Color("3d5868"), 72);
+        var rename = ToolbarButton("RenameGroupButton", "RENAME", new Color("3d5868"), 66);
+        var pivot = ToolbarButton("PivotGroupButton", "PIVOT", new Color("314d61"), 82);
+        var ungroup = ToolbarButton("UngroupSelectionButton", "UNGROUP", new Color("3d5868"), 88);
+        group.Pressed += () => GroupSelectionRequested?.Invoke();
+        rename.Pressed += OpenRenameGroupDialog;
+        pivot.Pressed += OpenPivotDialog;
+        ungroup.Pressed += () => UngroupSelectionRequested?.Invoke();
+        groupButtons.AddChild(group);
+        groupButtons.AddChild(rename);
+        groupButtons.AddChild(pivot);
+        groupButtons.AddChild(ungroup);
+        body.AddChild(groupButtons);
+
+        var snapSettings = new HBoxContainer { Name = "SnapSettings" };
+        snapSettings.AddThemeConstantOverride("separation", 5);
+        _snapEnabled = new CheckButton { Name = "SnapEnabled", Text = "SNAP" };
+        _positionSnap = CompactSpinBox("PositionSnap", 0.01, 10.0, 0.01, 0.10, " m");
+        _rotationSnap = CompactSpinBox("RotationSnap", 1.0, 180.0, 1.0, 15.0, "°");
+        _snapEnabled.Toggled += _ => EmitSnapSettings();
+        _positionSnap.ValueChanged += _ => EmitSnapSettings();
+        _rotationSnap.ValueChanged += _ => EmitSnapSettings();
+        snapSettings.AddChild(_snapEnabled);
+        snapSettings.AddChild(_positionSnap);
+        snapSettings.AddChild(_rotationSnap);
+        body.AddChild(snapSettings);
+
+        var grid = new GridContainer { Name = "TransformGrid", Columns = 4 };
+        grid.AddThemeConstantOverride("h_separation", 5);
+        grid.AddThemeConstantOverride("v_separation", 4);
+        grid.AddChild(new Label());
+        foreach (var axis in new[] { "X", "Y", "Z" }) grid.AddChild(Heading(axis, 12, new Color("7fa7ba")));
+        AddTransformRow(grid, "Position", _positionInputs, -1000, 1000, 0.01);
+        AddTransformRow(grid, "Rotation", _rotationInputs, -3600, 3600, 1.0);
+        AddTransformRow(grid, "Scale", _scaleInputs, 0.01, 100, 0.01);
+        body.AddChild(grid);
+
+        _deletePlacement = ToolbarButton("DeletePlacementButton", "DELETE SELECTED", new Color("8c3c3c"));
+        _deletePlacement.Pressed += () =>
+        {
+            if (_selectedPlacementIds.Count > 0) DeleteSelectionRequested?.Invoke();
+        };
+        body.AddChild(_deletePlacement);
+        return body;
+    }
+
+    private Control BuildConnectionEditor()
+    {
+        var scroll = new ScrollContainer
+        {
+            Name = "Connections",
+            HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
+        };
+        var body = new VBoxContainer
+        {
+            Name = "ConnectionEditorBody",
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+        };
+        body.AddThemeConstantOverride("separation", 5);
+        scroll.AddChild(body);
+        body.AddChild(SectionLabel("ASSET CONNECTORS"));
+        _fromInstance = ConnectionOption("FromInstance");
+        _fromConnector = ConnectionOption("FromConnector");
+        _toInstance = ConnectionOption("ToInstance");
+        _toConnector = ConnectionOption("ToConnector");
+        _fromInstance.ItemSelected += _ => RefreshConnectorOptions(_fromInstance, _fromConnector);
+        _toInstance.ItemSelected += _ => RefreshConnectorOptions(_toInstance, _toConnector);
+        body.AddChild(Field("From object", _fromInstance));
+        body.AddChild(Field("From connector", _fromConnector));
+        body.AddChild(Field("To object", _toInstance));
+        body.AddChild(Field("To connector", _toConnector));
+        var createConnector = ToolbarButton("CreateConnectorLink", "CREATE CONNECTOR LINK", new Color("276b89"));
+        createConnector.Pressed += RequestConnectorLink;
+        body.AddChild(createConnector);
+        _connectorLinkList = new ItemList { Name = "ConnectorLinks", CustomMinimumSize = new Vector2(0, 52) };
+        _connectorLinkList.ItemSelected += index => ShowConnectorLink((int)index);
+        body.AddChild(_connectorLinkList);
+        var deleteConnector = ToolbarButton("DeleteConnectorLink", "DELETE LINK", new Color("714141"));
+        deleteConnector.Pressed += () =>
+        {
+            var selected = _connectorLinkList.GetSelectedItems();
+            if (selected.Length > 0 && selected[0] < _connectorLinks.Count)
+                ConnectorLinkDeleteRequested?.Invoke(_connectorLinks[selected[0]].Id);
+        };
+        body.AddChild(deleteConnector);
+
+        body.AddChild(SectionLabel("SYMBOLIC SIGNAL MAPPING"));
+        _signalInstance = ConnectionOption("SignalInstance");
+        _signal = ConnectionOption("AssetSignal");
+        _scenePoint = ConnectionOption("ScenePoint");
+        _signalInstance.ItemSelected += _ => RefreshSignalOptions();
+        body.AddChild(Field("Object", _signalInstance));
+        body.AddChild(Field("Asset signal", _signal));
+        body.AddChild(Field("Scene point", _scenePoint));
+        var createSignal = ToolbarButton("CreateSignalLink", "CREATE SIGNAL MAPPING", new Color("276b89"));
+        createSignal.Pressed += RequestSignalLink;
+        body.AddChild(createSignal);
+        _signalLinkList = new ItemList { Name = "SignalLinks", CustomMinimumSize = new Vector2(0, 52) };
+        _signalLinkList.ItemSelected += index => ShowSignalLink((int)index);
+        body.AddChild(_signalLinkList);
+        _signalMappingSummary = Heading("0 LIVE · 0 AUTHORED ONLY", 11, new Color("7fa7ba"));
+        _signalMappingSummary.Name = "SignalMappingSummary";
+        _signalMappingSummary.TooltipText =
+            "LIVE INPUT means the scene point currently drives a verified asset controller. " +
+            "AUTHORED ONLY means the mapping is saved but has no verified runtime behavior yet.";
+        body.AddChild(_signalMappingSummary);
+        var deleteSignal = ToolbarButton("DeleteSignalLink", "DELETE MAPPING", new Color("714141"));
+        deleteSignal.Pressed += () =>
+        {
+            var selected = _signalLinkList.GetSelectedItems();
+            if (selected.Length > 0 && selected[0] < _signalLinks.Count)
+                SignalLinkDeleteRequested?.Invoke(_signalLinks[selected[0]].Id);
+        };
+        body.AddChild(deleteSignal);
+        return scroll;
+    }
+
+    private static OptionButton ConnectionOption(string name) => new()
+    {
+        Name = name,
+        SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+        FitToLongestItem = false,
+    };
+
+    private static SpinBox CompactSpinBox(
+        string name,
+        double minimum,
+        double maximum,
+        double step,
+        double value,
+        string suffix
+    ) => new()
+    {
+        Name = name,
+        MinValue = minimum,
+        MaxValue = maximum,
+        Step = step,
+        Value = value,
+        Suffix = suffix,
+        CustomMinimumSize = new Vector2(84, 30),
+    };
+
+    private void EmitSnapSettings()
+    {
+        if (_snapEnabled is null || _positionSnap is null || _rotationSnap is null) return;
+        SnapSettingsChanged?.Invoke(_snapEnabled.ButtonPressed, _positionSnap.Value, _rotationSnap.Value);
+    }
+
+    private static Control Field(string label, Control input)
+    {
+        var row = new HBoxContainer();
+        var caption = Heading(label, 12, new Color("9db4c0"));
+        caption.CustomMinimumSize = new Vector2(106, 0);
+        row.AddChild(caption);
+        row.AddChild(input);
+        return row;
+    }
+
+    private void RequestConnectorLink()
+    {
+        var fromInstance = SelectedPlacement(_fromInstance);
+        var toInstance = SelectedPlacement(_toInstance);
+        var from = SelectedConnector(_fromInstance, _fromConnector);
+        var to = SelectedConnector(_toInstance, _toConnector);
+        if (fromInstance is not null && toInstance is not null && from is not null && to is not null)
+            ConnectorLinkRequested?.Invoke(fromInstance, from.Id, toInstance, to.Id);
+    }
+
+    private void RequestSignalLink()
+    {
+        var instance = SelectedPlacement(_signalInstance);
+        var signals = SignalsFor(_signalInstance);
+        var points = ScenePoints();
+        if (instance is null || _signal.Selected < 0 || _signal.Selected >= signals.Count
+            || _scenePoint.Selected < 0 || _scenePoint.Selected >= points.Count) return;
+        SignalLinkRequested?.Invoke(instance, signals[_signal.Selected].Id, points[_scenePoint.Selected].Name);
+    }
+
+    private void AddTransformRow(
+        GridContainer grid,
+        string label,
+        SpinBox[] inputs,
+        double minimum,
+        double maximum,
+        double step
+    )
+    {
+        grid.AddChild(Heading(label, 12, new Color("bcd3df")));
+        for (var index = 0; index < 3; index++)
+        {
+            var input = new SpinBox
+            {
+                MinValue = minimum,
+                MaxValue = maximum,
+                Step = step,
+                CustomMinimumSize = new Vector2(69, 30),
+                AllowGreater = true,
+                AllowLesser = true,
+            };
+            input.ValueChanged += _ => EmitTransformEdit();
+            inputs[index] = input;
+            grid.AddChild(input);
+        }
+    }
+
+    public void UpdateWorkspace(
+        IReadOnlyList<WorkspacePlacement> placements,
+        string? selectedId,
+        bool canUndo,
+        bool canRedo,
+        IReadOnlyList<WorkspaceConnectorLink> connectorLinks,
+        IReadOnlyList<WorkspaceSignalLink> signalLinks,
+        IReadOnlyDictionary<string, SignalMappingRuntimeStatus>? signalStatuses = null,
+        IReadOnlyCollection<string>? selectedIds = null,
+        IReadOnlyList<WorkspaceGroup>? groups = null
+    )
+    {
+        _workspacePlacements = placements;
+        _selectedPlacementId = selectedId;
+        _workspaceGroups = groups ?? [];
+        _selectedPlacementIds.Clear();
+        if (selectedIds is not null)
+            _selectedPlacementIds.UnionWith(selectedIds);
+        else if (selectedId is not null)
+            _selectedPlacementIds.Add(selectedId);
+        _workspaceList.Clear();
+        _workspaceListSelectionTargets.Clear();
+        var groupedIds = new HashSet<string>(_workspaceGroups.SelectMany(group => group.MemberInstanceIds),
+            StringComparer.Ordinal);
+        void AddGroup(WorkspaceGroup group, int depth)
+        {
+            var members = group.MemberInstanceIds.Where(id => placements.Any(item => item.InstanceId == id)).ToArray();
+            if (members.Length == 0) return;
+            var prefix = string.Concat(Enumerable.Repeat("│  ", depth));
+            var headerIndex = _workspaceList.ItemCount;
+            _workspaceList.AddItem($"{prefix}▾ GROUP  ·  {group.Name}  ·  {members.Length} assets");
+            _workspaceListSelectionTargets.Add(members);
+            if (members.All(_selectedPlacementIds.Contains)) _workspaceList.Select(headerIndex, false);
+            var children = _workspaceGroups.Where(item => item.ParentGroupId == group.Id)
+                .OrderBy(item => item.Name, StringComparer.OrdinalIgnoreCase).ToArray();
+            foreach (var child in children) AddGroup(child, depth + 1);
+            var childMembers = children.SelectMany(child => child.MemberInstanceIds).ToHashSet(StringComparer.Ordinal);
+            foreach (var memberId in members.Where(id => !childMembers.Contains(id)))
+            {
+                var placement = placements.First(item => item.InstanceId == memberId);
+                var asset = _assets.Assets.FirstOrDefault(item => item.Id == placement.AssetId);
+                var itemIndex = _workspaceList.ItemCount;
+                _workspaceList.AddItem($"{prefix}│  └  {asset?.DisplayName ?? placement.AssetId}");
+                _workspaceListSelectionTargets.Add([memberId]);
+                if (_selectedPlacementIds.Contains(memberId) && !members.All(_selectedPlacementIds.Contains))
+                    _workspaceList.Select(itemIndex, false);
+            }
+        }
+        foreach (var group in _workspaceGroups.Where(item => item.ParentGroupId is null)
+                     .OrderBy(item => item.Name, StringComparer.OrdinalIgnoreCase)) AddGroup(group, 0);
+        foreach (var placement in placements.Where(item => !groupedIds.Contains(item.InstanceId)))
+        {
+            var asset = _assets.Assets.FirstOrDefault(item => item.Id == placement.AssetId);
+            var itemIndex = _workspaceList.ItemCount;
+            _workspaceList.AddItem(asset?.DisplayName ?? placement.AssetId);
+            _workspaceListSelectionTargets.Add([placement.InstanceId]);
+            if (_selectedPlacementIds.Contains(placement.InstanceId)) _workspaceList.Select(itemIndex, false);
+        }
+        _undo.Disabled = !canUndo;
+        _redo.Disabled = !canRedo;
+        _deletePlacement.Disabled = _selectedPlacementIds.Count == 0;
+        _arrangeMenu.Disabled = _selectedPlacementIds.Count < 2;
+        _connectorLinks = connectorLinks;
+        _signalLinks = signalLinks;
+        _signalStatuses = signalStatuses
+            ?? new Dictionary<string, SignalMappingRuntimeStatus>();
+        RefreshTransformInputs();
+        RefreshConnectionEditor();
+        if (_selectedPlacementIds.Count > 1)
+        {
+            _inspector.Text =
+                $"[font_size=20][b]{_selectedPlacementIds.Count} OBJECTS SELECTED[/b][/font_size]\n\n" +
+                "[color=#8fc6a5]Batch selection[/color]\n" +
+                GroupSelectionSummary() + "\n" +
+                "Duplicate, copy, paste, group, or delete the selection. The transform gizmo moves the selection around its shared pivot.";
+        }
+        else if (selectedId is not null)
+        {
+            var placement = placements.FirstOrDefault(item => item.InstanceId == selectedId);
+            if (placement is not null) RefreshPlacementInspector(placement);
+        }
+    }
+
+    private string GroupSelectionSummary()
+    {
+        var selected = _selectedPlacementIds.ToHashSet(StringComparer.Ordinal);
+        var group = _workspaceGroups.FirstOrDefault(item =>
+            item.MemberInstanceIds.Count == selected.Count
+            && item.MemberInstanceIds.All(selected.Contains));
+        return group is null
+            ? "[b]Group[/b]  Not grouped"
+            : $"[b]Group[/b]  {Escape(group.Name)}";
+    }
+
+    private void EmitWorkspaceSelectionSet()
+    {
+        var selected = _workspaceList.GetSelectedItems()
+            .Where(index => index >= 0 && index < _workspaceListSelectionTargets.Count)
+            .SelectMany(index => _workspaceListSelectionTargets[index])
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
+        _selectedPlacementIds.Clear();
+        _selectedPlacementIds.UnionWith(selected);
+        _selectedPlacementId = selected.LastOrDefault();
+        RefreshTransformInputs();
+        PlacementSelectionSetRequested?.Invoke(selected);
+    }
+
+    public bool SelectFirstWorkspaceHierarchyGroupForVerification()
+    {
+        if (_workspaceListSelectionTargets.Count == 0 || _workspaceList.ItemCount == 0) return false;
+        var expected = _workspaceListSelectionTargets[0].ToHashSet(StringComparer.Ordinal);
+        if (expected.Count < 2) return false;
+        _workspaceList.DeselectAll();
+        _workspaceList.Select(0, false);
+        EmitWorkspaceSelectionSet();
+        return _selectedPlacementIds.SetEquals(expected);
+    }
+
+    private void RefreshTransformInputs()
+    {
+        _updatingTransformInputs = true;
+        var placement = _workspacePlacements.FirstOrDefault(item => item.InstanceId == _selectedPlacementId);
+        var enabled = placement is not null;
+        foreach (var input in _positionInputs.Concat(_rotationInputs).Concat(_scaleInputs))
+            input.Editable = enabled;
+        if (placement is not null)
+        {
+            for (var index = 0; index < 3; index++)
+            {
+                _positionInputs[index].Value = placement.Position[index];
+                _rotationInputs[index].Value = placement.Rotation[index];
+                _scaleInputs[index].Value = placement.Scale[index];
+            }
+        }
+        _updatingTransformInputs = false;
+    }
+
+    private void EmitTransformEdit()
+    {
+        if (_updatingTransformInputs || _selectedPlacementId is null) return;
+        PlacementTransformRequested?.Invoke(
+            _selectedPlacementId,
+            Values(_positionInputs),
+            Values(_rotationInputs),
+            Values(_scaleInputs)
+        );
+    }
+
+    private void RefreshPlacementInspector(WorkspacePlacement placement)
+    {
+        var asset = _assets.Assets.FirstOrDefault(item => item.Id == placement.AssetId);
+        var name = asset?.DisplayName ?? placement.AssetId;
+        _inspector.Text =
+            $"[font_size=20][b]{Escape(name)}[/b][/font_size]\n" +
+            $"[color=#7fa7ba]{Escape(placement.InstanceId)}[/color]\n\n" +
+            $"[b]Asset ID[/b]  {Escape(placement.AssetId)}\n" +
+            $"[b]Position[/b]  {placement.Position[0]:0.###}, {placement.Position[1]:0.###}, {placement.Position[2]:0.###} m\n" +
+            $"[b]Rotation[/b]  {placement.Rotation[0]:0.#}, {placement.Rotation[1]:0.#}, {placement.Rotation[2]:0.#}°\n" +
+            $"[b]Scale[/b]  {placement.Scale[0]:0.###}, {placement.Scale[1]:0.###}, {placement.Scale[2]:0.###}\n\n" +
+            "[color=#8fc6a5]Selected workspace object[/color]\n" +
+            "Edit its transform in the Workspace tab or click another placed object in the viewport.";
+    }
+
+    private static Vector3 Values(SpinBox[] inputs) => new(
+        (float)inputs[0].Value,
+        (float)inputs[1].Value,
+        (float)inputs[2].Value
+    );
+
+    private void RefreshConnectionEditor()
+    {
+        if (_fromInstance is null) return;
+        foreach (var option in new[] { _fromInstance, _toInstance, _signalInstance })
+        {
+            var previous = option.Selected;
+            option.Clear();
+            foreach (var placement in _workspacePlacements)
+            {
+                var asset = _assets.Assets.First(item => item.Id == placement.AssetId);
+                option.AddItem(asset.DisplayName);
+            }
+            if (option.ItemCount > 0) option.Select(Math.Clamp(previous, 0, option.ItemCount - 1));
+        }
+        RefreshConnectorOptions(_fromInstance, _fromConnector);
+        RefreshConnectorOptions(_toInstance, _toConnector);
+        RefreshSignalOptions();
+        _scenePoint.Clear();
+        foreach (var point in ScenePoints()) _scenePoint.AddItem($"{point.Name}  [{point.Type}]");
+
+        _connectorLinkList.Clear();
+        foreach (var link in _connectorLinks)
+            _connectorLinkList.AddItem($"{InstanceName(link.FromInstanceId)}.{link.FromConnectorId}  →  {InstanceName(link.ToInstanceId)}.{link.ToConnectorId}");
+        _signalLinkList.Clear();
+        foreach (var link in _signalLinks)
+        {
+            var status = _signalStatuses.GetValueOrDefault(link.Id);
+            var label = status?.Label ?? "AUTHORED ONLY";
+            _signalLinkList.AddItem($"[{label}]  {InstanceName(link.InstanceId)}.{link.SignalId}  ↔  {link.PointName}");
+            _signalLinkList.SetItemTooltip(_signalLinkList.ItemCount - 1,
+                status?.Detail ?? "Mapping is persisted but no verified runtime adapter is active.");
+        }
+        var live = _signalStatuses.Values.Count(status => status.State == SignalMappingRuntimeState.LiveInput);
+        var authoredOnly = _signalLinks.Count - live;
+        _signalMappingSummary.Text = $"{live} LIVE INPUT · {authoredOnly} AUTHORED ONLY";
+        _signalMappingSummary.AddThemeColorOverride("font_color",
+            authoredOnly > 0 ? new Color("f1aa5b") : new Color("65d49a"));
+        if (_connectorLinks.Count > 0)
+        {
+            _connectorLinkList.Select(_connectorLinks.Count - 1);
+            ShowConnectorLink(_connectorLinks.Count - 1);
+        }
+        if (_signalLinks.Count > 0)
+        {
+            _signalLinkList.Select(_signalLinks.Count - 1);
+            ShowSignalLink(_signalLinks.Count - 1);
+        }
+    }
+
+    private void ShowConnectorLink(int index)
+    {
+        if (index < 0 || index >= _connectorLinks.Count) return;
+        var link = _connectorLinks[index];
+        SelectInstance(_fromInstance, link.FromInstanceId);
+        RefreshConnectorOptions(_fromInstance, _fromConnector);
+        SelectConnector(_fromInstance, _fromConnector, link.FromConnectorId);
+        SelectInstance(_toInstance, link.ToInstanceId);
+        RefreshConnectorOptions(_toInstance, _toConnector);
+        SelectConnector(_toInstance, _toConnector, link.ToConnectorId);
+    }
+
+    private void ShowSignalLink(int index)
+    {
+        if (index < 0 || index >= _signalLinks.Count) return;
+        var link = _signalLinks[index];
+        SelectInstance(_signalInstance, link.InstanceId);
+        RefreshSignalOptions();
+        var signals = SignalsFor(_signalInstance);
+        for (var signalIndex = 0; signalIndex < signals.Count; signalIndex++)
+            if (signals[signalIndex].Id == link.SignalId) _signal.Select(signalIndex);
+        var points = ScenePoints();
+        for (var pointIndex = 0; pointIndex < points.Count; pointIndex++)
+            if (points[pointIndex].Name == link.PointName) _scenePoint.Select(pointIndex);
+    }
+
+    private void SelectInstance(OptionButton option, string instanceId)
+    {
+        for (var index = 0; index < _workspacePlacements.Count; index++)
+            if (_workspacePlacements[index].InstanceId == instanceId) option.Select(index);
+    }
+
+    private void SelectConnector(OptionButton instance, OptionButton connector, string connectorId)
+    {
+        var connectors = ConnectorsFor(instance);
+        for (var index = 0; index < connectors.Count; index++)
+            if (connectors[index].Id == connectorId) connector.Select(index);
+    }
+
+    private void RefreshConnectorOptions(OptionButton instanceOption, OptionButton connectorOption)
+    {
+        connectorOption.Clear();
+        foreach (var connector in ConnectorsFor(instanceOption))
+            connectorOption.AddItem($"{connector.Id}  [{connector.Kind}]");
+    }
+
+    private void RefreshSignalOptions()
+    {
+        if (_signal is null) return;
+        _signal.Clear();
+        foreach (var signal in SignalsFor(_signalInstance))
+            _signal.AddItem($"{signal.Id}  [{signal.DataType} · {signal.Direction}]");
+    }
+
+    private string? SelectedPlacement(OptionButton option) =>
+        option.Selected >= 0 && option.Selected < _workspacePlacements.Count
+            ? _workspacePlacements[option.Selected].InstanceId
+            : null;
+
+    private IReadOnlyList<AssetConnector> ConnectorsFor(OptionButton instanceOption)
+    {
+        var instance = SelectedPlacement(instanceOption);
+        var placement = _workspacePlacements.FirstOrDefault(item => item.InstanceId == instance);
+        return placement is null
+            ? []
+            : _assets.Assets.First(item => item.Id == placement.AssetId).Connectors;
+    }
+
+    private AssetConnector? SelectedConnector(OptionButton instanceOption, OptionButton connectorOption)
+    {
+        var connectors = ConnectorsFor(instanceOption);
+        return connectorOption.Selected >= 0 && connectorOption.Selected < connectors.Count
+            ? connectors[connectorOption.Selected]
+            : null;
+    }
+
+    private IReadOnlyList<SignalDefinition> SignalsFor(OptionButton instanceOption)
+    {
+        var instance = SelectedPlacement(instanceOption);
+        var placement = _workspacePlacements.FirstOrDefault(item => item.InstanceId == instance);
+        return placement is null
+            ? []
+            : _assets.Assets.First(item => item.Id == placement.AssetId).Signals;
+    }
+
+    private IReadOnlyList<SceneIoPoint> ScenePoints()
+    {
+        var result = new List<SceneIoPoint>();
+        if (_activeScene?.Simulation.ValueKind != JsonValueKind.Object
+            || !_activeScene.Simulation.TryGetProperty("points", out var points)
+            || points.ValueKind != JsonValueKind.Array) return result;
+        foreach (var point in points.EnumerateArray())
+        {
+            var name = Text(point, "name");
+            var type = Text(point, "type");
+            if (name.Length > 0)
+                result.Add(new SceneIoPoint(
+                    name,
+                    type,
+                    Text(point, "owner"),
+                    Text(point, "role"),
+                    Text(point, "purpose")));
+        }
+        return result;
+    }
+
+    private string InstanceName(string instanceId)
+    {
+        var placement = _workspacePlacements.FirstOrDefault(item => item.InstanceId == instanceId);
+        if (placement is null) return instanceId;
+        var name = _assets.Assets.First(item => item.Id == placement.AssetId).DisplayName;
+        var qualifier = name.IndexOf(" - ", StringComparison.Ordinal);
+        if (qualifier > 0) name = name[..qualifier];
+        return name.Length <= 22 ? name : name[..21] + "…";
+    }
+
+    private void ApplyDiagnosticsLayout()
+    {
+        if (_productView == "operator")
+        {
+            var operatorHeight = _diagnosticsExpanded ? 320.0f : 230.0f;
+            _diagnosticsDock.OffsetTop = -(operatorHeight + 58.0f);
+            _leftDock.OffsetBottom = -(operatorHeight + 66.0f);
+            _rightDock.OffsetBottom = -(operatorHeight + 66.0f);
+            return;
+        }
+        var engineeringHeight = _diagnosticsExpanded ? 270.0f : 118.0f;
+        _diagnosticsDock.OffsetTop = -engineeringHeight;
+        _diagnosticsDock.OffsetBottom = -8;
+        _leftDock.OffsetBottom = -(engineeringHeight + 8.0f);
+        _rightDock.OffsetBottom = -(engineeringHeight + 8.0f);
+    }
+
+    private static int ScenarioSortGroup(SceneCatalogEntry scene) =>
+        IsAuthoredDemo(scene) ? 2
+        : scene.Name.StartsWith("Lab ", StringComparison.OrdinalIgnoreCase) ? 1
+        : 0;
+
+    private static string ScenarioGroupLabel(int group) => group switch
+    {
+        0 => "USER CREATED",
+        1 => "LABS",
+        _ => "DEMOS",
+    };
+
+    private static bool IsAuthoredDemo(SceneCatalogEntry scene) =>
+        AuthoredDemos.Any(demo => demo.SceneId.Equals(scene.Id, StringComparison.Ordinal));
+
+    private static string ScenarioDisplayName(SceneDefinition scene)
+    {
+        var demo = AuthoredDemos.FirstOrDefault(item =>
+            item.SceneId.Equals(scene.Id, StringComparison.Ordinal));
+        return demo.SceneId is null ? scene.Name : demo.Label;
+    }
+
+    private static int ScenarioDemoIndex(SceneCatalogEntry scene)
+    {
+        var index = Array.FindIndex(AuthoredDemos, demo => demo.SceneId.Equals(scene.Id, StringComparison.Ordinal));
+        return index >= 0 ? index : int.MaxValue;
+    }
+
+    private static int ScenarioSortMajor(SceneCatalogEntry scene) => ParseScenarioNumber(scene).Major;
+
+    private static int ScenarioSortMinor(SceneCatalogEntry scene) => ParseScenarioNumber(scene).Minor;
+
+    private static (int Major, int Minor) ParseScenarioNumber(SceneCatalogEntry scene)
+    {
+        if (!scene.Name.StartsWith("Lab ", StringComparison.OrdinalIgnoreCase)) return (int.MaxValue, int.MaxValue);
+        var label = scene.Name[4..];
+        var end = label.IndexOf(' ');
+        if (end < 0) end = label.IndexOf('-');
+        if (end >= 0) label = label[..end];
+        var parts = label.Split('.', 2);
+        if (!int.TryParse(parts[0], out var major)) return (int.MaxValue, int.MaxValue);
+        if (parts.Length == 1) return (major, 0);
+        return int.TryParse(parts[1], out var minor)
+            ? (major, minor)
+            : (int.MaxValue, int.MaxValue);
+    }
+
+    private void PopulateScenes()
+    {
+        _sceneList.Clear();
+        _operatorSceneList.Clear();
+        _scenarioBrowserRows.Clear();
+        for (var group = 0; group <= 2; group++)
+        {
+            _sceneList.AddItem(ScenarioGroupLabel(group));
+            _sceneList.SetItemDisabled(_sceneList.ItemCount - 1, true);
+            _scenarioBrowserRows.Add(null);
+            foreach (var scene in _orderedScenes.Where(candidate => ScenarioSortGroup(candidate) == group))
+            {
+                var label = group == 2
+                    ? AuthoredDemos[ScenarioDemoIndex(scene)].Label
+                    : scene.Name;
+                _sceneList.AddItem(label);
+                _sceneList.SetItemTooltip(_sceneList.ItemCount - 1, $"{scene.Name}\n{scene.Id}");
+                _scenarioBrowserRows.Add(scene);
+            }
+        }
+        foreach (var scene in _orderedScenes)
+        {
+            _operatorSceneList.AddItem(scene.Name);
+            _operatorSceneList.SetItemTooltip(_operatorSceneList.ItemCount - 1, $"{scene.Name}\n{scene.Id}");
+        }
+    }
+
+    private static void ConfigureSelectableList(ItemList list)
+    {
+        // Godot's Windows compatibility renderer can omit ItemList's default
+        // selected background.  Every simulator browser uses an explicit high-
+        // contrast selection contract so selecting a row never makes it vanish.
+        list.AddThemeColorOverride("font_selected_color", new Color("ffffff"));
+        list.AddThemeStyleboxOverride("selected", BoxStyle(new Color("276b89"), new Color("174f68")));
+        list.AddThemeStyleboxOverride("selected_focus", BoxStyle(new Color("276b89"), new Color("174f68")));
+    }
+
+    private void FilterAssets(string query)
+    {
+        if (_assetList is null) return;
+        _filteredAssets.Clear();
+        var search = query.Trim();
+        foreach (var asset in _assets.Assets.Where(asset => Matches(asset, search))
+                     .OrderBy(asset => asset.Category, StringComparer.Ordinal)
+                     .ThenBy(asset => asset.DisplayName, StringComparer.Ordinal))
+        {
+            _filteredAssets.Add(asset);
+        }
+        _assetList.Clear();
+        foreach (var asset in _filteredAssets)
+        {
+            _assetList.AddItem($"{asset.DisplayName}  —  {asset.Category}");
+        }
+        _selectedAsset = null;
+        _placeAsset.Disabled = true;
+        _viewAsset.Disabled = true;
+        _assetHelp.Disabled = true;
+    }
+
+    /// <summary>
+    /// The default viewer rail is deliberately flat and filterable, like an
+    /// industrial camera/site browser. It exposes both scene destinations and
+    /// reusable catalog assets without opening the engineering editor.
+    /// </summary>
+    private void FilterViewerHierarchy(string query)
+    {
+        if (_viewerHierarchy is null) return;
+        var search = query.Trim();
+        _viewerHierarchy.Clear();
+        _viewerItems.Clear();
+        AddViewerHeading("SCENES");
+        foreach (var scene in _sceneCatalog.Scenes
+                     .Where(scene => search.Length == 0
+                         || scene.Name.Contains(search, StringComparison.OrdinalIgnoreCase)
+                         || scene.Id.Contains(search, StringComparison.OrdinalIgnoreCase))
+                     .OrderBy(scene => scene.Name, StringComparer.OrdinalIgnoreCase))
+        {
+            AddViewerItem($"◆  {scene.Name}", "scene", scene.Id);
+        }
+        AddViewerHeading("ASSET LIBRARY");
+        foreach (var asset in _assets.Assets
+                     .Where(asset => Matches(asset, search))
+                     .OrderBy(asset => asset.Category, StringComparer.Ordinal)
+                     .ThenBy(asset => asset.DisplayName, StringComparer.OrdinalIgnoreCase))
+        {
+            AddViewerItem($"◇  {asset.DisplayName}", "asset", asset.Id);
+        }
+    }
+
+    private void AddViewerHeading(string text)
+    {
+        var index = _viewerHierarchy.ItemCount;
+        _viewerHierarchy.AddItem(text);
+        _viewerHierarchy.SetItemDisabled(index, true);
+        _viewerItems.Add(("heading", string.Empty));
+    }
+
+    private void AddViewerItem(string text, string kind, string id)
+    {
+        _viewerHierarchy.AddItem(text);
+        _viewerItems.Add((kind, id));
+    }
+
+    private void SelectViewerItem(int index)
+    {
+        if (index < 0 || index >= _viewerItems.Count) return;
+        var item = _viewerItems[index];
+        if (item.Kind == "scene")
+        {
+            AssetPreviewClosed?.Invoke();
+            SceneRequested?.Invoke(item.Id);
+            return;
+        }
+        if (item.Kind != "asset") return;
+        var asset = _assets.Assets.FirstOrDefault(candidate => candidate.Id == item.Id);
+        if (asset is null) return;
+        _selectedAsset = asset;
+        AssetPreviewRequested?.Invoke(asset);
+    }
+
+    private static bool Matches(AssetDefinition asset, string query)
+    {
+        if (query.Length == 0) return true;
+        return asset.DisplayName.Contains(query, StringComparison.OrdinalIgnoreCase)
+            || asset.Category.Contains(query, StringComparison.OrdinalIgnoreCase)
+            || asset.Tags.Any(tag => tag.Contains(query, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private void SelectAsset(int index)
+    {
+        if (index < 0 || index >= _filteredAssets.Count) return;
+        _selectedAsset = _filteredAssets[index];
+        _placeAsset.Disabled = false;
+        _viewAsset.Disabled = false;
+        _assetHelp.Disabled = false;
+        var asset = _selectedAsset;
+        var text = new StringBuilder();
+        text.AppendLine($"[font_size=20][b]{Escape(asset.DisplayName)}[/b][/font_size]");
+        text.AppendLine($"[color=#7fa7ba]{Escape(asset.Category)}[/color]");
+        text.AppendLine();
+        text.AppendLine($"[b]Catalog ID[/b]  {Escape(asset.Id)}");
+        text.AppendLine($"[b]Envelope[/b]  {asset.Bounds.WidthM:0.###} × {asset.Bounds.DepthM:0.###} × {asset.Bounds.HeightM:0.###} m");
+        text.AppendLine($"[b]Quality gate[/b]  {Escape(asset.Quality.Status)}");
+        text.AppendLine($"[b]Recognition[/b]  {(asset.Quality.RecognitionConfidence ?? 0):P0}");
+        text.AppendLine();
+        text.AppendLine($"[b]Connectors ({asset.Connectors.Count})[/b]");
+        foreach (var connector in asset.Connectors)
+            text.AppendLine($"  • {Escape(connector.Id)}  [color=#7fa7ba]{Escape(connector.Kind)}[/color]");
+        text.AppendLine();
+        text.AppendLine($"[b]Signals ({asset.Signals.Count})[/b]");
+        foreach (var signal in asset.Signals)
+            text.AppendLine($"  • {Escape(signal.Id)}  [color=#7fa7ba]{Escape(signal.DataType)} · {Escape(signal.Direction)}[/color]");
+        _inspector.Text = text.ToString();
+    }
+
+    private void ShowSelectedAssetHelp()
+    {
+        if (_selectedAsset is null) return;
+
+        var path = $"res://docs/help/assets/{_selectedAsset.Id}.md";
+        _assetHelpDialog.Title = $"ASSET HELP · {_selectedAsset.DisplayName}";
+        if (!FileAccess.FileExists(path))
+        {
+            _assetHelpContent.Text =
+                $"Help is not packaged for this asset yet.\n\nExpected document:\n{path}";
+        }
+        else
+        {
+            // Keep the generated Markdown visible as plain text. This avoids
+            // interpreting catalog descriptions or source URLs as UI markup.
+            _assetHelpContent.Text = FileAccess.GetFileAsString(path);
+        }
+        _assetHelpDialog.PopupCenteredRatio(0.82f);
+    }
+
+    /// <summary>
+    /// Keeps the catalog controls honest about whether the center viewport is
+    /// showing the authored scene or an isolated, read-only model preview.
+    /// </summary>
+    public void SetAssetPreviewState(AssetDefinition? asset)
+    {
+        var previewing = asset is not null;
+        _returnFromAssetPreview.Visible = previewing;
+        _viewerReturn.Visible = previewing;
+        _placeAsset.Disabled = previewing || _selectedAsset is null;
+        _viewAsset.Disabled = previewing || _selectedAsset is null;
+        _assetHelp.Disabled = previewing || _selectedAsset is null;
+        if (previewing)
+        {
+            _workspaceStatus.Text = $"ASSET PREVIEW · {asset!.DisplayName} · read-only model inspection";
+            _workspaceStatus.AddThemeColorOverride("font_color", new Color("8fc6a5"));
+        }
+        else
+        {
+            _workspaceStatus.Text = "VIEWER · searchable hierarchy · symbolic local model";
+            _workspaceStatus.AddThemeColorOverride("font_color", new Color("7fa7ba"));
+        }
+    }
+
+    private void RefreshSceneInspector(SceneComposition composition)
+    {
+        if (_activeScene is null) return;
+        var scene = _activeScene;
+        var text = new StringBuilder();
+        text.AppendLine($"[font_size=20][b]{Escape(scene.Name)}[/b][/font_size]");
+        text.AppendLine($"[color=#7fa7ba]{Escape(scene.Id)}[/color]");
+        text.AppendLine();
+        text.AppendLine(Escape(scene.Description));
+        text.AppendLine();
+        text.AppendLine($"[b]Equipment[/b]  {scene.Equipment.Count}");
+        text.AppendLine($"[b]Rendered[/b]  {composition.RenderedEquipmentIds.Count}");
+        text.AppendLine($"[b]Deferred[/b]  {composition.DeferredEquipmentIds.Count}");
+        text.AppendLine($"[b]Source[/b]  {Escape(scene.Migration.SourceFile)}");
+        text.AppendLine($"[b]Visual mapping[/b]  {Escape(scene.Migration.VisualStatus)}");
+        if (composition.DeferredEquipmentIds.Count > 0)
+        {
+            text.AppendLine();
+            text.AppendLine($"[color=#ef9f55][b]Deferred objects[/b][/color]");
+            foreach (var id in composition.DeferredEquipmentIds) text.AppendLine($"  • {Escape(id)}");
+        }
+        _inspector.Text = text.ToString();
+    }
+
+    private void RefreshIoInspector()
+    {
+        if (_activeScene is null || _runtime is null) return;
+        var text = new StringBuilder();
+        text.AppendLine("[font_size=18][b]SYMBOLIC POINTS[/b][/font_size]");
+        text.AppendLine();
+        foreach (var point in _runtime.Points.OrderBy(point => point.Key, StringComparer.Ordinal))
+            text.AppendLine($"• {Escape(point.Key)}  [color=#8fc6a5]{Escape(Convert.ToString(point.Value) ?? "null")}[/color]");
+        text.AppendLine();
+        text.AppendLine("[font_size=16][b]RENDERER BINDINGS[/b][/font_size]");
+        if (_activeScene.Simulation.ValueKind == JsonValueKind.Object
+            && _activeScene.Simulation.TryGetProperty("pointBindings", out var bindings)
+            && bindings.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var binding in bindings.EnumerateArray())
+            {
+                text.AppendLine($"• {Escape(Text(binding, "point"))} → {Escape(Text(binding, "equipmentId"))}  [color=#7fa7ba]{Escape(Text(binding, "mode"))}[/color]");
+            }
+        }
+        _ioInspector.Text = text.ToString();
+    }
+
+    private void RefreshRuntimeState()
+    {
+        if (_runtime is null) return;
+        _runtimeStatus.Text = _runtime.IsRunning
+            ? "LOCAL RUNTIME  •  RUNNING"
+            : "LOCAL RUNTIME  •  STOPPED";
+        _runtimeStatus.AddThemeColorOverride("font_color",
+            _runtime.IsRunning ? new Color("65d49a") : new Color("8aa5b4"));
+        RefreshIoInspector();
+        RefreshOperatorPanels();
+        RefreshOperatorPointTables();
+    }
+
+    private PanelContainer BuildLadderWorkspace()
+    {
+        _ladderSavedProjectJson ??= LadderEditorProjectJson.Save(_ladderDocument);
+        var panel = PanelContainer("LadderWorkspace", new Color("0b141bf8"), new Color("365666"));
+        panel.AnchorRight = 1.0f;
+        panel.AnchorBottom = 1.0f;
+        // Match the toolbar's full logical height so the ladder workspace also
+        // starts below the toolbar when it is shown.
+        panel.OffsetTop = 84;
+        panel.OffsetBottom = -50;
+        panel.Visible = false;
+        panel.ZIndex = 20;
+
+        var margin = Margin("LadderMargin", 14, 14, 10, 10);
+        panel.AddChild(margin);
+        var body = new VBoxContainer { Name = "LadderBody" };
+        body.AddThemeConstantOverride("separation", 8);
+        margin.AddChild(body);
+
+        var header = new HBoxContainer { Name = "LadderHeader" };
+        header.AddChild(Heading("LADDER LOGIC PROGRAMMING", 18, new Color("e9f4f8")));
+        _ladderWorkspaceStatus = Heading(
+            "OFFLINE LD RUNTIME · VALIDATED BEFORE LOAD · NO PHYSICAL PLC",
+            11,
+            new Color("f1aa5b"));
+        _ladderWorkspaceStatus.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        _ladderWorkspaceStatus.HorizontalAlignment = HorizontalAlignment.Center;
+        header.AddChild(_ladderWorkspaceStatus);
+        var close = ToolbarButton("CloseLadderButton", "RETURN TO SCENE", new Color("355d73"), 148);
+        close.Pressed += () => SetProductView("operator");
+        header.AddChild(close);
+        body.AddChild(header);
+
+        _ladderEnvironmentTabs = new TabContainer
+        {
+            Name = "LadderEnvironmentTabs",
+            SizeFlagsVertical = Control.SizeFlags.ExpandFill,
+        };
+        _ladderEnvironmentTabs.AddThemeFontSizeOverride("font_size", 15);
+        _ladderEnvironmentTabs.AddChild(BuildLadderEnvironment("TIA Portal", true));
+        _ladderEnvironmentTabs.AddChild(BuildLadderEnvironment("Studio 5000", false));
+        _ladderEnvironmentTabs.TabChanged += _ =>
+        {
+            foreach (var refresh in _ladderEditorRefreshers) refresh();
+        };
+        body.AddChild(_ladderEnvironmentTabs);
+
+        _ladderSaveDialog = new FileDialog
+        {
+            Name = "SaveLadderProjectDialog",
+            FileMode = FileDialog.FileModeEnum.SaveFile,
+            Access = FileDialog.AccessEnum.Filesystem,
+            Title = "Save offline Ladder project",
+            Filters = ["*.rpproj.json ; RungProof editable Ladder project"],
+            CurrentFile = "offline-controller.rpproj.json",
+        };
+        _ladderSaveDialog.FileSelected += path =>
+        {
+            if (TrySaveLadderProject(path, out var message))
+            {
+                _ladderWorkspaceStatus.Text = message;
+                _ladderWorkspaceStatus.AddThemeColorOverride("font_color", new Color("65d49a"));
+            }
+            else
+            {
+                _ladderWorkspaceStatus.Text = message;
+                _ladderWorkspaceStatus.AddThemeColorOverride("font_color", new Color("ef7777"));
+            }
+        };
+        panel.AddChild(_ladderSaveDialog);
+
+        _ladderLoadDialog = new FileDialog
+        {
+            Name = "OpenLadderProjectDialog",
+            FileMode = FileDialog.FileModeEnum.OpenFile,
+            Access = FileDialog.AccessEnum.Filesystem,
+            Title = "Open offline Ladder project",
+            CurrentDir = ProjectSettings.GlobalizePath("res://artifacts/agent-evidence"),
+            Filters = ["*.rpproj.json ; RungProof editable Ladder project"],
+        };
+        _ladderLoadDialog.FileSelected += path =>
+        {
+            if (TryOpenLadderProject(path, out var message))
+            {
+                _ladderWorkspaceStatus.Text = message;
+                _ladderWorkspaceStatus.AddThemeColorOverride("font_color", new Color("f1aa5b"));
+            }
+            else
+            {
+                _ladderWorkspaceStatus.Text = message;
+                _ladderWorkspaceStatus.AddThemeColorOverride("font_color", new Color("ef7777"));
+            }
+        };
+        panel.AddChild(_ladderLoadDialog);
+        return panel;
+    }
+
+    private bool TrySaveLadderProject(string path, out string message)
+    {
+        try
+        {
+            _ladderDocument.SourceSceneId = _activeScene?.Id ?? string.Empty;
+            var projectJson = LadderEditorProjectJson.Save(_ladderDocument);
+            System.IO.File.WriteAllText(path, projectJson);
+            _ladderProjectPath = System.IO.Path.GetFullPath(path);
+            _ladderSavedProjectJson = projectJson;
+            foreach (var refresh in _ladderEditorRefreshers) refresh();
+            message = $"PROJECT SAVED · {System.IO.Path.GetFileName(path)} · WORK IN PROGRESS PRESERVED";
+            return true;
+        }
+        catch (Exception exception) when (exception is System.IO.IOException or UnauthorizedAccessException)
+        {
+            message = "PROJECT SAVE FAILED · " + exception.Message.ToUpperInvariant();
+            return false;
+        }
+    }
+
+    private bool TryOpenLadderProject(string path, out string message)
+    {
+        LadderEditorProjectLoadResult loaded;
+        try
+        {
+            loaded = LadderEditorProjectJson.Load(System.IO.File.ReadAllText(path));
+        }
+        catch (Exception exception) when (exception is System.IO.IOException or UnauthorizedAccessException)
+        {
+            message = "PROJECT OPEN FAILED · " + exception.Message.ToUpperInvariant();
+            return false;
+        }
+        if (!loaded.IsReadable || loaded.Document is null)
+        {
+            message = "PROJECT REJECTED · " + loaded.Issues[0].Message.ToUpperInvariant();
+            return false;
+        }
+        _ladderDocument.RestoreSnapshot(loaded.Document.CaptureSnapshot());
+        if (_ladderDocument.SourceSceneId.Length > 0
+            && !string.Equals(_activeScene?.Id, _ladderDocument.SourceSceneId, StringComparison.Ordinal))
+            SceneRequested?.Invoke(_ladderDocument.SourceSceneId);
+        _ladderProjectPath = System.IO.Path.GetFullPath(path);
+        _ladderSavedProjectJson = LadderEditorProjectJson.Save(_ladderDocument);
+        _ladderHistory.Clear();
+        _ladderRungClipboard = null;
+        _ladderContactClipboard = null;
+        foreach (var refresh in _ladderEditorRefreshers) refresh();
+        RefreshLadderMonitorMatch();
+        var program = _ladderDocument.BuildProgram();
+        var compiled = LadderCompiler.Compile(program);
+        var issues = compiled.Issues
+            .Concat(SceneIoBindingValidator.Validate(program, ScenePoints()))
+            .ToArray();
+        if (issues.Length > 0 || compiled.Program is null)
+        {
+            SetVirtualControllerValidation(issues);
+            message = $"PROJECT OPENED · {System.IO.Path.GetFileName(path)} · VERIFY + LOAD REQUIRED · {issues.Length} issue(s)";
+            return true;
+        }
+        VirtualControllerProgramRequested?.Invoke(program);
+        _ladderWorkspaceStatus.Text = "VALID · PROJECT OPENED · OFFLINE RUNTIME LOADED";
+        _ladderWorkspaceStatus.AddThemeColorOverride("font_color", new Color("65d49a"));
+        message = $"PROJECT OPENED · {System.IO.Path.GetFileName(path)} · VERIFIED + LOADED OFFLINE";
+        return true;
+    }
+
+    private Control BuildLadderEnvironment(string tabName, bool siemens)
+    {
+        var document = _ladderDocument;
+        _ = document.Rungs;
+        var root = new VBoxContainer { Name = tabName };
+        root.AddThemeConstantOverride("separation", 0);
+        var accent = siemens ? new Color("0087a8") : new Color("b82e2e");
+        MenuButton VendorMenu(string name, string text)
+        {
+            var menu = TopMenu(name, text);
+            if (siemens)
+            {
+                menu.AddThemeColorOverride("font_color", new Color("344851"));
+                menu.AddThemeColorOverride("font_hover_color", new Color("142a36"));
+                menu.AddThemeColorOverride("font_pressed_color", new Color("142a36"));
+            }
+            return menu;
+        }
+        var chrome = PanelContainer("VendorChrome", siemens ? new Color("e4e8ea") : new Color("333840"), accent);
+        chrome.CustomMinimumSize = new Vector2(0, 36);
+        var chromeRow = new HBoxContainer { Name = "VendorMenuBar" };
+        chromeRow.AddThemeConstantOverride("separation", 12);
+        chrome.AddChild(chromeRow);
+        chromeRow.AddChild(Heading(siemens ? "RungProof TIA WORKBENCH" : "RungProof LOGIX WORKBENCH", 13,
+            siemens ? new Color("263943") : new Color("f4f5f6")));
+        var projectMenu = VendorMenu("LadderProjectMenu", siemens ? "Project" : "File");
+        projectMenu.GetPopup().AddItem("New offline project", 0);
+        projectMenu.GetPopup().AddItem("Save project…", 1);
+        projectMenu.GetPopup().AddItem("Open project…", 2);
+        chromeRow.AddChild(projectMenu);
+        var editMenu = VendorMenu("LadderEditMenu", "Edit");
+        editMenu.GetPopup().AddItem(siemens ? "Add network" : "Add rung", 0);
+        editMenu.GetPopup().AddItem(
+            siemens ? "Delete selected instruction / network" : "Delete selected instruction / rung", 1);
+        editMenu.GetPopup().AddSeparator();
+        editMenu.GetPopup().AddItem(
+            siemens ? "Copy selected instruction / network" : "Copy selected instruction / rung", 4);
+        editMenu.GetPopup().AddItem("Paste after selection", 5);
+        editMenu.GetPopup().AddSeparator();
+        editMenu.GetPopup().AddItem("Undo", 2);
+        editMenu.GetPopup().AddItem("Redo", 3);
+        chromeRow.AddChild(editMenu);
+        var undoEdit = ToolbarButton("LadderUndo", "UNDO", new Color("637985"), 64);
+        var redoEdit = ToolbarButton("LadderRedo", "REDO", new Color("637985"), 64);
+        chromeRow.AddChild(undoEdit);
+        chromeRow.AddChild(redoEdit);
+        var onlineMenu = VendorMenu("LadderOnlineMenu", siemens ? "Online" : "Communications");
+        onlineMenu.GetPopup().AddItem("Verify + load offline", 0);
+        onlineMenu.GetPopup().AddSeparator();
+        onlineMenu.GetPopup().AddItem("Run simulator controller", 1);
+        onlineMenu.GetPopup().AddItem("Stop simulator controller", 2);
+        onlineMenu.GetPopup().AddItem("Reset simulator controller", 3);
+        chromeRow.AddChild(onlineMenu);
+        var viewMenu = VendorMenu("LadderViewMenu", "View");
+        viewMenu.GetPopup().AddItem("Program editor", 0);
+        viewMenu.GetPopup().AddItem("PLC tags", 1);
+        viewMenu.GetPopup().AddItem("Diagnostics / output", 2);
+        viewMenu.GetPopup().AddItem("Find / cross-reference", 3);
+        viewMenu.GetPopup().AddItem("Instruction help", 4);
+        viewMenu.GetPopup().AddItem(siemens ? "Watch table" : "Watch List", 5);
+        chromeRow.AddChild(viewMenu);
+        var toolsMenu = VendorMenu("LadderToolsMenu", "Tools");
+        toolsMenu.GetPopup().AddItem("Add BOOL tag", 0);
+        toolsMenu.GetPopup().AddItem("Instruction help (F1)", 1);
+        toolsMenu.GetPopup().AddItem(siemens ? "Cross-reference" : "Find All", 2);
+        chromeRow.AddChild(toolsMenu);
+        var offline = Heading("OFFLINE SIMULATOR", 11, accent);
+        offline.HorizontalAlignment = HorizontalAlignment.Right;
+        offline.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        chromeRow.AddChild(offline);
+        root.AddChild(chrome);
+
+        void ConfigureDockSplit(SplitContainer split)
+        {
+            split.DraggingEnabled = true;
+            split.DraggerVisibility = SplitContainer.DraggerVisibilityEnum.Visible;
+            split.DragNestedIntersections = true;
+            split.AddThemeConstantOverride("separation", 8);
+            split.AddThemeConstantOverride("minimum_grab_thickness", 12);
+            split.AddThemeConstantOverride("autohide", 0);
+            split.AddThemeStyleboxOverride(
+                "split_bar_background",
+                BoxStyle(new Color("536b78"), new Color("324955")));
+        }
+
+        var work = new HSplitContainer { Name = "Workbench" };
+        work.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
+        work.SplitOffsets = [180];
+        ConfigureDockSplit(work);
+        var projectDockSplitOffset = 180;
+        root.AddChild(work);
+
+        var projectDockHost = new HBoxContainer { Name = "ProjectDockHost" };
+        projectDockHost.AddThemeConstantOverride("separation", 0);
+        var reopenProjectDock = ToolbarButton("ReopenProjectDock", "PROJECT  ▶", new Color("4d6674"), 30);
+        reopenProjectDock.CustomMinimumSize = new Vector2(30, 0);
+        reopenProjectDock.TooltipText = siemens ? "Show project tree" : "Show Controller Organizer";
+        reopenProjectDock.Visible = false;
+        projectDockHost.AddChild(reopenProjectDock);
+        work.AddChild(projectDockHost);
+
+        var editorAndTasks = new HSplitContainer { Name = "EditorAndTasks" };
+        editorAndTasks.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        editorAndTasks.SplitOffsets = [600];
+        ConfigureDockSplit(editorAndTasks);
+        var toolDockSplitOffset = 600;
+        work.AddChild(editorAndTasks);
+
+        var editorAndInspector = new VSplitContainer { Name = "EditorAndInspector" };
+        editorAndInspector.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        editorAndInspector.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
+        editorAndInspector.SplitOffsets = [400];
+        ConfigureDockSplit(editorAndInspector);
+        var bottomDockSplitOffset = 400;
+        editorAndTasks.AddChild(editorAndInspector);
+
+        var projectPanel = PanelContainer("ProjectOrganization", new Color("eef0f2"), new Color("9aa7ad"));
+        projectPanel.CustomMinimumSize = new Vector2(150, 0);
+        projectPanel.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        projectPanel.TooltipText = "Drag the divider at the right edge to resize this dock.";
+        var projectBody = new VBoxContainer { Name = "ProjectBody" };
+        projectPanel.AddChild(projectBody);
+        var projectTabs = new TabContainer
+        {
+            Name = "ProjectTreeAndTags",
+            TabsVisible = true,
+            SizeFlagsVertical = Control.SizeFlags.ExpandFill,
+        };
+        projectTabs.AddThemeFontSizeOverride("font_size", 11);
+        projectBody.AddChild(projectTabs);
+        var projectTitle = new HBoxContainer { Name = "ProjectTitle" };
+        var projectHeading = Heading(siemens ? "Project tree" : "Controller Organizer", 13, new Color("263943"));
+        projectHeading.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        projectTitle.AddChild(projectHeading);
+        var addBlockFromTree = ToolbarButton("AddBlockFromProjectTree", "+", accent, 30);
+        addBlockFromTree.TooltipText = siemens
+            ? "Add OB / FB / FC / DB to Program blocks"
+            : "Add a routine to the Controller Organizer";
+        projectTitle.AddChild(addBlockFromTree);
+        var collapseProjectDock = ToolbarButton("CollapseProjectDock", "◀", new Color("637985"), 30);
+        collapseProjectDock.TooltipText = siemens ? "Hide project tree" : "Hide Controller Organizer";
+        projectTitle.AddChild(collapseProjectDock);
+        projectBody.AddChild(projectTitle);
+        var organization = new Tree
+        {
+            Name = "ProjectTree",
+            HideRoot = false,
+            SizeFlagsVertical = Control.SizeFlags.ExpandFill,
+            AllowReselect = true,
+            SelectMode = Tree.SelectModeEnum.Single,
+        };
+        organization.AddThemeColorOverride("font_color", new Color("263943"));
+        organization.AddThemeColorOverride("font_selected_color", new Color("ffffff"));
+        organization.AddThemeColorOverride("guide_color", new Color("9aa7ad"));
+        organization.AddThemeStyleboxOverride("panel", BoxStyle(new Color("f8f9fa"), new Color("b7c0c5")));
+        var controllerItem = organization.CreateItem();
+        controllerItem.SetText(0, "Offline_Controller");
+        controllerItem.SetMetadata(0, "controller");
+        TreeItem mainItem;
+        TreeItem tagItem;
+        TreeItem diagnosticsItem;
+        TreeItem blockFolder;
+        TreeItem taskFolder;
+        TreeItem initialTaskItem;
+        if (siemens)
+        {
+            var plcItem = organization.CreateItem(controllerItem);
+            plcItem.SetText(0, "PLC_1 [S7-1500]");
+            plcItem.SetMetadata(0, "controller");
+            var deviceItem = organization.CreateItem(plcItem);
+            deviceItem.SetText(0, "Device configuration");
+            deviceItem.SetMetadata(0, "device");
+            diagnosticsItem = organization.CreateItem(plcItem);
+            diagnosticsItem.SetText(0, "Online & diagnostics");
+            diagnosticsItem.SetMetadata(0, "diagnostics");
+            taskFolder = organization.CreateItem(plcItem);
+            taskFolder.SetText(0, "Organization blocks / tasks");
+            taskFolder.SetMetadata(0, "tasks");
+            initialTaskItem = organization.CreateItem(taskFolder);
+            initialTaskItem.SetText(0, "Main cycle [OB1]");
+            initialTaskItem.SetMetadata(0, "task:0");
+            blockFolder = organization.CreateItem(plcItem);
+            blockFolder.SetText(0, "Program blocks");
+            blockFolder.SetMetadata(0, "blocks");
+            mainItem = organization.CreateItem(blockFolder);
+            mainItem.SetText(0, $"{document.Blocks[0].Name} [OB1]");
+            mainItem.SetMetadata(0, "program:0");
+            tagItem = organization.CreateItem(plcItem);
+            tagItem.SetText(0, "PLC tags");
+            tagItem.SetMetadata(0, "tags");
+            var watch = organization.CreateItem(plcItem);
+            watch.SetText(0, "Watch tables");
+            watch.SetMetadata(0, "watch");
+        }
+        else
+        {
+            tagItem = organization.CreateItem(controllerItem);
+            tagItem.SetText(0, "Controller Tags");
+            tagItem.SetMetadata(0, "tags");
+            var watch = organization.CreateItem(controllerItem);
+            watch.SetText(0, "Watch Tables");
+            watch.SetMetadata(0, "watch");
+            taskFolder = organization.CreateItem(controllerItem);
+            taskFolder.SetText(0, "Tasks");
+            taskFolder.SetMetadata(0, "tasks");
+            var mainTask = organization.CreateItem(taskFolder);
+            mainTask.SetText(0, "MainTask");
+            mainTask.SetMetadata(0, "task:0");
+            initialTaskItem = mainTask;
+            var mainProgram = organization.CreateItem(mainTask);
+            mainProgram.SetText(0, "MainProgram");
+            mainProgram.SetMetadata(0, "blocks");
+            blockFolder = mainProgram;
+            mainItem = organization.CreateItem(mainProgram);
+            mainItem.SetText(0, document.Blocks[0].Name);
+            mainItem.SetMetadata(0, "program:0");
+            diagnosticsItem = organization.CreateItem(controllerItem);
+            diagnosticsItem.SetText(0, "Controller Properties / Diagnostics");
+            diagnosticsItem.SetMetadata(0, "diagnostics");
+            var io = organization.CreateItem(controllerItem);
+            io.SetText(0, "I/O Configuration");
+            io.SetMetadata(0, "device");
+        }
+        controllerItem.SetCollapsed(false);
+        var blockItems = new List<TreeItem> { mainItem };
+        var taskItems = new List<TreeItem> { initialTaskItem };
+        projectTabs.AddChild(organization);
+        projectDockHost.AddChild(projectPanel);
+
+        collapseProjectDock.Pressed += () =>
+        {
+            projectDockSplitOffset = work.SplitOffsets.Length > 0 ? work.SplitOffsets[0] : projectDockSplitOffset;
+            projectPanel.Visible = false;
+            reopenProjectDock.Visible = true;
+            work.SplitOffsets = [(int)reopenProjectDock.CustomMinimumSize.X];
+        };
+        reopenProjectDock.Pressed += () =>
+        {
+            reopenProjectDock.Visible = false;
+            projectPanel.Visible = true;
+            work.SplitOffsets = [projectDockSplitOffset];
+        };
+
+        var center = new VBoxContainer { Name = "ProgramEditor", SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        center.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
+        center.AddThemeConstantOverride("separation", 1);
+        editorAndInspector.AddChild(center);
+        var editorTab = PanelContainer("EditorTab", new Color("d9dde0"), new Color("9aa7ad"));
+        var editorTabTitle = Heading(string.Empty, 12, new Color("202b31"));
+        editorTabTitle.Name = "EditorTabTitle";
+        editorTab.AddChild(editorTabTitle);
+        center.AddChild(editorTab);
+
+        var canvas = new LadderEditorCanvas(siemens ? LadderVendorStyle.SiemensTia : LadderVendorStyle.RockwellLogix, document);
+        _ladderCanvases.Add(canvas);
+        var selectedRung = 0;
+        var selectedBranch = 0;
+        var selectedContact = -1;
+        var selectedInsertionIndex = -1;
+        var selectedOutput = false;
+        Button? moveContactLeft = null;
+        Button? moveContactRight = null;
+        var tagSelector = new OptionButton { Name = "ContactTagSelector", CustomMinimumSize = new Vector2(165, 32) };
+        var contactTypeSelector = new OptionButton { Name = "ContactTypeSelector", CustomMinimumSize = new Vector2(190, 32) };
+        contactTypeSelector.AddItem(siemens ? "Normally open —| |—" : "XIC —] [—");
+        contactTypeSelector.AddItem(siemens ? "Normally closed —|/|—" : "XIO —]/[—");
+        contactTypeSelector.AddItem(siemens ? "Positive edge —|P|—" : "XIC + ONS");
+        contactTypeSelector.AddItem(siemens ? "Negative edge —|N|—" : "XIO + ONS / OSF");
+        var branchSelector = new OptionButton { Name = "BranchSelector", CustomMinimumSize = new Vector2(96, 32) };
+        var coilSelector = new OptionButton { Name = "CoilTagSelector", CustomMinimumSize = new Vector2(165, 32) };
+        var coilModeSelector = new OptionButton { Name = "CoilModeSelector", CustomMinimumSize = new Vector2(105, 32) };
+        coilModeSelector.AddItem(siemens ? "Assign (=)" : "OTE");
+        coilModeSelector.AddItem(siemens ? "Set (S)" : "OTL");
+        coilModeSelector.AddItem(siemens ? "Reset (R)" : "OTU");
+        var timerSelector = new OptionButton { Name = "TimerTagSelector", CustomMinimumSize = new Vector2(145, 32) };
+        var timerPreset = new SpinBox
+        {
+            Name = "TimerPresetMs",
+            MinValue = 1,
+            MaxValue = 86_400_000,
+            Step = 1,
+            Suffix = " ms",
+            CustomMinimumSize = new Vector2(130, 32),
+        };
+        var counterSelector = new OptionButton { Name = "CounterTagSelector", CustomMinimumSize = new Vector2(145, 32) };
+        var counterPreset = new SpinBox
+        {
+            Name = "CounterPreset",
+            MinValue = 1,
+            MaxValue = 2_147_483_647,
+            Step = 1,
+            CustomMinimumSize = new Vector2(110, 32),
+        };
+        var compareLeft = new OptionButton { Name = "CompareLeftOperand", CustomMinimumSize = new Vector2(150, 32) };
+        var compareOperator = new OptionButton { Name = "CompareOperator", CustomMinimumSize = new Vector2(85, 32) };
+        foreach (var text in new[] { "==", "<>", ">", ">=", "<", "<=" }) compareOperator.AddItem(text);
+        var compareRight = new LineEdit
+        {
+            Name = "CompareRightOperand",
+            PlaceholderText = "tag or numeric literal",
+            Text = "0",
+            CustomMinimumSize = new Vector2(170, 32),
+        };
+        var numericSourceA = new LineEdit
+        {
+            Name = "NumericSourceA",
+            PlaceholderText = "source A tag or literal",
+            Text = "0",
+            CustomMinimumSize = new Vector2(145, 32),
+        };
+        var numericSourceB = new LineEdit
+        {
+            Name = "NumericSourceB",
+            PlaceholderText = "tag or literal",
+            Text = "0",
+            CustomMinimumSize = new Vector2(145, 32),
+        };
+        var numericSourceC = new LineEdit
+        {
+            Name = "NumericSourceC",
+            PlaceholderText = "source C tag or literal",
+            Text = "0",
+            CustomMinimumSize = new Vector2(145, 32),
+        };
+        foreach (var readOnlyCapableField in new[] { numericSourceB, numericSourceC })
+        {
+            readOnlyCapableField.AddThemeColorOverride("font_uneditable_color", new Color("344851"));
+            readOnlyCapableField.AddThemeStyleboxOverride("read_only", BoxStyle(new Color("e2e6e8"), new Color("9aa7ad")));
+        }
+        var numericDestination = new OptionButton { Name = "NumericDestination", CustomMinimumSize = new Vector2(145, 32) };
+        var callTarget = new OptionButton { Name = "CallTarget", CustomMinimumSize = new Vector2(180, 32) };
+        var programControlLabel = new LineEdit
+        {
+            Name = "ProgramControlLabel",
+            PlaceholderText = "block_local_label",
+            CustomMinimumSize = new Vector2(220, 32),
+        };
+        var blockName = new LineEdit
+        {
+            Name = "BlockName",
+            PlaceholderText = siemens ? "block name" : "routine name",
+            CustomMinimumSize = new Vector2(170, 32),
+        };
+        var blockTypeSelector = new OptionButton
+        {
+            Name = "BlockTypeSelector",
+            CustomMinimumSize = new Vector2(190, 32),
+        };
+        if (siemens)
+        {
+            blockTypeSelector.AddItem("Organization block (OB)");
+            blockTypeSelector.AddItem("Function block (FB)");
+            blockTypeSelector.AddItem("Function (FC)");
+            blockTypeSelector.AddItem("Data block (DB)");
+        }
+        else
+        {
+            blockTypeSelector.AddItem("Routine");
+        }
+        blockTypeSelector.Select(siemens ? 2 : 0);
+        var interfaceName = new LineEdit
+        {
+            Name = "InterfaceName",
+            PlaceholderText = "parameter name",
+            CustomMinimumSize = new Vector2(135, 30),
+        };
+        var interfaceType = new OptionButton { Name = "InterfaceType", CustomMinimumSize = new Vector2(115, 30) };
+        foreach (var type in new[] { PlcVariableType.Bool, PlcVariableType.Int, PlcVariableType.DInt, PlcVariableType.Real, PlcVariableType.Timer })
+            interfaceType.AddItem(type.ToString().ToUpperInvariant());
+        var interfaceSection = new OptionButton { Name = "InterfaceSection", CustomMinimumSize = new Vector2(100, 30) };
+        foreach (var section in Enum.GetValues<LadderInterfaceSection>()) interfaceSection.AddItem(section.ToString().ToUpperInvariant());
+        interfaceSection.Select(0);
+        var interfaceInitial = new LineEdit
+        {
+            Name = "InterfaceInitial",
+            Text = "0",
+            PlaceholderText = "initial",
+            CustomMinimumSize = new Vector2(100, 30),
+        };
+        var addInterface = ToolbarButton("AddInterface", "+ PARAMETER", new Color("4d6674"), 120);
+        var removeInterface = ToolbarButton("RemoveInterface", "REMOVE", new Color("8a4d55"), 90);
+        var interfaceTable = new Tree
+        {
+            Name = "BlockInterface",
+            Columns = 4,
+            HideRoot = true,
+            CustomMinimumSize = new Vector2(0, 120),
+            SizeFlagsVertical = Control.SizeFlags.ExpandFill,
+            SelectMode = Tree.SelectModeEnum.Single,
+        };
+        interfaceTable.SetColumnTitle(0, "NAME");
+        interfaceTable.SetColumnTitle(1, "SECTION");
+        interfaceTable.SetColumnTitle(2, "TYPE");
+        interfaceTable.SetColumnTitle(3, "INITIAL");
+        interfaceTable.AddThemeColorOverride("font_color", new Color("263943"));
+        interfaceTable.AddThemeStyleboxOverride("panel", BoxStyle(new Color("f8f9fa"), new Color("b7c0c5")));
+        var taskTarget = new OptionButton { Name = "TaskTarget", CustomMinimumSize = new Vector2(180, 32) };
+        var taskName = new LineEdit
+        {
+            Name = "TaskName",
+            PlaceholderText = siemens ? "OB schedule name" : "task name",
+            CustomMinimumSize = new Vector2(155, 32),
+        };
+        var taskKind = new OptionButton { Name = "TaskKind", CustomMinimumSize = new Vector2(110, 32) };
+        taskKind.AddItem("Continuous");
+        taskKind.AddItem("Periodic");
+        taskKind.Select(1);
+        var taskPeriod = new SpinBox
+        {
+            Name = "TaskPeriodMs",
+            MinValue = 1,
+            MaxValue = 86_400_000,
+            Step = 1,
+            Value = 100,
+            Suffix = " ms",
+            CustomMinimumSize = new Vector2(130, 32),
+        };
+        taskPeriod.GetLineEdit().AddThemeColorOverride("font_uneditable_color", new Color("344851"));
+        taskPeriod.GetLineEdit().AddThemeStyleboxOverride("read_only", BoxStyle(new Color("e2e6e8"), new Color("9aa7ad")));
+        var taskPriority = new SpinBox
+        {
+            Name = "TaskPriority",
+            MinValue = 0,
+            MaxValue = 1000,
+            Step = 1,
+            Value = 10,
+            Prefix = "P",
+            CustomMinimumSize = new Vector2(90, 32),
+        };
+        var selectedTaskIndex = 0;
+        var selectedTagIndex = -1;
+        Button? applyTagEdit = null;
+        Button? deleteTag = null;
+        var rungLabel = new LineEdit { Name = "RungLabel", CustomMinimumSize = new Vector2(230, 32) };
+        var tagList = new Tree
+        {
+            Name = "TagTable",
+            Columns = 5,
+            ColumnTitlesVisible = true,
+            HideRoot = true,
+            AllowReselect = true,
+            SizeFlagsVertical = Control.SizeFlags.ExpandFill,
+            CustomMinimumSize = new Vector2(0, 150),
+        };
+        foreach (var (column, title) in new[]
+                 {
+                     (0, "NAME"), (1, "TYPE"), (2, "ROLE"),
+                     (3, "INITIAL"), (4, "BINDING"),
+                 })
+            tagList.SetColumnTitle(column, title);
+        tagList.SetColumnExpand(0, false);
+        tagList.SetColumnCustomMinimumWidth(0, 118);
+        tagList.SetColumnExpand(1, false);
+        tagList.SetColumnCustomMinimumWidth(1, 60);
+        tagList.SetColumnExpand(2, false);
+        tagList.SetColumnCustomMinimumWidth(2, 60);
+        tagList.SetColumnExpand(3, false);
+        tagList.SetColumnCustomMinimumWidth(3, 72);
+        tagList.SetColumnExpand(4, true);
+        tagList.AddThemeColorOverride("font_color", new Color("263943"));
+        // Keep selected rows legible even on renderers that do not paint ItemList's
+        // custom selection style (observed in the Windows compatibility renderer).
+        tagList.AddThemeColorOverride("font_selected_color", new Color("ffffff"));
+        tagList.AddThemeStyleboxOverride("panel", BoxStyle(new Color("f8f9fa"), new Color("b7c0c5")));
+        tagList.AddThemeStyleboxOverride("selected", BoxStyle(new Color("276b89"), new Color("174f68")));
+        tagList.AddThemeStyleboxOverride("selected_focus", BoxStyle(new Color("276b89"), new Color("174f68")));
+        var tagName = new LineEdit { Name = "NewTagName", PlaceholderText = "new_bool_tag" };
+        var tagType = new OptionButton { Name = "NewTagType" };
+        tagType.AddItem("BOOL");
+        tagType.AddItem("TIMER");
+        tagType.AddItem("COUNTER");
+        tagType.AddItem("INT");
+        tagType.AddItem("DINT");
+        tagType.AddItem("REAL");
+        var tagRole = new OptionButton { Name = "NewTagRole" };
+        tagRole.AddItem("Input");
+        tagRole.AddItem("Memory");
+        tagRole.AddItem("Output");
+        var tagInitialValue = new LineEdit
+        {
+            Name = "TagInitialValue",
+            PlaceholderText = "FALSE",
+            TooltipText = "Startup value applied by offline controller Reset. BOOL: TRUE/FALSE; INT/DINT: integer; REAL: finite decimal.",
+            CustomMinimumSize = new Vector2(0, 32),
+        };
+        var tagBinding = new OptionButton
+        {
+            Name = "NewTagBinding",
+            FitToLongestItem = false,
+            CustomMinimumSize = new Vector2(0, 32),
+        };
+        var tagBindingStatus = Heading("UNBOUND · no scene I/O exchange", 11, new Color("4f6874"));
+        tagBindingStatus.Name = "TagBindingStatus";
+        tagBindingStatus.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        tagBindingStatus.CustomMinimumSize = new Vector2(0, 40);
+        var output = Inspector("OutputWindow");
+        output.AddThemeColorOverride("default_color", new Color("344851"));
+        output.CustomMinimumSize = new Vector2(0, 66);
+        output.Text = "[color=#18864b]Ready.[/color] Click a wire segment to place an insertion cursor, choose an instruction, then Verify + Load.";
+        var refreshingEditor = false;
+        ItemList? validationIssueList = null;
+        Label? validationSummary = null;
+
+        // Instruction operands belong to the selected graphical instruction, not
+        // to a generic editor-wide form. The popup is opened by double-click or
+        // the ladder element's right-click Properties command.
+        var instructionPropertiesLayer = new CanvasLayer { Name = "InstructionPropertiesLayer", Layer = 100 };
+        var instructionPropertiesPopup = new Control
+        {
+            Name = "InstructionPropertiesPopup",
+            Visible = false,
+            MouseFilter = Control.MouseFilterEnum.Stop,
+        };
+        instructionPropertiesPopup.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+        var instructionPropertiesBackdrop = new ColorRect
+        {
+            Name = "InstructionPropertiesBackdrop",
+            Color = new Color(0, 0, 0, 0.35f),
+            MouseFilter = Control.MouseFilterEnum.Stop,
+        };
+        instructionPropertiesBackdrop.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+        instructionPropertiesPopup.AddChild(instructionPropertiesBackdrop);
+        var instructionPropertiesFrame = PanelContainer(
+            "InstructionPropertiesFrame", new Color("f5f6f7"), accent);
+        instructionPropertiesFrame.SetAnchorsPreset(Control.LayoutPreset.Center);
+        instructionPropertiesFrame.OffsetLeft = -380;
+        instructionPropertiesFrame.OffsetTop = -95;
+        instructionPropertiesFrame.OffsetRight = 380;
+        instructionPropertiesFrame.OffsetBottom = 95;
+        var instructionPropertiesBody = new VBoxContainer { Name = "InstructionPropertiesBody" };
+        instructionPropertiesBody.AddThemeConstantOverride("separation", 8);
+        instructionPropertiesFrame.AddChild(instructionPropertiesBody);
+        instructionPropertiesPopup.AddChild(instructionPropertiesFrame);
+        var instructionPropertiesTitleRow = new HBoxContainer { Name = "InstructionPropertiesTitleRow" };
+        var instructionPropertiesTitle = Heading(
+            siemens ? "Instruction properties" : "Instruction Properties",
+            14, new Color("263943"));
+        instructionPropertiesTitle.Name = "InstructionPropertiesTitle";
+        instructionPropertiesTitle.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        instructionPropertiesTitleRow.AddChild(instructionPropertiesTitle);
+        var closeInstructionProperties = ToolbarButton(
+            "CloseInstructionProperties", "CLOSE", new Color("637985"), 70);
+        instructionPropertiesTitleRow.AddChild(closeInstructionProperties);
+        instructionPropertiesBody.AddChild(instructionPropertiesTitleRow);
+        var instructionPropertyScope = Heading("", 11, new Color("4f6874"));
+        instructionPropertyScope.Name = "InstructionPropertyScope";
+        instructionPropertiesBody.AddChild(instructionPropertyScope);
+
+        HBoxContainer PropertyRow(string name, params Control[] controls)
+        {
+            var row = new HBoxContainer { Name = name };
+            row.AddThemeConstantOverride("separation", 6);
+            foreach (var control in controls) row.AddChild(control);
+            return row;
+        }
+
+        var rungPropertyRow = PropertyRow(
+            "RungPropertyRow",
+            Heading(siemens ? "Network title" : "Rung comment", 11, new Color("344851")),
+            rungLabel);
+        var contactPropertyRow = PropertyRow(
+            "ContactPropertyRow",
+            Heading(siemens ? "Contact type" : "Instruction", 11, new Color("344851")),
+            contactTypeSelector,
+            Heading("Operand", 11, new Color("344851")),
+            tagSelector);
+        var coilPropertyRow = PropertyRow(
+            "CoilPropertyRow",
+            Heading(siemens ? "Coil" : "Output instruction", 11, new Color("344851")),
+            coilModeSelector,
+            Heading("Operand", 11, new Color("344851")),
+            coilSelector);
+        var timerPresetLabel = Heading("Preset", 11, new Color("344851"));
+        var timerPropertyRow = PropertyRow(
+            "TimerPropertyRow",
+            Heading("Timer instance", 11, new Color("344851")),
+            timerSelector,
+            timerPresetLabel,
+            timerPreset);
+        var counterPresetLabel = Heading("Preset", 11, new Color("344851"));
+        var counterPropertyRow = PropertyRow(
+            "CounterPropertyRow",
+            Heading("Counter instance", 11, new Color("344851")),
+            counterSelector,
+            counterPresetLabel,
+            counterPreset);
+        var comparePropertyRow = PropertyRow(
+            "ComparePropertyRow",
+            Heading("Source", 11, new Color("344851")),
+            compareLeft,
+            compareOperator,
+            Heading("Operand", 11, new Color("344851")),
+            compareRight);
+        var numericPropertyRow = PropertyRow(
+            "NumericPropertyRow",
+            Heading("Source A", 11, new Color("344851")),
+            numericSourceA,
+            Heading("Source B", 11, new Color("344851")),
+            numericSourceB,
+            Heading("Source C", 11, new Color("344851")),
+            numericSourceC,
+            Heading("Destination", 11, new Color("344851")),
+            numericDestination);
+        var callPropertyRow = PropertyRow(
+            "CallPropertyRow",
+            Heading(siemens ? "Called block" : "Target routine", 11, new Color("344851")),
+            callTarget);
+        var returnPropertyRow = PropertyRow(
+            "ReturnPropertyRow",
+            Heading(
+                siemens ? "RETURN has no editable operands." : "RET has no editable operands.",
+                11, new Color("344851")));
+        var jumpLabelPropertyRow = PropertyRow(
+            "JumpLabelPropertyRow",
+            Heading(siemens ? "Block-local label" : "Label name", 11, new Color("344851")),
+            programControlLabel);
+        foreach (var row in new[]
+                 {
+                     rungPropertyRow, contactPropertyRow, coilPropertyRow, timerPropertyRow,
+                     counterPropertyRow, comparePropertyRow, numericPropertyRow,
+                     callPropertyRow, returnPropertyRow, jumpLabelPropertyRow,
+                 })
+            instructionPropertiesBody.AddChild(row);
+        closeInstructionProperties.Pressed += instructionPropertiesPopup.Hide;
+        instructionPropertiesBackdrop.GuiInput += input =>
+        {
+            if (input is InputEventMouseButton { Pressed: true }) instructionPropertiesPopup.Hide();
+        };
+        instructionPropertiesLayer.AddChild(instructionPropertiesPopup);
+        root.AddChild(instructionPropertiesLayer);
+
+        var instructionContextMenu = new PopupMenu { Name = "InstructionContextMenu" };
+        instructionContextMenu.AddItem(siemens ? "Properties…" : "Instruction Properties…", 0);
+        instructionContextMenu.AddSeparator();
+        instructionContextMenu.AddItem("Copy", 3);
+        instructionContextMenu.AddItem("Paste after selection", 4);
+        instructionContextMenu.AddSeparator();
+        instructionContextMenu.AddItem(siemens ? "Delete instruction / network" : "Delete instruction / rung", 1);
+        instructionContextMenu.AddItem("Instruction help", 2);
+        root.AddChild(instructionContextMenu);
+
+        void UpdateInstructionPropertyVisibility()
+        {
+            foreach (var row in new[]
+                     {
+                         rungPropertyRow, contactPropertyRow, coilPropertyRow, timerPropertyRow,
+                         counterPropertyRow, comparePropertyRow, numericPropertyRow,
+                         callPropertyRow, returnPropertyRow, jumpLabelPropertyRow,
+                     })
+                row.Visible = false;
+            if (document.Rungs.Count == 0) return;
+            var rung = document.Rungs[Math.Clamp(selectedRung, 0, document.Rungs.Count - 1)];
+            var activeBlockName = document.Blocks[document.ActiveBlockIndex].Name;
+            instructionPropertyScope.Text = siemens
+                ? $"{activeBlockName}  ›  Network {selectedRung + 1}"
+                : $"MainProgram  ›  {activeBlockName}  ›  Rung {selectedRung}";
+            if (selectedContact >= 0 && selectedBranch >= 0
+                && selectedBranch < rung.Branches.Count
+                && selectedContact < rung.Branches[selectedBranch].Contacts.Count)
+            {
+                var contact = rung.Branches[selectedBranch].Contacts[selectedContact];
+                instructionPropertiesTitle.Text = contact.IsComparison
+                    ? (siemens ? "Compare instruction properties" : "Compare Instruction Properties")
+                    : (siemens ? "Contact properties" : "Contact Instruction Properties");
+                (contact.IsComparison ? comparePropertyRow : contactPropertyRow).Visible = true;
+                return;
+            }
+            if (selectedOutput)
+            {
+                if (rung.IsTimer || rung.IsTimerReset)
+                {
+                    instructionPropertiesTitle.Text = rung.IsTimerReset
+                        ? (siemens ? "RT properties" : "RES Timer Properties")
+                        : $"{(siemens ? rung.TimerKind.ToString() : rung.TimerKind.ToString())} properties";
+                    timerPresetLabel.Visible = rung.IsTimer;
+                    timerPreset.Visible = rung.IsTimer;
+                    timerPropertyRow.Visible = true;
+                }
+                else if (rung.IsCounter || rung.IsCounterReset || rung.IsCounterLoad)
+                {
+                    instructionPropertiesTitle.Text = siemens ? "Counter instruction properties" : "Counter Instruction Properties";
+                    var usesPreset = !rung.IsCounterReset;
+                    counterPresetLabel.Visible = usesPreset;
+                    counterPreset.Visible = usesPreset;
+                    counterPropertyRow.Visible = true;
+                }
+                else if (rung.IsNumericOperation)
+                {
+                    instructionPropertiesTitle.Text = $"{rung.NumericOperationKind} properties";
+                    numericPropertyRow.Visible = true;
+                }
+                else if (rung.IsCall)
+                {
+                    instructionPropertiesTitle.Text = siemens ? "CALL properties" : "JSR Properties";
+                    callPropertyRow.Visible = true;
+                }
+                else if (rung.IsReturn)
+                {
+                    instructionPropertiesTitle.Text = siemens ? "RETURN properties" : "RET Properties";
+                    returnPropertyRow.Visible = true;
+                }
+                else if (rung.IsJump || rung.IsLabel)
+                {
+                    instructionPropertiesTitle.Text = rung.IsJump
+                        ? (siemens ? "JMP properties" : "JMP Instruction Properties")
+                        : (siemens ? "LABEL properties" : "LBL Instruction Properties");
+                    jumpLabelPropertyRow.Visible = true;
+                }
+                else
+                {
+                    instructionPropertiesTitle.Text = siemens ? "Coil properties" : "Output Instruction Properties";
+                    coilPropertyRow.Visible = true;
+                }
+                return;
+            }
+            instructionPropertiesTitle.Text = siemens ? "Network properties" : "Rung Properties";
+            rungPropertyRow.Visible = true;
+        }
+
+        void OpenInstructionProperties()
+        {
+            RefreshEditor();
+            UpdateInstructionPropertyVisibility();
+            instructionPropertiesPopup.Show();
+        }
+
+        PlcVariableType SelectedTagType() => tagType.Selected switch
+        {
+            1 => PlcVariableType.Timer,
+            2 => PlcVariableType.Counter,
+            3 => PlcVariableType.Int,
+            4 => PlcVariableType.DInt,
+            5 => PlcVariableType.Real,
+            _ => PlcVariableType.Bool,
+        };
+
+        PlcVariableRole SelectedTagRole(PlcVariableType type) =>
+            type is PlcVariableType.Timer or PlcVariableType.Counter
+                ? PlcVariableRole.Memory
+                : (PlcVariableRole)tagRole.Selected;
+
+        static string FormatTagInitialValue(PlcVariable variable) => variable.Type switch
+        {
+            PlcVariableType.Bool => ((bool)variable.InitialValue).ToString().ToUpperInvariant(),
+            PlcVariableType.Real => Convert.ToDouble(variable.InitialValue,
+                System.Globalization.CultureInfo.InvariantCulture).ToString("R", System.Globalization.CultureInfo.InvariantCulture),
+            PlcVariableType.Int or PlcVariableType.DInt => Convert.ToInt64(variable.InitialValue,
+                System.Globalization.CultureInfo.InvariantCulture).ToString(System.Globalization.CultureInfo.InvariantCulture),
+            _ => "0",
+        };
+
+        bool TryReadTagInitialValue(PlcVariableType type, out object initialValue)
+        {
+            if (LadderEditorDocument.TryParseInitialValue(type, tagInitialValue.Text, out initialValue, out var error))
+                return true;
+            output.Text = $"[color=#d64545]Tag definition rejected.[/color] {Escape(error)}";
+            return false;
+        }
+
+        string SelectedTagBinding() => tagBinding.Selected >= 0
+            ? tagBinding.GetItemMetadata(tagBinding.Selected).AsString()
+            : string.Empty;
+
+        void RefreshTagBindingOptions(PlcVariableType type, PlcVariableRole role, string currentBinding)
+        {
+            tagBinding.Clear();
+            tagBinding.AddItem("<unbound>  ·  no scene I/O exchange");
+            tagBinding.SetItemMetadata(0, string.Empty);
+            if (type == PlcVariableType.Bool && role == PlcVariableRole.Input)
+            {
+                foreach (var operatorBinding in new[] { "operator.start", "operator.stop" })
+                {
+                    tagBinding.AddItem($"{operatorBinding}  [SIMULATOR PULSE]");
+                    tagBinding.SetItemMetadata(tagBinding.ItemCount - 1, operatorBinding);
+                }
+            }
+            if (role is PlcVariableRole.Input or PlcVariableRole.Output
+                && type is PlcVariableType.Bool or PlcVariableType.Int or PlcVariableType.DInt or PlcVariableType.Real)
+            {
+                foreach (var scenePoint in ScenePoints().Where(candidate =>
+                             SceneIoBindingValidator.TypesCompatible(type, candidate.Type)
+                             && candidate.Owner.Equals(
+                                 role == PlcVariableRole.Input ? "PC" : "PLC",
+                                 StringComparison.OrdinalIgnoreCase)))
+                {
+                    var direction = role == PlcVariableRole.Input ? "PC → PLC" : "PLC → SCENE";
+                    tagBinding.AddItem($"{scenePoint.Name}  [{scenePoint.Type} · {direction}]");
+                    tagBinding.SetItemMetadata(tagBinding.ItemCount - 1, scenePoint.Name);
+                    tagBinding.SetItemTooltip(tagBinding.ItemCount - 1, scenePoint.Purpose);
+                }
+            }
+            var selected = -1;
+            for (var index = 0; index < tagBinding.ItemCount; index++)
+            {
+                if (tagBinding.GetItemMetadata(index).AsString() == currentBinding)
+                {
+                    selected = index;
+                    break;
+                }
+            }
+            if (selected < 0 && currentBinding.Length > 0)
+            {
+                tagBinding.AddItem($"⚠ {currentBinding}  [UNAVAILABLE / INCOMPATIBLE]");
+                tagBinding.SetItemMetadata(tagBinding.ItemCount - 1, currentBinding);
+                selected = tagBinding.ItemCount - 1;
+            }
+            tagBinding.Select(Math.Max(0, selected));
+            var bindableType = type is PlcVariableType.Bool or PlcVariableType.Int or PlcVariableType.DInt or PlcVariableType.Real;
+            tagBinding.Disabled = !bindableType || role == PlcVariableRole.Memory;
+            var binding = SelectedTagBinding();
+            var selectedPoint = ScenePoints().FirstOrDefault(candidate => candidate.Name == binding);
+            if (binding.Length == 0)
+            {
+                tagBindingStatus.Text = bindableType && role != PlcVariableRole.Memory
+                    ? "UNBOUND · tag is internal to the offline controller"
+                    : "NO SCENE BINDING · this tag type/role is controller-internal";
+                tagBindingStatus.AddThemeColorOverride("font_color", new Color("4f6874"));
+            }
+            else if (binding.StartsWith("operator.", StringComparison.Ordinal))
+            {
+                tagBindingStatus.Text = $"SIMULATOR OPERATOR INPUT · {binding} · momentary pulse only";
+                tagBindingStatus.AddThemeColorOverride("font_color", new Color("075985"));
+            }
+            else if (selectedPoint is not null)
+            {
+                tagBindingStatus.Text = $"ACTIVE SCENE · {selectedPoint.Name} · {selectedPoint.Type} · owner {selectedPoint.Owner}\nPURPOSE · {selectedPoint.Purpose}";
+                tagBindingStatus.TooltipText = selectedPoint.Purpose;
+                tagBindingStatus.AddThemeColorOverride("font_color", new Color("075d35"));
+            }
+            else
+            {
+                tagBindingStatus.Text = $"INCOMPATIBLE · '{binding}' is unavailable for {type} {role} in the active scene";
+                tagBindingStatus.AddThemeColorOverride("font_color", new Color("8c1d18"));
+            }
+        }
+
+        bool BeginEdit(string description)
+        {
+            if (refreshingEditor)
+            {
+                output.Text = "[color=#d17a00]Editor is still refreshing; try the edit again.[/color]";
+                return false;
+            }
+            _ladderMonitorMatchesLoadedProgram = false;
+            foreach (var ladderCanvas in _ladderCanvases) ladderCanvas.SetMonitorSnapshot(null);
+            _ladderWorkspaceStatus.Text = "OFFLINE EDIT CHANGED · VERIFY + LOAD TO MONITOR";
+            _ladderWorkspaceStatus.AddThemeColorOverride("font_color", new Color("f1aa5b"));
+            validationIssueList?.Clear();
+            if (validationSummary is not null)
+            {
+                validationSummary.Text = "NOT VERIFIED · run Verify + Load Offline";
+                validationSummary.AddThemeColorOverride("font_color", new Color("b36c16"));
+            }
+            _ladderHistory.Record(document, description);
+            return true;
+        }
+
+        bool BeginProjectMetadataEdit(string description)
+        {
+            if (refreshingEditor) return false;
+            _ladderHistory.Record(document, description);
+            return true;
+        }
+
+        Label? interfaceHeading = null;
+        RichTextLabel? blockInterfaceSummary = null;
+
+        void RefreshEditor()
+        {
+            refreshingEditor = true;
+            var activeBlockName = document.Blocks.Count > 0
+                ? document.Blocks[Math.Clamp(document.ActiveBlockIndex, 0, document.Blocks.Count - 1)].Name
+                : "<no block>";
+            var projectDirty = _ladderSavedProjectJson is null
+                || !string.Equals(_ladderSavedProjectJson, LadderEditorProjectJson.Save(document), StringComparison.Ordinal);
+            var projectFileName = _ladderProjectPath is null
+                ? "Untitled.rpproj.json"
+                : System.IO.Path.GetFileName(_ladderProjectPath);
+            var activeBlockOrdinal = Math.Clamp(document.ActiveBlockIndex, 0, Math.Max(0, document.Blocks.Count - 1));
+            var activeBlockType = document.Blocks.Count > 0 ? document.Blocks[activeBlockOrdinal].BlockType : LadderBlockType.Function;
+            var activeBlockCode = activeBlockType switch
+            {
+                LadderBlockType.OrganizationBlock => "OB",
+                LadderBlockType.FunctionBlock => "FB",
+                LadderBlockType.DataBlock => "DB",
+                _ => "FC",
+            };
+            editorTabTitle.Text = siemens
+                ? $"{(projectDirty ? "* " : string.Empty)}{activeBlockName} [{activeBlockCode}{activeBlockOrdinal + 1}]  —  {projectFileName}  ✕"
+                : $"{(projectDirty ? "* " : string.Empty)}MainProgram — {activeBlockName} [LAD]  —  {projectFileName}  ✕";
+            editorTabTitle.TooltipText = projectDirty
+                ? $"Unsaved project changes · {projectFileName}"
+                : $"Project is saved · {projectFileName}";
+            while (blockItems.Count < document.Blocks.Count)
+            {
+                var index = blockItems.Count;
+                var item = organization.CreateItem(blockFolder);
+                item.SetMetadata(0, $"program:{index}");
+                blockItems.Add(item);
+            }
+            for (var index = 0; index < document.Blocks.Count; index++)
+            {
+                var blockCode = document.Blocks[index].BlockType switch
+                {
+                    LadderBlockType.OrganizationBlock => "OB",
+                    LadderBlockType.FunctionBlock => "FB",
+                    LadderBlockType.DataBlock => "DB",
+                    _ => "FC",
+                };
+                var suffix = siemens ? $" [{blockCode}{index + 1}]" : string.Empty;
+                blockItems[index].SetText(0, document.Blocks[index].Name + suffix);
+                blockItems[index].Visible = true;
+            }
+            for (var index = document.Blocks.Count; index < blockItems.Count; index++)
+                blockItems[index].Visible = false;
+            blockName.Text = document.Blocks.Count > 0
+                ? document.Blocks[document.ActiveBlockIndex].Name
+                : string.Empty;
+            if (document.Blocks.Count > 0)
+            {
+                var activeBlock = document.Blocks[document.ActiveBlockIndex];
+                blockTypeSelector.Select(siemens ? activeBlock.BlockType switch
+                {
+                    LadderBlockType.OrganizationBlock => 0,
+                    LadderBlockType.FunctionBlock => 1,
+                    LadderBlockType.Function => 2,
+                    LadderBlockType.DataBlock => 3,
+                    _ => 2,
+                } : 0);
+                interfaceTable.Clear();
+                var interfaceRoot = interfaceTable.CreateItem();
+                foreach (var parameter in activeBlock.Interface)
+                {
+                    var row = interfaceTable.CreateItem(interfaceRoot);
+                    row.SetText(0, parameter.Name);
+                    row.SetText(1, parameter.Section.ToString().ToUpperInvariant());
+                    row.SetText(2, parameter.Type.ToString().ToUpperInvariant());
+                    row.SetText(3, FormatTagInitialValue(new PlcVariable(parameter.Name, parameter.Type, PlcVariableRole.Memory, parameter.InitialValue)));
+                }
+                interfaceTable.Visible = siemens || activeBlock.Interface.Count > 0;
+                interfaceHeading!.Text = siemens
+                    ? $"{activeBlock.BlockType switch { LadderBlockType.OrganizationBlock => "OB", LadderBlockType.FunctionBlock => "FB", LadderBlockType.Function => "FC", LadderBlockType.DataBlock => "DB", _ => "BLOCK" }} INTERFACE"
+                    : "ROUTINE PARAMETERS";
+                var interfaceText = activeBlock.Interface.Count == 0
+                    ? (activeBlock.BlockType == LadderBlockType.DataBlock ? "[b]DB DATA[/b]  ·  no members declared" : "[b]BLOCK INTERFACE[/b]  ·  no parameters declared")
+                    : string.Join("    ", activeBlock.Interface.Select(parameter =>
+                        $"[b]{parameter.Section.ToString().ToUpperInvariant()}[/b] {Escape(parameter.Name)} : {parameter.Type.ToString().ToUpperInvariant()}"));
+                blockInterfaceSummary!.Text = $"[b]{activeBlock.BlockType switch { LadderBlockType.OrganizationBlock => "OB", LadderBlockType.FunctionBlock => "FB", LadderBlockType.Function => "FC", LadderBlockType.DataBlock => "DB", _ => "BLOCK" }} INTERFACE[/b]    {interfaceText}";
+                blockInterfaceSummary.Visible = siemens;
+            }
+            while (taskItems.Count < document.Tasks.Count)
+            {
+                var index = taskItems.Count;
+                var item = organization.CreateItem(taskFolder);
+                item.SetMetadata(0, $"task:{index}");
+                taskItems.Add(item);
+            }
+            for (var index = 0; index < document.Tasks.Count; index++)
+            {
+                var task = document.Tasks[index];
+                var schedule = task.Kind == LadderTaskKind.Continuous
+                    ? "Continuous"
+                    : $"{task.Period.TotalMilliseconds:0} ms";
+                var prefix = siemens ? (task.Kind == LadderTaskKind.Continuous ? "OB1" : $"OB{30 + index}") : task.Name;
+                taskItems[index].SetText(0, $"{prefix} · {schedule} · P{task.Priority}");
+                taskItems[index].Visible = true;
+            }
+            for (var index = document.Tasks.Count; index < taskItems.Count; index++)
+                taskItems[index].Visible = false;
+            selectedTaskIndex = Math.Clamp(selectedTaskIndex, 0, Math.Max(0, document.Tasks.Count - 1));
+            foreach (var ladderCanvas in _ladderCanvases) ladderCanvas.RefreshDocument();
+            tagSelector.Clear();
+            coilSelector.Clear();
+            timerSelector.Clear();
+            counterSelector.Clear();
+            compareLeft.Clear();
+            numericDestination.Clear();
+            callTarget.Clear();
+            taskTarget.Clear();
+            tagList.Clear();
+            var tagRoot = tagList.CreateItem();
+            foreach (var (tag, index) in document.Tags.Select((tag, index) => (tag, index)))
+            {
+                if (tag.Type == PlcVariableType.Bool)
+                {
+                    tagSelector.AddItem(tag.Name);
+                    if (tag.Role != PlcVariableRole.Input) coilSelector.AddItem(tag.Name);
+                }
+                else if (tag.Type == PlcVariableType.Timer)
+                {
+                    timerSelector.AddItem(tag.Name);
+                    tagSelector.AddItem($"{tag.Name}.{(siemens ? "Q" : "DN")}");
+                    tagSelector.AddItem($"{tag.Name}.TT");
+                }
+                else if (tag.Type == PlcVariableType.Counter)
+                {
+                    counterSelector.AddItem(tag.Name);
+                    tagSelector.AddItem($"{tag.Name}.{(siemens ? "Q" : "DN")}");
+                    compareLeft.AddItem($"{tag.Name}.{(siemens ? "CV" : "ACC")}");
+                    compareLeft.AddItem($"{tag.Name}.{(siemens ? "PV" : "PRE")}");
+                }
+                else if (tag.Type is PlcVariableType.Int or PlcVariableType.DInt or PlcVariableType.Real)
+                {
+                    compareLeft.AddItem(tag.Name);
+                    if (tag.Role != PlcVariableRole.Input) numericDestination.AddItem(tag.Name);
+                }
+                if (tag.Type == PlcVariableType.Timer)
+                {
+                    compareLeft.AddItem($"{tag.Name}.ET");
+                    compareLeft.AddItem($"{tag.Name}.PT");
+                }
+                var tagRow = tagList.CreateItem(tagRoot);
+                tagRow.SetMetadata(0, $"tag:{index}");
+                tagRow.SetText(0, tag.Name);
+                tagRow.SetText(1, tag.Type.ToString().ToUpperInvariant());
+                tagRow.SetText(2, tag.Role.ToString().ToUpperInvariant());
+                tagRow.SetText(3, FormatTagInitialValue(tag));
+                tagRow.SetText(4, string.IsNullOrWhiteSpace(tag.Binding) ? "—" : tag.Binding);
+                tagRow.SetTooltipText(0, tag.Name);
+                tagRow.SetTooltipText(1, tag.Type.ToString().ToUpperInvariant());
+                tagRow.SetTooltipText(2, tag.Role.ToString().ToUpperInvariant());
+                tagRow.SetTooltipText(3, FormatTagInitialValue(tag));
+                tagRow.SetTooltipText(4, string.IsNullOrWhiteSpace(tag.Binding) ? "—" : tag.Binding);
+            }
+            if (selectedTagIndex >= document.Tags.Count) selectedTagIndex = -1;
+            applyTagEdit!.Disabled = selectedTagIndex < 0;
+            deleteTag!.Disabled = selectedTagIndex < 0;
+            if (selectedTagIndex >= 0) SelectIndexedTreeRow(tagList, selectedTagIndex);
+            for (var index = 0; index < document.Blocks.Count; index++)
+            {
+                taskTarget.AddItem(document.Blocks[index].Name);
+                taskTarget.SetItemMetadata(taskTarget.ItemCount - 1, document.Blocks[index].Id);
+                if (index == document.ActiveBlockIndex) continue;
+                callTarget.AddItem(document.Blocks[index].Name);
+                callTarget.SetItemMetadata(callTarget.ItemCount - 1, document.Blocks[index].Id);
+            }
+            selectedRung = Math.Clamp(selectedRung, 0, Math.Max(0, document.Rungs.Count - 1));
+            branchSelector.Clear();
+            if (document.Rungs.Count > 0)
+            {
+                var rung = document.Rungs[selectedRung];
+                for (var i = 0; i < rung.Branches.Count; i++) branchSelector.AddItem($"Branch {i + 1}");
+                selectedBranch = Math.Clamp(selectedBranch, 0, Math.Max(0, rung.Branches.Count - 1));
+                branchSelector.Select(selectedBranch);
+                var branchContacts = rung.Branches[selectedBranch].Contacts;
+                if (selectedContact >= branchContacts.Count) selectedContact = -1;
+                if (selectedInsertionIndex > branchContacts.Count)
+                    selectedInsertionIndex = branchContacts.Count;
+                if (selectedContact >= 0 || selectedOutput) selectedInsertionIndex = -1;
+                moveContactLeft!.Disabled = selectedContact <= 0;
+                moveContactRight!.Disabled = selectedContact < 0 || selectedContact >= branchContacts.Count - 1;
+                if (selectedContact >= 0)
+                {
+                    var contact = branchContacts[selectedContact];
+                    if (contact.IsComparison)
+                    {
+                        var leftIndex = Enumerable.Range(0, compareLeft.ItemCount)
+                            .FirstOrDefault(index => compareLeft.GetItemText(index) == contact.Variable, -1);
+                        if (leftIndex >= 0) compareLeft.Select(leftIndex);
+                        compareOperator.Select((int)contact.CompareOperator);
+                        compareRight.Text = contact.RightOperand;
+                    }
+                    else
+                    {
+                        contactTypeSelector.Select(contact.EdgeMode switch
+                        {
+                            LadderEdgeMode.Rising => 2,
+                            LadderEdgeMode.Falling => 3,
+                            _ => contact.NormallyClosed ? 1 : 0,
+                        });
+                        var tagIndex = Enumerable.Range(0, tagSelector.ItemCount)
+                            .FirstOrDefault(index => tagSelector.GetItemText(index) == contact.Variable, -1);
+                        if (tagIndex >= 0) tagSelector.Select(tagIndex);
+                    }
+                }
+                rungLabel.Text = rung.Label;
+                var coilIndex = document.Tags.Where(tag => tag.Type == PlcVariableType.Bool && tag.Role != PlcVariableRole.Input).ToList()
+                    .FindIndex(tag => tag.Name == rung.CoilVariable);
+                if (coilIndex >= 0) coilSelector.Select(coilIndex);
+                coilModeSelector.Select((int)rung.CoilMode);
+                var timerIndex = document.Tags.Where(tag => tag.Type == PlcVariableType.Timer).ToList()
+                    .FindIndex(tag => tag.Name == rung.TimerVariable);
+                if (timerIndex >= 0) timerSelector.Select(timerIndex);
+                timerPreset.Value = Math.Max(1, rung.TimerPreset.TotalMilliseconds);
+                var counterIndex = document.Tags.Where(tag => tag.Type == PlcVariableType.Counter).ToList()
+                    .FindIndex(tag => tag.Name == rung.CounterVariable);
+                if (counterIndex >= 0) counterSelector.Select(counterIndex);
+                counterPreset.Value = Math.Max(1, rung.CounterPreset);
+                numericSourceA.Text = rung.NumericSourceA;
+                var numericDestinationIndex = Enumerable.Range(0, numericDestination.ItemCount)
+                    .FirstOrDefault(index => numericDestination.GetItemText(index) == rung.NumericDestination, -1);
+                if (numericDestinationIndex >= 0) numericDestination.Select(numericDestinationIndex);
+                if (rung.IsCall)
+                {
+                    var callTargetIndex = Enumerable.Range(0, callTarget.ItemCount)
+                        .FirstOrDefault(index => callTarget.GetItemMetadata(index).AsString() == rung.CallTarget, -1);
+                    if (callTargetIndex >= 0) callTarget.Select(callTargetIndex);
+                }
+                programControlLabel.Text = rung.ProgramControlLabel;
+                if (!string.IsNullOrWhiteSpace(rung.NumericSourceB)) numericSourceB.Text = rung.NumericSourceB;
+                if (!string.IsNullOrWhiteSpace(rung.NumericSourceC)) numericSourceC.Text = rung.NumericSourceC;
+                numericSourceB.Editable = rung.IsNumericOperation
+                    && LadderNumericOperationRules.RequiresSourceB(rung.NumericOperationKind);
+                numericSourceB.PlaceholderText = numericSourceB.Editable
+                    ? "source B tag or literal"
+                    : "not used by unary instruction";
+                numericSourceC.Editable = rung.IsNumericOperation
+                    && LadderNumericOperationRules.RequiresSourceC(rung.NumericOperationKind);
+                numericSourceC.PlaceholderText = numericSourceC.Editable
+                    ? "MAX tag or literal"
+                    : "not used by this instruction";
+            }
+            else
+            {
+                selectedContact = -1;
+                selectedInsertionIndex = -1;
+                selectedOutput = false;
+                moveContactLeft!.Disabled = true;
+                moveContactRight!.Disabled = true;
+                numericSourceB.Editable = false;
+                numericSourceC.Editable = false;
+            }
+            if (document.Tasks.Count > 0) LoadTaskControls(selectedTaskIndex);
+            undoEdit.Disabled = !_ladderHistory.CanUndo;
+            redoEdit.Disabled = !_ladderHistory.CanRedo;
+            undoEdit.TooltipText = _ladderHistory.CanUndo ? $"Undo {_ladderHistory.UndoDescription}" : "Nothing to undo";
+            redoEdit.TooltipText = _ladderHistory.CanRedo ? $"Redo {_ladderHistory.RedoDescription}" : "Nothing to redo";
+            refreshingEditor = false;
+            if (instructionPropertiesPopup.Visible) UpdateInstructionPropertyVisibility();
+            RefreshWatchTable(_virtualSnapshot);
+        }
+
+        var instructionChrome = PanelContainer("InstructionToolbarChrome", new Color("eef1f3"), new Color("aeb8bd"));
+        var instructions = new VBoxContainer { Name = "InstructionToolbar" };
+        instructions.AddThemeConstantOverride("separation", 4);
+        instructionChrome.AddChild(instructions);
+        var selectionRow = new HBoxContainer { Name = "Selection" };
+        selectionRow.AddThemeConstantOverride("separation", 4);
+        selectionRow.AddChild(Heading(siemens ? "Instruction palette" : "Language elements", 11, new Color("344851")));
+        selectionRow.AddChild(branchSelector);
+        moveContactLeft = ToolbarButton("MoveSelectedLeft", "◀ MOVE", new Color("637985"), 78);
+        moveContactLeft.TooltipText = "Move the selected contact one position left in its branch";
+        moveContactRight = ToolbarButton("MoveSelectedRight", "MOVE ▶", new Color("637985"), 78);
+        moveContactRight.TooltipText = "Move the selected contact one position right in its branch";
+        moveContactLeft.Disabled = true;
+        moveContactRight.Disabled = true;
+        selectionRow.AddChild(moveContactLeft);
+        selectionRow.AddChild(moveContactRight);
+        var openInstructionHelp = ToolbarButton("OpenInstructionHelp", "HELP (F1)", new Color("4d6674"), 92);
+        selectionRow.AddChild(openInstructionHelp);
+        instructions.AddChild(selectionRow);
+        var instructionPalette = new TabContainer { Name = "InstructionPalette", CustomMinimumSize = new Vector2(0, 72) };
+        instructionPalette.AddThemeFontSizeOverride("font_size", 11);
+        instructionPalette.AddThemeColorOverride("font_selected_color", new Color("263943"));
+        instructionPalette.AddThemeColorOverride("font_unselected_color", new Color("4f6874"));
+        instructionPalette.AddThemeStyleboxOverride("panel", BoxStyle(new Color("f8f9fa"), new Color("b7c0c5")));
+        instructionPalette.AddThemeStyleboxOverride("tab_selected", BoxStyle(new Color("ffffff"), accent));
+        instructionPalette.AddThemeStyleboxOverride("tab_unselected", BoxStyle(new Color("d9dfe2"), new Color("aeb8bd")));
+        instructions.AddChild(instructionPalette);
+        Button Command(string name, string text)
+        {
+            var button = ToolbarButton(name, text, new Color("637985"), 76);
+            button.CustomMinimumSize = new Vector2(76, 32);
+            return button;
+        }
+        var addNo = Command("AddNormallyOpen", siemens ? "—| |—  NO" : "—] [—  XIC");
+        var addNc = Command("AddNormallyClosed", siemens ? "—|/|—  NC" : "—]/[—  XIO");
+        var addRisingEdge = Command("AddRisingEdge", siemens ? "—|P|— EDGE" : "XIC+ONS");
+        var addFallingEdge = Command("AddFallingEdge", siemens ? "—|N|— EDGE" : "XIO+ONS");
+        var addTon = Command("AddTimerOnDelay", "TON");
+        var addTof = Command("AddTimerOffDelay", "TOF");
+        var addTp = Command("AddPulseTimer", "TP");
+        var addRto = Command("AddRetentiveTimer", siemens ? "TONR" : "RTO");
+        var addTimerReset = Command("AddTimerReset", siemens ? "RT" : "RES TIMER");
+        var addSet = Command("AddSetLatch", siemens ? "SET" : "OTL");
+        var addReset = Command("AddResetUnlatch", siemens ? "RESET" : "OTU");
+        var addCounter = Command("AddCountUp", "CTU");
+        var addCounterDown = Command("AddCountDown", "CTD");
+        var addCounterLoad = Command("AddCounterLoad", siemens ? "LD" : "LOAD");
+        var addCounterReset = Command("AddCounterReset", "RES");
+        var addCompare = Command("AddComparison", "CMP");
+        var addBranch = Command("AddBranch", "BRANCH");
+        var removeBranch = Command("RemoveBranch", "− BRANCH");
+        var addRung = Command("AddRung", siemens ? "+ NETWORK" : "+ RUNG");
+        var remove = Command("RemoveInstruction", "DELETE");
+        addNo.TooltipText = siemens
+            ? "Insert a normally-open contact at the selected wire position, or change the selected contact to NO"
+            : "Insert an Examine If Closed contact at the selected wire position, or change the selected contact to XIC";
+        addNc.TooltipText = siemens
+            ? "Insert a normally-closed contact at the selected wire position, or change the selected contact to NC"
+            : "Insert an Examine If Open contact at the selected wire position, or change the selected contact to XIO";
+        addRisingEdge.TooltipText = "Insert a one-scan FALSE-to-TRUE edge contact with stable per-instruction simulator memory";
+        addFallingEdge.TooltipText = "Insert a one-scan TRUE-to-FALSE edge contact with stable per-instruction simulator memory";
+        addCompare.TooltipText = "Insert a comparison at the selected wire position";
+
+        var bitCommands = new HBoxContainer { Name = "Bit Logic" };
+        bitCommands.AddThemeConstantOverride("separation", 4);
+        bitCommands.AddChild(addNo);
+        bitCommands.AddChild(addNc);
+        bitCommands.AddChild(addRisingEdge);
+        bitCommands.AddChild(addFallingEdge);
+        bitCommands.AddChild(addSet);
+        bitCommands.AddChild(addReset);
+        bitCommands.AddChild(addBranch);
+        bitCommands.AddChild(removeBranch);
+        bitCommands.AddChild(addRung);
+        bitCommands.AddChild(remove);
+        instructionPalette.AddChild(bitCommands);
+
+        var timerCommands = new HBoxContainer { Name = "Timers" };
+        timerCommands.AddThemeConstantOverride("separation", 4);
+        timerCommands.AddChild(addTon);
+        timerCommands.AddChild(addTof);
+        timerCommands.AddChild(addTp);
+        timerCommands.AddChild(addRto);
+        timerCommands.AddChild(addTimerReset);
+        instructionPalette.AddChild(timerCommands);
+
+        var counterCommands = new HBoxContainer { Name = "Counters" };
+        counterCommands.AddThemeConstantOverride("separation", 4);
+        counterCommands.AddChild(addCounter);
+        counterCommands.AddChild(addCounterDown);
+        counterCommands.AddChild(addCounterLoad);
+        counterCommands.AddChild(addCounterReset);
+        instructionPalette.AddChild(counterCommands);
+
+        var compareCommands = new HBoxContainer { Name = "Compare" };
+        compareCommands.AddThemeConstantOverride("separation", 4);
+        compareCommands.AddChild(addCompare);
+        instructionPalette.AddChild(compareCommands);
+
+        var numericCommands = new HBoxContainer { Name = "Math and Move" };
+        numericCommands.AddThemeConstantOverride("separation", 4);
+        var addMove = Command("AddMove", "MOV");
+        var addAdd = Command("AddAdd", "ADD");
+        var addSubtract = Command("AddSubtract", "SUB");
+        var addMultiply = Command("AddMultiply", "MUL");
+        var addDivide = Command("AddDivide", "DIV");
+        var addModulo = Command("AddModulo", "MOD");
+        var addAbsolute = Command("AddAbsolute", "ABS");
+        var addNegate = Command("AddNegate", "NEG");
+        var addSquareRoot = Command("AddSquareRoot", "SQRT");
+        numericCommands.AddChild(addMove);
+        numericCommands.AddChild(addAdd);
+        numericCommands.AddChild(addSubtract);
+        numericCommands.AddChild(addMultiply);
+        numericCommands.AddChild(addDivide);
+        numericCommands.AddChild(addModulo);
+        numericCommands.AddChild(addAbsolute);
+        numericCommands.AddChild(addNegate);
+        numericCommands.AddChild(addSquareRoot);
+        instructionPalette.AddChild(numericCommands);
+
+        var scientificCommands = new HBoxContainer { Name = "Scientific Math" };
+        scientificCommands.AddThemeConstantOverride("separation", 4);
+        var addExponentiate = Command("AddExponentiate", "EXPT");
+        var addNaturalLog = Command("AddNaturalLog", "LN");
+        var addSine = Command("AddSine", "SIN");
+        var addCosine = Command("AddCosine", "COS");
+        var addTangent = Command("AddTangent", "TAN");
+        var addArcSine = Command("AddArcSine", "ASIN");
+        var addArcCosine = Command("AddArcCosine", "ACOS");
+        var addArcTangent = Command("AddArcTangent", "ATAN");
+        scientificCommands.AddChild(addExponentiate);
+        scientificCommands.AddChild(addNaturalLog);
+        scientificCommands.AddChild(addSine);
+        scientificCommands.AddChild(addCosine);
+        scientificCommands.AddChild(addTangent);
+        scientificCommands.AddChild(addArcSine);
+        scientificCommands.AddChild(addArcCosine);
+        scientificCommands.AddChild(addArcTangent);
+        instructionPalette.AddChild(scientificCommands);
+
+        var conversionCommands = new HBoxContainer { Name = "Conversion" };
+        conversionCommands.AddThemeConstantOverride("separation", 4);
+        var addTruncate = Command("AddTruncate", "TRUNC");
+        var addNormalize = Command("AddNormalize", siemens ? "NORM_X" : "CPT NORM");
+        var addScale = Command("AddScale", siemens ? "SCALE_X" : "CPT SCALE");
+        var addConvert = Command("AddConvert", siemens ? "CONVERT" : "MOV CONV");
+        var addRound = Command("AddRound", siemens ? "ROUND" : "CPT ROUND");
+        var addCeiling = Command("AddCeiling", siemens ? "CEIL" : "CPT CEIL");
+        var addFloor = Command("AddFloor", siemens ? "FLOOR" : "CPT FLOOR");
+        conversionCommands.AddChild(addTruncate);
+        conversionCommands.AddChild(addConvert);
+        conversionCommands.AddChild(addRound);
+        conversionCommands.AddChild(addCeiling);
+        conversionCommands.AddChild(addFloor);
+        conversionCommands.AddChild(addNormalize);
+        conversionCommands.AddChild(addScale);
+        instructionPalette.AddChild(conversionCommands);
+
+        var programCommands = new HBoxContainer { Name = "Program Control" };
+        programCommands.AddThemeConstantOverride("separation", 4);
+        var addCall = Command("AddCall", siemens ? "CALL" : "JSR");
+        var addReturn = Command("AddReturn", siemens ? "RETURN" : "RET");
+        var addJump = Command("AddJump", "JMP");
+        var addLabel = Command("AddLabel", siemens ? "LABEL" : "LBL");
+        var addBlock = Command("AddBlock", siemens ? "+ FC" : "+ ROUTINE");
+        programCommands.AddChild(addCall);
+        programCommands.AddChild(addReturn);
+        programCommands.AddChild(addJump);
+        programCommands.AddChild(addLabel);
+        instructionPalette.AddChild(programCommands);
+
+        var addTask = Command("AddTask", siemens ? "+ OB" : "+ TASK");
+        var applyBlock = Command("ApplyBlock", siemens ? "RENAME BLOCK" : "RENAME ROUTINE");
+        var removeBlock = Command("RemoveBlock", siemens ? "DELETE BLOCK" : "DELETE ROUTINE");
+        var applyTask = Command("ApplyTask", "APPLY");
+        var removeTask = Command("RemoveTask", siemens ? "DELETE OB" : "DELETE TASK");
+        center.AddChild(instructionChrome);
+
+        blockInterfaceSummary = new RichTextLabel
+        {
+            Name = "BlockInterfaceSummary",
+            BbcodeEnabled = true,
+            FitContent = true,
+            CustomMinimumSize = new Vector2(0, 42),
+            ScrollActive = false,
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        blockInterfaceSummary.AddThemeColorOverride("default_color", new Color("263943"));
+        blockInterfaceSummary.AddThemeStyleboxOverride("normal", BoxStyle(new Color("e8eef1"), new Color("9aa7ad")));
+        center.AddChild(blockInterfaceSummary);
+
+        var scroll = new ScrollContainer { Name = "RoutineView", SizeFlagsVertical = Control.SizeFlags.ExpandFill };
+        scroll.AddChild(canvas);
+        center.AddChild(scroll);
+
+        var bottomDockHost = new VBoxContainer { Name = "BottomDockHost" };
+        bottomDockHost.AddThemeConstantOverride("separation", 0);
+        var reopenBottomDock = ToolbarButton("ReopenBottomDock", "DIAGNOSTICS  ▲", new Color("4d6674"), 175);
+        reopenBottomDock.CustomMinimumSize = new Vector2(0, 26);
+        reopenBottomDock.TooltipText = "Show errors, output, and watch data";
+        reopenBottomDock.Visible = false;
+        bottomDockHost.AddChild(reopenBottomDock);
+        var bottomPanel = PanelContainer("InspectorOutputDock", new Color("eef1f3"), new Color("9aa7ad"));
+        bottomPanel.CustomMinimumSize = new Vector2(0, 120);
+        bottomPanel.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
+        bottomPanel.TooltipText = "Drag the divider above this dock to resize Error List, Output, and Watch data.";
+        var bottomBody = new VBoxContainer { Name = "InspectorOutputBody" };
+        bottomBody.AddThemeConstantOverride("separation", 2);
+        bottomPanel.AddChild(bottomBody);
+        var bottomTitle = new HBoxContainer { Name = "InspectorOutputTitle" };
+        var bottomHeading = Heading(siemens ? "Diagnostics / Watch" : "Output / Errors / Watch", 12, new Color("263943"));
+        bottomHeading.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        bottomTitle.AddChild(bottomHeading);
+        var collapseBottomDock = ToolbarButton("CollapseBottomDock", "▼", new Color("637985"), 32);
+        collapseBottomDock.TooltipText = "Hide errors, output, and watch data";
+        bottomTitle.AddChild(collapseBottomDock);
+        bottomBody.AddChild(bottomTitle);
+        var bottomTabs = new TabContainer { Name = "InspectorOutputTabs", SizeFlagsVertical = Control.SizeFlags.ExpandFill };
+        bottomTabs.AddThemeFontSizeOverride("font_size", 11);
+        bottomTabs.AddThemeColorOverride("font_selected_color", new Color("263943"));
+        bottomTabs.AddThemeColorOverride("font_unselected_color", new Color("4f6874"));
+        bottomTabs.AddThemeStyleboxOverride("panel", BoxStyle(new Color("f8f9fa"), new Color("b7c0c5")));
+        bottomTabs.AddThemeStyleboxOverride("tab_selected", BoxStyle(new Color("ffffff"), accent));
+        bottomTabs.AddThemeStyleboxOverride("tab_unselected", BoxStyle(new Color("d9dfe2"), new Color("aeb8bd")));
+        bottomBody.AddChild(bottomTabs);
+
+        var errorPage = new VBoxContainer { Name = "Error List" };
+        validationSummary = Heading("0 ERRORS · program not yet verified", 11, new Color("4f6874"));
+        validationSummary.Name = "ValidationSummary";
+        errorPage.AddChild(validationSummary);
+        validationIssueList = new ItemList
+        {
+            Name = "ValidationIssues",
+            SizeFlagsVertical = Control.SizeFlags.ExpandFill,
+            AllowReselect = true,
+        };
+        validationIssueList.AddThemeColorOverride("font_color", new Color("8c2f2f"));
+        validationIssueList.AddThemeColorOverride("font_selected_color", new Color("ffffff"));
+        validationIssueList.AddThemeStyleboxOverride("panel", BoxStyle(new Color("fffafa"), new Color("c9a2a2")));
+        errorPage.AddChild(validationIssueList);
+        bottomTabs.AddChild(errorPage);
+
+        var outputPage = new VBoxContainer { Name = "Output" };
+        var outputDescription = Heading(
+            "Validation, compile, load, search, navigation, and controller-runtime messages appear here.",
+            11, new Color("4f6874"));
+        outputPage.AddChild(outputDescription);
+        output.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
+        outputPage.AddChild(output);
+        bottomTabs.AddChild(outputPage);
+
+        var watchPage = new VBoxContainer { Name = siemens ? "Watch table 1" : "Watch List" };
+        watchPage.AddThemeConstantOverride("separation", 3);
+        var watchHeader = new HBoxContainer { Name = "WatchHeader" };
+        var watchStatus = Heading("OFFLINE · PROGRAM NOT LOADED", 11, new Color("4f6874"));
+        watchStatus.Name = "WatchStatus";
+        watchStatus.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        watchHeader.AddChild(watchStatus);
+        var watchSymbol = new OptionButton { Name = "WatchSymbol", CustomMinimumSize = new Vector2(180, 30) };
+        watchHeader.AddChild(watchSymbol);
+        var addWatch = ToolbarButton("AddWatchSymbol", "+ SYMBOL", accent, 82);
+        var removeWatch = ToolbarButton("RemoveWatchSymbol", "REMOVE", new Color("8a4d55"), 82);
+        var addAllWatch = ToolbarButton("AddAllWatchSymbols", "ADD ALL", new Color("4d6674"), 82);
+        var clearWatch = ToolbarButton("ClearWatchSymbols", "CLEAR", new Color("637985"), 72);
+        watchHeader.AddChild(addWatch);
+        watchHeader.AddChild(removeWatch);
+        watchHeader.AddChild(addAllWatch);
+        watchHeader.AddChild(clearWatch);
+        watchPage.AddChild(watchHeader);
+        var watchTable = new Tree
+        {
+            Name = "WatchTable",
+            Columns = 6,
+            ColumnTitlesVisible = true,
+            HideRoot = true,
+            AllowReselect = true,
+            SizeFlagsVertical = Control.SizeFlags.ExpandFill,
+        };
+        foreach (var (column, title) in new[]
+                 {
+                     (0, "SYMBOL"), (1, "TYPE"), (2, "VALUE"),
+                     (3, "ROLE"), (4, "QUALITY / STATE"), (5, "SCENE BINDING"),
+                 })
+            watchTable.SetColumnTitle(column, title);
+        watchTable.SetColumnExpand(0, true);
+        watchTable.SetColumnExpand(1, false);
+        watchTable.SetColumnCustomMinimumWidth(1, 75);
+        watchTable.SetColumnExpand(2, true);
+        watchTable.SetColumnExpand(3, false);
+        watchTable.SetColumnCustomMinimumWidth(3, 80);
+        watchTable.SetColumnExpand(4, true);
+        watchTable.SetColumnExpand(5, true);
+        watchTable.AddThemeColorOverride("font_color", new Color("263943"));
+        watchTable.AddThemeColorOverride("font_selected_color", new Color("ffffff"));
+        watchTable.AddThemeStyleboxOverride("panel", BoxStyle(new Color("ffffff"), new Color("b7c0c5")));
+        watchTable.AddThemeStyleboxOverride("selected", BoxStyle(accent, accent));
+        watchTable.AddThemeStyleboxOverride("selected_focus", BoxStyle(accent, accent));
+        watchPage.AddChild(watchTable);
+        bottomTabs.AddChild(watchPage);
+        bottomTabs.CurrentTab = 1;
+        bottomTabs.SetDeferred("current_tab", 1);
+
+        string WatchValue(PlcVariable variable, VirtualControllerSnapshot snapshot)
+        {
+            if (variable.Type == PlcVariableType.Bool)
+                return snapshot.Variables.TryGetValue(variable.Name, out var boolean)
+                    ? boolean.ToString().ToUpperInvariant() : "—";
+            if (variable.Type is PlcVariableType.Int or PlcVariableType.DInt or PlcVariableType.Real)
+                return snapshot.NumericVariables.TryGetValue(variable.Name, out var numeric)
+                    ? variable.Type == PlcVariableType.Real
+                        ? numeric.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)
+                        : numeric.ToString("0", System.Globalization.CultureInfo.InvariantCulture)
+                    : "—";
+            if (variable.Type == PlcVariableType.Timer && snapshot.Timers.TryGetValue(variable.Name, out var timer))
+                return $"ET={timer.Accumulated.TotalMilliseconds:0} ms · Q={timer.Done.ToString().ToUpperInvariant()}";
+            if (variable.Type == PlcVariableType.Counter && snapshot.Counters.TryGetValue(variable.Name, out var counter))
+                return $"CV/ACC={counter.Accumulated} · Q/DN={counter.Done.ToString().ToUpperInvariant()}";
+            return "—";
+        }
+
+        void RefreshWatchTable(VirtualControllerSnapshot? snapshot)
+        {
+            var selectedSymbol = watchSymbol.Selected >= 0 ? watchSymbol.GetItemText(watchSymbol.Selected) : string.Empty;
+            watchSymbol.Clear();
+            foreach (var tag in document.Tags) watchSymbol.AddItem(tag.Name);
+            var selectedIndex = document.Tags.FindIndex(tag => tag.Name == selectedSymbol);
+            if (selectedIndex >= 0) watchSymbol.Select(selectedIndex);
+            watchTable.Clear();
+            var rootItem = watchTable.CreateItem();
+            foreach (var name in document.WatchVariables)
+            {
+                var variable = document.Tags.FirstOrDefault(tag => tag.Name == name);
+                if (variable is null) continue;
+                var item = watchTable.CreateItem(rootItem);
+                item.SetMetadata(0, name);
+                item.SetText(0, name);
+                item.SetText(1, variable.Type.ToString().ToUpperInvariant());
+                var current = snapshot is not null && _ladderMonitorMatchesLoadedProgram;
+                item.SetText(2, current ? WatchValue(variable, snapshot!) : "—");
+                item.SetText(3, variable.Role.ToString().ToUpperInvariant());
+                var force = snapshot?.Forces.GetValueOrDefault(name);
+                item.SetText(4, !current ? snapshot is null ? "NOT LOADED" : "STALE EDIT"
+                    : force is not null ? $"SIM FORCE {force.Value.ToString().ToUpperInvariant()}"
+                    : snapshot!.State == VirtualControllerState.Running ? $"GOOD · SCAN {snapshot.ScanNumber}" : "GOOD · STOPPED");
+                item.SetText(5, string.IsNullOrWhiteSpace(variable.Binding) ? "—" : variable.Binding);
+            }
+            watchStatus.Text = snapshot is null
+                ? $"{document.WatchVariables.Count} SYMBOL(S) · PROGRAM NOT LOADED"
+                : !_ladderMonitorMatchesLoadedProgram
+                    ? $"{document.WatchVariables.Count} SYMBOL(S) · EDIT DIFFERS FROM LOADED PROGRAM"
+                    : $"{document.WatchVariables.Count} SYMBOL(S) · {snapshot.State.ToString().ToUpperInvariant()} · SCAN {snapshot.ScanNumber} · SIMULATOR ONLY";
+            watchStatus.AddThemeColorOverride("font_color",
+                snapshot is not null && _ladderMonitorMatchesLoadedProgram ? new Color("18864b") : new Color("b36c16"));
+        }
+
+        addWatch.Pressed += () =>
+        {
+            if (watchSymbol.Selected < 0) return;
+            var name = watchSymbol.GetItemText(watchSymbol.Selected);
+            if (document.WatchVariables.Contains(name, StringComparer.Ordinal)) return;
+            if (!BeginProjectMetadataEdit("Add watch-table symbol")) return;
+            document.WatchVariables.Add(name);
+            RefreshWatchTable(_virtualSnapshot);
+        };
+        removeWatch.Pressed += () =>
+        {
+            var selected = watchTable.GetSelected();
+            var name = selected?.GetMetadata(0).AsString() ?? string.Empty;
+            if (name.Length == 0 || !BeginProjectMetadataEdit("Remove watch-table symbol")) return;
+            document.WatchVariables.RemoveAll(item => item.Equals(name, StringComparison.Ordinal));
+            RefreshWatchTable(_virtualSnapshot);
+        };
+        addAllWatch.Pressed += () =>
+        {
+            var missing = document.Tags.Select(tag => tag.Name)
+                .Where(name => !document.WatchVariables.Contains(name, StringComparer.Ordinal)).ToArray();
+            if (missing.Length == 0 || !BeginProjectMetadataEdit("Add all watch-table symbols")) return;
+            document.WatchVariables.AddRange(missing);
+            RefreshWatchTable(_virtualSnapshot);
+        };
+        clearWatch.Pressed += () =>
+        {
+            if (document.WatchVariables.Count == 0 || !BeginProjectMetadataEdit("Clear watch table")) return;
+            document.WatchVariables.Clear();
+            RefreshWatchTable(_virtualSnapshot);
+        };
+        bottomDockHost.AddChild(bottomPanel);
+        editorAndInspector.AddChild(bottomDockHost);
+
+        collapseBottomDock.Pressed += () =>
+        {
+            bottomDockSplitOffset = editorAndInspector.SplitOffsets.Length > 0
+                ? editorAndInspector.SplitOffsets[0]
+                : bottomDockSplitOffset;
+            bottomPanel.Visible = false;
+            reopenBottomDock.Visible = true;
+            editorAndInspector.SplitOffsets = [Math.Max(0, (int)editorAndInspector.Size.Y - (int)reopenBottomDock.CustomMinimumSize.Y)];
+        };
+        reopenBottomDock.Pressed += () =>
+        {
+            reopenBottomDock.Visible = false;
+            bottomPanel.Visible = true;
+            editorAndInspector.SplitOffsets = [bottomDockSplitOffset];
+        };
+
+        var toolPanel = PanelContainer("InstructionAndTags", new Color("eef0f2"), new Color("9aa7ad"));
+        // Give the instruction identity enough room to remain readable at the
+        // default desktop layout. The adjacent splitter still lets the user
+        // enlarge this dock; full names are also retained as Tree tooltips.
+        toolPanel.CustomMinimumSize = new Vector2(300, 0);
+        toolPanel.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        toolPanel.TooltipText = "Drag the divider at the left edge to resize this dock.";
+        toolPanel.ClipContents = true;
+        var toolBody = new VBoxContainer
+        {
+            Name = "ToolBody",
+            ClipContents = true,
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+        };
+        toolPanel.AddChild(toolBody);
+        var toolTitle = new HBoxContainer { Name = "ToolTitle" };
+        var toolHeading = Heading(siemens ? "Instructions / PLC tags" : "Instructions / Controller tags", 13, new Color("263943"));
+        toolHeading.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        toolTitle.AddChild(toolHeading);
+        var collapseToolDock = ToolbarButton("CollapseToolDock", "▶", new Color("637985"), 30);
+        collapseToolDock.TooltipText = siemens ? "Hide Instructions / PLC tags" : "Hide Instruction Toolbox";
+        toolTitle.AddChild(collapseToolDock);
+        toolBody.AddChild(toolTitle);
+        var toolTabs = new TabContainer { Name = "ToolTabs" };
+        toolTabs.ClipContents = true;
+        toolTabs.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        toolTabs.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
+        toolTabs.TabsVisible = false;
+        toolTabs.AddThemeFontSizeOverride("font_size", 11);
+        var toolTabsHost = new HBoxContainer
+        {
+            Name = "ToolTabsHost",
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+            SizeFlagsVertical = Control.SizeFlags.ExpandFill,
+        };
+        toolTabsHost.AddThemeConstantOverride("separation", 4);
+        toolTabsHost.AddChild(toolTabs);
+        toolBody.AddChild(toolTabsHost);
+        var toolRail = new VBoxContainer
+        {
+            Name = "ToolTabRail",
+            CustomMinimumSize = new Vector2(94, 0),
+            SizeFlagsVertical = Control.SizeFlags.ExpandFill,
+        };
+        toolRail.AddThemeConstantOverride("separation", 3);
+        toolTabsHost.AddChild(toolRail);
+        var toolRailButtons = new List<Button>();
+        toolTabs.TabChanged += tabIndex =>
+        {
+            for (var index = 0; index < toolRailButtons.Count; index++)
+                toolRailButtons[index].ButtonPressed = index == tabIndex;
+        };
+        var instructionPage = new VBoxContainer { Name = "Instructions" };
+        var instructionTree = new Tree
+        {
+            Name = "InstructionTree",
+            HideRoot = false,
+            SizeFlagsVertical = Control.SizeFlags.ExpandFill,
+            AllowReselect = true,
+        };
+        instructionTree.AddThemeColorOverride("font_color", new Color("263943"));
+        instructionTree.AddThemeColorOverride("font_selected_color", new Color("ffffff"));
+        instructionTree.AddThemeColorOverride("guide_color", new Color("aeb8bd"));
+        instructionTree.AddThemeStyleboxOverride("panel", BoxStyle(new Color("f8f9fa"), new Color("b7c0c5")));
+        var instructionRoot = instructionTree.CreateItem();
+        instructionRoot.SetText(0, "Basic instructions");
+        var bitLogic = instructionTree.CreateItem(instructionRoot);
+        bitLogic.SetText(0, "Bit logic operations");
+        var noInstruction = instructionTree.CreateItem(bitLogic);
+        noInstruction.SetText(0, siemens ? "Normally open contact  —| |—" : "Examine On (XIC)  —] [—");
+        noInstruction.SetMetadata(0, "no");
+        var ncInstruction = instructionTree.CreateItem(bitLogic);
+        ncInstruction.SetText(0, siemens ? "Normally closed contact  —|/|—" : "Examine Off (XIO)  —]/[—");
+        ncInstruction.SetMetadata(0, "nc");
+        var risingEdgeInstruction = instructionTree.CreateItem(bitLogic);
+        risingEdgeInstruction.SetText(0, siemens ? "Positive edge contact  —|P|—" : "Rising edge composite  XIC + ONS");
+        risingEdgeInstruction.SetMetadata(0, "edge-rising");
+        var fallingEdgeInstruction = instructionTree.CreateItem(bitLogic);
+        fallingEdgeInstruction.SetText(0, siemens ? "Negative edge contact  —|N|—" : "Falling edge composite  XIO + ONS / OSF");
+        fallingEdgeInstruction.SetMetadata(0, "edge-falling");
+        var coilInstruction = instructionTree.CreateItem(bitLogic);
+        coilInstruction.SetText(0, siemens ? "Assignment coil  —( )—" : "Output Energize (OTE)  —( )—");
+        coilInstruction.SetMetadata(0, "coil");
+        var setInstruction = instructionTree.CreateItem(bitLogic);
+        setInstruction.SetText(0, siemens ? "Set coil  —(S)—" : "Output Latch (OTL)  —(L)—");
+        setInstruction.SetMetadata(0, "set");
+        var resetInstruction = instructionTree.CreateItem(bitLogic);
+        resetInstruction.SetText(0, siemens ? "Reset coil  —(R)—" : "Output Unlatch (OTU)  —(U)—");
+        resetInstruction.SetMetadata(0, "reset");
+        var branchInstruction = instructionTree.CreateItem(bitLogic);
+        branchInstruction.SetText(0, "Open parallel branch");
+        branchInstruction.SetMetadata(0, "branch");
+        var timerOperations = instructionTree.CreateItem(instructionRoot);
+        timerOperations.SetText(0, "Timer operations");
+        var tonInstruction = instructionTree.CreateItem(timerOperations);
+        tonInstruction.SetText(0, siemens ? "TON · On-delay timer (IEC)" : "TON · Timer On Delay");
+        tonInstruction.SetMetadata(0, "ton");
+        var tofInstruction = instructionTree.CreateItem(timerOperations);
+        tofInstruction.SetText(0, siemens ? "TOF · Off-delay timer (IEC)" : "TOF · Timer Off Delay");
+        tofInstruction.SetMetadata(0, "tof");
+        var tpInstruction = instructionTree.CreateItem(timerOperations);
+        tpInstruction.SetText(0, siemens ? "TP · Pulse timer (IEC)" : "TP · Simulator Pulse Timer");
+        tpInstruction.SetMetadata(0, "tp");
+        var rtoInstruction = instructionTree.CreateItem(timerOperations);
+        rtoInstruction.SetText(0, siemens ? "TONR · Time accumulator" : "RTO · Retentive Timer On");
+        rtoInstruction.SetMetadata(0, "rto");
+        var timerResetInstruction = instructionTree.CreateItem(timerOperations);
+        timerResetInstruction.SetText(0, siemens ? "RT · Reset timer" : "RES · Reset Timer");
+        timerResetInstruction.SetMetadata(0, "timer-reset");
+        var counterOperations = instructionTree.CreateItem(instructionRoot);
+        counterOperations.SetText(0, "Counter operations");
+        var ctuInstruction = instructionTree.CreateItem(counterOperations);
+        ctuInstruction.SetText(0, "CTU · Count Up");
+        ctuInstruction.SetMetadata(0, "ctu");
+        var ctdInstruction = instructionTree.CreateItem(counterOperations);
+        ctdInstruction.SetText(0, "CTD · Count Down");
+        ctdInstruction.SetMetadata(0, "ctd");
+        var loadCounterInstruction = instructionTree.CreateItem(counterOperations);
+        loadCounterInstruction.SetText(0, siemens ? "LD · Load counter preset" : "LOAD · Initialize counter ACC");
+        loadCounterInstruction.SetMetadata(0, "counter-load");
+        var resInstruction = instructionTree.CreateItem(counterOperations);
+        resInstruction.SetText(0, siemens ? "Reset counter input" : "RES · Reset Counter");
+        resInstruction.SetMetadata(0, "counter-reset");
+        var compareOperations = instructionTree.CreateItem(instructionRoot);
+        compareOperations.SetText(0, "Compare operations");
+        var compareNames = new[]
+        {
+            ("Equal (EQ)", "compare-0"),
+            ("Not equal (NE)", "compare-1"),
+            ("Greater than (GT)", "compare-2"),
+            ("Greater or equal (GE)", "compare-3"),
+            ("Less than (LT)", "compare-4"),
+            ("Less or equal (LE)", "compare-5"),
+        };
+        foreach (var item in compareNames)
+        {
+            var comparisonItem = instructionTree.CreateItem(compareOperations);
+            comparisonItem.SetText(0, item.Item1);
+            comparisonItem.SetMetadata(0, item.Item2);
+        }
+        var mathOperations = instructionTree.CreateItem(instructionRoot);
+        mathOperations.SetText(0, "Move and math operations");
+        foreach (var item in new[]
+                 {
+                     ("Move (MOV)", "numeric-0"),
+                     ("Add (ADD)", "numeric-1"),
+                     ("Subtract (SUB)", "numeric-2"),
+                     ("Multiply (MUL)", "numeric-3"),
+                     ("Divide (DIV)", "numeric-4"),
+                     ("Modulo / remainder (MOD)", "numeric-5"),
+                     ("Absolute value (ABS)", "numeric-6"),
+                     ("Negate (NEG)", "numeric-7"),
+                     ("Square root (SQRT)", "numeric-8"),
+                     (siemens ? "Exponentiate (EXPT)" : "Exponentiate (EXPT; XPY before v36)", "numeric-9"),
+                     ("Natural logarithm (LN)", "numeric-10"),
+                     ("Sine (SIN)", "numeric-11"),
+                     ("Cosine (COS)", "numeric-12"),
+                     ("Tangent (TAN)", "numeric-13"),
+                     (siemens ? "Arc sine (ASIN)" : "Arc sine (ASIN; ASN before v36)", "numeric-14"),
+                     (siemens ? "Arc cosine (ACOS)" : "Arc cosine (ACOS; ACS before v36)", "numeric-15"),
+                     (siemens ? "Arc tangent (ATAN)" : "Arc tangent (ATAN; ATN before v36)", "numeric-16"),
+                     (siemens ? "Truncate (TRUNC)" : "Truncate (TRUNC; TRN before v36)", "numeric-17"),
+                     (siemens ? "Normalize (NORM_X)" : "Normalize expression (CPT macro)", "numeric-18"),
+                     (siemens ? "Scale (SCALE_X)" : "Scale expression (CPT macro)", "numeric-19"),
+                     (siemens ? "Convert (CONVERT)" : "Destination-type conversion (MOV)", "numeric-20"),
+                     (siemens ? "Round nearest-even (ROUND)" : "Round expression (CPT macro)", "numeric-21"),
+                     (siemens ? "Ceiling (CEIL)" : "Ceiling expression (CPT macro)", "numeric-22"),
+                     (siemens ? "Floor (FLOOR)" : "Floor expression (CPT macro)", "numeric-23"),
+                 })
+        {
+            var numericItem = instructionTree.CreateItem(mathOperations);
+            numericItem.SetText(0, item.Item1);
+            numericItem.SetMetadata(0, item.Item2);
+        }
+        var programControl = instructionTree.CreateItem(instructionRoot);
+        programControl.SetText(0, "Program control");
+        var rungInstruction = instructionTree.CreateItem(programControl);
+        rungInstruction.SetText(0, siemens ? "Insert network" : "Insert rung");
+        rungInstruction.SetMetadata(0, "rung");
+        var callInstruction = instructionTree.CreateItem(programControl);
+        callInstruction.SetText(0, siemens ? "CALL function/block" : "Jump to Subroutine (JSR)");
+        callInstruction.SetMetadata(0, "call");
+        var returnInstruction = instructionTree.CreateItem(programControl);
+        returnInstruction.SetText(0, siemens ? "RETURN from block" : "Return from Subroutine (RET)");
+        returnInstruction.SetMetadata(0, "return");
+        var jumpInstruction = instructionTree.CreateItem(programControl);
+        jumpInstruction.SetText(0, "Jump to block-local label (JMP)");
+        jumpInstruction.SetMetadata(0, "jump");
+        var labelInstruction = instructionTree.CreateItem(programControl);
+        labelInstruction.SetText(0, siemens ? "Block-local destination (LABEL)" : "Block-local destination (LBL)");
+        labelInstruction.SetMetadata(0, "label");
+        static void AddInstructionTooltips(TreeItem item)
+        {
+            item.SetTooltipText(0, item.GetText(0));
+            for (var child = item.GetFirstChild(); child is not null; child = child.GetNext())
+                AddInstructionTooltips(child);
+        }
+        // Keep the palette useful at first open: show the category list, but
+        // do not expand every instruction family into a wall of entries.
+        instructionRoot.SetCollapsed(false);
+        foreach (var category in new[]
+                 { bitLogic, timerOperations, counterOperations, compareOperations, mathOperations, programControl })
+            category.SetCollapsed(true);
+        AddInstructionTooltips(instructionRoot);
+        instructionPage.AddChild(instructionTree);
+        instructionTree.GuiInput += input =>
+        {
+            if (input is not InputEventMouseMotion || !Input.IsMouseButtonPressed(MouseButton.Left)) return;
+            var kind = instructionTree.GetSelected()?.GetMetadata(0).AsString() ?? string.Empty;
+            if (kind.Length == 0) return;
+            _draggingInstruction = true;
+            _draggedInstructionKind = kind;
+            _draggedInstructionCanvas = canvas;
+            instructionTree.AcceptEvent();
+        };
+        toolTabs.AddChild(instructionPage);
+
+        var tagPage = new VBoxContainer { Name = siemens ? "PLC tags" : "Controller Tags" };
+        tagPage.AddChild(tagList);
+        var xrefSelectedTag = ToolbarButton("CrossReferenceSelectedTag", siemens ? "XREF SELECTED TAG" : "FIND ALL FOR SELECTED TAG", accent, 200);
+        tagPage.AddChild(xrefSelectedTag);
+        HBoxContainer TagFieldRow(string name, string label, Control field)
+        {
+            var row = new HBoxContainer { Name = name };
+            row.AddThemeConstantOverride("separation", 5);
+            var caption = Heading(label, 10, new Color("344851"));
+            caption.CustomMinimumSize = new Vector2(72, 0);
+            row.AddChild(caption);
+            field.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+            row.AddChild(field);
+            return row;
+        }
+        tagPage.AddChild(TagFieldRow("TagNameRow", "NAME", tagName));
+        tagPage.AddChild(TagFieldRow("TagTypeRow", "TYPE", tagType));
+        tagPage.AddChild(TagFieldRow("TagRoleRow", "ROLE", tagRole));
+        tagPage.AddChild(TagFieldRow("TagInitialValueRow", "INITIAL", tagInitialValue));
+        tagPage.AddChild(TagFieldRow("TagBindingRow", "BINDING", tagBinding));
+        tagPage.AddChild(tagBindingStatus);
+        var addTag = ToolbarButton("AddTag", "+ ADD TAG", accent, 180);
+        tagPage.AddChild(addTag);
+        var tagEditActions = new HBoxContainer { Name = "TagEditActions" };
+        tagEditActions.AddThemeConstantOverride("separation", 5);
+        applyTagEdit = ToolbarButton("ApplyTagEdit", "APPLY TAG CHANGES", new Color("4d6674"), 165);
+        deleteTag = ToolbarButton("DeleteTag", "DELETE UNUSED TAG", new Color("8a4d55"), 155);
+        applyTagEdit.Disabled = true;
+        deleteTag.Disabled = true;
+        tagEditActions.AddChild(applyTagEdit);
+        tagEditActions.AddChild(deleteTag);
+        tagPage.AddChild(tagEditActions);
+        projectTabs.AddChild(tagPage);
+        var apply = ToolbarButton("ValidateAndLoadButton", "VERIFY + LOAD OFFLINE", new Color("1f8a58"), 210);
+        tagPage.AddChild(apply);
+        var boundary = Inspector("VendorBoundary");
+        boundary.FitContent = true;
+        boundary.AddThemeColorOverride("default_color", new Color("d8e1e6"));
+        boundary.Text = siemens
+            ? "Simulator-native STEP 7-style workbench. No TIA project file or Siemens connection is created."
+            : "Simulator-native Logix-style workbench. No ACD file or Rockwell connection is created.";
+        tagPage.AddChild(boundary);
+
+        var projectPage = new VBoxContainer { Name = siemens ? "Project objects" : "Controller objects" };
+        projectPage.AddThemeConstantOverride("separation", 6);
+        projectPage.AddChild(Heading(siemens ? "PROGRAM BLOCK" : "ROUTINE", 11, new Color("344851")));
+        projectPage.AddChild(blockName);
+        if (siemens) projectPage.AddChild(blockTypeSelector);
+        var blockCommands = new HBoxContainer { Name = "BlockCommands" };
+        blockCommands.AddThemeConstantOverride("separation", 4);
+        blockCommands.AddChild(addBlock);
+        blockCommands.AddChild(applyBlock);
+        blockCommands.AddChild(removeBlock);
+        projectPage.AddChild(blockCommands);
+        interfaceHeading = Heading(siemens ? "FB / FC INTERFACE" : "ROUTINE PARAMETERS", 11, new Color("344851"));
+        interfaceHeading.Name = "BlockInterfaceHeading";
+        projectPage.AddChild(interfaceHeading);
+        var interfaceFields = new HBoxContainer { Name = "InterfaceFields" };
+        interfaceFields.AddThemeConstantOverride("separation", 3);
+        interfaceFields.AddChild(interfaceName);
+        interfaceFields.AddChild(interfaceSection);
+        interfaceFields.AddChild(interfaceType);
+        interfaceFields.AddChild(interfaceInitial);
+        projectPage.AddChild(interfaceFields);
+        var interfaceCommands = new HBoxContainer { Name = "InterfaceCommands" };
+        interfaceCommands.AddThemeConstantOverride("separation", 4);
+        interfaceCommands.AddChild(addInterface);
+        interfaceCommands.AddChild(removeInterface);
+        projectPage.AddChild(interfaceCommands);
+        projectPage.AddChild(interfaceTable);
+        projectPage.AddChild(Heading(siemens ? "OB SCHEDULE" : "TASK SCHEDULE", 11, new Color("344851")));
+        projectPage.AddChild(taskName);
+        projectPage.AddChild(taskTarget);
+        projectPage.AddChild(taskKind);
+        var taskTiming = new HBoxContainer { Name = "TaskTiming" };
+        taskTiming.AddThemeConstantOverride("separation", 4);
+        taskTiming.AddChild(taskPeriod);
+        taskTiming.AddChild(taskPriority);
+        projectPage.AddChild(taskTiming);
+        var taskCommands = new HBoxContainer { Name = "TaskCommands" };
+        taskCommands.AddThemeConstantOverride("separation", 4);
+        taskCommands.AddChild(addTask);
+        taskCommands.AddChild(applyTask);
+        taskCommands.AddChild(removeTask);
+        projectPage.AddChild(taskCommands);
+        projectTabs.AddChild(projectPage);
+
+        var searchPage = new VBoxContainer { Name = siemens ? "Find and cross-reference" : "Find All" };
+        var searchQuery = new LineEdit
+        {
+            Name = "ProjectSearchQuery",
+            PlaceholderText = "tag, block, rung, operand, or instruction",
+            CustomMinimumSize = new Vector2(0, 34),
+        };
+        searchPage.AddChild(searchQuery);
+        var searchButtons = new HBoxContainer { Name = "SearchActions" };
+        searchButtons.AddThemeConstantOverride("separation", 5);
+        var findAll = ToolbarButton("FindAllButton", "FIND ALL", accent, 110);
+        var crossReference = ToolbarButton("CrossReferenceButton", siemens ? "CROSS-REFERENCE" : "TAG XREF", new Color("4d6674"), 135);
+        findAll.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        crossReference.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        searchButtons.AddChild(findAll);
+        searchButtons.AddChild(crossReference);
+        searchPage.AddChild(searchButtons);
+        var searchSummary = Heading("Enter a project search term.", 11, new Color("4f6874"));
+        searchSummary.Name = "SearchSummary";
+        searchPage.AddChild(searchSummary);
+        var searchResults = new ItemList
+        {
+            Name = "SearchResults",
+            SizeFlagsVertical = Control.SizeFlags.ExpandFill,
+            AllowReselect = true,
+        };
+        searchResults.AddThemeColorOverride("font_color", new Color("263943"));
+        searchResults.AddThemeColorOverride("font_selected_color", new Color("ffffff"));
+        searchResults.AddThemeStyleboxOverride("panel", BoxStyle(new Color("f8f9fa"), new Color("b7c0c5")));
+        searchPage.AddChild(searchResults);
+        var visibleSearchResults = new List<LadderProjectReference>();
+
+        string ReferenceText(LadderProjectReference reference)
+        {
+            var access = reference.Kind switch
+            {
+                LadderReferenceKind.Declaration => "DECL",
+                LadderReferenceKind.BlockDeclaration => siemens ? "BLOCK" : "ROUTINE",
+                LadderReferenceKind.NetworkDeclaration => siemens ? "NETWORK" : "RUNG",
+                LadderReferenceKind.TaskDeclaration => siemens ? "OB/TASK" : "TASK",
+                LadderReferenceKind.Read => "READ",
+                LadderReferenceKind.Write => "WRITE",
+                LadderReferenceKind.Call => siemens ? "CALL" : "JSR",
+                LadderReferenceKind.ProgramControl => siemens ? "RETURN" : "RET",
+                LadderReferenceKind.ScheduledEntry => "SCHEDULE",
+                _ => reference.Kind.ToString().ToUpperInvariant(),
+            };
+            var location = reference.HasNetwork
+                ? $"{reference.BlockName} · {(siemens ? "N" : "R")}{reference.NetworkIndex + 1} · {reference.NetworkLabel}"
+                : string.IsNullOrWhiteSpace(reference.BlockName) ? "Project tags" : reference.BlockName;
+            return $"{access} · {reference.Symbol} · {location} · {reference.Detail}";
+        }
+
+        void ShowSearchResults(IReadOnlyList<LadderProjectReference> results, string mode)
+        {
+            visibleSearchResults.Clear();
+            visibleSearchResults.AddRange(results);
+            searchResults.Clear();
+            foreach (var reference in results)
+            {
+                var index = searchResults.ItemCount;
+                searchResults.AddItem(ReferenceText(reference));
+                searchResults.SetItemMetadata(index, $"{reference.BlockId}\u001f{reference.NetworkIndex}");
+                searchResults.SetItemTooltip(index,
+                    $"{reference.Kind}: {reference.Symbol}\nBlock: {reference.BlockName}\nRung/network: {reference.NetworkLabel}\nElement: {reference.ElementId}");
+            }
+            searchSummary.Text = $"{mode} · {results.Count} match(es) · double-click";
+            searchSummary.AddThemeColorOverride("font_color", results.Count > 0 ? new Color("18864b") : new Color("a64b4b"));
+        }
+
+        void RunProjectSearch(bool exactCrossReference)
+        {
+            var query = searchQuery.Text.Trim();
+            if (query.Length == 0)
+            {
+                ShowSearchResults([], exactCrossReference ? "CROSS-REFERENCE" : "FIND ALL");
+                return;
+            }
+            var index = LadderProjectIndex.Build(document.BuildProgram());
+            ShowSearchResults(
+                exactCrossReference ? index.CrossReference(query) : index.Search(query),
+                exactCrossReference ? "CROSS-REFERENCE" : "FIND ALL");
+            toolTabs.CurrentTab = 1;
+        }
+
+        void NavigateSearchResult(int resultIndex)
+        {
+            if (resultIndex < 0 || resultIndex >= visibleSearchResults.Count) return;
+            var reference = visibleSearchResults[resultIndex];
+            if (reference.Kind == LadderReferenceKind.Declaration)
+            {
+                var tagIndex = document.Tags.FindIndex(tag => tag.Name.Equals(reference.RootSymbol, StringComparison.Ordinal));
+                if (tagIndex >= 0)
+                {
+                    projectTabs.CurrentTab = 1;
+                    SelectIndexedTreeRow(tagList, tagIndex);
+                    tagList.ScrollToItem(tagList.GetSelected());
+                    output.Text = $"[color=#18864b]{Escape(reference.Symbol)} declaration selected.[/color] {Escape(reference.Detail)}";
+                }
+                return;
+            }
+            var blockIndex = document.Blocks.FindIndex(block => block.Id == reference.BlockId);
+            if (blockIndex < 0) return;
+            document.SelectBlock(blockIndex);
+            blockItems[blockIndex].Select(0);
+            organization.ScrollToItem(blockItems[blockIndex]);
+            if (reference.HasNetwork)
+            {
+                selectedRung = Math.Clamp(reference.NetworkIndex, 0, Math.Max(0, document.Rungs.Count - 1));
+                selectedBranch = 0;
+                selectedContact = -1;
+                selectedInsertionIndex = -1;
+                selectedOutput = false;
+            }
+            RefreshEditor();
+            canvas.SelectRung(selectedRung);
+            scroll.ScrollVertical = Math.Max(0, (int)canvas.GetRungBounds(selectedRung).Position.Y - 10);
+            output.Text = reference.HasNetwork
+                ? $"[color=#18864b]Opened {Escape(reference.BlockName)} · {(siemens ? "Network" : "Rung")} {reference.NetworkIndex + 1}.[/color] {Escape(reference.Detail)}"
+                : $"[color=#18864b]Opened {Escape(reference.BlockName)}.[/color] {Escape(reference.Detail)}";
+        }
+
+        findAll.Pressed += () => RunProjectSearch(false);
+        crossReference.Pressed += () => RunProjectSearch(true);
+        searchQuery.TextSubmitted += _ => RunProjectSearch(false);
+        searchResults.ItemActivated += index => NavigateSearchResult((int)index);
+        tagList.ItemSelected += () =>
+        {
+            selectedTagIndex = SelectedTreeRowIndex(tagList);
+            if (selectedTagIndex < 0 || selectedTagIndex >= document.Tags.Count) return;
+            var tag = document.Tags[selectedTagIndex];
+            tagName.Text = tag.Name;
+            tagType.Select(tag.Type switch
+            {
+                PlcVariableType.Timer => 1,
+                PlcVariableType.Counter => 2,
+                PlcVariableType.Int => 3,
+                PlcVariableType.DInt => 4,
+                PlcVariableType.Real => 5,
+                _ => 0,
+            });
+            tagRole.Select((int)tag.Role);
+            var isInstance = tag.Type is PlcVariableType.Timer or PlcVariableType.Counter;
+            tagRole.Disabled = isInstance;
+            tagInitialValue.Text = FormatTagInitialValue(tag);
+            tagInitialValue.Editable = !isInstance;
+            RefreshTagBindingOptions(tag.Type, tag.Role, tag.Binding);
+            applyTagEdit!.Disabled = false;
+            deleteTag!.Disabled = false;
+            output.Text = $"[color=#18864b]{Escape(tag.Name)} selected.[/color] Edit its definition or inspect references before deletion.";
+        };
+        xrefSelectedTag.Pressed += () =>
+        {
+            var selected = SelectedTreeRowIndex(tagList);
+            if (selected < 0 || selected >= document.Tags.Count) return;
+            searchQuery.Text = document.Tags[selected].Name;
+            RunProjectSearch(true);
+        };
+        tagList.ItemActivated += () =>
+        {
+            var index = SelectedTreeRowIndex(tagList);
+            if (index < 0 || index >= document.Tags.Count) return;
+            searchQuery.Text = document.Tags[index].Name;
+            RunProjectSearch(true);
+        };
+        applyTagEdit!.Pressed += () =>
+        {
+            if (selectedTagIndex < 0 || selectedTagIndex >= document.Tags.Count || string.IsNullOrWhiteSpace(tagName.Text)) return;
+            var current = document.Tags[selectedTagIndex];
+            var normalizedName = tagName.Text.Trim();
+            if (document.Tags.Where((_, index) => index != selectedTagIndex)
+                .Any(tag => tag.Name.Equals(normalizedName, StringComparison.Ordinal)))
+            {
+                output.Text = $"[color=#d64545]Tag update rejected.[/color] {Escape(normalizedName)} already exists.";
+                return;
+            }
+            var type = SelectedTagType();
+            var role = SelectedTagRole(type);
+            if (!TryReadTagInitialValue(type, out var initialValue)) return;
+            if (!BeginEdit("Update tag definition")) return;
+            var updated = document.UpdateTag(current.Name, normalizedName, type, role,
+                type is PlcVariableType.Timer or PlcVariableType.Counter ? string.Empty : SelectedTagBinding(),
+                initialValue);
+            RefreshEditor();
+            output.Text = $"[color=#18864b]Tag updated.[/color] {Escape(updated.Name)} · {updated.Type} · {updated.Role}. All symbolic references were renamed atomically.";
+        };
+        deleteTag!.Pressed += () =>
+        {
+            if (selectedTagIndex < 0 || selectedTagIndex >= document.Tags.Count) return;
+            var tag = document.Tags[selectedTagIndex];
+            var references = document.CountTagReferences(tag.Name);
+            if (references > 0)
+            {
+                output.Text = $"[color=#d17a00]Delete blocked.[/color] {Escape(tag.Name)} still has {references} executable reference(s). Use cross-reference first.";
+                return;
+            }
+            if (!BeginEdit("Delete unused tag")) return;
+            if (!document.TryRemoveTag(tag.Name, out _)) return;
+            selectedTagIndex = -1;
+            tagName.Clear();
+            tagInitialValue.Text = "FALSE";
+            tagBinding.Clear();
+            RefreshTagBindingOptions(SelectedTagType(), SelectedTagRole(SelectedTagType()), string.Empty);
+            RefreshEditor();
+            output.Text = $"[color=#18864b]Unused tag deleted.[/color] {Escape(tag.Name)} had no executable references.";
+        };
+        toolTabs.AddChild(searchPage);
+
+        var helpPage = new VBoxContainer { Name = "Instruction help" };
+        var helpSelector = new OptionButton
+        {
+            Name = "HelpInstructionSelector",
+            CustomMinimumSize = new Vector2(0, 34),
+        };
+        foreach (var entry in LadderInstructionCatalog.Entries)
+        {
+            helpSelector.AddItem($"{entry.Category} · {(siemens ? entry.TiaName : entry.LogixName)}");
+            helpSelector.SetItemMetadata(helpSelector.ItemCount - 1, entry.Key);
+        }
+        helpPage.AddChild(helpSelector);
+        var helpDetails = Inspector("InstructionHelpDetails");
+        helpDetails.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
+        helpDetails.FitContent = false;
+        helpPage.AddChild(helpDetails);
+        var currentHelpKey = "no";
+
+        void RenderInstructionHelp(string key, bool openPage)
+        {
+            if (!LadderInstructionCatalog.TryGet(key, out var entry) || entry is null) return;
+            currentHelpKey = key;
+            var selectorIndex = Enumerable.Range(0, helpSelector.ItemCount)
+                .FirstOrDefault(index => helpSelector.GetItemMetadata(index).AsString() == key, -1);
+            if (selectorIndex >= 0) helpSelector.Select(selectorIndex);
+            var vendorName = siemens ? entry.TiaName : entry.LogixName;
+            helpDetails.Text =
+                $"[font_size=18][b]{Escape(vendorName)}[/b][/font_size]\n" +
+                $"[color=#7fa7ba]{Escape(entry.Category)} · simulator instruction[/color]\n\n" +
+                $"[b]Purpose[/b]\n{Escape(entry.Summary)}\n\n" +
+                $"[b]Parameters[/b]\n{Escape(entry.Parameters)}\n\n" +
+                $"[b]Scan execution[/b]\n{Escape(entry.Execution)}\n\n" +
+                $"[color=#ef7777][b]Restrictions / boundary[/b][/color]\n{Escape(entry.Restrictions)}\n\n" +
+                $"[b]Example[/b]\n[font_size=13]{Escape(entry.Example)}[/font_size]\n\n" +
+                "[color=#f1aa5b]RungProof offline semantics only. No vendor project file, online help database, or physical PLC connection.[/color]";
+            if (openPage) toolTabs.CurrentTab = 2;
+        }
+
+        helpSelector.ItemSelected += index =>
+            RenderInstructionHelp(helpSelector.GetItemMetadata((int)index).AsString(), false);
+        openInstructionHelp.Pressed += () => RenderInstructionHelp(currentHelpKey, true);
+        toolTabs.AddChild(helpPage);
+        projectTabs.SetTabTitle(0, siemens ? "Project tree" : "Controller Organizer");
+        projectTabs.SetTabTitle(1, siemens ? "PLC tags" : "Controller Tags");
+        projectTabs.SetTabTitle(2, siemens ? "Blocks / tasks" : "Routines / tasks");
+        toolTabs.SetTabTitle(0, "Instructions");
+        toolTabs.SetTabTitle(1, "Find and cross-reference");
+        toolTabs.SetTabTitle(2, "Instruction help");
+        var toolRailDefinitions = new (string Text, string Tooltip)[]
+        {
+            ("Instructions", "Browse and drag ladder instructions"),
+            (siemens ? "PLC tags" : "Tags", "Create and edit controller tags"),
+            (siemens ? "Blocks" : "Routines", "Manage program blocks and interfaces"),
+            ("Search", "Find symbols and cross-references"),
+            ("Help", "Read instruction behavior and scan semantics"),
+        };
+        for (var index = 0; index < toolRailDefinitions.Length; index++)
+        {
+            var railIndex = index;
+            var definition = toolRailDefinitions[index];
+            var railButton = new Button
+            {
+                Name = $"ToolTabRailButton{index}",
+                Text = definition.Text,
+                TooltipText = definition.Tooltip,
+                ToggleMode = true,
+                CustomMinimumSize = new Vector2(0, 34),
+                SizeFlagsVertical = Control.SizeFlags.ExpandFill,
+                FocusMode = Control.FocusModeEnum.All,
+            };
+            railButton.Pressed += () => toolTabs.CurrentTab = railIndex;
+            toolRail.AddChild(railButton);
+            toolRailButtons.Add(railButton);
+        }
+        toolTabs.CurrentTab = 0;
+        RenderInstructionHelp(currentHelpKey, false);
+        var toolDockHost = new HBoxContainer { Name = "ToolDockHost", Visible = false };
+        toolDockHost.AddThemeConstantOverride("separation", 0);
+        toolDockHost.AddChild(toolPanel);
+        var reopenToolDock = ToolbarButton("ReopenToolDock", "◀  TOOLS", new Color("4d6674"), 30);
+        reopenToolDock.CustomMinimumSize = new Vector2(30, 0);
+        reopenToolDock.TooltipText = siemens ? "Show Instructions / PLC tags" : "Show Instruction Toolbox";
+        reopenToolDock.Visible = false;
+        toolDockHost.AddChild(reopenToolDock);
+        editorAndTasks.AddChild(toolDockHost);
+
+        collapseToolDock.Pressed += () =>
+        {
+            toolDockSplitOffset = editorAndTasks.SplitOffsets.Length > 0
+                ? editorAndTasks.SplitOffsets[0]
+                : toolDockSplitOffset;
+            toolPanel.Visible = false;
+            reopenToolDock.Visible = true;
+            editorAndTasks.SplitOffsets = [Math.Max(0, (int)editorAndTasks.Size.X - (int)reopenToolDock.CustomMinimumSize.X)];
+        };
+        reopenToolDock.Pressed += () =>
+        {
+            reopenToolDock.Visible = false;
+            toolPanel.Visible = true;
+            editorAndTasks.SplitOffsets = [toolDockSplitOffset];
+        };
+
+        canvas.RungSelected += index =>
+        {
+            selectedRung = index;
+            selectedBranch = 0;
+            selectedContact = -1;
+            selectedInsertionIndex = -1;
+            selectedOutput = false;
+            RefreshEditor();
+        };
+        canvas.ElementSelected += (rungIndex, branchIndex, contactIndex, outputSelected) =>
+        {
+            selectedRung = rungIndex;
+            selectedBranch = branchIndex >= 0 ? branchIndex : 0;
+            selectedContact = contactIndex;
+            selectedInsertionIndex = -1;
+            selectedOutput = outputSelected;
+            RefreshEditor();
+            if (outputSelected)
+            {
+                output.Text = $"[color=#18864b]Output instruction selected.[/color] Double-click it or right-click → Properties to edit only this instruction.";
+            }
+            else
+            {
+                var contact = document.Rungs[selectedRung].Branches[selectedBranch].Contacts[selectedContact];
+                output.Text = $"[color=#18864b]Instruction selected.[/color] {Escape(contact.Variable)} · double-click or right-click → Properties; use Move or Delete for structure.";
+            }
+        };
+        string SelectedInstructionHelpKey()
+        {
+            if (document.Rungs.Count == 0) return "rung";
+            var rung = document.Rungs[selectedRung];
+            if (selectedContact >= 0 && selectedBranch >= 0
+                && selectedBranch < rung.Branches.Count
+                && selectedContact < rung.Branches[selectedBranch].Contacts.Count)
+            {
+                var contact = rung.Branches[selectedBranch].Contacts[selectedContact];
+                if (contact.IsComparison) return $"compare-{(int)contact.CompareOperator}";
+                if (contact.EdgeMode == LadderEdgeMode.Rising) return "edge-rising";
+                if (contact.EdgeMode == LadderEdgeMode.Falling) return "edge-falling";
+                return contact.NormallyClosed ? "nc" : "no";
+            }
+            if (!selectedOutput) return "rung";
+            if (rung.IsTimerReset) return "timer-reset";
+            if (rung.IsTimer)
+                return rung.TimerKind switch
+                {
+                    LadderTimerKind.OffDelay => "tof",
+                    LadderTimerKind.Pulse => "tp",
+                    LadderTimerKind.RetentiveOnDelay => "rto",
+                    _ => "ton",
+                };
+            if (rung.IsCounterReset) return "counter-reset";
+            if (rung.IsCounterLoad) return "counter-load";
+            if (rung.IsCounter) return rung.CounterKind == LadderCounterKind.CountDown ? "ctd" : "ctu";
+            if (rung.IsNumericOperation) return $"numeric-{(int)rung.NumericOperationKind}";
+            if (rung.IsCall) return "call";
+            if (rung.IsReturn) return "return";
+            if (rung.IsJump) return "jump";
+            if (rung.IsLabel) return "label";
+            return rung.CoilMode switch
+            {
+                LadderCoilMode.Set => "set",
+                LadderCoilMode.Reset => "reset",
+                _ => "coil",
+            };
+        }
+        void InsertInstructionKind(string kind)
+        {
+            if (kind == "no") addNo.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (kind == "nc") addNc.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (kind == "edge-rising") addRisingEdge.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (kind == "edge-falling") addFallingEdge.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (kind == "branch") addBranch.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (kind == "ton") addTon.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (kind == "tof") addTof.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (kind == "tp") addTp.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (kind == "rto") addRto.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (kind == "timer-reset") addTimerReset.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (kind == "ctu") addCounter.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (kind == "ctd") addCounterDown.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (kind == "counter-load") addCounterLoad.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (kind == "counter-reset") addCounterReset.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (kind == "call") addCall.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (kind == "return") addReturn.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (kind == "jump") addJump.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (kind == "label") addLabel.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (kind.StartsWith("compare-", StringComparison.Ordinal)
+                     && int.TryParse(kind.AsSpan("compare-".Length), out var compareIndex))
+            {
+                compareOperator.Select(compareIndex);
+                addCompare.EmitSignal(BaseButton.SignalName.Pressed);
+            }
+            else if (kind.StartsWith("numeric-", StringComparison.Ordinal)
+                     && int.TryParse(kind.AsSpan("numeric-".Length), out var numericIndex))
+            {
+                var buttons = new[] { addMove, addAdd, addSubtract, addMultiply, addDivide,
+                    addModulo, addAbsolute, addNegate, addSquareRoot, addExponentiate,
+                    addNaturalLog, addSine, addCosine, addTangent, addArcSine, addArcCosine,
+                    addArcTangent, addTruncate, addNormalize, addScale, addConvert, addRound,
+                    addCeiling, addFloor };
+                if (numericIndex >= 0 && numericIndex < buttons.Length)
+                    buttons[numericIndex].EmitSignal(BaseButton.SignalName.Pressed);
+            }
+            else if (kind == "set") addSet.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (kind == "reset") addReset.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (kind == "rung") addRung.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (kind == "coil") coilSelector.GrabFocus();
+        }
+        canvas.PropertiesRequested += (_, _, _, _) => OpenInstructionProperties();
+        canvas.ContextMenuRequested += (_, _, _, _) =>
+        {
+            instructionContextMenu.SetItemDisabled(2, document.Rungs.Count == 0);
+            instructionContextMenu.SetItemDisabled(3,
+                _ladderRungClipboard is null && _ladderContactClipboard is null);
+            instructionContextMenu.SetItemDisabled(5, selectedContact < 0 || selectedOutput);
+            instructionContextMenu.SetItemDisabled(6, document.Rungs.Count == 0);
+            var mouse = canvas.GetGlobalMousePosition();
+            instructionContextMenu.Position = new Vector2I((int)mouse.X, (int)mouse.Y);
+            instructionContextMenu.Popup();
+        };
+        canvas.InsertionPointSelected += (rungIndex, branchIndex, insertionIndex) =>
+        {
+            selectedRung = rungIndex;
+            selectedBranch = branchIndex;
+            selectedContact = -1;
+            selectedInsertionIndex = insertionIndex;
+            selectedOutput = false;
+            RefreshEditor();
+            canvas.SelectInsertionPoint(selectedRung, selectedBranch, selectedInsertionIndex, notify: false);
+            output.Text = $"[color=#18864b]Insertion point selected.[/color] Branch {selectedBranch + 1}, position {selectedInsertionIndex + 1}. Choose a contact or comparison instruction.";
+        };
+        canvas.InstructionDropRequested += (kind, _, _, _) =>
+        {
+            // A dragged coil is an output instruction. Commit the default
+            // assignment coil immediately, matching the drop-to-rung behavior
+            // of the vendor editors. Set/reset remain explicit palette items.
+            if (kind == "coil") SelectCoilMode(LadderCoilMode.Assign);
+            else InsertInstructionKind(kind);
+        };
+        branchSelector.ItemSelected += index =>
+        {
+            selectedBranch = (int)index;
+            selectedContact = -1;
+            selectedInsertionIndex = -1;
+            selectedOutput = false;
+            canvas.ClearElementSelection();
+            RefreshEditor();
+        };
+        void InsertOrChangeContact(bool normallyClosed)
+        {
+            if (document.Rungs.Count == 0 || tagSelector.ItemCount == 0) return;
+            if (selectedContact >= 0)
+            {
+                var current = document.Rungs[selectedRung].Branches[selectedBranch].Contacts[selectedContact];
+                if (current.IsComparison) return;
+                if (!BeginEdit(normallyClosed ? "Change to normally-closed contact" : "Change to normally-open contact")) return;
+                document.ReplaceContact(selectedRung, selectedBranch, selectedContact,
+                    current with { NormallyClosed = normallyClosed, EdgeMode = LadderEdgeMode.None });
+            }
+            else
+            {
+                if (!BeginEdit(normallyClosed ? "Add normally-closed contact" : "Add normally-open contact")) return;
+                var contacts = document.Rungs[selectedRung].Branches[selectedBranch].Contacts;
+                var insertionIndex = selectedInsertionIndex >= 0 ? selectedInsertionIndex : contacts.Count;
+                document.InsertContact(
+                    selectedRung,
+                    selectedBranch,
+                    insertionIndex,
+                    tagSelector.GetItemText(tagSelector.Selected),
+                    normallyClosed);
+                selectedContact = insertionIndex;
+            }
+            selectedInsertionIndex = -1;
+            selectedOutput = false;
+            RefreshEditor();
+            canvas.SelectElement(selectedRung, selectedBranch, selectedContact, notify: false);
+        }
+        addNo.Pressed += () =>
+            InsertOrChangeContact(false);
+        addNc.Pressed += () =>
+            InsertOrChangeContact(true);
+        void InsertOrChangeEdge(LadderEdgeMode edgeMode)
+        {
+            if (document.Rungs.Count == 0 || tagSelector.ItemCount == 0) return;
+            if (selectedContact >= 0)
+            {
+                var current = document.Rungs[selectedRung].Branches[selectedBranch].Contacts[selectedContact];
+                if (current.IsComparison) return;
+                if (!BeginEdit(edgeMode == LadderEdgeMode.Rising
+                        ? "Change to rising-edge contact" : "Change to falling-edge contact")) return;
+                document.ReplaceContact(selectedRung, selectedBranch, selectedContact,
+                    current with { NormallyClosed = false, EdgeMode = edgeMode });
+            }
+            else
+            {
+                if (!BeginEdit(edgeMode == LadderEdgeMode.Rising
+                        ? "Add rising-edge contact" : "Add falling-edge contact")) return;
+                var contacts = document.Rungs[selectedRung].Branches[selectedBranch].Contacts;
+                var insertionIndex = selectedInsertionIndex >= 0 ? selectedInsertionIndex : contacts.Count;
+                document.InsertEdgeContact(selectedRung, selectedBranch, insertionIndex,
+                    tagSelector.GetItemText(tagSelector.Selected), edgeMode);
+                selectedContact = insertionIndex;
+            }
+            selectedInsertionIndex = -1;
+            selectedOutput = false;
+            RefreshEditor();
+            canvas.SelectElement(selectedRung, selectedBranch, selectedContact, notify: false);
+        }
+        addRisingEdge.Pressed += () => InsertOrChangeEdge(LadderEdgeMode.Rising);
+        addFallingEdge.Pressed += () => InsertOrChangeEdge(LadderEdgeMode.Falling);
+        addBranch.Pressed += () =>
+        {
+            if (document.Rungs.Count == 0) return;
+            if (!BeginEdit("Add parallel branch")) return;
+            document.AddParallelBranch(selectedRung);
+            selectedBranch = document.Rungs[selectedRung].Branches.Count - 1;
+            selectedContact = -1;
+            selectedInsertionIndex = 0;
+            selectedOutput = false;
+            RefreshEditor();
+            canvas.SelectInsertionPoint(selectedRung, selectedBranch, selectedInsertionIndex, notify: false);
+        };
+        removeBranch.Pressed += () =>
+        {
+            if (document.Rungs.Count == 0) return;
+            var branches = document.Rungs[selectedRung].Branches;
+            if (branches.Count <= 1)
+            {
+                output.Text = "[color=#d17a00]Branch retained.[/color] A network/rung must keep one logic path.";
+                return;
+            }
+            if (!BeginEdit("Delete parallel branch")) return;
+            document.RemoveParallelBranch(selectedRung, selectedBranch);
+            selectedBranch = Math.Clamp(selectedBranch, 0, document.Rungs[selectedRung].Branches.Count - 1);
+            selectedContact = -1;
+            selectedInsertionIndex = -1;
+            selectedOutput = false;
+            canvas.ClearElementSelection();
+            RefreshEditor();
+            output.Text = $"[color=#18864b]Parallel branch deleted.[/color] {document.Rungs[selectedRung].Branches.Count} path(s) remain.";
+        };
+        void SelectTimer(LadderTimerKind kind)
+        {
+            if (document.Rungs.Count == 0) return;
+            var mnemonic = kind switch
+            {
+                LadderTimerKind.OffDelay => "TOF",
+                LadderTimerKind.Pulse => "TP",
+                LadderTimerKind.RetentiveOnDelay => siemens ? "TONR" : "RTO",
+                _ => "TON",
+            };
+            if (!BeginEdit($"Insert {mnemonic}")) return;
+            var timerTag = document.Tags.FirstOrDefault(tag => tag.Type == PlcVariableType.Timer);
+            if (timerTag is null)
+            {
+                var suffix = 1;
+                var name = "timer_1";
+                while (document.Tags.Any(tag => tag.Name == name)) name = $"timer_{++suffix}";
+                timerTag = document.AddTag(name, PlcVariableRole.Memory, type: PlcVariableType.Timer);
+            }
+            var rung = document.Rungs[selectedRung];
+            rung.IsTimer = true;
+            rung.IsTimerReset = false;
+            rung.IsCounter = false;
+            rung.IsCounterReset = false;
+            rung.IsCounterLoad = false;
+            rung.IsNumericOperation = false;
+            rung.IsCall = false;
+            rung.IsReturn = false;
+            rung.IsJump = false;
+            rung.IsLabel = false;
+            rung.TimerVariable = timerTag.Name;
+            rung.TimerKind = kind;
+            if (rung.TimerPreset <= TimeSpan.Zero) rung.TimerPreset = TimeSpan.FromSeconds(1);
+            RefreshEditor();
+            output.Text = $"[color=#18864b]{mnemonic} inserted.[/color] {Escape(timerTag.Name)} uses a {rung.TimerPreset.TotalMilliseconds:0} ms preset.";
+        }
+        addTon.Pressed += () => SelectTimer(LadderTimerKind.OnDelay);
+        addTof.Pressed += () => SelectTimer(LadderTimerKind.OffDelay);
+        addTp.Pressed += () => SelectTimer(LadderTimerKind.Pulse);
+        addRto.Pressed += () => SelectTimer(LadderTimerKind.RetentiveOnDelay);
+        addTimerReset.Pressed += () =>
+        {
+            if (document.Rungs.Count == 0) return;
+            var timerTag = document.Tags.FirstOrDefault(tag => tag.Type == PlcVariableType.Timer);
+            if (timerTag is null)
+            {
+                var suffix = 1;
+                var name = "timer_1";
+                while (document.Tags.Any(tag => tag.Name == name)) name = $"timer_{++suffix}";
+                timerTag = document.AddTag(name, PlcVariableRole.Memory, type: PlcVariableType.Timer);
+            }
+            if (!BeginEdit(siemens ? "Insert timer reset" : "Insert timer RES")) return;
+            var rung = document.Rungs[selectedRung];
+            rung.IsTimer = false;
+            rung.IsTimerReset = true;
+            rung.IsCounter = false;
+            rung.IsCounterReset = false;
+            rung.IsCounterLoad = false;
+            rung.IsNumericOperation = false;
+            rung.IsCall = false;
+            rung.IsReturn = false;
+            rung.IsJump = false;
+            rung.IsLabel = false;
+            rung.TimerVariable = timerTag.Name;
+            RefreshEditor();
+            output.Text = $"[color=#18864b]{(siemens ? "RT" : "RES")} inserted.[/color] A true rung clears {Escape(timerTag.Name)}.";
+        };
+        void SelectCoilMode(LadderCoilMode mode)
+        {
+            if (document.Rungs.Count == 0 || coilSelector.ItemCount == 0) return;
+            if (!BeginEdit(mode switch
+                {
+                    LadderCoilMode.Set => siemens ? "Insert Set coil" : "Insert OTL",
+                    LadderCoilMode.Reset => siemens ? "Insert Reset coil" : "Insert OTU",
+                    _ => siemens ? "Insert assignment coil" : "Insert OTE",
+                })) return;
+            var rung = document.Rungs[selectedRung];
+            rung.IsTimer = false;
+            rung.IsTimerReset = false;
+            rung.IsCounter = false;
+            rung.IsCounterReset = false;
+            rung.IsCounterLoad = false;
+            rung.IsNumericOperation = false;
+            rung.IsCall = false;
+            rung.IsReturn = false;
+            rung.IsJump = false;
+            rung.IsLabel = false;
+            rung.CoilVariable = coilSelector.GetItemText(coilSelector.Selected);
+            rung.CoilMode = mode;
+            RefreshEditor();
+            var name = mode switch
+            {
+                LadderCoilMode.Set => siemens ? "Set coil" : "OTL",
+                LadderCoilMode.Reset => siemens ? "Reset coil" : "OTU",
+                _ => siemens ? "Assignment coil" : "OTE",
+            };
+            output.Text = $"[color=#18864b]{name} selected.[/color] The instruction writes {Escape(rung.CoilVariable)} using scan-state semantics.";
+        }
+        addSet.Pressed += () => SelectCoilMode(LadderCoilMode.Set);
+        addReset.Pressed += () => SelectCoilMode(LadderCoilMode.Reset);
+        void SelectCounter(LadderCounterKind kind = LadderCounterKind.CountUp, bool reset = false, bool load = false)
+        {
+            if (document.Rungs.Count == 0) return;
+            var mnemonic = reset ? "RES" : load ? "LOAD" : kind == LadderCounterKind.CountDown ? "CTD" : "CTU";
+            if (!BeginEdit($"Insert {mnemonic}")) return;
+            var counterTag = document.Tags.FirstOrDefault(tag => tag.Type == PlcVariableType.Counter);
+            if (counterTag is null)
+            {
+                var suffix = 1;
+                var name = "counter_1";
+                while (document.Tags.Any(tag => tag.Name == name)) name = $"counter_{++suffix}";
+                counterTag = document.AddTag(name, PlcVariableRole.Memory, type: PlcVariableType.Counter);
+            }
+            var rung = document.Rungs[selectedRung];
+            rung.IsTimer = false;
+            rung.IsTimerReset = false;
+            rung.IsCounter = !reset && !load;
+            rung.IsCounterReset = reset;
+            rung.IsCounterLoad = load;
+            rung.CounterKind = kind;
+            rung.IsNumericOperation = false;
+            rung.IsCall = false;
+            rung.IsReturn = false;
+            rung.IsJump = false;
+            rung.IsLabel = false;
+            rung.CounterVariable = counterTag.Name;
+            if (rung.CounterPreset <= 0) rung.CounterPreset = 10;
+            RefreshEditor();
+            output.Text = reset
+                ? $"[color=#18864b]Counter reset inserted.[/color] {Escape(counterTag.Name)} clears when the rung is true."
+                : load
+                    ? $"[color=#18864b]Counter load inserted.[/color] {Escape(counterTag.Name)} loads {rung.CounterPreset} while the rung is true."
+                    : $"[color=#18864b]{mnemonic} inserted.[/color] {Escape(counterTag.Name)} changes once per false-to-true transition.";
+        }
+        addCounter.Pressed += () => SelectCounter();
+        addCounterDown.Pressed += () => SelectCounter(LadderCounterKind.CountDown);
+        addCounterLoad.Pressed += () => SelectCounter(load: true);
+        addCounterReset.Pressed += () => SelectCounter(reset: true);
+        addCompare.Pressed += () =>
+        {
+            if (document.Rungs.Count == 0 || compareLeft.ItemCount == 0 || string.IsNullOrWhiteSpace(compareRight.Text)) return;
+            if (!BeginEdit("Add comparison")) return;
+            var contacts = document.Rungs[selectedRung].Branches[selectedBranch].Contacts;
+            var insertionIndex = selectedInsertionIndex >= 0 ? selectedInsertionIndex : contacts.Count;
+            document.InsertComparison(
+                selectedRung,
+                selectedBranch,
+                insertionIndex,
+                compareLeft.GetItemText(compareLeft.Selected),
+                (LadderCompareOperator)compareOperator.Selected,
+                compareRight.Text);
+            selectedContact = insertionIndex;
+            selectedInsertionIndex = -1;
+            selectedOutput = false;
+            RefreshEditor();
+            canvas.SelectElement(selectedRung, selectedBranch, selectedContact, notify: false);
+            output.Text = "[color=#18864b]Comparison inserted.[/color] It participates in rung power flow as a Boolean condition.";
+        };
+        void SelectNumericOperation(LadderNumericOperationKind kind)
+        {
+            if (document.Rungs.Count == 0) return;
+            if (!BeginEdit($"Insert {kind}")) return;
+            if (!document.Tags.Any(tag => tag.Type is PlcVariableType.Int or PlcVariableType.DInt or PlcVariableType.Real))
+            {
+                document.AddTag("numeric_value", PlcVariableRole.Memory, type: PlcVariableType.Real);
+                RefreshEditor();
+            }
+            if (numericDestination.ItemCount == 0) return;
+            var rung = document.Rungs[selectedRung];
+            rung.IsTimer = false;
+            rung.IsTimerReset = false;
+            rung.IsCounter = false;
+            rung.IsCounterReset = false;
+            rung.IsCounterLoad = false;
+            rung.IsNumericOperation = true;
+            rung.IsCall = false;
+            rung.IsReturn = false;
+            rung.IsJump = false;
+            rung.IsLabel = false;
+            rung.NumericOperationKind = kind;
+            rung.NumericSourceA = string.IsNullOrWhiteSpace(numericSourceA.Text) ? "0" : numericSourceA.Text.Trim();
+            rung.NumericSourceB = string.IsNullOrWhiteSpace(numericSourceB.Text) ? "0" : numericSourceB.Text.Trim();
+            rung.NumericSourceC = string.IsNullOrWhiteSpace(numericSourceC.Text) ? "0" : numericSourceC.Text.Trim();
+            rung.NumericDestination = numericDestination.GetItemText(numericDestination.Selected);
+            RefreshEditor();
+            output.Text = $"[color=#18864b]{kind} inserted.[/color] Numeric write executes only while the rung is true.";
+        }
+        addMove.Pressed += () => SelectNumericOperation(LadderNumericOperationKind.Move);
+        addAdd.Pressed += () => SelectNumericOperation(LadderNumericOperationKind.Add);
+        addSubtract.Pressed += () => SelectNumericOperation(LadderNumericOperationKind.Subtract);
+        addMultiply.Pressed += () => SelectNumericOperation(LadderNumericOperationKind.Multiply);
+        addDivide.Pressed += () => SelectNumericOperation(LadderNumericOperationKind.Divide);
+        addModulo.Pressed += () => SelectNumericOperation(LadderNumericOperationKind.Modulo);
+        addAbsolute.Pressed += () => SelectNumericOperation(LadderNumericOperationKind.Absolute);
+        addNegate.Pressed += () => SelectNumericOperation(LadderNumericOperationKind.Negate);
+        addSquareRoot.Pressed += () => SelectNumericOperation(LadderNumericOperationKind.SquareRoot);
+        addExponentiate.Pressed += () => SelectNumericOperation(LadderNumericOperationKind.Exponentiate);
+        addNaturalLog.Pressed += () => SelectNumericOperation(LadderNumericOperationKind.NaturalLog);
+        addSine.Pressed += () => SelectNumericOperation(LadderNumericOperationKind.Sine);
+        addCosine.Pressed += () => SelectNumericOperation(LadderNumericOperationKind.Cosine);
+        addTangent.Pressed += () => SelectNumericOperation(LadderNumericOperationKind.Tangent);
+        addArcSine.Pressed += () => SelectNumericOperation(LadderNumericOperationKind.ArcSine);
+        addArcCosine.Pressed += () => SelectNumericOperation(LadderNumericOperationKind.ArcCosine);
+        addArcTangent.Pressed += () => SelectNumericOperation(LadderNumericOperationKind.ArcTangent);
+        addTruncate.Pressed += () => SelectNumericOperation(LadderNumericOperationKind.Truncate);
+        addNormalize.Pressed += () => SelectNumericOperation(LadderNumericOperationKind.Normalize);
+        addScale.Pressed += () => SelectNumericOperation(LadderNumericOperationKind.Scale);
+        addConvert.Pressed += () => SelectNumericOperation(LadderNumericOperationKind.Convert);
+        addRound.Pressed += () => SelectNumericOperation(LadderNumericOperationKind.Round);
+        addCeiling.Pressed += () => SelectNumericOperation(LadderNumericOperationKind.Ceiling);
+        addFloor.Pressed += () => SelectNumericOperation(LadderNumericOperationKind.Floor);
+        addBlock.Pressed += () =>
+        {
+            if (!BeginEdit(siemens ? "Add function block" : "Add routine")) return;
+            var number = document.Blocks.Count;
+            var selectedType = siemens ? blockTypeSelector.Selected switch
+            {
+                0 => LadderBlockType.OrganizationBlock,
+                1 => LadderBlockType.FunctionBlock,
+                2 => LadderBlockType.Function,
+                3 => LadderBlockType.DataBlock,
+                _ => LadderBlockType.Function,
+            } : LadderBlockType.Function;
+            var typeName = selectedType switch
+            {
+                LadderBlockType.OrganizationBlock => $"OB{number + 1}",
+                LadderBlockType.FunctionBlock => $"FB{number + 1}",
+                LadderBlockType.DataBlock => $"DB{number + 1}",
+                _ => siemens ? $"FC{number + 1}" : $"Routine_{number}",
+            };
+            var block = document.AddBlock(typeName, selectedType);
+            document.SelectBlock(document.Blocks.Count - 1);
+            selectedRung = 0;
+            selectedBranch = 0;
+            selectedContact = -1;
+            selectedInsertionIndex = -1;
+            selectedOutput = false;
+            RefreshEditor();
+            blockItems[^1].Select(0);
+            organization.ScrollToItem(blockItems[^1]);
+            output.Text = $"[color=#18864b]{(siemens ? "Block" : "Routine")} created.[/color] {Escape(block.Name)} is offline and empty.";
+        };
+        addBlockFromTree.Pressed += () => addBlock.EmitSignal(BaseButton.SignalName.Pressed);
+        applyBlock.Pressed += () =>
+        {
+            if (document.Blocks.Count == 0) return;
+            var normalizedName = blockName.Text.Trim();
+            if (normalizedName.Length == 0
+                || document.Blocks.Where((_, index) => index != document.ActiveBlockIndex)
+                    .Any(block => block.Name.Equals(normalizedName, StringComparison.Ordinal)))
+            {
+                output.Text = $"[color=#d64545]Rename blocked.[/color] Enter a non-empty, unique {(siemens ? "block" : "routine")} name.";
+                return;
+            }
+            if (!BeginEdit(siemens ? "Rename program block" : "Rename routine")) return;
+            var block = document.RenameBlock(document.Blocks[document.ActiveBlockIndex].Id, normalizedName);
+            if (siemens)
+            {
+                block.BlockType = blockTypeSelector.Selected switch
+                {
+                    0 => LadderBlockType.OrganizationBlock,
+                    1 => LadderBlockType.FunctionBlock,
+                    2 => LadderBlockType.Function,
+                    3 => LadderBlockType.DataBlock,
+                    _ => block.BlockType,
+                };
+            }
+            RefreshEditor();
+            blockItems[document.ActiveBlockIndex].Select(0);
+            output.Text = $"[color=#18864b]{(siemens ? "Block" : "Routine")} renamed.[/color] Stable calls and task references still target {Escape(block.Name)}.";
+        };
+        removeBlock.Pressed += () =>
+        {
+            if (document.Blocks.Count == 0) return;
+            var block = document.Blocks[document.ActiveBlockIndex];
+            if (!document.CanRemoveBlock(block.Id, out var reason))
+            {
+                output.Text = $"[color=#d64545]Delete blocked.[/color] {Escape(reason)}";
+                return;
+            }
+            if (!BeginEdit(siemens ? "Delete program block" : "Delete routine")) return;
+            document.TryRemoveBlock(block.Id, out _);
+            selectedRung = 0;
+            selectedBranch = 0;
+            selectedContact = -1;
+            selectedInsertionIndex = -1;
+            selectedOutput = false;
+            RefreshEditor();
+            blockItems[document.ActiveBlockIndex].Select(0);
+            output.Text = $"[color=#18864b]{(siemens ? "Block" : "Routine")} deleted.[/color] {Escape(block.Name)} had no task or CALL/JSR references.";
+        };
+        addInterface.Pressed += () =>
+        {
+            if (!siemens || document.Blocks.Count == 0 || string.IsNullOrWhiteSpace(interfaceName.Text)) return;
+            var activeBlock = document.Blocks[document.ActiveBlockIndex];
+            if (!BeginEdit("Add block interface parameter")) return;
+            var type = interfaceType.Selected switch
+            {
+                1 => PlcVariableType.Int,
+                2 => PlcVariableType.DInt,
+                3 => PlcVariableType.Real,
+                4 => PlcVariableType.Timer,
+                _ => PlcVariableType.Bool,
+            };
+            if (!LadderEditorDocument.TryParseInitialValue(type, interfaceInitial.Text.Trim(), out var initial, out var error))
+            {
+                output.Text = $"[color=#d64545]Interface parameter rejected.[/color] {Escape(error)}";
+                return;
+            }
+            try
+            {
+                document.AddInterfaceParameter(activeBlock.Id, interfaceName.Text.Trim(), type,
+                    (LadderInterfaceSection)Math.Clamp(interfaceSection.Selected, 0, 4), initial);
+                interfaceName.Clear();
+                interfaceInitial.Text = "0";
+                RefreshEditor();
+            }
+            catch (InvalidOperationException exception)
+            {
+                output.Text = $"[color=#d64545]Interface parameter rejected.[/color] {Escape(exception.Message)}";
+            }
+        };
+        removeInterface.Pressed += () =>
+        {
+            if (!siemens || document.Blocks.Count == 0) return;
+            var selected = interfaceTable.GetSelected();
+            if (selected is null) return;
+            var index = selected.GetIndex();
+            if (!BeginEdit("Remove block interface parameter")) return;
+            document.RemoveInterfaceParameter(document.Blocks[document.ActiveBlockIndex].Id, index);
+            RefreshEditor();
+        };
+        addCall.Pressed += () =>
+        {
+            if (document.Rungs.Count == 0 || callTarget.ItemCount == 0) return;
+            if (!BeginEdit(siemens ? "Insert CALL" : "Insert JSR")) return;
+            var rung = document.Rungs[selectedRung];
+            rung.IsTimer = false;
+            rung.IsTimerReset = false;
+            rung.IsCounter = false;
+            rung.IsCounterReset = false;
+            rung.IsCounterLoad = false;
+            rung.IsNumericOperation = false;
+            rung.IsCall = false;
+            rung.IsReturn = false;
+            rung.IsJump = false;
+            rung.IsLabel = false;
+            rung.IsCall = true;
+            rung.CallTarget = callTarget.GetItemMetadata(callTarget.Selected).AsString();
+            RefreshEditor();
+            output.Text = $"[color=#18864b]{(siemens ? "CALL" : "JSR")} inserted.[/color] Target executes inline when the rung is true.";
+        };
+        addReturn.Pressed += () =>
+        {
+            if (document.Rungs.Count == 0) return;
+            if (!BeginEdit(siemens ? "Insert RETURN" : "Insert RET")) return;
+            var rung = document.Rungs[selectedRung];
+            rung.IsTimer = false;
+            rung.IsTimerReset = false;
+            rung.IsCounter = false;
+            rung.IsCounterReset = false;
+            rung.IsCounterLoad = false;
+            rung.IsNumericOperation = false;
+            rung.IsCall = false;
+            rung.IsReturn = false;
+            rung.IsJump = false;
+            rung.IsLabel = false;
+            rung.IsReturn = true;
+            RefreshEditor();
+            output.Text = $"[color=#18864b]{(siemens ? "RETURN" : "RET")} inserted.[/color] A true rung exits only the current execution frame.";
+        };
+        string DefaultProgramControlLabel()
+        {
+            var existing = document.Rungs
+                .Where(candidate => candidate.IsLabel && !string.IsNullOrWhiteSpace(candidate.ProgramControlLabel))
+                .Select(candidate => candidate.ProgramControlLabel)
+                .FirstOrDefault();
+            if (!string.IsNullOrWhiteSpace(existing)) return existing;
+            var suffix = 1;
+            var candidateName = "label_1";
+            while (document.Rungs.Any(candidate => candidate.IsLabel
+                       && candidate.ProgramControlLabel.Equals(candidateName, StringComparison.Ordinal)))
+                candidateName = $"label_{++suffix}";
+            return candidateName;
+        }
+        void SelectJumpOrLabel(bool label)
+        {
+            if (document.Rungs.Count == 0) return;
+            if (!BeginEdit(label
+                    ? (siemens ? "Insert LABEL" : "Insert LBL")
+                    : "Insert JMP")) return;
+            var rung = document.Rungs[selectedRung];
+            rung.IsTimer = false;
+            rung.IsTimerReset = false;
+            rung.IsCounter = false;
+            rung.IsCounterReset = false;
+            rung.IsCounterLoad = false;
+            rung.IsNumericOperation = false;
+            rung.IsCall = false;
+            rung.IsReturn = false;
+            rung.IsJump = !label;
+            rung.IsLabel = label;
+            rung.ProgramControlLabel = DefaultProgramControlLabel();
+            selectedContact = -1;
+            selectedInsertionIndex = -1;
+            selectedOutput = true;
+            RefreshEditor();
+            canvas.SelectElement(selectedRung, -1, -1, output: true, notify: false);
+            output.Text = label
+                ? $"[color=#18864b]{(siemens ? "LABEL" : "LBL")} inserted.[/color] {Escape(rung.ProgramControlLabel)} is local to this {(siemens ? "block" : "routine")}."
+                : $"[color=#18864b]JMP inserted.[/color] A true rung continues at {Escape(rung.ProgramControlLabel)} in this {(siemens ? "block" : "routine")}.";
+        }
+        addJump.Pressed += () => SelectJumpOrLabel(false);
+        addLabel.Pressed += () => SelectJumpOrLabel(true);
+        void LoadTaskControls(int index)
+        {
+            if (index < 0 || index >= document.Tasks.Count) return;
+            selectedTaskIndex = index;
+            var task = document.Tasks[index];
+            taskName.Text = task.Name;
+            taskKind.Select((int)task.Kind);
+            taskPeriod.Value = Math.Max(1, task.Period.TotalMilliseconds);
+            taskPeriod.Editable = task.Kind == LadderTaskKind.Periodic;
+            taskPriority.Value = task.Priority;
+            var targetIndex = document.Blocks.FindIndex(block => block.Id == task.EntryBlock);
+            if (targetIndex >= 0) taskTarget.Select(targetIndex);
+        }
+        addTask.Pressed += () =>
+        {
+            if (taskTarget.ItemCount == 0) return;
+            if (!BeginEdit(siemens ? "Add OB schedule" : "Add task")) return;
+            var number = document.Tasks.Count + 1;
+            var kind = (LadderTaskKind)taskKind.Selected;
+            var period = kind == LadderTaskKind.Continuous
+                ? document.ScanPeriod
+                : TimeSpan.FromMilliseconds(taskPeriod.Value);
+            var task = document.AddTask(
+                siemens ? $"CyclicOB_{number}" : $"Task_{number}",
+                kind,
+                period,
+                (int)taskPriority.Value,
+                taskTarget.GetItemMetadata(taskTarget.Selected).AsString());
+            selectedTaskIndex = document.Tasks.Count - 1;
+            RefreshEditor();
+            taskItems[selectedTaskIndex].Select(0);
+            organization.ScrollToItem(taskItems[selectedTaskIndex]);
+            output.Text = $"[color=#18864b]{(siemens ? "OB" : "Task")} created.[/color] {Escape(task.Name)} is scheduled offline.";
+        };
+        applyTask.Pressed += () =>
+        {
+            if (selectedTaskIndex < 0 || selectedTaskIndex >= document.Tasks.Count || taskTarget.ItemCount == 0) return;
+            var normalizedName = taskName.Text.Trim();
+            if (normalizedName.Length == 0
+                || document.Tasks.Where((_, index) => index != selectedTaskIndex)
+                    .Any(task => task.Name.Equals(normalizedName, StringComparison.Ordinal)))
+            {
+                output.Text = $"[color=#d64545]Update blocked.[/color] Enter a non-empty, unique {(siemens ? "OB schedule" : "task")} name.";
+                return;
+            }
+            if (!BeginEdit(siemens ? "Update OB schedule" : "Update task schedule")) return;
+            var task = document.Tasks[selectedTaskIndex];
+            document.RenameTask(task.Id, normalizedName);
+            task.Kind = (LadderTaskKind)taskKind.Selected;
+            task.Period = task.Kind == LadderTaskKind.Continuous
+                ? document.ScanPeriod
+                : TimeSpan.FromMilliseconds(taskPeriod.Value);
+            task.Priority = (int)taskPriority.Value;
+            task.EntryBlock = taskTarget.GetItemMetadata(taskTarget.Selected).AsString();
+            RefreshEditor();
+            output.Text = $"[color=#18864b]Schedule updated.[/color] {Escape(task.Name)} will be compiler-validated before load.";
+        };
+        removeTask.Pressed += () =>
+        {
+            if (selectedTaskIndex < 0 || selectedTaskIndex >= document.Tasks.Count) return;
+            var task = document.Tasks[selectedTaskIndex];
+            if (!document.CanRemoveTask(task.Id, out var reason))
+            {
+                output.Text = $"[color=#d64545]Delete blocked.[/color] {Escape(reason)}";
+                return;
+            }
+            if (!BeginEdit(siemens ? "Delete OB schedule" : "Delete task")) return;
+            document.TryRemoveTask(task.Id, out _);
+            selectedTaskIndex = Math.Clamp(selectedTaskIndex, 0, document.Tasks.Count - 1);
+            RefreshEditor();
+            taskItems[selectedTaskIndex].Select(0);
+            organization.ScrollToItem(taskItems[selectedTaskIndex]);
+            output.Text = $"[color=#18864b]{(siemens ? "OB schedule" : "Task")} deleted.[/color] {Escape(task.Name)} was removed from the offline scheduler.";
+        };
+        taskKind.ItemSelected += index => taskPeriod.Editable = index == (long)LadderTaskKind.Periodic;
+        addRung.Pressed += () =>
+        {
+            if (!BeginEdit(siemens ? "Add network" : "Add rung")) return;
+            var coil = document.Tags.FirstOrDefault(tag => tag.Type == PlcVariableType.Bool && tag.Role != PlcVariableRole.Input)?.Name ?? string.Empty;
+            document.AddRung(siemens ? "New network" : "New rung comment", coil);
+            selectedRung = document.Rungs.Count - 1;
+            selectedBranch = 0;
+            selectedContact = -1;
+            selectedInsertionIndex = 0;
+            selectedOutput = false;
+            RefreshEditor();
+            canvas.SelectInsertionPoint(selectedRung, selectedBranch, selectedInsertionIndex, notify: false);
+        };
+        void MoveSelectedContact(int offset)
+        {
+            if (selectedContact < 0 || selectedRung < 0 || selectedRung >= document.Rungs.Count) return;
+            if (!BeginEdit(offset < 0 ? "Move instruction left" : "Move instruction right")) return;
+            selectedContact = document.MoveContact(selectedRung, selectedBranch, selectedContact, offset);
+            RefreshEditor();
+            canvas.SelectElement(selectedRung, selectedBranch, selectedContact, notify: false);
+            output.Text = $"[color=#18864b]Instruction moved.[/color] Position {selectedContact + 1} in Branch {selectedBranch + 1}.";
+        }
+        moveContactLeft.Pressed += () => MoveSelectedContact(-1);
+        moveContactRight.Pressed += () => MoveSelectedContact(1);
+        remove.Pressed += () =>
+        {
+            if (document.Rungs.Count == 0) return;
+            if (selectedOutput)
+            {
+                output.Text = "[color=#d17a00]Output retained.[/color] Replace its instruction type or delete the entire network/rung from an empty branch.";
+                return;
+            }
+            var branch = document.Rungs[selectedRung].Branches[selectedBranch];
+            if (branch.Contacts.Count == 0 && document.Rungs[selectedRung].Branches.Count <= 1 && document.Rungs.Count <= 1) return;
+            var deleteDescription = branch.Contacts.Count > 0
+                ? "Delete instruction"
+                : document.Rungs[selectedRung].Branches.Count > 1
+                    ? "Delete parallel branch"
+                    : siemens ? "Delete network" : "Delete rung";
+            if (!BeginEdit(deleteDescription)) return;
+            if (branch.Contacts.Count > 0)
+            {
+                var removeIndex = selectedContact >= 0 ? selectedContact : branch.Contacts.Count - 1;
+                document.RemoveContact(selectedRung, selectedBranch, removeIndex);
+                selectedContact = -1;
+                selectedInsertionIndex = Math.Clamp(removeIndex, 0, document.Rungs[selectedRung].Branches[selectedBranch].Contacts.Count);
+                canvas.ClearElementSelection();
+            }
+            else if (document.Rungs[selectedRung].Branches.Count > 1)
+            {
+                document.RemoveParallelBranch(selectedRung, selectedBranch);
+                selectedBranch = Math.Clamp(selectedBranch, 0, document.Rungs[selectedRung].Branches.Count - 1);
+                selectedInsertionIndex = -1;
+            }
+            else if (document.Rungs.Count > 1)
+            {
+                document.RemoveRung(selectedRung);
+                selectedInsertionIndex = -1;
+            }
+            RefreshEditor();
+            if (selectedInsertionIndex >= 0 && document.Rungs.Count > 0)
+                canvas.SelectInsertionPoint(selectedRung, selectedBranch, selectedInsertionIndex, notify: false);
+        };
+
+        // Keep editing reachable from the ladder surface itself. This is the
+        // same command path as the toolbar and context menu, so keyboard edits
+        // cannot bypass history, validation state, or selection updates.
+        canvas.DeleteRequested += () => remove.EmitSignal(BaseButton.SignalName.Pressed);
+        canvas.MoveRequested += offset =>
+        {
+            if (offset < 0 && !moveContactLeft.Disabled)
+                moveContactLeft.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (offset > 0 && !moveContactRight.Disabled)
+                moveContactRight.EmitSignal(BaseButton.SignalName.Pressed);
+        };
+
+        void CopyLadderSelection()
+        {
+            if (document.Rungs.Count == 0) return;
+            var rung = document.Rungs[Math.Clamp(selectedRung, 0, document.Rungs.Count - 1)];
+            if (selectedContact >= 0 && selectedBranch >= 0
+                && selectedBranch < rung.Branches.Count
+                && selectedContact < rung.Branches[selectedBranch].Contacts.Count)
+            {
+                _ladderContactClipboard = rung.Branches[selectedBranch].Contacts[selectedContact] with { };
+                _ladderRungClipboard = null;
+                output.Text = $"[color=#18864b]Instruction copied.[/color] {Escape(_ladderContactClipboard.Variable)} is ready to paste into a series slot.";
+                return;
+            }
+            _ladderRungClipboard = document.CaptureRung(selectedRung);
+            _ladderContactClipboard = null;
+            output.Text = $"[color=#18864b]{(siemens ? "Network" : "Rung")} copied.[/color] Stable IDs will be regenerated when pasted.";
+        }
+
+        void PasteLadderClipboard()
+        {
+            if (_ladderContactClipboard is not null)
+            {
+                if (document.Rungs.Count == 0) return;
+                selectedRung = Math.Clamp(selectedRung, 0, document.Rungs.Count - 1);
+                var rung = document.Rungs[selectedRung];
+                selectedBranch = Math.Clamp(selectedBranch, 0, Math.Max(0, rung.Branches.Count - 1));
+                var contacts = rung.Branches[selectedBranch].Contacts;
+                var insertionIndex = selectedInsertionIndex >= 0
+                    ? Math.Clamp(selectedInsertionIndex, 0, contacts.Count)
+                    : selectedContact >= 0 ? Math.Min(selectedContact + 1, contacts.Count) : contacts.Count;
+                if (!BeginEdit("Paste instruction")) return;
+                document.PasteContact(_ladderContactClipboard, selectedRung, selectedBranch, insertionIndex);
+                selectedContact = insertionIndex;
+                selectedInsertionIndex = -1;
+                selectedOutput = false;
+                RefreshEditor();
+                canvas.SelectElement(selectedRung, selectedBranch, selectedContact, notify: false);
+                output.Text = "[color=#18864b]Instruction pasted.[/color] A new stable instruction ID was assigned.";
+                return;
+            }
+            if (_ladderRungClipboard is not null)
+            {
+                var insertionIndex = document.Rungs.Count == 0
+                    ? 0
+                    : Math.Clamp(selectedRung + 1, 0, document.Rungs.Count);
+                if (!BeginEdit(siemens ? "Paste network" : "Paste rung")) return;
+                document.PasteRung(_ladderRungClipboard, insertionIndex);
+                selectedRung = insertionIndex;
+                selectedBranch = 0;
+                selectedContact = -1;
+                selectedInsertionIndex = -1;
+                selectedOutput = false;
+                RefreshEditor();
+                canvas.SelectRung(selectedRung);
+                output.Text = $"[color=#18864b]{(siemens ? "Network" : "Rung")} pasted.[/color] All rung, branch, and instruction IDs were regenerated.";
+                return;
+            }
+            output.Text = "[color=#d17a00]Clipboard empty.[/color] Select an instruction or rung, then Copy.";
+        }
+
+        canvas.CopyRequested += CopyLadderSelection;
+        canvas.PasteRequested += PasteLadderClipboard;
+        instructionContextMenu.IdPressed += id =>
+        {
+            if (id == 0) OpenInstructionProperties();
+            else if (id == 1) remove.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (id == 2) RenderInstructionHelp(SelectedInstructionHelpKey(), true);
+            else if (id == 3) CopyLadderSelection();
+            else if (id == 4) PasteLadderClipboard();
+        };
+        rungLabel.TextSubmitted += value =>
+        {
+            if (document.Rungs.Count == 0) return;
+            if (!BeginEdit(siemens ? "Edit network title" : "Edit rung comment")) return;
+            document.Rungs[selectedRung].Label = value.Trim();
+            RefreshEditor();
+        };
+        contactTypeSelector.ItemSelected += index =>
+        {
+            if (selectedContact < 0 || document.Rungs.Count == 0) return;
+            var current = document.Rungs[selectedRung].Branches[selectedBranch].Contacts[selectedContact];
+            if (current.IsComparison) return;
+            var normallyClosed = index is 1 or 3;
+            var edgeMode = index switch
+            {
+                2 => LadderEdgeMode.Rising,
+                3 => LadderEdgeMode.Falling,
+                _ => LadderEdgeMode.None,
+            };
+            if (current.NormallyClosed == normallyClosed && current.EdgeMode == edgeMode) return;
+            if (!BeginEdit("Change contact instruction type")) return;
+            document.ReplaceContact(selectedRung, selectedBranch, selectedContact,
+                current with { NormallyClosed = normallyClosed, EdgeMode = edgeMode });
+            RefreshEditor();
+            canvas.SelectElement(selectedRung, selectedBranch, selectedContact, notify: false);
+        };
+        tagSelector.ItemSelected += index =>
+        {
+            if (selectedContact < 0 || document.Rungs.Count == 0) return;
+            var current = document.Rungs[selectedRung].Branches[selectedBranch].Contacts[selectedContact];
+            if (current.IsComparison) return;
+            var variable = tagSelector.GetItemText((int)index);
+            if (current.Variable == variable || !BeginEdit("Change contact operand")) return;
+            document.ReplaceContact(selectedRung, selectedBranch, selectedContact, current with { Variable = variable });
+            RefreshEditor();
+            canvas.SelectElement(selectedRung, selectedBranch, selectedContact, notify: false);
+        };
+        compareLeft.ItemSelected += index =>
+        {
+            if (selectedContact < 0 || document.Rungs.Count == 0) return;
+            var current = document.Rungs[selectedRung].Branches[selectedBranch].Contacts[selectedContact];
+            if (!current.IsComparison) return;
+            var operand = compareLeft.GetItemText((int)index);
+            if (current.Variable == operand || !BeginEdit("Change comparison operand")) return;
+            document.ReplaceContact(selectedRung, selectedBranch, selectedContact, current with { Variable = operand });
+            RefreshEditor();
+            canvas.SelectElement(selectedRung, selectedBranch, selectedContact, notify: false);
+        };
+        compareOperator.ItemSelected += index =>
+        {
+            if (selectedContact < 0 || document.Rungs.Count == 0) return;
+            var current = document.Rungs[selectedRung].Branches[selectedBranch].Contacts[selectedContact];
+            if (!current.IsComparison) return;
+            var comparison = (LadderCompareOperator)index;
+            if (current.CompareOperator == comparison || !BeginEdit("Change comparison operator")) return;
+            document.ReplaceContact(selectedRung, selectedBranch, selectedContact, current with { CompareOperator = comparison });
+            RefreshEditor();
+            canvas.SelectElement(selectedRung, selectedBranch, selectedContact, notify: false);
+        };
+        compareRight.TextSubmitted += value =>
+        {
+            if (selectedContact < 0 || document.Rungs.Count == 0 || string.IsNullOrWhiteSpace(value)) return;
+            var current = document.Rungs[selectedRung].Branches[selectedBranch].Contacts[selectedContact];
+            if (!current.IsComparison) return;
+            var operand = value.Trim();
+            if (current.RightOperand == operand || !BeginEdit("Change comparison operand")) return;
+            document.ReplaceContact(selectedRung, selectedBranch, selectedContact, current with { RightOperand = operand });
+            RefreshEditor();
+            canvas.SelectElement(selectedRung, selectedBranch, selectedContact, notify: false);
+        };
+        coilSelector.ItemSelected += index =>
+        {
+            if (document.Rungs.Count == 0) return;
+            if (!BeginEdit("Change output tag")) return;
+            var rung = document.Rungs[selectedRung];
+            rung.IsTimer = false;
+            rung.IsTimerReset = false;
+            rung.IsCounter = false;
+            rung.IsCounterReset = false;
+            rung.IsCounterLoad = false;
+            rung.IsNumericOperation = false;
+            rung.IsCall = false;
+            rung.IsReturn = false;
+            rung.IsJump = false;
+            rung.IsLabel = false;
+            rung.CoilVariable = coilSelector.GetItemText((int)index);
+            RefreshEditor();
+        };
+        coilModeSelector.ItemSelected += index => SelectCoilMode((LadderCoilMode)index);
+        timerSelector.ItemSelected += index =>
+        {
+            if (document.Rungs.Count == 0) return;
+            if (!BeginEdit("Change TON instance")) return;
+            var rung = document.Rungs[selectedRung];
+            if (!rung.IsTimer && !rung.IsTimerReset) rung.IsTimer = true;
+            rung.IsCounter = false;
+            rung.IsCounterReset = false;
+            rung.IsCounterLoad = false;
+            rung.IsNumericOperation = false;
+            rung.IsCall = false;
+            rung.IsReturn = false;
+            rung.IsJump = false;
+            rung.IsLabel = false;
+            rung.TimerVariable = timerSelector.GetItemText((int)index);
+            RefreshEditor();
+        };
+        timerPreset.ValueChanged += value =>
+        {
+            if (document.Rungs.Count == 0) return;
+            if (!BeginEdit("Change TON preset")) return;
+            document.Rungs[selectedRung].TimerPreset = TimeSpan.FromMilliseconds(value);
+            foreach (var ladderCanvas in _ladderCanvases) ladderCanvas.RefreshDocument();
+        };
+        counterSelector.ItemSelected += index =>
+        {
+            if (document.Rungs.Count == 0) return;
+            if (!BeginEdit("Change counter instance")) return;
+            var rung = document.Rungs[selectedRung];
+            rung.IsTimer = false;
+            rung.IsTimerReset = false;
+            if (!rung.IsCounter && !rung.IsCounterReset && !rung.IsCounterLoad)
+            {
+                rung.IsCounter = true;
+                rung.CounterKind = LadderCounterKind.CountUp;
+            }
+            rung.IsNumericOperation = false;
+            rung.IsCall = false;
+            rung.IsReturn = false;
+            rung.IsJump = false;
+            rung.IsLabel = false;
+            rung.CounterVariable = counterSelector.GetItemText((int)index);
+            RefreshEditor();
+        };
+        counterPreset.ValueChanged += value =>
+        {
+            if (document.Rungs.Count == 0) return;
+            if (!BeginEdit("Change counter preset")) return;
+            document.Rungs[selectedRung].CounterPreset = (long)value;
+            foreach (var ladderCanvas in _ladderCanvases) ladderCanvas.RefreshDocument();
+        };
+        callTarget.ItemSelected += index =>
+        {
+            if (document.Rungs.Count == 0 || !selectedOutput || !document.Rungs[selectedRung].IsCall) return;
+            var target = callTarget.GetItemMetadata((int)index).AsString();
+            if (document.Rungs[selectedRung].CallTarget == target || !BeginEdit("Change CALL/JSR target")) return;
+            document.Rungs[selectedRung].CallTarget = target;
+            RefreshEditor();
+            canvas.SelectElement(selectedRung, -1, -1, output: true, notify: false);
+        };
+        void ApplyProgramControlLabel()
+        {
+            if (document.Rungs.Count == 0 || !selectedOutput) return;
+            var rung = document.Rungs[selectedRung];
+            if (!rung.IsJump && !rung.IsLabel) return;
+            var value = programControlLabel.Text.Trim();
+            if (value.Length == 0 || value == rung.ProgramControlLabel) return;
+            if (!BeginEdit(rung.IsJump ? "Change JMP target" : "Rename LBL/LABEL")) return;
+            rung.ProgramControlLabel = value;
+            RefreshEditor();
+            canvas.SelectElement(selectedRung, -1, -1, output: true, notify: false);
+        }
+        programControlLabel.TextSubmitted += _ => ApplyProgramControlLabel();
+        programControlLabel.FocusExited += ApplyProgramControlLabel;
+        void ApplyNumericSourceA()
+        {
+            if (document.Rungs.Count == 0 || !document.Rungs[selectedRung].IsNumericOperation) return;
+            var source = string.IsNullOrWhiteSpace(numericSourceA.Text) ? "0" : numericSourceA.Text.Trim();
+            if (document.Rungs[selectedRung].NumericSourceA == source) return;
+            if (!BeginEdit("Change numeric source")) return;
+            document.Rungs[selectedRung].NumericSourceA = source;
+            RefreshEditor();
+        }
+        numericSourceA.TextSubmitted += _ => ApplyNumericSourceA();
+        numericSourceA.FocusExited += ApplyNumericSourceA;
+        numericDestination.ItemSelected += index =>
+        {
+            if (document.Rungs.Count == 0 || !document.Rungs[selectedRung].IsNumericOperation) return;
+            if (!BeginEdit("Change numeric destination")) return;
+            document.Rungs[selectedRung].NumericDestination = numericDestination.GetItemText((int)index);
+            RefreshEditor();
+        };
+        numericSourceB.TextSubmitted += text =>
+        {
+            if (document.Rungs.Count == 0 || !document.Rungs[selectedRung].IsNumericOperation) return;
+            if (!BeginEdit("Change numeric operand")) return;
+            document.Rungs[selectedRung].NumericSourceB = text.Trim();
+            RefreshEditor();
+        };
+        numericSourceC.TextSubmitted += text =>
+        {
+            if (document.Rungs.Count == 0 || !document.Rungs[selectedRung].IsNumericOperation) return;
+            if (!BeginEdit("Change numeric operand")) return;
+            document.Rungs[selectedRung].NumericSourceC = text.Trim();
+            RefreshEditor();
+        };
+        tagType.ItemSelected += index =>
+        {
+            var isInstance = index is 1 or 2;
+            if (isInstance) tagRole.Select((int)PlcVariableRole.Memory);
+            tagRole.Disabled = isInstance;
+            tagName.PlaceholderText = index switch
+            {
+                1 => "new_timer",
+                2 => "new_counter",
+                3 => "new_int",
+                4 => "new_dint",
+                5 => "new_real",
+                _ => "new_bool_tag",
+            };
+            var type = SelectedTagType();
+            tagInitialValue.Editable = !isInstance;
+            tagInitialValue.PlaceholderText = type switch
+            {
+                PlcVariableType.Bool => "FALSE",
+                PlcVariableType.Int or PlcVariableType.DInt => "0",
+                PlcVariableType.Real => "0.0",
+                _ => "0",
+            };
+            if (selectedTagIndex < 0)
+                tagInitialValue.Text = type == PlcVariableType.Bool ? "FALSE" : "0";
+            RefreshTagBindingOptions(type, SelectedTagRole(type), string.Empty);
+        };
+        tagRole.ItemSelected += _ =>
+        {
+            var type = SelectedTagType();
+            RefreshTagBindingOptions(type, SelectedTagRole(type), string.Empty);
+        };
+        tagBinding.ItemSelected += _ =>
+        {
+            var type = SelectedTagType();
+            RefreshTagBindingOptions(type, SelectedTagRole(type), SelectedTagBinding());
+        };
+        addTag.Pressed += () =>
+        {
+            if (string.IsNullOrWhiteSpace(tagName.Text)) return;
+            var type = SelectedTagType();
+            var role = SelectedTagRole(type);
+            if (!TryReadTagInitialValue(type, out var initialValue)) return;
+            if (!BeginEdit("Add tag")) return;
+            document.AddTag(tagName.Text, role,
+                type is PlcVariableType.Timer or PlcVariableType.Counter ? string.Empty : SelectedTagBinding(), type,
+                initialValue);
+            tagName.Clear();
+            tagInitialValue.Text = type == PlcVariableType.Bool ? "FALSE" : "0";
+            RefreshTagBindingOptions(type, role, string.Empty);
+            RefreshEditor();
+        };
+        var visibleValidationIssues = new List<LadderValidationIssue>();
+
+        void ShowValidationIssues(IReadOnlyList<LadderValidationIssue> issues)
+        {
+            visibleValidationIssues.Clear();
+            visibleValidationIssues.AddRange(issues);
+            validationIssueList.Clear();
+            foreach (var issue in issues)
+            {
+                var index = validationIssueList.ItemCount;
+                validationIssueList.AddItem($"ERROR  {issue.Code}  ·  {issue.Path}  ·  {issue.Message}");
+                validationIssueList.SetItemMetadata(index, issue.Path);
+                validationIssueList.SetItemTooltip(index,
+                    $"{issue.Code}\n{issue.Message}\nDocument path: {issue.Path}\nDouble-click to navigate.");
+            }
+            validationSummary.Text = issues.Count == 0
+                ? "0 ERRORS · verification passed"
+                : $"{issues.Count} ERROR{(issues.Count == 1 ? string.Empty : "S")} · program not loaded · double-click to navigate";
+            validationSummary.AddThemeColorOverride("font_color",
+                issues.Count == 0 ? new Color("18864b") : new Color("b3261e"));
+            bottomPanel.Visible = true;
+            reopenBottomDock.Visible = false;
+            bottomTabs.CurrentTab = issues.Count == 0 ? 1 : 0;
+        }
+
+        static int ValidationPathIndex(string path, string collection)
+        {
+            var marker = $".{collection}[";
+            var start = path.IndexOf(marker, StringComparison.Ordinal);
+            if (start < 0) return -1;
+            start += marker.Length;
+            var end = path.IndexOf(']', start);
+            return end > start && int.TryParse(path.AsSpan(start, end - start), out var index) ? index : -1;
+        }
+
+        void NavigateValidationIssue(int issueIndex)
+        {
+            if (issueIndex < 0 || issueIndex >= visibleValidationIssues.Count) return;
+            var issue = visibleValidationIssues[issueIndex];
+            var blockIndex = ValidationPathIndex(issue.Path, "blocks");
+            var networkIndex = ValidationPathIndex(issue.Path, "networks");
+            var variableIndex = ValidationPathIndex(issue.Path, "variables");
+            var taskIndex = ValidationPathIndex(issue.Path, "tasks");
+            if (blockIndex >= 0 && blockIndex < document.Blocks.Count)
+            {
+                document.SelectBlock(blockIndex);
+                blockItems[blockIndex].Select(0);
+                organization.ScrollToItem(blockItems[blockIndex]);
+                selectedRung = networkIndex >= 0
+                    ? Math.Clamp(networkIndex, 0, Math.Max(0, document.Rungs.Count - 1))
+                    : 0;
+                selectedBranch = 0;
+                selectedContact = -1;
+                selectedInsertionIndex = -1;
+                selectedOutput = false;
+                RefreshEditor();
+                if (document.Rungs.Count > 0)
+                {
+                    canvas.SelectRung(selectedRung);
+                    scroll.ScrollVertical = Math.Max(0, (int)canvas.GetRungBounds(selectedRung).Position.Y - 10);
+                }
+            }
+            else if (variableIndex >= 0 && variableIndex < document.Tags.Count)
+            {
+                projectTabs.CurrentTab = 1;
+                SelectIndexedTreeRow(tagList, variableIndex);
+                tagList.ScrollToItem(tagList.GetSelected());
+            }
+            else if (taskIndex >= 0 && taskIndex < document.Tasks.Count)
+            {
+                LoadTaskControls(taskIndex);
+                taskItems[taskIndex].Select(0);
+                organization.ScrollToItem(taskItems[taskIndex]);
+                projectTabs.CurrentTab = 2;
+            }
+            output.Text = $"[color=#d64545]{Escape(issue.Code)}[/color] {Escape(issue.Message)}  [color=#657b86]{Escape(issue.Path)}[/color]";
+        }
+
+        validationIssueList.ItemActivated += index => NavigateValidationIssue((int)index);
+        apply.Pressed += () =>
+        {
+            var program = document.BuildProgram();
+            var compiled = LadderCompiler.Compile(program);
+            var issues = compiled.Issues
+                .Concat(SceneIoBindingValidator.Validate(program, ScenePoints()))
+                .ToArray();
+            ShowValidationIssues(issues);
+            if (!compiled.IsValid || issues.Length > 0)
+            {
+                output.Text = $"[color=#d64545]Verification failed.[/color] {issues.Length} error(s). Open Error List and double-click an item to navigate.";
+                _ladderWorkspaceStatus.Text = "VALIDATION FAILED · PROGRAM NOT LOADED";
+                _ladderWorkspaceStatus.AddThemeColorOverride("font_color", new Color("ef7777"));
+                return;
+            }
+            var totalNetworks = program.Blocks?.Sum(block => block.Networks.Count) ?? program.Networks.Count;
+            output.Text = $"[color=#18864b]Verification complete.[/color] {program.Blocks?.Count ?? 1} blocks · {program.Tasks?.Count ?? 1} tasks · {totalNetworks} networks/rungs · {program.Variables.Count} tags · loaded into offline runtime.";
+            _ladderWorkspaceStatus.Text = $"VALID · {tabName.ToUpperInvariant()} WORKFLOW · OFFLINE RUNTIME";
+            _ladderWorkspaceStatus.AddThemeColorOverride("font_color", new Color("65d49a"));
+            VirtualControllerProgramRequested?.Invoke(program);
+        };
+        instructionTree.ItemSelected += () =>
+        {
+            var kind = instructionTree.GetSelected()?.GetMetadata(0).AsString() ?? string.Empty;
+            RenderInstructionHelp(kind, false);
+            output.Text = kind switch
+            {
+                "no" => "Normally-open/XIC contact selected. Double-click to insert it using the selected tag and branch.",
+                "nc" => "Normally-closed/XIO contact selected. Double-click to insert it using the selected tag and branch.",
+                "edge-rising" => siemens ? "Positive-edge contact selected. It pulses for one scan after a FALSE-to-TRUE transition." : "XIC + ONS composite selected. It pulses for one scan after a FALSE-to-TRUE transition.",
+                "edge-falling" => siemens ? "Negative-edge contact selected. It pulses for one scan after a TRUE-to-FALSE transition." : "XIO + ONS / OSF composite selected. It pulses for one scan after a TRUE-to-FALSE transition.",
+                "coil" => "Output coil selected. Choose its writable tag in the Output coil field below the rung.",
+                "set" => siemens ? "Set coil selected. Double-click to latch the selected BOOL when the rung becomes true." : "OTL selected. Double-click to latch the selected BOOL when the rung becomes true.",
+                "reset" => siemens ? "Reset coil selected. Double-click to clear the selected BOOL when the rung becomes true." : "OTU selected. Double-click to unlatch the selected BOOL when the rung becomes true.",
+                "ton" => "TON selected. Double-click to make the selected rung an on-delay timer instruction.",
+                "tof" => "TOF selected. Double-click to make the selected rung an off-delay timer instruction.",
+                "tp" => "TP selected. Double-click to make the selected rung a rising-edge pulse timer instruction.",
+                "rto" => siemens ? "TONR selected. Double-click to accumulate enabled time retentively." : "RTO selected. Double-click to accumulate enabled time retentively.",
+                "timer-reset" => siemens ? "RT selected. Double-click to reset the selected timer instance." : "Timer RES selected. Double-click to reset the selected timer instance.",
+                "ctu" => "CTU selected. Double-click to count false-to-true transitions on the selected rung.",
+                "ctd" => "CTD selected. Double-click to decrement once per false-to-true transition.",
+                "counter-load" => "Counter load selected. Double-click to copy the preset into CV/ACC while the rung is true.",
+                "counter-reset" => "Counter reset selected. Double-click to clear the selected counter while the rung is true.",
+                "call" => siemens ? "CALL selected. Double-click to call the target block shown in the program toolbar." : "JSR selected. Double-click to call the target routine shown in the program toolbar.",
+                "return" => siemens ? "RETURN selected. Double-click to exit the current block when the rung is true." : "RET selected. Double-click to return from the current routine when the rung is true.",
+                "jump" => "JMP selected. Double-click to jump to a block-local label when the rung is true.",
+                "label" => siemens ? "LABEL selected. Double-click to declare a block-local jump destination." : "LBL selected. Double-click to declare a routine-local jump destination.",
+                var value when value.StartsWith("compare-", StringComparison.Ordinal) => "Comparison selected. Double-click to insert it using the operands shown below the editor.",
+                var value when value.StartsWith("numeric-", StringComparison.Ordinal) => "Numeric instruction selected. Double-click to insert it using the source and destination fields below the editor.",
+                "branch" => "Parallel branch selected. Double-click to add an OR path to the selected rung.",
+                "rung" => siemens ? "Network selected. Double-click to insert a network." : "Rung selected. Double-click to insert a rung.",
+                _ => "Choose a supported instruction. Double-click an instruction to insert it.",
+            };
+        };
+        instructionTree.ItemActivated += () =>
+        {
+            var kind = instructionTree.GetSelected()?.GetMetadata(0).AsString() ?? string.Empty;
+            if (kind == "no") addNo.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (kind == "nc") addNc.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (kind == "edge-rising") addRisingEdge.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (kind == "edge-falling") addFallingEdge.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (kind == "branch") addBranch.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (kind == "ton") addTon.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (kind == "tof") addTof.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (kind == "tp") addTp.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (kind == "rto") addRto.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (kind == "timer-reset") addTimerReset.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (kind == "ctu") addCounter.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (kind == "ctd") addCounterDown.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (kind == "counter-load") addCounterLoad.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (kind == "counter-reset") addCounterReset.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (kind == "call") addCall.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (kind == "return") addReturn.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (kind == "jump") addJump.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (kind == "label") addLabel.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (kind.StartsWith("compare-", StringComparison.Ordinal)
+                     && int.TryParse(kind.AsSpan("compare-".Length), out var compareIndex))
+            {
+                compareOperator.Select(compareIndex);
+                addCompare.EmitSignal(BaseButton.SignalName.Pressed);
+            }
+            else if (kind.StartsWith("numeric-", StringComparison.Ordinal)
+                     && int.TryParse(kind.AsSpan("numeric-".Length), out var numericIndex))
+            {
+                var buttons = new[] { addMove, addAdd, addSubtract, addMultiply, addDivide,
+                    addModulo, addAbsolute, addNegate, addSquareRoot };
+                if (numericIndex >= 0 && numericIndex < buttons.Length)
+                    buttons[numericIndex].EmitSignal(BaseButton.SignalName.Pressed);
+            }
+            else if (kind == "set") addSet.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (kind == "reset") addReset.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (kind == "rung") addRung.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (kind == "coil") coilSelector.GrabFocus();
+        };
+        organization.ItemSelected += () =>
+        {
+            var selected = organization.GetSelected();
+            var kind = selected?.GetMetadata(0).AsString() ?? string.Empty;
+            if (kind.StartsWith("program:", StringComparison.Ordinal)
+                && int.TryParse(kind.AsSpan("program:".Length), out var blockIndex)
+                && blockIndex >= 0 && blockIndex < document.Blocks.Count)
+            {
+                document.SelectBlock(blockIndex);
+                selectedRung = 0;
+                selectedBranch = 0;
+                selectedContact = -1;
+                selectedOutput = false;
+                RefreshEditor();
+                output.Text = $"[color=#18864b]{Escape(document.Blocks[blockIndex].Name)} active.[/color] Select a rung and use the instruction toolbar.";
+                canvas.GrabFocus();
+                return;
+            }
+            if (kind.StartsWith("task:", StringComparison.Ordinal)
+                && int.TryParse(kind.AsSpan("task:".Length), out var taskIndex)
+                && taskIndex >= 0 && taskIndex < document.Tasks.Count)
+            {
+                LoadTaskControls(taskIndex);
+                var task = document.Tasks[taskIndex];
+                projectTabs.CurrentTab = 2;
+                output.Text = $"[color=#18864b]{Escape(task.Name)} selected.[/color] Edit target, type, period, or priority in the schedule toolbar.";
+                return;
+            }
+            switch (kind)
+            {
+                case "tags":
+                    output.Text = "PLC tag table active. Create BOOL operands or TIMER instruction instances in the left project dock.";
+                    projectTabs.CurrentTab = 1;
+                    tagName.GrabFocus();
+                    break;
+                case "diagnostics":
+                    output.Text = "[b]Offline diagnostics[/b] · compiler ready · transport disconnected · no physical PLC.";
+                    bottomPanel.Visible = true;
+                    reopenBottomDock.Visible = false;
+                    bottomTabs.CurrentTab = 1;
+                    break;
+                case "device":
+                    output.Text = "[b]Simulator I/O configuration[/b] · symbolic scene bindings only; no hardware rack or physical addresses.";
+                    break;
+                case "watch":
+                    output.Text = "[b]Watch table active.[/b] Add symbols, Verify + Load, then Run to monitor typed simulator values by scan.";
+                    bottomPanel.Visible = true;
+                    reopenBottomDock.Visible = false;
+                    bottomTabs.CurrentTab = 2;
+                    RefreshWatchTable(_virtualSnapshot);
+                    break;
+                case "blocks":
+                    projectTabs.CurrentTab = 2;
+                    output.Text = $"Program organization contains {document.Blocks.Count} blocks/routines and {document.Blocks.Sum(block => block.Rungs.Count)} total networks/rungs.";
+                    break;
+                case "tasks":
+                    projectTabs.CurrentTab = 2;
+                    output.Text = $"Scheduler contains {document.Tasks.Count} configured tasks/OBs. Lower numeric priority executes first.";
+                    break;
+                default:
+                    output.Text = "Offline controller project selected.";
+                    break;
+            }
+        };
+        void UndoLadderEdit()
+        {
+            if (!TryUndoLadderEdit(out var description)) return;
+            output.Text = $"[color=#18864b]Undo complete.[/color] {Escape(description)}";
+        }
+        void RedoLadderEdit()
+        {
+            if (!TryRedoLadderEdit(out var description)) return;
+            output.Text = $"[color=#18864b]Redo complete.[/color] {Escape(description)}";
+        }
+        undoEdit.Pressed += UndoLadderEdit;
+        redoEdit.Pressed += RedoLadderEdit;
+        projectMenu.GetPopup().IdPressed += id =>
+        {
+            if (id == 0)
+            {
+                document.ResetProject(
+                    "offline-controller",
+                    siemens ? "Main" : "MainRoutine",
+                    TimeSpan.FromMilliseconds(20));
+                document.AddTag("input_1", PlcVariableRole.Input);
+                document.AddTag("output_1", PlcVariableRole.Output);
+                document.AddRung(siemens ? "New network" : "New rung", "output_1");
+                _ladderProjectPath = null;
+                _ladderSavedProjectJson = null;
+                _ladderHistory.Clear();
+                _ladderRungClipboard = null;
+                _ladderContactClipboard = null;
+                selectedRung = 0;
+                selectedBranch = 0;
+                selectedContact = -1;
+                selectedInsertionIndex = 0;
+                selectedOutput = false;
+                foreach (var refresh in _ladderEditorRefreshers) refresh();
+                RefreshLadderMonitorMatch();
+                _ladderWorkspaceStatus.Text = "NEW PROJECT · NOT VERIFIED · VERIFY + LOAD REQUIRED";
+                _ladderWorkspaceStatus.AddThemeColorOverride("font_color", new Color("f1aa5b"));
+                output.Text = "[color=#18864b]New offline Ladder project created.[/color] Add logic, then Verify + Load.";
+            }
+            else if (id == 1) _ladderSaveDialog.PopupCenteredRatio(0.72f);
+            else if (id == 2) _ladderLoadDialog.PopupCenteredRatio(0.72f);
+        };
+        editMenu.GetPopup().IdPressed += id =>
+        {
+            if (id == 0) addRung.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (id == 1) remove.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (id == 2) UndoLadderEdit();
+            else if (id == 3) RedoLadderEdit();
+            else if (id == 4) CopyLadderSelection();
+            else if (id == 5) PasteLadderClipboard();
+        };
+        onlineMenu.GetPopup().IdPressed += id =>
+        {
+            if (id == 0) apply.EmitSignal(BaseButton.SignalName.Pressed);
+            else if (id == 1) RunRequested?.Invoke();
+            else if (id == 2) StopRequested?.Invoke();
+            else if (id == 3) ResetRequested?.Invoke();
+        };
+        viewMenu.GetPopup().IdPressed += id =>
+        {
+            if (id == 0)
+            {
+                mainItem.Select(0);
+                organization.ScrollToItem(mainItem);
+                projectTabs.CurrentTab = 0;
+                output.Text = "Program editor active.";
+            }
+            else if (id == 1)
+            {
+                tagItem.Select(0);
+                organization.ScrollToItem(tagItem);
+                projectTabs.CurrentTab = 1;
+                tagName.GrabFocus();
+            }
+            else if (id == 2)
+            {
+                diagnosticsItem.Select(0);
+                organization.ScrollToItem(diagnosticsItem);
+                bottomPanel.Visible = true;
+                reopenBottomDock.Visible = false;
+                bottomTabs.CurrentTab = 1;
+                output.Text = "[b]Offline diagnostics[/b] · compiler ready · transport disconnected · no physical PLC.";
+            }
+            else if (id == 3)
+            {
+                toolTabs.CurrentTab = 1;
+                searchQuery.GrabFocus();
+                output.Text = "[b]Project Find / Cross-reference[/b] · searches every tag, block, task, rung, and instruction operand.";
+            }
+            else if (id == 4)
+            {
+                RenderInstructionHelp(currentHelpKey, true);
+                output.Text = "[b]Instruction help[/b] · context follows the selected instruction and documents offline scan semantics.";
+            }
+            else if (id == 5)
+            {
+                bottomPanel.Visible = true;
+                reopenBottomDock.Visible = false;
+                bottomTabs.CurrentTab = 2;
+                RefreshWatchTable(_virtualSnapshot);
+                watchSymbol.GrabFocus();
+                output.Text = "[b]Watch table active.[/b] Typed values are read from the loaded offline runtime snapshot.";
+            }
+        };
+        toolsMenu.GetPopup().IdPressed += id =>
+        {
+            if (id == 0)
+            {
+                projectTabs.CurrentTab = 1;
+                tagName.GrabFocus();
+            }
+            else if (id == 1)
+            {
+                RenderInstructionHelp(currentHelpKey, true);
+                output.Text = "[b]Instruction help[/b] · purpose, operands, scan behavior, restrictions, and examples for the selected instruction.";
+            }
+            else
+            {
+                toolTabs.CurrentTab = 1;
+                searchQuery.GrabFocus();
+                output.Text = siemens
+                    ? "[b]Cross-reference[/b] · enter an exact tag or block symbol to list declarations, reads, writes, calls, and schedules."
+                    : "[b]Find All[/b] · enter a tag or routine to list declarations, reads, writes, JSRs, and task assignments.";
+            }
+        };
+        watchTable.ItemActivated += () =>
+        {
+            var name = watchTable.GetSelected()?.GetMetadata(0).AsString() ?? string.Empty;
+            var index = document.Tags.FindIndex(tag => tag.Name == name);
+            if (index < 0) return;
+            projectTabs.CurrentTab = 1;
+            SelectIndexedTreeRow(tagList, index);
+            tagList.EmitSignal(Tree.SignalName.ItemSelected);
+        };
+        RefreshTagBindingOptions(SelectedTagType(), SelectedTagRole(SelectedTagType()), string.Empty);
+        _ladderEditorRefreshers.Add(RefreshEditor);
+        _ladderWatchRefreshers.Add(RefreshWatchTable);
+        RefreshEditor();
+        static void AddVisibleSplitGrip(SplitContainer split, string text)
+        {
+            foreach (var dragArea in split.GetDragAreaControls())
+            {
+                var grip = new Label
+                {
+                    Name = "VisibleResizeGrip",
+                    Text = text,
+                    MouseFilter = Control.MouseFilterEnum.Ignore,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center,
+                };
+                grip.AddThemeColorOverride("font_color", new Color("ffffff"));
+                grip.AddThemeColorOverride("font_shadow_color", new Color("17242c"));
+                grip.AddThemeConstantOverride("shadow_offset_x", 1);
+                grip.AddThemeConstantOverride("shadow_offset_y", 1);
+                grip.AddThemeFontSizeOverride("font_size", 12);
+                grip.SetAnchorsPreset(Control.LayoutPreset.Center);
+                grip.OffsetLeft = -14;
+                grip.OffsetTop = -10;
+                grip.OffsetRight = 14;
+                grip.OffsetBottom = 10;
+                dragArea.AddChild(grip);
+            }
+        }
+        AddVisibleSplitGrip(work, "|||");
+        AddVisibleSplitGrip(editorAndTasks, "|||");
+        AddVisibleSplitGrip(editorAndInspector, "— —");
+        return root;
+    }
+
+    private void BuildApplicationSettingsDialog()
+    {
+        var settings = LoadApplicationSettings();
+        _mcpUiEnabled = new CheckButton
+        {
+            Text = "Enable RungProof MCP UI integration",
+            ButtonPressed = settings.McpUiEnabled,
+            TooltipText = "Controls RungProof's local MCP menu affordances; it does not unregister the external Codex MCP server.",
+        };
+        _showSafetyNotices = new CheckButton
+        {
+            Text = "Show offline safety boundary notices",
+            ButtonPressed = settings.ShowSafetyNotices,
+        };
+        var body = new VBoxContainer { CustomMinimumSize = new Vector2(560, 0) };
+        body.AddChild(new Label
+        {
+            Text = "These settings are local to this simulator UI. The MCP server remains simulation-only and never creates a physical PLC connection.",
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+        });
+        body.AddChild(_mcpUiEnabled);
+        body.AddChild(_showSafetyNotices);
+        body.AddChild(new Label
+        {
+            Text = "Codex manages server registration. Use Codex MCP settings to unregister the server; this menu controls only RungProof UI behavior.",
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+        });
+        _applicationSettingsDialog = new AcceptDialog
+        {
+            Name = "ApplicationSettingsDialog",
+            Title = "MCP & Application Settings",
+            DialogText = string.Empty,
+            Exclusive = true,
+        };
+        _applicationSettingsDialog.AddChild(body);
+        _applicationSettingsDialog.Confirmed += SaveApplicationSettings;
+        AddChild(_applicationSettingsDialog);
+        SetMcpUiEnabled(_mcpUiEnabled.ButtonPressed, persist: false);
+    }
+
+    public bool IsExternalMode => _externalMode;
+
+    private void BuildExternalPlcDialog()
+    {
+        _externalProfileSelector = new OptionButton
+        {
+            Name = "ExternalProfileSelector",
+            CustomMinimumSize = new Vector2(420, 34),
+        };
+        _externalProfileSelector.AddItem("scene-1-db14-interface.json");
+        _externalProfileSelector.AddItem("scene-2-db14-pusher-interface.json");
+        _externalProfileSelector.ItemSelected += _ => RefreshExternalProfileDetails();
+        _externalProfileDetails = new RichTextLabel
+        {
+            Name = "ExternalProfileDetails",
+            BbcodeEnabled = true,
+            FitContent = true,
+            CustomMinimumSize = new Vector2(700, 260),
+        };
+        _externalAuthorization = new CheckButton
+        {
+            Name = "ExternalAuthorization",
+            Text = "I verified the active CPU, rack/slot, profile, and exact write scope.",
+        };
+
+        var body = new VBoxContainer { Name = "ExternalPlcBody", CustomMinimumSize = new Vector2(760, 0) };
+        body.AddChild(new Label
+        {
+            Text = "The External PLC mode uses the existing guarded S7 runtime and the selected validated profile. It does not modify the PLC project or safety logic.",
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+        });
+        body.AddChild(ConnectionSettingRow("Profile", _externalProfileSelector));
+        body.AddChild(_externalProfileDetails);
+        body.AddChild(_externalAuthorization);
+        var actions = new HBoxContainer();
+        var verify = ToolbarButton("VerifyExternalProfile", "VERIFY PROFILE", new Color("3c5968"));
+        var diagnostic = ToolbarButton("RunExternalDiagnostic", "READ-ONLY PLC TEST", new Color("3c5968"));
+        var connect = ToolbarButton("ConnectExternalPlc", "CONNECT EXTERNAL PLC", new Color("276b89"));
+        var disconnect = ToolbarButton("DisconnectExternalPlc", "DISCONNECT", new Color("6d3d42"));
+        actions.AddChild(verify);
+        actions.AddChild(diagnostic);
+        actions.AddChild(connect);
+        actions.AddChild(disconnect);
+        body.AddChild(actions);
+        _externalPlcDialog = new AcceptDialog
+        {
+            Name = "ExternalPlcDialog",
+            Title = "External PLC Settings / Tests",
+            DialogText = string.Empty,
+            Exclusive = true,
+            MinSize = new Vector2I(820, 620),
+        };
+        _externalPlcDialog.OkButtonText = "CLOSE";
+        _externalPlcDialog.AddChild(body);
+        verify.Pressed += RefreshExternalProfileDetails;
+        diagnostic.Pressed += RunExternalDiagnostic;
+        connect.Pressed += ConnectExternalPlc;
+        disconnect.Pressed += DisconnectExternalPlc;
+        AddChild(_externalPlcDialog);
+        RefreshExternalProfileDetails();
+    }
+
+    private static Control ConnectionSettingRow(string label, Control editor)
+    {
+        var row = new HBoxContainer { CustomMinimumSize = new Vector2(0, 38) };
+        row.AddChild(new Label { Text = label, CustomMinimumSize = new Vector2(120, 0), VerticalAlignment = VerticalAlignment.Center });
+        row.AddChild(editor);
+        return row;
+    }
+
+    private void ShowExternalPlcDialog()
+    {
+        SetExternalMode(true);
+        RefreshExternalProfileDetails();
+        _externalPlcDialog.PopupCenteredRatio(0.78f);
+    }
+
+    private void SetExternalMode(bool enabled)
+    {
+        if (!enabled && _connection is ExternalPlcRuntimeClient external
+            && external.State != ConnectionState.Disconnected)
+        {
+            external.Disconnect();
+        }
+        _externalMode = enabled;
+        var popup = GetNodeOrNull<MenuButton>("Workspace/Toolbar/ToolbarMargin/ToolbarRow/PlcMenu")?.GetPopup();
+        if (popup is not null)
+        {
+            popup.SetItemChecked(popup.GetItemIndex(10), !enabled);
+            popup.SetItemChecked(popup.GetItemIndex(11), enabled);
+        }
+        _workspaceStatus.Text = enabled
+            ? "EXTERNAL PLC MODE · select a matching profile and connect before RUN"
+            : "BUILT-IN SIMULATOR MODE · local virtual controller owns the scene";
+        _workspaceStatus.AddThemeColorOverride("font_color", enabled ? new Color("f1aa5b") : new Color("65d49a"));
+        RefreshConnection();
+    }
+
+    private void RefreshExternalProfileDetails()
+    {
+        if (_externalProfileDetails is null) return;
+        var profile = _externalProfileSelector.GetItemText(_externalProfileSelector.Selected);
+        if (_activeScene is null)
+        {
+            _externalProfileDetails.Text = "[color=#f1aa5b]No scene is loaded.[/color]";
+            return;
+        }
+        if (!string.Equals(_activeScene.PlcTestProfile, profile, StringComparison.OrdinalIgnoreCase))
+        {
+            _externalProfileDetails.Text = $"[color=#f1aa5b]PROFILE MISMATCH[/color]\nActive scene: {Escape(_activeScene.Id)}\nRequired profile: {Escape(_activeScene.PlcTestProfile ?? "none")}\nSelected: {Escape(profile)}\n\nSelect the profile declared by the scene before connecting.";
+            return;
+        }
+        if (_connection is not ExternalPlcRuntimeClient external)
+        {
+            _externalProfileDetails.Text = "[color=#ef7777]External runtime bridge is unavailable in this build.[/color]";
+            return;
+        }
+        try
+        {
+            var descriptor = external.DescribeProfile(profile);
+            var writes = descriptor.GetProperty("writeScope").EnumerateArray().ToArray();
+            var reads = descriptor.GetProperty("readScope").EnumerateArray().ToArray();
+            _externalProfileDetails.Text =
+                $"[color=#65d49a]PROFILE VALID[/color]\n" +
+                $"CPU: {Escape(descriptor.GetProperty("cpuFamily").GetString() ?? "")}, endpoint {Escape(descriptor.GetProperty("ip").GetString() ?? "")}, rack {descriptor.GetProperty("rack").GetInt32()}, slot {descriptor.GetProperty("slot").GetInt32()}\n" +
+                $"Cycle: {descriptor.GetProperty("cycleMs").GetInt32()} ms · connect timeout: {descriptor.GetProperty("connectTimeoutMs").GetInt32()} ms · heartbeat timeout: {descriptor.GetProperty("heartbeatTimeoutMs").GetInt32()} ms\n\n" +
+                $"[b]PC → PLC write scope ({writes.Length})[/b]\n" +
+                string.Join("\n", writes.Select(item => $"{Escape(item.GetProperty("address").GetString() ?? "")} · {Escape(item.GetProperty("symbol").GetString() ?? "")}")) +
+                $"\n\n[b]PLC → scene read scope ({reads.Length})[/b]\n" +
+                string.Join("\n", reads.Select(item => $"{Escape(item.GetProperty("address").GetString() ?? "")} · {Escape(item.GetProperty("symbol").GetString() ?? "")}"));
+        }
+        catch (Exception exception)
+        {
+            _externalProfileDetails.Text = $"[color=#ef7777]PROFILE TEST FAILED[/color]\n{Escape(exception.Message)}";
+        }
+    }
+
+    private void RunExternalDiagnostic()
+    {
+        if (_connection is not ExternalPlcRuntimeClient external)
+        {
+            _externalProfileDetails.Text = "[color=#ef7777]External runtime bridge is unavailable in this build.[/color]";
+            return;
+        }
+        var profile = _externalProfileSelector.GetItemText(_externalProfileSelector.Selected);
+        try
+        {
+            var result = external.RunReadOnlyDiagnostic(profile);
+            var lines = result.GetProperty("items").EnumerateArray().Select(item =>
+            {
+                var status = item.GetProperty("status").GetString()?.ToUpperInvariant() ?? "INFO";
+                var label = item.GetProperty("label").GetString() ?? string.Empty;
+                var detail = item.GetProperty("detail").GetString() ?? string.Empty;
+                return $"[{status}] {Escape(label)} · {Escape(detail)}";
+            });
+            _externalProfileDetails.Text =
+                $"[b]READ-ONLY PLC TEST[/b]\n{Escape(result.GetProperty("summary").GetString() ?? "No result.")}\n\n" +
+                string.Join("\n", lines);
+        }
+        catch (Exception exception)
+        {
+            _externalProfileDetails.Text = $"[color=#ef7777]READ-ONLY PLC TEST FAILED[/color]\n{Escape(exception.Message)}";
+        }
+    }
+
+    private void ConnectExternalPlc()
+    {
+        if (!_externalAuthorization.ButtonPressed)
+        {
+            _externalProfileDetails.Text += "\n\n[color=#f1aa5b]Connection requires exact-scope authorization.[/color]";
+            return;
+        }
+        if (_activeScene is null || _connection is not ExternalPlcRuntimeClient external)
+        {
+            SetWorkspaceStatus("External PLC connection unavailable · no matching scene/runtime", isError: true);
+            return;
+        }
+        var profile = _externalProfileSelector.GetItemText(_externalProfileSelector.Selected);
+        try
+        {
+            var descriptor = external.DescribeProfile(profile);
+            var scope = descriptor.GetProperty("writeScope").EnumerateArray()
+                .Select(item => item.EnumerateObject().ToDictionary(property => property.Name, property => property.Value.GetString() ?? string.Empty, StringComparer.Ordinal))
+                .ToArray();
+            external.Connect(profile, _activeScene.Id, scope);
+            SetExternalMode(true);
+            SetWorkspaceStatus("EXTERNAL PLC CONNECTED · cycle exchange active");
+            _externalPlcDialog.Hide();
+        }
+        catch (Exception exception)
+        {
+            SetWorkspaceStatus($"External PLC connection failed · {exception.Message}", isError: true);
+            RefreshConnection();
+        }
+    }
+
+    private void DisconnectExternalPlc()
+    {
+        if (_connection is ExternalPlcRuntimeClient external) external.Disconnect();
+        SetWorkspaceStatus("External PLC disconnected");
+        RefreshConnection();
+    }
+
+    private void SetMcpUiEnabled(bool enabled, bool persist = true)
+    {
+        _mcpUiEnabled.ButtonPressed = enabled;
+        var index = _toolsPopup.GetItemIndex(McpToggleMenuId);
+        if (index >= 0) _toolsPopup.SetItemText(index, $"MCP Integration: {(enabled ? "Enabled" : "Disabled")}");
+        if (persist) SaveApplicationSettings();
+    }
+
+    private void SaveApplicationSettings()
+    {
+        var payload = new Godot.Collections.Dictionary
+        {
+            ["schemaVersion"] = 1,
+            ["mcpUiEnabled"] = _mcpUiEnabled.ButtonPressed,
+            ["showSafetyNotices"] = _showSafetyNotices.ButtonPressed,
+        };
+        using var file = FileAccess.Open(SettingsPath, FileAccess.ModeFlags.Write);
+        file?.StoreString(Json.Stringify(payload, "  "));
+        SetMcpUiEnabled(_mcpUiEnabled.ButtonPressed, persist: false);
+    }
+
+    private static (bool McpUiEnabled, bool ShowSafetyNotices) LoadApplicationSettings()
+    {
+        if (!FileAccess.FileExists(SettingsPath)) return (true, true);
+        try
+        {
+            using var file = FileAccess.Open(SettingsPath, FileAccess.ModeFlags.Read);
+            var parsed = Json.ParseString(file?.GetAsText() ?? string.Empty).AsGodotDictionary();
+            return (
+                parsed.ContainsKey("mcpUiEnabled") ? parsed["mcpUiEnabled"].AsBool() : true,
+                parsed.ContainsKey("showSafetyNotices") ? parsed["showSafetyNotices"].AsBool() : true);
+        }
+        catch
+        {
+            return (true, true);
+        }
+    }
+
+    public bool IsLadderView => _productView is "ladder" or "split";
+
+    public bool VerifyWorkspaceLoadMenuBinding(out string result)
+    {
+        var popup = GetNodeOrNull<MenuButton>(
+            "Workspace/Toolbar/ToolbarMargin/ToolbarRow/FileMenu")?.GetPopup();
+        var feedback = GetNodeOrNull<AcceptDialog>("WorkspaceFeedbackDialog");
+        if (popup is null || feedback is null)
+        {
+            result = "File menu or workspace feedback dialog is unavailable";
+            return false;
+        }
+        feedback.Hide();
+        // Verifies that the visible File-menu item is connected to the
+        // operator load action. Native mouse/keyboard verification requires
+        // an interactive window; headless Godot has no real input surface.
+        popup.EmitSignal(PopupMenu.SignalName.IdPressed, 1L);
+        var invoked = feedback.Visible;
+        feedback.Hide();
+        result = invoked
+            ? "File -> Load Last Workspace invoked and displayed feedback"
+            : "File -> Load Last Workspace produced no visible feedback";
+        return invoked;
+    }
+
+    public bool VerifyExternalPlcMenu(out string result)
+    {
+        var popup = GetNodeOrNull<MenuButton>(
+            "Workspace/Toolbar/ToolbarMargin/ToolbarRow/PlcMenu")?.GetPopup();
+        if (popup is null)
+        {
+            result = "PLC menu is unavailable";
+            return false;
+        }
+        var labels = Enumerable.Range(0, popup.ItemCount)
+            .Select(popup.GetItemText)
+            .ToHashSet(StringComparer.Ordinal);
+        var passed = labels.Contains("Built-in Simulator")
+            && labels.Contains("External PLC")
+            && labels.Contains("External PLC Settings / Tests…");
+        result = passed
+            ? "PLC menu exposes Built-in Simulator, External PLC, and External PLC Settings / Tests"
+            : "PLC menu is missing one or more runtime mode entries";
+        return passed;
+    }
+
+    public bool VerifyScenarioMenuSelection(out string result)
+    {
+        var popup = GetNodeOrNull<MenuButton>(
+            "Workspace/Toolbar/ToolbarMargin/ToolbarRow/SceneMenu")?.GetPopup();
+        if (popup is null)
+        {
+            result = "Scenario menu is unavailable";
+            return false;
+        }
+        var expected = AuthoredDemos[0];
+        var index = Enumerable.Range(0, popup.ItemCount)
+            .FirstOrDefault(item => popup.GetItemText(item) == expected.Label, -1);
+        if (index < 0)
+        {
+            result = $"Scenario menu item is missing: {expected.Label}";
+            return false;
+        }
+        popup.EmitSignal(PopupMenu.SignalName.IdPressed, popup.GetItemId(index));
+        var selected = _activeScene?.Id == expected.SceneId;
+        result = selected
+            ? $"Scenario menu selected {expected.Label}"
+            : $"Scenario menu click did not load {expected.SceneId}; active={_activeScene?.Id ?? "<none>"}";
+        return selected;
+    }
+
+    public void ShowLadderSaveDialog() => _ladderSaveDialog.PopupCenteredRatio(0.72f);
+
+    public void ShowLadderLoadDialog() => _ladderLoadDialog.PopupCenteredRatio(0.72f);
+
+    public bool TryUndoLadderEdit(out string description)
+    {
+        if (!_ladderHistory.Undo(_ladderDocument, out description)) return false;
+        foreach (var refresh in _ladderEditorRefreshers) refresh();
+        RefreshLadderMonitorMatch();
+        _ladderWorkspaceStatus.Text = $"UNDO · {description.ToUpperInvariant()} · OFFLINE";
+        _ladderWorkspaceStatus.AddThemeColorOverride("font_color", new Color("65d49a"));
+        return true;
+    }
+
+    public bool TryRedoLadderEdit(out string description)
+    {
+        if (!_ladderHistory.Redo(_ladderDocument, out description)) return false;
+        foreach (var refresh in _ladderEditorRefreshers) refresh();
+        RefreshLadderMonitorMatch();
+        _ladderWorkspaceStatus.Text = $"REDO · {description.ToUpperInvariant()} · OFFLINE";
+        _ladderWorkspaceStatus.AddThemeColorOverride("font_color", new Color("65d49a"));
+        return true;
+    }
+
+    public void ShowLadderInstructionHelp()
+    {
+        var environment = _ladderEnvironmentTabs.CurrentTab == 1 ? "Studio 5000" : "TIA Portal";
+        var path = $"Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/{environment}/Workbench/EditorAndTasks/ToolDockHost/InstructionAndTags/ToolBody/ToolTabsHost/ToolTabs";
+        var tabs = GetNodeOrNull<TabContainer>(path);
+        if (tabs is not null) tabs.CurrentTab = 2;
+    }
+
+    private Control BuildVirtualControllerPanel()
+    {
+        var scroll = new ScrollContainer { Name = "Virtual Controller" };
+        var body = new VBoxContainer
+        {
+            Name = "VirtualControllerBody",
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+        };
+        body.AddThemeConstantOverride("separation", 8);
+        scroll.AddChild(body);
+        body.AddChild(SectionLabel("IEC 61131-3-ALIGNED SUBSET · OFFLINE"));
+        _virtualControllerStatus = Heading(
+            "DISABLED · NO PHYSICAL PLC CONNECTED",
+            12,
+            new Color("f1aa5b"));
+        _virtualControllerStatus.Name = "VirtualControllerStatus";
+        body.AddChild(_virtualControllerStatus);
+        var warning = Inspector("VirtualControllerWarning");
+        warning.FitContent = true;
+        warning.Text = "[color=#f1aa5b]Simulation only.[/color] Not safety validation, commissioning proof, vendor-equivalent execution, or real PLC timing evidence.";
+        body.AddChild(warning);
+
+        var loadDemo = ToolbarButton("LoadDemoLadderButton", "LOAD DEMO LADDER", new Color("1f8a58"));
+        loadDemo.Pressed += () => VirtualControllerDemoRequested?.Invoke();
+        body.AddChild(loadDemo);
+        var inputRow = new HBoxContainer { Name = "SimulatedInputs" };
+        inputRow.AddThemeConstantOverride("separation", 7);
+        var start = ToolbarButton("VirtualStartButton", "SIMULATED START", new Color("1f8a58"));
+        var stop = ToolbarButton("VirtualStopButton", "SIMULATED STOP", new Color("8a3b3b"));
+        start.TooltipText = "Momentary simulation-only BOOL input; not a force and not physical I/O.";
+        stop.TooltipText = "Momentary simulation-only BOOL input; not a force and not physical I/O.";
+        start.Pressed += () => VirtualStartRequested?.Invoke();
+        stop.Pressed += () => VirtualStopRequested?.Invoke();
+        inputRow.AddChild(start);
+        inputRow.AddChild(stop);
+        body.AddChild(inputRow);
+        body.AddChild(SectionLabel("SIMULATOR FORCE TABLE"));
+        var forceBoundary = Inspector("ForceBoundary");
+        forceBoundary.FitContent = true;
+        forceBoundary.Text = "[color=#ef7777][b]SIMULATION FORCE — NOT PHYSICAL I/O[/b][/color]\nBOOL input/output image only. Stop de-energizes outputs; Reset clears all forces. Forces are never saved to the Ladder project.";
+        body.AddChild(forceBoundary);
+        var forceControls = new VBoxContainer { Name = "ForceControls" };
+        forceControls.AddThemeConstantOverride("separation", 5);
+        var forceSelectionRow = new HBoxContainer { Name = "ForceSelection" };
+        forceSelectionRow.AddThemeConstantOverride("separation", 5);
+        _virtualForceVariable = new OptionButton
+        {
+            Name = "ForceVariable",
+            CustomMinimumSize = new Vector2(190, 32),
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+            TooltipText = "Only declared BOOL input/output tags from the loaded offline program are eligible.",
+        };
+        _virtualForceValue = new OptionButton { Name = "ForceValue", CustomMinimumSize = new Vector2(82, 32) };
+        _virtualForceValue.AddItem("FALSE");
+        _virtualForceValue.AddItem("TRUE");
+        var applyForce = ToolbarButton("ApplyForceButton", "FORCE", new Color("a66b20"), 72);
+        var removeForce = ToolbarButton("RemoveForceButton", "REMOVE", new Color("65505a"), 78);
+        forceSelectionRow.AddChild(_virtualForceVariable);
+        forceSelectionRow.AddChild(_virtualForceValue);
+        forceControls.AddChild(forceSelectionRow);
+        var forceActionRow = new HBoxContainer { Name = "ForceActions" };
+        forceActionRow.AddThemeConstantOverride("separation", 5);
+        applyForce.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        removeForce.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        forceActionRow.AddChild(applyForce);
+        forceActionRow.AddChild(removeForce);
+        forceControls.AddChild(forceActionRow);
+        body.AddChild(forceControls);
+        var clearForces = ToolbarButton("ClearForcesButton", "CLEAR ALL SIMULATOR FORCES", new Color("8a3b3b"));
+        body.AddChild(clearForces);
+        _virtualForceStatus = Heading("NO SIMULATOR FORCES", 11, new Color("7fa7ba"));
+        _virtualForceStatus.Name = "ForceStatus";
+        body.AddChild(_virtualForceStatus);
+        applyForce.Pressed += () =>
+        {
+            if (_virtualForceVariable.ItemCount == 0) return;
+            VirtualForceRequested?.Invoke(
+                _virtualForceVariable.GetItemMetadata(_virtualForceVariable.Selected).AsString(),
+                _virtualForceValue.Selected == 1);
+        };
+        removeForce.Pressed += () =>
+        {
+            if (_virtualForceVariable.ItemCount == 0) return;
+            VirtualForceRemoveRequested?.Invoke(
+                _virtualForceVariable.GetItemMetadata(_virtualForceVariable.Selected).AsString());
+        };
+        clearForces.Pressed += () => VirtualForceClearRequested?.Invoke();
+        var disable = ToolbarButton("DisableVirtualControllerButton", "DISABLE VIRTUAL CONTROLLER", new Color("355d73"));
+        disable.Pressed += () => VirtualControllerDisabled?.Invoke();
+        body.AddChild(disable);
+        body.AddChild(SectionLabel("LADDER LIVE STATE"));
+        _virtualControllerLadder = Inspector("VirtualControllerLadder");
+        _virtualControllerLadder.FitContent = true;
+        _virtualControllerLadder.Text = "Load the bounded conveyor demonstration program.";
+        body.AddChild(_virtualControllerLadder);
+        body.AddChild(SectionLabel("VARIABLES"));
+        _virtualControllerVariables = Inspector("VirtualControllerVariables");
+        _virtualControllerVariables.FitContent = true;
+        _virtualControllerVariables.Text = "No virtual program loaded.";
+        body.AddChild(_virtualControllerVariables);
+        return scroll;
+    }
+
+    public void AttachVirtualController(LadderProgram program, VirtualControllerSnapshot snapshot)
+    {
+        _virtualProgram = program;
+        _virtualSnapshot = snapshot;
+        RefreshLadderMonitorMatch();
+        _virtualForceVariable.Clear();
+        foreach (var variable in program.Variables.Where(variable =>
+                     variable.Type == PlcVariableType.Bool
+                     && variable.Role is PlcVariableRole.Input or PlcVariableRole.Output))
+        {
+            _virtualForceVariable.AddItem($"{variable.Name} · {variable.Role.ToString().ToUpperInvariant()}");
+            _virtualForceVariable.SetItemMetadata(_virtualForceVariable.ItemCount - 1, variable.Name);
+        }
+        UpdateVirtualController(snapshot);
+    }
+
+    public bool TryBuildCurrentLadderProgram(
+        out LadderProgram program,
+        out IReadOnlyList<LadderValidationIssue> issues)
+    {
+        program = _ladderDocument.BuildProgram();
+        var compiled = LadderCompiler.Compile(program);
+        issues = compiled.Issues
+            .Concat(SceneIoBindingValidator.Validate(program, ScenePoints()))
+            .ToArray();
+        return compiled.IsValid && issues.Count == 0;
+    }
+
+    public void UpdateVirtualController(VirtualControllerSnapshot snapshot)
+    {
+        _virtualSnapshot = snapshot;
+        var virtualProgram = _virtualProgram;
+        if (virtualProgram is null) return;
+        foreach (var refresh in _ladderWatchRefreshers) refresh(snapshot);
+        foreach (var ladderCanvas in _ladderCanvases)
+            ladderCanvas.SetMonitorSnapshot(_ladderMonitorMatchesLoadedProgram ? snapshot : null);
+        if (_ladderMonitorMatchesLoadedProgram)
+        {
+            _ladderWorkspaceStatus.Text = snapshot.State == VirtualControllerState.Running
+                ? $"MONITORING OFFLINE RUNTIME · SCAN {snapshot.ScanNumber} · NO PHYSICAL PLC"
+                : $"OFFLINE RUNTIME STOPPED · SCAN {snapshot.ScanNumber} · NO PHYSICAL PLC";
+            _ladderWorkspaceStatus.AddThemeColorOverride("font_color",
+                snapshot.State == VirtualControllerState.Running ? new Color("65d49a") : new Color("f1aa5b"));
+        }
+        var forceBanner = snapshot.Forces.Count > 0 ? $" · {snapshot.Forces.Count} SIM FORCE(S) ACTIVE" : string.Empty;
+        _virtualControllerStatus.Text = snapshot.State == VirtualControllerState.Running
+            ? $"VIRTUAL CONTROLLER · RUNNING · SCAN {snapshot.ScanNumber}{forceBanner} · NO PHYSICAL PLC"
+            : $"VIRTUAL CONTROLLER · STOPPED · SCAN {snapshot.ScanNumber}{forceBanner} · NO PHYSICAL PLC";
+        _virtualControllerStatus.AddThemeColorOverride("font_color",
+            snapshot.State == VirtualControllerState.Running ? new Color("65d49a") : new Color("f1aa5b"));
+        var cycleMs = virtualProgram.ScanPeriod.TotalMilliseconds;
+        _cycleStatus.Text = cycleMs > 0.0
+            ? $"CYCLE  {cycleMs:0.###} ms  ·  SCAN  {snapshot.ScanNumber}"
+            : "CYCLE  —  ·  SCAN  —";
+        _cycleStatus.AddThemeColorOverride("font_color",
+            snapshot.State == VirtualControllerState.Running ? new Color("65d49a") : new Color("7fa7ba"));
+
+        var ladder = new StringBuilder();
+        ladder.AppendLine("[color=#7fa7ba][b]TASK / OB SCHEDULE[/b][/color]");
+        foreach (var task in snapshot.Tasks.Values.OrderBy(task => task.Priority).ThenBy(task => task.Name))
+        {
+            var state = task.Due ? "[color=#65d49a]DUE[/color]" : "idle";
+            var schedule = task.Kind == LadderTaskKind.Continuous ? "continuous" : $"{task.Period.TotalMilliseconds:0} ms";
+            ladder.AppendLine($"  {Escape(task.Name)} · {schedule} · P{task.Priority} · {state} · runs={task.ExecutionCount}");
+        }
+        ladder.AppendLine();
+        var monitorBlocks = virtualProgram.Blocks is { Count: > 0 }
+            ? virtualProgram.Blocks
+            : [new LadderBlock("main", virtualProgram.Name, virtualProgram.Networks)];
+        foreach (var block in monitorBlocks)
+        {
+            ladder.AppendLine($"[color=#7fa7ba][b]BLOCK {Escape(block.Name)}[/b][/color]");
+            foreach (var network in block.Networks)
+            {
+            ladder.AppendLine($"[b]{Escape(network.Label)}[/b]");
+            AppendLadderNode(ladder, network.Logic, snapshot, "  ");
+            if (network.Coil is not null)
+            {
+                var coilLabel = network.Coil.Mode switch
+                {
+                    LadderCoilMode.Set => $"  (S/L) {Escape(network.Coil.Variable)}",
+                    LadderCoilMode.Reset => $"  (R/U) {Escape(network.Coil.Variable)}",
+                    _ => $"  ( {Escape(network.Coil.Variable)} )",
+                };
+                AppendState(ladder, network.Coil.Id,
+                    coilLabel, snapshot);
+            }
+            else if (network.Timer is not null)
+            {
+                var mnemonic = network.Timer.Kind switch
+                {
+                    LadderTimerKind.OffDelay => "TOF",
+                    LadderTimerKind.Pulse => "TP",
+                    LadderTimerKind.RetentiveOnDelay => "RTO/TONR",
+                    _ => "TON",
+                };
+                AppendState(ladder, network.Timer.Id,
+                    $"  {mnemonic} {Escape(network.Timer.Variable)}  PT={network.Timer.Preset.TotalMilliseconds:0} ms", snapshot);
+            }
+            else if (network.TimerReset is not null)
+                AppendState(ladder, network.TimerReset.Id,
+                    $"  RT/RES TIMER {Escape(network.TimerReset.Variable)}", snapshot);
+            else if (network.Counter is not null)
+            {
+                var mnemonic = network.Counter.Kind == LadderCounterKind.CountDown ? "CTD" : "CTU";
+                AppendState(ladder, network.Counter.Id,
+                    $"  {mnemonic} {Escape(network.Counter.Variable)}  PRE={network.Counter.Preset}", snapshot);
+            }
+            else if (network.CounterReset is not null)
+                AppendState(ladder, network.CounterReset.Id,
+                    $"  RES {Escape(network.CounterReset.Variable)}", snapshot);
+            else if (network.CounterLoad is not null)
+                AppendState(ladder, network.CounterLoad.Id,
+                    $"  LOAD {Escape(network.CounterLoad.Variable)}  PRE={network.CounterLoad.Preset}", snapshot);
+            else if (network.NumericOperation is not null)
+            {
+                var operation = network.NumericOperation;
+                var sourceText = LadderNumericOperationRules.RequiresSourceC(operation.Kind)
+                    ? $"{operation.SourceA}, {operation.SourceB}, {operation.SourceC}"
+                    : !LadderNumericOperationRules.RequiresSourceB(operation.Kind)
+                        ? operation.SourceA
+                        : $"{operation.SourceA}, {operation.SourceB}";
+                AppendState(ladder, operation.Id,
+                    $"  {operation.Kind.ToString().ToUpperInvariant()} {Escape(sourceText)} -> {Escape(operation.Destination)}", snapshot);
+            }
+            else if (network.Call is not null)
+                AppendState(ladder, network.Call.Id,
+                    $"  CALL/JSR {Escape(network.Call.TargetBlock)}", snapshot);
+            else if (network.Return is not null)
+                AppendState(ladder, network.Return.Id,
+                    "  RETURN/RET", snapshot);
+            ladder.AppendLine();
+            }
+        }
+        _virtualControllerLadder.Text = ladder.ToString();
+
+        var variables = new StringBuilder();
+        foreach (var variable in virtualProgram.Variables)
+        {
+            if (variable.Type == PlcVariableType.Timer)
+            {
+                var timer = snapshot.Timers.GetValueOrDefault(variable.Name);
+                if (timer is not null)
+                    variables.AppendLine($"{Escape(variable.Name)}  [color=#7fa7ba]TIMER[/color]  ET={timer.Accumulated.TotalMilliseconds:0} ms  Q/DN={timer.Done.ToString().ToUpperInvariant()}");
+                continue;
+            }
+            if (variable.Type == PlcVariableType.Counter)
+            {
+                var counter = snapshot.Counters.GetValueOrDefault(variable.Name);
+                if (counter is not null)
+                    variables.AppendLine($"{Escape(variable.Name)}  [color=#7fa7ba]COUNTER[/color]  ACC/CV={counter.Accumulated}  PRE/PV={counter.Preset}  Q/DN={counter.Done.ToString().ToUpperInvariant()}");
+                continue;
+            }
+            if (variable.Type is PlcVariableType.Int or PlcVariableType.DInt or PlcVariableType.Real)
+            {
+                var numericValue = snapshot.NumericVariables.GetValueOrDefault(variable.Name);
+                var formatted = variable.Type is PlcVariableType.Int or PlcVariableType.DInt
+                    ? numericValue.ToString("0", System.Globalization.CultureInfo.InvariantCulture)
+                    : numericValue.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture);
+                variables.AppendLine($"{Escape(variable.Name)}  [color=#7fa7ba]{variable.Type.ToString().ToUpperInvariant()} · {variable.Role}[/color]  {formatted}");
+                continue;
+            }
+            var value = snapshot.Variables.GetValueOrDefault(variable.Name);
+            var color = value ? "65d49a" : "8aa5b4";
+            var force = snapshot.Forces.GetValueOrDefault(variable.Name);
+            var forceText = force is null
+                ? string.Empty
+                : $"  [color=#ef7777][b]FORCE={force.Value.ToString().ToUpperInvariant()} · SIM ONLY[/b][/color]";
+            variables.AppendLine(
+                $"[color=#{color}]{(value ? "TRUE " : "FALSE")}[/color]  " +
+                $"{Escape(variable.Name)}  [color=#7fa7ba]{variable.Role} · {variable.Type}[/color]{forceText}");
+        }
+        _virtualControllerVariables.Text = variables.ToString();
+        _virtualForceStatus.Text = snapshot.Forces.Count == 0
+            ? "NO SIMULATOR FORCES"
+            : $"{snapshot.Forces.Count} SIMULATOR FORCE(S) ACTIVE · NEVER PHYSICAL I/O";
+        _virtualForceStatus.AddThemeColorOverride("font_color",
+            snapshot.Forces.Count == 0 ? new Color("7fa7ba") : new Color("ef7777"));
+        if (snapshot.Diagnostics.Count > 0)
+            _virtualControllerLadder.Text += "\n[color=#ef7777][b]RUNTIME DIAGNOSTICS[/b][/color]\n"
+                + string.Join("\n", snapshot.Diagnostics.Select(Escape));
+        RefreshRuntimeState();
+    }
+
+    public void SetVirtualControllerValidation(IReadOnlyList<LadderValidationIssue> issues)
+    {
+        _virtualProgram = null;
+        _virtualSnapshot = null;
+        _ladderMonitorMatchesLoadedProgram = false;
+        foreach (var ladderCanvas in _ladderCanvases) ladderCanvas.SetMonitorSnapshot(null);
+        _virtualControllerStatus.Text = "VALIDATION FAILED · PROGRAM NOT RUNNING · NO PHYSICAL PLC";
+        _virtualControllerStatus.AddThemeColorOverride("font_color", new Color("ef7777"));
+        _virtualControllerLadder.Text = string.Join("\n", issues.Select(issue =>
+            $"[color=#ef7777][b]{Escape(issue.Code)}[/b][/color] {Escape(issue.Path)} · {Escape(issue.Message)}"));
+        _virtualControllerVariables.Text = "Malformed logic is rejected before execution.";
+        foreach (var refresh in _ladderWatchRefreshers) refresh(null);
+        ShowClassicTool("virtual-controller");
+        _cycleStatus.Text = "CYCLE  —  ·  PROGRAM INVALID";
+        _cycleStatus.AddThemeColorOverride("font_color", new Color("ef7777"));
+    }
+
+    public void SetVirtualControllerForceError(string message)
+    {
+        _virtualForceStatus.Text = "FORCE REJECTED · " + message.ToUpperInvariant();
+        _virtualForceStatus.AddThemeColorOverride("font_color", new Color("ef7777"));
+    }
+
+    public void DetachVirtualController()
+    {
+        _virtualProgram = null;
+        _virtualSnapshot = null;
+        _ladderMonitorMatchesLoadedProgram = false;
+        foreach (var ladderCanvas in _ladderCanvases) ladderCanvas.SetMonitorSnapshot(null);
+        _virtualControllerStatus.Text = "DISABLED · NO PHYSICAL PLC CONNECTED";
+        _virtualControllerStatus.AddThemeColorOverride("font_color", new Color("f1aa5b"));
+        _virtualControllerLadder.Text = "Load the bounded conveyor demonstration program.";
+        _virtualControllerVariables.Text = "No virtual program loaded.";
+        _virtualForceVariable.Clear();
+        _virtualForceStatus.Text = "NO SIMULATOR FORCES";
+        foreach (var refresh in _ladderWatchRefreshers) refresh(null);
+        _cycleStatus.Text = "CYCLE  —  ·  LADDER NOT LOADED";
+        _cycleStatus.AddThemeColorOverride("font_color", new Color("7fa7ba"));
+    }
+
+    private void RefreshLadderMonitorMatch()
+    {
+        var matches = false;
+        if (_virtualProgram is not null)
+        {
+            try
+            {
+                matches = string.Equals(
+                    LadderProgramJson.Save(_virtualProgram with { WatchVariables = null }),
+                    LadderProgramJson.Save(_ladderDocument.BuildProgram() with { WatchVariables = null }),
+                    StringComparison.Ordinal);
+            }
+            catch
+            {
+                matches = false;
+            }
+        }
+        _ladderMonitorMatchesLoadedProgram = matches;
+        foreach (var ladderCanvas in _ladderCanvases)
+            ladderCanvas.SetMonitorSnapshot(matches ? _virtualSnapshot : null);
+    }
+
+    public bool VerifyVirtualControllerUi(out string result)
+    {
+        var required = new[]
+        {
+            "Workspace/RightDock/InspectorTabs/Virtual Controller/VirtualControllerBody/LoadDemoLadderButton",
+            "Workspace/RightDock/InspectorTabs/Virtual Controller/VirtualControllerBody/SimulatedInputs/VirtualStartButton",
+            "Workspace/RightDock/InspectorTabs/Virtual Controller/VirtualControllerBody/SimulatedInputs/VirtualStopButton",
+            "Workspace/RightDock/InspectorTabs/Virtual Controller/VirtualControllerBody/ForceControls/ForceSelection/ForceVariable",
+            "Workspace/RightDock/InspectorTabs/Virtual Controller/VirtualControllerBody/ForceControls/ForceSelection/ForceValue",
+            "Workspace/RightDock/InspectorTabs/Virtual Controller/VirtualControllerBody/ForceControls/ForceActions/ApplyForceButton",
+            "Workspace/RightDock/InspectorTabs/Virtual Controller/VirtualControllerBody/ForceControls/ForceActions/RemoveForceButton",
+            "Workspace/RightDock/InspectorTabs/Virtual Controller/VirtualControllerBody/ClearForcesButton",
+            "Workspace/RightDock/InspectorTabs/Virtual Controller/VirtualControllerBody/ForceStatus",
+            "Workspace/RightDock/InspectorTabs/Virtual Controller/VirtualControllerBody/VirtualControllerLadder",
+            "Workspace/RightDock/InspectorTabs/Virtual Controller/VirtualControllerBody/VirtualControllerVariables",
+        };
+        var missing = required.Where(path => GetNodeOrNull(path) is null).ToArray();
+        var hasProgram = _virtualProgram is not null && _virtualSnapshot is not null;
+        var hasDiagnostics = _virtualControllerLadder.Text.Contains("contact-photoeye-inhibit", StringComparison.Ordinal)
+            || _virtualControllerLadder.Text.Contains("simulated_photoeye", StringComparison.Ordinal);
+        var forceVisible = _virtualSnapshot?.Forces.Count > 0
+            && _virtualControllerVariables.Text.Contains("SIM ONLY", StringComparison.Ordinal)
+            && _virtualForceStatus.Text.Contains("NEVER PHYSICAL I/O", StringComparison.Ordinal);
+        result = $"nodes={required.Length - missing.Length}/{required.Length} program={hasProgram} liveLadder={hasDiagnostics} forceVisible={forceVisible}";
+        return missing.Length == 0 && hasProgram && hasDiagnostics && forceVisible;
+    }
+
+    public bool VerifyLadderEditorInteractions(out string result)
+    {
+        const string root = "Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/TIA Portal/Workbench";
+        var projectTree = GetNodeOrNull<Tree>($"{root}/ProjectDockHost/ProjectOrganization/ProjectBody/ProjectTreeAndTags/ProjectTree");
+        var addBlockFromTree = GetNodeOrNull<Button>(
+            $"{root}/ProjectDockHost/ProjectOrganization/ProjectBody/ProjectTitle/AddBlockFromProjectTree");
+        var projectMenu = GetNodeOrNull<MenuButton>(
+            "Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/TIA Portal/VendorChrome/VendorMenuBar/LadderProjectMenu");
+        var projectPanelNode = GetNodeOrNull<Control>($"{root}/ProjectDockHost/ProjectOrganization");
+        var projectSplit = GetNodeOrNull<HSplitContainer>(root);
+        var toolSplit = GetNodeOrNull<HSplitContainer>($"{root}/EditorAndTasks");
+        var bottomSplit = GetNodeOrNull<VSplitContainer>($"{root}/EditorAndTasks/EditorAndInspector");
+        var editorRoot = $"{root}/EditorAndTasks/EditorAndInspector/ProgramEditor";
+        var tiaEditorTabTitle = GetNodeOrNull<Label>($"{editorRoot}/EditorTab/EditorTabTitle");
+        var logixEditorTabTitle = GetNodeOrNull<Label>(
+            "Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/Studio 5000/Workbench/EditorAndTasks/EditorAndInspector/ProgramEditor/EditorTab/EditorTabTitle");
+        var paletteRoot = $"{editorRoot}/InstructionToolbarChrome/InstructionToolbar/InstructionPalette";
+        var bitRoot = $"{paletteRoot}/Bit Logic";
+        var timerRoot = $"{paletteRoot}/Timers";
+        var counterRoot = $"{paletteRoot}/Counters";
+        var addRung = GetNodeOrNull<Button>($"{bitRoot}/AddRung");
+        var addNo = GetNodeOrNull<Button>($"{bitRoot}/AddNormallyOpen");
+        var addRisingEdge = GetNodeOrNull<Button>($"{bitRoot}/AddRisingEdge");
+        var addFallingEdge = GetNodeOrNull<Button>($"{bitRoot}/AddFallingEdge");
+        var addTimer = GetNodeOrNull<Button>($"{timerRoot}/AddTimerOnDelay");
+        var addOffDelay = GetNodeOrNull<Button>($"{timerRoot}/AddTimerOffDelay");
+        var addPulseTimer = GetNodeOrNull<Button>($"{timerRoot}/AddPulseTimer");
+        var addRetentiveTimer = GetNodeOrNull<Button>($"{timerRoot}/AddRetentiveTimer");
+        var addTimerReset = GetNodeOrNull<Button>($"{timerRoot}/AddTimerReset");
+        var addCounter = GetNodeOrNull<Button>($"{counterRoot}/AddCountUp");
+        var addCounterDown = GetNodeOrNull<Button>($"{counterRoot}/AddCountDown");
+        var addCounterLoad = GetNodeOrNull<Button>($"{counterRoot}/AddCounterLoad");
+        var addCounterReset = GetNodeOrNull<Button>($"{counterRoot}/AddCounterReset");
+        var addCompare = GetNodeOrNull<Button>($"{paletteRoot}/Compare/AddComparison");
+        var addMove = GetNodeOrNull<Button>($"{paletteRoot}/Math and Move/AddMove");
+        var addModulo = GetNodeOrNull<Button>($"{paletteRoot}/Math and Move/AddModulo");
+        var addSquareRoot = GetNodeOrNull<Button>($"{paletteRoot}/Math and Move/AddSquareRoot");
+        var addExponentiate = GetNodeOrNull<Button>($"{paletteRoot}/Scientific Math/AddExponentiate");
+        var addTruncate = GetNodeOrNull<Button>($"{paletteRoot}/Conversion/AddTruncate");
+        var addNormalize = GetNodeOrNull<Button>($"{paletteRoot}/Conversion/AddNormalize");
+        var addScale = GetNodeOrNull<Button>($"{paletteRoot}/Conversion/AddScale");
+        var addConvert = GetNodeOrNull<Button>($"{paletteRoot}/Conversion/AddConvert");
+        var addRound = GetNodeOrNull<Button>($"{paletteRoot}/Conversion/AddRound");
+        var addCeiling = GetNodeOrNull<Button>($"{paletteRoot}/Conversion/AddCeiling");
+        var addFloor = GetNodeOrNull<Button>($"{paletteRoot}/Conversion/AddFloor");
+        var addCall = GetNodeOrNull<Button>($"{paletteRoot}/Program Control/AddCall");
+        var addReturn = GetNodeOrNull<Button>($"{paletteRoot}/Program Control/AddReturn");
+        var addJump = GetNodeOrNull<Button>($"{paletteRoot}/Program Control/AddJump");
+        var addLabel = GetNodeOrNull<Button>($"{paletteRoot}/Program Control/AddLabel");
+        var inspectorRoot = $"{root}/EditorAndTasks/EditorAndInspector/BottomDockHost/InspectorOutputDock/InspectorOutputBody";
+        var toolRoot = $"{root}/EditorAndTasks/ToolDockHost/InstructionAndTags/ToolBody";
+        var projectTabsRoot = $"{root}/ProjectDockHost/ProjectOrganization/ProjectBody/ProjectTreeAndTags";
+        var projectObjectsRoot = $"{projectTabsRoot}/Project objects";
+        var blockCommandsRoot = $"{projectObjectsRoot}/BlockCommands";
+        var taskCommandsRoot = $"{projectObjectsRoot}/TaskCommands";
+        var blockName = GetNodeOrNull<LineEdit>($"{projectObjectsRoot}/BlockName");
+        var blockTypeSelector = GetNodeOrNull<OptionButton>($"{projectObjectsRoot}/BlockTypeSelector");
+        var interfaceTable = GetNodeOrNull<Tree>($"{projectObjectsRoot}/BlockInterface");
+        var addInterface = GetNodeOrNull<Button>($"{projectObjectsRoot}/InterfaceCommands/AddInterface");
+        var removeInterface = GetNodeOrNull<Button>($"{projectObjectsRoot}/InterfaceCommands/RemoveInterface");
+        var addBlock = GetNodeOrNull<Button>($"{blockCommandsRoot}/AddBlock");
+        var applyBlock = GetNodeOrNull<Button>($"{blockCommandsRoot}/ApplyBlock");
+        var removeBlock = GetNodeOrNull<Button>($"{blockCommandsRoot}/RemoveBlock");
+        var taskName = GetNodeOrNull<LineEdit>($"{projectObjectsRoot}/TaskName");
+        var addTask = GetNodeOrNull<Button>($"{taskCommandsRoot}/AddTask");
+        var applyTask = GetNodeOrNull<Button>($"{taskCommandsRoot}/ApplyTask");
+        var removeTask = GetNodeOrNull<Button>($"{taskCommandsRoot}/RemoveTask");
+        var addSet = GetNodeOrNull<Button>($"{bitRoot}/AddSetLatch");
+        var addReset = GetNodeOrNull<Button>($"{bitRoot}/AddResetUnlatch");
+        var removeBranchButton = GetNodeOrNull<Button>($"{bitRoot}/RemoveBranch");
+        var remove = GetNodeOrNull<Button>($"{bitRoot}/RemoveInstruction");
+        var undo = GetNodeOrNull<Button>("Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/TIA Portal/VendorChrome/VendorMenuBar/LadderUndo");
+        var redo = GetNodeOrNull<Button>("Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/TIA Portal/VendorChrome/VendorMenuBar/LadderRedo");
+        var bottomTabs = GetNodeOrNull<TabContainer>($"{inspectorRoot}/InspectorOutputTabs");
+        var validationSummary = GetNodeOrNull<Label>($"{inspectorRoot}/InspectorOutputTabs/Error List/ValidationSummary");
+        var validationIssues = GetNodeOrNull<ItemList>($"{inspectorRoot}/InspectorOutputTabs/Error List/ValidationIssues");
+        var output = GetNodeOrNull<RichTextLabel>($"{inspectorRoot}/InspectorOutputTabs/Output/OutputWindow");
+        const string contextualPropertiesRoot = "Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/TIA Portal/InstructionPropertiesLayer/InstructionPropertiesPopup/InstructionPropertiesFrame/InstructionPropertiesBody";
+        var numericSourceBField = GetNodeOrNull<LineEdit>($"{contextualPropertiesRoot}/NumericPropertyRow/NumericSourceB");
+        var numericSourceCField = GetNodeOrNull<LineEdit>($"{contextualPropertiesRoot}/NumericPropertyRow/NumericSourceC");
+        var contextualPropertiesPopup = GetNodeOrNull<Control>("Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/TIA Portal/InstructionPropertiesLayer/InstructionPropertiesPopup");
+        var contextualPropertyScope = GetNodeOrNull<Label>($"{contextualPropertiesRoot}/InstructionPropertyScope");
+        const string logixPropertiesRoot = "Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/Studio 5000/InstructionPropertiesLayer/InstructionPropertiesPopup/InstructionPropertiesFrame/InstructionPropertiesBody";
+        var logixPropertiesPopup = GetNodeOrNull<Control>("Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/Studio 5000/InstructionPropertiesLayer/InstructionPropertiesPopup");
+        var logixPropertyScope = GetNodeOrNull<Label>($"{logixPropertiesRoot}/InstructionPropertyScope");
+        var logixContactPropertyRow = GetNodeOrNull<Control>($"{logixPropertiesRoot}/ContactPropertyRow");
+        var instructionContextMenu = GetNodeOrNull<PopupMenu>("Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/TIA Portal/InstructionContextMenu");
+        var contactPropertyRow = GetNodeOrNull<Control>($"{contextualPropertiesRoot}/ContactPropertyRow");
+        var numericPropertyRow = GetNodeOrNull<Control>($"{contextualPropertiesRoot}/NumericPropertyRow");
+        var jumpLabelPropertyRow = GetNodeOrNull<Control>($"{contextualPropertiesRoot}/JumpLabelPropertyRow");
+        var programControlLabel = GetNodeOrNull<LineEdit>($"{contextualPropertiesRoot}/JumpLabelPropertyRow/ProgramControlLabel");
+        var watchRoot = $"{inspectorRoot}/InspectorOutputTabs/Watch table 1";
+        var watchStatus = GetNodeOrNull<Label>($"{watchRoot}/WatchHeader/WatchStatus");
+        var watchTable = GetNodeOrNull<Tree>($"{watchRoot}/WatchTable");
+        var clearWatch = GetNodeOrNull<Button>($"{watchRoot}/WatchHeader/ClearWatchSymbols");
+        var instructionTree = GetNodeOrNull<Tree>($"{toolRoot}/ToolTabsHost/ToolTabs/Instructions/InstructionTree");
+        var toolPanelNode = GetNodeOrNull<Control>($"{root}/EditorAndTasks/ToolDockHost/InstructionAndTags");
+        var toolDockHostNode = GetNodeOrNull<Control>($"{root}/EditorAndTasks/ToolDockHost");
+        var searchRoot = $"{toolRoot}/ToolTabsHost/ToolTabs/Find and cross-reference";
+        var searchQuery = GetNodeOrNull<LineEdit>($"{searchRoot}/ProjectSearchQuery");
+        var crossReference = GetNodeOrNull<Button>($"{searchRoot}/SearchActions/CrossReferenceButton");
+        var searchResults = GetNodeOrNull<ItemList>($"{searchRoot}/SearchResults");
+        var toolTabs = GetNodeOrNull<TabContainer>($"{toolRoot}/ToolTabsHost/ToolTabs");
+        var toolRail = GetNodeOrNull<VBoxContainer>($"{toolRoot}/ToolTabsHost/ToolTabRail");
+        var projectTabs = GetNodeOrNull<TabContainer>(projectTabsRoot);
+        var tagPageRoot = $"{projectTabsRoot}/PLC tags";
+        var verifyAndLoad = GetNodeOrNull<Button>($"{tagPageRoot}/ValidateAndLoadButton");
+        var editorTagList = GetNodeOrNull<Tree>($"{tagPageRoot}/TagTable");
+        var editorTagName = GetNodeOrNull<LineEdit>($"{tagPageRoot}/TagNameRow/NewTagName");
+        var editorTagInitialValue = GetNodeOrNull<LineEdit>($"{tagPageRoot}/TagInitialValueRow/TagInitialValue");
+        var editorTagBinding = GetNodeOrNull<OptionButton>($"{tagPageRoot}/TagBindingRow/NewTagBinding");
+        var editorTagBindingStatus = GetNodeOrNull<Label>($"{tagPageRoot}/TagBindingStatus");
+        var addTagButton = GetNodeOrNull<Button>($"{tagPageRoot}/AddTag");
+        var applyTagButton = GetNodeOrNull<Button>($"{tagPageRoot}/TagEditActions/ApplyTagEdit");
+        var deleteTagButton = GetNodeOrNull<Button>($"{tagPageRoot}/TagEditActions/DeleteTag");
+        var helpSelector = GetNodeOrNull<OptionButton>($"{toolRoot}/ToolTabsHost/ToolTabs/Instruction help/HelpInstructionSelector");
+        var helpDetails = GetNodeOrNull<RichTextLabel>($"{toolRoot}/ToolTabsHost/ToolTabs/Instruction help/InstructionHelpDetails");
+        var openHelp = GetNodeOrNull<Button>($"{editorRoot}/InstructionToolbarChrome/InstructionToolbar/Selection/OpenInstructionHelp");
+        var editorCanvas = GetNodeOrNull<LadderEditorCanvas>($"{editorRoot}/RoutineView/GraphicalLadderCanvas");
+        var logixCanvas = GetNodeOrNull<LadderEditorCanvas>(
+            "Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/Studio 5000/Workbench/EditorAndTasks/EditorAndInspector/ProgramEditor/RoutineView/GraphicalLadderCanvas");
+        var moveLeft = GetNodeOrNull<Button>($"{editorRoot}/InstructionToolbarChrome/InstructionToolbar/Selection/MoveSelectedLeft");
+        var moveRight = GetNodeOrNull<Button>($"{editorRoot}/InstructionToolbarChrome/InstructionToolbar/Selection/MoveSelectedRight");
+        var collapseProject = GetNodeOrNull<Button>($"{root}/ProjectDockHost/ProjectOrganization/ProjectBody/ProjectTitle/CollapseProjectDock");
+        var reopenProject = GetNodeOrNull<Button>($"{root}/ProjectDockHost/ReopenProjectDock");
+        var collapseTools = GetNodeOrNull<Button>($"{toolRoot}/ToolTitle/CollapseToolDock");
+        var reopenTools = GetNodeOrNull<Button>($"{root}/EditorAndTasks/ToolDockHost/ReopenToolDock");
+        var collapseBottom = GetNodeOrNull<Button>($"{inspectorRoot}/InspectorOutputTitle/CollapseBottomDock");
+        var reopenBottom = GetNodeOrNull<Button>($"{root}/EditorAndTasks/EditorAndInspector/BottomDockHost/ReopenBottomDock");
+        var bottomPanelNode = GetNodeOrNull<Control>($"{root}/EditorAndTasks/EditorAndInspector/BottomDockHost/InspectorOutputDock");
+        var originalProgram = _ladderDocument.BuildProgram();
+        var originalEditorSnapshot = _ladderDocument.CaptureSnapshot();
+        var startingRungs = _ladderDocument.Rungs.Count;
+        if (projectTree is null || projectMenu is null || tiaEditorTabTitle is null || logixEditorTabTitle is null || projectPanelNode is null || projectSplit is null || toolSplit is null || bottomSplit is null || addRung is null || addNo is null || addRisingEdge is null || addFallingEdge is null || addTimer is null || addOffDelay is null || addPulseTimer is null || addRetentiveTimer is null || addTimerReset is null || addCounter is null || addCounterDown is null || addCounterLoad is null || addCounterReset is null || addCompare is null || addMove is null || addModulo is null || addSquareRoot is null || addExponentiate is null || addTruncate is null || addNormalize is null || addScale is null || addConvert is null || addRound is null || addCeiling is null || addFloor is null || addCall is null || addReturn is null || addJump is null || addLabel is null || blockName is null || addBlock is null || applyBlock is null || removeBlock is null || blockTypeSelector is null || interfaceTable is null || addInterface is null || removeInterface is null || taskName is null || verifyAndLoad is null || addTask is null || applyTask is null || removeTask is null || addSet is null || addReset is null || removeBranchButton is null || remove is null || undo is null || redo is null || bottomTabs is null || validationSummary is null || validationIssues is null || output is null || numericSourceBField is null || numericSourceCField is null || contextualPropertiesPopup is null || contextualPropertyScope is null || logixPropertiesPopup is null || logixPropertyScope is null || logixContactPropertyRow is null || instructionContextMenu is null || contactPropertyRow is null || numericPropertyRow is null || jumpLabelPropertyRow is null || programControlLabel is null || watchStatus is null || watchTable is null || clearWatch is null || instructionTree is null || toolPanelNode is null || searchQuery is null || crossReference is null || searchResults is null || toolTabs is null || toolRail is null || editorTagList is null || editorTagName is null || editorTagInitialValue is null || editorTagBinding is null || editorTagBindingStatus is null || addTagButton is null || applyTagButton is null || deleteTagButton is null || helpSelector is null || helpDetails is null || openHelp is null || editorCanvas is null || logixCanvas is null || moveLeft is null || moveRight is null || collapseProject is null || reopenProject is null || collapseTools is null || reopenTools is null || collapseBottom is null || reopenBottom is null || bottomPanelNode is null)
+        {
+            result = $"projectTree={projectTree is not null} instructionTree={instructionTree is not null} contextualProperties={contextualPropertiesPopup is not null && instructionContextMenu is not null} addRung={addRung is not null} addNo={addNo is not null} addTimer={addTimer is not null} addOffDelay={addOffDelay is not null} addPulseTimer={addPulseTimer is not null} addRetentiveTimer={addRetentiveTimer is not null} addTimerReset={addTimerReset is not null} addCounter={addCounter is not null} addCounterDown={addCounterDown is not null} addCounterLoad={addCounterLoad is not null} addCounterReset={addCounterReset is not null} addCompare={addCompare is not null} addMove={addMove is not null} addCall={addCall is not null} addReturn={addReturn is not null} addJump={addJump is not null} addLabel={addLabel is not null} addBlock={addBlock is not null} verify={verifyAndLoad is not null} errorList={bottomTabs is not null && validationSummary is not null && validationIssues is not null} watchTable={watchStatus is not null && watchTable is not null && clearWatch is not null} bindingBrowser={editorTagBinding is not null && editorTagBindingStatus is not null} addTask={addTask is not null} addSet={addSet is not null} addReset={addReset is not null} remove={remove is not null} undo={undo is not null} redo={redo is not null} search={searchQuery is not null && crossReference is not null && searchResults is not null} help={toolTabs is not null && helpSelector is not null && helpDetails is not null && openHelp is not null} toolRail={toolRail is not null} docks={collapseProject is not null && reopenProject is not null && collapseTools is not null && reopenTools is not null && collapseBottom is not null && reopenBottom is not null && bottomPanelNode is not null && toolDockHostNode is not null}";
+            return false;
+        }
+        var projectPersistenceWorked = false;
+        var originalSavedProjectJson = _ladderSavedProjectJson;
+        var originalProjectPath = _ladderProjectPath;
+        var projectRoundTripPath = ProjectSettings.GlobalizePath("res://build/verify-ladder-project.rpproj.json");
+        try
+        {
+            if (System.IO.File.Exists(projectRoundTripPath)) System.IO.File.Delete(projectRoundTripPath);
+            var runtimeProgramBeforeOpen = _virtualProgram;
+            var runtimeScanBeforeOpen = _virtualSnapshot?.ScanNumber;
+            var draftContact = _ladderDocument.Rungs[0].Branches[0].Contacts[0];
+            _ladderDocument.ReplaceContact(0, 0, 0, draftContact with { Variable = "draft_symbol_not_declared" });
+            foreach (var refresh in _ladderEditorRefreshers) refresh();
+            var dirtyBeforeSave = tiaEditorTabTitle.Text.StartsWith("* ", StringComparison.Ordinal)
+                && logixEditorTabTitle.Text.StartsWith("* ", StringComparison.Ordinal);
+            var invalidDraftPreserved = !LadderCompiler.Compile(_ladderDocument.BuildProgram()).IsValid;
+            var saved = TrySaveLadderProject(projectRoundTripPath, out var saveMessage);
+            var cleanAfterSave = !tiaEditorTabTitle.Text.StartsWith("* ", StringComparison.Ordinal)
+                && !logixEditorTabTitle.Text.StartsWith("* ", StringComparison.Ordinal)
+                && tiaEditorTabTitle.Text.Contains("verify-ladder-project.rpproj.json", StringComparison.Ordinal)
+                && logixEditorTabTitle.Text.Contains("verify-ladder-project.rpproj.json", StringComparison.Ordinal);
+            _ladderDocument.ReplaceContact(0, 0, 0, draftContact);
+            var opened = TryOpenLadderProject(projectRoundTripPath, out var openMessage);
+            var restoredContact = _ladderDocument.Rungs[0].Branches[0].Contacts[0];
+            projectPersistenceWorked = dirtyBeforeSave && cleanAfterSave && invalidDraftPreserved && saved && opened
+                && restoredContact.Id == draftContact.Id
+                && restoredContact.Variable == "draft_symbol_not_declared"
+                && _ladderDocument.SourceSceneId == _activeScene?.Id
+                && !LadderCompiler.Compile(_ladderDocument.BuildProgram()).IsValid
+                && saveMessage.Contains("WORK IN PROGRESS PRESERVED", StringComparison.Ordinal)
+                && openMessage.Contains("VERIFY + LOAD REQUIRED", StringComparison.Ordinal)
+                && ReferenceEquals(runtimeProgramBeforeOpen, _virtualProgram)
+                && runtimeScanBeforeOpen == _virtualSnapshot?.ScanNumber;
+        }
+        finally
+        {
+            _ladderDocument.RestoreSnapshot(originalEditorSnapshot);
+            _ladderSavedProjectJson = originalSavedProjectJson;
+            _ladderProjectPath = originalProjectPath;
+            _ladderHistory.Clear();
+            foreach (var refresh in _ladderEditorRefreshers) refresh();
+            RefreshLadderMonitorMatch();
+            if (System.IO.File.Exists(projectRoundTripPath)) System.IO.File.Delete(projectRoundTripPath);
+        }
+        projectMenu.GetPopup().EmitSignal(PopupMenu.SignalName.IdPressed, 0L);
+        var newProjectWorked = _ladderDocument.Id == "offline-controller"
+            && _ladderDocument.Name == "Main"
+            && _ladderDocument.ScanPeriod == TimeSpan.FromMilliseconds(20)
+            && _ladderDocument.Tags.Select(tag => tag.Name).SequenceEqual(["input_1", "output_1"])
+            && _ladderDocument.WatchVariables.Count == 0
+            && _ladderDocument.Blocks.Count == 1
+            && _ladderDocument.Blocks[0].Id == "block-1"
+            && _ladderDocument.Tasks.Count == 1
+            && _ladderDocument.Tasks[0].Id == "task-2"
+            && _ladderDocument.Rungs.Count == 1
+            && tiaEditorTabTitle.Text.StartsWith("* ", StringComparison.Ordinal)
+            && logixEditorTabTitle.Text.StartsWith("* ", StringComparison.Ordinal)
+            && tiaEditorTabTitle.Text.Contains("Untitled.rpproj.json", StringComparison.Ordinal)
+            && logixEditorTabTitle.Text.Contains("Untitled.rpproj.json", StringComparison.Ordinal)
+            && !_ladderMonitorMatchesLoadedProgram
+            && !editorCanvas.MonitorActive && !logixCanvas.MonitorActive;
+        _ladderDocument.RestoreSnapshot(originalEditorSnapshot);
+        _ladderSavedProjectJson = originalSavedProjectJson;
+        _ladderProjectPath = originalProjectPath;
+        _ladderHistory.Clear();
+        foreach (var refresh in _ladderEditorRefreshers) refresh();
+        RefreshLadderMonitorMatch();
+        var firstRungBounds = editorCanvas.GetRungBounds(0);
+        var secondRungBounds = editorCanvas.GetRungBounds(1);
+        var firstBranchPosition = editorCanvas.GetInsertionPointPosition(0, 0, 0);
+        var secondBranchPosition = editorCanvas.GetInsertionPointPosition(0, 1, 0);
+        var rungLayoutWorked = secondBranchPosition.Y - firstBranchPosition.Y >= 90
+            && secondRungBounds.Position.Y - firstRungBounds.End.Y >= 14;
+        editorCanvas._GuiInput(new InputEventMouseButton
+        {
+            ButtonIndex = MouseButton.Left,
+            Pressed = true,
+            DoubleClick = true,
+            Position = editorCanvas.GetElementPosition(0, 0, 0),
+        });
+        var contextualPropertiesWorked = contextualPropertiesPopup.Visible
+            && contactPropertyRow.Visible
+            && !numericPropertyRow.Visible
+            && contextualPropertyScope.Text.EndsWith("Network 1", StringComparison.Ordinal)
+            && bottomTabs.GetTabCount() == 3
+            && Enumerable.Range(0, bottomTabs.GetTabCount())
+                .All(index => !bottomTabs.GetTabTitle(index).Equals("Properties", StringComparison.OrdinalIgnoreCase));
+        contextualPropertiesPopup.Hide();
+        _ladderEnvironmentTabs.CurrentTab = 1;
+        logixCanvas._GuiInput(new InputEventMouseButton
+        {
+            ButtonIndex = MouseButton.Left,
+            Pressed = true,
+            DoubleClick = true,
+            Position = logixCanvas.GetElementPosition(0, 0, 0),
+        });
+        var logixContextualPropertiesWorked = logixPropertiesPopup.Visible
+            && logixContactPropertyRow.Visible
+            && logixPropertyScope.Text == "MainProgram  ›  Conveyor_Main  ›  Rung 0";
+        logixPropertiesPopup.Hide();
+        _ladderEnvironmentTabs.CurrentTab = 0;
+        editorCanvas._GuiInput(new InputEventMouseButton
+        {
+            ButtonIndex = MouseButton.Right,
+            Pressed = true,
+            Position = editorCanvas.GetElementPosition(0, 0, 0),
+        });
+        var instructionContextMenuWorked = instructionContextMenu.Visible
+            && instructionContextMenu.GetItemText(0).Contains("Propert", StringComparison.OrdinalIgnoreCase);
+        instructionContextMenu.Hide();
+        _ladderHistory.Clear();
+        foreach (var refresh in _ladderEditorRefreshers) refresh();
+        var projectSplitBeforeCollapse = projectSplit.SplitOffsets[0];
+        collapseProject.EmitSignal(BaseButton.SignalName.Pressed);
+        var projectDockCollapsed = reopenProject.Visible && !projectPanelNode.Visible;
+        var projectSpaceReclaimed = projectSplit.SplitOffsets[0] <= reopenProject.CustomMinimumSize.X + 1.0f;
+        reopenProject.EmitSignal(BaseButton.SignalName.Pressed);
+        var projectDockReopened = projectPanelNode.Visible && !reopenProject.Visible;
+        var projectSplitRestored = projectSplit.SplitOffsets[0] == projectSplitBeforeCollapse;
+        var toolSplitBeforeCollapse = toolSplit.SplitOffsets[0];
+        collapseTools.EmitSignal(BaseButton.SignalName.Pressed);
+        var toolDockCollapsed = reopenTools.Visible && !toolPanelNode.Visible;
+        var toolSpaceReclaimed = toolSplit.SplitOffsets[0] > toolSplitBeforeCollapse;
+        reopenTools.EmitSignal(BaseButton.SignalName.Pressed);
+        var toolDockReopened = toolPanelNode.Visible && !reopenTools.Visible;
+        var toolSplitRestored = toolSplit.SplitOffsets[0] == toolSplitBeforeCollapse;
+        var bottomSplitBeforeCollapse = bottomSplit.SplitOffsets[0];
+        collapseBottom.EmitSignal(BaseButton.SignalName.Pressed);
+        var bottomDockCollapsed = reopenBottom.Visible && !bottomPanelNode.Visible;
+        var bottomSpaceReclaimed = bottomSplit.SplitOffsets[0] > bottomSplitBeforeCollapse;
+        reopenBottom.EmitSignal(BaseButton.SignalName.Pressed);
+        var bottomDockReopened = bottomPanelNode.Visible && !reopenBottom.Visible;
+        var bottomSplitRestored = bottomSplit.SplitOffsets[0] == bottomSplitBeforeCollapse;
+        var docksWorked = projectDockCollapsed && projectSpaceReclaimed && projectDockReopened && projectSplitRestored
+            && toolDockCollapsed && toolSpaceReclaimed && toolDockReopened && toolSplitRestored
+            && bottomDockCollapsed && bottomSpaceReclaimed && bottomDockReopened && bottomSplitRestored;
+        var splitOffsets = new[]
+        {
+            projectSplit.SplitOffsets[0],
+            toolSplit.SplitOffsets[0],
+            bottomSplit.SplitOffsets[0],
+        };
+        projectSplit.SplitOffsets = [splitOffsets[0] + 24];
+        toolSplit.SplitOffsets = [splitOffsets[1] - 24];
+        bottomSplit.SplitOffsets = [splitOffsets[2] - 24];
+        var dockResizeWorked = projectSplit.DraggingEnabled
+            && toolSplit.DraggingEnabled
+            && bottomSplit.DraggingEnabled
+            && projectSplit.DraggerVisibility == SplitContainer.DraggerVisibilityEnum.Visible
+            && toolSplit.DraggerVisibility == SplitContainer.DraggerVisibilityEnum.Visible
+            && bottomSplit.DraggerVisibility == SplitContainer.DraggerVisibilityEnum.Visible
+            && projectSplit.SplitOffsets[0] == splitOffsets[0] + 24
+            && toolSplit.SplitOffsets[0] == splitOffsets[1] - 24
+            && bottomSplit.SplitOffsets[0] == splitOffsets[2] - 24;
+        projectSplit.SplitOffsets = [splitOffsets[0]];
+        toolSplit.SplitOffsets = [splitOffsets[1]];
+        bottomSplit.SplitOffsets = [splitOffsets[2]];
+        var originalValidationTags = _ladderDocument.Tags.ToArray();
+        var simulatorInputPoint = ScenePoints().First(point =>
+            point.Type.Equals("BOOL", StringComparison.OrdinalIgnoreCase)
+            && point.Owner.Equals("PC", StringComparison.OrdinalIgnoreCase));
+        var simulatorOutputPoint = ScenePoints().First(point =>
+            point.Type.Equals("BOOL", StringComparison.OrdinalIgnoreCase)
+            && point.Owner.Equals("PLC", StringComparison.OrdinalIgnoreCase));
+        for (var index = 0; index < _ladderDocument.Tags.Count; index++)
+        {
+            var tag = _ladderDocument.Tags[index];
+            if (tag.Name == "simulated_photoeye")
+                _ladderDocument.Tags[index] = tag with { Binding = simulatorInputPoint.Name };
+            else if (tag.Name == "conveyor_running")
+                _ladderDocument.Tags[index] = tag with { Binding = simulatorOutputPoint.Name };
+        }
+        foreach (var refresh in _ladderEditorRefreshers) refresh();
+        bool BindingChoiceExists(string binding) => Enumerable.Range(0, editorTagBinding.ItemCount)
+            .Any(index => editorTagBinding.GetItemMetadata(index).AsString() == binding);
+        var simulatorInputTagIndex = _ladderDocument.Tags.FindIndex(tag => tag.Name == "simulated_photoeye");
+        SelectIndexedTreeRow(editorTagList, simulatorInputTagIndex);
+        editorTagList.EmitSignal(Tree.SignalName.ItemSelected);
+        var inputBindingBrowserWorked = BindingChoiceExists(simulatorInputPoint.Name)
+            && !BindingChoiceExists(simulatorOutputPoint.Name)
+            && editorTagBindingStatus.Text.Contains("PC", StringComparison.Ordinal);
+        var simulatorOutputTagIndex = _ladderDocument.Tags.FindIndex(tag => tag.Name == "conveyor_running");
+        SelectIndexedTreeRow(editorTagList, simulatorOutputTagIndex);
+        editorTagList.EmitSignal(Tree.SignalName.ItemSelected);
+        var outputBindingBrowserWorked = BindingChoiceExists(simulatorOutputPoint.Name)
+            && !BindingChoiceExists(simulatorInputPoint.Name)
+            && editorTagBindingStatus.Text.Contains("PLC", StringComparison.Ordinal);
+        var bindingBrowserWorked = inputBindingBrowserWorked && outputBindingBrowserWorked;
+        var originalValidationCoil = _ladderDocument.Rungs[0].CoilVariable;
+        _ladderDocument.Rungs[0].CoilVariable = "start_command";
+        verifyAndLoad.EmitSignal(BaseButton.SignalName.Pressed);
+        var structuredValidationWorked = validationIssues.ItemCount == 1
+            && validationIssues.GetItemText(0).Contains("VC005", StringComparison.Ordinal)
+            && validationSummary.Text.StartsWith("1 ERROR", StringComparison.Ordinal)
+            && bottomTabs.CurrentTab == 0;
+        validationIssues.Select(0);
+        validationIssues.EmitSignal(ItemList.SignalName.ItemActivated, 0);
+        var validationNavigationWorked = editorCanvas.SelectedRung == 0
+            && output.Text.Contains("VC005", StringComparison.Ordinal);
+        _ladderDocument.Rungs[0].CoilVariable = originalValidationCoil;
+        verifyAndLoad.EmitSignal(BaseButton.SignalName.Pressed);
+        var validationCleared = validationIssues.ItemCount == 0
+            && validationSummary.Text.StartsWith("0 ERRORS", StringComparison.Ordinal)
+            && bottomTabs.CurrentTab == 1;
+        _ladderDocument.Tags.Clear();
+        _ladderDocument.Tags.AddRange(originalValidationTags);
+        addRung.EmitSignal(BaseButton.SignalName.Pressed);
+        var added = _ladderDocument.Rungs.Count == startingRungs + 1;
+        undo.EmitSignal(BaseButton.SignalName.Pressed);
+        var undoWorked = _ladderDocument.Rungs.Count == startingRungs;
+        redo.EmitSignal(BaseButton.SignalName.Pressed);
+        var redoWorked = _ladderDocument.Rungs.Count == startingRungs + 1;
+        undo.EmitSignal(BaseButton.SignalName.Pressed);
+        var restored = _ladderDocument.Rungs.Count == startingRungs;
+        int ContactCount() => _ladderDocument.Rungs.Sum(rung => rung.Branches.Sum(branch => branch.Contacts.Count));
+        var startingContacts = ContactCount();
+        TreeItem? Find(TreeItem? item, string metadata)
+        {
+            for (var current = item; current is not null; current = current.GetNext())
+            {
+                if (current.GetMetadata(0).AsString() == metadata) return current;
+                var child = Find(current.GetFirstChild(), metadata);
+                if (child is not null) return child;
+            }
+            return null;
+        }
+        var noInstruction = Find(instructionTree.GetRoot(), "no");
+        noInstruction?.Select(0);
+        instructionTree.EmitSignal(Tree.SignalName.ItemActivated);
+        var instructionAdded = ContactCount() == startingContacts + 1;
+        remove.EmitSignal(BaseButton.SignalName.Pressed);
+        var instructionRestored = ContactCount() == startingContacts;
+        addRisingEdge.EmitSignal(BaseButton.SignalName.Pressed);
+        var risingEdgeInserted = _ladderDocument.Rungs.SelectMany(rung => rung.Branches)
+            .SelectMany(branch => branch.Contacts).Any(contact => contact.EdgeMode == LadderEdgeMode.Rising);
+        undo.EmitSignal(BaseButton.SignalName.Pressed);
+        addFallingEdge.EmitSignal(BaseButton.SignalName.Pressed);
+        var fallingEdgeInserted = _ladderDocument.Rungs.SelectMany(rung => rung.Branches)
+            .SelectMany(branch => branch.Contacts).Any(contact => contact.EdgeMode == LadderEdgeMode.Falling);
+        undo.EmitSignal(BaseButton.SignalName.Pressed);
+        var exactInsertionBranch = _ladderDocument.Rungs[0].Branches[0];
+        var exactInsertionIds = exactInsertionBranch.Contacts.Select(contact => contact.Id).ToArray();
+        editorCanvas._GuiInput(new InputEventMouseButton
+        {
+            ButtonIndex = MouseButton.Left,
+            Pressed = true,
+            Position = editorCanvas.GetInsertionPointPosition(0, 0, 1),
+        });
+        var insertionCursorSelected = editorCanvas.SelectedInsertionIndex == 1
+            && editorCanvas.SelectedContact == -1;
+        addNo.EmitSignal(BaseButton.SignalName.Pressed);
+        var exactInsertionWorked = exactInsertionBranch.Contacts.Count == exactInsertionIds.Length + 1
+            && exactInsertionBranch.Contacts[0].Id == exactInsertionIds[0]
+            && exactInsertionBranch.Contacts[2].Id == exactInsertionIds[1]
+            && editorCanvas.SelectedContact == 1;
+        undo.EmitSignal(BaseButton.SignalName.Pressed);
+        var exactInsertionUndone = _ladderDocument.Rungs[0].Branches[0].Contacts.Select(contact => contact.Id)
+            .SequenceEqual(exactInsertionIds);
+        var dragDropPosition = editorCanvas.GetInsertionPointPosition(0, 0, 1);
+        var dragPreviewWorked = editorCanvas.PreviewInsertionAt(dragDropPosition)
+            && editorCanvas.SelectedInsertionIndex == 1;
+        var dragDropBefore = ContactCount();
+        var dragDropCommitted = editorCanvas.DropInstructionAt("no", dragDropPosition);
+        var dragDropWorked = dragDropCommitted && ContactCount() == dragDropBefore + 1
+            && editorCanvas.SelectedContact == 1;
+        undo.EmitSignal(BaseButton.SignalName.Pressed);
+        var dragDropUndone = ContactCount() == dragDropBefore;
+        _ladderHistory.Clear();
+        foreach (var refresh in _ladderEditorRefreshers) refresh();
+        var reorderBranch = _ladderDocument.Rungs[0].Branches[0];
+        var firstContactId = reorderBranch.Contacts[0].Id;
+        var secondContactId = reorderBranch.Contacts[1].Id;
+        editorCanvas.SelectElement(0, 0, 0);
+        moveRight.EmitSignal(BaseButton.SignalName.Pressed);
+        var exactMoveWorked = reorderBranch.Contacts[0].Id == secondContactId
+            && reorderBranch.Contacts[1].Id == firstContactId
+            && editorCanvas.SelectedContact == 1;
+        moveLeft.EmitSignal(BaseButton.SignalName.Pressed);
+        var exactMoveRestored = reorderBranch.Contacts[0].Id == firstContactId
+            && editorCanvas.SelectedContact == 0;
+        editorCanvas.SelectElement(0, 0, 0);
+        remove.EmitSignal(BaseButton.SignalName.Pressed);
+        var exactDeleteWorked = reorderBranch.Contacts.All(contact => contact.Id != firstContactId);
+        undo.EmitSignal(BaseButton.SignalName.Pressed);
+        var exactDeleteUndone = _ladderDocument.Rungs[0].Branches[0].Contacts[0].Id == firstContactId;
+        _ladderHistory.Clear();
+        foreach (var refresh in _ladderEditorRefreshers) refresh();
+        var clipboardBranch = _ladderDocument.Rungs[0].Branches[0];
+        var clipboardSource = clipboardBranch.Contacts[0];
+        var clipboardContactCount = clipboardBranch.Contacts.Count;
+        editorCanvas.SelectElement(0, 0, 0);
+        editorCanvas._ShortcutInput(new InputEventKey { Keycode = Key.C, CtrlPressed = true, Pressed = true });
+        editorCanvas.SelectInsertionPoint(0, 0, 1);
+        editorCanvas._ShortcutInput(new InputEventKey { Keycode = Key.V, CtrlPressed = true, Pressed = true });
+        var instructionClipboardWorked = clipboardBranch.Contacts.Count == clipboardContactCount + 1
+            && clipboardBranch.Contacts[1].Variable == clipboardSource.Variable
+            && clipboardBranch.Contacts[1].Id != clipboardSource.Id;
+        undo.EmitSignal(BaseButton.SignalName.Pressed);
+        var instructionClipboardUndone = _ladderDocument.Rungs[0].Branches[0].Contacts.Count == clipboardContactCount;
+        _ladderHistory.Clear();
+        foreach (var refresh in _ladderEditorRefreshers) refresh();
+        var clipboardRungCount = _ladderDocument.Rungs.Count;
+        var clipboardRung = _ladderDocument.Rungs[0];
+        var clipboardRungIds = clipboardRung.Branches.SelectMany(branch => branch.Contacts)
+            .Select(contact => contact.Id).ToHashSet(StringComparer.Ordinal);
+        editorCanvas.SelectElement(0, -1, -1, output: true);
+        instructionContextMenu.EmitSignal(PopupMenu.SignalName.IdPressed, 3L);
+        instructionContextMenu.EmitSignal(PopupMenu.SignalName.IdPressed, 4L);
+        var pastedRung = _ladderDocument.Rungs.Count == clipboardRungCount + 1
+            ? _ladderDocument.Rungs[1]
+            : null;
+        var rungClipboardWorked = pastedRung is not null
+            && pastedRung.Id != clipboardRung.Id
+            && pastedRung.Branches.SelectMany(branch => branch.Contacts)
+                .All(contact => !clipboardRungIds.Contains(contact.Id));
+        undo.EmitSignal(BaseButton.SignalName.Pressed);
+        var rungClipboardUndone = _ladderDocument.Rungs.Count == clipboardRungCount;
+        _ladderHistory.Clear();
+        foreach (var refresh in _ladderEditorRefreshers) refresh();
+        editorCanvas.SelectElement(0, 0, 0);
+        var startingBranches = _ladderDocument.Rungs[0].Branches.Count;
+        removeBranchButton.EmitSignal(BaseButton.SignalName.Pressed);
+        var branchDeleteWorked = _ladderDocument.Rungs[0].Branches.Count == startingBranches - 1;
+        undo.EmitSignal(BaseButton.SignalName.Pressed);
+        var branchDeleteUndone = _ladderDocument.Rungs[0].Branches.Count == startingBranches;
+        _ladderHistory.Clear();
+        foreach (var refresh in _ladderEditorRefreshers) refresh();
+        editorTagName.Text = "verify_unused";
+        addTagButton.EmitSignal(BaseButton.SignalName.Pressed);
+        var unusedTagIndex = _ladderDocument.Tags.FindIndex(tag => tag.Name == "verify_unused");
+        if (unusedTagIndex >= 0)
+        {
+            SelectIndexedTreeRow(editorTagList, unusedTagIndex);
+            editorTagList.EmitSignal(Tree.SignalName.ItemSelected);
+            deleteTagButton.EmitSignal(BaseButton.SignalName.Pressed);
+        }
+        var unusedTagDeleted = unusedTagIndex >= 0 && _ladderDocument.Tags.All(tag => tag.Name != "verify_unused");
+        var startTagIndex = _ladderDocument.Tags.FindIndex(tag => tag.Name == "start_command");
+        if (startTagIndex >= 0)
+        {
+            SelectIndexedTreeRow(editorTagList, startTagIndex);
+            editorTagList.EmitSignal(Tree.SignalName.ItemSelected);
+            editorTagName.Text = "verify_start";
+            editorTagInitialValue.Text = "TRUE";
+            applyTagButton.EmitSignal(BaseButton.SignalName.Pressed);
+        }
+        var tagRenameWorked = _ladderDocument.Tags.Any(tag => tag.Name == "verify_start")
+            && _ladderDocument.CountTagReferences("verify_start") > 0
+            && _ladderDocument.CountTagReferences("start_command") == 0;
+        var tagInitialValueWorked = _ladderDocument.Tags.Single(tag => tag.Name == "verify_start").InitialValue is true;
+        undo.EmitSignal(BaseButton.SignalName.Pressed);
+        var tagRenameUndone = _ladderDocument.Tags.Any(tag => tag.Name == "start_command")
+            && _ladderDocument.CountTagReferences("start_command") > 0
+            && _ladderDocument.Tags.Single(tag => tag.Name == "start_command").InitialValue is false;
+        _ladderHistory.Clear();
+        foreach (var refresh in _ladderEditorRefreshers) refresh();
+        var originalTimerOutputs = _ladderDocument.Rungs
+            .Select(rung => (Rung: rung, rung.IsTimer, rung.IsTimerReset, rung.TimerVariable, rung.TimerPreset, rung.TimerKind, rung.IsCounter, rung.IsCounterReset, rung.IsCounterLoad, rung.CounterKind, rung.CounterVariable, rung.CounterPreset))
+            .ToArray();
+        var startingTags = _ladderDocument.Tags.Count;
+        addTimer.EmitSignal(BaseButton.SignalName.Pressed);
+        var timerInserted = _ladderDocument.Rungs.Any(rung => rung.IsTimer
+            && _ladderDocument.Tags.Any(tag => tag.Name == rung.TimerVariable && tag.Type == PlcVariableType.Timer));
+        addOffDelay.EmitSignal(BaseButton.SignalName.Pressed);
+        var offDelayInserted = _ladderDocument.Rungs.Any(rung =>
+            rung.IsTimer && rung.TimerKind == LadderTimerKind.OffDelay);
+        addPulseTimer.EmitSignal(BaseButton.SignalName.Pressed);
+        var pulseTimerInserted = _ladderDocument.Rungs.Any(rung =>
+            rung.IsTimer && rung.TimerKind == LadderTimerKind.Pulse);
+        addRetentiveTimer.EmitSignal(BaseButton.SignalName.Pressed);
+        var retentiveTimerInserted = _ladderDocument.Rungs.Any(rung =>
+            rung.IsTimer && rung.TimerKind == LadderTimerKind.RetentiveOnDelay);
+        addTimerReset.EmitSignal(BaseButton.SignalName.Pressed);
+        var timerResetInserted = _ladderDocument.Rungs.Any(rung => rung.IsTimerReset);
+        foreach (var original in originalTimerOutputs)
+        {
+            original.Rung.IsTimer = original.IsTimer;
+            original.Rung.IsTimerReset = original.IsTimerReset;
+            original.Rung.TimerVariable = original.TimerVariable;
+            original.Rung.TimerPreset = original.TimerPreset;
+            original.Rung.TimerKind = original.TimerKind;
+            original.Rung.IsCounter = original.IsCounter;
+            original.Rung.IsCounterReset = original.IsCounterReset;
+            original.Rung.IsCounterLoad = original.IsCounterLoad;
+            original.Rung.CounterKind = original.CounterKind;
+            original.Rung.CounterVariable = original.CounterVariable;
+            original.Rung.CounterPreset = original.CounterPreset;
+        }
+        while (_ladderDocument.Tags.Count > startingTags) _ladderDocument.Tags.RemoveAt(_ladderDocument.Tags.Count - 1);
+        foreach (var refresh in _ladderEditorRefreshers) refresh();
+        var originalCoilModes = _ladderDocument.Rungs.Select(rung => (Rung: rung, rung.CoilMode)).ToArray();
+        addSet.EmitSignal(BaseButton.SignalName.Pressed);
+        var setInserted = _ladderDocument.Rungs.Any(rung => rung.CoilMode == LadderCoilMode.Set);
+        addReset.EmitSignal(BaseButton.SignalName.Pressed);
+        var resetInserted = _ladderDocument.Rungs.Any(rung => rung.CoilMode == LadderCoilMode.Reset);
+        foreach (var original in originalCoilModes) original.Rung.CoilMode = original.CoilMode;
+        foreach (var refresh in _ladderEditorRefreshers) refresh();
+        var originalCounterOutputs = _ladderDocument.Rungs
+            .Select(rung => (Rung: rung, rung.IsTimer, rung.IsCounter, rung.IsCounterReset, rung.IsCounterLoad, rung.CounterKind, rung.CounterVariable, rung.CounterPreset))
+            .ToArray();
+        var counterStartingTags = _ladderDocument.Tags.Count;
+        addCounter.EmitSignal(BaseButton.SignalName.Pressed);
+        var counterInserted = _ladderDocument.Rungs.Any(rung => rung.IsCounter
+            && _ladderDocument.Tags.Any(tag => tag.Name == rung.CounterVariable && tag.Type == PlcVariableType.Counter));
+        addCounterDown.EmitSignal(BaseButton.SignalName.Pressed);
+        var counterDownInserted = _ladderDocument.Rungs.Any(rung => rung.IsCounter
+            && rung.CounterKind == LadderCounterKind.CountDown);
+        addCounterLoad.EmitSignal(BaseButton.SignalName.Pressed);
+        var counterLoadInserted = _ladderDocument.Rungs.Any(rung => rung.IsCounterLoad);
+        addCounterReset.EmitSignal(BaseButton.SignalName.Pressed);
+        var counterResetInserted = _ladderDocument.Rungs.Any(rung => rung.IsCounterReset);
+        foreach (var original in originalCounterOutputs)
+        {
+            original.Rung.IsTimer = original.IsTimer;
+            original.Rung.IsCounter = original.IsCounter;
+            original.Rung.IsCounterReset = original.IsCounterReset;
+            original.Rung.IsCounterLoad = original.IsCounterLoad;
+            original.Rung.CounterKind = original.CounterKind;
+            original.Rung.CounterVariable = original.CounterVariable;
+            original.Rung.CounterPreset = original.CounterPreset;
+        }
+        while (_ladderDocument.Tags.Count > counterStartingTags) _ladderDocument.Tags.RemoveAt(_ladderDocument.Tags.Count - 1);
+        foreach (var refresh in _ladderEditorRefreshers) refresh();
+        var comparisonStartingTags = _ladderDocument.Tags.Count;
+        var comparisonStartingContacts = ContactCount();
+        _ladderDocument.AddTag("verify_numeric", PlcVariableRole.Memory, type: PlcVariableType.Real);
+        foreach (var refresh in _ladderEditorRefreshers) refresh();
+        editorCanvas.SelectInsertionPoint(0, 0, 1);
+        addCompare.EmitSignal(BaseButton.SignalName.Pressed);
+        var comparisonInserted = ContactCount() == comparisonStartingContacts + 1
+            && _ladderDocument.Rungs[0].Branches[0].Contacts[1].IsComparison;
+        remove.EmitSignal(BaseButton.SignalName.Pressed);
+        while (_ladderDocument.Tags.Count > comparisonStartingTags) _ladderDocument.Tags.RemoveAt(_ladderDocument.Tags.Count - 1);
+        foreach (var refresh in _ladderEditorRefreshers) refresh();
+        var numericStartingTags = _ladderDocument.Tags.Count;
+        var originalNumericOutputs = _ladderDocument.Rungs.Select(rung => (
+            Rung: rung,
+            rung.IsTimer,
+            rung.IsCounter,
+            rung.IsCounterReset,
+            rung.IsCounterLoad,
+            rung.CounterKind,
+            rung.IsNumericOperation,
+            rung.NumericOperationKind,
+            rung.NumericSourceA,
+            rung.NumericSourceB,
+            rung.NumericSourceC,
+            rung.NumericDestination)).ToArray();
+        _ladderDocument.AddTag("verify_numeric_write", PlcVariableRole.Memory, type: PlcVariableType.Real);
+        foreach (var refresh in _ladderEditorRefreshers) refresh();
+        addMove.EmitSignal(BaseButton.SignalName.Pressed);
+        var numericInserted = _ladderDocument.Rungs.Any(rung => rung.IsNumericOperation
+            && rung.NumericOperationKind == LadderNumericOperationKind.Move);
+        addModulo.EmitSignal(BaseButton.SignalName.Pressed);
+        var moduloInserted = _ladderDocument.Rungs.Any(rung => rung.IsNumericOperation
+            && rung.NumericOperationKind == LadderNumericOperationKind.Modulo)
+            && numericSourceBField.Editable;
+        addSquareRoot.EmitSignal(BaseButton.SignalName.Pressed);
+        var squareRootInserted = _ladderDocument.Rungs.Any(rung => rung.IsNumericOperation
+            && rung.NumericOperationKind == LadderNumericOperationKind.SquareRoot)
+            && !numericSourceBField.Editable;
+        addExponentiate.EmitSignal(BaseButton.SignalName.Pressed);
+        var exponentiateInserted = _ladderDocument.Rungs.Any(rung => rung.IsNumericOperation
+            && rung.NumericOperationKind == LadderNumericOperationKind.Exponentiate)
+            && numericSourceBField.Editable;
+        addTruncate.EmitSignal(BaseButton.SignalName.Pressed);
+        var truncateInserted = _ladderDocument.Rungs.Any(rung => rung.IsNumericOperation
+            && rung.NumericOperationKind == LadderNumericOperationKind.Truncate)
+            && !numericSourceBField.Editable;
+        addNormalize.EmitSignal(BaseButton.SignalName.Pressed);
+        var normalizeInserted = _ladderDocument.Rungs.Any(rung => rung.IsNumericOperation
+            && rung.NumericOperationKind == LadderNumericOperationKind.Normalize)
+            && numericSourceBField.Editable && numericSourceCField.Editable;
+        addScale.EmitSignal(BaseButton.SignalName.Pressed);
+        var scaleInserted = _ladderDocument.Rungs.Any(rung => rung.IsNumericOperation
+            && rung.NumericOperationKind == LadderNumericOperationKind.Scale)
+            && numericSourceBField.Editable && numericSourceCField.Editable;
+        addConvert.EmitSignal(BaseButton.SignalName.Pressed);
+        var convertInserted = _ladderDocument.Rungs.Any(rung => rung.IsNumericOperation
+            && rung.NumericOperationKind == LadderNumericOperationKind.Convert);
+        addRound.EmitSignal(BaseButton.SignalName.Pressed);
+        var roundInserted = _ladderDocument.Rungs.Any(rung => rung.IsNumericOperation
+            && rung.NumericOperationKind == LadderNumericOperationKind.Round);
+        addCeiling.EmitSignal(BaseButton.SignalName.Pressed);
+        var ceilingInserted = _ladderDocument.Rungs.Any(rung => rung.IsNumericOperation
+            && rung.NumericOperationKind == LadderNumericOperationKind.Ceiling);
+        addFloor.EmitSignal(BaseButton.SignalName.Pressed);
+        var floorInserted = _ladderDocument.Rungs.Any(rung => rung.IsNumericOperation
+            && rung.NumericOperationKind == LadderNumericOperationKind.Floor);
+        foreach (var original in originalNumericOutputs)
+        {
+            original.Rung.IsTimer = original.IsTimer;
+            original.Rung.IsCounter = original.IsCounter;
+            original.Rung.IsCounterReset = original.IsCounterReset;
+            original.Rung.IsCounterLoad = original.IsCounterLoad;
+            original.Rung.CounterKind = original.CounterKind;
+            original.Rung.IsNumericOperation = original.IsNumericOperation;
+            original.Rung.NumericOperationKind = original.NumericOperationKind;
+            original.Rung.NumericSourceA = original.NumericSourceA;
+            original.Rung.NumericSourceB = original.NumericSourceB;
+            original.Rung.NumericSourceC = original.NumericSourceC;
+            original.Rung.NumericDestination = original.NumericDestination;
+        }
+        while (_ladderDocument.Tags.Count > numericStartingTags) _ladderDocument.Tags.RemoveAt(_ladderDocument.Tags.Count - 1);
+        foreach (var refresh in _ladderEditorRefreshers) refresh();
+        var startingBlocks = _ladderDocument.Blocks.Count;
+        addBlock.EmitSignal(BaseButton.SignalName.Pressed);
+        var blockAdded = _ladderDocument.Blocks.Count == startingBlocks + 1;
+        blockName.Text = "VerifierRoutine";
+        applyBlock.EmitSignal(BaseButton.SignalName.Pressed);
+        var blockRenamed = _ladderDocument.Blocks[^1].Name == "VerifierRoutine";
+        removeBlock.EmitSignal(BaseButton.SignalName.Pressed);
+        var blockDeleted = _ladderDocument.Blocks.Count == startingBlocks;
+        addBlock.EmitSignal(BaseButton.SignalName.Pressed);
+        _ladderDocument.SelectBlock(0);
+        foreach (var refresh in _ladderEditorRefreshers) refresh();
+        addCall.EmitSignal(BaseButton.SignalName.Pressed);
+        var callInserted = _ladderDocument.Blocks[0].Rungs.Any(rung => rung.IsCall
+            && rung.CallTarget == _ladderDocument.Blocks[^1].Id);
+        _ladderDocument.ReplaceFromProgram(originalProgram);
+        _ladderHistory.Clear();
+        foreach (var refresh in _ladderEditorRefreshers) refresh();
+        var startingTasks = _ladderDocument.Tasks.Count;
+        addTask.EmitSignal(BaseButton.SignalName.Pressed);
+        var taskAdded = _ladderDocument.Tasks.Count == startingTasks + 1;
+        taskName.Text = "VerifierTask";
+        applyTask.EmitSignal(BaseButton.SignalName.Pressed);
+        var taskRenamed = _ladderDocument.Tasks[^1].Name == "VerifierTask";
+        removeTask.EmitSignal(BaseButton.SignalName.Pressed);
+        var taskDeleted = _ladderDocument.Tasks.Count == startingTasks;
+        _ladderDocument.ReplaceFromProgram(originalProgram);
+        foreach (var refresh in _ladderEditorRefreshers) refresh();
+        addReturn.EmitSignal(BaseButton.SignalName.Pressed);
+        var returnInserted = _ladderDocument.Rungs.Any(rung => rung.IsReturn);
+        _ladderDocument.ReplaceFromProgram(originalProgram);
+        foreach (var refresh in _ladderEditorRefreshers) refresh();
+        addLabel.EmitSignal(BaseButton.SignalName.Pressed);
+        var labelInserted = _ladderDocument.Rungs.Any(rung => rung.IsLabel
+            && rung.ProgramControlLabel == "label_1");
+        editorCanvas.SelectElement(0, -1, -1, output: true);
+        programControlLabel.Text = "finish";
+        programControlLabel.EmitSignal(LineEdit.SignalName.TextSubmitted, "finish");
+        var labelPropertyEdited = _ladderDocument.Rungs[0].IsLabel
+            && _ladderDocument.Rungs[0].ProgramControlLabel == "finish";
+        editorCanvas._GuiInput(new InputEventMouseButton
+        {
+            ButtonIndex = MouseButton.Left,
+            DoubleClick = true,
+            Pressed = true,
+            Position = editorCanvas.GetElementPosition(0, -1, -1, output: true),
+        });
+        var labelContextualPropertiesWorked = contextualPropertiesPopup.Visible
+            && jumpLabelPropertyRow.Visible
+            && !contactPropertyRow.Visible
+            && !numericPropertyRow.Visible;
+        contextualPropertiesPopup.Hide();
+        _ladderDocument.ReplaceFromProgram(originalProgram);
+        foreach (var refresh in _ladderEditorRefreshers) refresh();
+        addJump.EmitSignal(BaseButton.SignalName.Pressed);
+        var jumpInserted = _ladderDocument.Rungs.Any(rung => rung.IsJump
+            && rung.ProgramControlLabel == "label_1");
+        _ladderDocument.ReplaceFromProgram(originalProgram);
+        foreach (var refresh in _ladderEditorRefreshers) refresh();
+        projectTree.GetRoot()?.Select(0);
+        projectTree.EmitSignal(Tree.SignalName.ItemSelected);
+        var selectionHandled = output.Text.Contains("Offline controller project selected", StringComparison.Ordinal);
+        searchQuery.Text = "seal_in";
+        crossReference.EmitSignal(BaseButton.SignalName.Pressed);
+        var crossReferenceFound = searchResults.ItemCount >= 4;
+        var navigableResult = -1;
+        for (var index = 0; index < searchResults.ItemCount; index++)
+        {
+            var metadata = searchResults.GetItemMetadata(index).AsString().Split('\u001f');
+            if (metadata.Length == 2 && metadata[1] != "-1")
+            {
+                navigableResult = index;
+                break;
+            }
+        }
+        if (navigableResult >= 0)
+        {
+            searchResults.Select(navigableResult);
+            searchResults.EmitSignal(ItemList.SignalName.ItemActivated, navigableResult);
+        }
+        var searchNavigated = navigableResult >= 0 && output.Text.Contains("Opened", StringComparison.Ordinal);
+        var tonHelpIndex = Enumerable.Range(0, helpSelector.ItemCount)
+            .FirstOrDefault(index => helpSelector.GetItemMetadata(index).AsString() == "ton", -1);
+        if (tonHelpIndex >= 0)
+        {
+            helpSelector.Select(tonHelpIndex);
+            helpSelector.EmitSignal(OptionButton.SignalName.ItemSelected, tonHelpIndex);
+            openHelp.EmitSignal(BaseButton.SignalName.Pressed);
+        }
+        var instructionHelpWorked = tonHelpIndex >= 0
+            && toolTabs.CurrentTab == 2
+            && helpDetails.Text.Contains("Non-retentive", StringComparison.Ordinal)
+            && helpDetails.Text.Contains("Q and DN", StringComparison.Ordinal);
+        var toolRailWorked = toolTabs.GetTabCount() == 3
+            && !toolTabs.TabsVisible
+            && toolDockHostNode is not null
+            && !toolDockHostNode.Visible
+            && projectTabs is not null
+            && projectTabs.TabsVisible
+            && projectTabs.GetTabCount() == 3
+            && projectTabs.GetTabTitle(0) == "Project tree"
+            && projectTabs.GetTabTitle(1) == "PLC tags"
+            && projectTabs.GetTabTitle(2) == "Blocks / tasks";
+        var selectable = projectTree.MouseFilter != Control.MouseFilterEnum.Ignore
+            && projectTree.GetRoot() is not null;
+        var monitorProgram = _ladderDocument.BuildProgram();
+        var monitorCompilation = LadderCompiler.Compile(monitorProgram);
+        var monitorWorked = false;
+        var staleMonitorCleared = false;
+        var undoMonitorRestored = false;
+        var watchTableWorked = false;
+        var watchMetadataKeptMonitor = false;
+        var watchUndoRestored = false;
+        if (monitorCompilation.IsValid && monitorCompilation.Program is not null)
+        {
+            var monitorRuntime = new VirtualControllerRuntime(monitorCompilation.Program);
+            monitorRuntime.Run();
+            var monitorSnapshot = monitorRuntime.Scan(new Dictionary<string, bool>(StringComparer.Ordinal)
+            {
+                ["start_command"] = true,
+                ["stop_command"] = false,
+                ["simulated_photoeye"] = false,
+            });
+            AttachVirtualController(monitorProgram, monitorSnapshot);
+            var firstContact = _ladderDocument.Rungs[0].Branches[0].Contacts[0];
+            monitorWorked = editorCanvas.MonitorActive && logixCanvas.MonitorActive
+                && editorCanvas.MonitorScanNumber == monitorSnapshot.ScanNumber
+                && editorCanvas.IsElementEnergized(firstContact.Id)
+                && editorCanvas.IsElementEnergized($"{_ladderDocument.Rungs[0].Id}-coil");
+            bottomTabs.CurrentTab = 2;
+            var startWatch = watchTable.GetRoot()?.GetFirstChild();
+            while (startWatch is not null && startWatch.GetMetadata(0).AsString() != "start_command")
+                startWatch = startWatch.GetNext();
+            watchTableWorked = startWatch is not null
+                && startWatch.GetText(2) == "TRUE"
+                && startWatch.GetText(4).Contains("GOOD · SCAN", StringComparison.Ordinal)
+                && watchStatus.Text.Contains("SIMULATOR ONLY", StringComparison.Ordinal);
+            var originalWatchCount = _ladderDocument.WatchVariables.Count;
+            clearWatch.EmitSignal(BaseButton.SignalName.Pressed);
+            watchMetadataKeptMonitor = _ladderDocument.WatchVariables.Count == 0
+                && editorCanvas.MonitorActive && logixCanvas.MonitorActive;
+            undo.EmitSignal(BaseButton.SignalName.Pressed);
+            watchUndoRestored = _ladderDocument.WatchVariables.Count == originalWatchCount
+                && editorCanvas.MonitorActive && logixCanvas.MonitorActive;
+            addRung.EmitSignal(BaseButton.SignalName.Pressed);
+            staleMonitorCleared = !editorCanvas.MonitorActive && !logixCanvas.MonitorActive;
+            undo.EmitSignal(BaseButton.SignalName.Pressed);
+            undoMonitorRestored = editorCanvas.MonitorActive && logixCanvas.MonitorActive
+                && editorCanvas.MonitorScanNumber == monitorSnapshot.ScanNumber;
+        }
+        _ladderHistory.Clear();
+        foreach (var refresh in _ladderEditorRefreshers) refresh();
+        result = $"treeSelectable={selectable} addBlockFromTree={addBlockFromTree is not null} projectPersistence={projectPersistenceWorked} newProject={newProjectWorked} rungLayout={rungLayoutWorked} contextualProperties={contextualPropertiesWorked}/{logixContextualPropertiesWorked}/{instructionContextMenuWorked} clipboard={instructionClipboardWorked}/{instructionClipboardUndone}/{rungClipboardWorked}/{rungClipboardUndone} monitor={monitorWorked}/{staleMonitorCleared}/{undoMonitorRestored} watchTable={watchTableWorked}/{watchMetadataKeptMonitor}/{watchUndoRestored} edges={risingEdgeInserted}/{fallingEdgeInserted} advancedMath={moduloInserted}/{squareRootInserted}/{exponentiateInserted}/{truncateInserted} scaling={normalizeInserted}/{scaleInserted} conversion={convertInserted}/{roundInserted}/{ceilingInserted}/{floorInserted} timers={timerInserted}/{offDelayInserted}/{pulseTimerInserted}/{retentiveTimerInserted}/{timerResetInserted} bindingBrowser={bindingBrowserWorked} validation={structuredValidationWorked}/{validationNavigationWorked}/{validationCleared} docksWorked={docksWorked}/{dockResizeWorked}[project={projectDockCollapsed}/{projectDockReopened},tools={toolDockCollapsed}/{toolDockReopened},bottom={bottomDockCollapsed}/{bottomDockReopened}] exactInsert={insertionCursorSelected}/{exactInsertionWorked}/{exactInsertionUndone} dragDrop={dragPreviewWorked}/{dragDropWorked}/{dragDropUndone} elementMove={exactMoveWorked}/{exactMoveRestored} exactDelete={exactDeleteWorked}/{exactDeleteUndone} branchDelete={branchDeleteWorked}/{branchDeleteUndone} tagEdit={unusedTagDeleted}/{tagRenameWorked}/{tagInitialValueWorked}/{tagRenameUndone} selectionHandled={selectionHandled} crossReferenceFound={crossReferenceFound} searchNavigated={searchNavigated} instructionHelpWorked={instructionHelpWorked} toolRailWorked={toolRailWorked} rungAdded={added} undoWorked={undoWorked} redoWorked={redoWorked} instructionAdded={instructionAdded} comparisonInserted={comparisonInserted} numericInserted={numericInserted} blockLifecycle={blockAdded}/{blockRenamed}/{blockDeleted} callInserted={callInserted} returnInserted={returnInserted} jumpLabel={jumpInserted}/{labelInserted}/{labelPropertyEdited}/{labelContextualPropertiesWorked} taskLifecycle={taskAdded}/{taskRenamed}/{taskDeleted} counterInserted={counterInserted} counterDownInserted={counterDownInserted} counterLoadInserted={counterLoadInserted} counterResetInserted={counterResetInserted} setInserted={setInserted} resetInserted={resetInserted} rungRestored={restored} instructionRestored={instructionRestored}";
+        return selectable && addBlockFromTree is not null && projectPersistenceWorked && newProjectWorked && rungLayoutWorked && contextualPropertiesWorked && logixContextualPropertiesWorked && instructionContextMenuWorked && docksWorked && dockResizeWorked && selectionHandled && crossReferenceFound && searchNavigated && instructionHelpWorked && toolRailWorked && added && undoWorked && redoWorked && instructionAdded && timerInserted && offDelayInserted && pulseTimerInserted && retentiveTimerInserted && timerResetInserted
+            && monitorWorked && staleMonitorCleared && undoMonitorRestored
+            && watchTableWorked && watchMetadataKeptMonitor && watchUndoRestored
+            && bindingBrowserWorked
+            && structuredValidationWorked && validationNavigationWorked && validationCleared
+            && insertionCursorSelected && exactInsertionWorked && exactInsertionUndone
+            && dragPreviewWorked && dragDropWorked && dragDropUndone
+            && exactMoveWorked && exactMoveRestored && exactDeleteWorked && exactDeleteUndone
+            && instructionClipboardWorked && instructionClipboardUndone && rungClipboardWorked && rungClipboardUndone
+            && branchDeleteWorked && branchDeleteUndone
+            && unusedTagDeleted && tagRenameWorked && tagInitialValueWorked && tagRenameUndone
+            && risingEdgeInserted && fallingEdgeInserted
+            && comparisonInserted && numericInserted && moduloInserted && squareRootInserted && exponentiateInserted && truncateInserted
+            && normalizeInserted && scaleInserted
+            && convertInserted && roundInserted && ceilingInserted && floorInserted
+            && blockAdded && blockRenamed && blockDeleted && callInserted && returnInserted
+            && jumpInserted && labelInserted && labelPropertyEdited && labelContextualPropertiesWorked
+            && taskAdded && taskRenamed && taskDeleted
+            && counterInserted && counterDownInserted && counterLoadInserted && counterResetInserted && setInserted && resetInserted && restored && instructionRestored;
+    }
+
+    private static void AppendLadderNode(
+        StringBuilder text,
+        LadderNode node,
+        VirtualControllerSnapshot snapshot,
+        string indent)
+    {
+        switch (node.Kind)
+        {
+            case LadderNodeKind.Contact:
+                var symbol = node.EdgeMode switch
+                {
+                    LadderEdgeMode.Rising => "[P]",
+                    LadderEdgeMode.Falling => "[N]",
+                    _ => node.NormallyClosed ? "[/]" : "[ ]",
+                };
+                AppendState(text, node.Id, $"{indent}{symbol} {Escape(node.Variable)}", snapshot);
+                break;
+            case LadderNodeKind.Compare:
+                AppendState(text, node.Id,
+                    $"{indent}CMP {Escape(node.Variable)} {node.CompareOperator} {Escape(node.RightOperand)}", snapshot);
+                break;
+            case LadderNodeKind.Series:
+                AppendState(text, node.Id, $"{indent}SERIES", snapshot);
+                foreach (var child in node.Children ?? []) AppendLadderNode(text, child, snapshot, indent + "  ");
+                break;
+            case LadderNodeKind.Parallel:
+                AppendState(text, node.Id, $"{indent}PARALLEL", snapshot);
+                var branch = 1;
+                foreach (var child in node.Children ?? [])
+                {
+                    text.AppendLine($"{indent}  [color=#7fa7ba]BRANCH {branch++}[/color]");
+                    AppendLadderNode(text, child, snapshot, indent + "    ");
+                }
+                break;
+        }
+    }
+
+    private static void AppendState(
+        StringBuilder text,
+        string id,
+        string label,
+        VirtualControllerSnapshot snapshot)
+    {
+        var energized = snapshot.Elements.TryGetValue(id, out var state) && state.Energized;
+        var color = energized ? "65d49a" : "657b86";
+        text.AppendLine($"[color=#{color}]{label}  {(energized ? "ENERGIZED" : "off")}[/color] [color=#40535d]{Escape(id)}[/color]");
+    }
+
+    private void RefreshConnection()
+    {
+        if (_connectionStatus is null) return;
+        _connectionStatus.Text = $"PLC  •  {_connection.State.ToString().ToUpperInvariant()}";
+        _connectionStatus.AddThemeColorOverride("font_color",
+            _connection.State == ConnectionState.Connected ? new Color("65d49a") : new Color("f1aa5b"));
+        _connectionInspector.Text =
+            $"[font_size=18][b]GUARDED PLC RUNTIME[/b][/font_size]\n\n" +
+            $"[b]State[/b]  {_connection.State.ToString().ToUpperInvariant()}\n" +
+            $"[b]Endpoint[/b]  {Escape(_connection.EndpointDescription)}\n\n" +
+            $"{Escape(_connection.StatusDetail)}";
+        RefreshOperatorPanels();
+    }
+
+    private void PopulateDiagnostics()
+    {
+        _diagnosticList.Clear();
+        foreach (var issue in _diagnostics
+                     .OrderByDescending(issue => issue.Severity)
+                     .ThenBy(issue => issue.Scope, StringComparer.Ordinal))
+        {
+            var icon = issue.Severity switch
+            {
+                DiagnosticSeverity.Error => "ERROR",
+                DiagnosticSeverity.Warning => "WARN ",
+                _ => "INFO ",
+            };
+            _diagnosticList.AddItem($"{icon}  {issue.Code}  |  {issue.Scope}  |  {issue.Message}  →  {issue.Resolution}");
+        }
+        var errors = _diagnostics.Count(issue => issue.Severity == DiagnosticSeverity.Error);
+        var warnings = _diagnostics.Count(issue => issue.Severity == DiagnosticSeverity.Warning);
+        _diagnosticSummary.Text = _productView == "operator" ? "LOCAL MODEL POINTS" : DiagnosticSummaryText();
+        _diagnosticSummary.AddThemeColorOverride("font_color",
+            errors > 0 ? new Color("ef7777") : warnings > 0 ? new Color("f1aa5b") : new Color("65d49a"));
+    }
+
+    private string DiagnosticSummaryText()
+    {
+        var errors = _diagnostics.Count(issue => issue.Severity == DiagnosticSeverity.Error);
+        var warnings = _diagnostics.Count(issue => issue.Severity == DiagnosticSeverity.Warning);
+        return $"PROJECT DIAGNOSTICS    {errors} ERRORS    {warnings} WARNINGS    {_diagnostics.Count} TOTAL";
+    }
+
+    public void SetWorkspaceStatus(string message, bool isError = false)
+    {
+        _workspaceStatus.Text = message;
+        _workspaceStatus.AddThemeColorOverride("font_color",
+            isError ? new Color("ef7777") : new Color("65d49a"));
+    }
+
+    public void SetTransformMode(WorkspaceTransformMode mode)
+    {
+        foreach (var item in _transformModeButtons)
+            item.Value.SetPressedNoSignal(item.Key == mode);
+    }
+
+    public void SetTransformSpace(WorkspaceTransformSpace space)
+    {
+        foreach (var item in _transformSpaceButtons)
+            item.Value.SetPressedNoSignal(item.Key == space);
+    }
+
+    public void SetWorkspaceDirty(bool dirty)
+    {
+        _sceneTitle.Text = dirty ? $"{_activeSceneName}  •  UNSAVED" : _activeSceneName;
+        _sceneTitle.AddThemeColorOverride("font_color",
+            dirty ? new Color("f1aa5b") : new Color("bcd3df"));
+    }
+
+    /// <summary>
+    /// Runtime-safe toolbar rendering of the canonical mark geometry.
+    /// The editable SVG remains the source asset; drawing here avoids relying
+    /// on an editor import having completed before a packaged shell starts.
+    /// </summary>
+    private sealed partial class RungProofMark : Control
+    {
+        public override void _Draw()
+        {
+            var side = Math.Min(Size.X, Size.Y);
+            var origin = new Vector2((Size.X - side) / 2.0f, (Size.Y - side) / 2.0f);
+            var scale = side / 256.0f;
+            Vector2 P(float x, float y) => origin + new Vector2(x, y) * scale;
+            var navy = new Color("071a2a");
+            var cyan = new Color("28a9e2");
+            var green = new Color("16a34a");
+
+            DrawStyleBox(new StyleBoxFlat
+            {
+                BgColor = new Color("f7fafb"),
+                CornerRadiusTopLeft = 7,
+                CornerRadiusTopRight = 7,
+                CornerRadiusBottomLeft = 7,
+                CornerRadiusBottomRight = 7,
+            }, new Rect2(origin, new Vector2(side, side)));
+
+            DrawLine(P(24, 128), P(232, 128), navy, 2.8f, true);
+            DrawLine(P(42, 76), P(42, 180), navy, 2.8f, true);
+            DrawLine(P(214, 76), P(214, 180), navy, 2.8f, true);
+            DrawLine(P(88, 92), P(88, 164), cyan, 2.4f, true);
+            DrawLine(P(116, 92), P(116, 164), cyan, 2.4f, true);
+            DrawLine(P(140, 92), P(140, 164), cyan, 2.4f, true);
+            DrawLine(P(168, 92), P(168, 164), cyan, 2.4f, true);
+            DrawLine(P(116, 128), P(140, 128), green, 2.8f, true);
+        }
+    }
+
+    private static PanelContainer PanelContainer(string name, Color background, Color border)
+    {
+        var panel = new PanelContainer { Name = name };
+        panel.AddThemeStyleboxOverride("panel", BoxStyle(background, border));
+        return panel;
+    }
+
+    private static StyleBoxFlat BoxStyle(Color background, Color border)
+    {
+        return new StyleBoxFlat
+        {
+            BgColor = background,
+            BorderColor = border,
+            BorderWidthLeft = 1,
+            BorderWidthTop = 1,
+            BorderWidthRight = 1,
+            BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 5,
+            CornerRadiusTopRight = 5,
+            CornerRadiusBottomLeft = 5,
+            CornerRadiusBottomRight = 5,
+            ContentMarginLeft = 10,
+            ContentMarginTop = 8,
+            ContentMarginRight = 10,
+            ContentMarginBottom = 8,
+        };
+    }
+
+    private static MarginContainer Margin(string name, int left, int right, int top, int bottom)
+    {
+        var margin = new MarginContainer { Name = name };
+        margin.AddThemeConstantOverride("margin_left", left);
+        margin.AddThemeConstantOverride("margin_right", right);
+        margin.AddThemeConstantOverride("margin_top", top);
+        margin.AddThemeConstantOverride("margin_bottom", bottom);
+        return margin;
+    }
+
+    private static Label Heading(string text, int size, Color color)
+    {
+        var label = new Label { Text = text, VerticalAlignment = VerticalAlignment.Center };
+        label.AddThemeFontSizeOverride("font_size", size);
+        label.AddThemeColorOverride("font_color", color);
+        return label;
+    }
+
+    private static Label SectionLabel(string text)
+    {
+        var label = Heading(text, 13, new Color("7fa7ba"));
+        label.CustomMinimumSize = new Vector2(0, 28);
+        return label;
+    }
+
+    private static Label SmallStatus(string text, Color color)
+    {
+        var label = Heading(text, 12, color);
+        label.HorizontalAlignment = HorizontalAlignment.Right;
+        return label;
+    }
+
+    private static VSeparator VRule() => new() { CustomMinimumSize = new Vector2(8, 0) };
+
+    private static MenuButton TopMenu(string name, string text)
+    {
+        var menu = new MenuButton
+        {
+            Name = name,
+            Text = text,
+            Flat = true,
+            CustomMinimumSize = new Vector2(Math.Max(52, text.Length * 10), 32),
+        };
+        menu.AddThemeColorOverride("font_color", new Color("a9c2cf"));
+        menu.AddThemeColorOverride("font_hover_color", new Color("e9f4f8"));
+        menu.AddThemeFontSizeOverride("font_size", 13);
+        return menu;
+    }
+
+    private static Button ToolbarButton(string name, string text, Color color, float width = 104)
+    {
+        var button = new Button { Name = name, Text = text, CustomMinimumSize = new Vector2(width, 36) };
+        button.AddThemeStyleboxOverride("normal", BoxStyle(color.Darkened(0.22f), color));
+        button.AddThemeStyleboxOverride("hover", BoxStyle(color.Darkened(0.05f), color.Lightened(0.18f)));
+        button.AddThemeStyleboxOverride("pressed", BoxStyle(color.Darkened(0.35f), color));
+        button.AddThemeFontSizeOverride("font_size", 13);
+        return button;
+    }
+
+    private static RichTextLabel Inspector(string name) => new()
+    {
+        Name = name,
+        BbcodeEnabled = true,
+        FitContent = false,
+        ScrollActive = true,
+        Text = "Select a scene or asset to inspect its engineering metadata.",
+    };
+
+    private static string Text(JsonElement element, string name) =>
+        element.ValueKind == JsonValueKind.Object
+        && element.TryGetProperty(name, out var value)
+        && value.ValueKind == JsonValueKind.String
+            ? value.GetString() ?? string.Empty
+            : string.Empty;
+
+    private static string Escape(string value) => value
+        .Replace("[", "[lb]", StringComparison.Ordinal)
+        .Replace("]", "[rb]", StringComparison.Ordinal);
+}

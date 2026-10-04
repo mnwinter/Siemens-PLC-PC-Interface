@@ -1,0 +1,12 @@
+{
+  "assetId": "safety.fence.mesh-panel-3m.v1",
+  "reviewerId": "codex-agent-01a0c42b-machine-safety-fence-final-blind-review",
+  "identifiedFamily": "modular machine-guarding fence panel / perimeter safety barrier",
+  "confidence": 0.98,
+  "result": "pass",
+  "reviewRound": 2,
+  "defects": [
+    "Extreme perspective crops a small part of the right post/base.",
+    "The fixed panel intentionally has no gate, latch, or interlock hardware."
+  ]
+}

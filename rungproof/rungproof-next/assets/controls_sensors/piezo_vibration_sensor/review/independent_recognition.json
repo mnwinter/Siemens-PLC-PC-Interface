@@ -1,0 +1,8 @@
+{
+  "assetId": "sensing.condition.vibration.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-070",
+  "identifiedFamily": "Compact motor-driven cable reel/winch assembly with a horizontal drum and projecting shaft",
+  "confidence": 0.82,
+  "concerns": "The drum lacks visible cable or flanges, so it could instead be a generic geared roller or actuator mockup; proportions and mounting details are stylized.",
+  "sourceReview": "build/blind-review-assets/image_070.controls-round2.review.md"
+}

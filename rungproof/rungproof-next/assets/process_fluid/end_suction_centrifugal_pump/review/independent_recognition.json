@@ -1,0 +1,8 @@
+{
+  "assetId": "process.pump.centrifugal.end-suction-baseplate.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-112",
+  "identifiedFamily": "Horizontally coupled end-suction centrifugal pump and electric motor on a common baseplate",
+  "confidence": 0.91,
+  "concerns": "Stylized geometry omits recognizable suction/discharge flanges, volute details, coupling guard, motor fins, feet, and mounting hardware; shaft-side connections are ambiguous and proportions vary by view",
+  "sourceReview": "build/blind-review-assets/image_112.process-round1.review.md"
+}

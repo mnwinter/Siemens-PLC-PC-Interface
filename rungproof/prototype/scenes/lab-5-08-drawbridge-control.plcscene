@@ -1,0 +1,324 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-5-08-drawbridge-control",
+  "name": "Lab 5.8 - Drawbridge Control",
+  "description": "A bridge raises only after traffic is stopped and the bridge returns to its home limit before reopening traffic.",
+  "camera": {
+    "position": [
+      11,
+      8,
+      12
+    ],
+    "target": [
+      0,
+      1.1,
+      0
+    ],
+    "fov": 45
+  },
+  "equipment": [
+    {
+      "id": "liftTable_0",
+      "type": "liftTable",
+      "label": "Drawbridge Control lift Table",
+      "position": [
+        -3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "width": 2.3,
+        "depth": 1.8,
+        "minimumHeight": 0.6,
+        "travel": 2.1,
+        "initialPosition": 0
+      }
+    },
+    {
+      "id": "indicator_1",
+      "type": "indicator",
+      "label": "Drawbridge Control indicator",
+      "position": [
+        -1.1,
+        0,
+        0
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    },
+    {
+      "id": "switch_2",
+      "type": "switch",
+      "label": "Drawbridge Control switch",
+      "position": [
+        1.1,
+        0,
+        0
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-traffic_stopped",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "training_accessory_3",
+      "type": "trainingAccessory",
+      "label": "Drawbridge Control - drawbridge deck",
+      "position": [
+        3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "assetName": "drawbridge deck",
+        "catalogAssetId": "training.accessory.drawbridge_deck.v1"
+      }
+    },
+    {
+      "id": "training_accessory_4",
+      "type": "trainingAccessory",
+      "label": "Drawbridge Control - road barrier",
+      "position": [
+        -3.3000000000000003,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "road barrier",
+        "catalogAssetId": "training.accessory.road_barrier.v1"
+      }
+    },
+    {
+      "id": "training_accessory_5",
+      "type": "trainingAccessory",
+      "label": "Drawbridge Control - bridge limit switches",
+      "position": [
+        -1.1,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "bridge limit switches",
+        "catalogAssetId": "training.accessory.bridge_limit_switches.v1"
+      }
+    },
+    {
+      "id": "switch_6",
+      "type": "switch",
+      "label": "Drawbridge Control operator input",
+      "position": [
+        1.55,
+        0,
+        2.35
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-bridge_request",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "switch_7",
+      "type": "switch",
+      "label": "Drawbridge Control operator input",
+      "position": [
+        3.7500000000000004,
+        0,
+        2.35
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-bridge_home",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "indicator_8",
+      "type": "indicator",
+      "label": "Drawbridge Control output indication",
+      "position": [
+        -2.4000000000000004,
+        0,
+        4.7
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    }
+  ],
+  "simulation": {
+    "type": "booleanPanel",
+    "points": [
+      {
+        "name": "traffic_stopped",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "bridge_request",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "bridge_home",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "bridge_raise",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "traffic_release",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      }
+    ],
+    "actions": [
+      {
+        "id": "toggle-traffic_stopped",
+        "label": "Toggle traffic stopped",
+        "type": "toggle",
+        "point": "traffic_stopped"
+      },
+      {
+        "id": "toggle-bridge_request",
+        "label": "Toggle bridge request",
+        "type": "toggle",
+        "point": "bridge_request"
+      },
+      {
+        "id": "toggle-bridge_home",
+        "label": "Toggle bridge home",
+        "type": "toggle",
+        "point": "bridge_home"
+      }
+    ],
+    "rules": [],
+    "edgeRules": [],
+    "pointBindings": [
+      {
+        "point": "traffic_stopped",
+        "equipmentId": "switch_2",
+        "mode": "switch"
+      },
+      {
+        "point": "bridge_request",
+        "equipmentId": "switch_6",
+        "mode": "switch"
+      },
+      {
+        "point": "bridge_home",
+        "equipmentId": "switch_7",
+        "mode": "switch"
+      },
+      {
+        "point": "bridge_raise",
+        "equipmentId": "indicator_1",
+        "mode": "indicator",
+        "activeColor": "green"
+      },
+      {
+        "point": "traffic_release",
+        "equipmentId": "indicator_8",
+        "mode": "indicator",
+        "activeColor": "green"
+      }
+    ]
+  },
+  "training": {
+    "hints": [
+      "Translate the lesson into explicit state and permissive logic: Bridge motion and traffic release are mutually interlocked.",
+      "Inputs are simulator feedback (traffic_stopped, bridge_request, bridge_home); PLC logic owns bridge_raise, traffic_release.",
+      "Test the initial state, the valid condition, and at least one missing permissive."
+    ],
+    "solution": {
+      "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
+      "steps": [
+        "Require the documented inputs: traffic_stopped, bridge_request, bridge_home.",
+        "Command the documented outputs: bridge_raise, traffic_release.",
+        "Remove PLC commands when the permissive is lost."
+      ],
+      "acceptance": "Bridge motion and traffic release are mutually interlocked."
+    },
+    "assetRequirements": [
+      "drawbridge deck",
+      "road barrier",
+      "bridge limit switches"
+    ],
+    "machineGuide": {
+      "purpose": "A bridge raises only after traffic is stopped and the bridge returns to its home limit before reopening traffic.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state."
+      ],
+      "normalSequence": [
+        "Apply the requested input condition.",
+        "Verify only the documented PLC outputs respond."
+      ],
+      "stopBehavior": [
+        "Removing the permissive removes PLC-owned commands.",
+        "Reset returns the module to its initial state."
+      ],
+      "faultBehavior": [
+        "A missing or stale input must fail safe and remain diagnosable."
+      ],
+      "expectedObservations": [
+        "Bridge motion and traffic release are mutually interlocked."
+      ]
+    },
+    "sequenceNumber": 47,
+    "inheritsFrom": "lab-5-07-pedestrian-crossing",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout"
+    ],
+    "addedTags": [
+      "traffic_stopped",
+      "bridge_request",
+      "bridge_home",
+      "bridge_raise",
+      "traffic_release"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-5-07-pedestrian-crossing"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "initial-safe-state",
+        "expect": {
+          "bridge_raise": false,
+          "traffic_release": false
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "assetId": "utilities.steam.condensate-return-duplex.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-147",
+  "identifiedFamily": "Duplex steam condensate return unit with vented receiver tank and two centrifugal pumps",
+  "confidence": 0.94,
+  "concerns": "Simplified geometry; pump piping and tank connections appear incomplete, and the vent/overflow proportions are not fully realistic",
+  "sourceReview": "build/blind-review-assets/image_147.readable-labels-b.review.md"
+}

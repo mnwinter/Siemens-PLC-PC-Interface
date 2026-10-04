@@ -1,0 +1,321 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-6-08-hand-dryer",
+  "name": "Lab 6.8 - Timed Hand-Dryer",
+  "description": "Hand presence starts a blower and heater cycle with a visible remaining-time indication.",
+  "camera": {
+    "position": [
+      11,
+      8,
+      12
+    ],
+    "target": [
+      0,
+      1.1,
+      0
+    ],
+    "fov": 45
+  },
+  "equipment": [
+    {
+      "id": "fan_0",
+      "type": "fan",
+      "label": "Timed Hand-Dryer fan",
+      "position": [
+        -3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "running": false
+      }
+    },
+    {
+      "id": "machine_1",
+      "type": "machine",
+      "label": "Timed Hand-Dryer machine",
+      "position": [
+        -1.1,
+        0,
+        0
+      ],
+      "config": {
+        "size": [
+          2.1,
+          2.7,
+          1.7
+        ],
+        "color": 5466227,
+        "running": false
+      }
+    },
+    {
+      "id": "indicator_2",
+      "type": "indicator",
+      "label": "Timed Hand-Dryer indicator",
+      "position": [
+        1.1,
+        0,
+        0
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    },
+    {
+      "id": "training_accessory_3",
+      "type": "trainingAccessory",
+      "label": "Timed Hand-Dryer - hand-presence sensor",
+      "position": [
+        3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "assetName": "hand-presence sensor",
+        "catalogAssetId": "training.accessory.hand_presence_sensor.v1"
+      }
+    },
+    {
+      "id": "training_accessory_4",
+      "type": "trainingAccessory",
+      "label": "Timed Hand-Dryer - air outlet",
+      "position": [
+        -3.3000000000000003,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "air outlet",
+        "catalogAssetId": "training.accessory.air_outlet.v1"
+      }
+    },
+    {
+      "id": "training_accessory_5",
+      "type": "trainingAccessory",
+      "label": "Timed Hand-Dryer - heating element",
+      "position": [
+        -1.1,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "heating element",
+        "catalogAssetId": "training.accessory.heating_element.v1"
+      }
+    },
+    {
+      "id": "training_accessory_6",
+      "type": "trainingAccessory",
+      "label": "Timed Hand-Dryer - progress display",
+      "position": [
+        1.1,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "progress display",
+        "catalogAssetId": "training.accessory.progress_display.v1"
+      }
+    },
+    {
+      "id": "switch_7",
+      "type": "switch",
+      "label": "Timed Hand-Dryer operator input",
+      "position": [
+        3.7500000000000004,
+        0,
+        2.35
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-hands_present",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "switch_8",
+      "type": "switch",
+      "label": "Timed Hand-Dryer operator input",
+      "position": [
+        -2.4000000000000004,
+        0,
+        4.7
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-dryer_timer_active",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "indicator_9",
+      "type": "indicator",
+      "label": "Timed Hand-Dryer output indication",
+      "position": [
+        -0.20000000000000007,
+        0,
+        4.7
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    }
+  ],
+  "simulation": {
+    "type": "booleanPanel",
+    "points": [
+      {
+        "name": "hands_present",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "dryer_timer_active",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "blower_run",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "heater_enable",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      }
+    ],
+    "actions": [
+      {
+        "id": "toggle-hands_present",
+        "label": "Toggle hands present",
+        "type": "toggle",
+        "point": "hands_present"
+      },
+      {
+        "id": "toggle-dryer_timer_active",
+        "label": "Toggle dryer timer active",
+        "type": "toggle",
+        "point": "dryer_timer_active"
+      }
+    ],
+    "rules": [],
+    "edgeRules": [],
+    "pointBindings": [
+      {
+        "point": "hands_present",
+        "equipmentId": "switch_7",
+        "mode": "switch"
+      },
+      {
+        "point": "dryer_timer_active",
+        "equipmentId": "switch_8",
+        "mode": "switch"
+      },
+      {
+        "point": "blower_run",
+        "equipmentId": "indicator_2",
+        "mode": "indicator",
+        "activeColor": "green"
+      },
+      {
+        "point": "heater_enable",
+        "equipmentId": "indicator_9",
+        "mode": "indicator",
+        "activeColor": "green"
+      }
+    ]
+  },
+  "training": {
+    "hints": [
+      "Translate the lesson into explicit state and permissive logic: The blower and heater run only during a valid hand-drying interval.",
+      "Inputs are simulator feedback (hands_present, dryer_timer_active); PLC logic owns blower_run, heater_enable.",
+      "Test the initial state, the valid condition, and at least one missing permissive."
+    ],
+    "solution": {
+      "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
+      "steps": [
+        "Require the documented inputs: hands_present, dryer_timer_active.",
+        "Command the documented outputs: blower_run, heater_enable.",
+        "Remove PLC commands when the permissive is lost."
+      ],
+      "acceptance": "The blower and heater run only during a valid hand-drying interval."
+    },
+    "assetRequirements": [
+      "hand-presence sensor",
+      "air outlet",
+      "heating element",
+      "progress display"
+    ],
+    "machineGuide": {
+      "purpose": "Hand presence starts a blower and heater cycle with a visible remaining-time indication.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state."
+      ],
+      "normalSequence": [
+        "Apply the requested input condition.",
+        "Verify only the documented PLC outputs respond."
+      ],
+      "stopBehavior": [
+        "Removing the permissive removes PLC-owned commands.",
+        "Reset returns the module to its initial state."
+      ],
+      "faultBehavior": [
+        "A missing or stale input must fail safe and remain diagnosable."
+      ],
+      "expectedObservations": [
+        "The blower and heater run only during a valid hand-drying interval."
+      ]
+    },
+    "sequenceNumber": 51,
+    "inheritsFrom": "lab-6-07-luggage-weight-sort",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout"
+    ],
+    "addedTags": [
+      "hands_present",
+      "dryer_timer_active",
+      "blower_run",
+      "heater_enable"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-6-07-luggage-weight-sort"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "initial-safe-state",
+        "expect": {
+          "blower_run": false,
+          "heater_enable": false
+        }
+      }
+    ]
+  }
+}

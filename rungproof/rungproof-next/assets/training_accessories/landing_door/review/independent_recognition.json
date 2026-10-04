@@ -1,0 +1,15 @@
+{
+  "assetId": "training.accessory.landing_door.v1",
+  "reviewerId": "blind-2026-09-22-personnel-door-panel-final-review",
+  "identifiedFamily": "industrial wall or partition module with personnel access door (identical generic basis model)",
+  "confidence": 0.94,
+  "result": "pass",
+  "reviewRound": 1,
+  "defects": [
+    "Blank red sign carries no access or safety meaning.",
+    "Hinge and latch geometry are simplified.",
+    "Exposed insulation edge and kick plate are stylized."
+  ],
+  "sourceAssetId": "safety.enclosure.personnel-door-panel.v1",
+  "evidenceBasis": "delivery GLB is byte-identical to the independently reviewed generic basis asset"
+}

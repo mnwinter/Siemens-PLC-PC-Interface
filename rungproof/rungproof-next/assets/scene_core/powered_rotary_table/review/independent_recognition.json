@@ -1,0 +1,9 @@
+{
+  "assetId": "material-handling.table.powered-rotary.v1",
+  "reviewerId": "codex-agent-01a0c42b-rotary-table-recognition-final",
+  "identifiedFamily": "powered indexing rotary table",
+  "confidence": 0.9,
+  "result": "pass",
+  "reviewRound": 2,
+  "defects": []
+}

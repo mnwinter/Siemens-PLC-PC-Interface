@@ -1,0 +1,9 @@
+{
+  "assetId": "controls.stack-light.3-tier.v1",
+  "reviewerId": "codex-agent-01a0bae6-2f05-7843-b9ea-81827c54d571",
+  "identifiedFamily": "three-tier industrial stack light with acoustic sounder",
+  "confidence": 0.98,
+  "result": "pass",
+  "reviewRound": 2,
+  "majorDefects": []
+}

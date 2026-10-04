@@ -1,0 +1,228 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-2-01-workstation-call",
+  "name": "Lab 2.1 - Workstation Call Lamp",
+  "description": "A workstation call button directly controls a blue material-request lamp while the button is held.",
+  "camera": {
+    "position": [
+      10,
+      7,
+      10
+    ],
+    "target": [
+      0,
+      1.2,
+      0
+    ],
+    "fov": 43
+  },
+  "equipment": [
+    {
+      "id": "material_call_button",
+      "type": "switch",
+      "label": "Material call button",
+      "position": [
+        -1.6,
+        0,
+        0
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-material-call",
+        "color": 3050449
+      }
+    },
+    {
+      "id": "material_call_lamp",
+      "type": "indicator",
+      "label": "Material request lamp",
+      "position": [
+        0.8,
+        0,
+        0
+      ],
+      "config": {
+        "colors": [
+          "blue"
+        ],
+        "active": null
+      }
+    }
+  ],
+  "simulation": {
+    "type": "booleanPanel",
+    "points": [
+      {
+        "name": "material_call_pressed",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "material_call_on",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      }
+    ],
+    "actions": [
+      {
+        "id": "toggle-material-call",
+        "label": "Press / release material call",
+        "type": "toggle",
+        "point": "material_call_pressed"
+      }
+    ],
+    "rules": [
+      {
+        "when": {
+          "material_call_pressed": false
+        },
+        "set": {
+          "material_call_on": false
+        }
+      },
+      {
+        "when": {
+          "material_call_pressed": true
+        },
+        "set": {
+          "material_call_on": true
+        }
+      }
+    ],
+    "edgeRules": [],
+    "pointBindings": [
+      {
+        "point": "material_call_pressed",
+        "equipmentId": "material_call_button",
+        "mode": "switch"
+      },
+      {
+        "point": "material_call_on",
+        "equipmentId": "material_call_lamp",
+        "mode": "indicator",
+        "activeColor": "blue"
+      }
+    ]
+  },
+  "training": {
+    "hints": [
+      "Define the required result before writing logic: The call lamp follows the button state: off when released and on when pressed.",
+      "Treat material_call_pressed as simulator-to-PLC inputs. The PLC should command only material_call_on.",
+      "List the required input and memory states before assigning any output. Test every state, including the all-false state."
+    ],
+    "solution": {
+      "summary": "This is one valid functional reference. The same behavior may be implemented in LAD, FBD, or SCL; the rung layout is not prescribed.",
+      "steps": [
+        "When material_call_pressed = false, set material_call_on = false.",
+        "When material_call_pressed = true, set material_call_on = true."
+      ],
+      "acceptance": "The call lamp follows the button state: off when released and on when pressed."
+    },
+    "machineGuide": {
+      "purpose": "A workstation call button directly controls a blue material-request lamp while the button is held.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state.",
+        "The PLC is ready to command material_call_on."
+      ],
+      "normalSequence": [
+        "Observe the initial input state.",
+        "Apply material_call_pressed.",
+        "Verify the PLC produces only the required material_call_on."
+      ],
+      "stopBehavior": [
+        "A normal stop removes PLC-owned commands and leaves the equipment in a safe state.",
+        "Reset returns the scene to its documented initial condition."
+      ],
+      "faultBehavior": [
+        "A missing, stale, or incorrectly typed input must not be replaced by simulator logic.",
+        "A missing PLC command leaves the affected equipment stopped and the test diagnosable."
+      ],
+      "expectedObservations": [
+        "The call lamp follows the button state: off when released and on when pressed."
+      ]
+    },
+    "sequenceNumber": 1,
+    "inheritsFrom": "common-plc-watchdog-foundation",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout"
+    ],
+    "addedTags": [
+      "material_call_pressed",
+      "material_call_on"
+    ],
+    "changedTags": [],
+    "previousAcceptance": []
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "released",
+        "expect": {
+          "material_call_pressed": false,
+          "material_call_on": false
+        }
+      },
+      {
+        "name": "pressed",
+        "actions": [
+          "toggle-material-call"
+        ],
+        "expect": {
+          "material_call_pressed": true,
+          "material_call_on": true
+        }
+      }
+    ]
+  },
+  "migration": {
+    "sourceFile": "prototype/scenes/lab-2-01-workstation-call.plcscene",
+    "sourceFormat": "plcscene",
+    "assetMappings": {
+      "conveyor": "material-handling.belt-conveyor.600x6000.v1",
+      "photoeye": "sensing.photoelectric.through-beam.v1",
+      "switch": "controls.operator-station.single-pushbutton.v1",
+      "indicator": "controls.beacon.single-tier.v1",
+      "pusher": "actuation.pneumatic-pusher.1350mm.v1",
+      "motor": "drives.motor.ac-induction.v1",
+      "pipe": "process.pipe.flanged-spool.v1",
+      "tank": "process.tank.vertical-3000x5000.v1",
+      "pump": "process.pump.centrifugal-skid.v1",
+      "valve": "process.valve.actuated-ball.v1",
+      "levelSensor": "sensing.level.analog-4-20ma.v1",
+      "radarLevelSensor": "sensing.level.radar.v1",
+      "rotarySwitch": "controls.operator-station.selector.v1",
+      "fan": "air-handling.fan.axial-1900.v1",
+      "liftTable": "material-handling.lift.scissor-table.v1",
+      "drillPress": "machining.drill-press.pedestal.v1",
+      "robotArm": "robotics.robot.six-axis-medium.v1",
+      "rotaryTable": "material-handling.table.powered-rotary.v1",
+      "rollerShutter": "access-control.door.roller-shutter.v1",
+      "machine": "machining.machine.enclosed-center.v1",
+      "palletLoad": "loads.palletized-cases.gma-48x40.v1",
+      "toteFiller": "process.packaging.filler.tote-volumetric.v1",
+      "toteCapper": "process.packaging.capper.tote-inline.v1",
+      "toteLabeler": "process.packaging.labeler.tote-pressure-sensitive.v1",
+      "toteVision": "inspection.vision.tote-multicamera.v1",
+      "meteringSkid": "process.dosing.skid.liquid-metering.v1",
+      "containerReceiver": "material-handling.receiver.container-two-position.v1",
+      "sizeSensorBank": "sensing.dimensioning.parcel-three-height.v1"
+    },
+    "scenePropTypes": [
+      "box"
+    ],
+    "unresolvedAssetTypes": [],
+    "visualStatus": "mapped",
+    "productionApproved": false,
+    "reason": "Production approval requires every reusable asset and the complete scene to pass visual review."
+  }
+}

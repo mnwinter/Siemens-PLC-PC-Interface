@@ -1,0 +1,1 @@
+{"assetId":"safety.interlock.tongue-switch.v1","reviewerId":"codex-agent-source-blind-safety-final-review","identifiedFamily":"guard-door tongue safety interlock","confidence":0.90,"result":"pass","reviewRound":1,"defects":["Tongue engagement point is partly occluded.","Fastening and wiring details are simplified."]}

@@ -1,0 +1,398 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-2-20-bottle-shuttle",
+  "name": "Lab 2.20 - Bottle Shuttle Conveyor",
+  "description": "A reusable bottle travels to a right-hand sensor, reverses, returns to the left sensor, and stops.",
+  "camera": {
+    "position": [
+      10.6,
+      6.4,
+      9.8
+    ],
+    "target": [
+      0,
+      0.9,
+      0
+    ],
+    "fov": 43
+  },
+  "equipment": [
+    {
+      "id": "shuttle_conveyor",
+      "type": "conveyor",
+      "label": "Bottle shuttle conveyor",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "config": {
+        "length": 8,
+        "width": 1.5,
+        "deckHeight": 0.9,
+        "beltColor": 2568760,
+        "running": false
+      }
+    },
+    {
+      "id": "shuttle_bottle",
+      "type": "box",
+      "label": "Reusable process bottle",
+      "position": [
+        -3,
+        0.99,
+        0
+      ],
+      "config": {
+        "size": [
+          0.52,
+          1.25,
+          0.52
+        ],
+        "color": 15332085
+      }
+    },
+    {
+      "id": "left_sensor",
+      "type": "photoeye",
+      "label": "Left end sensor",
+      "position": [
+        -3,
+        0,
+        0
+      ],
+      "config": {
+        "span": 2.05,
+        "height": 0.7,
+        "beamCenterHeightM": 1.45,
+        "blocked": true
+      }
+    },
+    {
+      "id": "right_sensor",
+      "type": "photoeye",
+      "label": "Right end sensor",
+      "position": [
+        3,
+        0,
+        0
+      ],
+      "config": {
+        "span": 2.05,
+        "height": 0.7,
+        "beamCenterHeightM": 1.45,
+        "blocked": false
+      }
+    },
+    {
+      "id": "shuttle_start",
+      "type": "switch",
+      "label": "Start shuttle",
+      "position": [
+        -3.2,
+        0,
+        2
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "start-shuttle",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "shuttle_status",
+      "type": "indicator",
+      "label": "Shuttle status",
+      "position": [
+        3.4,
+        0,
+        -1.7
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "amber"
+      }
+    }
+  ],
+  "simulation": {
+    "type": "sequence",
+    "points": [
+      {
+        "name": "motor_run",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false
+      },
+      {
+        "name": "motor_direction",
+        "type": "STRING",
+        "owner": "PLC",
+        "initial": "stopped"
+      },
+      {
+        "name": "left_sensor_active",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": true
+      },
+      {
+        "name": "right_sensor_active",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "status_color",
+        "type": "STRING",
+        "owner": "SIM",
+        "initial": "amber"
+      },
+      {
+        "name": "cycle_complete",
+        "type": "BOOL",
+        "owner": "SIM",
+        "initial": false
+      }
+    ],
+    "actions": [
+      {
+        "id": "start-shuttle",
+        "label": "Start bottle shuttle",
+        "type": "start",
+        "sequence": "round-trip"
+      },
+      {
+        "id": "stop-shuttle",
+        "label": "Stop shuttle",
+        "type": "stop"
+      },
+      {
+        "id": "reset-shuttle",
+        "label": "Reset bottle",
+        "type": "reset"
+      }
+    ],
+    "pointBindings": [
+      {
+        "point": "motor_run",
+        "equipmentId": "shuttle_conveyor",
+        "mode": "running"
+      },
+      {
+        "point": "left_sensor_active",
+        "equipmentId": "left_sensor",
+        "mode": "photoeye"
+      },
+      {
+        "point": "right_sensor_active",
+        "equipmentId": "right_sensor",
+        "mode": "photoeye"
+      },
+      {
+        "point": "status_color",
+        "equipmentId": "shuttle_status",
+        "mode": "indicator"
+      }
+    ],
+    "sequences": {
+      "round-trip": [
+        {
+          "name": "travel right",
+          "durationS": 2.5,
+          "set": {
+            "motor_run": true,
+            "motor_direction": "right",
+            "left_sensor_active": false,
+            "right_sensor_active": false,
+            "cycle_complete": false,
+            "status_color": "green"
+          },
+          "motions": [
+            {
+              "type": "translate",
+              "equipmentId": "shuttle_bottle",
+              "axis": "x",
+              "from": -3,
+              "to": 3
+            }
+          ]
+        },
+        {
+          "name": "right detected",
+          "durationS": 0.2,
+          "set": {
+            "right_sensor_active": true,
+            "motor_direction": "left",
+            "status_color": "amber"
+          }
+        },
+        {
+          "name": "travel left",
+          "durationS": 2.5,
+          "set": {
+            "right_sensor_active": false,
+            "status_color": "green"
+          },
+          "motions": [
+            {
+              "type": "translate",
+              "equipmentId": "shuttle_bottle",
+              "axis": "x",
+              "from": 3,
+              "to": -3
+            }
+          ]
+        },
+        {
+          "name": "left detected",
+          "durationS": 0.1,
+          "set": {
+            "left_sensor_active": true,
+            "motor_run": false,
+            "motor_direction": "stopped",
+            "cycle_complete": true,
+            "status_color": "amber"
+          }
+        }
+      ]
+    },
+    "defaultSequence": "round-trip",
+    "safeState": {
+      "motor_run": false,
+      "motor_direction": "stopped",
+      "status_color": "red"
+    },
+    "completionState": {},
+    "conveyorSpeedMps": 0.75
+  },
+  "training": {
+    "hints": [
+      "Define the required result before writing logic: Right sensor reverses travel; left sensor stops the completed round trip.",
+      "Treat left_sensor_active, right_sensor_active as simulator-to-PLC inputs. The PLC should command only motor_run, motor_direction.",
+      "Use a step/state approach and prove the transition order: travel right \u2192 right detected \u2192 travel left \u2192 left detected."
+    ],
+    "solution": {
+      "summary": "This is one valid functional reference. The same behavior may be implemented in LAD, FBD, or SCL; the rung layout is not prescribed.",
+      "steps": [
+        "travel right: motor_run = true, motor_direction = \"right\".",
+        "right detected: motor_direction = \"left\".",
+        "travel left: no PLC command changes.",
+        "left detected: motor_run = false, motor_direction = \"stopped\"."
+      ],
+      "acceptance": "Right sensor reverses travel; left sensor stops the completed round trip."
+    },
+    "machineGuide": {
+      "purpose": "A reusable bottle travels to a right-hand sensor, reverses, returns to the left sensor, and stops.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state.",
+        "The PLC is ready to command motor_run, motor_direction."
+      ],
+      "normalSequence": [
+        "travel right",
+        "right detected",
+        "travel left",
+        "left detected"
+      ],
+      "stopBehavior": [
+        "A normal stop removes PLC-owned commands and leaves the equipment in a safe state.",
+        "Reset returns the scene to its documented initial condition."
+      ],
+      "faultBehavior": [
+        "A missing, stale, or incorrectly typed input must not be replaced by simulator logic.",
+        "A missing PLC command leaves the affected equipment stopped and the test diagnosable."
+      ],
+      "expectedObservations": [
+        "Right sensor reverses travel; left sensor stops the completed round trip."
+      ]
+    },
+    "sequenceNumber": 20,
+    "inheritsFrom": "lab-2-19-service-door",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout",
+      "cycle_complete"
+    ],
+    "addedTags": [
+      "motor_run",
+      "motor_direction",
+      "left_sensor_active",
+      "right_sensor_active",
+      "status_color"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-2-19-service-door"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "round-trip",
+        "phases": [
+          {
+            "action": "start-shuttle",
+            "runForS": 5.6
+          }
+        ],
+        "expect": {
+          "motor_run": false,
+          "motor_direction": "stopped",
+          "left_sensor_active": true,
+          "right_sensor_active": false,
+          "cycle_complete": true
+        }
+      }
+    ]
+  },
+  "migration": {
+    "sourceFile": "prototype/scenes/lab-2-20-bottle-shuttle.plcscene",
+    "sourceFormat": "plcscene",
+    "assetMappings": {
+      "conveyor": "material-handling.belt-conveyor.600x6000.v1",
+      "photoeye": "sensing.photoelectric.through-beam.v1",
+      "switch": "controls.operator-station.single-pushbutton.v1",
+      "indicator": "controls.beacon.single-tier.v1",
+      "pusher": "actuation.pneumatic-pusher.1350mm.v1",
+      "motor": "drives.motor.ac-induction.v1",
+      "pipe": "process.pipe.flanged-spool.v1",
+      "tank": "process.tank.vertical-3000x5000.v1",
+      "pump": "process.pump.centrifugal-skid.v1",
+      "valve": "process.valve.actuated-ball.v1",
+      "levelSensor": "sensing.level.analog-4-20ma.v1",
+      "radarLevelSensor": "sensing.level.radar.v1",
+      "rotarySwitch": "controls.operator-station.selector.v1",
+      "fan": "air-handling.fan.axial-1900.v1",
+      "liftTable": "material-handling.lift.scissor-table.v1",
+      "drillPress": "machining.drill-press.pedestal.v1",
+      "robotArm": "robotics.robot.six-axis-medium.v1",
+      "rotaryTable": "material-handling.table.powered-rotary.v1",
+      "rollerShutter": "access-control.door.roller-shutter.v1",
+      "machine": "machining.machine.enclosed-center.v1",
+      "palletLoad": "loads.palletized-cases.gma-48x40.v1",
+      "toteFiller": "process.packaging.filler.tote-volumetric.v1",
+      "toteCapper": "process.packaging.capper.tote-inline.v1",
+      "toteLabeler": "process.packaging.labeler.tote-pressure-sensitive.v1",
+      "toteVision": "inspection.vision.tote-multicamera.v1",
+      "meteringSkid": "process.dosing.skid.liquid-metering.v1",
+      "containerReceiver": "material-handling.receiver.container-two-position.v1",
+      "sizeSensorBank": "sensing.dimensioning.parcel-three-height.v1"
+    },
+    "scenePropTypes": [
+      "box"
+    ],
+    "unresolvedAssetTypes": [],
+    "visualStatus": "mapped",
+    "productionApproved": false,
+    "reason": "Production approval requires every reusable asset and the complete scene to pass visual review."
+  }
+}

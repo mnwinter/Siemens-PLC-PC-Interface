@@ -1,0 +1,312 @@
+{
+  "version": 1,
+  "machineGuide": {
+    "purpose": "A discrete-only tank demonstrates low and high switch thresholds without analog or radar instrumentation.",
+    "startConditions": [
+      "Common PLC/watchdog foundation is healthy.",
+      "Both pump and drain commands are FALSE; initial level is 50%."
+    ],
+    "normalSequence": [
+      "PLC commands the inlet pump or drain valve.",
+      "The liquid surface moves.",
+      "The low and high switches change only at their documented elevations."
+    ],
+    "stopBehavior": [
+      "Removing both commands stops level movement."
+    ],
+    "faultBehavior": [
+      "The scene does not create an analog or radar tag.",
+      "Missing PLC commands leave the tank process stopped."
+    ],
+    "expectedObservations": [
+      "Only low_level_switch and high_level_switch are external feedback points."
+    ]
+  },
+  "id": "tank-high-low",
+  "name": "Water Tank \u2014 High/Low Switches",
+  "description": "A discrete level-control example with separate low and high point level switches. Run the scene, then operate the inlet pump and drain to cross each switch elevation.",
+  "camera": {
+    "position": [
+      10.5,
+      7.5,
+      10.5
+    ],
+    "target": [
+      0,
+      2,
+      0
+    ],
+    "fov": 42
+  },
+  "equipment": [
+    {
+      "id": "water_tank_hl",
+      "type": "tank",
+      "label": "Water tank T-201",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "config": {
+        "height": 5,
+        "diameter": 3,
+        "initialLevel": 0.5,
+        "fluidColor": 1415124
+      }
+    },
+    {
+      "id": "hl_inlet_pump",
+      "type": "pump",
+      "label": "Water inlet pump P-201",
+      "position": [
+        -4.25,
+        0,
+        0.2
+      ],
+      "config": {
+        "running": false,
+        "color": 1534855
+      }
+    },
+    {
+      "id": "hl_inlet_pipe",
+      "type": "pipe",
+      "label": "Tank inlet pipe",
+      "position": [
+        -2.45,
+        3.9,
+        0.2
+      ],
+      "config": {
+        "length": 4.2,
+        "diameter": 0.28,
+        "axis": "x",
+        "color": 7109504
+      }
+    },
+    {
+      "id": "hl_outlet_pipe",
+      "type": "pipe",
+      "label": "Tank outlet pipe",
+      "position": [
+        2.25,
+        0.5,
+        0
+      ],
+      "config": {
+        "length": 1.8,
+        "diameter": 0.3,
+        "axis": "x",
+        "color": 7109504
+      }
+    },
+    {
+      "id": "hl_low_switch",
+      "type": "levelSensor",
+      "label": "Low level switch LSL-201",
+      "position": [
+        2.05,
+        1.25,
+        0
+      ],
+      "config": {
+        "sensorType": "discrete",
+        "threshold": 0.25,
+        "mode": "low",
+        "active": false
+      }
+    },
+    {
+      "id": "hl_high_switch",
+      "type": "levelSensor",
+      "label": "High level switch LSH-201",
+      "position": [
+        2.05,
+        3.75,
+        0
+      ],
+      "config": {
+        "sensorType": "discrete",
+        "threshold": 0.75,
+        "mode": "high",
+        "active": false
+      }
+    },
+    {
+      "id": "hl_pump_station",
+      "type": "switch",
+      "label": "Pump local station",
+      "position": [
+        -3.15,
+        0,
+        2.2
+      ],
+      "rotation": [
+        0,
+        15,
+        0
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-pump"
+      }
+    },
+    {
+      "id": "hl_drain_station",
+      "type": "switch",
+      "label": "Drain valve local station",
+      "position": [
+        -2.15,
+        0,
+        2.2
+      ],
+      "rotation": [
+        0,
+        8,
+        0
+      ],
+      "config": {
+        "style": "pushbutton",
+        "color": 15906565,
+        "action": "toggle-drain"
+      }
+    },
+    {
+      "id": "hl_stacklight",
+      "type": "indicator",
+      "label": "Tank status light",
+      "position": [
+        3.15,
+        0,
+        -2.05
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "amber"
+      }
+    }
+  ],
+  "simulation": {
+    "type": "tank",
+    "actions": [
+      {
+        "id": "run-simulation",
+        "label": "Run simulated process",
+        "type": "run"
+      },
+      {
+        "id": "toggle-pump",
+        "label": "Toggle inlet pump (simulated)",
+        "type": "toggle",
+        "point": "inlet_pump_run"
+      },
+      {
+        "id": "toggle-drain",
+        "label": "Toggle drain valve (simulated)",
+        "type": "toggle",
+        "point": "drain_valve_open"
+      },
+      {
+        "id": "stop-simulation",
+        "label": "Stop simulated process",
+        "type": "stop"
+      }
+    ],
+    "points": [
+      {
+        "name": "inlet_pump_run",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output",
+        "purpose": "PLC command that runs the water-tank inlet pump."
+      },
+      {
+        "name": "drain_valve_open",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output",
+        "purpose": "PLC command that opens the water-tank drain valve."
+      },
+      {
+        "name": "tank_level",
+        "type": "REAL",
+        "owner": "SIM",
+        "initial": 50,
+        "unit": "%",
+        "purpose": "Internal process level used by the tank physics."
+      },
+      {
+        "name": "low_level_switch",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false,
+        "purpose": "Simulator low-level switch feedback read by the PLC."
+      },
+      {
+        "name": "high_level_switch",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false,
+        "purpose": "Simulator high-level switch feedback read by the PLC."
+      }
+    ],
+    "tankId": "water_tank_hl",
+    "pumpId": "hl_inlet_pump",
+    "lowSensorId": "hl_low_switch",
+    "highSensorId": "hl_high_switch",
+    "indicatorId": "hl_stacklight",
+    "initialLevel": 0.5,
+    "inletRatePerSecond": 0.08,
+    "outletRatePerSecond": 0.06,
+    "lowThreshold": 0.25,
+    "highThreshold": 0.75
+  },
+  "migration": {
+    "sourceFile": "prototype/scenes/tank-high-low.json",
+    "sourceFormat": "json",
+    "assetMappings": {
+      "conveyor": "material-handling.belt-conveyor.600x6000.v1",
+      "photoeye": "sensing.photoelectric.through-beam.v1",
+      "switch": "controls.operator-station.single-pushbutton.v1",
+      "indicator": "controls.beacon.single-tier.v1",
+      "pusher": "actuation.pneumatic-pusher.1350mm.v1",
+      "motor": "drives.motor.ac-induction.v1",
+      "pipe": "process.pipe.flanged-spool.v1",
+      "tank": "process.tank.vertical-3000x5000.v1",
+      "pump": "process.pump.centrifugal-skid.v1",
+      "valve": "process.valve.actuated-ball.v1",
+      "levelSensor": "sensing.level.analog-4-20ma.v1",
+      "radarLevelSensor": "sensing.level.radar.v1",
+      "rotarySwitch": "controls.operator-station.selector.v1",
+      "fan": "air-handling.fan.axial-1900.v1",
+      "liftTable": "material-handling.lift.scissor-table.v1",
+      "drillPress": "machining.drill-press.pedestal.v1",
+      "robotArm": "robotics.robot.six-axis-medium.v1",
+      "rotaryTable": "material-handling.table.powered-rotary.v1",
+      "rollerShutter": "access-control.door.roller-shutter.v1",
+      "machine": "machining.machine.enclosed-center.v1",
+      "palletLoad": "loads.palletized-cases.gma-48x40.v1",
+      "toteFiller": "process.packaging.filler.tote-volumetric.v1",
+      "toteCapper": "process.packaging.capper.tote-inline.v1",
+      "toteLabeler": "process.packaging.labeler.tote-pressure-sensitive.v1",
+      "toteVision": "inspection.vision.tote-multicamera.v1",
+      "meteringSkid": "process.dosing.skid.liquid-metering.v1",
+      "containerReceiver": "material-handling.receiver.container-two-position.v1",
+      "sizeSensorBank": "sensing.dimensioning.parcel-three-height.v1"
+    },
+    "scenePropTypes": [
+      "box"
+    ],
+    "unresolvedAssetTypes": [],
+    "visualStatus": "mapped",
+    "productionApproved": false,
+    "reason": "Production approval requires every reusable asset and the complete scene to pass visual review."
+  }
+}

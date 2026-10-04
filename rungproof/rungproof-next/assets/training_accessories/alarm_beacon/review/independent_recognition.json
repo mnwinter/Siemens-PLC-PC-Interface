@@ -1,0 +1,10 @@
+{
+  "assetId": "training.accessory.alarm_beacon.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-025",
+  "identifiedFamily": "Single-section industrial warning beacon/stack light on a pedestal (identical generic basis model)",
+  "confidence": 0.88,
+  "concerns": "Overly smooth CGI surfaces, unusually tall/slender support, no visible wiring or mounting hardware, and minimal lens/detail realism.",
+  "sourceReview": "build/blind-review-assets/image_025.round2.review.md",
+  "sourceAssetId": "controls.beacon.single-tier.v1",
+  "evidenceBasis": "delivery GLB is byte-identical to the independently reviewed generic basis asset"
+}

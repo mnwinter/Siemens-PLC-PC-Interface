@@ -1,0 +1,8 @@
+{
+  "assetId": "machines.cutting.saw.circular-cold.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-152",
+  "identifiedFamily": "Horizontal metal-cutting cold saw with a circular blade, powered drive, and workholding vise",
+  "confidence": 0.98,
+  "concerns": "Stylized toy-like proportions; blade guarding, coolant/chip management, and motor-to-blade transmission appear incomplete or unrealistic",
+  "sourceReview": "build/blind-review-assets/image_152.production-machines-round2.review.md"
+}

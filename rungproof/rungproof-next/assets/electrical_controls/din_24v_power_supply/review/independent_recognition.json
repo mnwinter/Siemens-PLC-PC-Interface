@@ -1,0 +1,8 @@
+{
+  "assetId": "electrical.power-supply.din-24vdc-10a.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-129",
+  "identifiedFamily": "DIN-rail industrial 24 VDC switching power supply module with screw-terminal blocks",
+  "confidence": 0.91,
+  "concerns": "Stylized render; DIN-rail mounting clip is not visible, terminals lack screws/labels, and ventilation slots and front controls are simplified.",
+  "sourceReview": "build/blind-review-assets/image_129.readable-labels.review.md"
+}

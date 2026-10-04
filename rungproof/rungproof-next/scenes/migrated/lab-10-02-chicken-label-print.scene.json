@@ -1,0 +1,419 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-10-02-chicken-label-print",
+  "name": "Lab 10.2 - Chicken Label Print",
+  "description": "A weighed product receives a formatted label after the weight and printer-ready signals are valid.",
+  "camera": {
+    "position": [
+      11,
+      8,
+      12
+    ],
+    "target": [
+      0,
+      1.1,
+      0
+    ],
+    "fov": 45
+  },
+  "equipment": [
+    {
+      "id": "conveyor_0",
+      "type": "conveyor",
+      "label": "Chicken Label Print conveyor",
+      "position": [
+        -3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "length": 6.5,
+        "width": 1.4,
+        "deckHeight": 0.9,
+        "beltColor": 2568760,
+        "running": false
+      }
+    },
+    {
+      "id": "machine_1",
+      "type": "machine",
+      "label": "Chicken Label Print machine",
+      "position": [
+        -1.1,
+        0,
+        0
+      ],
+      "config": {
+        "size": [
+          2.1,
+          2.7,
+          1.7
+        ],
+        "color": 5466227,
+        "running": false
+      }
+    },
+    {
+      "id": "box_2",
+      "type": "box",
+      "label": "Chicken Label Print box",
+      "position": [
+        1.1,
+        0,
+        0
+      ],
+      "config": {
+        "size": [
+          0.85,
+          0.72,
+          0.72
+        ],
+        "color": 13142603
+      }
+    },
+    {
+      "id": "indicator_3",
+      "type": "indicator",
+      "label": "Chicken Label Print indicator",
+      "position": [
+        3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    },
+    {
+      "id": "training_accessory_4",
+      "type": "trainingAccessory",
+      "label": "Chicken Label Print - food product load",
+      "position": [
+        -3.3000000000000003,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "food product load",
+        "catalogAssetId": "training.accessory.food_product_load.v1"
+      }
+    },
+    {
+      "id": "training_accessory_5",
+      "type": "trainingAccessory",
+      "label": "Chicken Label Print - checkweigher",
+      "position": [
+        -1.1,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "checkweigher",
+        "catalogAssetId": "training.accessory.checkweigher.v1"
+      }
+    },
+    {
+      "id": "training_accessory_6",
+      "type": "trainingAccessory",
+      "label": "Chicken Label Print - label printer",
+      "position": [
+        1.1,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "label printer",
+        "catalogAssetId": "training.accessory.label_printer.v1"
+      }
+    },
+    {
+      "id": "training_accessory_7",
+      "type": "trainingAccessory",
+      "label": "Chicken Label Print - formatted label display",
+      "position": [
+        3.3000000000000003,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "formatted label display",
+        "catalogAssetId": "training.accessory.formatted_label_display.v1"
+      }
+    },
+    {
+      "id": "switch_8",
+      "type": "switch",
+      "label": "Chicken Label Print operator input",
+      "position": [
+        -2.4000000000000004,
+        0,
+        4.7
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-product_weighed",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "switch_9",
+      "type": "switch",
+      "label": "Chicken Label Print operator input",
+      "position": [
+        -0.20000000000000007,
+        0,
+        4.7
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-printer_ready",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "switch_10",
+      "type": "switch",
+      "label": "Chicken Label Print operator input",
+      "position": [
+        2,
+        0,
+        4.7
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-label_data_valid",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "indicator_11",
+      "type": "indicator",
+      "label": "Chicken Label Print output indication",
+      "position": [
+        4.2,
+        0,
+        4.7
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    }
+  ],
+  "simulation": {
+    "type": "booleanPanel",
+    "points": [
+      {
+        "name": "product_weighed",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "printer_ready",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "label_data_valid",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "print_request",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "label_applied",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      }
+    ],
+    "actions": [
+      {
+        "id": "toggle-product_weighed",
+        "label": "Toggle product weighed",
+        "type": "toggle",
+        "point": "product_weighed"
+      },
+      {
+        "id": "toggle-printer_ready",
+        "label": "Toggle printer ready",
+        "type": "toggle",
+        "point": "printer_ready"
+      },
+      {
+        "id": "toggle-label_data_valid",
+        "label": "Toggle label data valid",
+        "type": "toggle",
+        "point": "label_data_valid"
+      }
+    ],
+    "rules": [],
+    "edgeRules": [],
+    "pointBindings": [
+      {
+        "point": "product_weighed",
+        "equipmentId": "switch_8",
+        "mode": "switch"
+      },
+      {
+        "point": "printer_ready",
+        "equipmentId": "switch_9",
+        "mode": "switch"
+      },
+      {
+        "point": "label_data_valid",
+        "equipmentId": "switch_10",
+        "mode": "switch"
+      },
+      {
+        "point": "print_request",
+        "equipmentId": "indicator_3",
+        "mode": "indicator",
+        "activeColor": "green"
+      },
+      {
+        "point": "label_applied",
+        "equipmentId": "indicator_11",
+        "mode": "indicator",
+        "activeColor": "green"
+      }
+    ]
+  },
+  "training": {
+    "hints": [
+      "Translate the lesson into explicit state and permissive logic: A label request is issued only when the product data and printer are ready.",
+      "Inputs are simulator feedback (product_weighed, printer_ready, label_data_valid); PLC logic owns print_request, label_applied.",
+      "Test the initial state, the valid condition, and at least one missing permissive."
+    ],
+    "solution": {
+      "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
+      "steps": [
+        "Require the documented inputs: product_weighed, printer_ready, label_data_valid.",
+        "Command the documented outputs: print_request, label_applied.",
+        "Remove PLC commands when the permissive is lost."
+      ],
+      "acceptance": "A label request is issued only when the product data and printer are ready."
+    },
+    "assetRequirements": [
+      "food product load",
+      "checkweigher",
+      "label printer",
+      "formatted label display"
+    ],
+    "machineGuide": {
+      "purpose": "A weighed product receives a formatted label after the weight and printer-ready signals are valid.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state."
+      ],
+      "normalSequence": [
+        "Apply the requested input condition.",
+        "Verify only the documented PLC outputs respond."
+      ],
+      "stopBehavior": [
+        "Removing the permissive removes PLC-owned commands.",
+        "Reset returns the module to its initial state."
+      ],
+      "faultBehavior": [
+        "A missing or stale input must fail safe and remain diagnosable."
+      ],
+      "expectedObservations": [
+        "A label request is issued only when the product data and printer are ready."
+      ]
+    },
+    "sequenceNumber": 60,
+    "inheritsFrom": "lab-10-01-drive-alarm-code-string",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout"
+    ],
+    "addedTags": [
+      "product_weighed",
+      "printer_ready",
+      "label_data_valid",
+      "print_request",
+      "label_applied"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-10-01-drive-alarm-code-string"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "initial-safe-state",
+        "expect": {
+          "print_request": false,
+          "label_applied": false
+        }
+      }
+    ]
+  },
+  "migration": {
+    "sourceFile": "prototype/scenes/lab-10-02-chicken-label-print.plcscene",
+    "sourceFormat": "plcscene",
+    "assetMappings": {
+      "conveyor": "material-handling.belt-conveyor.600x6000.v1",
+      "photoeye": "sensing.photoelectric.through-beam.v1",
+      "switch": "controls.operator-station.single-pushbutton.v1",
+      "indicator": "controls.beacon.single-tier.v1",
+      "pusher": "actuation.pneumatic-pusher.1350mm.v1",
+      "motor": "drives.motor.ac-induction.v1",
+      "pipe": "process.pipe.flanged-spool.v1",
+      "tank": "process.tank.vertical-3000x5000.v1",
+      "pump": "process.pump.centrifugal-skid.v1",
+      "valve": "process.valve.actuated-ball.v1",
+      "levelSensor": "sensing.level.analog-4-20ma.v1",
+      "radarLevelSensor": "sensing.level.radar.v1",
+      "rotarySwitch": "controls.operator-station.selector.v1",
+      "fan": "air-handling.fan.axial-1900.v1",
+      "liftTable": "material-handling.lift.scissor-table.v1",
+      "drillPress": "machining.drill-press.pedestal.v1",
+      "robotArm": "robotics.robot.six-axis-medium.v1",
+      "rotaryTable": "material-handling.table.powered-rotary.v1",
+      "rollerShutter": "access-control.door.roller-shutter.v1",
+      "machine": "machining.machine.enclosed-center.v1",
+      "palletLoad": "loads.palletized-cases.gma-48x40.v1",
+      "toteFiller": "process.packaging.filler.tote-volumetric.v1",
+      "toteCapper": "process.packaging.capper.tote-inline.v1",
+      "toteLabeler": "process.packaging.labeler.tote-pressure-sensitive.v1",
+      "toteVision": "inspection.vision.tote-multicamera.v1",
+      "meteringSkid": "process.dosing.skid.liquid-metering.v1",
+      "containerReceiver": "material-handling.receiver.container-two-position.v1",
+      "sizeSensorBank": "sensing.dimensioning.parcel-three-height.v1"
+    },
+    "scenePropTypes": [
+      "box"
+    ],
+    "unresolvedAssetTypes": [
+      "trainingAccessory"
+    ],
+    "visualStatus": "partial",
+    "productionApproved": false,
+    "reason": "Production approval requires every reusable asset and the complete scene to pass visual review."
+  }
+}

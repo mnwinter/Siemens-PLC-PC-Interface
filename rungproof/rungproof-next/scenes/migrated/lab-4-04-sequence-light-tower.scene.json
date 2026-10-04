@@ -1,0 +1,288 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-4-04-sequence-light-tower",
+  "name": "Lab 4.4 - Sequence Light Tower",
+  "description": "A state sequence advances a four-color tower through a defined indication order.",
+  "camera": {
+    "position": [
+      11,
+      8,
+      12
+    ],
+    "target": [
+      0,
+      1.1,
+      0
+    ],
+    "fov": 45
+  },
+  "equipment": [
+    {
+      "id": "machine_0",
+      "type": "machine",
+      "label": "Sequence Light Tower machine",
+      "position": [
+        -3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "size": [
+          2.1,
+          2.7,
+          1.7
+        ],
+        "color": 5466227,
+        "running": false
+      }
+    },
+    {
+      "id": "switch_1",
+      "type": "switch",
+      "label": "Sequence Light Tower switch",
+      "position": [
+        -1.1,
+        0,
+        0
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-sequence_start",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "indicator_2",
+      "type": "indicator",
+      "label": "Sequence Light Tower indicator",
+      "position": [
+        1.1,
+        0,
+        0
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    },
+    {
+      "id": "switch_3",
+      "type": "switch",
+      "label": "Sequence Light Tower operator input",
+      "position": [
+        3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-sequence_step_due",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "indicator_4",
+      "type": "indicator",
+      "label": "Sequence Light Tower output indication",
+      "position": [
+        -2.85,
+        0,
+        2.35
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    }
+  ],
+  "simulation": {
+    "type": "booleanPanel",
+    "points": [
+      {
+        "name": "sequence_start",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "sequence_step_due",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "tower_active",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "sequence_complete",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      }
+    ],
+    "actions": [
+      {
+        "id": "toggle-sequence_start",
+        "label": "Toggle sequence start",
+        "type": "toggle",
+        "point": "sequence_start"
+      },
+      {
+        "id": "toggle-sequence_step_due",
+        "label": "Toggle sequence step due",
+        "type": "toggle",
+        "point": "sequence_step_due"
+      }
+    ],
+    "rules": [],
+    "edgeRules": [],
+    "pointBindings": [
+      {
+        "point": "sequence_start",
+        "equipmentId": "switch_1",
+        "mode": "switch"
+      },
+      {
+        "point": "sequence_step_due",
+        "equipmentId": "switch_3",
+        "mode": "switch"
+      },
+      {
+        "point": "tower_active",
+        "equipmentId": "indicator_2",
+        "mode": "indicator",
+        "activeColor": "green"
+      },
+      {
+        "point": "sequence_complete",
+        "equipmentId": "indicator_4",
+        "mode": "indicator",
+        "activeColor": "green"
+      }
+    ]
+  },
+  "training": {
+    "hints": [
+      "Translate the lesson into explicit state and permissive logic: The tower advances in order and ends with every command off.",
+      "Inputs are simulator feedback (sequence_start, sequence_step_due); PLC logic owns tower_active, sequence_complete.",
+      "Test the initial state, the valid condition, and at least one missing permissive."
+    ],
+    "solution": {
+      "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
+      "steps": [
+        "Require the documented inputs: sequence_start, sequence_step_due.",
+        "Command the documented outputs: tower_active, sequence_complete.",
+        "Remove PLC commands when the permissive is lost."
+      ],
+      "acceptance": "The tower advances in order and ends with every command off."
+    },
+    "assetRequirements": [],
+    "machineGuide": {
+      "purpose": "A state sequence advances a four-color tower through a defined indication order.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state."
+      ],
+      "normalSequence": [
+        "Apply the requested input condition.",
+        "Verify only the documented PLC outputs respond."
+      ],
+      "stopBehavior": [
+        "Removing the permissive removes PLC-owned commands.",
+        "Reset returns the module to its initial state."
+      ],
+      "faultBehavior": [
+        "A missing or stale input must fail safe and remain diagnosable."
+      ],
+      "expectedObservations": [
+        "The tower advances in order and ends with every command off."
+      ]
+    },
+    "sequenceNumber": 31,
+    "inheritsFrom": "lab-4-03-repeat-cycle-counter",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout"
+    ],
+    "addedTags": [
+      "sequence_start",
+      "sequence_step_due",
+      "tower_active",
+      "sequence_complete"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-4-03-repeat-cycle-counter"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "initial-safe-state",
+        "expect": {
+          "tower_active": false,
+          "sequence_complete": false
+        }
+      }
+    ]
+  },
+  "migration": {
+    "sourceFile": "prototype/scenes/lab-4-04-sequence-light-tower.plcscene",
+    "sourceFormat": "plcscene",
+    "assetMappings": {
+      "conveyor": "material-handling.belt-conveyor.600x6000.v1",
+      "photoeye": "sensing.photoelectric.through-beam.v1",
+      "switch": "controls.operator-station.single-pushbutton.v1",
+      "indicator": "controls.beacon.single-tier.v1",
+      "pusher": "actuation.pneumatic-pusher.1350mm.v1",
+      "motor": "drives.motor.ac-induction.v1",
+      "pipe": "process.pipe.flanged-spool.v1",
+      "tank": "process.tank.vertical-3000x5000.v1",
+      "pump": "process.pump.centrifugal-skid.v1",
+      "valve": "process.valve.actuated-ball.v1",
+      "levelSensor": "sensing.level.analog-4-20ma.v1",
+      "radarLevelSensor": "sensing.level.radar.v1",
+      "rotarySwitch": "controls.operator-station.selector.v1",
+      "fan": "air-handling.fan.axial-1900.v1",
+      "liftTable": "material-handling.lift.scissor-table.v1",
+      "drillPress": "machining.drill-press.pedestal.v1",
+      "robotArm": "robotics.robot.six-axis-medium.v1",
+      "rotaryTable": "material-handling.table.powered-rotary.v1",
+      "rollerShutter": "access-control.door.roller-shutter.v1",
+      "machine": "machining.machine.enclosed-center.v1",
+      "palletLoad": "loads.palletized-cases.gma-48x40.v1",
+      "toteFiller": "process.packaging.filler.tote-volumetric.v1",
+      "toteCapper": "process.packaging.capper.tote-inline.v1",
+      "toteLabeler": "process.packaging.labeler.tote-pressure-sensitive.v1",
+      "toteVision": "inspection.vision.tote-multicamera.v1",
+      "meteringSkid": "process.dosing.skid.liquid-metering.v1",
+      "containerReceiver": "material-handling.receiver.container-two-position.v1",
+      "sizeSensorBank": "sensing.dimensioning.parcel-three-height.v1"
+    },
+    "scenePropTypes": [
+      "box"
+    ],
+    "unresolvedAssetTypes": [],
+    "visualStatus": "mapped",
+    "productionApproved": false,
+    "reason": "Production approval requires every reusable asset and the complete scene to pass visual review."
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "assetId": "material-handling.conveyor.gravity-roller-800x2400.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-094",
+  "identifiedFamily": "Gravity roller conveyor section with side frames and floor-mounted support legs",
+  "confidence": 0.99,
+  "concerns": "Simplified render; no visible drive, guards, end stops, bearings, or frame fasteners, and the carton appears oversized relative to the conveyor width",
+  "sourceReview": "build/blind-review-assets/image_094.material-round1.review.md"
+}

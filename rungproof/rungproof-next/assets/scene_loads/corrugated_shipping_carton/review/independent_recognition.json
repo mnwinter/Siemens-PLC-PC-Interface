@@ -1,0 +1,8 @@
+{
+  "assetId": "loads.carton.corrugated-rsc.v1",
+  "reviewerId": "image_184.scene-loads-round4.review.md",
+  "identifiedFamily": "Corrugated cardboard shipping carton with folded top flaps, barcode label, and handling notice",
+  "confidence": 0.99,
+  "concerns": "Stylized smooth surfaces, unusually thick rounded edges, and a raised reusable-looking top strap reduce realism; barcode and lettering appear embossed rather than printed labels",
+  "sourceReview": "build/blind-review-assets/image_184.scene-loads-round3.review.md"
+}

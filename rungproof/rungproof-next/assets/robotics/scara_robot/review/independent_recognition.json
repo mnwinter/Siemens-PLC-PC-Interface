@@ -1,0 +1,8 @@
+{
+  "assetId": "robotics.robot.scara-four-axis.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-162",
+  "identifiedFamily": "SCARA robot arm",
+  "confidence": 0.98,
+  "concerns": "Stylized simplified geometry; joints, cabling, and end-effector details are not visibly represented.",
+  "sourceReview": "build/blind-review-assets/image_162.robotics-round1.review.md"
+}

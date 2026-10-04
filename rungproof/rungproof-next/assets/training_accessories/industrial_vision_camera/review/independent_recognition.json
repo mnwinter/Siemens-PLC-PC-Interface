@@ -1,0 +1,10 @@
+{
+  "assetId": "training.accessory.industrial_vision_camera.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-175",
+  "identifiedFamily": "Industrial stereo 3D machine-vision camera assembly with dual lenses, trigger/control button, and calibration target (identical generic basis model)",
+  "confidence": 0.98,
+  "concerns": "Stylized render with simplified mounting geometry; exact manufacturer and catalog model are not identifiable",
+  "sourceReview": "build/blind-review-assets/image_175.robotics-round2.review.md",
+  "sourceAssetId": "robotics.vision.camera.stereo-3d-industrial.v1",
+  "evidenceBasis": "delivery GLB is byte-identical to the independently reviewed generic basis asset"
+}

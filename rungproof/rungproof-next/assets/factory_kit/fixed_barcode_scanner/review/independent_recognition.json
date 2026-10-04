@@ -1,0 +1,13 @@
+{
+  "assetId": "sensing.identification.fixed-barcode-scanner.v1",
+  "reviewerId": "codex-agent-fixed-barcode-scanner-rereview",
+  "identifiedFamily": "fixed-mount industrial barcode scanner or reader",
+  "confidence": 0.91,
+  "result": "pass",
+  "reviewRound": 2,
+  "defects": [
+    "Scan-ray visualization and red bezel remain stylized.",
+    "Sensing face can also read as a small machine-vision sensor.",
+    "Barcode target and cable termination are idealized."
+  ]
+}

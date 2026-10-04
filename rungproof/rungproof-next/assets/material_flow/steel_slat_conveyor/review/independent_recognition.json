@@ -1,0 +1,8 @@
+{
+  "assetId": "material-handling.conveyor.steel-slat.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-096",
+  "identifiedFamily": "Powered slat-belt conveyor with a side-mounted gearmotor",
+  "confidence": 0.94,
+  "concerns": "Slats resemble closely spaced rollers; drive connection, sprockets/chains, guards, bearings, and tensioning hardware are not visibly modeled, and the load appears oversized for the simplified conveyor.",
+  "sourceReview": "build/blind-review-assets/image_096.material-round1.review.md"
+}

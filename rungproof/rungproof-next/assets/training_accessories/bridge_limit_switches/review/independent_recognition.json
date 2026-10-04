@@ -1,0 +1,14 @@
+{
+  "assetId": "training.accessory.bridge_limit_switches.v1",
+  "reviewerId": "codex-agent-source-blind-controls-final-review",
+  "identifiedFamily": "mechanical roller-lever limit switch (identical generic basis model)",
+  "confidence": 0.95,
+  "result": "pass",
+  "reviewRound": 1,
+  "defects": [
+    "No actuating cam or moving member is shown.",
+    "Cable gland and mounting-hole detail are simplified."
+  ],
+  "sourceAssetId": "sensing.position.roller-lever-limit-switch.v1",
+  "evidenceBasis": "delivery GLB is byte-identical to the independently reviewed generic basis asset"
+}

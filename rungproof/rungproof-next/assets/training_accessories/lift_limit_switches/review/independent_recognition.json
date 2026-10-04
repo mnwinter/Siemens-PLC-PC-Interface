@@ -1,0 +1,11 @@
+{
+  "assetId": "training.accessory.lift_limit_switches.v1",
+  "reviewerId": "codex-agent-01a0c42b-lift-opaque-bellows",
+  "identifiedFamily": "enclosed scissor-lift table (identical generic basis model)",
+  "confidence": 0.95,
+  "result": "pass",
+  "reviewRound": 6,
+  "majorDefects": [],
+  "sourceAssetId": "material-handling.lift.scissor-table.v1",
+  "evidenceBasis": "delivery GLB is byte-identical to the independently reviewed generic basis asset"
+}

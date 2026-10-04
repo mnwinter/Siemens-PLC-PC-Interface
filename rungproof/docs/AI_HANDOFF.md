@@ -1,0 +1,189 @@
+# RungProof / PLC Visual Simulator AI handoff
+
+This document is the versioned project-memory handoff for a new AI agent or
+developer starting from a fresh branch. It records the durable context that
+would otherwise be trapped in a local Codex session. It intentionally excludes
+machine-local Codex databases, credentials, screenshots from private chats, and
+temporary runtime state.
+
+## Product intent
+
+RungProof is a Windows PLC visual simulator and training environment. A user
+selects a scenario, sees the 3D machine, edits ladder logic in a TIA Portal or
+Studio 5000 styled workbench, runs a deterministic built-in controller, and
+observes typed symbolic scene I/O. The longer-term product also supports an
+authorized external PLC session using the existing guarded Siemens runtime.
+
+The user expects the product to feel like an industrial engineering tool:
+
+- Scenario, Logic Editor, and split-view navigation are quick and reliable.
+- The complete operator scene is on the left and the ladder editor is on the
+  right in split mode, with a draggable divider and local-model point tables
+  remaining visible below.
+- Side drawers never overlap the top toolbar or local-model points panel.
+- Ladder symbols can be dragged onto visible rung insertion boxes and edited,
+  moved, deleted, and added like the target vendor workflows.
+- PLC source selection is explicit: built-in Simulator or External PLC.
+- External PLC settings show the complete profile, connection, mapping, status,
+  readiness, and test results instead of a generic disconnected badge.
+
+## Two application generations
+
+### Legacy/native live-PLC path
+
+The existing guarded live path is in the repository root application and is the
+source of truth for real PLC behavior:
+
+- `tools/rungproof_native.py` — native Qt application and operator controls;
+- `tools/native_runtime.py` — plant/runtime/session lifecycle;
+- `tools/plc_live.py` — guarded S7 session and typed exchange;
+- `tools/plc_diagnostics.py` — read-only diagnostic path;
+- `prototype/src/livePlcBinding.js` — browser/reference binding semantics;
+- `prototype/src/player.js` — reference UI flow for Connect Real PLC;
+- `prototype/plc-profiles/*.json` — validated scene/profile contracts;
+- `vendor/siemens-plc-pc-interface/` — pinned S7 interface implementation.
+
+The live session has separate states for connection, playback, and readiness.
+It performs typed cycles, writes only the configured PC-to-PLC scope, reads only
+the configured PLC-to-PC scope and status bits, and relies on the PLC watchdog
+for safe output handling when cycles stop. Stop and Reset do not intentionally
+disconnect the session.
+
+The live path is launched by `RUN-3D-PLAYER.cmd`. The normal release/build
+switch that exposes real writes is documented in the root README and build
+scripts. Do not silently enable real writes in an offline test build.
+
+### RungProof Next
+
+`rungproof-next/` is the Godot 4.7.2 .NET application launched by
+`rungproof-next/RUN-RUNGPROOF-NEXT.cmd`. It currently provides:
+
+- real 3D scene rendering with reviewed assets;
+- scenario browser grouped as User Created, Labs, and exactly five authored
+  Demos;
+- TIA Portal and Studio 5000 styled ladder editor;
+- editable contacts, coils, branches, timers, counters, comparisons, math,
+  program-control blocks, tags, watch tables, block/interface lifecycle, and
+  save/load of `.rpproj.json` projects;
+- deterministic virtual controller and symbolic scene-I/O mapping;
+- operator/logic split view, cycle/scan display, diagnostics, local model point
+  tables, and training asset help.
+
+The ladder workbench follows the TIA-style ownership model: the left project
+dock contains separate Project tree, PLC tags, and Blocks / tasks tabs. The
+editor's instruction palette remains the insertion surface, while the old
+right-side Instructions / PLC tags / Blocks / Search / Help rail is hidden from
+the visible layout. Search and instruction help remain available through their
+internal commands without consuming editor width.
+
+The five authored demos now load paired ladder documents when their scenario is
+selected. Demo 5 is intentionally the more complex `Lab 11.13 - XY Palletizing
+Cell`, not another conveyor view; its ladder contains the OB entry routine,
+multiple FBs, multiple FCs, and a DB with visible interfaces and calls. The
+app-shell verifier compiles every authored demo document and checks the active
+Demo 5 bindings/FB-FC structure.
+
+Its C# connection seam is `src/Connections/GuardedRuntimeClient.cs`. The Next
+shell now starts `tools/plc_bridge.py` only when an operator uses the External
+PLC settings, and that bridge delegates to the existing `tools/plc_live.py`
+controller. The scene/profile contract is retained in the scene's optional
+`plcTestProfile` field. Built-in Simulator remains the default source.
+
+## External PLC feature requirements
+
+The implemented PLC menu provides the following without changing the existing
+simulator behavior:
+
+1. **Execution source**
+   - Built-in Simulator: uses the virtual controller and local symbolic model.
+   - External PLC: uses the existing guarded live session; Run/Stop/Reset and
+     scene exchange use the live session semantics.
+   - The selected source is visible in the toolbar, operator console, and PLC
+     inspector.
+
+2. **External PLC settings**
+   - scene/profile selection;
+   - CPU family/protocol as supported by the existing adapter;
+   - IP/host, rack, slot, cycle, connection timeout, heartbeat timeout;
+   - exact PC-to-PLC write scope and PLC-to-PC read scope;
+   - typed scene-point mapping and required readiness/status bits;
+   - explicit connect/disconnect controls and current session identity/health.
+
+3. **Connection verification**
+   - local profile/schema validation;
+   - endpoint and transport availability;
+   - authorized connection and exact write-scope confirmation;
+   - protocol handshake and typed readback;
+   - required `simulation_enable`, `simulation_comm_ok`, and
+     `simulation_timeout` readiness checks;
+   - scene/profile identity and point type/direction validation;
+   - watchdog/cycle health and reconnect behavior;
+   - read-only diagnostics that prove zero writes when the user selects a test.
+
+4. **Testing**
+   - use the existing in-memory transport adapter for automated live-path tests;
+   - never contact the plant from CI, headless app verification, or simulator
+     tests;
+   - keep one explicit operator-run authorization step for a real connection;
+   - test disconnect, timeout, stale session, scene change, malformed profile,
+     invalid scope, missing status tags, and type mismatch;
+   - prove simulator mode still runs when no PLC is available.
+
+## Important prior user feedback
+
+These are not optional polish items; they are recurring acceptance criteria:
+
+- Do not report “complete” until the interaction has been exercised, not just
+  compiled or inspected.
+- The initial scene must run and animate; RUNNING text without green ladder
+  state or animation is a defect.
+- E-stop is a physical/momentary safety input, not a latched ordinary command.
+  Reset/restart behavior must be explicit and testable.
+- Green ladder state, cycle clock, elapsed timer values, and scene animation must
+  agree with the same execution source.
+- Scene/Event History drawers must remain below the toolbar; the ladder editor
+  must stop above Local Model Points.
+- Collapsing project/tool drawers must give the editor the recovered width.
+- Instruction/tool tabs need vendor-like vertical/horizontal divides and must
+  remain aligned at all window sizes.
+- Local Model Points columns must stay aligned as values change.
+- Scenario names must sort numerically (`2`, `3`, `10`), and groups must not be
+  flattened into every row being called “Demo”.
+- Save/load must use a named `.rungproof.json` file dialog and preserve the
+  ladder/scenario content.
+
+## Current evidence and commands
+
+The last verified Next baseline was:
+
+- C# build: passed with 0 warnings and 0 errors;
+- virtual-controller suite: 137 passed, 0 failed;
+- app-shell verifier: passed with 77 scenes, 3 groups, 5 demos, 294 assets;
+- verifier connection state: disconnected/offline by design;
+- Godot may print non-fatal RID/ObjectDB cleanup warnings at process exit.
+
+Run from `rungproof-next/`:
+
+```powershell
+& '.tools/dotnet/dotnet.exe' build RungProof.Next.csproj --no-restore
+& '.tools/dotnet/dotnet.exe' run --project tests/RungProof.Next.VirtualController.Tests.csproj --no-restore
+& '.tools/godot/Godot_v4.7.2-stable_mono_win64/Godot_v4.7.2-stable_mono_win64_console.exe' --headless --path . -- --verify-app-shell
+```
+
+The exact pinned Godot path can be found with:
+
+```powershell
+Get-ChildItem .tools/godot -Recurse -File -Filter '*console.exe'
+```
+
+For the legacy live path, use the root README, `CONTEXT.md`,
+`PROJECT_INFORMATION.md`, `tools/test_native_runtime.py`,
+`tools/test_player_live_ui.mjs`, and the PLC profile/transport tests. Live
+commissioning is not proven by the offline checks.
+
+## Git handoff
+
+The local checkout is authoritative when integration is requested. The current
+working branch and remote must be inspected before push. Preserve unrelated
+asset/training work. Commit meaningful checkpoints and report the exact commit,
+branch, remote, verification results, and whether the tree is clean.

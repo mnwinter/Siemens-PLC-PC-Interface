@@ -1,0 +1,8 @@
+{
+  "assetId": "mechanical.linear-guide.profile-rail.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-091",
+  "identifiedFamily": "Enclosed miniature linear guide carriage riding on a single profiled rail",
+  "confidence": 0.81,
+  "concerns": "Rail and carriage geometry are simplified; mounting-hole pattern, raceway profile, seals, grease fitting, and end-cap details are ambiguous or missing, so it could be mistaken for a generic linear slide block.",
+  "sourceReview": "build/blind-review-assets/image_091.mechanical-round2.review.md"
+}

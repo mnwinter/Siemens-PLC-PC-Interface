@@ -1,0 +1,8 @@
+{
+  "assetId": "controls.stack-light.five-tier-sounder.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-077",
+  "identifiedFamily": "Industrial modular stack light (signal tower) with five colored visual segments and a top-mounted audible alarm/sounder on a pedestal",
+  "confidence": 0.98,
+  "concerns": "Rendered geometry lacks visible model markings; the black top could be a sounder or protective cap, and segment colors/functions are not verifiable visually",
+  "sourceReview": "build/blind-review-assets/image_077.controls-round1.review.md"
+}

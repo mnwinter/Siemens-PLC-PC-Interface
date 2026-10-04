@@ -1,0 +1,8 @@
+{
+  "assetId": "actuation.pneumatic.cylinder.iso-tie-rod.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-078",
+  "identifiedFamily": "Double-acting tie-rod pneumatic cylinder with a rod-end eye",
+  "confidence": 0.91,
+  "concerns": "Stylized geometry; oversized rod eye, unusually placed ports, and incomplete tie-rod/end-cap fastening reduce realism",
+  "sourceReview": "build/blind-review-assets/image_078.mechanical-round1.review.md"
+}

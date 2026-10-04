@@ -1,0 +1,1 @@
+{"assetId":"safety.scanner.floor-area.v1","reviewerId":"codex-agent-source-blind-scanner-final-review","identifiedFamily":"industrial safety laser area scanner","confidence":0.94,"result":"pass","reviewRound":1,"defects":["Protective and warning zones are not separately encoded in the rays.","Mounting and connector details are simplified."]}

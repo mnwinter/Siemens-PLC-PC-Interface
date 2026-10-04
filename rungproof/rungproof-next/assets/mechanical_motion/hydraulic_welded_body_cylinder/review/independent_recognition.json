@@ -1,0 +1,8 @@
+{
+  "assetId": "actuation.hydraulic.cylinder.welded-body.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-082",
+  "identifiedFamily": "Hydraulic cylinder with clevis-style end mounts and two top-mounted fluid ports",
+  "confidence": 0.91,
+  "concerns": "Stylized geometry; both end mounts resemble bearing blocks more than conventional clevises, and the ports look like lever handles rather than hydraulic fittings",
+  "sourceReview": "build/blind-review-assets/image_082.mechanical-round1.review.md"
+}

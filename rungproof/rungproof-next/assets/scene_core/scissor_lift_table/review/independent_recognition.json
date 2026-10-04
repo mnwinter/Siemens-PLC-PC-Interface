@@ -1,0 +1,9 @@
+{
+  "assetId": "material-handling.lift.scissor-table.v1",
+  "reviewerId": "codex-agent-01a0c42b-lift-opaque-bellows",
+  "identifiedFamily": "enclosed scissor-lift table",
+  "confidence": 0.95,
+  "result": "pass",
+  "reviewRound": 6,
+  "majorDefects": []
+}

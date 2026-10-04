@@ -1,0 +1,8 @@
+{
+  "assetId": "electrical.disconnect.enclosed-fused-rotary.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-126",
+  "identifiedFamily": "Compact autonomous guided vehicle (AGV) / electric material-handling cart",
+  "confidence": 0.91,
+  "concerns": "Stylized rendering obscures payload interface and drive hardware, so it could also represent a small utility rover or robotic transport platform",
+  "sourceReview": "build/blind-review-assets/image_126.parking-round2.review.md"
+}

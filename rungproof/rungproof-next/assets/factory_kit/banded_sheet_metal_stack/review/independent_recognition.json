@@ -1,0 +1,13 @@
+{
+  "assetId": "loads.sheet-stack.banded.v1",
+  "reviewerId": "codex-agent-sheet-metal-stack-review",
+  "identifiedFamily": "banded stack of flat sheet-metal blanks on timber dunnage",
+  "confidence": 0.98,
+  "result": "pass",
+  "reviewRound": 1,
+  "defects": [
+    "Straps appear rigid and slightly proud above the stack.",
+    "No visible edge protection, labels, or wrapping is modeled.",
+    "Uniform sheet spacing is stylized."
+  ]
+}

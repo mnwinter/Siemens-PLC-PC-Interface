@@ -1,0 +1,8 @@
+{
+  "assetId": "material-handling.transfer.popup-chain-90deg.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-098",
+  "identifiedFamily": "Chain-driven pop-up 90-degree transfer conveyor integrated into a roller conveyor",
+  "confidence": 0.93,
+  "concerns": "Transfer chains appear permanently raised; sprockets, chain return paths, lift mechanism, bearings, guards, and drive hardware are omitted or simplified.",
+  "sourceReview": "build/blind-review-assets/image_098.material-round2.review.md"
+}

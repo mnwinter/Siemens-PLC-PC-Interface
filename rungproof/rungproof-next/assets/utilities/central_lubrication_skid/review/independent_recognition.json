@@ -1,0 +1,8 @@
+{
+  "assetId": "utilities.lubrication.centralized-grease-skid.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-144",
+  "identifiedFamily": "Automatic centralized grease lubrication system with reservoir pump and progressive divider valve",
+  "confidence": 0.98,
+  "concerns": "Stylized rendering; the divider resembles an electrical enclosure, and its oversized housing, five one-sided outlets, and hose routing are not mechanically realistic for a typical progressive metering block",
+  "sourceReview": "build/blind-review-assets/image_144.readable-labels.review.md"
+}

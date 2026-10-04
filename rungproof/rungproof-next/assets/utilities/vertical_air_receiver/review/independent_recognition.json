@@ -1,0 +1,8 @@
+{
+  "assetId": "utilities.compressed-air.receiver.vertical.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-135",
+  "identifiedFamily": "Vertical compressed-air receiver tank with domed heads, side inlet/outlet ports, top connection, and pressure gauge",
+  "confidence": 0.91,
+  "concerns": "Simplified rendering omits relief valve, drain, labels, weld details, and realistic fittings; port arrangement is ambiguous and the tall narrow proportions may be stylized",
+  "sourceReview": "build/blind-review-assets/image_135.utilities-round1.review.md"
+}

@@ -1,0 +1,8 @@
+{
+  "assetId": "process.valve.gate.flanged-handwheel.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-106",
+  "identifiedFamily": "Handwheel-operated rising-stem flanged gate valve",
+  "confidence": 0.98,
+  "concerns": "Stylized geometry; flange bolt patterns are inconsistent, and the bonnet/yoke proportions and body-to-pipe transitions are simplified.",
+  "sourceReview": "build/blind-review-assets/image_106.process-round2.review.md"
+}

@@ -1,0 +1,8 @@
+{
+  "assetId": "sensing.temperature.rtd-probe.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-068",
+  "identifiedFamily": "Insertion temperature sensor/transmitter assembly\u2014an RTD or thermocouple probe mounted into a process pipe, distinct from a pressure or flow transmitter",
+  "confidence": 0.91,
+  "concerns": "Simplified geometry; process connection lacks a visible welded coupling/flange and the probe appears to enter the pipe directly, while the oversized housing and ambiguous side feature reduce realism",
+  "sourceReview": "build/blind-review-assets/image_068.controls-sol1.review.md"
+}

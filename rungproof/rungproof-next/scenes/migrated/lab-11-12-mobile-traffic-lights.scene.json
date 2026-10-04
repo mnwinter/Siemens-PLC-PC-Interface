@@ -1,0 +1,350 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-11-12-mobile-traffic-lights",
+  "name": "Lab 11.12 - Mobile Traffic Lights",
+  "description": "Two synchronized mobile signal heads coordinate a safe alternating vehicle-flow state.",
+  "camera": {
+    "position": [
+      11,
+      8,
+      12
+    ],
+    "target": [
+      0,
+      1.1,
+      0
+    ],
+    "fov": 45
+  },
+  "equipment": [
+    {
+      "id": "indicator_0",
+      "type": "indicator",
+      "label": "Mobile Traffic Lights indicator",
+      "position": [
+        -3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    },
+    {
+      "id": "indicator_1",
+      "type": "indicator",
+      "label": "Mobile Traffic Lights indicator",
+      "position": [
+        -1.1,
+        0,
+        0
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    },
+    {
+      "id": "switch_2",
+      "type": "switch",
+      "label": "Mobile Traffic Lights switch",
+      "position": [
+        1.1,
+        0,
+        0
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-controller_ready",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "training_accessory_3",
+      "type": "trainingAccessory",
+      "label": "Mobile Traffic Lights - mobile traffic signal head",
+      "position": [
+        3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "assetName": "mobile traffic signal head",
+        "catalogAssetId": "training.accessory.mobile_traffic_signal_head.v1"
+      }
+    },
+    {
+      "id": "training_accessory_4",
+      "type": "trainingAccessory",
+      "label": "Mobile Traffic Lights - roadway module",
+      "position": [
+        -3.3000000000000003,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "roadway module",
+        "catalogAssetId": "training.accessory.roadway_module.v1"
+      }
+    },
+    {
+      "id": "training_accessory_5",
+      "type": "trainingAccessory",
+      "label": "Mobile Traffic Lights - signal synchronization link",
+      "position": [
+        -1.1,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "signal synchronization link",
+        "catalogAssetId": "training.accessory.signal_synchronization_link.v1"
+      }
+    },
+    {
+      "id": "switch_6",
+      "type": "switch",
+      "label": "Mobile Traffic Lights operator input",
+      "position": [
+        1.55,
+        0,
+        2.35
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-road_a_clear",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "switch_7",
+      "type": "switch",
+      "label": "Mobile Traffic Lights operator input",
+      "position": [
+        3.7500000000000004,
+        0,
+        2.35
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-road_b_clear",
+        "color": 2204518
+      }
+    }
+  ],
+  "simulation": {
+    "type": "booleanPanel",
+    "points": [
+      {
+        "name": "controller_ready",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "road_a_clear",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "road_b_clear",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "road_a_green",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "road_b_green",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      }
+    ],
+    "actions": [
+      {
+        "id": "toggle-controller_ready",
+        "label": "Toggle controller ready",
+        "type": "toggle",
+        "point": "controller_ready"
+      },
+      {
+        "id": "toggle-road_a_clear",
+        "label": "Toggle road a clear",
+        "type": "toggle",
+        "point": "road_a_clear"
+      },
+      {
+        "id": "toggle-road_b_clear",
+        "label": "Toggle road b clear",
+        "type": "toggle",
+        "point": "road_b_clear"
+      }
+    ],
+    "rules": [],
+    "edgeRules": [],
+    "pointBindings": [
+      {
+        "point": "controller_ready",
+        "equipmentId": "switch_2",
+        "mode": "switch"
+      },
+      {
+        "point": "road_a_clear",
+        "equipmentId": "switch_6",
+        "mode": "switch"
+      },
+      {
+        "point": "road_b_clear",
+        "equipmentId": "switch_7",
+        "mode": "switch"
+      },
+      {
+        "point": "road_a_green",
+        "equipmentId": "indicator_0",
+        "mode": "indicator",
+        "activeColor": "green"
+      },
+      {
+        "point": "road_b_green",
+        "equipmentId": "indicator_1",
+        "mode": "indicator",
+        "activeColor": "green"
+      }
+    ]
+  },
+  "training": {
+    "hints": [
+      "Translate the lesson into explicit state and permissive logic: Only one road receives a green command at a time, and both roads stop on a fault.",
+      "Inputs are simulator feedback (controller_ready, road_a_clear, road_b_clear); PLC logic owns road_a_green, road_b_green.",
+      "Test the initial state, the valid condition, and at least one missing permissive."
+    ],
+    "solution": {
+      "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
+      "steps": [
+        "Require the documented inputs: controller_ready, road_a_clear, road_b_clear.",
+        "Command the documented outputs: road_a_green, road_b_green.",
+        "Remove PLC commands when the permissive is lost."
+      ],
+      "acceptance": "Only one road receives a green command at a time, and both roads stop on a fault."
+    },
+    "assetRequirements": [
+      "mobile traffic signal head",
+      "roadway module",
+      "signal synchronization link"
+    ],
+    "machineGuide": {
+      "purpose": "Two synchronized mobile signal heads coordinate a safe alternating vehicle-flow state.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state."
+      ],
+      "normalSequence": [
+        "Apply the requested input condition.",
+        "Verify only the documented PLC outputs respond."
+      ],
+      "stopBehavior": [
+        "Removing the permissive removes PLC-owned commands.",
+        "Reset returns the module to its initial state."
+      ],
+      "faultBehavior": [
+        "A missing or stale input must fail safe and remain diagnosable."
+      ],
+      "expectedObservations": [
+        "Only one road receives a green command at a time, and both roads stop on a fault."
+      ]
+    },
+    "sequenceNumber": 68,
+    "inheritsFrom": "lab-11-11-service-elevator",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout"
+    ],
+    "addedTags": [
+      "controller_ready",
+      "road_a_clear",
+      "road_b_clear",
+      "road_a_green",
+      "road_b_green"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-11-11-service-elevator"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "initial-safe-state",
+        "expect": {
+          "road_a_green": false,
+          "road_b_green": false
+        }
+      }
+    ]
+  },
+  "migration": {
+    "sourceFile": "prototype/scenes/lab-11-12-mobile-traffic-lights.plcscene",
+    "sourceFormat": "plcscene",
+    "assetMappings": {
+      "conveyor": "material-handling.belt-conveyor.600x6000.v1",
+      "photoeye": "sensing.photoelectric.through-beam.v1",
+      "switch": "controls.operator-station.single-pushbutton.v1",
+      "indicator": "controls.beacon.single-tier.v1",
+      "pusher": "actuation.pneumatic-pusher.1350mm.v1",
+      "motor": "drives.motor.ac-induction.v1",
+      "pipe": "process.pipe.flanged-spool.v1",
+      "tank": "process.tank.vertical-3000x5000.v1",
+      "pump": "process.pump.centrifugal-skid.v1",
+      "valve": "process.valve.actuated-ball.v1",
+      "levelSensor": "sensing.level.analog-4-20ma.v1",
+      "radarLevelSensor": "sensing.level.radar.v1",
+      "rotarySwitch": "controls.operator-station.selector.v1",
+      "fan": "air-handling.fan.axial-1900.v1",
+      "liftTable": "material-handling.lift.scissor-table.v1",
+      "drillPress": "machining.drill-press.pedestal.v1",
+      "robotArm": "robotics.robot.six-axis-medium.v1",
+      "rotaryTable": "material-handling.table.powered-rotary.v1",
+      "rollerShutter": "access-control.door.roller-shutter.v1",
+      "machine": "machining.machine.enclosed-center.v1",
+      "palletLoad": "loads.palletized-cases.gma-48x40.v1",
+      "toteFiller": "process.packaging.filler.tote-volumetric.v1",
+      "toteCapper": "process.packaging.capper.tote-inline.v1",
+      "toteLabeler": "process.packaging.labeler.tote-pressure-sensitive.v1",
+      "toteVision": "inspection.vision.tote-multicamera.v1",
+      "meteringSkid": "process.dosing.skid.liquid-metering.v1",
+      "containerReceiver": "material-handling.receiver.container-two-position.v1",
+      "sizeSensorBank": "sensing.dimensioning.parcel-three-height.v1"
+    },
+    "scenePropTypes": [
+      "box"
+    ],
+    "unresolvedAssetTypes": [
+      "trainingAccessory"
+    ],
+    "visualStatus": "partial",
+    "productionApproved": false,
+    "reason": "Production approval requires every reusable asset and the complete scene to pass visual review."
+  }
+}

@@ -1,0 +1,356 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-9-12-ev-charging-manager",
+  "name": "Lab 9.12 - EV Charging Manager",
+  "description": "A shared controller allocates charging permission and accumulates energy pulse events for occupied bays.",
+  "camera": {
+    "position": [
+      11,
+      8,
+      12
+    ],
+    "target": [
+      0,
+      1.1,
+      0
+    ],
+    "fov": 45
+  },
+  "equipment": [
+    {
+      "id": "machine_0",
+      "type": "machine",
+      "label": "EV Charging Manager machine",
+      "position": [
+        -3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "size": [
+          2.1,
+          2.7,
+          1.7
+        ],
+        "color": 5466227,
+        "running": false
+      }
+    },
+    {
+      "id": "switch_1",
+      "type": "switch",
+      "label": "EV Charging Manager switch",
+      "position": [
+        -1.1,
+        0,
+        0
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-bay_occupied",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "indicator_2",
+      "type": "indicator",
+      "label": "EV Charging Manager indicator",
+      "position": [
+        1.1,
+        0,
+        0
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    },
+    {
+      "id": "training_accessory_3",
+      "type": "trainingAccessory",
+      "label": "EV Charging Manager - EV/charger bay",
+      "position": [
+        3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "assetName": "EV/charger bay",
+        "catalogAssetId": "training.accessory.ev_charger_bay.v1"
+      }
+    },
+    {
+      "id": "training_accessory_4",
+      "type": "trainingAccessory",
+      "label": "EV Charging Manager - connector latch",
+      "position": [
+        -3.3000000000000003,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "connector latch",
+        "catalogAssetId": "training.accessory.connector_latch.v1"
+      }
+    },
+    {
+      "id": "training_accessory_5",
+      "type": "trainingAccessory",
+      "label": "EV Charging Manager - energy meter",
+      "position": [
+        -1.1,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "energy meter",
+        "catalogAssetId": "training.accessory.energy_meter.v1"
+      }
+    },
+    {
+      "id": "training_accessory_6",
+      "type": "trainingAccessory",
+      "label": "EV Charging Manager - pulse-output meter",
+      "position": [
+        1.1,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "pulse-output meter",
+        "catalogAssetId": "training.accessory.pulse_output_meter.v1"
+      }
+    },
+    {
+      "id": "training_accessory_7",
+      "type": "trainingAccessory",
+      "label": "EV Charging Manager - authorization reader",
+      "position": [
+        3.3000000000000003,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "authorization reader",
+        "catalogAssetId": "training.accessory.authorization_reader.v1"
+      }
+    },
+    {
+      "id": "switch_8",
+      "type": "switch",
+      "label": "EV Charging Manager operator input",
+      "position": [
+        -2.4000000000000004,
+        0,
+        4.7
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-customer_authorized",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "switch_9",
+      "type": "switch",
+      "label": "EV Charging Manager operator input",
+      "position": [
+        -0.20000000000000007,
+        0,
+        4.7
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-charger_ready",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "indicator_10",
+      "type": "indicator",
+      "label": "EV Charging Manager output indication",
+      "position": [
+        2,
+        0,
+        4.7
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    }
+  ],
+  "simulation": {
+    "type": "booleanPanel",
+    "points": [
+      {
+        "name": "bay_occupied",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "customer_authorized",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "charger_ready",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "charge_enable",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "energy_session_active",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      }
+    ],
+    "actions": [
+      {
+        "id": "toggle-bay_occupied",
+        "label": "Toggle bay occupied",
+        "type": "toggle",
+        "point": "bay_occupied"
+      },
+      {
+        "id": "toggle-customer_authorized",
+        "label": "Toggle customer authorized",
+        "type": "toggle",
+        "point": "customer_authorized"
+      },
+      {
+        "id": "toggle-charger_ready",
+        "label": "Toggle charger ready",
+        "type": "toggle",
+        "point": "charger_ready"
+      }
+    ],
+    "rules": [],
+    "edgeRules": [],
+    "pointBindings": [
+      {
+        "point": "bay_occupied",
+        "equipmentId": "switch_1",
+        "mode": "switch"
+      },
+      {
+        "point": "customer_authorized",
+        "equipmentId": "switch_8",
+        "mode": "switch"
+      },
+      {
+        "point": "charger_ready",
+        "equipmentId": "switch_9",
+        "mode": "switch"
+      },
+      {
+        "point": "charge_enable",
+        "equipmentId": "indicator_2",
+        "mode": "indicator",
+        "activeColor": "green"
+      },
+      {
+        "point": "energy_session_active",
+        "equipmentId": "indicator_10",
+        "mode": "indicator",
+        "activeColor": "green"
+      }
+    ]
+  },
+  "training": {
+    "hints": [
+      "Translate the lesson into explicit state and permissive logic: Charging is enabled only for an occupied, authorized, ready bay.",
+      "Inputs are simulator feedback (bay_occupied, customer_authorized, charger_ready); PLC logic owns charge_enable, energy_session_active.",
+      "Test the initial state, the valid condition, and at least one missing permissive."
+    ],
+    "solution": {
+      "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
+      "steps": [
+        "Require the documented inputs: bay_occupied, customer_authorized, charger_ready.",
+        "Command the documented outputs: charge_enable, energy_session_active.",
+        "Remove PLC commands when the permissive is lost."
+      ],
+      "acceptance": "Charging is enabled only for an occupied, authorized, ready bay."
+    },
+    "assetRequirements": [
+      "EV/charger bay",
+      "connector latch",
+      "energy meter",
+      "pulse-output meter",
+      "authorization reader"
+    ],
+    "machineGuide": {
+      "purpose": "A shared controller allocates charging permission and accumulates energy pulse events for occupied bays.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state."
+      ],
+      "normalSequence": [
+        "Apply the requested input condition.",
+        "Verify only the documented PLC outputs respond."
+      ],
+      "stopBehavior": [
+        "Removing the permissive removes PLC-owned commands.",
+        "Reset returns the module to its initial state."
+      ],
+      "faultBehavior": [
+        "A missing or stale input must fail safe and remain diagnosable."
+      ],
+      "expectedObservations": [
+        "Charging is enabled only for an occupied, authorized, ready bay."
+      ]
+    },
+    "sequenceNumber": 58,
+    "inheritsFrom": "lab-9-11-pallet-counting",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout"
+    ],
+    "addedTags": [
+      "bay_occupied",
+      "customer_authorized",
+      "charger_ready",
+      "charge_enable",
+      "energy_session_active"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-9-11-pallet-counting"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "initial-safe-state",
+        "expect": {
+          "charge_enable": false,
+          "energy_session_active": false
+        }
+      }
+    ]
+  }
+}

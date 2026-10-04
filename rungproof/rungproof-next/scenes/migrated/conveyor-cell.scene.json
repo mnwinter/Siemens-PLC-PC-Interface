@@ -1,0 +1,308 @@
+{
+  "version": 1,
+  "machineGuide": {
+    "purpose": "Three cartons circulate through an inspection photoeye on an end-driven roller conveyor.",
+    "startConditions": [
+      "Common PLC/watchdog foundation is healthy.",
+      "conveyor_run is FALSE and the photoeye is clear."
+    ],
+    "normalSequence": [
+      "PLC commands conveyor_run TRUE.",
+      "A carton crosses and photoeye_blocked becomes TRUE.",
+      "The carton discharges, recirculates, and parts_completed increments."
+    ],
+    "stopBehavior": [
+      "conveyor_run FALSE holds carton positions and actual speed returns to zero."
+    ],
+    "faultBehavior": [
+      "A missing conveyor command stops movement.",
+      "A missing or stuck photoeye is reported; the simulator does not invent feedback."
+    ],
+    "expectedObservations": [
+      "Cartons move only when commanded and the beam follows physical carton overlap."
+    ]
+  },
+  "id": "conveyor-cell",
+  "name": "Conveyor Inspection Cell",
+  "description": "Three reusable cartons circulate on a motor-driven conveyor. The through-beam photoeye changes state as each carton crosses it.",
+  "camera": {
+    "position": [
+      10.5,
+      6.5,
+      9.5
+    ],
+    "target": [
+      0,
+      0.8,
+      0
+    ],
+    "fov": 43
+  },
+  "equipment": [
+    {
+      "id": "main_conveyor",
+      "type": "conveyor",
+      "label": "Main inspection conveyor",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "config": {
+        "length": 8,
+        "width": 1.55,
+        "deckHeight": 0.9,
+        "beltColor": 2436137,
+        "sceneControls": [
+          {
+            "nodeName": "CTRL_estop_button",
+            "label": "Conveyor E-stop",
+            "action": "conveyor-estop",
+            "feedbackTravelM": 0.012,
+            "releaseWhenPoint": "estop_ok"
+          }
+        ]
+      }
+    },
+    {
+      "id": "carton_1",
+      "type": "box",
+      "label": "Carton 1",
+      "position": [
+        -3.15,
+        0.99,
+        0
+      ],
+      "config": {
+        "size": [
+          0.85,
+          0.72,
+          0.72
+        ],
+        "color": 13142598
+      }
+    },
+    {
+      "id": "carton_2",
+      "type": "box",
+      "label": "Carton 2",
+      "position": [
+        -0.55,
+        0.99,
+        0
+      ],
+      "config": {
+        "size": [
+          0.85,
+          0.72,
+          0.72
+        ],
+        "color": 12150103
+      }
+    },
+    {
+      "id": "carton_3",
+      "type": "box",
+      "label": "Carton 3",
+      "position": [
+        2.05,
+        0.99,
+        0
+      ],
+      "config": {
+        "size": [
+          0.85,
+          0.72,
+          0.72
+        ],
+        "color": 14251059
+      }
+    },
+    {
+      "id": "inspection_photoeye",
+      "type": "photoeye",
+      "label": "Inspection photoeye",
+      "position": [
+        1.25,
+        0.02,
+        0
+      ],
+      "config": {
+        "span": 2.08,
+        "height": 1.1,
+        "beamCenterHeightM": 1.35,
+        "blocked": false
+      }
+    },
+    {
+      "id": "operator_station",
+      "type": "switch",
+      "label": "Conveyor start station",
+      "position": [
+        -3.25,
+        0,
+        2.1
+      ],
+      "rotation": [
+        0,
+        55,
+        0
+      ],
+      "config": {
+        "style": "pushbutton",
+        "color": 2200422,
+        "action": "conveyor_run"
+      }
+    },
+    {
+      "id": "cell_stacklight",
+      "type": "indicator",
+      "label": "Cell stack light",
+      "position": [
+        3.25,
+        0,
+        -1.75
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "amber"
+      }
+    }
+  ],
+  "simulation": {
+    "type": "conveyor",
+    "points": [
+      {
+        "name": "conveyor_run",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output",
+        "purpose": "PLC motor command that runs the inspection conveyor."
+      },
+      {
+        "name": "estop_ok",
+        "type": "BOOL",
+        "owner": "SIM",
+        "initial": true,
+        "purpose": "Scene-local E-stop permissive. False after the simulated E-stop is pressed; Reset restores it."
+      },
+      {
+        "name": "photoeye_blocked",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false,
+        "purpose": "Simulator photoeye feedback that turns TRUE while a carton blocks the inspection sensor."
+      },
+      {
+        "name": "conveyor_speed",
+        "type": "REAL",
+        "owner": "SIM",
+        "initial": 0,
+        "unit": "m/s",
+        "purpose": "Internal actual conveyor speed."
+      },
+      {
+        "name": "parts_completed",
+        "type": "DINT",
+        "owner": "SIM",
+        "initial": 0,
+        "purpose": "Internal count of cartons that have passed through the cell."
+      }
+    ],
+    "actions": [
+      {
+        "id": "conveyor_run",
+        "label": "Start / stop inspection conveyor",
+        "type": "toggle",
+        "point": "conveyor_run",
+        "requires": {
+          "estop_ok": true
+        },
+        "blockedMessage": "Reset the simulated E-stop before starting the conveyor."
+      },
+      {
+        "id": "conveyor-estop",
+        "label": "Emergency stop conveyor",
+        "type": "emergencyStop",
+        "point": "estop_ok"
+      },
+      {
+        "id": "conveyor-estop-reset",
+        "label": "Reset emergency stop",
+        "type": "reset",
+        "blockedMessage": "The simulated E-stop reset was not accepted."
+      }
+    ],
+    "safeState": {
+      "conveyor_run": false
+    },
+    "pointBindings": [
+      {
+        "point": "conveyor_run",
+        "equipmentId": "main_conveyor",
+        "mode": "running"
+      },
+      {
+        "point": "estop_ok",
+        "equipmentId": "main_conveyor",
+        "mode": "estopPermissive"
+      }
+    ],
+    "conveyorId": "main_conveyor",
+    "photoeyeId": "inspection_photoeye",
+    "indicatorId": "cell_stacklight",
+    "productIds": [
+      "carton_1",
+      "carton_2",
+      "carton_3"
+    ],
+    "speedMps": 1.05,
+    "spacingM": 2.6
+  },
+  "migration": {
+    "sourceFile": "prototype/scenes/conveyor-cell.json",
+    "sourceFormat": "json",
+    "assetMappings": {
+      "conveyor": "material-handling.belt-conveyor.600x6000.v1",
+      "photoeye": "sensing.photoelectric.through-beam.v1",
+      "switch": "controls.operator-station.single-pushbutton.v1",
+      "indicator": "controls.beacon.single-tier.v1",
+      "pusher": "actuation.pneumatic-pusher.1350mm.v1",
+      "motor": "drives.motor.ac-induction.v1",
+      "pipe": "process.pipe.flanged-spool.v1",
+      "tank": "process.tank.vertical-3000x5000.v1",
+      "pump": "process.pump.centrifugal-skid.v1",
+      "valve": "process.valve.actuated-ball.v1",
+      "levelSensor": "sensing.level.analog-4-20ma.v1",
+      "radarLevelSensor": "sensing.level.radar.v1",
+      "rotarySwitch": "controls.operator-station.selector.v1",
+      "fan": "air-handling.fan.axial-1900.v1",
+      "liftTable": "material-handling.lift.scissor-table.v1",
+      "drillPress": "machining.drill-press.pedestal.v1",
+      "robotArm": "robotics.robot.six-axis-medium.v1",
+      "rotaryTable": "material-handling.table.powered-rotary.v1",
+      "rollerShutter": "access-control.door.roller-shutter.v1",
+      "machine": "machining.machine.enclosed-center.v1",
+      "palletLoad": "loads.palletized-cases.gma-48x40.v1",
+      "toteFiller": "process.packaging.filler.tote-volumetric.v1",
+      "toteCapper": "process.packaging.capper.tote-inline.v1",
+      "toteLabeler": "process.packaging.labeler.tote-pressure-sensitive.v1",
+      "toteVision": "inspection.vision.tote-multicamera.v1",
+      "meteringSkid": "process.dosing.skid.liquid-metering.v1",
+      "containerReceiver": "material-handling.receiver.container-two-position.v1",
+      "sizeSensorBank": "sensing.dimensioning.parcel-three-height.v1"
+    },
+    "scenePropTypes": [
+      "box"
+    ],
+    "unresolvedAssetTypes": [],
+    "visualStatus": "mapped",
+    "productionApproved": false,
+    "reason": "Production approval requires every reusable asset and the complete scene to pass visual review."
+  }
+}

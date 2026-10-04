@@ -1,0 +1,1299 @@
+{
+  "version": 1,
+  "catalogId": "rungproof-original-scenes-migrated",
+  "sourceRoot": "prototype/scenes",
+  "sceneCount": 77,
+  "equipmentInstanceCount": 593,
+  "equipmentTypeCounts": {
+    "box": 30,
+    "containerReceiver": 1,
+    "conveyor": 31,
+    "drillPress": 4,
+    "fan": 5,
+    "indicator": 117,
+    "levelSensor": 9,
+    "liftTable": 5,
+    "machine": 20,
+    "meteringSkid": 1,
+    "motor": 11,
+    "palletLoad": 1,
+    "photoeye": 26,
+    "pipe": 8,
+    "pump": 6,
+    "pusher": 2,
+    "radarLevelSensor": 1,
+    "robotArm": 5,
+    "rollerShutter": 4,
+    "rotarySwitch": 5,
+    "rotaryTable": 4,
+    "sizeSensorBank": 1,
+    "switch": 166,
+    "tank": 12,
+    "toteCapper": 1,
+    "toteFiller": 2,
+    "toteLabeler": 1,
+    "toteVision": 1,
+    "trainingAccessory": 108,
+    "valve": 5
+  },
+  "scenes": [
+    {
+      "id": "conveyor-cell",
+      "name": "Conveyor Inspection Cell",
+      "path": "res://scenes/migrated/conveyor-cell.scene.json",
+      "sourceFile": "prototype/scenes/conveyor-cell.json",
+      "equipmentCount": 7,
+      "equipmentTypes": [
+        "box",
+        "conveyor",
+        "indicator",
+        "photoeye",
+        "switch"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    },
+    {
+      "id": "equipment-gallery",
+      "name": "Reusable Equipment Gallery",
+      "path": "res://scenes/migrated/equipment-gallery.scene.json",
+      "sourceFile": "prototype/scenes/equipment-gallery.json",
+      "equipmentCount": 21,
+      "equipmentTypes": [
+        "box",
+        "conveyor",
+        "drillPress",
+        "fan",
+        "indicator",
+        "levelSensor",
+        "liftTable",
+        "machine",
+        "motor",
+        "photoeye",
+        "pipe",
+        "pump",
+        "robotArm",
+        "rollerShutter",
+        "rotarySwitch",
+        "rotaryTable",
+        "switch",
+        "tank",
+        "valve"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    },
+    {
+      "id": "lab-10-01-drive-alarm-code-string",
+      "name": "Lab 10.1 - Drive Alarm-Code String",
+      "path": "res://scenes/migrated/lab-10-01-drive-alarm-code-string.scene.json",
+      "sourceFile": "prototype/scenes/lab-10-01-drive-alarm-code-string.plcscene",
+      "equipmentCount": 10,
+      "equipmentTypes": [
+        "indicator",
+        "machine",
+        "motor",
+        "switch",
+        "trainingAccessory"
+      ],
+      "unresolvedAssetTypes": [
+        "trainingAccessory"
+      ],
+      "visualStatus": "partial"
+    },
+    {
+      "id": "lab-10-02-chicken-label-print",
+      "name": "Lab 10.2 - Chicken Label Print",
+      "path": "res://scenes/migrated/lab-10-02-chicken-label-print.scene.json",
+      "sourceFile": "prototype/scenes/lab-10-02-chicken-label-print.plcscene",
+      "equipmentCount": 12,
+      "equipmentTypes": [
+        "box",
+        "conveyor",
+        "indicator",
+        "machine",
+        "switch",
+        "trainingAccessory"
+      ],
+      "unresolvedAssetTypes": [
+        "trainingAccessory"
+      ],
+      "visualStatus": "partial"
+    },
+    {
+      "id": "lab-10-03-vision-package-sorter",
+      "name": "Lab 10.3 - Vision Package Sorter",
+      "path": "res://scenes/migrated/lab-10-03-vision-package-sorter.scene.json",
+      "sourceFile": "prototype/scenes/lab-10-03-vision-package-sorter.plcscene",
+      "equipmentCount": 13,
+      "equipmentTypes": [
+        "box",
+        "conveyor",
+        "indicator",
+        "photoeye",
+        "rotaryTable",
+        "switch",
+        "trainingAccessory"
+      ],
+      "unresolvedAssetTypes": [
+        "trainingAccessory"
+      ],
+      "visualStatus": "partial"
+    },
+    {
+      "id": "lab-10-04-motor-enum-state",
+      "name": "Lab 10.4 - Motor Operating-State Enum",
+      "path": "res://scenes/migrated/lab-10-04-motor-enum-state.scene.json",
+      "sourceFile": "prototype/scenes/lab-10-04-motor-enum-state.plcscene",
+      "equipmentCount": 6,
+      "equipmentTypes": [
+        "indicator",
+        "motor",
+        "switch"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    },
+    {
+      "id": "lab-10-05-motor-struct-data",
+      "name": "Lab 10.5 - Motor STRUCT Data",
+      "path": "res://scenes/migrated/lab-10-05-motor-struct-data.scene.json",
+      "sourceFile": "prototype/scenes/lab-10-05-motor-struct-data.plcscene",
+      "equipmentCount": 10,
+      "equipmentTypes": [
+        "indicator",
+        "machine",
+        "motor",
+        "switch",
+        "trainingAccessory"
+      ],
+      "unresolvedAssetTypes": [
+        "trainingAccessory"
+      ],
+      "visualStatus": "partial"
+    },
+    {
+      "id": "lab-10-06-ten-motor-array-startup",
+      "name": "Lab 10.6 - Ten-Motor Array Startup",
+      "path": "res://scenes/migrated/lab-10-06-ten-motor-array-startup.scene.json",
+      "sourceFile": "prototype/scenes/lab-10-06-ten-motor-array-startup.plcscene",
+      "equipmentCount": 13,
+      "equipmentTypes": [
+        "indicator",
+        "motor",
+        "switch",
+        "trainingAccessory"
+      ],
+      "unresolvedAssetTypes": [
+        "trainingAccessory"
+      ],
+      "visualStatus": "partial"
+    },
+    {
+      "id": "lab-11-06-wastewater-collection",
+      "name": "Lab 11.6 - Wastewater Collection",
+      "path": "res://scenes/migrated/lab-11-06-wastewater-collection.scene.json",
+      "sourceFile": "prototype/scenes/lab-11-06-wastewater-collection.plcscene",
+      "equipmentCount": 14,
+      "equipmentTypes": [
+        "indicator",
+        "pump",
+        "switch",
+        "tank",
+        "trainingAccessory",
+        "valve"
+      ],
+      "unresolvedAssetTypes": [
+        "trainingAccessory"
+      ],
+      "visualStatus": "partial"
+    },
+    {
+      "id": "lab-11-07-multi-conveyor-pallet-route",
+      "name": "Lab 11.7 - Multi-Conveyor Pallet Route",
+      "path": "res://scenes/migrated/lab-11-07-multi-conveyor-pallet-route.scene.json",
+      "sourceFile": "prototype/scenes/lab-11-07-multi-conveyor-pallet-route.plcscene",
+      "equipmentCount": 15,
+      "equipmentTypes": [
+        "conveyor",
+        "indicator",
+        "photoeye",
+        "switch",
+        "trainingAccessory"
+      ],
+      "unresolvedAssetTypes": [
+        "trainingAccessory"
+      ],
+      "visualStatus": "partial"
+    },
+    {
+      "id": "lab-11-11-service-elevator",
+      "name": "Lab 11.11 - Service Elevator",
+      "path": "res://scenes/migrated/lab-11-11-service-elevator.scene.json",
+      "sourceFile": "prototype/scenes/lab-11-11-service-elevator.plcscene",
+      "equipmentCount": 11,
+      "equipmentTypes": [
+        "indicator",
+        "liftTable",
+        "rollerShutter",
+        "switch",
+        "trainingAccessory"
+      ],
+      "unresolvedAssetTypes": [
+        "trainingAccessory"
+      ],
+      "visualStatus": "partial"
+    },
+    {
+      "id": "lab-11-12-mobile-traffic-lights",
+      "name": "Lab 11.12 - Mobile Traffic Lights",
+      "path": "res://scenes/migrated/lab-11-12-mobile-traffic-lights.scene.json",
+      "sourceFile": "prototype/scenes/lab-11-12-mobile-traffic-lights.plcscene",
+      "equipmentCount": 8,
+      "equipmentTypes": [
+        "indicator",
+        "switch",
+        "trainingAccessory"
+      ],
+      "unresolvedAssetTypes": [
+        "trainingAccessory"
+      ],
+      "visualStatus": "partial"
+    },
+    {
+      "id": "lab-11-13-xy-palletizing",
+      "name": "Lab 11.13 - XY Palletizing Cell",
+      "path": "res://scenes/migrated/lab-11-13-xy-palletizing.scene.json",
+      "sourceFile": "prototype/scenes/lab-11-13-xy-palletizing.plcscene",
+      "equipmentCount": 14,
+      "equipmentTypes": [
+        "box",
+        "conveyor",
+        "indicator",
+        "robotArm",
+        "switch",
+        "trainingAccessory"
+      ],
+      "unresolvedAssetTypes": [
+        "trainingAccessory"
+      ],
+      "visualStatus": "partial"
+    },
+    {
+      "id": "lab-11-19-powder-batch-mixer",
+      "name": "Lab 11.19 - Powder Batch Mixer",
+      "path": "res://scenes/migrated/lab-11-19-powder-batch-mixer.scene.json",
+      "sourceFile": "prototype/scenes/lab-11-19-powder-batch-mixer.plcscene",
+      "equipmentCount": 16,
+      "equipmentTypes": [
+        "indicator",
+        "motor",
+        "switch",
+        "tank",
+        "trainingAccessory",
+        "valve"
+      ],
+      "unresolvedAssetTypes": [
+        "trainingAccessory"
+      ],
+      "visualStatus": "partial"
+    },
+    {
+      "id": "lab-2-01-workstation-call",
+      "name": "Lab 2.1 - Workstation Call Lamp",
+      "path": "res://scenes/migrated/lab-2-01-workstation-call.scene.json",
+      "sourceFile": "prototype/scenes/lab-2-01-workstation-call.plcscene",
+      "equipmentCount": 2,
+      "equipmentTypes": [
+        "indicator",
+        "switch"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    },
+    {
+      "id": "lab-2-02-dual-confirmation",
+      "name": "Lab 2.2 - Dual Confirmation Lamp",
+      "path": "res://scenes/migrated/lab-2-02-dual-confirmation.scene.json",
+      "sourceFile": "prototype/scenes/lab-2-02-dual-confirmation.plcscene",
+      "equipmentCount": 3,
+      "equipmentTypes": [
+        "indicator",
+        "switch"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    },
+    {
+      "id": "lab-2-03-service-marker-inhibit",
+      "name": "Lab 2.3 - Service Marker Inhibit",
+      "path": "res://scenes/migrated/lab-2-03-service-marker-inhibit.scene.json",
+      "sourceFile": "prototype/scenes/lab-2-03-service-marker-inhibit.plcscene",
+      "equipmentCount": 2,
+      "equipmentTypes": [
+        "indicator",
+        "switch"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    },
+    {
+      "id": "lab-2-04-two-station-call",
+      "name": "Lab 2.4 - Two-Station Call Beacon",
+      "path": "res://scenes/migrated/lab-2-04-two-station-call.scene.json",
+      "sourceFile": "prototype/scenes/lab-2-04-two-station-call.plcscene",
+      "equipmentCount": 3,
+      "equipmentTypes": [
+        "indicator",
+        "switch"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    },
+    {
+      "id": "lab-2-05-bay-light-selector",
+      "name": "Lab 2.5 - Bay Light Selector",
+      "path": "res://scenes/migrated/lab-2-05-bay-light-selector.scene.json",
+      "sourceFile": "prototype/scenes/lab-2-05-bay-light-selector.plcscene",
+      "equipmentCount": 3,
+      "equipmentTypes": [
+        "indicator",
+        "rotarySwitch"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    },
+    {
+      "id": "lab-2-06-ready-attention",
+      "name": "Lab 2.6 - Ready / Attention Button",
+      "path": "res://scenes/migrated/lab-2-06-ready-attention.scene.json",
+      "sourceFile": "prototype/scenes/lab-2-06-ready-attention.plcscene",
+      "equipmentCount": 3,
+      "equipmentTypes": [
+        "indicator",
+        "switch"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    },
+    {
+      "id": "lab-2-07-dual-contact-permissive",
+      "name": "Lab 2.7 - Dual-Contact Permissive",
+      "path": "res://scenes/migrated/lab-2-07-dual-contact-permissive.scene.json",
+      "sourceFile": "prototype/scenes/lab-2-07-dual-contact-permissive.plcscene",
+      "equipmentCount": 3,
+      "equipmentTypes": [
+        "indicator",
+        "switch"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    },
+    {
+      "id": "lab-2-08-inspection-vote",
+      "name": "Lab 2.8 - Inspection Vote Stacklight",
+      "path": "res://scenes/migrated/lab-2-08-inspection-vote.scene.json",
+      "sourceFile": "prototype/scenes/lab-2-08-inspection-vote.plcscene",
+      "equipmentCount": 3,
+      "equipmentTypes": [
+        "indicator",
+        "switch"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    },
+    {
+      "id": "lab-2-09-maintenance-beacon",
+      "name": "Lab 2.9 - Maintenance Beacon Selector",
+      "path": "res://scenes/migrated/lab-2-09-maintenance-beacon.scene.json",
+      "sourceFile": "prototype/scenes/lab-2-09-maintenance-beacon.plcscene",
+      "equipmentCount": 2,
+      "equipmentTypes": [
+        "indicator",
+        "rotarySwitch"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    },
+    {
+      "id": "lab-2-10-dust-collector-seal-in",
+      "name": "Lab 2.10 - Dust Collector Seal-In",
+      "path": "res://scenes/migrated/lab-2-10-dust-collector-seal-in.scene.json",
+      "sourceFile": "prototype/scenes/lab-2-10-dust-collector-seal-in.plcscene",
+      "equipmentCount": 4,
+      "equipmentTypes": [
+        "fan",
+        "indicator",
+        "switch"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    },
+    {
+      "id": "lab-2-11-inbound-tote-stop",
+      "name": "Lab 2.11 - Inbound Tote Stop",
+      "path": "res://scenes/migrated/lab-2-11-inbound-tote-stop.scene.json",
+      "sourceFile": "prototype/scenes/lab-2-11-inbound-tote-stop.plcscene",
+      "equipmentCount": 5,
+      "equipmentTypes": [
+        "box",
+        "conveyor",
+        "indicator",
+        "photoeye",
+        "switch"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    },
+    {
+      "id": "lab-2-12-assembly-lift",
+      "name": "Lab 2.12 - Ergonomic Assembly Lift",
+      "path": "res://scenes/migrated/lab-2-12-assembly-lift.scene.json",
+      "sourceFile": "prototype/scenes/lab-2-12-assembly-lift.plcscene",
+      "equipmentCount": 6,
+      "equipmentTypes": [
+        "box",
+        "indicator",
+        "liftTable",
+        "switch"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    },
+    {
+      "id": "lab-2-13-coolant-jug-fill",
+      "name": "Lab 2.13 - Coolant Jug Filling Cell",
+      "path": "res://scenes/migrated/lab-2-13-coolant-jug-fill.scene.json",
+      "sourceFile": "prototype/scenes/lab-2-13-coolant-jug-fill.plcscene",
+      "equipmentCount": 7,
+      "equipmentTypes": [
+        "box",
+        "conveyor",
+        "indicator",
+        "meteringSkid",
+        "photoeye",
+        "switch",
+        "toteFiller"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    },
+    {
+      "id": "lab-2-14-sump-pump",
+      "name": "Lab 2.14 - Sump Dewatering Pump",
+      "path": "res://scenes/migrated/lab-2-14-sump-pump.scene.json",
+      "sourceFile": "prototype/scenes/lab-2-14-sump-pump.plcscene",
+      "equipmentCount": 8,
+      "equipmentTypes": [
+        "indicator",
+        "levelSensor",
+        "pipe",
+        "pump",
+        "switch",
+        "tank",
+        "valve"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    },
+    {
+      "id": "lab-2-15-fume-extractor",
+      "name": "Lab 2.15 - Weld Fume Extractor",
+      "path": "res://scenes/migrated/lab-2-15-fume-extractor.scene.json",
+      "sourceFile": "prototype/scenes/lab-2-15-fume-extractor.plcscene",
+      "equipmentCount": 5,
+      "equipmentTypes": [
+        "fan",
+        "indicator",
+        "rotarySwitch",
+        "switch"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    },
+    {
+      "id": "lab-2-16-safe-drill",
+      "name": "Lab 2.16 - Fixture-Safe Drill Station",
+      "path": "res://scenes/migrated/lab-2-16-safe-drill.scene.json",
+      "sourceFile": "prototype/scenes/lab-2-16-safe-drill.plcscene",
+      "equipmentCount": 6,
+      "equipmentTypes": [
+        "box",
+        "drillPress",
+        "indicator",
+        "switch"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    },
+    {
+      "id": "lab-2-17-pallet-robot",
+      "name": "Lab 2.17 - Twin-Container Pallet Cell",
+      "path": "res://scenes/migrated/lab-2-17-pallet-robot.scene.json",
+      "sourceFile": "prototype/scenes/lab-2-17-pallet-robot.plcscene",
+      "equipmentCount": 9,
+      "equipmentTypes": [
+        "box",
+        "containerReceiver",
+        "conveyor",
+        "indicator",
+        "photoeye",
+        "robotArm",
+        "switch"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    },
+    {
+      "id": "lab-2-18-pallet-pickup",
+      "name": "Lab 2.18 - Shipping Pallet Accumulation",
+      "path": "res://scenes/migrated/lab-2-18-pallet-pickup.scene.json",
+      "sourceFile": "prototype/scenes/lab-2-18-pallet-pickup.plcscene",
+      "equipmentCount": 7,
+      "equipmentTypes": [
+        "conveyor",
+        "indicator",
+        "palletLoad",
+        "photoeye",
+        "rotarySwitch",
+        "switch"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    },
+    {
+      "id": "lab-2-19-service-door",
+      "name": "Lab 2.19 - Service Door Shutter",
+      "path": "res://scenes/migrated/lab-2-19-service-door.scene.json",
+      "sourceFile": "prototype/scenes/lab-2-19-service-door.plcscene",
+      "equipmentCount": 6,
+      "equipmentTypes": [
+        "indicator",
+        "rollerShutter",
+        "switch"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    },
+    {
+      "id": "lab-2-20-bottle-shuttle",
+      "name": "Lab 2.20 - Bottle Shuttle Conveyor",
+      "path": "res://scenes/migrated/lab-2-20-bottle-shuttle.scene.json",
+      "sourceFile": "prototype/scenes/lab-2-20-bottle-shuttle.plcscene",
+      "equipmentCount": 6,
+      "equipmentTypes": [
+        "box",
+        "conveyor",
+        "indicator",
+        "photoeye",
+        "switch"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    },
+    {
+      "id": "lab-2-21-tote-finishing",
+      "name": "Lab 2.21 - Chemical Tote Finishing Line",
+      "path": "res://scenes/migrated/lab-2-21-tote-finishing.scene.json",
+      "sourceFile": "prototype/scenes/lab-2-21-tote-finishing.plcscene",
+      "equipmentCount": 8,
+      "equipmentTypes": [
+        "box",
+        "conveyor",
+        "indicator",
+        "switch",
+        "toteCapper",
+        "toteFiller",
+        "toteLabeler",
+        "toteVision"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    },
+    {
+      "id": "lab-2-22-dual-spindle",
+      "name": "Lab 2.22 - Dual-Spindle Plate Cell",
+      "path": "res://scenes/migrated/lab-2-22-dual-spindle.scene.json",
+      "sourceFile": "prototype/scenes/lab-2-22-dual-spindle.plcscene",
+      "equipmentCount": 6,
+      "equipmentTypes": [
+        "box",
+        "drillPress",
+        "indicator",
+        "pusher",
+        "switch"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    },
+    {
+      "id": "lab-2-23-parcel-sorter",
+      "name": "Lab 2.23 - Parcel Size Sorter",
+      "path": "res://scenes/migrated/lab-2-23-parcel-sorter.scene.json",
+      "sourceFile": "prototype/scenes/lab-2-23-parcel-sorter.plcscene",
+      "equipmentCount": 12,
+      "equipmentTypes": [
+        "box",
+        "conveyor",
+        "indicator",
+        "rotaryTable",
+        "sizeSensorBank",
+        "switch"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    },
+    {
+      "id": "lab-2-24-robot-cnc",
+      "name": "Lab 2.24 - Robot CNC Tending Cell",
+      "path": "res://scenes/migrated/lab-2-24-robot-cnc.scene.json",
+      "sourceFile": "prototype/scenes/lab-2-24-robot-cnc.plcscene",
+      "equipmentCount": 8,
+      "equipmentTypes": [
+        "box",
+        "conveyor",
+        "indicator",
+        "machine",
+        "photoeye",
+        "robotArm",
+        "switch"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    },
+    {
+      "id": "lab-2-25-inspection-toggle",
+      "name": "Lab 2.25 - Inspection Light Toggle",
+      "path": "res://scenes/migrated/lab-2-25-inspection-toggle.scene.json",
+      "sourceFile": "prototype/scenes/lab-2-25-inspection-toggle.plcscene",
+      "equipmentCount": 2,
+      "equipmentTypes": [
+        "indicator",
+        "switch"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    },
+    {
+      "id": "lab-3-01-guarded-pallet-transfer",
+      "name": "Lab 3.1 - Guarded Pallet Transfer",
+      "path": "res://scenes/migrated/lab-3-01-guarded-pallet-transfer.scene.json",
+      "sourceFile": "prototype/scenes/lab-3-01-guarded-pallet-transfer.plcscene",
+      "equipmentCount": 12,
+      "equipmentTypes": [
+        "box",
+        "conveyor",
+        "indicator",
+        "photoeye",
+        "switch",
+        "trainingAccessory"
+      ],
+      "unresolvedAssetTypes": [
+        "trainingAccessory"
+      ],
+      "visualStatus": "partial"
+    },
+    {
+      "id": "lab-3-02-robot-cell-safe-restart",
+      "name": "Lab 3.2 - Robot Cell Safe Restart",
+      "path": "res://scenes/migrated/lab-3-02-robot-cell-safe-restart.scene.json",
+      "sourceFile": "prototype/scenes/lab-3-02-robot-cell-safe-restart.plcscene",
+      "equipmentCount": 11,
+      "equipmentTypes": [
+        "indicator",
+        "machine",
+        "robotArm",
+        "switch",
+        "trainingAccessory"
+      ],
+      "unresolvedAssetTypes": [
+        "trainingAccessory"
+      ],
+      "visualStatus": "partial"
+    },
+    {
+      "id": "lab-4-01-press-count-lamp",
+      "name": "Lab 4.1 - Press-Count Lamp",
+      "path": "res://scenes/migrated/lab-4-01-press-count-lamp.scene.json",
+      "sourceFile": "prototype/scenes/lab-4-01-press-count-lamp.plcscene",
+      "equipmentCount": 2,
+      "equipmentTypes": [
+        "indicator",
+        "switch"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    },
+    {
+      "id": "lab-4-02-counter-reset-lamp",
+      "name": "Lab 4.2 - Counter Reset Lamp",
+      "path": "res://scenes/migrated/lab-4-02-counter-reset-lamp.scene.json",
+      "sourceFile": "prototype/scenes/lab-4-02-counter-reset-lamp.plcscene",
+      "equipmentCount": 3,
+      "equipmentTypes": [
+        "indicator",
+        "switch"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    },
+    {
+      "id": "lab-4-03-repeat-cycle-counter",
+      "name": "Lab 4.3 - Repeat-Cycle Counter",
+      "path": "res://scenes/migrated/lab-4-03-repeat-cycle-counter.scene.json",
+      "sourceFile": "prototype/scenes/lab-4-03-repeat-cycle-counter.plcscene",
+      "equipmentCount": 5,
+      "equipmentTypes": [
+        "indicator",
+        "machine",
+        "switch"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    },
+    {
+      "id": "lab-4-04-sequence-light-tower",
+      "name": "Lab 4.4 - Sequence Light Tower",
+      "path": "res://scenes/migrated/lab-4-04-sequence-light-tower.scene.json",
+      "sourceFile": "prototype/scenes/lab-4-04-sequence-light-tower.plcscene",
+      "equipmentCount": 5,
+      "equipmentTypes": [
+        "indicator",
+        "machine",
+        "switch"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    },
+    {
+      "id": "lab-4-05-dual-input-count-window",
+      "name": "Lab 4.5 - Dual-Input Count Window",
+      "path": "res://scenes/migrated/lab-4-05-dual-input-count-window.scene.json",
+      "sourceFile": "prototype/scenes/lab-4-05-dual-input-count-window.plcscene",
+      "equipmentCount": 3,
+      "equipmentTypes": [
+        "indicator",
+        "switch"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    },
+    {
+      "id": "lab-4-06-multi-press-confirmation",
+      "name": "Lab 4.6 - Multi-Press Confirmation",
+      "path": "res://scenes/migrated/lab-4-06-multi-press-confirmation.scene.json",
+      "sourceFile": "prototype/scenes/lab-4-06-multi-press-confirmation.plcscene",
+      "equipmentCount": 3,
+      "equipmentTypes": [
+        "indicator",
+        "switch"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    },
+    {
+      "id": "lab-4-07-parking-garage-entry",
+      "name": "Lab 4.7 - Parking Garage Entry",
+      "path": "res://scenes/migrated/lab-4-07-parking-garage-entry.scene.json",
+      "sourceFile": "prototype/scenes/lab-4-07-parking-garage-entry.plcscene",
+      "equipmentCount": 11,
+      "equipmentTypes": [
+        "indicator",
+        "photoeye",
+        "rollerShutter",
+        "switch",
+        "trainingAccessory"
+      ],
+      "unresolvedAssetTypes": [
+        "trainingAccessory"
+      ],
+      "visualStatus": "partial"
+    },
+    {
+      "id": "lab-4-08-package-grouping",
+      "name": "Lab 4.8 - Package Grouping Station",
+      "path": "res://scenes/migrated/lab-4-08-package-grouping.scene.json",
+      "sourceFile": "prototype/scenes/lab-4-08-package-grouping.plcscene",
+      "equipmentCount": 12,
+      "equipmentTypes": [
+        "box",
+        "conveyor",
+        "indicator",
+        "photoeye",
+        "switch",
+        "trainingAccessory"
+      ],
+      "unresolvedAssetTypes": [
+        "trainingAccessory"
+      ],
+      "visualStatus": "partial"
+    },
+    {
+      "id": "lab-4-09-chain-drive-lift",
+      "name": "Lab 4.9 - Chain-Drive Lift",
+      "path": "res://scenes/migrated/lab-4-09-chain-drive-lift.scene.json",
+      "sourceFile": "prototype/scenes/lab-4-09-chain-drive-lift.plcscene",
+      "equipmentCount": 12,
+      "equipmentTypes": [
+        "box",
+        "conveyor",
+        "indicator",
+        "liftTable",
+        "switch",
+        "trainingAccessory"
+      ],
+      "unresolvedAssetTypes": [
+        "trainingAccessory"
+      ],
+      "visualStatus": "partial"
+    },
+    {
+      "id": "lab-4-10-cookie-packaging",
+      "name": "Lab 4.10 - Cookie Packaging Cell",
+      "path": "res://scenes/migrated/lab-4-10-cookie-packaging.scene.json",
+      "sourceFile": "prototype/scenes/lab-4-10-cookie-packaging.plcscene",
+      "equipmentCount": 12,
+      "equipmentTypes": [
+        "conveyor",
+        "indicator",
+        "machine",
+        "photoeye",
+        "switch",
+        "trainingAccessory"
+      ],
+      "unresolvedAssetTypes": [
+        "trainingAccessory"
+      ],
+      "visualStatus": "partial"
+    },
+    {
+      "id": "lab-4-11-barrel-fill-station",
+      "name": "Lab 4.11 - Barrel Fill Station",
+      "path": "res://scenes/migrated/lab-4-11-barrel-fill-station.scene.json",
+      "sourceFile": "prototype/scenes/lab-4-11-barrel-fill-station.plcscene",
+      "equipmentCount": 12,
+      "equipmentTypes": [
+        "conveyor",
+        "indicator",
+        "photoeye",
+        "switch",
+        "tank",
+        "trainingAccessory",
+        "valve"
+      ],
+      "unresolvedAssetTypes": [
+        "trainingAccessory"
+      ],
+      "visualStatus": "partial"
+    },
+    {
+      "id": "lab-4-12-cable-cut-length",
+      "name": "Lab 4.12 - Cable Cut-Length Cell",
+      "path": "res://scenes/migrated/lab-4-12-cable-cut-length.scene.json",
+      "sourceFile": "prototype/scenes/lab-4-12-cable-cut-length.plcscene",
+      "equipmentCount": 13,
+      "equipmentTypes": [
+        "indicator",
+        "machine",
+        "motor",
+        "photoeye",
+        "switch",
+        "trainingAccessory"
+      ],
+      "unresolvedAssetTypes": [
+        "trainingAccessory"
+      ],
+      "visualStatus": "partial"
+    },
+    {
+      "id": "lab-5-01-delayed-lamp",
+      "name": "Lab 5.1 - Delayed Lamp",
+      "path": "res://scenes/migrated/lab-5-01-delayed-lamp.scene.json",
+      "sourceFile": "prototype/scenes/lab-5-01-delayed-lamp.plcscene",
+      "equipmentCount": 2,
+      "equipmentTypes": [
+        "indicator",
+        "switch"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    },
+    {
+      "id": "lab-5-02-timed-lamp-off",
+      "name": "Lab 5.2 - Timed Lamp-Off",
+      "path": "res://scenes/migrated/lab-5-02-timed-lamp-off.scene.json",
+      "sourceFile": "prototype/scenes/lab-5-02-timed-lamp-off.plcscene",
+      "equipmentCount": 3,
+      "equipmentTypes": [
+        "indicator",
+        "switch"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    },
+    {
+      "id": "lab-5-03-rotary-flasher",
+      "name": "Lab 5.3 - Rotary Flasher",
+      "path": "res://scenes/migrated/lab-5-03-rotary-flasher.scene.json",
+      "sourceFile": "prototype/scenes/lab-5-03-rotary-flasher.plcscene",
+      "equipmentCount": 3,
+      "equipmentTypes": [
+        "indicator",
+        "switch"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    },
+    {
+      "id": "lab-5-04-alternating-lamps",
+      "name": "Lab 5.4 - Alternating Lamps",
+      "path": "res://scenes/migrated/lab-5-04-alternating-lamps.scene.json",
+      "sourceFile": "prototype/scenes/lab-5-04-alternating-lamps.plcscene",
+      "equipmentCount": 4,
+      "equipmentTypes": [
+        "indicator",
+        "switch"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    },
+    {
+      "id": "lab-5-05-variable-flash-rate",
+      "name": "Lab 5.5 - Variable Flash Rate",
+      "path": "res://scenes/migrated/lab-5-05-variable-flash-rate.scene.json",
+      "sourceFile": "prototype/scenes/lab-5-05-variable-flash-rate.plcscene",
+      "equipmentCount": 4,
+      "equipmentTypes": [
+        "indicator",
+        "switch"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    },
+    {
+      "id": "lab-5-06-running-light-tower",
+      "name": "Lab 5.6 - Running-Light Tower",
+      "path": "res://scenes/migrated/lab-5-06-running-light-tower.scene.json",
+      "sourceFile": "prototype/scenes/lab-5-06-running-light-tower.plcscene",
+      "equipmentCount": 3,
+      "equipmentTypes": [
+        "indicator",
+        "switch"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    },
+    {
+      "id": "lab-5-07-pedestrian-crossing",
+      "name": "Lab 5.7 - Pedestrian Crossing",
+      "path": "res://scenes/migrated/lab-5-07-pedestrian-crossing.scene.json",
+      "sourceFile": "prototype/scenes/lab-5-07-pedestrian-crossing.plcscene",
+      "equipmentCount": 8,
+      "equipmentTypes": [
+        "indicator",
+        "switch",
+        "trainingAccessory"
+      ],
+      "unresolvedAssetTypes": [
+        "trainingAccessory"
+      ],
+      "visualStatus": "partial"
+    },
+    {
+      "id": "lab-5-08-drawbridge-control",
+      "name": "Lab 5.8 - Drawbridge Control",
+      "path": "res://scenes/migrated/lab-5-08-drawbridge-control.scene.json",
+      "sourceFile": "prototype/scenes/lab-5-08-drawbridge-control.plcscene",
+      "equipmentCount": 9,
+      "equipmentTypes": [
+        "indicator",
+        "liftTable",
+        "switch",
+        "trainingAccessory"
+      ],
+      "unresolvedAssetTypes": [
+        "trainingAccessory"
+      ],
+      "visualStatus": "partial"
+    },
+    {
+      "id": "lab-5-09-bag-indexing-conveyor",
+      "name": "Lab 5.9 - Bag Indexing Conveyor",
+      "path": "res://scenes/migrated/lab-5-09-bag-indexing-conveyor.scene.json",
+      "sourceFile": "prototype/scenes/lab-5-09-bag-indexing-conveyor.plcscene",
+      "equipmentCount": 12,
+      "equipmentTypes": [
+        "box",
+        "conveyor",
+        "indicator",
+        "photoeye",
+        "switch",
+        "trainingAccessory"
+      ],
+      "unresolvedAssetTypes": [
+        "trainingAccessory"
+      ],
+      "visualStatus": "partial"
+    },
+    {
+      "id": "lab-5-10-coating-line",
+      "name": "Lab 5.10 - Coating Line",
+      "path": "res://scenes/migrated/lab-5-10-coating-line.scene.json",
+      "sourceFile": "prototype/scenes/lab-5-10-coating-line.plcscene",
+      "equipmentCount": 14,
+      "equipmentTypes": [
+        "conveyor",
+        "fan",
+        "indicator",
+        "machine",
+        "photoeye",
+        "switch",
+        "trainingAccessory"
+      ],
+      "unresolvedAssetTypes": [
+        "trainingAccessory"
+      ],
+      "visualStatus": "partial"
+    },
+    {
+      "id": "lab-6-07-luggage-weight-sort",
+      "name": "Lab 6.7 - Luggage Weight Sort",
+      "path": "res://scenes/migrated/lab-6-07-luggage-weight-sort.scene.json",
+      "sourceFile": "prototype/scenes/lab-6-07-luggage-weight-sort.plcscene",
+      "equipmentCount": 12,
+      "equipmentTypes": [
+        "box",
+        "conveyor",
+        "indicator",
+        "machine",
+        "switch",
+        "trainingAccessory"
+      ],
+      "unresolvedAssetTypes": [
+        "trainingAccessory"
+      ],
+      "visualStatus": "partial"
+    },
+    {
+      "id": "lab-6-08-hand-dryer",
+      "name": "Lab 6.8 - Timed Hand-Dryer",
+      "path": "res://scenes/migrated/lab-6-08-hand-dryer.scene.json",
+      "sourceFile": "prototype/scenes/lab-6-08-hand-dryer.plcscene",
+      "equipmentCount": 10,
+      "equipmentTypes": [
+        "fan",
+        "indicator",
+        "machine",
+        "switch",
+        "trainingAccessory"
+      ],
+      "unresolvedAssetTypes": [
+        "trainingAccessory"
+      ],
+      "visualStatus": "partial"
+    },
+    {
+      "id": "lab-9-01-sum-function",
+      "name": "Lab 9.1 - Sum Function Block",
+      "path": "res://scenes/migrated/lab-9-01-sum-function.scene.json",
+      "sourceFile": "prototype/scenes/lab-9-01-sum-function.plcscene",
+      "equipmentCount": 7,
+      "equipmentTypes": [
+        "indicator",
+        "machine",
+        "switch",
+        "trainingAccessory"
+      ],
+      "unresolvedAssetTypes": [
+        "trainingAccessory"
+      ],
+      "visualStatus": "partial"
+    },
+    {
+      "id": "lab-9-02-product-function",
+      "name": "Lab 9.2 - Product Function Block",
+      "path": "res://scenes/migrated/lab-9-02-product-function.scene.json",
+      "sourceFile": "prototype/scenes/lab-9-02-product-function.plcscene",
+      "equipmentCount": 7,
+      "equipmentTypes": [
+        "indicator",
+        "machine",
+        "switch",
+        "trainingAccessory"
+      ],
+      "unresolvedAssetTypes": [
+        "trainingAccessory"
+      ],
+      "visualStatus": "partial"
+    },
+    {
+      "id": "lab-9-03-sum-and-counter-function",
+      "name": "Lab 9.3 - Sum and Counter Function",
+      "path": "res://scenes/migrated/lab-9-03-sum-and-counter-function.scene.json",
+      "sourceFile": "prototype/scenes/lab-9-03-sum-and-counter-function.plcscene",
+      "equipmentCount": 6,
+      "equipmentTypes": [
+        "indicator",
+        "machine",
+        "switch"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    },
+    {
+      "id": "lab-9-04-function-selector",
+      "name": "Lab 9.4 - Function Selector",
+      "path": "res://scenes/migrated/lab-9-04-function-selector.scene.json",
+      "sourceFile": "prototype/scenes/lab-9-04-function-selector.plcscene",
+      "equipmentCount": 7,
+      "equipmentTypes": [
+        "indicator",
+        "machine",
+        "switch",
+        "trainingAccessory"
+      ],
+      "unresolvedAssetTypes": [
+        "trainingAccessory"
+      ],
+      "visualStatus": "partial"
+    },
+    {
+      "id": "lab-9-10-box-volume",
+      "name": "Lab 9.10 - Box Volume Calculation",
+      "path": "res://scenes/migrated/lab-9-10-box-volume.scene.json",
+      "sourceFile": "prototype/scenes/lab-9-10-box-volume.plcscene",
+      "equipmentCount": 8,
+      "equipmentTypes": [
+        "box",
+        "indicator",
+        "machine",
+        "switch",
+        "trainingAccessory"
+      ],
+      "unresolvedAssetTypes": [
+        "trainingAccessory"
+      ],
+      "visualStatus": "partial"
+    },
+    {
+      "id": "lab-9-11-pallet-counting",
+      "name": "Lab 9.11 - Pallet Count Function",
+      "path": "res://scenes/migrated/lab-9-11-pallet-counting.scene.json",
+      "sourceFile": "prototype/scenes/lab-9-11-pallet-counting.plcscene",
+      "equipmentCount": 10,
+      "equipmentTypes": [
+        "box",
+        "conveyor",
+        "indicator",
+        "machine",
+        "switch",
+        "trainingAccessory"
+      ],
+      "unresolvedAssetTypes": [
+        "trainingAccessory"
+      ],
+      "visualStatus": "partial"
+    },
+    {
+      "id": "lab-9-12-ev-charging-manager",
+      "name": "Lab 9.12 - EV Charging Manager",
+      "path": "res://scenes/migrated/lab-9-12-ev-charging-manager.scene.json",
+      "sourceFile": "prototype/scenes/lab-9-12-ev-charging-manager.plcscene",
+      "equipmentCount": 11,
+      "equipmentTypes": [
+        "indicator",
+        "machine",
+        "switch",
+        "trainingAccessory"
+      ],
+      "unresolvedAssetTypes": [
+        "trainingAccessory"
+      ],
+      "visualStatus": "partial"
+    },
+    {
+      "id": "scene-1-conveyor-stop",
+      "name": "Conveyor Stop",
+      "path": "res://scenes/migrated/scene-1-conveyor-stop.scene.json",
+      "sourceFile": "prototype/scenes/scene-1-conveyor-stop.plcscene",
+      "equipmentCount": 5,
+      "equipmentTypes": [
+        "box",
+        "conveyor",
+        "indicator",
+        "photoeye",
+        "switch"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    },
+    {
+      "id": "scene-2-conveyor-pusher",
+      "name": "Conveyor Pusher",
+      "path": "res://scenes/migrated/scene-2-conveyor-pusher.scene.json",
+      "sourceFile": "prototype/scenes/scene-2-conveyor-pusher.plcscene",
+      "equipmentCount": 6,
+      "equipmentTypes": [
+        "box",
+        "conveyor",
+        "indicator",
+        "photoeye",
+        "pusher",
+        "switch"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    },
+    {
+      "id": "tank-high-low",
+      "name": "Water Tank \u2014 High/Low Switches",
+      "path": "res://scenes/migrated/tank-high-low.scene.json",
+      "sourceFile": "prototype/scenes/tank-high-low.json",
+      "equipmentCount": 9,
+      "equipmentTypes": [
+        "indicator",
+        "levelSensor",
+        "pipe",
+        "pump",
+        "switch",
+        "tank"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    },
+    {
+      "id": "tank-level",
+      "name": "Tank Level / 4\u201320 mA",
+      "path": "res://scenes/migrated/tank-level.scene.json",
+      "sourceFile": "prototype/scenes/tank-level.json",
+      "equipmentCount": 10,
+      "equipmentTypes": [
+        "indicator",
+        "levelSensor",
+        "pipe",
+        "pump",
+        "switch",
+        "tank"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    },
+    {
+      "id": "tank-radar",
+      "name": "Water Tank \u2014 Radar Level",
+      "path": "res://scenes/migrated/tank-radar.scene.json",
+      "sourceFile": "prototype/scenes/tank-radar.json",
+      "equipmentCount": 8,
+      "equipmentTypes": [
+        "indicator",
+        "pipe",
+        "pump",
+        "radarLevelSensor",
+        "switch",
+        "tank"
+      ],
+      "unresolvedAssetTypes": [],
+      "visualStatus": "mapped"
+    }
+  ]
+}

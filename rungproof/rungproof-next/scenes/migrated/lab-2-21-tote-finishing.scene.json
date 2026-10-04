@@ -1,0 +1,568 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-2-21-tote-finishing",
+  "name": "Lab 2.21 - Chemical Tote Finishing Line",
+  "description": "A small chemical tote is filled, capped, labeled, inspected, and discharged through a five-station finishing line.",
+  "camera": {
+    "position": [
+      15,
+      9,
+      14
+    ],
+    "target": [
+      0,
+      1.2,
+      0
+    ],
+    "fov": 48
+  },
+  "equipment": [
+    {
+      "id": "finishing_conveyor",
+      "type": "conveyor",
+      "label": "Tote finishing conveyor",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "config": {
+        "length": 13,
+        "width": 1.5,
+        "deckHeight": 0.9,
+        "beltColor": 2568760,
+        "running": false
+      }
+    },
+    {
+      "id": "finishing_tote",
+      "type": "box",
+      "label": "Chemical tote",
+      "position": [
+        -5.8,
+        0.99,
+        0
+      ],
+      "config": {
+        "size": [
+          0.95,
+          1.35,
+          0.9
+        ],
+        "color": 15332085
+      }
+    },
+    {
+      "id": "finishing_fill_valve",
+      "type": "toteFiller",
+      "label": "Metered tote filling station",
+      "position": [
+        -2.6,
+        0,
+        0
+      ],
+      "config": {
+        "initialPosition": 0
+      }
+    },
+    {
+      "id": "capper",
+      "type": "toteCapper",
+      "label": "Servo capper",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "config": {
+        "size": [
+          1.8,
+          2.5,
+          1.4
+        ],
+        "color": 7307144,
+        "running": false
+      }
+    },
+    {
+      "id": "labeler",
+      "type": "toteLabeler",
+      "label": "Print-and-apply labeler",
+      "position": [
+        2.4,
+        0,
+        0
+      ],
+      "config": {
+        "size": [
+          1.8,
+          2.5,
+          1.4
+        ],
+        "color": 1534855,
+        "running": false
+      }
+    },
+    {
+      "id": "vision_inspector",
+      "type": "toteVision",
+      "label": "Vision inspection station",
+      "position": [
+        4.6,
+        0,
+        0
+      ],
+      "config": {
+        "size": [
+          1.8,
+          2.5,
+          1.4
+        ],
+        "color": 5466227,
+        "running": false
+      }
+    },
+    {
+      "id": "line_start",
+      "type": "switch",
+      "label": "Start finishing cycle",
+      "position": [
+        -5.2,
+        0,
+        2.2
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "start-line",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "line_status",
+      "type": "indicator",
+      "label": "Finishing line status",
+      "position": [
+        5.6,
+        0,
+        -1.8
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "amber"
+      }
+    }
+  ],
+  "simulation": {
+    "type": "sequence",
+    "points": [
+      {
+        "name": "conveyor_run",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false
+      },
+      {
+        "name": "fill_valve_open",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false
+      },
+      {
+        "name": "capper_run",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false
+      },
+      {
+        "name": "labeler_run",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false
+      },
+      {
+        "name": "inspection_run",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false
+      },
+      {
+        "name": "inspection_ok",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "station_number",
+        "type": "DINT",
+        "owner": "SIM",
+        "initial": 0
+      },
+      {
+        "name": "status_color",
+        "type": "STRING",
+        "owner": "SIM",
+        "initial": "amber"
+      },
+      {
+        "name": "cycle_complete",
+        "type": "BOOL",
+        "owner": "SIM",
+        "initial": false
+      }
+    ],
+    "actions": [
+      {
+        "id": "start-line",
+        "label": "Start tote finishing",
+        "type": "start",
+        "sequence": "finish-cycle"
+      },
+      {
+        "id": "stop-line",
+        "label": "Stop line safely",
+        "type": "stop"
+      },
+      {
+        "id": "reset-line",
+        "label": "Reset tote line",
+        "type": "reset"
+      }
+    ],
+    "pointBindings": [
+      {
+        "point": "conveyor_run",
+        "equipmentId": "finishing_conveyor",
+        "mode": "running"
+      },
+      {
+        "point": "fill_valve_open",
+        "equipmentId": "finishing_fill_valve",
+        "mode": "position"
+      },
+      {
+        "point": "capper_run",
+        "equipmentId": "capper",
+        "mode": "running"
+      },
+      {
+        "point": "labeler_run",
+        "equipmentId": "labeler",
+        "mode": "running"
+      },
+      {
+        "point": "inspection_run",
+        "equipmentId": "vision_inspector",
+        "mode": "running"
+      },
+      {
+        "point": "status_color",
+        "equipmentId": "line_status",
+        "mode": "indicator"
+      }
+    ],
+    "sequences": {
+      "finish-cycle": [
+        {
+          "name": "index to fill",
+          "durationS": 1.5,
+          "set": {
+            "conveyor_run": true,
+            "station_number": 1,
+            "cycle_complete": false,
+            "inspection_ok": false,
+            "status_color": "green"
+          },
+          "motions": [
+            {
+              "type": "translate",
+              "equipmentId": "finishing_tote",
+              "axis": "x",
+              "from": -5.8,
+              "to": -2.6
+            }
+          ]
+        },
+        {
+          "name": "fill",
+          "durationS": 1.2,
+          "set": {
+            "conveyor_run": false,
+            "fill_valve_open": true,
+            "status_color": "amber"
+          }
+        },
+        {
+          "name": "index to cap",
+          "durationS": 1.2,
+          "set": {
+            "fill_valve_open": false,
+            "conveyor_run": true,
+            "station_number": 2,
+            "status_color": "green"
+          },
+          "motions": [
+            {
+              "type": "translate",
+              "equipmentId": "finishing_tote",
+              "axis": "x",
+              "from": -2.6,
+              "to": 0
+            }
+          ]
+        },
+        {
+          "name": "cap",
+          "durationS": 0.8,
+          "set": {
+            "conveyor_run": false,
+            "capper_run": true,
+            "status_color": "amber"
+          }
+        },
+        {
+          "name": "index to label",
+          "durationS": 1.1,
+          "set": {
+            "capper_run": false,
+            "conveyor_run": true,
+            "station_number": 3,
+            "status_color": "green"
+          },
+          "motions": [
+            {
+              "type": "translate",
+              "equipmentId": "finishing_tote",
+              "axis": "x",
+              "from": 0,
+              "to": 2.4
+            }
+          ]
+        },
+        {
+          "name": "label",
+          "durationS": 0.8,
+          "set": {
+            "conveyor_run": false,
+            "labeler_run": true,
+            "status_color": "amber"
+          }
+        },
+        {
+          "name": "index to inspect",
+          "durationS": 1,
+          "set": {
+            "labeler_run": false,
+            "conveyor_run": true,
+            "station_number": 4,
+            "status_color": "green"
+          },
+          "motions": [
+            {
+              "type": "translate",
+              "equipmentId": "finishing_tote",
+              "axis": "x",
+              "from": 2.4,
+              "to": 4.6
+            }
+          ]
+        },
+        {
+          "name": "inspect",
+          "durationS": 0.7,
+          "set": {
+            "conveyor_run": false,
+            "inspection_run": true,
+            "inspection_ok": true,
+            "status_color": "amber"
+          }
+        },
+        {
+          "name": "discharge",
+          "durationS": 1,
+          "set": {
+            "inspection_run": false,
+            "conveyor_run": true,
+            "station_number": 5,
+            "status_color": "green"
+          },
+          "motions": [
+            {
+              "type": "translate",
+              "equipmentId": "finishing_tote",
+              "axis": "x",
+              "from": 4.6,
+              "to": 6.4
+            }
+          ]
+        },
+        {
+          "name": "ready",
+          "durationS": 0.1,
+          "set": {
+            "conveyor_run": false,
+            "cycle_complete": true,
+            "status_color": "amber"
+          }
+        }
+      ]
+    },
+    "defaultSequence": "finish-cycle",
+    "safeState": {
+      "conveyor_run": false,
+      "fill_valve_open": false,
+      "capper_run": false,
+      "labeler_run": false,
+      "inspection_run": false,
+      "status_color": "red"
+    },
+    "completionState": {},
+    "conveyorSpeedMps": 0.75
+  },
+  "training": {
+    "hints": [
+      "Define the required result before writing logic: Stations execute in order and every actuator is off after a passing tote discharges.",
+      "Treat inspection_ok as simulator-to-PLC inputs. The PLC should command only conveyor_run, fill_valve_open, capper_run, labeler_run, inspection_run.",
+      "Use a step/state approach and prove the transition order: index to fill \u2192 fill \u2192 index to cap \u2192 cap \u2192 index to label \u2192 label \u2192 index to inspect \u2192 inspect \u2192 discharge \u2192 ready."
+    ],
+    "solution": {
+      "summary": "This is one valid functional reference. The same behavior may be implemented in LAD, FBD, or SCL; the rung layout is not prescribed.",
+      "steps": [
+        "index to fill: conveyor_run = true.",
+        "fill: conveyor_run = false, fill_valve_open = true.",
+        "index to cap: fill_valve_open = false, conveyor_run = true.",
+        "cap: conveyor_run = false, capper_run = true.",
+        "index to label: capper_run = false, conveyor_run = true.",
+        "label: conveyor_run = false, labeler_run = true.",
+        "index to inspect: labeler_run = false, conveyor_run = true.",
+        "inspect: conveyor_run = false, inspection_run = true.",
+        "discharge: inspection_run = false, conveyor_run = true.",
+        "ready: conveyor_run = false."
+      ],
+      "acceptance": "Stations execute in order and every actuator is off after a passing tote discharges."
+    },
+    "machineGuide": {
+      "purpose": "A small chemical tote is filled, capped, labeled, inspected, and discharged through a five-station finishing line.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state.",
+        "The PLC is ready to command conveyor_run, fill_valve_open, capper_run, labeler_run, inspection_run."
+      ],
+      "normalSequence": [
+        "index to fill",
+        "fill",
+        "index to cap",
+        "cap",
+        "index to label",
+        "label",
+        "index to inspect",
+        "inspect",
+        "discharge",
+        "ready"
+      ],
+      "stopBehavior": [
+        "A normal stop removes PLC-owned commands and leaves the equipment in a safe state.",
+        "Reset returns the scene to its documented initial condition."
+      ],
+      "faultBehavior": [
+        "A missing, stale, or incorrectly typed input must not be replaced by simulator logic.",
+        "A missing PLC command leaves the affected equipment stopped and the test diagnosable."
+      ],
+      "expectedObservations": [
+        "Stations execute in order and every actuator is off after a passing tote discharges."
+      ]
+    },
+    "sequenceNumber": 21,
+    "inheritsFrom": "lab-2-20-bottle-shuttle",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout",
+      "status_color",
+      "cycle_complete"
+    ],
+    "addedTags": [
+      "conveyor_run",
+      "fill_valve_open",
+      "capper_run",
+      "labeler_run",
+      "inspection_run",
+      "inspection_ok",
+      "station_number"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-2-20-bottle-shuttle"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "five-station-cycle",
+        "phases": [
+          {
+            "action": "start-line",
+            "runForS": 10
+          }
+        ],
+        "expect": {
+          "fill_valve_open": false,
+          "capper_run": false,
+          "labeler_run": false,
+          "inspection_run": false,
+          "inspection_ok": true,
+          "station_number": 5,
+          "cycle_complete": true
+        }
+      }
+    ]
+  },
+  "migration": {
+    "sourceFile": "prototype/scenes/lab-2-21-tote-finishing.plcscene",
+    "sourceFormat": "plcscene",
+    "assetMappings": {
+      "conveyor": "material-handling.belt-conveyor.600x6000.v1",
+      "photoeye": "sensing.photoelectric.through-beam.v1",
+      "switch": "controls.operator-station.single-pushbutton.v1",
+      "indicator": "controls.beacon.single-tier.v1",
+      "pusher": "actuation.pneumatic-pusher.1350mm.v1",
+      "motor": "drives.motor.ac-induction.v1",
+      "pipe": "process.pipe.flanged-spool.v1",
+      "tank": "process.tank.vertical-3000x5000.v1",
+      "pump": "process.pump.centrifugal-skid.v1",
+      "valve": "process.valve.actuated-ball.v1",
+      "levelSensor": "sensing.level.analog-4-20ma.v1",
+      "radarLevelSensor": "sensing.level.radar.v1",
+      "rotarySwitch": "controls.operator-station.selector.v1",
+      "fan": "air-handling.fan.axial-1900.v1",
+      "liftTable": "material-handling.lift.scissor-table.v1",
+      "drillPress": "machining.drill-press.pedestal.v1",
+      "robotArm": "robotics.robot.six-axis-medium.v1",
+      "rotaryTable": "material-handling.table.powered-rotary.v1",
+      "rollerShutter": "access-control.door.roller-shutter.v1",
+      "machine": "machining.machine.enclosed-center.v1",
+      "palletLoad": "loads.palletized-cases.gma-48x40.v1",
+      "toteFiller": "process.packaging.filler.tote-volumetric.v1",
+      "toteCapper": "process.packaging.capper.tote-inline.v1",
+      "toteLabeler": "process.packaging.labeler.tote-pressure-sensitive.v1",
+      "toteVision": "inspection.vision.tote-multicamera.v1",
+      "meteringSkid": "process.dosing.skid.liquid-metering.v1",
+      "containerReceiver": "material-handling.receiver.container-two-position.v1",
+      "sizeSensorBank": "sensing.dimensioning.parcel-three-height.v1"
+    },
+    "scenePropTypes": [
+      "box"
+    ],
+    "unresolvedAssetTypes": [],
+    "visualStatus": "mapped",
+    "productionApproved": false,
+    "reason": "Production approval requires every reusable asset and the complete scene to pass visual review."
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "assetId": "training.accessory.load_cell.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-071",
+  "identifiedFamily": "Strain-gauge single-ended bending-beam load cell (rectangular beam type), not an S-beam or compression-button load cell (identical generic basis model)",
+  "confidence": 0.88,
+  "concerns": "Rendered geometry is simplified; the large side bore and one top hole at each end do not clearly show realistic fixed-end mounting and load-introduction details",
+  "sourceReview": "build/blind-review-assets/image_071.controls-sol9.review.md",
+  "sourceAssetId": "sensing.force.shear-beam-load-cell.v1",
+  "evidenceBasis": "delivery GLB is byte-identical to the independently reviewed generic basis asset"
+}

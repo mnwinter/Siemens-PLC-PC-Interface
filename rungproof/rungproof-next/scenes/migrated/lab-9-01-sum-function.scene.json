@@ -1,0 +1,321 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-9-01-sum-function",
+  "name": "Lab 9.1 - Sum Function Block",
+  "description": "A reusable calculation block accepts two numeric operands and exposes a result-ready handshake.",
+  "camera": {
+    "position": [
+      11,
+      8,
+      12
+    ],
+    "target": [
+      0,
+      1.1,
+      0
+    ],
+    "fov": 45
+  },
+  "equipment": [
+    {
+      "id": "machine_0",
+      "type": "machine",
+      "label": "Sum Function Block machine",
+      "position": [
+        -3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "size": [
+          2.1,
+          2.7,
+          1.7
+        ],
+        "color": 5466227,
+        "running": false
+      }
+    },
+    {
+      "id": "switch_1",
+      "type": "switch",
+      "label": "Sum Function Block switch",
+      "position": [
+        -1.1,
+        0,
+        0
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-operand_a_valid",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "indicator_2",
+      "type": "indicator",
+      "label": "Sum Function Block indicator",
+      "position": [
+        1.1,
+        0,
+        0
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    },
+    {
+      "id": "training_accessory_3",
+      "type": "trainingAccessory",
+      "label": "Sum Function Block - function-block calculation panel",
+      "position": [
+        3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "assetName": "function-block calculation panel",
+        "catalogAssetId": "training.accessory.function_block_calculation_panel.v1"
+      }
+    },
+    {
+      "id": "training_accessory_4",
+      "type": "trainingAccessory",
+      "label": "Sum Function Block - numeric result display",
+      "position": [
+        -3.3000000000000003,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "numeric result display",
+        "catalogAssetId": "training.accessory.numeric_result_display.v1"
+      }
+    },
+    {
+      "id": "switch_5",
+      "type": "switch",
+      "label": "Sum Function Block operator input",
+      "position": [
+        -0.6500000000000001,
+        0,
+        2.35
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-operand_b_valid",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "switch_6",
+      "type": "switch",
+      "label": "Sum Function Block operator input",
+      "position": [
+        1.55,
+        0,
+        2.35
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-calculate_request",
+        "color": 2204518
+      }
+    }
+  ],
+  "simulation": {
+    "type": "booleanPanel",
+    "points": [
+      {
+        "name": "operand_a_valid",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "operand_b_valid",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "calculate_request",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "sum_result_valid",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      }
+    ],
+    "actions": [
+      {
+        "id": "toggle-operand_a_valid",
+        "label": "Toggle operand a valid",
+        "type": "toggle",
+        "point": "operand_a_valid"
+      },
+      {
+        "id": "toggle-operand_b_valid",
+        "label": "Toggle operand b valid",
+        "type": "toggle",
+        "point": "operand_b_valid"
+      },
+      {
+        "id": "toggle-calculate_request",
+        "label": "Toggle calculate request",
+        "type": "toggle",
+        "point": "calculate_request"
+      }
+    ],
+    "rules": [],
+    "edgeRules": [],
+    "pointBindings": [
+      {
+        "point": "operand_a_valid",
+        "equipmentId": "switch_1",
+        "mode": "switch"
+      },
+      {
+        "point": "operand_b_valid",
+        "equipmentId": "switch_5",
+        "mode": "switch"
+      },
+      {
+        "point": "calculate_request",
+        "equipmentId": "switch_6",
+        "mode": "switch"
+      },
+      {
+        "point": "sum_result_valid",
+        "equipmentId": "indicator_2",
+        "mode": "indicator",
+        "activeColor": "green"
+      }
+    ]
+  },
+  "training": {
+    "hints": [
+      "Translate the lesson into explicit state and permissive logic: The result-valid indication occurs only when both operands are valid and a calculation is requested.",
+      "Inputs are simulator feedback (operand_a_valid, operand_b_valid, calculate_request); PLC logic owns sum_result_valid.",
+      "Test the initial state, the valid condition, and at least one missing permissive."
+    ],
+    "solution": {
+      "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
+      "steps": [
+        "Require the documented inputs: operand_a_valid, operand_b_valid, calculate_request.",
+        "Command the documented outputs: sum_result_valid.",
+        "Remove PLC commands when the permissive is lost."
+      ],
+      "acceptance": "The result-valid indication occurs only when both operands are valid and a calculation is requested."
+    },
+    "assetRequirements": [
+      "function-block calculation panel",
+      "numeric result display"
+    ],
+    "machineGuide": {
+      "purpose": "A reusable calculation block accepts two numeric operands and exposes a result-ready handshake.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state."
+      ],
+      "normalSequence": [
+        "Apply the requested input condition.",
+        "Verify only the documented PLC outputs respond."
+      ],
+      "stopBehavior": [
+        "Removing the permissive removes PLC-owned commands.",
+        "Reset returns the module to its initial state."
+      ],
+      "faultBehavior": [
+        "A missing or stale input must fail safe and remain diagnosable."
+      ],
+      "expectedObservations": [
+        "The result-valid indication occurs only when both operands are valid and a calculation is requested."
+      ]
+    },
+    "sequenceNumber": 52,
+    "inheritsFrom": "lab-6-08-hand-dryer",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout"
+    ],
+    "addedTags": [
+      "operand_a_valid",
+      "operand_b_valid",
+      "calculate_request",
+      "sum_result_valid"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-6-08-hand-dryer"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "initial-safe-state",
+        "expect": {
+          "sum_result_valid": false
+        }
+      }
+    ]
+  },
+  "migration": {
+    "sourceFile": "prototype/scenes/lab-9-01-sum-function.plcscene",
+    "sourceFormat": "plcscene",
+    "assetMappings": {
+      "conveyor": "material-handling.belt-conveyor.600x6000.v1",
+      "photoeye": "sensing.photoelectric.through-beam.v1",
+      "switch": "controls.operator-station.single-pushbutton.v1",
+      "indicator": "controls.beacon.single-tier.v1",
+      "pusher": "actuation.pneumatic-pusher.1350mm.v1",
+      "motor": "drives.motor.ac-induction.v1",
+      "pipe": "process.pipe.flanged-spool.v1",
+      "tank": "process.tank.vertical-3000x5000.v1",
+      "pump": "process.pump.centrifugal-skid.v1",
+      "valve": "process.valve.actuated-ball.v1",
+      "levelSensor": "sensing.level.analog-4-20ma.v1",
+      "radarLevelSensor": "sensing.level.radar.v1",
+      "rotarySwitch": "controls.operator-station.selector.v1",
+      "fan": "air-handling.fan.axial-1900.v1",
+      "liftTable": "material-handling.lift.scissor-table.v1",
+      "drillPress": "machining.drill-press.pedestal.v1",
+      "robotArm": "robotics.robot.six-axis-medium.v1",
+      "rotaryTable": "material-handling.table.powered-rotary.v1",
+      "rollerShutter": "access-control.door.roller-shutter.v1",
+      "machine": "machining.machine.enclosed-center.v1",
+      "palletLoad": "loads.palletized-cases.gma-48x40.v1",
+      "toteFiller": "process.packaging.filler.tote-volumetric.v1",
+      "toteCapper": "process.packaging.capper.tote-inline.v1",
+      "toteLabeler": "process.packaging.labeler.tote-pressure-sensitive.v1",
+      "toteVision": "inspection.vision.tote-multicamera.v1",
+      "meteringSkid": "process.dosing.skid.liquid-metering.v1",
+      "containerReceiver": "material-handling.receiver.container-two-position.v1",
+      "sizeSensorBank": "sensing.dimensioning.parcel-three-height.v1"
+    },
+    "scenePropTypes": [
+      "box"
+    ],
+    "unresolvedAssetTypes": [
+      "trainingAccessory"
+    ],
+    "visualStatus": "partial",
+    "productionApproved": false,
+    "reason": "Production approval requires every reusable asset and the complete scene to pass visual review."
+  }
+}

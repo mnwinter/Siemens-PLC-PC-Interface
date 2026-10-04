@@ -1,0 +1,8 @@
+{
+  "assetId": "controls.operator-station.emergency-stop.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-024",
+  "identifiedFamily": "Pedestal-mounted emergency-stop pushbutton station.",
+  "confidence": 0.98,
+  "concerns": "- Slightly toy-like, overly rounded rendering.",
+  "sourceReview": "build/blind-review-assets/image_024.review.md"
+}

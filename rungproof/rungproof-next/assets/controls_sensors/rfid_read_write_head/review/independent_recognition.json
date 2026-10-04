@@ -1,0 +1,1 @@
+{"assetId":"sensing.identification.rfid-read-write-head.v1","reviewerId":"codex-agent-source-blind-rfid-final-review","identifiedFamily":"industrial RFID read/write head","confidence":0.93,"result":"pass","reviewRound":1,"defects":["Floating card graphic can read as a physical badge.","Mounting and connection details are simplified."]}

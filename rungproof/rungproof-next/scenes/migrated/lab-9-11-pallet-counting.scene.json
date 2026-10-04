@@ -1,0 +1,371 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-9-11-pallet-counting",
+  "name": "Lab 9.11 - Pallet Count Function",
+  "description": "A reusable block counts pallets by type and publishes the current pallet-count result.",
+  "camera": {
+    "position": [
+      11,
+      8,
+      12
+    ],
+    "target": [
+      0,
+      1.1,
+      0
+    ],
+    "fov": 45
+  },
+  "equipment": [
+    {
+      "id": "conveyor_0",
+      "type": "conveyor",
+      "label": "Pallet Count Function conveyor",
+      "position": [
+        -3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "length": 6.5,
+        "width": 1.4,
+        "deckHeight": 0.9,
+        "beltColor": 2568760,
+        "running": false
+      }
+    },
+    {
+      "id": "box_1",
+      "type": "box",
+      "label": "Pallet Count Function box",
+      "position": [
+        -1.1,
+        0,
+        0
+      ],
+      "config": {
+        "size": [
+          0.85,
+          0.72,
+          0.72
+        ],
+        "color": 13142603
+      }
+    },
+    {
+      "id": "machine_2",
+      "type": "machine",
+      "label": "Pallet Count Function machine",
+      "position": [
+        1.1,
+        0,
+        0
+      ],
+      "config": {
+        "size": [
+          2.1,
+          2.7,
+          1.7
+        ],
+        "color": 5466227,
+        "running": false
+      }
+    },
+    {
+      "id": "indicator_3",
+      "type": "indicator",
+      "label": "Pallet Count Function indicator",
+      "position": [
+        3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    },
+    {
+      "id": "training_accessory_4",
+      "type": "trainingAccessory",
+      "label": "Pallet Count Function - pallet load",
+      "position": [
+        -3.3000000000000003,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "pallet load",
+        "catalogAssetId": "training.accessory.pallet_load.v1"
+      }
+    },
+    {
+      "id": "training_accessory_5",
+      "type": "trainingAccessory",
+      "label": "Pallet Count Function - pallet-type sensor",
+      "position": [
+        -1.1,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "pallet-type sensor",
+        "catalogAssetId": "training.accessory.pallet_type_sensor.v1"
+      }
+    },
+    {
+      "id": "training_accessory_6",
+      "type": "trainingAccessory",
+      "label": "Pallet Count Function - count display",
+      "position": [
+        1.1,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "count display",
+        "catalogAssetId": "training.accessory.count_display.v1"
+      }
+    },
+    {
+      "id": "switch_7",
+      "type": "switch",
+      "label": "Pallet Count Function operator input",
+      "position": [
+        3.7500000000000004,
+        0,
+        2.35
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-pallet_detected",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "switch_8",
+      "type": "switch",
+      "label": "Pallet Count Function operator input",
+      "position": [
+        -2.4000000000000004,
+        0,
+        4.7
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-pallet_type_valid",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "switch_9",
+      "type": "switch",
+      "label": "Pallet Count Function operator input",
+      "position": [
+        -0.20000000000000007,
+        0,
+        4.7
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-count_request",
+        "color": 2204518
+      }
+    }
+  ],
+  "simulation": {
+    "type": "booleanPanel",
+    "points": [
+      {
+        "name": "pallet_detected",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "pallet_type_valid",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "count_request",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "pallet_count_valid",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      }
+    ],
+    "actions": [
+      {
+        "id": "toggle-pallet_detected",
+        "label": "Toggle pallet detected",
+        "type": "toggle",
+        "point": "pallet_detected"
+      },
+      {
+        "id": "toggle-pallet_type_valid",
+        "label": "Toggle pallet type valid",
+        "type": "toggle",
+        "point": "pallet_type_valid"
+      },
+      {
+        "id": "toggle-count_request",
+        "label": "Toggle count request",
+        "type": "toggle",
+        "point": "count_request"
+      }
+    ],
+    "rules": [],
+    "edgeRules": [],
+    "pointBindings": [
+      {
+        "point": "pallet_detected",
+        "equipmentId": "switch_7",
+        "mode": "switch"
+      },
+      {
+        "point": "pallet_type_valid",
+        "equipmentId": "switch_8",
+        "mode": "switch"
+      },
+      {
+        "point": "count_request",
+        "equipmentId": "switch_9",
+        "mode": "switch"
+      },
+      {
+        "point": "pallet_count_valid",
+        "equipmentId": "indicator_3",
+        "mode": "indicator",
+        "activeColor": "green"
+      }
+    ]
+  },
+  "training": {
+    "hints": [
+      "Translate the lesson into explicit state and permissive logic: Each valid pallet event contributes to the selected count and produces a valid count result.",
+      "Inputs are simulator feedback (pallet_detected, pallet_type_valid, count_request); PLC logic owns pallet_count_valid.",
+      "Test the initial state, the valid condition, and at least one missing permissive."
+    ],
+    "solution": {
+      "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
+      "steps": [
+        "Require the documented inputs: pallet_detected, pallet_type_valid, count_request.",
+        "Command the documented outputs: pallet_count_valid.",
+        "Remove PLC commands when the permissive is lost."
+      ],
+      "acceptance": "Each valid pallet event contributes to the selected count and produces a valid count result."
+    },
+    "assetRequirements": [
+      "pallet load",
+      "pallet-type sensor",
+      "count display"
+    ],
+    "machineGuide": {
+      "purpose": "A reusable block counts pallets by type and publishes the current pallet-count result.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state."
+      ],
+      "normalSequence": [
+        "Apply the requested input condition.",
+        "Verify only the documented PLC outputs respond."
+      ],
+      "stopBehavior": [
+        "Removing the permissive removes PLC-owned commands.",
+        "Reset returns the module to its initial state."
+      ],
+      "faultBehavior": [
+        "A missing or stale input must fail safe and remain diagnosable."
+      ],
+      "expectedObservations": [
+        "Each valid pallet event contributes to the selected count and produces a valid count result."
+      ]
+    },
+    "sequenceNumber": 57,
+    "inheritsFrom": "lab-9-10-box-volume",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout"
+    ],
+    "addedTags": [
+      "pallet_detected",
+      "pallet_type_valid",
+      "count_request",
+      "pallet_count_valid"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-9-10-box-volume"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "initial-safe-state",
+        "expect": {
+          "pallet_count_valid": false
+        }
+      }
+    ]
+  },
+  "migration": {
+    "sourceFile": "prototype/scenes/lab-9-11-pallet-counting.plcscene",
+    "sourceFormat": "plcscene",
+    "assetMappings": {
+      "conveyor": "material-handling.belt-conveyor.600x6000.v1",
+      "photoeye": "sensing.photoelectric.through-beam.v1",
+      "switch": "controls.operator-station.single-pushbutton.v1",
+      "indicator": "controls.beacon.single-tier.v1",
+      "pusher": "actuation.pneumatic-pusher.1350mm.v1",
+      "motor": "drives.motor.ac-induction.v1",
+      "pipe": "process.pipe.flanged-spool.v1",
+      "tank": "process.tank.vertical-3000x5000.v1",
+      "pump": "process.pump.centrifugal-skid.v1",
+      "valve": "process.valve.actuated-ball.v1",
+      "levelSensor": "sensing.level.analog-4-20ma.v1",
+      "radarLevelSensor": "sensing.level.radar.v1",
+      "rotarySwitch": "controls.operator-station.selector.v1",
+      "fan": "air-handling.fan.axial-1900.v1",
+      "liftTable": "material-handling.lift.scissor-table.v1",
+      "drillPress": "machining.drill-press.pedestal.v1",
+      "robotArm": "robotics.robot.six-axis-medium.v1",
+      "rotaryTable": "material-handling.table.powered-rotary.v1",
+      "rollerShutter": "access-control.door.roller-shutter.v1",
+      "machine": "machining.machine.enclosed-center.v1",
+      "palletLoad": "loads.palletized-cases.gma-48x40.v1",
+      "toteFiller": "process.packaging.filler.tote-volumetric.v1",
+      "toteCapper": "process.packaging.capper.tote-inline.v1",
+      "toteLabeler": "process.packaging.labeler.tote-pressure-sensitive.v1",
+      "toteVision": "inspection.vision.tote-multicamera.v1",
+      "meteringSkid": "process.dosing.skid.liquid-metering.v1",
+      "containerReceiver": "material-handling.receiver.container-two-position.v1",
+      "sizeSensorBank": "sensing.dimensioning.parcel-three-height.v1"
+    },
+    "scenePropTypes": [
+      "box"
+    ],
+    "unresolvedAssetTypes": [
+      "trainingAccessory"
+    ],
+    "visualStatus": "partial",
+    "productionApproved": false,
+    "reason": "Production approval requires every reusable asset and the complete scene to pass visual review."
+  }
+}

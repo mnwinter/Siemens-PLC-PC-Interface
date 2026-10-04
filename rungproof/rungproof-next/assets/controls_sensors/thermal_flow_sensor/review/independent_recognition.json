@@ -1,0 +1,8 @@
+{
+  "assetId": "sensing.flow.insertion-thermal.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-069",
+  "identifiedFamily": "Flanged inline electromagnetic flowmeter (magmeter) with integral transmitter/display",
+  "confidence": 0.84,
+  "concerns": "Stylized render; no visible electrode bosses, grounding rings, liner, or realistic flange bolt holes, so an inline ultrasonic meter remains possible",
+  "sourceReview": "build/blind-review-assets/image_069.controls-sol1.review.md"
+}

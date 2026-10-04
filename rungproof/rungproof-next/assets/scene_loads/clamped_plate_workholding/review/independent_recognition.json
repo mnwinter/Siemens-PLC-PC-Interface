@@ -1,0 +1,8 @@
+{
+  "assetId": "tooling.fixture.clamped-plate.v1",
+  "reviewerId": "image_189.clamped-plate-round2.review.md",
+  "identifiedFamily": "Fixture plate with two swing clamps securing a rectangular workpiece",
+  "confidence": 0.89,
+  "concerns": "Clamp arms and fasteners are highly stylized; actuation mechanism, pivots, and realistic workpiece contact geometry are unclear",
+  "sourceReview": "build/blind-review-assets/image_189.clamped-plate-round2.review.md"
+}

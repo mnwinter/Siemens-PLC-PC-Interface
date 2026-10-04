@@ -1,0 +1,8 @@
+{
+  "assetId": "drives.vfd.wall-mount-keypad.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-121",
+  "identifiedFamily": "Enclosed variable-frequency drive (VFD) with front keypad/display and external heatsink fins",
+  "confidence": 0.98,
+  "concerns": "Stylized render; no visible power/control terminals, ventilation path, manufacturer markings, or cooling fan; heatsink fins appear oversized and unusually externalized for the enclosure proportions",
+  "sourceReview": "build/blind-review-assets/image_121.readable-labels.review.md"
+}

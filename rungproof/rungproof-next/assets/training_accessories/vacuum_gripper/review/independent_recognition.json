@@ -1,0 +1,10 @@
+{
+  "assetId": "training.accessory.vacuum_gripper.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-084",
+  "identifiedFamily": "Vacuum-powered robotic end-of-arm gripper with four suction cups (identical generic basis model)",
+  "confidence": 0.91,
+  "concerns": "Stylized geometry; unclear robot mounting flange, valve/ejector function, and suction-cup plumbing; oversized side cylinder may be a vacuum pump or actuator.",
+  "sourceReview": "build/blind-review-assets/image_084.mechanical-round4.review.md",
+  "sourceAssetId": "robotics.end-effector.vacuum-four-cup.v1",
+  "evidenceBasis": "delivery GLB is byte-identical to the independently reviewed generic basis asset"
+}

@@ -1,0 +1,195 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-4-06-multi-press-confirmation",
+  "name": "Lab 4.6 - Multi-Press Confirmation",
+  "description": "A paired-button confirmation exercise requires the requested press pattern before enabling the result.",
+  "camera": {
+    "position": [
+      11,
+      8,
+      12
+    ],
+    "target": [
+      0,
+      1.1,
+      0
+    ],
+    "fov": 45
+  },
+  "equipment": [
+    {
+      "id": "switch_0",
+      "type": "switch",
+      "label": "Multi-Press Confirmation switch",
+      "position": [
+        -3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-button_a_pattern_ok",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "switch_1",
+      "type": "switch",
+      "label": "Multi-Press Confirmation switch",
+      "position": [
+        -1.1,
+        0,
+        0
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-button_b_pattern_ok",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "indicator_2",
+      "type": "indicator",
+      "label": "Multi-Press Confirmation indicator",
+      "position": [
+        1.1,
+        0,
+        0
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    }
+  ],
+  "simulation": {
+    "type": "booleanPanel",
+    "points": [
+      {
+        "name": "button_a_pattern_ok",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "button_b_pattern_ok",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "confirmation_valid",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      }
+    ],
+    "actions": [
+      {
+        "id": "toggle-button_a_pattern_ok",
+        "label": "Toggle button a pattern ok",
+        "type": "toggle",
+        "point": "button_a_pattern_ok"
+      },
+      {
+        "id": "toggle-button_b_pattern_ok",
+        "label": "Toggle button b pattern ok",
+        "type": "toggle",
+        "point": "button_b_pattern_ok"
+      }
+    ],
+    "rules": [],
+    "edgeRules": [],
+    "pointBindings": [
+      {
+        "point": "button_a_pattern_ok",
+        "equipmentId": "switch_0",
+        "mode": "switch"
+      },
+      {
+        "point": "button_b_pattern_ok",
+        "equipmentId": "switch_1",
+        "mode": "switch"
+      },
+      {
+        "point": "confirmation_valid",
+        "equipmentId": "indicator_2",
+        "mode": "indicator",
+        "activeColor": "green"
+      }
+    ]
+  },
+  "training": {
+    "hints": [
+      "Translate the lesson into explicit state and permissive logic: The confirmation is valid only when both independent press patterns are valid.",
+      "Inputs are simulator feedback (button_a_pattern_ok, button_b_pattern_ok); PLC logic owns confirmation_valid.",
+      "Test the initial state, the valid condition, and at least one missing permissive."
+    ],
+    "solution": {
+      "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
+      "steps": [
+        "Require the documented inputs: button_a_pattern_ok, button_b_pattern_ok.",
+        "Command the documented outputs: confirmation_valid.",
+        "Remove PLC commands when the permissive is lost."
+      ],
+      "acceptance": "The confirmation is valid only when both independent press patterns are valid."
+    },
+    "assetRequirements": [],
+    "machineGuide": {
+      "purpose": "A paired-button confirmation exercise requires the requested press pattern before enabling the result.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state."
+      ],
+      "normalSequence": [
+        "Apply the requested input condition.",
+        "Verify only the documented PLC outputs respond."
+      ],
+      "stopBehavior": [
+        "Removing the permissive removes PLC-owned commands.",
+        "Reset returns the module to its initial state."
+      ],
+      "faultBehavior": [
+        "A missing or stale input must fail safe and remain diagnosable."
+      ],
+      "expectedObservations": [
+        "The confirmation is valid only when both independent press patterns are valid."
+      ]
+    },
+    "sequenceNumber": 33,
+    "inheritsFrom": "lab-4-05-dual-input-count-window",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout"
+    ],
+    "addedTags": [
+      "button_a_pattern_ok",
+      "button_b_pattern_ok",
+      "confirmation_valid"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-4-05-dual-input-count-window"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "initial-safe-state",
+        "expect": {
+          "confirmation_valid": false
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,195 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-4-02-counter-reset-lamp",
+  "name": "Lab 4.2 - Counter Reset Lamp",
+  "description": "A counter state controls a lamp and a reset input returns the station to a known state.",
+  "camera": {
+    "position": [
+      11,
+      8,
+      12
+    ],
+    "target": [
+      0,
+      1.1,
+      0
+    ],
+    "fov": 45
+  },
+  "equipment": [
+    {
+      "id": "switch_0",
+      "type": "switch",
+      "label": "Counter Reset Lamp switch",
+      "position": [
+        -3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-count_reached",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "indicator_1",
+      "type": "indicator",
+      "label": "Counter Reset Lamp indicator",
+      "position": [
+        -1.1,
+        0,
+        0
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    },
+    {
+      "id": "switch_2",
+      "type": "switch",
+      "label": "Counter Reset Lamp operator input",
+      "position": [
+        1.1,
+        0,
+        0
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-reset_pressed",
+        "color": 2204518
+      }
+    }
+  ],
+  "simulation": {
+    "type": "booleanPanel",
+    "points": [
+      {
+        "name": "count_reached",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "reset_pressed",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "counter_lamp",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      }
+    ],
+    "actions": [
+      {
+        "id": "toggle-count_reached",
+        "label": "Toggle count reached",
+        "type": "toggle",
+        "point": "count_reached"
+      },
+      {
+        "id": "toggle-reset_pressed",
+        "label": "Toggle reset pressed",
+        "type": "toggle",
+        "point": "reset_pressed"
+      }
+    ],
+    "rules": [],
+    "edgeRules": [],
+    "pointBindings": [
+      {
+        "point": "count_reached",
+        "equipmentId": "switch_0",
+        "mode": "switch"
+      },
+      {
+        "point": "reset_pressed",
+        "equipmentId": "switch_2",
+        "mode": "switch"
+      },
+      {
+        "point": "counter_lamp",
+        "equipmentId": "indicator_1",
+        "mode": "indicator",
+        "activeColor": "green"
+      }
+    ]
+  },
+  "training": {
+    "hints": [
+      "Translate the lesson into explicit state and permissive logic: The lamp follows the count state and clears when reset is applied.",
+      "Inputs are simulator feedback (count_reached, reset_pressed); PLC logic owns counter_lamp.",
+      "Test the initial state, the valid condition, and at least one missing permissive."
+    ],
+    "solution": {
+      "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
+      "steps": [
+        "Require the documented inputs: count_reached, reset_pressed.",
+        "Command the documented outputs: counter_lamp.",
+        "Remove PLC commands when the permissive is lost."
+      ],
+      "acceptance": "The lamp follows the count state and clears when reset is applied."
+    },
+    "assetRequirements": [],
+    "machineGuide": {
+      "purpose": "A counter state controls a lamp and a reset input returns the station to a known state.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state."
+      ],
+      "normalSequence": [
+        "Apply the requested input condition.",
+        "Verify only the documented PLC outputs respond."
+      ],
+      "stopBehavior": [
+        "Removing the permissive removes PLC-owned commands.",
+        "Reset returns the module to its initial state."
+      ],
+      "faultBehavior": [
+        "A missing or stale input must fail safe and remain diagnosable."
+      ],
+      "expectedObservations": [
+        "The lamp follows the count state and clears when reset is applied."
+      ]
+    },
+    "sequenceNumber": 29,
+    "inheritsFrom": "lab-4-01-press-count-lamp",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout"
+    ],
+    "addedTags": [
+      "count_reached",
+      "reset_pressed",
+      "counter_lamp"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-4-01-press-count-lamp"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "initial-safe-state",
+        "expect": {
+          "counter_lamp": false
+        }
+      }
+    ]
+  }
+}

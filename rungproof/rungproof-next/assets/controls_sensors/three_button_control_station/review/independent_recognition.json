@@ -1,0 +1,8 @@
+{
+  "assetId": "controls.operator-station.three-button.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-073",
+  "identifiedFamily": "Three-button industrial pushbutton control station/operator control box",
+  "confidence": 0.98,
+  "concerns": "Stylized rendering; button functions and enclosure rating are not visibly identifiable",
+  "sourceReview": "build/blind-review-assets/image_073.controls-round1.review.md"
+}

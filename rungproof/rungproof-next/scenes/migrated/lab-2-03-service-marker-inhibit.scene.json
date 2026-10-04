@@ -1,0 +1,230 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-2-03-service-marker-inhibit",
+  "name": "Lab 2.3 - Service Marker Inhibit",
+  "description": "A normally lit white service marker turns off while its local inhibit button is active.",
+  "camera": {
+    "position": [
+      10,
+      7,
+      10
+    ],
+    "target": [
+      0,
+      1.2,
+      0
+    ],
+    "fov": 43
+  },
+  "equipment": [
+    {
+      "id": "marker_inhibit_button",
+      "type": "switch",
+      "label": "Marker inhibit button",
+      "position": [
+        -1.6,
+        0,
+        0
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-marker-inhibit",
+        "color": 14695473
+      }
+    },
+    {
+      "id": "service_marker_lamp",
+      "type": "indicator",
+      "label": "Service marker lamp",
+      "position": [
+        0.8,
+        0,
+        0
+      ],
+      "config": {
+        "colors": [
+          "white"
+        ],
+        "active": null
+      }
+    }
+  ],
+  "simulation": {
+    "type": "booleanPanel",
+    "points": [
+      {
+        "name": "marker_inhibit_pressed",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "service_marker_on",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": true,
+        "role": "output"
+      }
+    ],
+    "actions": [
+      {
+        "id": "toggle-marker-inhibit",
+        "label": "Press / release marker inhibit",
+        "type": "toggle",
+        "point": "marker_inhibit_pressed"
+      }
+    ],
+    "rules": [
+      {
+        "when": {
+          "marker_inhibit_pressed": false
+        },
+        "set": {
+          "service_marker_on": true
+        }
+      },
+      {
+        "when": {
+          "marker_inhibit_pressed": true
+        },
+        "set": {
+          "service_marker_on": false
+        }
+      }
+    ],
+    "edgeRules": [],
+    "pointBindings": [
+      {
+        "point": "marker_inhibit_pressed",
+        "equipmentId": "marker_inhibit_button",
+        "mode": "switch"
+      },
+      {
+        "point": "service_marker_on",
+        "equipmentId": "service_marker_lamp",
+        "mode": "indicator",
+        "activeColor": "white"
+      }
+    ]
+  },
+  "training": {
+    "hints": [
+      "Define the required result before writing logic: The marker is on with the button released and off while the inhibit input is active.",
+      "Treat marker_inhibit_pressed as simulator-to-PLC inputs. The PLC should command only service_marker_on.",
+      "List the required input and memory states before assigning any output. Test every state, including the all-false state."
+    ],
+    "solution": {
+      "summary": "This is one valid functional reference. The same behavior may be implemented in LAD, FBD, or SCL; the rung layout is not prescribed.",
+      "steps": [
+        "When marker_inhibit_pressed = false, set service_marker_on = true.",
+        "When marker_inhibit_pressed = true, set service_marker_on = false."
+      ],
+      "acceptance": "The marker is on with the button released and off while the inhibit input is active."
+    },
+    "machineGuide": {
+      "purpose": "A normally lit white service marker turns off while its local inhibit button is active.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state.",
+        "The PLC is ready to command service_marker_on."
+      ],
+      "normalSequence": [
+        "Observe the initial input state.",
+        "Apply marker_inhibit_pressed.",
+        "Verify the PLC produces only the required service_marker_on."
+      ],
+      "stopBehavior": [
+        "A normal stop removes PLC-owned commands and leaves the equipment in a safe state.",
+        "Reset returns the scene to its documented initial condition."
+      ],
+      "faultBehavior": [
+        "A missing, stale, or incorrectly typed input must not be replaced by simulator logic.",
+        "A missing PLC command leaves the affected equipment stopped and the test diagnosable."
+      ],
+      "expectedObservations": [
+        "The marker is on with the button released and off while the inhibit input is active."
+      ]
+    },
+    "sequenceNumber": 3,
+    "inheritsFrom": "lab-2-02-dual-confirmation",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout"
+    ],
+    "addedTags": [
+      "marker_inhibit_pressed",
+      "service_marker_on"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-2-02-dual-confirmation"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "released-marker-on",
+        "expect": {
+          "marker_inhibit_pressed": false,
+          "service_marker_on": true
+        }
+      },
+      {
+        "name": "pressed-marker-off",
+        "actions": [
+          "toggle-marker-inhibit"
+        ],
+        "expect": {
+          "marker_inhibit_pressed": true,
+          "service_marker_on": false
+        }
+      }
+    ]
+  },
+  "migration": {
+    "sourceFile": "prototype/scenes/lab-2-03-service-marker-inhibit.plcscene",
+    "sourceFormat": "plcscene",
+    "assetMappings": {
+      "conveyor": "material-handling.belt-conveyor.600x6000.v1",
+      "photoeye": "sensing.photoelectric.through-beam.v1",
+      "switch": "controls.operator-station.single-pushbutton.v1",
+      "indicator": "controls.beacon.single-tier.v1",
+      "pusher": "actuation.pneumatic-pusher.1350mm.v1",
+      "motor": "drives.motor.ac-induction.v1",
+      "pipe": "process.pipe.flanged-spool.v1",
+      "tank": "process.tank.vertical-3000x5000.v1",
+      "pump": "process.pump.centrifugal-skid.v1",
+      "valve": "process.valve.actuated-ball.v1",
+      "levelSensor": "sensing.level.analog-4-20ma.v1",
+      "radarLevelSensor": "sensing.level.radar.v1",
+      "rotarySwitch": "controls.operator-station.selector.v1",
+      "fan": "air-handling.fan.axial-1900.v1",
+      "liftTable": "material-handling.lift.scissor-table.v1",
+      "drillPress": "machining.drill-press.pedestal.v1",
+      "robotArm": "robotics.robot.six-axis-medium.v1",
+      "rotaryTable": "material-handling.table.powered-rotary.v1",
+      "rollerShutter": "access-control.door.roller-shutter.v1",
+      "machine": "machining.machine.enclosed-center.v1",
+      "palletLoad": "loads.palletized-cases.gma-48x40.v1",
+      "toteFiller": "process.packaging.filler.tote-volumetric.v1",
+      "toteCapper": "process.packaging.capper.tote-inline.v1",
+      "toteLabeler": "process.packaging.labeler.tote-pressure-sensitive.v1",
+      "toteVision": "inspection.vision.tote-multicamera.v1",
+      "meteringSkid": "process.dosing.skid.liquid-metering.v1",
+      "containerReceiver": "material-handling.receiver.container-two-position.v1",
+      "sizeSensorBank": "sensing.dimensioning.parcel-three-height.v1"
+    },
+    "scenePropTypes": [
+      "box"
+    ],
+    "unresolvedAssetTypes": [],
+    "visualStatus": "mapped",
+    "productionApproved": false,
+    "reason": "Production approval requires every reusable asset and the complete scene to pass visual review."
+  }
+}

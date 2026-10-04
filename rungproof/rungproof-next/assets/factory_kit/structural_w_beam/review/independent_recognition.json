@@ -1,0 +1,13 @@
+{
+  "assetId": "structures.beam.w-section-5m.v1",
+  "reviewerId": "codex-agent-structural-beam-independent-review",
+  "identifiedFamily": "horizontal wide-flange steel structural beam/I-beam assembly",
+  "confidence": 0.93,
+  "result": "pass",
+  "reviewRound": 1,
+  "defects": [
+    "The camera does not show a clean beam-end profile, so W-beam versus generic I-beam distinction is not absolute.",
+    "Connection plates and fasteners are simplified for normal simulator viewing distance.",
+    "Surface texture and weld detail are intentionally not construction-training level."
+  ]
+}

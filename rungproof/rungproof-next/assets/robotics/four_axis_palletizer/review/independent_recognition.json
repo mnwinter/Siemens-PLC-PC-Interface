@@ -1,0 +1,8 @@
+{
+  "assetId": "robotics.robot.palletizer-four-axis.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-166",
+  "identifiedFamily": "Four-axis industrial palletizing robot with articulated arm and end-of-arm gripper",
+  "confidence": 0.97,
+  "concerns": "Stylized geometry; wrist/end-effector and joint proportions are simplified and not clearly representative of a specific catalog model",
+  "sourceReview": "build/blind-review-assets/image_166.robotics-round2.review.md"
+}

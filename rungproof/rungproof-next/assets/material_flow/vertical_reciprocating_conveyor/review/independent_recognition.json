@@ -1,0 +1,8 @@
+{
+  "assetId": "material-handling.lift.vertical-reciprocating.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-099",
+  "identifiedFamily": "Vertical reciprocating conveyor (VRC) / material lift with a guarded roller-conveyor carriage",
+  "confidence": 0.91,
+  "concerns": "Simplified rendering; lift-chain/cable routing, carriage guide/retention details, landing gates, and full perimeter guarding are unclear or absent, and the top drive geometry appears schematic.",
+  "sourceReview": "build/blind-review-assets/image_099.material-round2.review.md"
+}

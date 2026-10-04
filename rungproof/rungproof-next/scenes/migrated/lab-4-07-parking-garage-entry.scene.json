@@ -1,0 +1,397 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-4-07-parking-garage-entry",
+  "name": "Lab 4.7 - Parking Garage Entry",
+  "description": "Entry and exit sensors control a barrier and occupancy indication for a small garage.",
+  "camera": {
+    "position": [
+      11,
+      8,
+      12
+    ],
+    "target": [
+      0,
+      1.1,
+      0
+    ],
+    "fov": 45
+  },
+  "equipment": [
+    {
+      "id": "rollerShutter_0",
+      "type": "rollerShutter",
+      "label": "Parking Garage Entry roller Shutter",
+      "position": [
+        -3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "width": 2.2,
+        "height": 2.8,
+        "initialPosition": 0
+      }
+    },
+    {
+      "id": "photoeye_1",
+      "type": "photoeye",
+      "label": "Parking Garage Entry photoeye",
+      "position": [
+        -1.1,
+        0,
+        0
+      ],
+      "config": {
+        "span": 2.05,
+        "height": 0.7,
+        "beamCenterHeightM": 1.1,
+        "blocked": false
+      }
+    },
+    {
+      "id": "photoeye_2",
+      "type": "photoeye",
+      "label": "Parking Garage Entry photoeye",
+      "position": [
+        1.1,
+        0,
+        0
+      ],
+      "config": {
+        "span": 2.05,
+        "height": 0.7,
+        "beamCenterHeightM": 1.1,
+        "blocked": false
+      }
+    },
+    {
+      "id": "indicator_3",
+      "type": "indicator",
+      "label": "Parking Garage Entry indicator",
+      "position": [
+        3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    },
+    {
+      "id": "training_accessory_4",
+      "type": "trainingAccessory",
+      "label": "Parking Garage Entry - vehicle/load asset",
+      "position": [
+        -3.3000000000000003,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "vehicle/load asset",
+        "catalogAssetId": "training.accessory.vehicle_load_asset.v1"
+      }
+    },
+    {
+      "id": "training_accessory_5",
+      "type": "trainingAccessory",
+      "label": "Parking Garage Entry - parking barrier arm",
+      "position": [
+        -1.1,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "parking barrier arm",
+        "catalogAssetId": "training.accessory.parking_barrier_arm.v1"
+      }
+    },
+    {
+      "id": "training_accessory_6",
+      "type": "trainingAccessory",
+      "label": "Parking Garage Entry - occupancy counter display",
+      "position": [
+        1.1,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "occupancy counter display",
+        "catalogAssetId": "training.accessory.occupancy_counter_display.v1"
+      }
+    },
+    {
+      "id": "switch_7",
+      "type": "switch",
+      "label": "Parking Garage Entry operator input",
+      "position": [
+        3.7500000000000004,
+        0,
+        2.35
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-entry_detected",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "switch_8",
+      "type": "switch",
+      "label": "Parking Garage Entry operator input",
+      "position": [
+        -2.4000000000000004,
+        0,
+        4.7
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-space_available",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "switch_9",
+      "type": "switch",
+      "label": "Parking Garage Entry operator input",
+      "position": [
+        -0.20000000000000007,
+        0,
+        4.7
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-exit_clear",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "indicator_10",
+      "type": "indicator",
+      "label": "Parking Garage Entry output indication",
+      "position": [
+        2,
+        0,
+        4.7
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    }
+  ],
+  "simulation": {
+    "type": "booleanPanel",
+    "points": [
+      {
+        "name": "entry_detected",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "space_available",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "exit_clear",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "barrier_open",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "garage_available",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      }
+    ],
+    "actions": [
+      {
+        "id": "toggle-entry_detected",
+        "label": "Toggle entry detected",
+        "type": "toggle",
+        "point": "entry_detected"
+      },
+      {
+        "id": "toggle-space_available",
+        "label": "Toggle space available",
+        "type": "toggle",
+        "point": "space_available"
+      },
+      {
+        "id": "toggle-exit_clear",
+        "label": "Toggle exit clear",
+        "type": "toggle",
+        "point": "exit_clear"
+      }
+    ],
+    "rules": [],
+    "edgeRules": [],
+    "pointBindings": [
+      {
+        "point": "entry_detected",
+        "equipmentId": "switch_7",
+        "mode": "switch"
+      },
+      {
+        "point": "space_available",
+        "equipmentId": "switch_8",
+        "mode": "switch"
+      },
+      {
+        "point": "exit_clear",
+        "equipmentId": "switch_9",
+        "mode": "switch"
+      },
+      {
+        "point": "barrier_open",
+        "equipmentId": "indicator_3",
+        "mode": "indicator",
+        "activeColor": "green"
+      },
+      {
+        "point": "garage_available",
+        "equipmentId": "indicator_10",
+        "mode": "indicator",
+        "activeColor": "green"
+      }
+    ]
+  },
+  "training": {
+    "hints": [
+      "Translate the lesson into explicit state and permissive logic: The barrier opens only when a vehicle is detected, a space is available, and the exit path is clear.",
+      "Inputs are simulator feedback (entry_detected, space_available, exit_clear); PLC logic owns barrier_open, garage_available.",
+      "Test the initial state, the valid condition, and at least one missing permissive."
+    ],
+    "solution": {
+      "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
+      "steps": [
+        "Require the documented inputs: entry_detected, space_available, exit_clear.",
+        "Command the documented outputs: barrier_open, garage_available.",
+        "Remove PLC commands when the permissive is lost."
+      ],
+      "acceptance": "The barrier opens only when a vehicle is detected, a space is available, and the exit path is clear."
+    },
+    "assetRequirements": [
+      "vehicle/load asset",
+      "parking barrier arm",
+      "occupancy counter display"
+    ],
+    "machineGuide": {
+      "purpose": "Entry and exit sensors control a barrier and occupancy indication for a small garage.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state."
+      ],
+      "normalSequence": [
+        "Apply the requested input condition.",
+        "Verify only the documented PLC outputs respond."
+      ],
+      "stopBehavior": [
+        "Removing the permissive removes PLC-owned commands.",
+        "Reset returns the module to its initial state."
+      ],
+      "faultBehavior": [
+        "A missing or stale input must fail safe and remain diagnosable."
+      ],
+      "expectedObservations": [
+        "The barrier opens only when a vehicle is detected, a space is available, and the exit path is clear."
+      ]
+    },
+    "sequenceNumber": 34,
+    "inheritsFrom": "lab-4-06-multi-press-confirmation",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout"
+    ],
+    "addedTags": [
+      "entry_detected",
+      "space_available",
+      "exit_clear",
+      "barrier_open",
+      "garage_available"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-4-06-multi-press-confirmation"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "initial-safe-state",
+        "expect": {
+          "barrier_open": false,
+          "garage_available": false
+        }
+      }
+    ]
+  },
+  "migration": {
+    "sourceFile": "prototype/scenes/lab-4-07-parking-garage-entry.plcscene",
+    "sourceFormat": "plcscene",
+    "assetMappings": {
+      "conveyor": "material-handling.belt-conveyor.600x6000.v1",
+      "photoeye": "sensing.photoelectric.through-beam.v1",
+      "switch": "controls.operator-station.single-pushbutton.v1",
+      "indicator": "controls.beacon.single-tier.v1",
+      "pusher": "actuation.pneumatic-pusher.1350mm.v1",
+      "motor": "drives.motor.ac-induction.v1",
+      "pipe": "process.pipe.flanged-spool.v1",
+      "tank": "process.tank.vertical-3000x5000.v1",
+      "pump": "process.pump.centrifugal-skid.v1",
+      "valve": "process.valve.actuated-ball.v1",
+      "levelSensor": "sensing.level.analog-4-20ma.v1",
+      "radarLevelSensor": "sensing.level.radar.v1",
+      "rotarySwitch": "controls.operator-station.selector.v1",
+      "fan": "air-handling.fan.axial-1900.v1",
+      "liftTable": "material-handling.lift.scissor-table.v1",
+      "drillPress": "machining.drill-press.pedestal.v1",
+      "robotArm": "robotics.robot.six-axis-medium.v1",
+      "rotaryTable": "material-handling.table.powered-rotary.v1",
+      "rollerShutter": "access-control.door.roller-shutter.v1",
+      "machine": "machining.machine.enclosed-center.v1",
+      "palletLoad": "loads.palletized-cases.gma-48x40.v1",
+      "toteFiller": "process.packaging.filler.tote-volumetric.v1",
+      "toteCapper": "process.packaging.capper.tote-inline.v1",
+      "toteLabeler": "process.packaging.labeler.tote-pressure-sensitive.v1",
+      "toteVision": "inspection.vision.tote-multicamera.v1",
+      "meteringSkid": "process.dosing.skid.liquid-metering.v1",
+      "containerReceiver": "material-handling.receiver.container-two-position.v1",
+      "sizeSensorBank": "sensing.dimensioning.parcel-three-height.v1"
+    },
+    "scenePropTypes": [
+      "box"
+    ],
+    "unresolvedAssetTypes": [
+      "trainingAccessory"
+    ],
+    "visualStatus": "partial",
+    "productionApproved": false,
+    "reason": "Production approval requires every reusable asset and the complete scene to pass visual review."
+  }
+}

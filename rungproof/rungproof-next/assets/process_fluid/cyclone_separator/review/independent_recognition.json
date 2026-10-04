@@ -1,0 +1,8 @@
+{
+  "assetId": "process.separator.cyclone-tangential.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-118",
+  "identifiedFamily": "Cyclone dust collector (reverse-flow gas\u2013solid separator) with tangential side inlet, top outlet, and conical solids discharge",
+  "confidence": 0.93,
+  "concerns": "Inlet/volute geometry is simplified and unusually small; support legs appear unattached to the vessel, and the bottom discharge lacks a visible airlock or collection hopper connection",
+  "sourceReview": "build/blind-review-assets/image_118.process-round1.review.md"
+}

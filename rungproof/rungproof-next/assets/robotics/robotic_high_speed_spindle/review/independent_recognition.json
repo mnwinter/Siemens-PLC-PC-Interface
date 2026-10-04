@@ -1,0 +1,8 @@
+{
+  "assetId": "robotics.end-effector.machining.high-speed-spindle.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-172",
+  "identifiedFamily": "Industrial robotic machining spindle head with an orange protective tool-shroud housing",
+  "confidence": 0.91,
+  "concerns": "Stylized render; internal spindle, motor, mounting interface, and exact catalog family are not visibly verifiable",
+  "sourceReview": "build/blind-review-assets/image_172.robotics-round1.review.md"
+}

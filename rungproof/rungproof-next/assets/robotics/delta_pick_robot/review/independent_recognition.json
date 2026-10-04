@@ -1,0 +1,8 @@
+{
+  "assetId": "robotics.robot.delta-three-arm.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-163",
+  "identifiedFamily": "3-axis delta parallel pick-and-place robot over a conveyor",
+  "confidence": 0.99,
+  "concerns": "Stylized rendering; support-frame geometry and arm count are somewhat ambiguous from the views",
+  "sourceReview": "build/blind-review-assets/image_163.robotics-round2.review.md"
+}

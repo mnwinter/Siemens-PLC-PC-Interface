@@ -1,0 +1,13 @@
+{
+  "assetId": "facility.access.stair-flight-2m.v1",
+  "reviewerId": "codex-agent-stair-flight-independent-rereview",
+  "identifiedFamily": "industrial personnel-access stairs with an upper landing and guardrail system",
+  "confidence": 0.98,
+  "result": "pass",
+  "reviewRound": 2,
+  "defects": [
+    "The unseen side and complete landing boundary cannot be verified from the hero image.",
+    "Treads, stringers, anchorage, and anti-slip treatment remain simplified.",
+    "This visual asset makes no installed-stair code-compliance claim."
+  ]
+}

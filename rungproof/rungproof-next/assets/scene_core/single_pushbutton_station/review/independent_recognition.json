@@ -1,0 +1,12 @@
+{
+  "assetId": "controls.operator-station.single-pushbutton.v1",
+  "reviewerId": "codex-agent-01a0c42b-single-pushbutton-evidence-final-review",
+  "identifiedFamily": "pedestal-mounted industrial START pushbutton station",
+  "confidence": 0.94,
+  "result": "pass",
+  "reviewRound": 3,
+  "defects": [
+    "Static overview does not independently prove momentary versus maintained or illuminated button behavior.",
+    "Hero framing is intentionally conservative and could be tighter at thumbnail scale."
+  ]
+}

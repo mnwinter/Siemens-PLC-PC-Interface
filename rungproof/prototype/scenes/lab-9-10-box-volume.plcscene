@@ -1,0 +1,296 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-9-10-box-volume",
+  "name": "Lab 9.10 - Box Volume Calculation",
+  "description": "Three measured dimensions are accepted before a box-volume result is released to the next step.",
+  "camera": {
+    "position": [
+      11,
+      8,
+      12
+    ],
+    "target": [
+      0,
+      1.1,
+      0
+    ],
+    "fov": 45
+  },
+  "equipment": [
+    {
+      "id": "box_0",
+      "type": "box",
+      "label": "Box Volume Calculation box",
+      "position": [
+        -3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "size": [
+          0.85,
+          0.72,
+          0.72
+        ],
+        "color": 13142603
+      }
+    },
+    {
+      "id": "machine_1",
+      "type": "machine",
+      "label": "Box Volume Calculation machine",
+      "position": [
+        -1.1,
+        0,
+        0
+      ],
+      "config": {
+        "size": [
+          2.1,
+          2.7,
+          1.7
+        ],
+        "color": 5466227,
+        "running": false
+      }
+    },
+    {
+      "id": "indicator_2",
+      "type": "indicator",
+      "label": "Box Volume Calculation indicator",
+      "position": [
+        1.1,
+        0,
+        0
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    },
+    {
+      "id": "training_accessory_3",
+      "type": "trainingAccessory",
+      "label": "Box Volume Calculation - dimension sensors",
+      "position": [
+        3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "assetName": "dimension sensors",
+        "catalogAssetId": "training.accessory.dimension_sensors.v1"
+      }
+    },
+    {
+      "id": "training_accessory_4",
+      "type": "trainingAccessory",
+      "label": "Box Volume Calculation - numeric measurement display",
+      "position": [
+        -3.3000000000000003,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "numeric measurement display",
+        "catalogAssetId": "training.accessory.numeric_measurement_display.v1"
+      }
+    },
+    {
+      "id": "switch_5",
+      "type": "switch",
+      "label": "Box Volume Calculation operator input",
+      "position": [
+        -0.6500000000000001,
+        0,
+        2.35
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-length_valid",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "switch_6",
+      "type": "switch",
+      "label": "Box Volume Calculation operator input",
+      "position": [
+        1.55,
+        0,
+        2.35
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-width_valid",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "switch_7",
+      "type": "switch",
+      "label": "Box Volume Calculation operator input",
+      "position": [
+        3.7500000000000004,
+        0,
+        2.35
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-height_valid",
+        "color": 2204518
+      }
+    }
+  ],
+  "simulation": {
+    "type": "booleanPanel",
+    "points": [
+      {
+        "name": "length_valid",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "width_valid",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "height_valid",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "volume_result_valid",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      }
+    ],
+    "actions": [
+      {
+        "id": "toggle-length_valid",
+        "label": "Toggle length valid",
+        "type": "toggle",
+        "point": "length_valid"
+      },
+      {
+        "id": "toggle-width_valid",
+        "label": "Toggle width valid",
+        "type": "toggle",
+        "point": "width_valid"
+      },
+      {
+        "id": "toggle-height_valid",
+        "label": "Toggle height valid",
+        "type": "toggle",
+        "point": "height_valid"
+      }
+    ],
+    "rules": [],
+    "edgeRules": [],
+    "pointBindings": [
+      {
+        "point": "length_valid",
+        "equipmentId": "switch_5",
+        "mode": "switch"
+      },
+      {
+        "point": "width_valid",
+        "equipmentId": "switch_6",
+        "mode": "switch"
+      },
+      {
+        "point": "height_valid",
+        "equipmentId": "switch_7",
+        "mode": "switch"
+      },
+      {
+        "point": "volume_result_valid",
+        "equipmentId": "indicator_2",
+        "mode": "indicator",
+        "activeColor": "green"
+      }
+    ]
+  },
+  "training": {
+    "hints": [
+      "Translate the lesson into explicit state and permissive logic: Volume result-valid is asserted only when all three dimensions are valid.",
+      "Inputs are simulator feedback (length_valid, width_valid, height_valid); PLC logic owns volume_result_valid.",
+      "Test the initial state, the valid condition, and at least one missing permissive."
+    ],
+    "solution": {
+      "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
+      "steps": [
+        "Require the documented inputs: length_valid, width_valid, height_valid.",
+        "Command the documented outputs: volume_result_valid.",
+        "Remove PLC commands when the permissive is lost."
+      ],
+      "acceptance": "Volume result-valid is asserted only when all three dimensions are valid."
+    },
+    "assetRequirements": [
+      "dimension sensors",
+      "numeric measurement display"
+    ],
+    "machineGuide": {
+      "purpose": "Three measured dimensions are accepted before a box-volume result is released to the next step.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state."
+      ],
+      "normalSequence": [
+        "Apply the requested input condition.",
+        "Verify only the documented PLC outputs respond."
+      ],
+      "stopBehavior": [
+        "Removing the permissive removes PLC-owned commands.",
+        "Reset returns the module to its initial state."
+      ],
+      "faultBehavior": [
+        "A missing or stale input must fail safe and remain diagnosable."
+      ],
+      "expectedObservations": [
+        "Volume result-valid is asserted only when all three dimensions are valid."
+      ]
+    },
+    "sequenceNumber": 56,
+    "inheritsFrom": "lab-9-04-function-selector",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout"
+    ],
+    "addedTags": [
+      "length_valid",
+      "width_valid",
+      "height_valid",
+      "volume_result_valid"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-9-04-function-selector"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "initial-safe-state",
+        "expect": {
+          "volume_result_valid": false
+        }
+      }
+    ]
+  }
+}

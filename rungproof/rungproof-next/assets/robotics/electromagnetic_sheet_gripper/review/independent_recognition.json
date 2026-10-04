@@ -1,0 +1,8 @@
+{
+  "assetId": "robotics.end-effector.magnetic.sheet-gripper-six-pole.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-173",
+  "identifiedFamily": "Robotic magnetic gripper end effector for handling ferromagnetic workpieces",
+  "confidence": 0.98,
+  "concerns": "Stylized rendering; robot mounting interface and magnet actuation type are not visible, and the orange payload\u2019s material is ambiguous",
+  "sourceReview": "build/blind-review-assets/image_173.robotics-round1b.review.md"
+}

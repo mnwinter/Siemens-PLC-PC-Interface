@@ -1,0 +1,8 @@
+{
+  "assetId": "process.packaging.capper.tote-inline.v1",
+  "reviewerId": "context-free-tote-processing-round11-image-177",
+  "identifiedFamily": "IBC tote cap-torquing machine with guarded overhead spindle",
+  "confidence": 0.96,
+  "concerns": "Simplified geometry; torque head and cap engagement are ambiguous, conveyor/handling hardware is absent, and the transparent guard appears incomplete.",
+  "sourceReview": "build/blind-review-assets/image_177.tote-processing-round11.review.md"
+}

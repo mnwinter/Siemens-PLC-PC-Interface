@@ -1,0 +1,8 @@
+{
+  "assetId": "machines.cutting.saw.horizontal-band.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-151",
+  "identifiedFamily": "Small horizontal metal-cutting bandsaw with a pivoting saw head and workholding vise",
+  "confidence": 0.92,
+  "concerns": "Exposed wheel geometry and blade path look simplified and somewhat unrealistic for a guarded industrial bandsaw.",
+  "sourceReview": "build/blind-review-assets/image_151.production-machines-round1.review.md"
+}

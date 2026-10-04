@@ -1,0 +1,282 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-2-04-two-station-call",
+  "name": "Lab 2.4 - Two-Station Call Beacon",
+  "description": "Either of two work areas can request assistance by energizing one shared amber call beacon.",
+  "camera": {
+    "position": [
+      10,
+      7,
+      10
+    ],
+    "target": [
+      0,
+      1.2,
+      0
+    ],
+    "fov": 43
+  },
+  "equipment": [
+    {
+      "id": "north_call_button",
+      "type": "switch",
+      "label": "North station call",
+      "position": [
+        -2.4,
+        0,
+        -0.2
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-north-call",
+        "color": 15902976
+      }
+    },
+    {
+      "id": "south_call_button",
+      "type": "switch",
+      "label": "South station call",
+      "position": [
+        2.4,
+        0,
+        0.2
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-south-call",
+        "color": 15902976
+      }
+    },
+    {
+      "id": "assistance_beacon",
+      "type": "indicator",
+      "label": "Assistance call beacon",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "config": {
+        "colors": [
+          "amber"
+        ],
+        "active": null
+      }
+    }
+  ],
+  "visualLayout": {
+    "description": "The two call stations are intentionally opposite each other across the shared beacon; do not place them along the same camera-depth line.",
+    "separationContracts": [
+      {
+        "equipmentIds": [
+          "north_call_button",
+          "south_call_button"
+        ],
+        "axis": "x",
+        "minimumSeparationM": 4
+      }
+    ]
+  },
+  "simulation": {
+    "type": "booleanPanel",
+    "points": [
+      {
+        "name": "north_call_pressed",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "south_call_pressed",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "assistance_call_on",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      }
+    ],
+    "actions": [
+      {
+        "id": "toggle-north-call",
+        "label": "Press / release north call",
+        "type": "toggle",
+        "point": "north_call_pressed"
+      },
+      {
+        "id": "toggle-south-call",
+        "label": "Press / release south call",
+        "type": "toggle",
+        "point": "south_call_pressed"
+      }
+    ],
+    "rules": [
+      {
+        "when": {
+          "north_call_pressed": false,
+          "south_call_pressed": false
+        },
+        "set": {
+          "assistance_call_on": false
+        }
+      },
+      {
+        "when": {
+          "north_call_pressed": true,
+          "south_call_pressed": false
+        },
+        "set": {
+          "assistance_call_on": true
+        }
+      },
+      {
+        "when": {
+          "north_call_pressed": false,
+          "south_call_pressed": true
+        },
+        "set": {
+          "assistance_call_on": true
+        }
+      },
+      {
+        "when": {
+          "north_call_pressed": true,
+          "south_call_pressed": true
+        },
+        "set": {
+          "assistance_call_on": true
+        }
+      }
+    ],
+    "edgeRules": [],
+    "pointBindings": [
+      {
+        "point": "north_call_pressed",
+        "equipmentId": "north_call_button",
+        "mode": "switch"
+      },
+      {
+        "point": "south_call_pressed",
+        "equipmentId": "south_call_button",
+        "mode": "switch"
+      },
+      {
+        "point": "assistance_call_on",
+        "equipmentId": "assistance_beacon",
+        "mode": "indicator",
+        "activeColor": "amber"
+      }
+    ]
+  },
+  "training": {
+    "hints": [
+      "Define the required result before writing logic: The beacon is off with neither input and on when either or both call inputs are active.",
+      "Treat north_call_pressed, south_call_pressed as simulator-to-PLC inputs. The PLC should command only assistance_call_on.",
+      "List the required input and memory states before assigning any output. Test every state, including the all-false state."
+    ],
+    "solution": {
+      "summary": "This is one valid functional reference. The same behavior may be implemented in LAD, FBD, or SCL; the rung layout is not prescribed.",
+      "steps": [
+        "When north_call_pressed = false, south_call_pressed = false, set assistance_call_on = false.",
+        "When north_call_pressed = true, south_call_pressed = false, set assistance_call_on = true.",
+        "When north_call_pressed = false, south_call_pressed = true, set assistance_call_on = true.",
+        "When north_call_pressed = true, south_call_pressed = true, set assistance_call_on = true."
+      ],
+      "acceptance": "The beacon is off with neither input and on when either or both call inputs are active."
+    },
+    "machineGuide": {
+      "purpose": "Either of two work areas can request assistance by energizing one shared amber call beacon.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state.",
+        "The PLC is ready to command assistance_call_on."
+      ],
+      "normalSequence": [
+        "Observe the initial input state.",
+        "Apply north_call_pressed, south_call_pressed.",
+        "Verify the PLC produces only the required assistance_call_on."
+      ],
+      "stopBehavior": [
+        "A normal stop removes PLC-owned commands and leaves the equipment in a safe state.",
+        "Reset returns the scene to its documented initial condition."
+      ],
+      "faultBehavior": [
+        "A missing, stale, or incorrectly typed input must not be replaced by simulator logic.",
+        "A missing PLC command leaves the affected equipment stopped and the test diagnosable."
+      ],
+      "expectedObservations": [
+        "The beacon is off with neither input and on when either or both call inputs are active."
+      ]
+    },
+    "sequenceNumber": 4,
+    "inheritsFrom": "lab-2-03-service-marker-inhibit",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout"
+    ],
+    "addedTags": [
+      "north_call_pressed",
+      "south_call_pressed",
+      "assistance_call_on"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-2-03-service-marker-inhibit"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "neither-station",
+        "expect": {
+          "north_call_pressed": false,
+          "south_call_pressed": false,
+          "assistance_call_on": false
+        }
+      },
+      {
+        "name": "north-only",
+        "actions": [
+          "toggle-north-call"
+        ],
+        "expect": {
+          "north_call_pressed": true,
+          "south_call_pressed": false,
+          "assistance_call_on": true
+        }
+      },
+      {
+        "name": "south-only",
+        "actions": [
+          "toggle-south-call"
+        ],
+        "expect": {
+          "north_call_pressed": false,
+          "south_call_pressed": true,
+          "assistance_call_on": true
+        }
+      },
+      {
+        "name": "both-stations",
+        "actions": [
+          "toggle-north-call",
+          "toggle-south-call"
+        ],
+        "expect": {
+          "north_call_pressed": true,
+          "south_call_pressed": true,
+          "assistance_call_on": true
+        }
+      }
+    ]
+  }
+}

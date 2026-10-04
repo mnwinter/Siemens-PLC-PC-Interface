@@ -1,0 +1,8 @@
+{
+  "assetId": "pneumatics.air-preparation.frl-three-piece.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-115",
+  "identifiedFamily": "Filter-regulator-lubricator (FRL) compressed-air preparation unit",
+  "confidence": 0.91,
+  "concerns": "Stylized geometry; three bowls appear isolated rather than manifold-connected, ports and drains are unclear, and the oversized gauge/knobs have unrealistic proportions",
+  "sourceReview": "build/blind-review-assets/image_115.process-round2.review.md"
+}

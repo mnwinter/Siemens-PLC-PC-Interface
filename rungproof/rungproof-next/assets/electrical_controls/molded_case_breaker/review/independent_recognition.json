@@ -1,0 +1,8 @@
+{
+  "assetId": "electrical.breaker.molded-case-three-pole.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-127",
+  "identifiedFamily": "Three-pole molded-case circuit breaker (MCCB) with front operating handle",
+  "confidence": 0.93,
+  "concerns": "Stylized render; terminals are oversized and lack visible lugs, arc chutes, mounting features, and realistic labeling; handle geometry is simplified",
+  "sourceReview": "build/blind-review-assets/image_127.readable-labels.review.md"
+}

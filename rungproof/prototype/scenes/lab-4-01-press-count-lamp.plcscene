@@ -1,0 +1,162 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-4-01-press-count-lamp",
+  "name": "Lab 4.1 - Press-Count Lamp",
+  "description": "A discrete counter lesson turns a station lamp on after a defined number of operator pulses.",
+  "camera": {
+    "position": [
+      11,
+      8,
+      12
+    ],
+    "target": [
+      0,
+      1.1,
+      0
+    ],
+    "fov": 45
+  },
+  "equipment": [
+    {
+      "id": "switch_0",
+      "type": "switch",
+      "label": "Press-Count Lamp switch",
+      "position": [
+        -3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-pulse_received",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "indicator_1",
+      "type": "indicator",
+      "label": "Press-Count Lamp indicator",
+      "position": [
+        -1.1,
+        0,
+        0
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    }
+  ],
+  "simulation": {
+    "type": "booleanPanel",
+    "points": [
+      {
+        "name": "pulse_received",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "threshold_lamp",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      }
+    ],
+    "actions": [
+      {
+        "id": "toggle-pulse_received",
+        "label": "Toggle pulse received",
+        "type": "toggle",
+        "point": "pulse_received"
+      }
+    ],
+    "rules": [],
+    "edgeRules": [],
+    "pointBindings": [
+      {
+        "point": "pulse_received",
+        "equipmentId": "switch_0",
+        "mode": "switch"
+      },
+      {
+        "point": "threshold_lamp",
+        "equipmentId": "indicator_1",
+        "mode": "indicator",
+        "activeColor": "green"
+      }
+    ]
+  },
+  "training": {
+    "hints": [
+      "Translate the lesson into explicit state and permissive logic: A Ladder CTU counts pulse_received rising edges and turns the lamp on at its preset.",
+      "Inputs are simulator feedback (pulse_received); PLC logic owns threshold_lamp.",
+      "Test the initial state, the valid condition, and at least one missing permissive."
+    ],
+    "solution": {
+      "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
+      "steps": [
+        "Require the documented inputs: pulse_received.",
+        "Command the documented outputs: threshold_lamp.",
+        "Remove PLC commands when the permissive is lost."
+      ],
+      "acceptance": "A Ladder CTU counts pulse_received rising edges and turns the lamp on at its preset."
+    },
+    "assetRequirements": [],
+    "machineGuide": {
+      "purpose": "A discrete counter lesson turns a station lamp on after a defined number of operator pulses.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state."
+      ],
+      "normalSequence": [
+        "Apply the requested input condition.",
+        "Verify only the documented PLC outputs respond."
+      ],
+      "stopBehavior": [
+        "Removing the permissive removes PLC-owned commands.",
+        "Reset returns the module to its initial state."
+      ],
+      "faultBehavior": [
+        "A missing or stale input must fail safe and remain diagnosable."
+      ],
+      "expectedObservations": [
+        "A Ladder CTU counts pulse_received rising edges and turns the lamp on at its preset."
+      ]
+    },
+    "sequenceNumber": 28,
+    "inheritsFrom": "lab-3-02-robot-cell-safe-restart",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout"
+    ],
+    "addedTags": [
+      "pulse_received",
+      "threshold_lamp"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-3-02-robot-cell-safe-restart"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "initial-safe-state",
+        "expect": {
+          "threshold_lamp": false
+        }
+      }
+    ]
+  }
+}

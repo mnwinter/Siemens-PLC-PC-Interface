@@ -1,0 +1,10 @@
+{
+  "assetId": "training.accessory.elevator_car_shaft.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-101",
+  "identifiedFamily": "Vertical bucket elevator with enclosed belt-and-bucket conveyor, head pulley, boot section, inlet, and discharge (identical generic basis model)",
+  "confidence": 0.94,
+  "concerns": "Cutaway/exploded stylization omits the continuous belt or chain, enclosure panels, guards, and realistic inlet/discharge transitions; bucket spacing and head/boot proportions are simplified",
+  "sourceReview": "build/blind-review-assets/image_101.material-round1.review.md",
+  "sourceAssetId": "material-handling.elevator.bucket-continuous.v1",
+  "evidenceBasis": "delivery GLB is byte-identical to the independently reviewed generic basis asset"
+}

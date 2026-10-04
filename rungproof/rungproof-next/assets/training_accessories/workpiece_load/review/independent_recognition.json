@@ -1,0 +1,10 @@
+{
+  "assetId": "training.accessory.workpiece_load.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-132",
+  "identifiedFamily": "Enclosed magnetic motor starter with Start/Stop pushbuttons and three-phase line/load terminals (identical generic basis model)",
+  "confidence": 0.93,
+  "concerns": "Terminal count and placement are stylized; exposed terminals, unlabeled buttons, and enclosure proportions are not fully realistic industrial construction",
+  "sourceReview": "build/blind-review-assets/image_132.electrical-round1.review.md",
+  "sourceAssetId": "electrical.starter.contactor-overload-three-pole.v1",
+  "evidenceBasis": "delivery GLB is byte-identical to the independently reviewed generic basis asset"
+}

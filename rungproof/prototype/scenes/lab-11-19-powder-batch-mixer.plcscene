@@ -1,0 +1,444 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-11-19-powder-batch-mixer",
+  "name": "Lab 11.19 - Powder Batch Mixer",
+  "description": "Ingredient hoppers dose a mixer, a load signal confirms the batch, and discharge occurs through a controlled valve.",
+  "camera": {
+    "position": [
+      11,
+      8,
+      12
+    ],
+    "target": [
+      0,
+      1.1,
+      0
+    ],
+    "fov": 45
+  },
+  "equipment": [
+    {
+      "id": "tank_0",
+      "type": "tank",
+      "label": "Powder Batch Mixer tank",
+      "position": [
+        -3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "diameter": 2.6,
+        "height": 2.5,
+        "initialLevel": 0.35,
+        "fluidColor": 3718648
+      }
+    },
+    {
+      "id": "tank_1",
+      "type": "tank",
+      "label": "Powder Batch Mixer tank",
+      "position": [
+        -1.1,
+        0,
+        0
+      ],
+      "config": {
+        "diameter": 2.6,
+        "height": 2.5,
+        "initialLevel": 0.35,
+        "fluidColor": 3718648
+      }
+    },
+    {
+      "id": "tank_2",
+      "type": "tank",
+      "label": "Powder Batch Mixer tank",
+      "position": [
+        1.1,
+        0,
+        0
+      ],
+      "config": {
+        "diameter": 2.6,
+        "height": 2.5,
+        "initialLevel": 0.35,
+        "fluidColor": 3718648
+      }
+    },
+    {
+      "id": "motor_3",
+      "type": "motor",
+      "label": "Powder Batch Mixer motor",
+      "position": [
+        3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "running": false
+      }
+    },
+    {
+      "id": "valve_4",
+      "type": "valve",
+      "label": "Powder Batch Mixer valve",
+      "position": [
+        -2.85,
+        0,
+        2.35
+      ],
+      "config": {
+        "initialPosition": 0
+      }
+    },
+    {
+      "id": "indicator_5",
+      "type": "indicator",
+      "label": "Powder Batch Mixer indicator",
+      "position": [
+        -0.6500000000000001,
+        0,
+        2.35
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    },
+    {
+      "id": "training_accessory_6",
+      "type": "trainingAccessory",
+      "label": "Powder Batch Mixer - bulk powder hopper",
+      "position": [
+        1.1,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "bulk powder hopper",
+        "catalogAssetId": "training.accessory.bulk_powder_hopper.v1"
+      }
+    },
+    {
+      "id": "training_accessory_7",
+      "type": "trainingAccessory",
+      "label": "Powder Batch Mixer - slide-gate feeder",
+      "position": [
+        3.3000000000000003,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "slide-gate feeder",
+        "catalogAssetId": "training.accessory.slide_gate_feeder.v1"
+      }
+    },
+    {
+      "id": "training_accessory_8",
+      "type": "trainingAccessory",
+      "label": "Powder Batch Mixer - load cell",
+      "position": [
+        -3.3000000000000003,
+        0,
+        3.6
+      ],
+      "config": {
+        "assetName": "load cell",
+        "catalogAssetId": "training.accessory.load_cell.v1"
+      }
+    },
+    {
+      "id": "training_accessory_9",
+      "type": "trainingAccessory",
+      "label": "Powder Batch Mixer - recipe selector",
+      "position": [
+        -1.1,
+        0,
+        3.6
+      ],
+      "config": {
+        "assetName": "recipe selector",
+        "catalogAssetId": "training.accessory.recipe_selector.v1"
+      }
+    },
+    {
+      "id": "training_accessory_10",
+      "type": "trainingAccessory",
+      "label": "Powder Batch Mixer - powder discharge chute",
+      "position": [
+        1.1,
+        0,
+        3.6
+      ],
+      "config": {
+        "assetName": "powder discharge chute",
+        "catalogAssetId": "training.accessory.powder_discharge_chute.v1"
+      }
+    },
+    {
+      "id": "switch_11",
+      "type": "switch",
+      "label": "Powder Batch Mixer operator input",
+      "position": [
+        4.2,
+        0,
+        4.7
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-recipe_valid",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "switch_12",
+      "type": "switch",
+      "label": "Powder Batch Mixer operator input",
+      "position": [
+        -1.9500000000000002,
+        0,
+        7.050000000000001
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-dose_complete",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "switch_13",
+      "type": "switch",
+      "label": "Powder Batch Mixer operator input",
+      "position": [
+        0.25,
+        0,
+        7.050000000000001
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-mixer_ready",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "indicator_14",
+      "type": "indicator",
+      "label": "Powder Batch Mixer output indication",
+      "position": [
+        2.45,
+        0,
+        7.050000000000001
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    },
+    {
+      "id": "indicator_15",
+      "type": "indicator",
+      "label": "Powder Batch Mixer output indication",
+      "position": [
+        4.65,
+        0,
+        7.050000000000001
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    }
+  ],
+  "simulation": {
+    "type": "booleanPanel",
+    "points": [
+      {
+        "name": "recipe_valid",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "dose_complete",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "mixer_ready",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "dose_run",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "mixer_run",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "discharge_valve_open",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      }
+    ],
+    "actions": [
+      {
+        "id": "toggle-recipe_valid",
+        "label": "Toggle recipe valid",
+        "type": "toggle",
+        "point": "recipe_valid"
+      },
+      {
+        "id": "toggle-dose_complete",
+        "label": "Toggle dose complete",
+        "type": "toggle",
+        "point": "dose_complete"
+      },
+      {
+        "id": "toggle-mixer_ready",
+        "label": "Toggle mixer ready",
+        "type": "toggle",
+        "point": "mixer_ready"
+      }
+    ],
+    "rules": [],
+    "edgeRules": [],
+    "pointBindings": [
+      {
+        "point": "recipe_valid",
+        "equipmentId": "switch_11",
+        "mode": "switch"
+      },
+      {
+        "point": "dose_complete",
+        "equipmentId": "switch_12",
+        "mode": "switch"
+      },
+      {
+        "point": "mixer_ready",
+        "equipmentId": "switch_13",
+        "mode": "switch"
+      },
+      {
+        "point": "dose_run",
+        "equipmentId": "indicator_5",
+        "mode": "indicator",
+        "activeColor": "green"
+      },
+      {
+        "point": "mixer_run",
+        "equipmentId": "indicator_14",
+        "mode": "indicator",
+        "activeColor": "green"
+      },
+      {
+        "point": "discharge_valve_open",
+        "equipmentId": "indicator_15",
+        "mode": "indicator",
+        "activeColor": "green"
+      }
+    ]
+  },
+  "training": {
+    "hints": [
+      "Translate the lesson into explicit state and permissive logic: Dosing precedes mixing, and discharge is permitted only after a complete batch.",
+      "Inputs are simulator feedback (recipe_valid, dose_complete, mixer_ready); PLC logic owns dose_run, mixer_run, discharge_valve_open.",
+      "Test the initial state, the valid condition, and at least one missing permissive."
+    ],
+    "solution": {
+      "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
+      "steps": [
+        "Require the documented inputs: recipe_valid, dose_complete, mixer_ready.",
+        "Command the documented outputs: dose_run, mixer_run, discharge_valve_open.",
+        "Remove PLC commands when the permissive is lost."
+      ],
+      "acceptance": "Dosing precedes mixing, and discharge is permitted only after a complete batch."
+    },
+    "assetRequirements": [
+      "bulk powder hopper",
+      "slide-gate feeder",
+      "load cell",
+      "recipe selector",
+      "powder discharge chute"
+    ],
+    "machineGuide": {
+      "purpose": "Ingredient hoppers dose a mixer, a load signal confirms the batch, and discharge occurs through a controlled valve.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state."
+      ],
+      "normalSequence": [
+        "Apply the requested input condition.",
+        "Verify only the documented PLC outputs respond."
+      ],
+      "stopBehavior": [
+        "Removing the permissive removes PLC-owned commands.",
+        "Reset returns the module to its initial state."
+      ],
+      "faultBehavior": [
+        "A missing or stale input must fail safe and remain diagnosable."
+      ],
+      "expectedObservations": [
+        "Dosing precedes mixing, and discharge is permitted only after a complete batch."
+      ]
+    },
+    "sequenceNumber": 70,
+    "inheritsFrom": "lab-11-13-xy-palletizing",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout"
+    ],
+    "addedTags": [
+      "recipe_valid",
+      "dose_complete",
+      "mixer_ready",
+      "dose_run",
+      "mixer_run",
+      "discharge_valve_open"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-11-13-xy-palletizing"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "initial-safe-state",
+        "expect": {
+          "dose_run": false,
+          "mixer_run": false,
+          "discharge_valve_open": false
+        }
+      }
+    ]
+  }
+}

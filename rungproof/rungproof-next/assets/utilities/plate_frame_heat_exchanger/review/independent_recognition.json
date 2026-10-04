@@ -1,0 +1,8 @@
+{
+  "assetId": "utilities.heat-transfer.plate-frame-gasketed.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-146",
+  "identifiedFamily": "Plate-and-frame heat exchanger with four side fluid ports",
+  "confidence": 0.97,
+  "concerns": "Stylized rendering; exposed plates, tie rods, and port placement are simplified and may not represent a serviceable gasketed commercial unit",
+  "sourceReview": "build/blind-review-assets/image_146.utilities-round1.review.md"
+}

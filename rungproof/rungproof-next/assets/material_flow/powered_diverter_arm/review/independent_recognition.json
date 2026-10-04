@@ -1,0 +1,8 @@
+{
+  "assetId": "material-handling.diverter.powered-swing-arm.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-104",
+  "identifiedFamily": "Roller conveyor with a side-mounted pneumatic package pusher/diverter arm",
+  "confidence": 0.91,
+  "concerns": "Actuator linkage and pivot geometry are stylized and mechanically ambiguous; guarding, sensors, stops, and a clear retracted position are absent.",
+  "sourceReview": "build/blind-review-assets/image_104.material-round1.review.md"
+}

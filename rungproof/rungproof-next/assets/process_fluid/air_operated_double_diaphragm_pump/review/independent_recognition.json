@@ -1,0 +1,8 @@
+{
+  "assetId": "process.pump.aodd.dual-diaphragm.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-113",
+  "identifiedFamily": "Air-operated double-diaphragm (AODD) positive-displacement pump",
+  "confidence": 0.84,
+  "concerns": "Stylized geometry; suction/discharge ports, air inlet, valve chambers, and connecting fluid passages are not clearly represented.",
+  "sourceReview": "build/blind-review-assets/image_113.process-round1.review.md"
+}

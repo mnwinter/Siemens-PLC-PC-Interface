@@ -1,0 +1,8 @@
+{
+  "assetId": "loads.palletized-cases.gma-48x40.v1",
+  "reviewerId": "image_183.pallet-load-round1.review.md",
+  "identifiedFamily": "Unitized pallet load of four strapped corrugated shipping cartons on a wooden stringer pallet",
+  "confidence": 0.98,
+  "concerns": "Stylized render; straps appear to wrap the cartons and pallet but lack visible tensioners, seals, or underside routing, and carton/pallet proportions are approximate",
+  "sourceReview": "build/blind-review-assets/image_183.pallet-load-round1.review.md"
+}

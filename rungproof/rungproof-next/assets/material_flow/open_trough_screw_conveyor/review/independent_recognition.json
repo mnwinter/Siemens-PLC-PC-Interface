@@ -1,0 +1,8 @@
+{
+  "assetId": "material-handling.conveyor.screw-open-trough.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-100",
+  "identifiedFamily": "Horizontal shaftless screw conveyor (auger conveyor) in an open U-shaped trough",
+  "confidence": 0.91,
+  "concerns": "Stylized rendering; screw appears intermittently disconnected from the shaft, bearing/end-drive geometry is simplified, and the box seems to rest on a platform rather than clearly contact the conveying flight.",
+  "sourceReview": "build/blind-review-assets/image_100.material-round2.review.md"
+}

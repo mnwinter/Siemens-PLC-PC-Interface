@@ -1,0 +1,8 @@
+{
+  "assetId": "process.valve.check.swing-flanged.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-109",
+  "identifiedFamily": "Bolted-bonnet swing check valve with flanged pipe connections",
+  "confidence": 0.83,
+  "concerns": "Check disc appears exposed outside the body; hinge geometry, flange bolts, sealing faces, and bonnet proportions are simplified and mechanically unrealistic",
+  "sourceReview": "build/blind-review-assets/image_109.process-round2.review.md"
+}

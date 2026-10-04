@@ -1,0 +1,8 @@
+{
+  "assetId": "machines.machining.lathe.manual-engine.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-154",
+  "identifiedFamily": "Benchtop metalworking engine lathe (center lathe)",
+  "confidence": 0.96,
+  "concerns": "Stylized geometry obscures detailed carriage, leadscrew, tailstock, and chuck features; proportions appear simplified.",
+  "sourceReview": "build/blind-review-assets/image_154.production-machines-round1.review.md"
+}

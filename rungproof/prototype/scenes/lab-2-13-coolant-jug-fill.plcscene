@@ -1,0 +1,407 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-2-13-coolant-jug-fill",
+  "name": "Lab 2.13 - Coolant Jug Filling Cell",
+  "description": "An empty coolant jug indexes under a fill valve, fills to a high probe, and then exits the station.",
+  "camera": {
+    "position": [
+      11,
+      7,
+      10.5
+    ],
+    "target": [
+      0,
+      1.2,
+      0
+    ],
+    "fov": 43
+  },
+  "equipment": [
+    {
+      "id": "fill_conveyor",
+      "type": "conveyor",
+      "label": "Jug indexing conveyor",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "config": {
+        "length": 8,
+        "width": 1.5,
+        "deckHeight": 0.9,
+        "beltColor": 2568760,
+        "running": false
+      }
+    },
+    {
+      "id": "coolant_jug",
+      "type": "box",
+      "label": "Coolant jug",
+      "position": [
+        -3.2,
+        0.99,
+        0
+      ],
+      "config": {
+        "size": [
+          0.8,
+          1.2,
+          0.75
+        ],
+        "color": 15332085
+      }
+    },
+    {
+      "id": "jug_present_sensor",
+      "type": "photoeye",
+      "label": "Jug present sensor",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "config": {
+        "span": 2.05,
+        "height": 0.7,
+        "beamCenterHeightM": 1.45,
+        "blocked": false
+      }
+    },
+    {
+      "id": "fill_valve",
+      "type": "toteFiller",
+      "label": "Coolant fill nozzle and valve manifold",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "config": {
+        "initialPosition": 0
+      }
+    },
+    {
+      "id": "fill_skid",
+      "type": "meteringSkid",
+      "label": "Metered coolant skid",
+      "position": [
+        0,
+        0,
+        -2
+      ],
+      "config": {
+        "size": [
+          2,
+          2.5,
+          1.3
+        ],
+        "color": 1534855,
+        "running": false
+      }
+    },
+    {
+      "id": "fill_start",
+      "type": "switch",
+      "label": "Start fill cycle",
+      "position": [
+        -3.1,
+        0,
+        2.1
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "start-fill",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "fill_status",
+      "type": "indicator",
+      "label": "Fill cell status",
+      "position": [
+        3.2,
+        0,
+        -1.8
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "amber"
+      }
+    }
+  ],
+  "simulation": {
+    "type": "sequence",
+    "points": [
+      {
+        "name": "conveyor_run",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false
+      },
+      {
+        "name": "jug_present",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "fill_valve_open",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false
+      },
+      {
+        "name": "high_level_probe",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "fill_skid_run",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false
+      },
+      {
+        "name": "fill_percent",
+        "type": "REAL",
+        "owner": "SIM",
+        "initial": 0,
+        "unit": "%"
+      },
+      {
+        "name": "cell_color",
+        "type": "STRING",
+        "owner": "SIM",
+        "initial": "amber"
+      },
+      {
+        "name": "cycle_complete",
+        "type": "BOOL",
+        "owner": "SIM",
+        "initial": false
+      }
+    ],
+    "actions": [
+      {
+        "id": "start-fill",
+        "label": "Start jug fill",
+        "type": "start",
+        "sequence": "fill-cycle"
+      },
+      {
+        "id": "stop-fill",
+        "label": "Stop fill cell",
+        "type": "stop"
+      },
+      {
+        "id": "reset-fill",
+        "label": "Reset jug",
+        "type": "reset"
+      }
+    ],
+    "pointBindings": [
+      {
+        "point": "conveyor_run",
+        "equipmentId": "fill_conveyor",
+        "mode": "running"
+      },
+      {
+        "point": "jug_present",
+        "equipmentId": "jug_present_sensor",
+        "mode": "photoeye"
+      },
+      {
+        "point": "fill_valve_open",
+        "equipmentId": "fill_valve",
+        "mode": "position"
+      },
+      {
+        "point": "fill_skid_run",
+        "equipmentId": "fill_skid",
+        "mode": "running"
+      },
+      {
+        "point": "cell_color",
+        "equipmentId": "fill_status",
+        "mode": "indicator"
+      }
+    ],
+    "sequences": {
+      "fill-cycle": [
+        {
+          "name": "indexing",
+          "durationS": 2,
+          "set": {
+            "conveyor_run": true,
+            "jug_present": false,
+            "high_level_probe": false,
+            "fill_percent": 0,
+            "cycle_complete": false,
+            "cell_color": "green"
+          },
+          "motions": [
+            {
+              "type": "translate",
+              "equipmentId": "coolant_jug",
+              "axis": "x",
+              "from": -3.2,
+              "to": 0
+            }
+          ]
+        },
+        {
+          "name": "filling",
+          "durationS": 2.2,
+          "set": {
+            "conveyor_run": false,
+            "jug_present": true,
+            "fill_valve_open": true,
+            "fill_skid_run": true,
+            "cell_color": "amber"
+          }
+        },
+        {
+          "name": "level reached",
+          "durationS": 0.2,
+          "set": {
+            "fill_valve_open": false,
+            "fill_skid_run": false,
+            "high_level_probe": true,
+            "fill_percent": 100
+          }
+        },
+        {
+          "name": "discharging",
+          "durationS": 1.6,
+          "set": {
+            "conveyor_run": true,
+            "jug_present": false,
+            "cell_color": "green"
+          },
+          "motions": [
+            {
+              "type": "translate",
+              "equipmentId": "coolant_jug",
+              "axis": "x",
+              "from": 0,
+              "to": 3.8
+            }
+          ]
+        },
+        {
+          "name": "ready",
+          "durationS": 0.1,
+          "set": {
+            "conveyor_run": false,
+            "cycle_complete": true,
+            "cell_color": "amber"
+          }
+        }
+      ]
+    },
+    "defaultSequence": "fill-cycle",
+    "safeState": {
+      "conveyor_run": false,
+      "fill_valve_open": false,
+      "fill_skid_run": false,
+      "cell_color": "red"
+    },
+    "completionState": {},
+    "conveyorSpeedMps": 0.75
+  },
+  "training": {
+    "hints": [
+      "Define the required result before writing logic: The valve cannot remain open after the high probe; the filled jug exits and the conveyor stops.",
+      "Treat jug_present, high_level_probe as simulator-to-PLC inputs. The PLC should command only conveyor_run, fill_valve_open, fill_skid_run.",
+      "Use a step/state approach and prove the transition order: indexing \u2192 filling \u2192 level reached \u2192 discharging \u2192 ready."
+    ],
+    "solution": {
+      "summary": "This is one valid functional reference. The same behavior may be implemented in LAD, FBD, or SCL; the rung layout is not prescribed.",
+      "steps": [
+        "indexing: conveyor_run = true.",
+        "filling: conveyor_run = false, fill_valve_open = true, fill_skid_run = true.",
+        "level reached: fill_valve_open = false, fill_skid_run = false.",
+        "discharging: conveyor_run = true.",
+        "ready: conveyor_run = false."
+      ],
+      "acceptance": "The valve cannot remain open after the high probe; the filled jug exits and the conveyor stops."
+    },
+    "machineGuide": {
+      "purpose": "An empty coolant jug indexes under a fill valve, fills to a high probe, and then exits the station.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state.",
+        "The PLC is ready to command conveyor_run, fill_valve_open, fill_skid_run."
+      ],
+      "normalSequence": [
+        "indexing",
+        "filling",
+        "level reached",
+        "discharging",
+        "ready"
+      ],
+      "stopBehavior": [
+        "A normal stop removes PLC-owned commands and leaves the equipment in a safe state.",
+        "Reset returns the scene to its documented initial condition."
+      ],
+      "faultBehavior": [
+        "A missing, stale, or incorrectly typed input must not be replaced by simulator logic.",
+        "A missing PLC command leaves the affected equipment stopped and the test diagnosable."
+      ],
+      "expectedObservations": [
+        "The valve cannot remain open after the high probe; the filled jug exits and the conveyor stops."
+      ]
+    },
+    "sequenceNumber": 13,
+    "inheritsFrom": "lab-2-12-assembly-lift",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout",
+      "cycle_complete"
+    ],
+    "addedTags": [
+      "conveyor_run",
+      "jug_present",
+      "fill_valve_open",
+      "high_level_probe",
+      "fill_skid_run",
+      "fill_percent",
+      "cell_color"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-2-12-assembly-lift"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "fill-complete",
+        "phases": [
+          {
+            "action": "start-fill",
+            "runForS": 6.5
+          }
+        ],
+        "expect": {
+          "high_level_probe": true,
+          "fill_valve_open": false,
+          "conveyor_run": false,
+          "fill_percent": 100,
+          "cycle_complete": true
+        }
+      }
+    ]
+  }
+}

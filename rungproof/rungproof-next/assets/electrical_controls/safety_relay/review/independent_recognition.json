@@ -1,0 +1,8 @@
+{
+  "assetId": "safety.relay.dual-channel-din.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-131",
+  "identifiedFamily": "DIN-rail dual-channel machine-safety monitoring relay, not a general-purpose control relay or PLC I/O module",
+  "confidence": 0.94,
+  "concerns": "Stylized oversized enclosure, implausible terminal and DIN-rail geometry, mirrored/illegible labeling, and unclear mounting engagement",
+  "sourceReview": "build/blind-review-assets/image_131.electrical-round3.review.md"
+}

@@ -1,0 +1,9 @@
+{
+  "assetId": "air-handling.fan.axial-1900.v1",
+  "reviewerId": "codex-agent-01a0c42b-fan-final-confirmation",
+  "identifiedFamily": "guarded axial exhaust fan",
+  "confidence": 0.99,
+  "result": "pass",
+  "reviewRound": 5,
+  "majorDefects": []
+}

@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "target": {
+    "productionFamilies": 850,
+    "configuredVariants": 3000
+  },
+  "categories": [
+    { "id": "facility", "familyTarget": 80, "examples": ["floors", "walls", "columns", "stairs", "platforms", "doors", "lighting"] },
+    { "id": "structures", "familyTarget": 75, "examples": ["machine frames", "extrusion", "guards", "fence", "catwalks", "supports"] },
+    { "id": "material-handling", "familyTarget": 125, "examples": ["belt conveyors", "roller conveyors", "transfers", "sorters", "lifts", "ASRS"] },
+    { "id": "loads-packaging", "familyTarget": 70, "examples": ["cartons", "totes", "pallets", "drums", "bottles", "bags", "coils"] },
+    { "id": "robotics", "familyTarget": 60, "examples": ["robots", "cobots", "gantries", "grippers", "tool changers", "AMRs"] },
+    { "id": "machines", "familyTarget": 70, "examples": ["CNC", "presses", "saws", "drills", "weld cells", "assembly machines"] },
+    { "id": "process", "familyTarget": 90, "examples": ["tanks", "pumps", "valves", "mixers", "heat exchangers", "filters"] },
+    { "id": "utilities", "familyTarget": 55, "examples": ["compressors", "dryers", "receivers", "chillers", "boilers", "hydraulic units"] },
+    { "id": "sensors-inspection", "familyTarget": 65, "examples": ["photoeyes", "proximity", "vision", "scanners", "scales", "measurement"] },
+    { "id": "controls-electrical", "familyTarget": 45, "examples": ["panels", "HMIs", "pushbuttons", "VFDs", "MCCs", "junction boxes"] },
+    { "id": "safety", "familyTarget": 45, "examples": ["light curtains", "scanners", "interlocks", "estops", "mats", "guards"] },
+    { "id": "passive-hardware", "familyTarget": 70, "examples": ["brackets", "fasteners", "bearings", "couplings", "shafts", "cable tray"] }
+  ]
+}

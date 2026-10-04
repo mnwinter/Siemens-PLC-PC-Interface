@@ -1,0 +1,8 @@
+{
+  "assetId": "material-handling.conveyor.pallet-chain-2strand.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-095",
+  "identifiedFamily": "Dual-strand chain conveyor for pallet handling, with an electric gearmotor drive",
+  "confidence": 0.91,
+  "concerns": "Stylized render; chain links, sprockets, shafts, bearings, guards, and credible gear-reduction details are absent or simplified, and the load appears wider than the conveyor support spacing.",
+  "sourceReview": "build/blind-review-assets/image_095.material-round2.review.md"
+}

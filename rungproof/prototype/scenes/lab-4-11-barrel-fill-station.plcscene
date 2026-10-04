@@ -1,0 +1,369 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-4-11-barrel-fill-station",
+  "name": "Lab 4.11 - Barrel Fill Station",
+  "description": "A moving container stops at a fill point and resumes only after the fill-complete feedback is present.",
+  "camera": {
+    "position": [
+      11,
+      8,
+      12
+    ],
+    "target": [
+      0,
+      1.1,
+      0
+    ],
+    "fov": 45
+  },
+  "equipment": [
+    {
+      "id": "conveyor_0",
+      "type": "conveyor",
+      "label": "Barrel Fill Station conveyor",
+      "position": [
+        -3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "length": 6.5,
+        "width": 1.4,
+        "deckHeight": 0.9,
+        "beltColor": 2568760,
+        "running": false
+      }
+    },
+    {
+      "id": "tank_1",
+      "type": "tank",
+      "label": "Barrel Fill Station tank",
+      "position": [
+        -1.1,
+        0,
+        0
+      ],
+      "config": {
+        "diameter": 2.6,
+        "height": 2.5,
+        "initialLevel": 0.35,
+        "fluidColor": 3718648
+      }
+    },
+    {
+      "id": "valve_2",
+      "type": "valve",
+      "label": "Barrel Fill Station valve",
+      "position": [
+        1.1,
+        0,
+        0
+      ],
+      "config": {
+        "initialPosition": 0
+      }
+    },
+    {
+      "id": "photoeye_3",
+      "type": "photoeye",
+      "label": "Barrel Fill Station photoeye",
+      "position": [
+        3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "span": 2.05,
+        "height": 0.7,
+        "beamCenterHeightM": 1.1,
+        "blocked": false
+      }
+    },
+    {
+      "id": "indicator_4",
+      "type": "indicator",
+      "label": "Barrel Fill Station indicator",
+      "position": [
+        -2.85,
+        0,
+        2.35
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    },
+    {
+      "id": "training_accessory_5",
+      "type": "trainingAccessory",
+      "label": "Barrel Fill Station - barrel/container load",
+      "position": [
+        -1.1,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "barrel/container load",
+        "catalogAssetId": "training.accessory.barrel_container_load.v1"
+      }
+    },
+    {
+      "id": "training_accessory_6",
+      "type": "trainingAccessory",
+      "label": "Barrel Fill Station - flow meter",
+      "position": [
+        1.1,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "flow meter",
+        "catalogAssetId": "training.accessory.flow_meter.v1"
+      }
+    },
+    {
+      "id": "training_accessory_7",
+      "type": "trainingAccessory",
+      "label": "Barrel Fill Station - fill nozzle",
+      "position": [
+        3.3000000000000003,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "fill nozzle",
+        "catalogAssetId": "training.accessory.fill_nozzle.v1"
+      }
+    },
+    {
+      "id": "switch_8",
+      "type": "switch",
+      "label": "Barrel Fill Station operator input",
+      "position": [
+        -2.4000000000000004,
+        0,
+        4.7
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-barrel_at_fill",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "switch_9",
+      "type": "switch",
+      "label": "Barrel Fill Station operator input",
+      "position": [
+        -0.20000000000000007,
+        0,
+        4.7
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-fill_complete",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "switch_10",
+      "type": "switch",
+      "label": "Barrel Fill Station operator input",
+      "position": [
+        2,
+        0,
+        4.7
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-downstream_clear",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "indicator_11",
+      "type": "indicator",
+      "label": "Barrel Fill Station output indication",
+      "position": [
+        4.2,
+        0,
+        4.7
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    }
+  ],
+  "simulation": {
+    "type": "booleanPanel",
+    "points": [
+      {
+        "name": "barrel_at_fill",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "fill_complete",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "downstream_clear",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "infeed_run",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "fill_valve_open",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      }
+    ],
+    "actions": [
+      {
+        "id": "toggle-barrel_at_fill",
+        "label": "Toggle barrel at fill",
+        "type": "toggle",
+        "point": "barrel_at_fill"
+      },
+      {
+        "id": "toggle-fill_complete",
+        "label": "Toggle fill complete",
+        "type": "toggle",
+        "point": "fill_complete"
+      },
+      {
+        "id": "toggle-downstream_clear",
+        "label": "Toggle downstream clear",
+        "type": "toggle",
+        "point": "downstream_clear"
+      }
+    ],
+    "rules": [],
+    "edgeRules": [],
+    "pointBindings": [
+      {
+        "point": "barrel_at_fill",
+        "equipmentId": "switch_8",
+        "mode": "switch"
+      },
+      {
+        "point": "fill_complete",
+        "equipmentId": "switch_9",
+        "mode": "switch"
+      },
+      {
+        "point": "downstream_clear",
+        "equipmentId": "switch_10",
+        "mode": "switch"
+      },
+      {
+        "point": "infeed_run",
+        "equipmentId": "indicator_4",
+        "mode": "indicator",
+        "activeColor": "green"
+      },
+      {
+        "point": "fill_valve_open",
+        "equipmentId": "indicator_11",
+        "mode": "indicator",
+        "activeColor": "green"
+      }
+    ]
+  },
+  "training": {
+    "hints": [
+      "Translate the lesson into explicit state and permissive logic: The valve opens only at the fill position and the conveyor resumes after completion.",
+      "Inputs are simulator feedback (barrel_at_fill, fill_complete, downstream_clear); PLC logic owns infeed_run, fill_valve_open.",
+      "Test the initial state, the valid condition, and at least one missing permissive."
+    ],
+    "solution": {
+      "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
+      "steps": [
+        "Require the documented inputs: barrel_at_fill, fill_complete, downstream_clear.",
+        "Command the documented outputs: infeed_run, fill_valve_open.",
+        "Remove PLC commands when the permissive is lost."
+      ],
+      "acceptance": "The valve opens only at the fill position and the conveyor resumes after completion."
+    },
+    "assetRequirements": [
+      "barrel/container load",
+      "flow meter",
+      "fill nozzle"
+    ],
+    "machineGuide": {
+      "purpose": "A moving container stops at a fill point and resumes only after the fill-complete feedback is present.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state."
+      ],
+      "normalSequence": [
+        "Apply the requested input condition.",
+        "Verify only the documented PLC outputs respond."
+      ],
+      "stopBehavior": [
+        "Removing the permissive removes PLC-owned commands.",
+        "Reset returns the module to its initial state."
+      ],
+      "faultBehavior": [
+        "A missing or stale input must fail safe and remain diagnosable."
+      ],
+      "expectedObservations": [
+        "The valve opens only at the fill position and the conveyor resumes after completion."
+      ]
+    },
+    "sequenceNumber": 38,
+    "inheritsFrom": "lab-4-10-cookie-packaging",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout",
+      "infeed_run"
+    ],
+    "addedTags": [
+      "barrel_at_fill",
+      "fill_complete",
+      "downstream_clear",
+      "fill_valve_open"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-4-10-cookie-packaging"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "initial-safe-state",
+        "expect": {
+          "infeed_run": false,
+          "fill_valve_open": false
+        }
+      }
+    ]
+  }
+}

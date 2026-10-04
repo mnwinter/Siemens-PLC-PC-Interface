@@ -1,0 +1,421 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-2-12-assembly-lift",
+  "name": "Lab 2.12 - Ergonomic Assembly Lift",
+  "description": "Independent raise and lower commands move a scissor lift between modeled bottom and top limits.",
+  "camera": {
+    "position": [
+      8.5,
+      6.6,
+      9.2
+    ],
+    "target": [
+      0,
+      1.4,
+      0
+    ],
+    "fov": 43
+  },
+  "equipment": [
+    {
+      "id": "assembly_lift",
+      "type": "liftTable",
+      "label": "Ergonomic assembly lift",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "config": {
+        "width": 3,
+        "depth": 1.9,
+        "minimumHeight": 0.6,
+        "travel": 2.2,
+        "initialPosition": 0
+      }
+    },
+    {
+      "id": "lift_fixture",
+      "type": "box",
+      "label": "Assembly fixture",
+      "position": [
+        0,
+        0.82,
+        0
+      ],
+      "config": {
+        "size": [
+          1.4,
+          0.42,
+          1
+        ],
+        "color": 15906565
+      }
+    },
+    {
+      "id": "raise_button",
+      "type": "switch",
+      "label": "Raise lift",
+      "position": [
+        -3.1,
+        0,
+        0
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "raise-lift",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "lower_button",
+      "type": "switch",
+      "label": "Lower lift",
+      "position": [
+        -1.9,
+        0,
+        0
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "lower-lift",
+        "color": 3050449
+      }
+    },
+    {
+      "id": "top_limit_lamp",
+      "type": "indicator",
+      "label": "Top limit",
+      "position": [
+        1.7,
+        0,
+        0
+      ],
+      "config": {
+        "colors": [
+          "green"
+        ],
+        "active": null
+      }
+    },
+    {
+      "id": "bottom_limit_lamp",
+      "type": "indicator",
+      "label": "Bottom limit",
+      "position": [
+        2.9,
+        0,
+        0
+      ],
+      "config": {
+        "colors": [
+          "amber"
+        ],
+        "active": null
+      }
+    }
+  ],
+  "simulation": {
+    "type": "sequence",
+    "points": [
+      {
+        "name": "lift_up",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false
+      },
+      {
+        "name": "lift_down",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false
+      },
+      {
+        "name": "top_limit",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "bottom_limit",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": true
+      },
+      {
+        "name": "lift_position",
+        "type": "REAL",
+        "owner": "SIM",
+        "initial": 0,
+        "unit": "%"
+      },
+      {
+        "name": "cycle_complete",
+        "type": "BOOL",
+        "owner": "SIM",
+        "initial": false
+      }
+    ],
+    "actions": [
+      {
+        "id": "raise-lift",
+        "label": "Raise to work height",
+        "type": "start",
+        "sequence": "raise"
+      },
+      {
+        "id": "lower-lift",
+        "label": "Lower to load height",
+        "type": "start",
+        "sequence": "lower"
+      },
+      {
+        "id": "stop-lift",
+        "label": "Stop lift",
+        "type": "stop"
+      },
+      {
+        "id": "reset-lift",
+        "label": "Reset lift",
+        "type": "reset"
+      }
+    ],
+    "pointBindings": [
+      {
+        "point": "top_limit",
+        "equipmentId": "top_limit_lamp",
+        "mode": "indicator",
+        "activeColor": "green"
+      },
+      {
+        "point": "bottom_limit",
+        "equipmentId": "bottom_limit_lamp",
+        "mode": "indicator",
+        "activeColor": "amber"
+      }
+    ],
+    "sequences": {
+      "raise": [
+        {
+          "name": "raising",
+          "durationS": 2,
+          "set": {
+            "lift_up": true,
+            "lift_down": false,
+            "top_limit": false,
+            "bottom_limit": false,
+            "cycle_complete": false
+          },
+          "motions": [
+            {
+              "type": "position",
+              "equipmentId": "assembly_lift",
+              "from": 0,
+              "to": 1
+            },
+            {
+              "type": "translate",
+              "equipmentId": "lift_fixture",
+              "axis": "y",
+              "from": 0.82,
+              "to": 3.02
+            }
+          ]
+        },
+        {
+          "name": "at top",
+          "durationS": 0.1,
+          "set": {
+            "lift_up": false,
+            "top_limit": true,
+            "lift_position": 100,
+            "cycle_complete": true
+          }
+        }
+      ],
+      "lower": [
+        {
+          "name": "lowering",
+          "durationS": 2,
+          "set": {
+            "lift_down": true,
+            "lift_up": false,
+            "top_limit": false,
+            "bottom_limit": false,
+            "cycle_complete": false
+          },
+          "motions": [
+            {
+              "type": "position",
+              "equipmentId": "assembly_lift",
+              "from": 1,
+              "to": 0
+            },
+            {
+              "type": "translate",
+              "equipmentId": "lift_fixture",
+              "axis": "y",
+              "from": 3.02,
+              "to": 0.82
+            }
+          ]
+        },
+        {
+          "name": "at bottom",
+          "durationS": 0.1,
+          "set": {
+            "lift_down": false,
+            "bottom_limit": true,
+            "lift_position": 0,
+            "cycle_complete": true
+          }
+        }
+      ]
+    },
+    "defaultSequence": "raise",
+    "safeState": {
+      "lift_up": false,
+      "lift_down": false
+    },
+    "completionState": {},
+    "conveyorSpeedMps": 0.75
+  },
+  "training": {
+    "hints": [
+      "Define the required result before writing logic: Raise stops at the top limit; lower stops at the bottom limit; opposed outputs are never on together.",
+      "Treat top_limit, bottom_limit as simulator-to-PLC inputs. The PLC should command only lift_up, lift_down.",
+      "Use a step/state approach and prove the transition order: raising \u2192 at top."
+    ],
+    "solution": {
+      "summary": "This is one valid functional reference. The same behavior may be implemented in LAD, FBD, or SCL; the rung layout is not prescribed.",
+      "steps": [
+        "raising: lift_up = true, lift_down = false.",
+        "at top: lift_up = false."
+      ],
+      "acceptance": "Raise stops at the top limit; lower stops at the bottom limit; opposed outputs are never on together."
+    },
+    "machineGuide": {
+      "purpose": "Independent raise and lower commands move a scissor lift between modeled bottom and top limits.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state.",
+        "The PLC is ready to command lift_up, lift_down."
+      ],
+      "normalSequence": [
+        "raising",
+        "at top"
+      ],
+      "stopBehavior": [
+        "A normal stop removes PLC-owned commands and leaves the equipment in a safe state.",
+        "Reset returns the scene to its documented initial condition."
+      ],
+      "faultBehavior": [
+        "A missing, stale, or incorrectly typed input must not be replaced by simulator logic.",
+        "A missing PLC command leaves the affected equipment stopped and the test diagnosable."
+      ],
+      "expectedObservations": [
+        "Raise stops at the top limit; lower stops at the bottom limit; opposed outputs are never on together."
+      ]
+    },
+    "sequenceNumber": 12,
+    "inheritsFrom": "lab-2-11-inbound-tote-stop",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout",
+      "cycle_complete"
+    ],
+    "addedTags": [
+      "lift_up",
+      "lift_down",
+      "top_limit",
+      "bottom_limit",
+      "lift_position"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-2-11-inbound-tote-stop"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "raise",
+        "phases": [
+          {
+            "action": "raise-lift",
+            "runForS": 2.3
+          }
+        ],
+        "expect": {
+          "top_limit": true,
+          "lift_up": false,
+          "lift_position": 100
+        }
+      },
+      {
+        "name": "raise-lower",
+        "phases": [
+          {
+            "action": "raise-lift",
+            "runForS": 2.3
+          },
+          {
+            "action": "lower-lift",
+            "runForS": 2.3
+          }
+        ],
+        "expect": {
+          "bottom_limit": true,
+          "lift_down": false,
+          "lift_position": 0
+        }
+      }
+    ]
+  },
+  "migration": {
+    "sourceFile": "prototype/scenes/lab-2-12-assembly-lift.plcscene",
+    "sourceFormat": "plcscene",
+    "assetMappings": {
+      "conveyor": "material-handling.belt-conveyor.600x6000.v1",
+      "photoeye": "sensing.photoelectric.through-beam.v1",
+      "switch": "controls.operator-station.single-pushbutton.v1",
+      "indicator": "controls.beacon.single-tier.v1",
+      "pusher": "actuation.pneumatic-pusher.1350mm.v1",
+      "motor": "drives.motor.ac-induction.v1",
+      "pipe": "process.pipe.flanged-spool.v1",
+      "tank": "process.tank.vertical-3000x5000.v1",
+      "pump": "process.pump.centrifugal-skid.v1",
+      "valve": "process.valve.actuated-ball.v1",
+      "levelSensor": "sensing.level.analog-4-20ma.v1",
+      "radarLevelSensor": "sensing.level.radar.v1",
+      "rotarySwitch": "controls.operator-station.selector.v1",
+      "fan": "air-handling.fan.axial-1900.v1",
+      "liftTable": "material-handling.lift.scissor-table.v1",
+      "drillPress": "machining.drill-press.pedestal.v1",
+      "robotArm": "robotics.robot.six-axis-medium.v1",
+      "rotaryTable": "material-handling.table.powered-rotary.v1",
+      "rollerShutter": "access-control.door.roller-shutter.v1",
+      "machine": "machining.machine.enclosed-center.v1",
+      "palletLoad": "loads.palletized-cases.gma-48x40.v1",
+      "toteFiller": "process.packaging.filler.tote-volumetric.v1",
+      "toteCapper": "process.packaging.capper.tote-inline.v1",
+      "toteLabeler": "process.packaging.labeler.tote-pressure-sensitive.v1",
+      "toteVision": "inspection.vision.tote-multicamera.v1",
+      "meteringSkid": "process.dosing.skid.liquid-metering.v1",
+      "containerReceiver": "material-handling.receiver.container-two-position.v1",
+      "sizeSensorBank": "sensing.dimensioning.parcel-three-height.v1"
+    },
+    "scenePropTypes": [
+      "box"
+    ],
+    "unresolvedAssetTypes": [],
+    "visualStatus": "mapped",
+    "productionApproved": false,
+    "reason": "Production approval requires every reusable asset and the complete scene to pass visual review."
+  }
+}

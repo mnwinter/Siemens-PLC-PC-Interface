@@ -1,0 +1,14 @@
+{
+  "assetId": "loads.tote.reusable-plastic.v1",
+  "reviewerId": "codex-agent-reusable-plastic-tote-review",
+  "identifiedFamily": "open-top reusable plastic industrial tote or bin",
+  "confidence": 0.96,
+  "result": "pass",
+  "reviewRound": 1,
+  "defects": [
+    "Rim/front-left corner has visible seam or overlap artifacts.",
+    "Rear interior transition appears slightly uneven or triangulated.",
+    "Mild shaded-surface render grain is visible.",
+    "Dark side feature can read as a handhold, label pocket, or recessed panel."
+  ]
+}

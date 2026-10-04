@@ -1,0 +1,221 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-2-06-ready-attention",
+  "name": "Lab 2.6 - Ready / Attention Button",
+  "description": "A spring-return request button transfers indication between a white ready lamp and an amber attention lamp.",
+  "camera": {
+    "position": [
+      10,
+      7,
+      10
+    ],
+    "target": [
+      0,
+      1.2,
+      0
+    ],
+    "fov": 43
+  },
+  "equipment": [
+    {
+      "id": "request_button",
+      "type": "switch",
+      "label": "Attention request button",
+      "position": [
+        -1.6,
+        0,
+        0
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-request",
+        "color": 3050449
+      }
+    },
+    {
+      "id": "ready_lamp",
+      "type": "indicator",
+      "label": "Ready lamp",
+      "position": [
+        0.1,
+        0,
+        0
+      ],
+      "config": {
+        "colors": [
+          "white"
+        ],
+        "active": null
+      }
+    },
+    {
+      "id": "attention_lamp",
+      "type": "indicator",
+      "label": "Attention lamp",
+      "position": [
+        1.1,
+        0,
+        0
+      ],
+      "config": {
+        "colors": [
+          "amber"
+        ],
+        "active": null
+      }
+    }
+  ],
+  "simulation": {
+    "type": "booleanPanel",
+    "points": [
+      {
+        "name": "request_held",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "ready_light",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": true,
+        "role": "output"
+      },
+      {
+        "name": "attention_light",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      }
+    ],
+    "actions": [
+      {
+        "id": "toggle-request",
+        "label": "Press / release request",
+        "type": "toggle",
+        "point": "request_held"
+      }
+    ],
+    "rules": [
+      {
+        "when": {
+          "request_held": false
+        },
+        "set": {
+          "ready_light": true,
+          "attention_light": false
+        }
+      },
+      {
+        "when": {
+          "request_held": true
+        },
+        "set": {
+          "ready_light": false,
+          "attention_light": true
+        }
+      }
+    ],
+    "edgeRules": [],
+    "pointBindings": [
+      {
+        "point": "request_held",
+        "equipmentId": "request_button",
+        "mode": "switch"
+      },
+      {
+        "point": "ready_light",
+        "equipmentId": "ready_lamp",
+        "mode": "indicator",
+        "activeColor": "white"
+      },
+      {
+        "point": "attention_light",
+        "equipmentId": "attention_lamp",
+        "mode": "indicator",
+        "activeColor": "amber"
+      }
+    ]
+  },
+  "training": {
+    "hints": [
+      "Define the required result before writing logic: Exactly one indication is on in both released and held states.",
+      "Treat request_held as simulator-to-PLC inputs. The PLC should command only ready_light, attention_light.",
+      "List the required input and memory states before assigning any output. Test every state, including the all-false state."
+    ],
+    "solution": {
+      "summary": "This is one valid functional reference. The same behavior may be implemented in LAD, FBD, or SCL; the rung layout is not prescribed.",
+      "steps": [
+        "When request_held = false, set ready_light = true, attention_light = false.",
+        "When request_held = true, set ready_light = false, attention_light = true."
+      ],
+      "acceptance": "Exactly one indication is on in both released and held states."
+    },
+    "machineGuide": {
+      "purpose": "A spring-return request button transfers indication between a white ready lamp and an amber attention lamp.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state.",
+        "The PLC is ready to command ready_light, attention_light."
+      ],
+      "normalSequence": [
+        "Observe the initial input state.",
+        "Apply request_held.",
+        "Verify the PLC produces only the required ready_light, attention_light."
+      ],
+      "stopBehavior": [
+        "A normal stop removes PLC-owned commands and leaves the equipment in a safe state.",
+        "Reset returns the scene to its documented initial condition."
+      ],
+      "faultBehavior": [
+        "A missing, stale, or incorrectly typed input must not be replaced by simulator logic.",
+        "A missing PLC command leaves the affected equipment stopped and the test diagnosable."
+      ],
+      "expectedObservations": [
+        "Exactly one indication is on in both released and held states."
+      ]
+    },
+    "sequenceNumber": 6,
+    "inheritsFrom": "lab-2-05-bay-light-selector",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout"
+    ],
+    "addedTags": [
+      "request_held",
+      "ready_light",
+      "attention_light"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-2-05-bay-light-selector"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "released",
+        "expect": {
+          "ready_light": true,
+          "attention_light": false
+        }
+      },
+      {
+        "name": "held",
+        "actions": [
+          "toggle-request"
+        ],
+        "expect": {
+          "ready_light": false,
+          "attention_light": true
+        }
+      }
+    ]
+  }
+}

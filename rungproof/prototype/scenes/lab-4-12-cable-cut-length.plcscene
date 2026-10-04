@@ -1,0 +1,385 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-4-12-cable-cut-length",
+  "name": "Lab 4.12 - Cable Cut-Length Cell",
+  "description": "An encoder-measured cable length drives a cut request and a home-position interlock.",
+  "camera": {
+    "position": [
+      11,
+      8,
+      12
+    ],
+    "target": [
+      0,
+      1.1,
+      0
+    ],
+    "fov": 45
+  },
+  "equipment": [
+    {
+      "id": "motor_0",
+      "type": "motor",
+      "label": "Cable Cut-Length Cell motor",
+      "position": [
+        -3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "running": false
+      }
+    },
+    {
+      "id": "machine_1",
+      "type": "machine",
+      "label": "Cable Cut-Length Cell machine",
+      "position": [
+        -1.1,
+        0,
+        0
+      ],
+      "config": {
+        "size": [
+          2.1,
+          2.7,
+          1.7
+        ],
+        "color": 5466227,
+        "running": false
+      }
+    },
+    {
+      "id": "photoeye_2",
+      "type": "photoeye",
+      "label": "Cable Cut-Length Cell photoeye",
+      "position": [
+        1.1,
+        0,
+        0
+      ],
+      "config": {
+        "span": 2.05,
+        "height": 0.7,
+        "beamCenterHeightM": 1.1,
+        "blocked": false
+      }
+    },
+    {
+      "id": "indicator_3",
+      "type": "indicator",
+      "label": "Cable Cut-Length Cell indicator",
+      "position": [
+        3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    },
+    {
+      "id": "training_accessory_4",
+      "type": "trainingAccessory",
+      "label": "Cable Cut-Length Cell - payoff reel",
+      "position": [
+        -3.3000000000000003,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "payoff reel",
+        "catalogAssetId": "training.accessory.payoff_reel.v1"
+      }
+    },
+    {
+      "id": "training_accessory_5",
+      "type": "trainingAccessory",
+      "label": "Cable Cut-Length Cell - cable dancer",
+      "position": [
+        -1.1,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "cable dancer",
+        "catalogAssetId": "training.accessory.cable_dancer.v1"
+      }
+    },
+    {
+      "id": "training_accessory_6",
+      "type": "trainingAccessory",
+      "label": "Cable Cut-Length Cell - length encoder",
+      "position": [
+        1.1,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "length encoder",
+        "catalogAssetId": "training.accessory.length_encoder.v1"
+      }
+    },
+    {
+      "id": "training_accessory_7",
+      "type": "trainingAccessory",
+      "label": "Cable Cut-Length Cell - cable cutter",
+      "position": [
+        3.3000000000000003,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "cable cutter",
+        "catalogAssetId": "training.accessory.cable_cutter.v1"
+      }
+    },
+    {
+      "id": "training_accessory_8",
+      "type": "trainingAccessory",
+      "label": "Cable Cut-Length Cell - cut-length display",
+      "position": [
+        -3.3000000000000003,
+        0,
+        3.6
+      ],
+      "config": {
+        "assetName": "cut-length display",
+        "catalogAssetId": "training.accessory.cut_length_display.v1"
+      }
+    },
+    {
+      "id": "switch_9",
+      "type": "switch",
+      "label": "Cable Cut-Length Cell operator input",
+      "position": [
+        -0.20000000000000007,
+        0,
+        4.7
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-cable_present",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "switch_10",
+      "type": "switch",
+      "label": "Cable Cut-Length Cell operator input",
+      "position": [
+        2,
+        0,
+        4.7
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-length_reached",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "switch_11",
+      "type": "switch",
+      "label": "Cable Cut-Length Cell operator input",
+      "position": [
+        4.2,
+        0,
+        4.7
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-cutter_home",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "indicator_12",
+      "type": "indicator",
+      "label": "Cable Cut-Length Cell output indication",
+      "position": [
+        -1.9500000000000002,
+        0,
+        7.050000000000001
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    }
+  ],
+  "simulation": {
+    "type": "booleanPanel",
+    "points": [
+      {
+        "name": "cable_present",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "length_reached",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "cutter_home",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "feed_run",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "cutter_fire",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      }
+    ],
+    "actions": [
+      {
+        "id": "toggle-cable_present",
+        "label": "Toggle cable present",
+        "type": "toggle",
+        "point": "cable_present"
+      },
+      {
+        "id": "toggle-length_reached",
+        "label": "Toggle length reached",
+        "type": "toggle",
+        "point": "length_reached"
+      },
+      {
+        "id": "toggle-cutter_home",
+        "label": "Toggle cutter home",
+        "type": "toggle",
+        "point": "cutter_home"
+      }
+    ],
+    "rules": [],
+    "edgeRules": [],
+    "pointBindings": [
+      {
+        "point": "cable_present",
+        "equipmentId": "switch_9",
+        "mode": "switch"
+      },
+      {
+        "point": "length_reached",
+        "equipmentId": "switch_10",
+        "mode": "switch"
+      },
+      {
+        "point": "cutter_home",
+        "equipmentId": "switch_11",
+        "mode": "switch"
+      },
+      {
+        "point": "feed_run",
+        "equipmentId": "indicator_3",
+        "mode": "indicator",
+        "activeColor": "green"
+      },
+      {
+        "point": "cutter_fire",
+        "equipmentId": "indicator_12",
+        "mode": "indicator",
+        "activeColor": "green"
+      }
+    ]
+  },
+  "training": {
+    "hints": [
+      "Translate the lesson into explicit state and permissive logic: The cutter fires only at the target length and returns to home before the next cycle.",
+      "Inputs are simulator feedback (cable_present, length_reached, cutter_home); PLC logic owns feed_run, cutter_fire.",
+      "Test the initial state, the valid condition, and at least one missing permissive."
+    ],
+    "solution": {
+      "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
+      "steps": [
+        "Require the documented inputs: cable_present, length_reached, cutter_home.",
+        "Command the documented outputs: feed_run, cutter_fire.",
+        "Remove PLC commands when the permissive is lost."
+      ],
+      "acceptance": "The cutter fires only at the target length and returns to home before the next cycle."
+    },
+    "assetRequirements": [
+      "payoff reel",
+      "cable dancer",
+      "length encoder",
+      "cable cutter",
+      "cut-length display"
+    ],
+    "machineGuide": {
+      "purpose": "An encoder-measured cable length drives a cut request and a home-position interlock.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state."
+      ],
+      "normalSequence": [
+        "Apply the requested input condition.",
+        "Verify only the documented PLC outputs respond."
+      ],
+      "stopBehavior": [
+        "Removing the permissive removes PLC-owned commands.",
+        "Reset returns the module to its initial state."
+      ],
+      "faultBehavior": [
+        "A missing or stale input must fail safe and remain diagnosable."
+      ],
+      "expectedObservations": [
+        "The cutter fires only at the target length and returns to home before the next cycle."
+      ]
+    },
+    "sequenceNumber": 39,
+    "inheritsFrom": "lab-4-11-barrel-fill-station",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout"
+    ],
+    "addedTags": [
+      "cable_present",
+      "length_reached",
+      "cutter_home",
+      "feed_run",
+      "cutter_fire"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-4-11-barrel-fill-station"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "initial-safe-state",
+        "expect": {
+          "feed_run": false,
+          "cutter_fire": false
+        }
+      }
+    ]
+  }
+}

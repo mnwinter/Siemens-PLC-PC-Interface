@@ -1,0 +1,124 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "scene-1-conveyor-stop",
+  "plcTestProfile": "scene-1-db14-interface.json",
+  "name": "Conveyor Stop",
+  "description": "The established beginner scene: the PLC runs one conveyor until the simulated package blocks the photoeye, then the conveyor stops with the package held at the sensor.",
+  "camera": {
+    "position": [10.5, 6.5, 9.5],
+    "target": [0, 0.9, 0],
+    "fov": 43
+  },
+  "equipment": [
+    {
+      "id": "scene1_conveyor",
+      "type": "conveyor",
+      "label": "Scene 1 conveyor",
+      "position": [0, 0, 0],
+      "config": {
+        "length": 7,
+        "width": 1.55,
+        "deckHeight": 0.9,
+        "beltColor": 2436137
+      }
+    },
+    {
+      "id": "scene1_product",
+      "type": "box",
+      "label": "Scene 1 package",
+      "position": [-3.3, 0.99, 0],
+      "config": {
+        "size": [0.85, 0.72, 0.72],
+        "color": 13142598
+      }
+    },
+    {
+      "id": "scene1_photoeye",
+      "type": "photoeye",
+      "label": "Simulated photoeye",
+      "position": [0, 0, 0],
+      "config": {
+        "span": 2.08,
+        "height": 1.1,
+        "beamCenterHeightM": 1.35,
+        "blocked": false
+      }
+    },
+    {
+      "id": "scene1_station",
+      "type": "switch",
+      "label": "Scene Start / Stop",
+      "position": [-3.0, 0, 2.1],
+      "rotation": [0, -22, 0],
+      "config": {
+        "style": "pushbutton",
+        "color": 2200422,
+        "action": "scene-toggle"
+      }
+    },
+    {
+      "id": "scene1_stacklight",
+      "type": "indicator",
+      "label": "Scene 1 status light",
+      "position": [3.15, 0, -1.75],
+      "config": {
+        "colors": ["red", "amber", "green"],
+        "active": "amber"
+      }
+    }
+  ],
+  "simulation": {
+    "type": "conveyorStop",
+    "points": [
+      {
+        "name": "conveyor_running",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output",
+        "purpose": "PLC motor command that runs the Scene 1 conveyor."
+      },
+      {
+        "name": "simulated_photoeye",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false,
+        "purpose": "Simulator photoeye feedback that turns TRUE while the package blocks the stop sensor."
+      },
+      {
+        "name": "object_position",
+        "type": "REAL",
+        "owner": "SIM",
+        "initial": 0,
+        "unit": "m",
+        "purpose": "Internal package leading-edge position used by the scene physics."
+      },
+      {
+        "name": "component_state",
+        "type": "STRING",
+        "owner": "SIM",
+        "initial": "stopped_loaded",
+        "purpose": "Internal readable state of the Scene 1 conveyor and package."
+      },
+      {
+        "name": "parts_completed",
+        "type": "DINT",
+        "owner": "SIM",
+        "initial": 0,
+        "purpose": "Internal count of packages that have exited the conveyor."
+      }
+    ],
+    "sourceBehavior": "Scene 1 - Conveyor Stop",
+    "conveyorId": "scene1_conveyor",
+    "photoeyeId": "scene1_photoeye",
+    "productId": "scene1_product",
+    "indicatorId": "scene1_stacklight",
+    "lengthM": 1.0,
+    "speedMps": 0.5,
+    "objectLengthM": 0.2,
+    "photoeyePositionM": 0.5,
+    "minimumPhotoeyeOnS": 0.1,
+    "repeatLoadSeconds": 3.0
+  }
+}

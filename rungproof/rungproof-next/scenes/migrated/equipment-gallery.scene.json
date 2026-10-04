@@ -1,0 +1,516 @@
+{
+  "version": 1,
+  "id": "equipment-gallery",
+  "name": "Reusable Equipment Gallery",
+  "description": "A visual inventory of the current primitive-built assets. Every item is created by the same asset factory used by runtime-loaded scenes.",
+  "camera": {
+    "position": [
+      20,
+      15,
+      23
+    ],
+    "target": [
+      0,
+      1.6,
+      4
+    ],
+    "fov": 50
+  },
+  "equipment": [
+    {
+      "id": "gallery_motor",
+      "type": "motor",
+      "label": "AC motor",
+      "position": [
+        -5.5,
+        0,
+        -3.7
+      ],
+      "config": {
+        "length": 1.6,
+        "diameter": 0.82,
+        "running": true
+      }
+    },
+    {
+      "id": "gallery_conveyor",
+      "type": "conveyor",
+      "label": "Belt conveyor",
+      "position": [
+        1.7,
+        0,
+        -3.7
+      ],
+      "scale": [
+        0.72,
+        0.72,
+        0.72
+      ],
+      "config": {
+        "length": 6,
+        "width": 1.4,
+        "deckHeight": 0.9,
+        "running": true
+      }
+    },
+    {
+      "id": "gallery_box",
+      "type": "box",
+      "label": "Product carton",
+      "position": [
+        5.3,
+        0,
+        -3.7
+      ],
+      "config": {
+        "size": [
+          1.2,
+          1,
+          1
+        ],
+        "color": 13273673
+      }
+    },
+    {
+      "id": "gallery_photoeye",
+      "type": "photoeye",
+      "label": "Through-beam photoeye",
+      "position": [
+        -5.2,
+        0,
+        -0.3
+      ],
+      "config": {
+        "span": 1.8,
+        "height": 0.5,
+        "beamCenterHeightM": 1.35,
+        "blocked": false
+      }
+    },
+    {
+      "id": "gallery_switch",
+      "type": "switch",
+      "label": "Operator pushbutton",
+      "position": [
+        -2.7,
+        0,
+        -0.3
+      ],
+      "config": {
+        "style": "pushbutton",
+        "active": false,
+        "action": "toggle-gallery"
+      }
+    },
+    {
+      "id": "gallery_estop",
+      "type": "switch",
+      "label": "Emergency stop",
+      "position": [
+        -0.8,
+        0,
+        -0.3
+      ],
+      "config": {
+        "style": "emergency",
+        "active": false,
+        "action": "stop-all"
+      }
+    },
+    {
+      "id": "gallery_indicator",
+      "type": "indicator",
+      "label": "Three-color stack light",
+      "position": [
+        1.2,
+        0,
+        -0.3
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "green"
+      }
+    },
+    {
+      "id": "gallery_pump",
+      "type": "pump",
+      "label": "Centrifugal pump",
+      "position": [
+        4.7,
+        0,
+        -0.3
+      ],
+      "config": {
+        "running": true
+      }
+    },
+    {
+      "id": "gallery_tank",
+      "type": "tank",
+      "label": "Level tank",
+      "position": [
+        -3.8,
+        0,
+        4.0
+      ],
+      "scale": [
+        0.72,
+        0.72,
+        0.72
+      ],
+      "config": {
+        "height": 4.5,
+        "diameter": 2.7,
+        "initialLevel": 0.5
+      }
+    },
+    {
+      "id": "gallery_low_sensor",
+      "type": "levelSensor",
+      "label": "Discrete level switch",
+      "position": [
+        -1.9,
+        0.65,
+        4.0
+      ],
+      "scale": [
+        0.9,
+        0.9,
+        0.9
+      ],
+      "config": {
+        "sensorType": "discrete",
+        "threshold": 0.25,
+        "mode": "low"
+      }
+    },
+    {
+      "id": "gallery_transmitter",
+      "type": "levelSensor",
+      "label": "4\u201320 mA level transmitter",
+      "position": [
+        0.2,
+        0.65,
+        4.0
+      ],
+      "config": {
+        "sensorType": "analog",
+        "range": "4-20 mA",
+        "engineeringRange": "0-100 %"
+      }
+    },
+    {
+      "id": "gallery_pipe",
+      "type": "pipe",
+      "label": "Flanged process pipe",
+      "position": [
+        1.9,
+        0.9,
+        4.0
+      ],
+      "config": {
+        "length": 2.8,
+        "diameter": 0.38,
+        "axis": "x",
+        "color": 7636365,
+        "showSupport": true,
+        "supportHeight": 0.82
+      }
+    },
+    {
+      "id": "gallery_fan",
+      "type": "fan",
+      "label": "Industrial ventilation fan",
+      "position": [
+        5.15,
+        0,
+        3.65
+      ],
+      "rotation": [
+        0,
+        -18,
+        0
+      ],
+      "config": {
+        "diameter": 2.25,
+        "centerHeight": 1.75,
+        "bladeCount": 6,
+        "running": true
+      }
+    },
+    {
+      "id": "gallery_selector",
+      "type": "rotarySwitch",
+      "label": "Four-position selector",
+      "position": [
+        -6.0,
+        0,
+        7.2
+      ],
+      "config": {
+        "positionCount": 4,
+        "initialPosition": 2,
+        "action": "toggle-gallery"
+      }
+    },
+    {
+      "id": "gallery_lift",
+      "type": "liftTable",
+      "label": "Scissor lift table",
+      "position": [
+        -2.7,
+        0,
+        7.2
+      ],
+      "scale": [
+        0.72,
+        0.72,
+        0.72
+      ],
+      "config": {
+        "width": 3,
+        "depth": 1.9,
+        "minimumHeight": 0.6,
+        "travel": 2.2,
+        "initialPosition": 0.55
+      }
+    },
+    {
+      "id": "gallery_valve",
+      "type": "valve",
+      "label": "Animated process valve",
+      "position": [
+        0.6,
+        0,
+        7.2
+      ],
+      "config": {
+        "initialPosition": 0.5
+      }
+    },
+    {
+      "id": "gallery_drill",
+      "type": "drillPress",
+      "label": "Drill press",
+      "position": [
+        3.6,
+        0,
+        7.2
+      ],
+      "scale": [
+        0.75,
+        0.75,
+        0.75
+      ],
+      "config": {
+        "travel": 1.25,
+        "initialPosition": 0.35,
+        "running": true
+      }
+    },
+    {
+      "id": "gallery_robot",
+      "type": "robotArm",
+      "label": "Articulated robot",
+      "position": [
+        7.0,
+        0,
+        7.2
+      ],
+      "scale": [
+        0.8,
+        0.8,
+        0.8
+      ],
+      "config": {
+        "initialPosition": 0.4,
+        "running": true
+      }
+    },
+    {
+      "id": "gallery_shutter",
+      "type": "rollerShutter",
+      "label": "Roller shutter",
+      "position": [
+        -4.7,
+        0,
+        12.2
+      ],
+      "scale": [
+        0.72,
+        0.72,
+        0.72
+      ],
+      "config": {
+        "width": 4.2,
+        "height": 3.5,
+        "initialPosition": 0.65
+      }
+    },
+    {
+      "id": "gallery_turntable",
+      "type": "rotaryTable",
+      "label": "Indexed rotary table",
+      "position": [
+        0.0,
+        0,
+        12.2
+      ],
+      "config": {
+        "radius": 1.4,
+        "angleRangeDeg": 180,
+        "initialPosition": 0.3
+      }
+    },
+    {
+      "id": "gallery_machine",
+      "type": "machine",
+      "label": "Enclosed process machine",
+      "position": [
+        4.5,
+        0,
+        12.2
+      ],
+      "scale": [
+        0.8,
+        0.8,
+        0.8
+      ],
+      "config": {
+        "size": [
+          2.2,
+          2.8,
+          1.8
+        ],
+        "running": true
+      }
+    }
+  ],
+  "simulation": {
+    "type": "gallery",
+    "points": [
+      {
+        "name": "gallery_animation",
+        "type": "BOOL",
+        "owner": "SIM",
+        "initial": false,
+        "purpose": "Internal animation state for the equipment gallery."
+      },
+      {
+        "name": "industrial_fan_run",
+        "type": "BOOL",
+        "owner": "SIM",
+        "initial": false,
+        "purpose": "Internal run indication for the gallery industrial fan."
+      },
+      {
+        "name": "emergency_stop",
+        "type": "BOOL",
+        "owner": "SIM",
+        "initial": false,
+        "purpose": "Internal gallery emergency-stop demonstration state."
+      },
+      {
+        "name": "demo_tank_level",
+        "type": "REAL",
+        "owner": "SIM",
+        "initial": 50,
+        "unit": "%",
+        "purpose": "Internal animated level of the gallery demonstration tank."
+      },
+      {
+        "name": "demo_level_signal",
+        "type": "REAL",
+        "owner": "SIM",
+        "initial": 12,
+        "unit": "mA",
+        "purpose": "Internal animated 4-20 mA level signal for the gallery."
+      }
+    ],
+    "actions": [
+      {
+        "id": "toggle-gallery",
+        "label": "Start / stop gallery motion",
+        "type": "toggle",
+        "point": "gallery_animation"
+      },
+      {
+        "id": "stop-all",
+        "label": "Emergency stop gallery motion",
+        "type": "stop"
+      }
+    ],
+    "safeState": {
+      "gallery_animation": false,
+      "industrial_fan_run": false,
+      "emergency_stop": true
+    },
+    "pointBindings": [
+      {
+        "point": "gallery_animation",
+        "equipmentId": "gallery_motor",
+        "mode": "running"
+      },
+      {
+        "point": "gallery_animation",
+        "equipmentId": "gallery_conveyor",
+        "mode": "running"
+      },
+      {
+        "point": "gallery_animation",
+        "equipmentId": "gallery_fan",
+        "mode": "running"
+      },
+      {
+        "point": "gallery_animation",
+        "equipmentId": "gallery_machine",
+        "mode": "running"
+      }
+    ]
+  },
+  "migration": {
+    "sourceFile": "prototype/scenes/equipment-gallery.json",
+    "sourceFormat": "json",
+    "assetMappings": {
+      "conveyor": "material-handling.belt-conveyor.600x6000.v1",
+      "photoeye": "sensing.photoelectric.through-beam.v1",
+      "switch": "controls.operator-station.single-pushbutton.v1",
+      "indicator": "controls.beacon.single-tier.v1",
+      "pusher": "actuation.pneumatic-pusher.1350mm.v1",
+      "motor": "drives.motor.ac-induction.v1",
+      "pipe": "process.pipe.flanged-spool.v1",
+      "tank": "process.tank.vertical-3000x5000.v1",
+      "pump": "process.pump.centrifugal-skid.v1",
+      "valve": "process.valve.actuated-ball.v1",
+      "levelSensor": "sensing.level.analog-4-20ma.v1",
+      "radarLevelSensor": "sensing.level.radar.v1",
+      "rotarySwitch": "controls.operator-station.selector.v1",
+      "fan": "air-handling.fan.axial-1900.v1",
+      "liftTable": "material-handling.lift.scissor-table.v1",
+      "drillPress": "machining.drill-press.pedestal.v1",
+      "robotArm": "robotics.robot.six-axis-medium.v1",
+      "rotaryTable": "material-handling.table.powered-rotary.v1",
+      "rollerShutter": "access-control.door.roller-shutter.v1",
+      "machine": "machining.machine.enclosed-center.v1",
+      "palletLoad": "loads.palletized-cases.gma-48x40.v1",
+      "toteFiller": "process.packaging.filler.tote-volumetric.v1",
+      "toteCapper": "process.packaging.capper.tote-inline.v1",
+      "toteLabeler": "process.packaging.labeler.tote-pressure-sensitive.v1",
+      "toteVision": "inspection.vision.tote-multicamera.v1",
+      "meteringSkid": "process.dosing.skid.liquid-metering.v1",
+      "containerReceiver": "material-handling.receiver.container-two-position.v1",
+      "sizeSensorBank": "sensing.dimensioning.parcel-three-height.v1"
+    },
+    "scenePropTypes": [
+      "box"
+    ],
+    "unresolvedAssetTypes": [],
+    "visualStatus": "mapped",
+    "productionApproved": false,
+    "reason": "Production approval requires every reusable asset and the complete scene to pass visual review."
+  }
+}

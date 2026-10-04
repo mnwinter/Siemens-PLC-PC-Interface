@@ -1,0 +1,14 @@
+{
+  "assetId": "loads.drum.steel-55gal.v1",
+  "reviewerId": "codex-agent-steel-shipping-drum-rereview",
+  "identifiedFamily": "generic closed-head industrial steel drum",
+  "confidence": 0.9,
+  "result": "pass",
+  "reviewRound": 2,
+  "defects": [
+    "Blank placard projects from the shell and reads as an unfinished applied label.",
+    "Pristine uniform gloss lacks close-up material variation or handling wear.",
+    "Top closure geometry and material distinction remain stylized.",
+    "Circumferential ribs remain somewhat prominent for a standard 55-gallon drum."
+  ]
+}

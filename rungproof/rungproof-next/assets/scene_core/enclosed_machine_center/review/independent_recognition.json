@@ -1,0 +1,8 @@
+{
+  "assetId": "machining.machine.enclosed-center.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-022",
+  "identifiedFamily": "Enclosed vertical CNC milling machine / small vertical machining center",
+  "confidence": 0.96,
+  "concerns": "Stylized toy-like proportions; front door/window is unclear or missing; spindle/tool interface is ambiguous; workholding and table geometry are simplified; control panel lacks realistic operator controls, display, and cabling; several panels and handles appear nonfunctional or floating.",
+  "sourceReview": "build/blind-review-assets/image_022.round7.review.md"
+}

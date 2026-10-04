@@ -1,0 +1,8 @@
+{
+  "assetId": "machines.marking.laser.enclosed-class1.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-161",
+  "identifiedFamily": "Compact enclosed laser marking/processing machine with a front access door and side-mounted control/safety module",
+  "confidence": 0.86,
+  "concerns": "Stylized rendering; no visible laser aperture, workholding, exhaust, or clear safety interlock hardware to distinguish marking from another enclosed laser processJapgolly",
+  "sourceReview": "build/blind-review-assets/image_161.production-machines-round1.review.md"
+}

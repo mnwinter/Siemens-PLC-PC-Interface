@@ -1,0 +1,14 @@
+{
+  "assetId": "training.accessory.length_encoder.v1",
+  "reviewerId": "codex-agent-source-blind-encoder-final-review",
+  "identifiedFamily": "flange-mounted rotary encoder (identical generic basis model)",
+  "confidence": 0.96,
+  "result": "pass",
+  "reviewRound": 1,
+  "defects": [
+    "Incremental versus absolute encoding is not visually distinguishable.",
+    "Cable, coupling, and driven-machine interface are simplified."
+  ],
+  "sourceAssetId": "sensing.position.incremental-encoder.v1",
+  "evidenceBasis": "delivery GLB is byte-identical to the independently reviewed generic basis asset"
+}

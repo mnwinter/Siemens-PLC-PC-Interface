@@ -1,0 +1,12 @@
+{
+  "assetId": "safety.guardrail.pedestrian-4m.v1",
+  "reviewerId": "codex-agent-01a0c42b-pedestrian-guardrail-final-blind-review",
+  "identifiedFamily": "floor-anchored pedestrian safety guardrail / walkway barrier",
+  "confidence": 0.93,
+  "result": "pass",
+  "reviewRound": 2,
+  "defects": [
+    "Without contextual signage it can also read as a low-impact vehicle guide.",
+    "Contrasting black post caps are slightly stylized."
+  ]
+}

@@ -1,0 +1,225 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-2-05-bay-light-selector",
+  "name": "Lab 2.5 - Bay Light Selector",
+  "description": "A two-position maintenance selector controls two independent LED bay lights: isolated in position 0 and both energized in position 1.",
+  "camera": {
+    "position": [
+      10,
+      7,
+      10
+    ],
+    "target": [
+      0,
+      1.2,
+      0
+    ],
+    "fov": 43
+  },
+  "equipment": [
+    {
+      "id": "mode_selector",
+      "type": "rotarySwitch",
+      "label": "Maintenance selector",
+      "position": [
+        -1.8,
+        0,
+        0
+      ],
+      "config": {
+        "action": "next-mode",
+        "positionCount": 2,
+        "initialPosition": 0
+      }
+    },
+    {
+      "id": "bay_light_a",
+      "type": "indicator",
+      "label": "Bay A LED light",
+      "position": [
+        -0.4,
+        0,
+        0
+      ],
+      "config": {
+        "colors": [
+          "white"
+        ],
+        "active": null
+      }
+    },
+    {
+      "id": "bay_light_b",
+      "type": "indicator",
+      "label": "Bay B LED light",
+      "position": [
+        1.2,
+        0,
+        0
+      ],
+      "config": {
+        "colors": [
+          "white"
+        ],
+        "active": null
+      }
+    }
+  ],
+  "simulation": {
+    "type": "booleanPanel",
+    "points": [
+      {
+        "name": "selector_position",
+        "type": "DINT",
+        "owner": "PC",
+        "initial": 0
+      },
+      {
+        "name": "bay_a_command",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "bay_b_command",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      }
+    ],
+    "actions": [
+      {
+        "id": "next-mode",
+        "label": "Advance selector",
+        "type": "cycle",
+        "point": "selector_position",
+        "values": [
+          0,
+          1
+        ]
+      }
+    ],
+    "rules": [
+      {
+        "when": {
+          "selector_position": 0
+        },
+        "set": {
+          "bay_a_command": false,
+          "bay_b_command": false
+        }
+      },
+      {
+        "when": {
+          "selector_position": 1
+        },
+        "set": {
+          "bay_a_command": true,
+          "bay_b_command": true
+        }
+      }
+    ],
+    "edgeRules": [],
+    "pointBindings": [
+      {
+        "point": "selector_position",
+        "equipmentId": "mode_selector",
+        "mode": "selector"
+      },
+      {
+        "point": "bay_a_command",
+        "equipmentId": "bay_light_a",
+        "mode": "indicator",
+        "activeColor": "white"
+      },
+      {
+        "point": "bay_b_command",
+        "equipmentId": "bay_light_b",
+        "mode": "indicator",
+        "activeColor": "white"
+      }
+    ]
+  },
+  "training": {
+    "hints": [
+      "Define the required result before writing logic: Position 0 de-energizes both lights; position 1 energizes both.",
+      "Treat selector_position as simulator-to-PLC inputs. The PLC should command only bay_a_command, bay_b_command.",
+      "List the required input and memory states before assigning any output. Test every state, including the all-false state."
+    ],
+    "solution": {
+      "summary": "This is one valid functional reference. The same behavior may be implemented in LAD, FBD, or SCL; the rung layout is not prescribed.",
+      "steps": [
+        "When selector_position = 0, set bay_a_command = false, bay_b_command = false.",
+        "When selector_position = 1, set bay_a_command = true, bay_b_command = true."
+      ],
+      "acceptance": "Position 0 de-energizes both lights; position 1 energizes both."
+    },
+    "machineGuide": {
+      "purpose": "A two-position maintenance selector controls two independent LED bay lights: isolated in position 0 and both energized in position 1.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state.",
+        "The PLC is ready to command bay_a_command, bay_b_command."
+      ],
+      "normalSequence": [
+        "Observe the initial input state.",
+        "Apply selector_position.",
+        "Verify the PLC produces only the required bay_a_command, bay_b_command."
+      ],
+      "stopBehavior": [
+        "A normal stop removes PLC-owned commands and leaves the equipment in a safe state.",
+        "Reset returns the scene to its documented initial condition."
+      ],
+      "faultBehavior": [
+        "A missing, stale, or incorrectly typed input must not be replaced by simulator logic.",
+        "A missing PLC command leaves the affected equipment stopped and the test diagnosable."
+      ],
+      "expectedObservations": [
+        "Position 0 de-energizes both lights; position 1 energizes both."
+      ]
+    },
+    "sequenceNumber": 5,
+    "inheritsFrom": "lab-2-04-two-station-call",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout"
+    ],
+    "addedTags": [
+      "selector_position",
+      "bay_a_command",
+      "bay_b_command"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-2-04-two-station-call"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "isolated",
+        "expect": {
+          "bay_a_command": false,
+          "bay_b_command": false
+        }
+      },
+      {
+        "name": "energized",
+        "actions": [
+          "next-mode"
+        ],
+        "expect": {
+          "bay_a_command": true,
+          "bay_b_command": true
+        }
+      }
+    ]
+  }
+}

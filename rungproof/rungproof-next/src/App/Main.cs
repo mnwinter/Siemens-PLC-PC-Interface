@@ -1,0 +1,3420 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
+using Godot;
+using RungProof.Next.Catalog;
+using RungProof.Next.Connections;
+using RungProof.Next.Diagnostics;
+using RungProof.Next.Scenes;
+using RungProof.Next.VirtualController;
+using RungProof.Next.Workspace;
+
+namespace RungProof.Next.App;
+
+public partial class Main : Node3D
+{
+    private string? _capturePath;
+    private int _captureFramesRemaining;
+    private string _captureState = "running";
+    private string? _candidateId;
+    private Node3D? _candidatePreviewRoot;
+    private string? _sceneId;
+    private string? _sceneAction;
+    private bool _verifySceneContract;
+    private bool _verifyAppShell;
+    private bool _verifyWorkspace;
+    private bool _verifyHud;
+    private bool _verifyCameraInput;
+    private bool _verifySceneControls;
+    private bool _verifyVirtualController;
+    private bool _verifyNumericSceneIo;
+    private bool _verifyLadderEditor;
+    private bool _verifySplitView;
+    private bool _verifyUiDensity;
+    private bool _virtualControllerDemo;
+    private string? _mcpProjectPath;
+    private string? _mcpSceneId;
+    private bool _appShellRequested;
+    private string _shellView = string.Empty;
+    private string _shellScene = string.Empty;
+    private string _shellSearch = string.Empty;
+    private string _shellPlaceAsset = string.Empty;
+    private bool _shellDemoConnections;
+    private string _shellTransformMode = string.Empty;
+    private string _shellTransformSpace = string.Empty;
+    private bool _shellSelectAll;
+    private bool _shellGroupSelection;
+    private bool _shellNestedGroups;
+    private bool _shellDemoLocalAxes;
+    private bool _shellDemoMarquee;
+    private bool _shellDemoArrangeMenu;
+    private bool _shellDemoGroupRename;
+    private bool _shellDemoGroupPivot;
+    private Func<float>? _previewSpeedReader;
+    private Node3D? _captureWitness;
+    private SceneSimulationRuntime? _sceneRuntime;
+    private SceneControlInteractor? _sceneControlInteractor;
+    private Camera3D? _sceneCamera;
+    private Node3D? _sceneCompositionRoot;
+    private Node3D? _assetPreviewRoot;
+    private Vector3 _sceneCameraDirection;
+    private SimulatorShell? _simulatorShell;
+    private ExternalPlcRuntimeClient? _externalConnection;
+    private int _placedAssetCount;
+    private string? _currentSceneId;
+    private AssetCatalogDocument? _candidateCatalog;
+    private SceneCatalogDocument? _sceneCatalog;
+    private Camera3D? _mainCamera;
+    private SceneCameraController? _cameraController;
+    private SceneDefinition? _activeSceneDefinition;
+    private readonly Dictionary<string, (string AssetId, Node3D Node)> _workspaceNodes =
+        new(StringComparer.Ordinal);
+    private readonly List<WorkspaceDocument> _undoHistory = [];
+    private readonly List<WorkspaceDocument> _redoHistory = [];
+    private string? _selectedPlacementId;
+    private readonly HashSet<string> _selectedPlacementIds = new(StringComparer.Ordinal);
+    private readonly List<WorkspaceConnectorLink> _connectorLinks = [];
+    private readonly List<WorkspaceSignalLink> _signalLinks = [];
+    private readonly List<WorkspaceGroup> _workspaceGroups = [];
+    private VirtualControllerSession? _virtualController;
+    private LadderProgram? _virtualProgram;
+    private VirtualControllerSnapshot? _virtualSnapshot;
+    private Node3D? _connectionVisuals;
+    private bool _snapEnabled;
+    private float _positionSnapM = 0.10f;
+    private float _rotationSnapDegrees = 15.0f;
+    private WorkspaceTransformSpace _transformSpace = WorkspaceTransformSpace.World;
+    private WorkspaceTransformGizmo? _transformGizmo;
+    private WorkspaceDocument? _gizmoStartSnapshot;
+    private readonly Dictionary<string, (Vector3 Position, Vector3 Rotation, Vector3 Scale)> _dragStartTransforms =
+        new(StringComparer.Ordinal);
+    private Vector3 _dragPivot;
+    private WorkspaceDocument? _workspaceClipboard;
+    private bool _marqueePending;
+    private bool _marqueeActive;
+    private bool _marqueeAdditive;
+    private Vector2 _marqueeStart;
+
+    public override void _Ready()
+    {
+        // Keep editor dialogs and context property panels inside the application
+        // viewport so they scale with the workbench and remain part of captures.
+        GetTree().Root.GuiEmbedSubwindows = true;
+        var camera = GetNode<Camera3D>("Camera");
+        camera.Fov = 42.0f;
+        // glTF converts Blender Z-up coordinates to Godot Y-up:
+        // Blender (x, y, z) becomes Godot (x, z, -y).
+        camera.Position = new Vector3(4.4f, 2.6f, 4.1f);
+        camera.LookAt(new Vector3(0.0f, 0.72f, 0.0f), Vector3.Up);
+
+        var userArguments = OS.GetCmdlineUserArgs();
+        _capturePath = userArguments
+            .FirstOrDefault(argument => argument.StartsWith("--capture=", StringComparison.Ordinal))?
+            .Substring("--capture=".Length);
+        _captureState = userArguments
+            .FirstOrDefault(argument => argument.StartsWith("--capture-state=", StringComparison.Ordinal))?
+            .Substring("--capture-state=".Length)
+            ?? "running";
+        _candidateId = userArguments
+            .FirstOrDefault(argument => argument.StartsWith("--candidate-id=", StringComparison.Ordinal))?
+            .Substring("--candidate-id=".Length);
+        _sceneId = userArguments
+            .FirstOrDefault(argument => argument.StartsWith("--scene-id=", StringComparison.Ordinal))?
+            .Substring("--scene-id=".Length);
+        _sceneAction = userArguments
+            .FirstOrDefault(argument => argument.StartsWith("--scene-action=", StringComparison.Ordinal))?
+            .Substring("--scene-action=".Length);
+        _verifySceneContract = userArguments.Contains("--verify-scene-contract", StringComparer.Ordinal);
+        _verifyAppShell = userArguments.Contains("--verify-app-shell", StringComparer.Ordinal);
+        _verifyWorkspace = userArguments.Contains("--verify-workspace", StringComparer.Ordinal);
+        _verifyHud = userArguments.Contains("--verify-hud", StringComparer.Ordinal);
+        _verifyCameraInput = userArguments.Contains("--verify-camera-input", StringComparer.Ordinal);
+        _verifySceneControls = userArguments.Contains("--verify-scene-controls", StringComparer.Ordinal);
+        _verifyVirtualController = userArguments.Contains("--verify-virtual-controller", StringComparer.Ordinal);
+        _verifyNumericSceneIo = userArguments.Contains("--verify-numeric-scene-io", StringComparer.Ordinal);
+        _verifyLadderEditor = userArguments.Contains("--verify-ladder-editor", StringComparer.Ordinal);
+        _verifySplitView = userArguments.Contains("--verify-split-view", StringComparer.Ordinal);
+        _verifyUiDensity = userArguments.Contains("--verify-ui-density", StringComparer.Ordinal);
+        _virtualControllerDemo = userArguments.Contains("--virtual-controller-demo", StringComparer.Ordinal);
+        _mcpProjectPath = userArguments
+            .FirstOrDefault(argument => argument.StartsWith("--mcp-project=", StringComparison.Ordinal))?
+            .Substring("--mcp-project=".Length);
+        _mcpSceneId = userArguments
+            .FirstOrDefault(argument => argument.StartsWith("--mcp-scene=", StringComparison.Ordinal))?
+            .Substring("--mcp-scene=".Length);
+        _appShellRequested = _verifyAppShell || _verifyWorkspace || _verifyHud || _verifyCameraInput || _verifySceneControls
+            || _verifyVirtualController || _verifyNumericSceneIo || _verifyLadderEditor || _verifySplitView || _verifyUiDensity || _virtualControllerDemo
+            || userArguments.Contains("--app-shell", StringComparer.Ordinal);
+        _shellView = userArguments
+            .FirstOrDefault(argument => argument.StartsWith("--shell-view=", StringComparison.Ordinal))?
+            .Substring("--shell-view=".Length) ?? string.Empty;
+        _shellScene = userArguments
+            .FirstOrDefault(argument => argument.StartsWith("--shell-scene=", StringComparison.Ordinal))?
+            .Substring("--shell-scene=".Length) ?? string.Empty;
+        _shellSearch = userArguments
+            .FirstOrDefault(argument => argument.StartsWith("--shell-search=", StringComparison.Ordinal))?
+            .Substring("--shell-search=".Length) ?? string.Empty;
+        _shellPlaceAsset = userArguments
+            .FirstOrDefault(argument => argument.StartsWith("--shell-place-asset=", StringComparison.Ordinal))?
+            .Substring("--shell-place-asset=".Length) ?? string.Empty;
+        _shellDemoConnections = userArguments.Contains("--shell-demo-connections", StringComparer.Ordinal);
+        _shellTransformMode = userArguments
+            .FirstOrDefault(argument => argument.StartsWith("--shell-transform-mode=", StringComparison.Ordinal))?
+            .Substring("--shell-transform-mode=".Length) ?? string.Empty;
+        _shellTransformSpace = userArguments
+            .FirstOrDefault(argument => argument.StartsWith("--shell-transform-space=", StringComparison.Ordinal))?
+            .Substring("--shell-transform-space=".Length) ?? string.Empty;
+        _shellSelectAll = userArguments.Contains("--shell-select-all", StringComparer.Ordinal);
+        _shellGroupSelection = userArguments.Contains("--shell-group-selection", StringComparer.Ordinal);
+        _shellNestedGroups = userArguments.Contains("--shell-nested-groups", StringComparer.Ordinal);
+        _shellDemoLocalAxes = userArguments.Contains("--shell-demo-local-axes", StringComparer.Ordinal);
+        _shellDemoMarquee = userArguments.Contains("--shell-demo-marquee", StringComparer.Ordinal);
+        _shellDemoArrangeMenu = userArguments.Contains("--shell-demo-arrange-menu", StringComparer.Ordinal);
+        _shellDemoGroupRename = userArguments.Contains("--shell-demo-group-rename", StringComparer.Ordinal);
+        _shellDemoGroupPivot = userArguments.Contains("--shell-demo-group-pivot", StringComparer.Ordinal);
+        _captureFramesRemaining = _capturePath is null
+            ? 0
+            : _captureState.Equals("stopped", StringComparison.OrdinalIgnoreCase) ? 45 : 120;
+
+        var production = AssetCatalogLoader.LoadFromProject(
+            "res://assets/catalog/production.catalog.json"
+        );
+        var candidates = AssetCatalogLoader.LoadFromProject(
+            "res://assets/catalog/candidates.catalog.json",
+            requireApproval: false
+        );
+        var assets = AssetCatalogLoader.Merge(production, candidates);
+
+        GD.Print($"RungProof Next ready. Production assets: {production.Assets.Count}.");
+        GD.Print($"Candidate assets: {candidates.Assets.Count}.");
+        GD.Print("Legacy primitive assets intentionally excluded.");
+
+        if (_mcpProjectPath is not null)
+        {
+            VerifyMcpProject(_mcpProjectPath, _mcpSceneId);
+            return;
+        }
+
+        if (_sceneId is not null)
+        {
+            AddMigratedScene(_sceneId, assets, camera);
+        }
+        else if (_candidateId is not null || (_capturePath is not null && !_appShellRequested))
+        {
+            var selectedAsset = _candidateId is null
+                ? candidates.Assets[0]
+                : candidates.Assets.FirstOrDefault(asset => asset.Id == _candidateId)
+                    ?? throw new InvalidOperationException($"Unknown candidate asset '{_candidateId}'.");
+            AddCandidatePreview(selectedAsset);
+            if (_capturePath is not null && selectedAsset.Kinematics.Count > 0)
+            {
+                AddCaptureWitness(selectedAsset);
+            }
+            if (_candidatePreviewRoot is not null)
+            {
+                _sceneCamera = camera;
+                _sceneCompositionRoot = _candidatePreviewRoot;
+                _sceneCameraDirection = camera.Position;
+                FrameComposition(camera, _candidatePreviewRoot, _sceneCameraDirection);
+            }
+        }
+        else
+        {
+            AddSimulatorShell(assets, camera);
+        }
+    }
+
+    public override void _ExitTree()
+    {
+        _externalConnection?.Dispose();
+    }
+
+    /// <summary>
+    /// Headless verification entry point for the local RungProof MCP server.
+    /// It loads only editor JSON and scene-declared symbolic points, compiles
+    /// the program, and validates the offline I/O seam.  It deliberately never
+    /// creates a connection client or any physical PLC transport.
+    /// </summary>
+    private void VerifyMcpProject(string projectPath, string? requestedSceneId)
+    {
+        var issues = new List<LadderValidationIssue>();
+        string projectName = string.Empty;
+        string sceneId = requestedSceneId ?? string.Empty;
+        try
+        {
+            var loaded = LadderEditorProjectJson.Load(System.IO.File.ReadAllText(projectPath));
+            issues.AddRange(loaded.Issues);
+            if (!loaded.IsReadable || loaded.Document is null)
+            {
+                PrintMcpVerification(false, projectName, sceneId, issues);
+                GetTree().Quit(1);
+                return;
+            }
+
+            projectName = loaded.Document.Name;
+            var program = loaded.Document.BuildProgram();
+            issues.AddRange(LadderCompiler.Compile(program).Issues);
+            sceneId = string.IsNullOrWhiteSpace(requestedSceneId)
+                ? loaded.Document.SourceSceneId
+                : requestedSceneId;
+            if (string.IsNullOrWhiteSpace(sceneId))
+            {
+                issues.Add(new LadderValidationIssue("MCP001", "$.sourceSceneId",
+                    "A sourceSceneId or --mcp-scene is required for scene I/O validation."));
+            }
+            else
+            {
+                var catalog = SceneCatalogLoader.LoadCatalog("res://scenes/catalog/original-scenes.catalog.json");
+                var entry = catalog.Scenes.FirstOrDefault(candidate => candidate.Id == sceneId);
+                if (entry is null)
+                {
+                    issues.Add(new LadderValidationIssue("MCP002", "$.sourceSceneId",
+                        $"Scene '{sceneId}' is not in the migrated scene catalog."));
+                }
+                else
+                {
+                    var scene = SceneCatalogLoader.LoadScene(entry);
+                    issues.AddRange(SceneIoBindingValidator.Validate(program, ReadScenePoints(scene)));
+                }
+            }
+        }
+        catch (Exception exception)
+        {
+            issues.Add(new LadderValidationIssue("MCP003", "$.project", exception.Message));
+        }
+
+        var passed = issues.Count == 0;
+        PrintMcpVerification(passed, projectName, sceneId, issues);
+        GetTree().Quit(passed ? 0 : 1);
+    }
+
+    private static IReadOnlyList<SceneIoPoint> ReadScenePoints(SceneDefinition scene)
+    {
+        var points = new List<SceneIoPoint>();
+        if (scene.Simulation.ValueKind != JsonValueKind.Object
+            || !scene.Simulation.TryGetProperty("points", out var elements)
+            || elements.ValueKind != JsonValueKind.Array) return points;
+        foreach (var element in elements.EnumerateArray())
+        {
+            var name = JsonText(element, "name");
+            if (name.Length == 0) continue;
+            points.Add(new SceneIoPoint(name, JsonText(element, "type"), JsonText(element, "owner"),
+                JsonText(element, "role"), JsonText(element, "purpose")));
+        }
+        return points;
+    }
+
+    private static string JsonText(JsonElement element, string name) =>
+        element.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String
+            ? value.GetString() ?? string.Empty
+            : string.Empty;
+
+    private static void PrintMcpVerification(
+        bool passed,
+        string projectName,
+        string sceneId,
+        IReadOnlyList<LadderValidationIssue> issues)
+    {
+        var payload = JsonSerializer.Serialize(new
+        {
+            passed,
+            projectName,
+            sceneId,
+            issueCount = issues.Count,
+            issues = issues.Select(issue => new { issue.Code, issue.Path, issue.Message }),
+            safety = "offline-symbolic-only; physical-plc-transport-unavailable",
+        });
+        GD.Print($"MCP_PROJECT_VALIDATION {payload}");
+    }
+
+    private void AddSimulatorShell(AssetCatalogDocument candidates, Camera3D camera)
+    {
+        var sceneCatalog = SceneCatalogLoader.LoadCatalog(
+            "res://scenes/catalog/original-scenes.catalog.json"
+        );
+        _candidateCatalog = candidates;
+        _sceneCatalog = sceneCatalog;
+        _mainCamera = camera;
+        var scenes = sceneCatalog.Scenes.Select(SceneCatalogLoader.LoadScene).ToArray();
+        var diagnostics = ProjectValidator.Validate(candidates, sceneCatalog, scenes);
+        _externalConnection = new ExternalPlcRuntimeClient();
+        IGuardedRuntimeClient connection = _externalConnection;
+        _simulatorShell = new SimulatorShell(candidates, sceneCatalog, diagnostics, connection);
+        _simulatorShell.SceneRequested += sceneId =>
+        {
+            try
+            {
+                AddMigratedScene(sceneId, candidates, camera, showRuntimeControls: false, autoRun: false);
+                _simulatorShell.SetWorkspaceStatus($"SCENARIO LOADED · {_activeSceneDefinition?.Name ?? sceneId}");
+            }
+            catch (Exception exception)
+            {
+                _simulatorShell.SetWorkspaceStatus($"SCENARIO LOAD FAILED · {exception.Message}", isError: true);
+                GD.PushError($"SCENARIO_LOAD_FAILED id={sceneId} error={exception}");
+            }
+        };
+        _simulatorShell.AssetPlacementRequested += asset => PlaceAsset(asset);
+        _simulatorShell.AssetPreviewRequested += OpenAssetPreview;
+        _simulatorShell.AssetPreviewClosed += CloseAssetPreview;
+        _simulatorShell.SaveWorkspaceRequested += SaveWorkspace;
+        _simulatorShell.LoadWorkspaceRequested += LoadWorkspace;
+        _simulatorShell.SaveWorkspaceToPathRequested += SaveWorkspaceToPath;
+        _simulatorShell.LoadWorkspaceFromPathRequested += LoadWorkspaceFromPath;
+        _simulatorShell.PlacementSelectionSetRequested += SetSelection;
+        _simulatorShell.PlacementTransformRequested += TransformPlacement;
+        _simulatorShell.UndoRequested += UndoWorkspace;
+        _simulatorShell.RedoRequested += RedoWorkspace;
+        _simulatorShell.DuplicateSelectionRequested += DuplicateSelection;
+        _simulatorShell.CopySelectionRequested += CopySelection;
+        _simulatorShell.PasteSelectionRequested += PasteSelection;
+        _simulatorShell.DeleteSelectionRequested += DeleteSelection;
+        _simulatorShell.GroupSelectionRequested += GroupSelection;
+        _simulatorShell.UngroupSelectionRequested += UngroupSelection;
+        _simulatorShell.RenameGroupRequested += RenameGroup;
+        _simulatorShell.GroupPivotRequested += SetGroupPivot;
+        _simulatorShell.FocusPlacementRequested += FocusPlacement;
+        _simulatorShell.ResetPlacementTransformRequested += ResetPlacementTransform;
+        _simulatorShell.SnapSettingsChanged += SetSnapSettings;
+        _simulatorShell.TransformModeRequested += SetTransformMode;
+        _simulatorShell.TransformSpaceRequested += SetTransformSpace;
+        _simulatorShell.ArrangeSelectionRequested += ArrangeSelection;
+        _simulatorShell.ConnectorLinkRequested += CreateConnectorLink;
+        _simulatorShell.SignalLinkRequested += CreateSignalLink;
+        _simulatorShell.ConnectorLinkDeleteRequested += DeleteConnectorLink;
+        _simulatorShell.SignalLinkDeleteRequested += DeleteSignalLink;
+        _simulatorShell.RunRequested += RunActiveController;
+        _simulatorShell.StopRequested += StopActiveController;
+        _simulatorShell.ResetRequested += ResetActiveController;
+        _simulatorShell.VirtualControllerDemoRequested += EnableVirtualControllerDemo;
+        _simulatorShell.VirtualControllerProgramRequested += EnableVirtualControllerProgram;
+        _simulatorShell.VirtualControllerDisabled += DisableVirtualController;
+        _simulatorShell.VirtualForceRequested += ApplyVirtualForce;
+        _simulatorShell.VirtualForceRemoveRequested += RemoveVirtualForce;
+        _simulatorShell.VirtualForceClearRequested += ClearVirtualForces;
+        _simulatorShell.VirtualStartRequested += () => PulseVirtualInput("operator.start", "start_command");
+        _simulatorShell.VirtualStopRequested += () => PulseVirtualInput("operator.stop", "stop_command");
+        AddChild(_simulatorShell);
+        _cameraController = new SceneCameraController(camera);
+        _cameraController.ViewportRectProvider = () => _simulatorShell?.SceneViewportRect() ?? new Rect2();
+        _simulatorShell.ProductViewChanged += _ => _cameraController.CancelPointerCapture();
+        AddChild(_cameraController);
+        _transformGizmo = new WorkspaceTransformGizmo();
+        AddChild(_transformGizmo);
+
+        if (sceneCatalog.Scenes.Count > 0)
+        {
+            var initialSceneId = _shellScene.Length > 0 ? _shellScene : sceneCatalog.Scenes[0].Id;
+            AddMigratedScene(
+                initialSceneId,
+                candidates,
+                camera,
+                showRuntimeControls: false,
+                autoRun: false
+            );
+        }
+        if (_verifyHud)
+        {
+            CreateDemoConnections(candidates);
+            _simulatorShell.SetReviewState("connections", string.Empty);
+            CallDeferred(nameof(VerifyHud));
+        }
+        else if (_verifyWorkspace)
+        {
+            CallDeferred(nameof(VerifyWorkspace));
+        }
+        else if (_verifyAppShell)
+        {
+            CallDeferred(nameof(VerifyAppShell));
+        }
+        else if (_verifyCameraInput)
+        {
+            CallDeferred(nameof(VerifyCameraInput));
+        }
+        else if (_verifySceneControls)
+        {
+            CallDeferred(nameof(VerifySceneControls));
+        }
+        else if (_verifyVirtualController)
+        {
+            CallDeferred(nameof(VerifyVirtualController));
+        }
+        else if (_verifyNumericSceneIo)
+        {
+            CallDeferred(nameof(VerifyNumericSceneIo));
+        }
+        else if (_verifyLadderEditor)
+        {
+            CallDeferred(nameof(VerifyLadderEditor));
+        }
+        else if (_verifySplitView)
+        {
+            CallDeferred(nameof(VerifySplitView));
+        }
+        else if (_verifyUiDensity)
+        {
+            CallDeferred(nameof(VerifyUiDensity));
+        }
+        else if (_virtualControllerDemo)
+        {
+            EnableVirtualControllerDemo();
+            _virtualController?.PulseInput("start_command");
+            RunActiveController();
+            if (_shellView.Length > 0) _simulatorShell.SetReviewState(_shellView, _shellSearch);
+        }
+        else if (_shellView.Length > 0 || _shellSearch.Length > 0)
+        {
+            if (_shellDemoConnections)
+            {
+                CreateDemoConnections(candidates);
+            }
+            else if (_shellPlaceAsset.Length > 0)
+            {
+                var asset = candidates.Assets.FirstOrDefault(item => item.Id == _shellPlaceAsset)
+                    ?? throw new InvalidOperationException($"Unknown shell review asset '{_shellPlaceAsset}'.");
+                PlaceAsset(asset);
+            }
+            if (Enum.TryParse<WorkspaceTransformMode>(_shellTransformMode, true, out var reviewMode))
+                SetTransformMode(reviewMode);
+            if (Enum.TryParse<WorkspaceTransformSpace>(_shellTransformSpace, true, out var reviewSpace))
+                SetTransformSpace(reviewSpace);
+            if (_shellSelectAll) SetSelection(_workspaceNodes.Keys.ToArray());
+            if (_shellGroupSelection) GroupSelection();
+            if (_shellNestedGroups) CreateNestedGroupReviewAssembly(candidates);
+            if (_shellDemoLocalAxes && _selectedPlacementId is not null
+                && _workspaceNodes.TryGetValue(_selectedPlacementId, out var reviewPlacement))
+            {
+                reviewPlacement.Node.RotationDegrees = new Vector3(0, 35, 0);
+                SetTransformSpace(WorkspaceTransformSpace.Local);
+                RefreshWorkspaceUi();
+            }
+            if (_shellDemoMarquee) CallDeferred(nameof(ShowReviewMarquee));
+            if (_shellDemoArrangeMenu) _simulatorShell.CallDeferred(nameof(SimulatorShell.ShowArrangeMenu));
+            if (_shellDemoGroupRename) _simulatorShell.CallDeferred(nameof(SimulatorShell.ShowRenameGroupDialog));
+            if (_shellDemoGroupPivot) _simulatorShell.CallDeferred(nameof(SimulatorShell.ShowPivotDialog));
+            _simulatorShell.SetReviewState(_shellView, _shellSearch);
+        }
+        else
+        {
+            // Startup acknowledgement is interactive-only; it must not cover
+            // deterministic verification or capture output.
+            if (_capturePath is null)
+                _simulatorShell.CallDeferred(nameof(SimulatorShell.ShowSimulatorModeNotice));
+        }
+    }
+
+    private void CreateDemoConnections(AssetCatalogDocument candidates)
+    {
+        var conveyor = candidates.Assets.First(item => item.Id == "material-handling.belt-conveyor.600x6000.v1");
+        var photoeye = candidates.Assets.First(item => item.Id == "sensing.photoelectric.through-beam.v1");
+        PlaceAsset(conveyor);
+        var conveyorInstance = _selectedPlacementId!;
+        PlaceAsset(photoeye);
+        var photoeyeInstance = _selectedPlacementId!;
+        CreateConnectorLink(conveyorInstance, "material_out", photoeyeInstance, "beam_center");
+        CreateSignalLink(conveyorInstance, "run_command", "conveyor_run");
+    }
+
+    private void EnableVirtualControllerDemo()
+    {
+        if (_candidateCatalog is null || _mainCamera is null || _simulatorShell is null) return;
+        var path = ProjectSettings.GlobalizePath("res://programs/demo-conveyor.ld.json");
+        var loaded = LadderProgramJson.Load(System.IO.File.ReadAllText(path));
+        if (!loaded.IsValid || loaded.Program is null)
+        {
+            _simulatorShell.SetVirtualControllerValidation(loaded.Issues);
+            return;
+        }
+        if (_currentSceneId != DemoPrograms.ConveyorSceneId)
+        {
+            AddMigratedScene(DemoPrograms.ConveyorSceneId, _candidateCatalog, _mainCamera,
+                showRuntimeControls: false, autoRun: false);
+        }
+        EnableVirtualControllerProgram(loaded.Program);
+    }
+
+    private void EnableVirtualControllerProgram(LadderProgram program)
+    {
+        if (_candidateCatalog is null || _mainCamera is null || _simulatorShell is null) return;
+        if (_virtualController is not null) DisableVirtualController();
+        if (_sceneRuntime is null) return;
+
+        var compiled = LadderCompiler.Compile(program);
+        if (!compiled.IsValid || compiled.Program is null)
+        {
+            _simulatorShell.SetVirtualControllerValidation(compiled.Issues);
+            return;
+        }
+
+        _virtualProgram = program;
+        _virtualController = new VirtualControllerSession(new VirtualControllerRuntime(compiled.Program));
+        _virtualController.SnapshotPublished += OnVirtualSnapshot;
+        _sceneRuntime.UsesExternalClock = true;
+        _sceneRuntime.ResetSimulation();
+        _virtualSnapshot = _virtualController.Reset();
+        CommitVirtualControllerSnapshot(_virtualSnapshot);
+        _simulatorShell.AttachVirtualController(_virtualProgram, _virtualSnapshot);
+        GD.Print($"VIRTUAL_CONTROLLER_ENABLED mode=offline scene={_currentSceneId} transport=none");
+    }
+
+    private void DisableVirtualController()
+    {
+        if (_virtualController is not null) _virtualController.SnapshotPublished -= OnVirtualSnapshot;
+        _virtualController = null;
+        _virtualProgram = null;
+        _virtualSnapshot = null;
+        if (_sceneRuntime is not null)
+        {
+            _sceneRuntime.UsesExternalClock = false;
+            _sceneRuntime.StopSimulation();
+        }
+        _simulatorShell?.DetachVirtualController();
+        GD.Print("VIRTUAL_CONTROLLER_DISABLED");
+    }
+
+    private void OnVirtualSnapshot(VirtualControllerSnapshot snapshot)
+    {
+        _virtualSnapshot = snapshot;
+        _simulatorShell?.UpdateVirtualController(snapshot);
+    }
+
+    private void PulseVirtualInput(string binding, string fallbackName)
+    {
+        if (_virtualController is null) return;
+        var variable = _virtualProgram?.Variables.FirstOrDefault(item =>
+            item.Role == PlcVariableRole.Input
+            && item.Binding.Equals(binding, StringComparison.Ordinal));
+        _virtualController.PulseInput(variable?.Name ?? fallbackName);
+    }
+
+    private void ApplyVirtualForce(string variableName, bool value)
+    {
+        if (_virtualController is null || _simulatorShell is null) return;
+        try
+        {
+            var snapshot = _virtualController.SetBoolForce(variableName, value);
+            CommitVirtualControllerSnapshot(snapshot);
+            GD.Print($"VIRTUAL_FORCE_SET variable={variableName} value={value} scope=offline-simulator transport=none");
+        }
+        catch (Exception exception) when (exception is ArgumentException or InvalidOperationException)
+        {
+            _simulatorShell.SetVirtualControllerForceError(exception.Message);
+        }
+    }
+
+    private void RemoveVirtualForce(string variableName)
+    {
+        if (_virtualController is null) return;
+        var snapshot = _virtualController.RemoveForce(variableName);
+        CommitVirtualControllerSnapshot(snapshot);
+        GD.Print($"VIRTUAL_FORCE_REMOVED variable={variableName} scope=offline-simulator transport=none");
+    }
+
+    private void ClearVirtualForces()
+    {
+        if (_virtualController is null) return;
+        var snapshot = _virtualController.ClearForces();
+        CommitVirtualControllerSnapshot(snapshot);
+        GD.Print("VIRTUAL_FORCES_CLEARED scope=offline-simulator transport=none");
+    }
+
+    private IReadOnlyDictionary<string, bool> SampleVirtualControllerInputs()
+    {
+        var sceneInputs = _sceneRuntime?.SampleVirtualControllerInputs()
+            ?? new Dictionary<string, bool>();
+        if (_virtualProgram is null) return sceneInputs;
+        return SceneIoImageMapper.SampleBoolInputs(_virtualProgram, sceneInputs);
+    }
+
+    private IReadOnlyDictionary<string, double> SampleVirtualControllerNumericInputs()
+    {
+        var sceneInputs = _sceneRuntime?.SampleVirtualControllerNumericInputs()
+            ?? new Dictionary<string, double>();
+        if (_virtualProgram is null) return sceneInputs;
+        return SceneIoImageMapper.SampleNumericInputs(_virtualProgram, sceneInputs);
+    }
+
+    private void CommitVirtualControllerOutputs(IReadOnlyDictionary<string, bool> outputs)
+    {
+        if (_sceneRuntime is null || _virtualProgram is null) return;
+        _sceneRuntime.CommitVirtualControllerOutputs(
+            SceneIoImageMapper.CommitBoolOutputs(_virtualProgram, outputs));
+    }
+
+    private void CommitVirtualControllerNumericOutputs(IReadOnlyDictionary<string, double> outputs)
+    {
+        if (_sceneRuntime is null || _virtualProgram is null) return;
+        _sceneRuntime.CommitVirtualControllerNumericOutputs(
+            SceneIoImageMapper.CommitNumericOutputs(_virtualProgram, outputs));
+    }
+
+    private void CommitVirtualControllerSnapshot(VirtualControllerSnapshot snapshot)
+    {
+        CommitVirtualControllerOutputs(snapshot.Outputs);
+        CommitVirtualControllerNumericOutputs(snapshot.NumericOutputs);
+    }
+
+    private void RunActiveController()
+    {
+        if (_simulatorShell?.IsExternalMode == true)
+        {
+            if (_externalConnection?.State != ConnectionState.Connected)
+            {
+                _simulatorShell.SetWorkspaceStatus(
+                    "RUN BLOCKED · connect and verify External PLC first",
+                    isError: true);
+                return;
+            }
+            _sceneRuntime?.RunDefault();
+            return;
+        }
+        if (_virtualController is null && _simulatorShell is not null)
+        {
+            if (!_simulatorShell.TryBuildCurrentLadderProgram(out var currentProgram, out var validationIssues))
+            {
+                _simulatorShell.SetVirtualControllerValidation(validationIssues);
+                return;
+            }
+            EnableVirtualControllerProgram(currentProgram);
+        }
+        if (_virtualController is not null)
+        {
+            _virtualController.Run();
+            return;
+        }
+        _sceneRuntime?.RunDefault();
+    }
+
+    private void StopActiveController()
+    {
+        if (_simulatorShell?.IsExternalMode == true)
+        {
+            _sceneRuntime?.StopSimulation();
+            return;
+        }
+        if (_virtualController is not null && _sceneRuntime is not null)
+        {
+            var snapshot = _virtualController.Stop();
+            CommitVirtualControllerSnapshot(snapshot);
+            return;
+        }
+        _sceneRuntime?.StopSimulation();
+    }
+
+    private void ResetActiveController()
+    {
+        if (_simulatorShell?.IsExternalMode == true)
+        {
+            _sceneRuntime?.ResetSimulation();
+            return;
+        }
+        if (_virtualController is not null && _sceneRuntime is not null)
+        {
+            _sceneRuntime.ResetSimulation();
+            var snapshot = _virtualController.Reset();
+            CommitVirtualControllerSnapshot(snapshot);
+            return;
+        }
+        _sceneRuntime?.ResetSimulation();
+    }
+
+    private void VerifyVirtualController()
+    {
+        EnableVirtualControllerDemo();
+        if (_virtualController is null || _sceneRuntime is null || _simulatorShell is null)
+        {
+            GD.PushError("VIRTUAL_CONTROLLER_UI_VERIFY FAIL controller unavailable");
+            GetTree().Quit(1);
+            return;
+        }
+        _virtualController.PulseInput("start_command");
+        _virtualController.Run();
+        for (var index = 0; index < 90; index++)
+        {
+            _virtualController.Advance(
+                _virtualController.ScanPeriod.TotalSeconds,
+                SampleVirtualControllerInputs,
+                SampleVirtualControllerNumericInputs,
+                CommitVirtualControllerOutputs,
+                CommitVirtualControllerNumericOutputs,
+                _sceneRuntime.AdvanceSimulation);
+        }
+        var photoeye = _sceneRuntime.Points.TryGetValue("simulated_photoeye", out var sensor) && sensor is true;
+        var stopped = _virtualSnapshot is not null
+            && !_virtualSnapshot.Outputs.GetValueOrDefault("conveyor_running")
+            && !_virtualSnapshot.Variables.GetValueOrDefault("seal_in");
+        _virtualController.PulseInput("start_command");
+        _virtualController.Advance(
+            _virtualController.ScanPeriod.TotalSeconds,
+            SampleVirtualControllerInputs,
+            SampleVirtualControllerNumericInputs,
+            CommitVirtualControllerOutputs,
+            CommitVirtualControllerNumericOutputs,
+            _sceneRuntime.AdvanceSimulation);
+        var restartBlocked = _virtualSnapshot is not null
+            && !_virtualSnapshot.Outputs.GetValueOrDefault("conveyor_running");
+        var forcedSnapshot = _virtualController.SetBoolForce("conveyor_running", true);
+        CommitVirtualControllerSnapshot(forcedSnapshot);
+        var forcedOutput = forcedSnapshot.Outputs.GetValueOrDefault("conveyor_running")
+            && forcedSnapshot.Forces.TryGetValue("conveyor_running", out var activeForce)
+            && activeForce.Value
+            && activeForce.Role == PlcVariableRole.Output;
+        var ui = _simulatorShell.VerifyVirtualControllerUi(out var uiResult);
+        var forceStoppedSnapshot = _virtualController.Stop();
+        CommitVirtualControllerSnapshot(forceStoppedSnapshot);
+        var forceSafeStop = !forceStoppedSnapshot.Outputs.GetValueOrDefault("conveyor_running")
+            && forceStoppedSnapshot.Forces.ContainsKey("conveyor_running");
+        ResetActiveController();
+        var reset = _virtualSnapshot is
+        {
+            ScanNumber: 0,
+            State: VirtualControllerState.Stopped,
+        }
+            && !_virtualSnapshot.Variables.GetValueOrDefault("seal_in")
+            && !_virtualSnapshot.Outputs.GetValueOrDefault("conveyor_running")
+            && _sceneRuntime.Points.TryGetValue("object_position", out var position)
+            && Math.Abs(Convert.ToDouble(position ?? 0.0)) < 1e-9
+            && _sceneRuntime.Points.TryGetValue("simulated_photoeye", out var resetSensor)
+            && resetSensor is false
+            && _virtualSnapshot.Forces.Count == 0;
+        var passed = photoeye && stopped && restartBlocked && forcedOutput && forceSafeStop && reset && ui;
+        GD.Print($"VIRTUAL_CONTROLLER_UI_VERIFY {(passed ? "PASS" : "FAIL")} photoeye={photoeye} stopped={stopped} restartBlocked={restartBlocked} forcedOutput={forcedOutput} forceSafeStop={forceSafeStop} reset={reset} {uiResult}");
+        GD.Print("VIRTUAL_CONTROLLER_REAL_PLC_CONNECTION_ATTEMPTED FALSE");
+        GetTree().Quit(passed ? 0 : 1);
+    }
+
+    private void VerifyNumericSceneIo()
+    {
+        if (_candidateCatalog is null || _mainCamera is null || _simulatorShell is null)
+        {
+            GD.PushError("NUMERIC_SCENE_IO_VERIFY FAIL shell unavailable");
+            GetTree().Quit(1);
+            return;
+        }
+
+        AddMigratedScene("lab-2-15-fume-extractor", _candidateCatalog, _mainCamera,
+            showRuntimeControls: false, autoRun: false);
+        if (_sceneRuntime is null)
+        {
+            GD.PushError("NUMERIC_SCENE_IO_VERIFY FAIL scene runtime unavailable");
+            GetTree().Quit(1);
+            return;
+        }
+
+        var variables = new PlcVariable[]
+        {
+            new("execute", PlcVariableType.Bool, PlcVariableRole.Memory, true),
+            new("selector", PlcVariableType.DInt, PlcVariableRole.Input, 0L, "fan_selector_position"),
+            new("speed", PlcVariableType.DInt, PlcVariableRole.Output, 0L, "fan_speed_percent"),
+        };
+        var program = new LadderProgram(
+            1,
+            "numeric-scene-io-verify",
+            "NumericSceneIoVerify",
+            "LD",
+            TimeSpan.FromMilliseconds(20),
+            variables,
+            [new LadderNetwork(
+                "copy-selector",
+                "Copy selector to fan speed",
+                new LadderNode("execute-contact", LadderNodeKind.Contact, "execute"),
+                NumericOperation: new LadderNumericOperation(
+                    "move-selector", LadderNumericOperationKind.Move, "selector", "0", "speed"))]);
+        var points = new SceneIoPoint[]
+        {
+            new("fan_selector_position", "DINT", "PC", "input", "Fan selector position"),
+            new("fan_speed_percent", "DINT", "PLC", "output", "Fan speed command"),
+        };
+        var bindingIssues = SceneIoBindingValidator.Validate(program, points);
+        var compiled = LadderCompiler.Compile(program);
+        if (bindingIssues.Count > 0 || !compiled.IsValid || compiled.Program is null)
+        {
+            GD.PushError($"NUMERIC_SCENE_IO_VERIFY FAIL validation={bindingIssues.Count} compile={compiled.Issues.Count}");
+            GetTree().Quit(1);
+            return;
+        }
+
+        EnableVirtualControllerProgram(program);
+        var actionWorked = _sceneRuntime.ExecuteAction("next-speed");
+        _virtualController?.Run();
+        _virtualController?.Advance(
+            _virtualController.ScanPeriod.TotalSeconds,
+            SampleVirtualControllerInputs,
+            SampleVirtualControllerNumericInputs,
+            CommitVirtualControllerOutputs,
+            CommitVirtualControllerNumericOutputs,
+            _sceneRuntime.AdvanceSimulation);
+        var sampled = _virtualSnapshot?.NumericVariables.GetValueOrDefault("selector") == 1.0;
+        var published = _virtualSnapshot?.NumericOutputs.GetValueOrDefault("speed") == 1.0
+            && Convert.ToDouble(_sceneRuntime.Points.GetValueOrDefault("fan_speed_percent") ?? -1.0) == 1.0;
+        StopActiveController();
+        var safeStop = _virtualSnapshot?.NumericOutputs.GetValueOrDefault("speed") == 0.0
+            && Convert.ToDouble(_sceneRuntime.Points.GetValueOrDefault("fan_speed_percent") ?? -1.0) == 0.0;
+        var passed = actionWorked && sampled && published && safeStop;
+        GD.Print($"NUMERIC_SCENE_IO_VERIFY {(passed ? "PASS" : "FAIL")} action={actionWorked} sampled={sampled} published={published} safeStop={safeStop} scene={_currentSceneId}");
+        GD.Print("NUMERIC_SCENE_IO_REAL_PLC_CONNECTION_ATTEMPTED FALSE");
+        GetTree().Quit(passed ? 0 : 1);
+    }
+
+    private void VerifyLadderEditor()
+    {
+        if (_simulatorShell is null)
+        {
+            GD.PushError("LADDER_EDITOR_INTERACTION_VERIFY FAIL shell unavailable");
+            GetTree().Quit(1);
+            return;
+        }
+        if (_simulatorShell.VerifyLadderEditorInteractions(out var result))
+        {
+            GD.Print($"LADDER_EDITOR_INTERACTION_VERIFY PASS {result}");
+            GetTree().Quit();
+            return;
+        }
+        GD.PushError($"LADDER_EDITOR_INTERACTION_VERIFY FAIL {result}");
+        GetTree().Quit(1);
+    }
+
+    private string CreateNestedGroupReviewAssembly(AssetCatalogDocument candidates)
+    {
+        var firstAssembly = _workspaceNodes.Keys.ToArray();
+        if (firstAssembly.Length != 2)
+            throw new InvalidOperationException("Nested group review requires exactly two seed placements.");
+
+        SetSelection(firstAssembly);
+        GroupSelection();
+        var conveyor = candidates.Assets.First(item => item.Id == "material-handling.belt-conveyor.600x6000.v1");
+        var photoeye = candidates.Assets.First(item => item.Id == "sensing.photoelectric.through-beam.v1");
+        PlaceAsset(conveyor);
+        var secondConveyor = _selectedPlacementId!;
+        PlaceAsset(photoeye);
+        var secondPhotoeye = _selectedPlacementId!;
+        SetSelection([secondConveyor, secondPhotoeye]);
+        GroupSelection();
+        SetSelection(_workspaceNodes.Keys.ToArray());
+        GroupSelection();
+        var root = ExactSelectedGroup()
+            ?? throw new InvalidOperationException("Nested group review did not create a parent group.");
+        _simulatorShell?.SetWorkspaceStatus("Nested cell · parent group contains two reusable subassemblies");
+        return root.Id;
+    }
+
+    private void VerifyAppShell()
+    {
+        var result = "shell unavailable";
+        var menuResult = "shell unavailable";
+        var plcResult = "shell unavailable";
+        var scenarioResult = "shell unavailable";
+        var structurePassed = _simulatorShell is not null
+            && _simulatorShell.VerifyStructure(out result);
+        var menuPassed = _simulatorShell is not null
+            && _simulatorShell.VerifyWorkspaceLoadMenuBinding(out menuResult);
+        var plcPassed = _simulatorShell is not null
+            && _simulatorShell.VerifyExternalPlcMenu(out plcResult);
+        var scenarioPassed = _simulatorShell is not null
+            && _simulatorShell.VerifyScenarioMenuSelection(out scenarioResult);
+        if (structurePassed && menuPassed && plcPassed && scenarioPassed)
+        {
+            GD.Print($"APP_SHELL_VERIFY PASS {result} workspaceMenu={menuResult} plcMenu={plcResult} scenarioMenu={scenarioResult}");
+            GetTree().Quit(0);
+            return;
+        }
+        var failure = "shell unavailable";
+        if (_simulatorShell is not null)
+        {
+            _simulatorShell.VerifyStructure(out failure);
+            if (!menuPassed) failure += $"; workspaceMenu={menuResult}";
+            if (!plcPassed) failure += $"; plcMenu={plcResult}";
+            if (!scenarioPassed) failure += $"; scenarioMenu={scenarioResult}";
+        }
+        GD.PushError($"APP_SHELL_VERIFY FAIL {failure}");
+        GetTree().Quit(1);
+    }
+
+    private void VerifyUiDensity()
+    {
+        var window = GetWindow();
+        var physicalSize = DisplayServer.WindowGetSize();
+        var viewportSize = window.GetVisibleRect().Size;
+        var mode = window.ContentScaleMode;
+        var oneToOne = Math.Abs(viewportSize.X - physicalSize.X) < 1.0f
+            && Math.Abs(viewportSize.Y - physicalSize.Y) < 1.0f;
+        var passed = mode == Window.ContentScaleModeEnum.Disabled
+            && Math.Abs(window.ContentScaleFactor - 1.0f) < 0.001f
+            && oneToOne;
+        var result = $"mode={mode} factor={window.ContentScaleFactor:0.###} "
+            + $"window={physicalSize.X}x{physicalSize.Y} viewport={viewportSize.X:0}x{viewportSize.Y:0} oneToOne={oneToOne}";
+        if (passed)
+        {
+            GD.Print($"UI_DENSITY_VERIFY PASS {result}");
+            GetTree().Quit(0);
+            return;
+        }
+        GD.PushError($"UI_DENSITY_VERIFY FAIL {result}");
+        GetTree().Quit(1);
+    }
+
+    private void VerifyHud()
+    {
+        if (_simulatorShell is not null && _simulatorShell.VerifyLayout(out var result))
+        {
+            GD.Print($"APP_HUD_VERIFY PASS {result}");
+            GetTree().Quit(0);
+            return;
+        }
+        var failure = "shell unavailable";
+        if (_simulatorShell is not null) _simulatorShell.VerifyLayout(out failure);
+        GD.PushError($"APP_HUD_VERIFY FAIL {failure}");
+        GetTree().Quit(1);
+    }
+
+    private void VerifySplitView()
+    {
+        var result = "shell unavailable";
+        if (_simulatorShell is not null && _simulatorShell.VerifySplitLayout(out result))
+        {
+            GD.Print($"SPLIT_VIEW_VERIFY PASS {result}");
+            GetTree().Quit(0);
+            return;
+        }
+        var failure = _simulatorShell is null ? "shell unavailable" : result;
+        GD.PushError($"SPLIT_VIEW_VERIFY FAIL {failure}");
+        GetTree().Quit(1);
+    }
+
+    private void VerifyCameraInput()
+    {
+        if (_simulatorShell is null || _mainCamera is null)
+        {
+            GD.PushError("CAMERA_INPUT_VERIFY FAIL shell or camera unavailable");
+            GetTree().Quit(1);
+            return;
+        }
+        var viewport = _simulatorShell.SceneViewportRect();
+        var center = viewport.GetCenter();
+        var before = _mainCamera.GlobalPosition;
+        GetViewport().PushInput(new InputEventMouseButton
+        {
+            ButtonIndex = MouseButton.Right, Pressed = true, Position = center,
+        }, true);
+        GetViewport().PushInput(new InputEventMouseMotion
+        {
+            Position = center + new Vector2(48, 0), Relative = new Vector2(48, 0),
+        }, true);
+        GetViewport().PushInput(new InputEventMouseButton
+        {
+            ButtonIndex = MouseButton.Right, Pressed = false, Position = center + new Vector2(48, 0),
+        }, true);
+        var changed = !_mainCamera.GlobalPosition.IsEqualApprox(before);
+        if (!changed)
+        {
+            GD.PushError($"CAMERA_INPUT_VERIFY FAIL viewport={viewport} moved=false");
+            GetTree().Quit(1);
+            return;
+        }
+
+        // Regression: a view switch must cancel a button gesture even if the
+        // native release occurs while the ladder editor owns the pointer.
+        var transitionBefore = _mainCamera.GlobalPosition;
+        GetViewport().PushInput(new InputEventMouseButton
+        {
+            ButtonIndex = MouseButton.Right, Pressed = true, Position = viewport.GetCenter(),
+        }, true);
+        _simulatorShell.SetReviewState("ladder", string.Empty);
+        _simulatorShell.SetReviewState("operator", string.Empty);
+        GetViewport().PushInput(new InputEventMouseMotion
+        {
+            Position = viewport.GetCenter() + new Vector2(64, 0), Relative = new Vector2(64, 0),
+        }, true);
+        var releasedByViewSwitch = _mainCamera.GlobalPosition.IsEqualApprox(transitionBefore);
+        var passed = changed && releasedByViewSwitch;
+        GD.Print($"CAMERA_INPUT_VERIFY {(passed ? "PASS" : "FAIL")} viewport={viewport} moved={changed} view_switch_released={releasedByViewSwitch}");
+        GetTree().Quit(passed ? 0 : 1);
+    }
+
+    private void VerifySceneControls()
+    {
+        if (_sceneControlInteractor is null || _sceneRuntime is null || _mainCamera is null
+            || _sceneControlInteractor.Bindings.Count == 0)
+        {
+            GD.PushError("SCENE_CONTROL_VERIFY FAIL no composed scene control is available");
+            GetTree().Quit(1);
+            return;
+        }
+        var control = _sceneControlInteractor.Bindings
+            .FirstOrDefault(binding => binding.ActionId == "conveyor_run");
+        if (control is null)
+        {
+            GD.PushError("SCENE_CONTROL_VERIFY FAIL default Start control is unavailable");
+            GetTree().Quit(1);
+            return;
+        }
+        var mesh = control.Node as MeshInstance3D ?? control.Node.FindChildren("*", "MeshInstance3D", true, false)
+            .OfType<MeshInstance3D>()
+            .FirstOrDefault();
+        if (mesh is null)
+        {
+            GD.PushError($"SCENE_CONTROL_VERIFY FAIL control={control.EquipmentId} has no mesh");
+            GetTree().Quit(1);
+            return;
+        }
+        var feedbackTarget = control.Node.FindChild("KIN_pushbutton", true, false) as Node3D
+            ?? control.Node.FindChild("KIN_estop", true, false) as Node3D
+            ?? control.Node;
+        var authoredPosition = feedbackTarget.Transform.Origin;
+        var operatorDirection = (_mainCamera.GlobalPosition - control.Node.GlobalPosition).Normalized();
+        var controlFaceDirection = (control.Node.GlobalBasis * Vector3.Back).Normalized();
+        var facesOperator = controlFaceDirection.Dot(operatorDirection) > 0.25f;
+        var pointer = _mainCamera.UnprojectPosition(mesh.GlobalPosition);
+        // Exercise the same GUI input route used by an operator. Calling the
+        // command method directly would miss a CanvasLayer interception bug.
+        GetViewport().PushInput(new InputEventMouseButton
+        {
+            ButtonIndex = MouseButton.Left,
+            Pressed = true,
+            Position = pointer,
+        }, true);
+        _sceneControlInteractor.AdvanceFeedback(0.08);
+        var depressed = feedbackTarget.Transform.Origin.DistanceTo(authoredPosition) > 0.001f;
+        _sceneControlInteractor.AdvanceFeedback(0.30);
+        var restored = feedbackTarget.Transform.Origin.DistanceTo(authoredPosition) < 0.0001f;
+        var running = _sceneRuntime.Points.TryGetValue("conveyor_run", out var value) && value is true;
+        var estop = _sceneControlInteractor.Bindings
+            .FirstOrDefault(binding => binding.ActionId == "conveyor-estop");
+        if (estop is null)
+        {
+            GD.PushError("SCENE_CONTROL_VERIFY FAIL default E-stop control is unavailable");
+            GetTree().Quit(1);
+            return;
+        }
+        var estopPointer = _mainCamera.UnprojectPosition(estop.Node.GlobalPosition);
+        GetViewport().PushInput(new InputEventMouseButton
+        {
+            ButtonIndex = MouseButton.Left,
+            Pressed = true,
+            Position = estopPointer,
+        }, true);
+        var estopLatched = _sceneRuntime.Points.TryGetValue("estop_ok", out var estopValue) && estopValue is false;
+        var stopped = _sceneRuntime.Points.TryGetValue("conveyor_run", out var stoppedValue) && stoppedValue is false;
+        GetViewport().PushInput(new InputEventMouseButton
+        {
+            ButtonIndex = MouseButton.Left,
+            Pressed = true,
+            Position = pointer,
+        }, true);
+        var restartBlocked = _sceneRuntime.Points.TryGetValue("conveyor_run", out var blockedValue) && blockedValue is false;
+        _sceneRuntime.ResetSimulation();
+        _sceneControlInteractor.SynchronizeFeedback(_sceneRuntime.Points);
+        var resetReleased = _sceneRuntime.Points.TryGetValue("estop_ok", out var resetValue) && resetValue is true;
+        GetViewport().PushInput(new InputEventMouseButton
+        {
+            ButtonIndex = MouseButton.Left,
+            Pressed = true,
+            Position = pointer,
+        }, true);
+        var restarted = _sceneRuntime.Points.TryGetValue("conveyor_run", out var restartedValue) && restartedValue is true;
+        var passed = facesOperator && running && depressed && restored && estopLatched && stopped && restartBlocked && resetReleased && restarted;
+        GD.Print($"SCENE_CONTROL_VERIFY {(passed ? "PASS" : "FAIL")} facesOperator={facesOperator} start={running} depressed={depressed} restored={restored} estopLatched={estopLatched} stopped={stopped} restartBlocked={restartBlocked} resetReleased={resetReleased} restarted={restarted}");
+        GetTree().Quit(passed ? 0 : 1);
+    }
+
+    private void VerifyWorkspace()
+    {
+        if (_candidateCatalog is null || _sceneCatalog is null || _currentSceneId is null)
+        {
+            GD.PushError("WORKSPACE_VERIFY FAIL project not initialized");
+            GetTree().Quit(1);
+            return;
+        }
+        var path = ProjectSettings.GlobalizePath(WorkspaceRepository.VerificationWorkspacePath);
+        try
+        {
+            var conveyor = _candidateCatalog.Assets.First(
+                item => item.Id == "material-handling.belt-conveyor.600x6000.v1"
+            );
+            PlaceAsset(conveyor);
+            var instanceId = _workspaceNodes.Keys.Single();
+            var original = _workspaceNodes[instanceId].Node.Position;
+            var gizmoPassed = VerifyGizmoInteraction(instanceId);
+            var edited = original + new Vector3(1.25f, 0.4f, -0.75f);
+            TransformPlacement(instanceId, edited, new Vector3(0, 35, 0), Vector3.One);
+            UndoWorkspace();
+            var undoPassed = _workspaceNodes[instanceId].Node.Position.IsEqualApprox(original);
+            RedoWorkspace();
+            var redoPassed = _workspaceNodes[instanceId].Node.Position.IsEqualApprox(edited);
+            SetSnapSettings(true, 0.25, 15.0);
+            TransformPlacement(instanceId, new Vector3(1.38f, 0.37f, -0.62f),
+                new Vector3(0, 22, 0), Vector3.One);
+            var snappedPosition = new Vector3(1.5f, 0.25f, -0.5f);
+            var snapPassed = _workspaceNodes[instanceId].Node.Position.IsEqualApprox(snappedPosition)
+                && _workspaceNodes[instanceId].Node.RotationDegrees.IsEqualApprox(
+                    new Vector3(0, 15, 0));
+            DuplicatePlacement(instanceId);
+            var duplicatePassed = _workspaceNodes.Count == 2;
+            UndoWorkspace();
+            var duplicateUndoPassed = _workspaceNodes.Count == 1;
+            SetSnapSettings(false, 0.10, 15.0);
+            DeletePlacement(instanceId);
+            var deletePassed = _workspaceNodes.Count == 0;
+            UndoWorkspace();
+            var restorePassed = _workspaceNodes.TryGetValue(instanceId, out var restored)
+                && restored.Node.Position.IsEqualApprox(snappedPosition);
+            var photoeye = _candidateCatalog.Assets.First(item => item.Id == "sensing.photoelectric.through-beam.v1");
+            PlaceAsset(photoeye);
+            var photoeyeInstance = _workspaceNodes.Keys.First(key => key != instanceId);
+            var arrangePassed = VerifyArrangeSelection(instanceId, photoeyeInstance, conveyor);
+            SetSelection([]);
+            var marqueePassed = SelectPlacementsInScreenRect(
+                ScreenRectForWorkspacePlacements([instanceId, photoeyeInstance], 12.0f), additive: false) == 2;
+            CreateConnectorLink(instanceId, "material_out", photoeyeInstance, "beam_center");
+            CreateSignalLink(instanceId, "run_command", "conveyor_run");
+            var linksPassed = _connectorLinks.Count == 1 && _signalLinks.Count == 1;
+            SetSelection([instanceId, photoeyeInstance]);
+            GroupSelection();
+            var groupPassed = _workspaceGroups.Count == 1
+                && _workspaceGroups[0].MemberInstanceIds.Count == 2;
+            var hierarchyGroupSelectionPassed = _simulatorShell?.SelectFirstWorkspaceHierarchyGroupForVerification() == true
+                && _selectedPlacementIds.Count == 2;
+            var groupId = _workspaceGroups[0].Id;
+            RenameGroup(groupId, "Conveyor Sensor Cell");
+            var renamePassed = _workspaceGroups[0].Name == "Conveyor Sensor Cell";
+            UndoWorkspace();
+            var renameUndoPassed = _workspaceGroups[0].Name == "Group 001";
+            RedoWorkspace();
+            var renameRedoPassed = _workspaceGroups[0].Name == "Conveyor Sensor Cell";
+            RenameGroup(groupId, "   ");
+            var blankRenameRejected = _workspaceGroups[0].Name == "Conveyor Sensor Cell";
+            var customPivot = Array(_workspaceNodes[instanceId].Node.Position);
+            SetGroupPivot(groupId, customPivot);
+            var pivotSetPassed = _workspaceGroups[0].Pivot?.SequenceEqual(customPivot) == true
+                && VerifyCustomGroupPivot(instanceId, photoeyeInstance);
+            SetSelection([]);
+            var groupMarqueePassed = SelectPlacementsInScreenRect(
+                ScreenRectForWorkspacePlacements([instanceId], 5.0f), additive: false) == 2;
+            SelectPlacement(instanceId);
+            var groupSelectionPassed = _selectedPlacementIds.Count == 2;
+            var groupGizmoPassed = VerifyGroupGizmo(instanceId, photoeyeInstance);
+            var mappingStatus = ApplySignalMappings().GetValueOrDefault(_signalLinks[0].Id);
+            _sceneRuntime?.RunDefault();
+            var mappedController = _workspaceNodes[instanceId].Node
+                .GetNodeOrNull<ConveyorController>("WorkspaceRuntimeAdapter");
+            var mappingLive = mappingStatus?.State == SignalMappingRuntimeState.LiveInput
+                && mappedController is not null
+                && !mappedController.RunCommand;
+            _sceneRuntime?.StopSimulation();
+            SetSelection([instanceId, photoeyeInstance]);
+            CopySelection();
+            PasteSelection();
+            var clipboardPassed = _workspaceNodes.Count == 4
+                && _connectorLinks.Count == 2
+                && _signalLinks.Count == 2
+                && _selectedPlacementIds.Count == 2
+                && _workspaceGroups.Count == 2
+                && _workspaceGroups.Any(group => group.Pivot is not null);
+            var copiedGroup = _workspaceGroups.First(group => group.Id != groupId);
+            var copiedName = copiedGroup.Name;
+            RenameGroup(copiedGroup.Id, "Conveyor Sensor Cell");
+            var duplicateRenameRejected = _workspaceGroups.First(group => group.Id == copiedGroup.Id).Name == copiedName;
+            UndoWorkspace();
+            var clipboardUndoPassed = _workspaceNodes.Count == 2
+                && _connectorLinks.Count == 1
+                && _signalLinks.Count == 1
+                && _workspaceGroups.Count == 1;
+            SelectPlacement(instanceId);
+            UngroupSelection();
+            var ungroupPassed = _workspaceGroups.Count == 0;
+            UndoWorkspace();
+            var ungroupUndoPassed = _workspaceGroups.Count == 1;
+            SetSelection([instanceId, photoeyeInstance]);
+            DeleteSelection();
+            var batchDeletePassed = _workspaceNodes.Count == 0;
+            UndoWorkspace();
+            var batchDeleteUndoPassed = _workspaceNodes.Count == 2
+                && _connectorLinks.Count == 1
+                && _signalLinks.Count == 1
+                && _workspaceGroups.Count == 1;
+            var nestedRootId = CreateNestedGroupReviewAssembly(_candidateCatalog);
+            var nestedRoot = _workspaceGroups.Single(group => group.Id == nestedRootId);
+            var nestedChildren = _workspaceGroups.Where(group => group.ParentGroupId == nestedRootId).ToArray();
+            var nestedGroupsPassed = _workspaceGroups.Count == 3
+                && nestedRoot.MemberInstanceIds.Count == 4
+                && nestedChildren.Length == 2
+                && nestedChildren.All(group => group.MemberInstanceIds.Count == 2);
+            var nestedHierarchySelectionPassed = _simulatorShell?.SelectFirstWorkspaceHierarchyGroupForVerification() == true
+                && _selectedPlacementIds.Count == 4;
+            UngroupSelection();
+            var nestedUngroupPassed = _workspaceGroups.Count == 2
+                && _workspaceGroups.All(group => group.ParentGroupId is null)
+                && _workspaceGroups.All(group => group.MemberInstanceIds.Count == 2);
+            UndoWorkspace();
+            var nestedUngroupUndoPassed = _workspaceGroups.Count == 3
+                && _workspaceGroups.Count(group => group.ParentGroupId == nestedRootId) == 2;
+            var expected = CreateWorkspaceDocument();
+            var invalidSibling = new WorkspaceGroup("group-overlap", "Overlapping sibling",
+                [expected.Placements[0].InstanceId, expected.Placements[1].InstanceId]);
+            var siblingOverlapRejected = false;
+            try
+            {
+                WorkspaceRepository.Save(expected with { Groups = [.. expected.Groups!, invalidSibling] },
+                    WorkspaceRepository.VerificationWorkspacePath);
+            }
+            catch (InvalidOperationException)
+            {
+                siblingOverlapRejected = true;
+            }
+            WorkspaceRepository.Save(expected, WorkspaceRepository.VerificationWorkspacePath);
+            var loaded = WorkspaceRepository.Load(
+                _candidateCatalog,
+                _sceneCatalog,
+                WorkspaceRepository.VerificationWorkspacePath
+            );
+            var passed = loaded.SourceSceneId == expected.SourceSceneId
+                && loaded.Placements.Count == 4
+                && loaded.Placements[0].AssetId == expected.Placements[0].AssetId
+                && loaded.ConnectorLinks?.Count == 1
+                && loaded.SignalLinks?.Count == 1
+                && loaded.Groups?.Count == 3
+                && loaded.Groups.Any(group => group.Pivot?.SequenceEqual(customPivot) == true)
+                && loaded.Groups.Count(group => group.ParentGroupId is not null) == 2
+                && undoPassed && redoPassed && deletePassed && restorePassed && linksPassed
+                && mappingLive && snapPassed && duplicatePassed && duplicateUndoPassed
+                && gizmoPassed && arrangePassed && clipboardPassed && clipboardUndoPassed
+                && batchDeletePassed && batchDeleteUndoPassed && groupPassed
+                && hierarchyGroupSelectionPassed && marqueePassed && groupMarqueePassed && groupSelectionPassed
+                && renamePassed && renameUndoPassed && renameRedoPassed
+                && blankRenameRejected && duplicateRenameRejected && pivotSetPassed
+                && groupGizmoPassed && ungroupPassed && ungroupUndoPassed
+                && nestedGroupsPassed && nestedHierarchySelectionPassed
+                && nestedUngroupPassed && nestedUngroupUndoPassed && siblingOverlapRejected;
+            GD.Print($"WORKSPACE_VERIFY {(passed ? "PASS" : "FAIL")} scene={loaded.SourceSceneId} placements={loaded.Placements.Count} gizmo={gizmoPassed} marquee={marqueePassed} arrange={arrangePassed} groupMarquee={groupMarqueePassed} group={groupPassed} hierarchyGroupSelect={hierarchyGroupSelectionPassed} rename={renamePassed} renameUndo={renameUndoPassed} renameRedo={renameRedoPassed} blankRenameReject={blankRenameRejected} duplicateRenameReject={duplicateRenameRejected} pivot={pivotSetPassed} groupSelect={groupSelectionPassed} groupGizmo={groupGizmoPassed} ungroup={ungroupPassed} ungroupUndo={ungroupUndoPassed} nested={nestedGroupsPassed} nestedHierarchySelect={nestedHierarchySelectionPassed} nestedUngroup={nestedUngroupPassed} nestedUngroupUndo={nestedUngroupUndoPassed} siblingOverlapReject={siblingOverlapRejected} undo={undoPassed} redo={redoPassed} snap={snapPassed} duplicate={duplicatePassed} duplicateUndo={duplicateUndoPassed} clipboard={clipboardPassed} clipboardUndo={clipboardUndoPassed} batchDelete={batchDeletePassed} batchDeleteUndo={batchDeleteUndoPassed} delete={deletePassed} restore={restorePassed} links={linksPassed} mappingLive={mappingLive}");
+            DirAccess.RemoveAbsolute(path);
+            GetTree().Quit(passed ? 0 : 1);
+        }
+        catch (Exception exception)
+        {
+            GD.PushError($"WORKSPACE_VERIFY FAIL {exception.Message}");
+            if (FileAccess.FileExists(WorkspaceRepository.VerificationWorkspacePath))
+                DirAccess.RemoveAbsolute(path);
+            GetTree().Quit(1);
+        }
+    }
+
+    private void PlaceAsset(
+        AssetDefinition asset,
+        WorkspacePlacement? restored = null,
+        bool recordUndo = true
+    )
+    {
+        if (_sceneCompositionRoot is null)
+        {
+            GD.PushWarning("Asset placement requires an active scene.");
+            return;
+        }
+        var packed = ResourceLoader.Load<PackedScene>(asset.Model.DeliveryGltf)
+            ?? throw new InvalidOperationException($"Unable to load asset {asset.Model.DeliveryGltf}.");
+        if (recordUndo && restored is null) RecordUndo();
+        var model = packed.Instantiate<Node3D>();
+        var instanceId = restored?.InstanceId ?? NextPlacementInstanceId(asset.Id);
+        model.Name = $"UserPlacement_{SafeNodeName(instanceId)}";
+        model.Position = restored is null
+            ? FindOpenPlacementPosition(asset)
+            : Vector(restored.Position);
+        if (restored is not null)
+        {
+            model.RotationDegrees = Vector(restored.Rotation);
+            model.Scale = Vector(restored.Scale);
+        }
+        _sceneCompositionRoot.AddChild(model);
+        WorkspaceSignalRuntimeAdapter.AttachSupportedController(asset, model);
+        model.AddChild(CreateSelectionOutline(asset));
+        _workspaceNodes[instanceId] = (asset.Id, model);
+        SelectPlacement(instanceId);
+        RefreshWorkspaceUi();
+        if (restored is null && _mainCamera is not null)
+        {
+            FrameComposition(_mainCamera, _sceneCompositionRoot, _sceneCameraDirection);
+            _cameraController?.CaptureCurrentView();
+        }
+        _simulatorShell?.SetWorkspaceStatus($"Workspace modified · {_workspaceNodes.Count} placed assets");
+        if (recordUndo) _simulatorShell?.SetWorkspaceDirty(true);
+        GD.Print($"ASSET_PLACED id={asset.Id} node={model.Name}");
+    }
+
+    /// <summary>
+    /// Shows one catalog model in the center viewport without adding it to the
+    /// workspace. The authored scene remains loaded but hidden, so Return is
+    /// instant and has no effect on scene state, mappings, or PLC transport.
+    /// </summary>
+    private void OpenAssetPreview(AssetDefinition asset)
+    {
+        if (_mainCamera is null || _sceneCompositionRoot is null) return;
+        CloseAssetPreview();
+        var packed = ResourceLoader.Load<PackedScene>(asset.Model.DeliveryGltf)
+            ?? throw new InvalidOperationException($"Unable to load asset preview {asset.Model.DeliveryGltf}.");
+        _assetPreviewRoot = new Node3D { Name = "AssetPreviewRoot" };
+        var model = packed.Instantiate<Node3D>();
+        model.Name = $"AssetPreview_{SafeNodeName(asset.Id)}";
+        _assetPreviewRoot.AddChild(model);
+        AddChild(_assetPreviewRoot);
+        _sceneCompositionRoot.Visible = false;
+        if (_connectionVisuals is not null) _connectionVisuals.Visible = false;
+        if (_transformGizmo is not null) _transformGizmo.Visible = false;
+        FrameComposition(_mainCamera, _assetPreviewRoot, _sceneCameraDirection);
+        _cameraController?.CaptureCurrentView();
+        _simulatorShell?.SetAssetPreviewState(asset);
+        GD.Print($"ASSET_PREVIEW_OPEN id={asset.Id}");
+    }
+
+    private void CloseAssetPreview()
+    {
+        if (_assetPreviewRoot is null) return;
+        RemoveChild(_assetPreviewRoot);
+        _assetPreviewRoot.QueueFree();
+        _assetPreviewRoot = null;
+        if (_sceneCompositionRoot is not null) _sceneCompositionRoot.Visible = true;
+        if (_connectionVisuals is not null) _connectionVisuals.Visible = true;
+        if (_transformGizmo is not null) _transformGizmo.Visible = true;
+        if (_mainCamera is not null && _sceneCompositionRoot is not null)
+        {
+            FrameComposition(_mainCamera, _sceneCompositionRoot, _sceneCameraDirection);
+            _cameraController?.CaptureCurrentView();
+        }
+        _simulatorShell?.SetAssetPreviewState(null);
+        GD.Print("ASSET_PREVIEW_CLOSE");
+    }
+
+    private void SelectPlacement(string? instanceId) => SelectPlacement(instanceId, additive: false);
+
+    private void SelectPlacement(string? instanceId, bool additive)
+    {
+        if (!additive) _selectedPlacementIds.Clear();
+        if (instanceId is not null && _workspaceNodes.ContainsKey(instanceId))
+        {
+            var group = GroupFor(instanceId);
+            IReadOnlyList<string> targets = group?.MemberInstanceIds ?? [instanceId];
+            var allSelected = targets.All(_selectedPlacementIds.Contains);
+            if (additive && allSelected)
+                foreach (var target in targets) _selectedPlacementIds.Remove(target);
+            else
+                foreach (var target in targets) _selectedPlacementIds.Add(target);
+        }
+        _selectedPlacementId = instanceId is not null && _selectedPlacementIds.Contains(instanceId)
+            ? instanceId
+            : _selectedPlacementIds.LastOrDefault();
+        foreach (var item in _workspaceNodes)
+        {
+            if (item.Value.Node.GetNodeOrNull<Node3D>("EditorSelectionOutline") is { } outline)
+                outline.Visible = _selectedPlacementIds.Contains(item.Key);
+        }
+        UpdateTransformGizmo();
+        RefreshWorkspaceUi();
+    }
+
+    private void SetSelection(IReadOnlyList<string> instanceIds)
+    {
+        _selectedPlacementIds.Clear();
+        foreach (var id in instanceIds)
+        {
+            if (!_workspaceNodes.ContainsKey(id)) continue;
+            var group = GroupFor(id);
+            if (group is null) _selectedPlacementIds.Add(id);
+            else foreach (var member in group.MemberInstanceIds) _selectedPlacementIds.Add(member);
+        }
+        _selectedPlacementId = instanceIds.LastOrDefault(_workspaceNodes.ContainsKey)
+            ?? _selectedPlacementIds.LastOrDefault();
+        foreach (var item in _workspaceNodes)
+            if (item.Value.Node.GetNodeOrNull<Node3D>("EditorSelectionOutline") is { } outline)
+                outline.Visible = _selectedPlacementIds.Contains(item.Key);
+        UpdateTransformGizmo();
+        RefreshWorkspaceUi();
+    }
+
+    private WorkspaceGroup? GroupFor(string instanceId) => _workspaceGroups
+        .Where(group => group.ParentGroupId is null && group.MemberInstanceIds.Contains(instanceId, StringComparer.Ordinal))
+        .FirstOrDefault();
+
+    private WorkspaceGroup? ExactSelectedGroup()
+    {
+        var selected = _selectedPlacementIds.ToHashSet(StringComparer.Ordinal);
+        return _workspaceGroups.FirstOrDefault(group => group.MemberInstanceIds.Count == selected.Count
+            && group.MemberInstanceIds.All(selected.Contains));
+    }
+
+    private Vector3 SharedLocalPivot()
+    {
+        var group = ExactSelectedGroup();
+        if (group?.Pivot is { Length: 3 } pivot) return Vector(pivot);
+        var transforms = _dragStartTransforms.Count > 0
+            ? _dragStartTransforms.Values.Select(transform => transform.Position).ToArray()
+            : _selectedPlacementIds.Where(_workspaceNodes.ContainsKey)
+                .Select(id => _workspaceNodes[id].Node.Position).ToArray();
+        return transforms.Length == 0 ? Vector3.Zero
+            : transforms.Aggregate(Vector3.Zero, (sum, position) => sum + position) / transforms.Length;
+    }
+
+    private void SetGroupPivot(string groupId, double[]? pivot)
+    {
+        var index = _workspaceGroups.FindIndex(group => group.Id == groupId);
+        if (index < 0)
+        {
+            _simulatorShell?.SetWorkspaceStatus("Pivot update failed · group no longer exists", isError: true);
+            return;
+        }
+        if (pivot is not null && (pivot.Length != 3 || pivot.Any(value => !double.IsFinite(value))))
+        {
+            _simulatorShell?.SetWorkspaceStatus("Pivot rejected · coordinates must be finite X/Y/Z values", isError: true);
+            return;
+        }
+        var group = _workspaceGroups[index];
+        var normalized = pivot?.ToArray();
+        if ((group.Pivot is null && normalized is null)
+            || (group.Pivot is not null && normalized is not null && group.Pivot.SequenceEqual(normalized))) return;
+        RecordUndo();
+        _workspaceGroups[index] = new WorkspaceGroup(group.Id, group.Name, group.MemberInstanceIds, normalized, group.ParentGroupId);
+        UpdateTransformGizmo();
+        RefreshWorkspaceUi();
+        _simulatorShell?.SetWorkspaceStatus(normalized is null
+            ? "Group pivot reset · member centroid"
+            : $"Group pivot set · X {normalized[0]:0.###} / Y {normalized[1]:0.###} / Z {normalized[2]:0.###}");
+        _simulatorShell?.SetWorkspaceDirty(true);
+    }
+
+    private void ShowReviewMarquee()
+    {
+        if (_simulatorShell is null) return;
+        var viewport = _simulatorShell.SceneViewportRect();
+        _simulatorShell.SetSelectionMarquee(
+            viewport.Position + viewport.Size * new Vector2(0.16f, 0.18f),
+            viewport.Position + viewport.Size * new Vector2(0.78f, 0.78f),
+            true);
+        _simulatorShell.SetWorkspaceStatus("Marquee selection · Ctrl/Shift adds · Esc cancels");
+    }
+
+    private int SelectPlacementsInScreenRect(Rect2 rect, bool additive)
+    {
+        if (_mainCamera is null) return 0;
+        var selected = new HashSet<string>(StringComparer.Ordinal);
+        if (additive) selected.UnionWith(_selectedPlacementIds);
+        foreach (var item in _workspaceNodes)
+        {
+            var asset = _candidateCatalog?.Assets.FirstOrDefault(candidate => candidate.Id == item.Value.AssetId);
+            var height = asset is null ? 0.5f : (float)asset.Bounds.HeightM * 0.5f;
+            var center = item.Value.Node.GlobalPosition + Vector3.Up * height;
+            if (_mainCamera.IsPositionBehind(center)) continue;
+            if (rect.HasPoint(_mainCamera.UnprojectPosition(center))) selected.Add(item.Key);
+        }
+        SetSelection(selected.ToArray());
+        return _selectedPlacementIds.Count;
+    }
+
+    private void SelectAtScreenPoint(Vector2 point, bool additive)
+    {
+        if (_mainCamera is null) return;
+        string? selected = null;
+        var closest = 72.0f;
+        foreach (var item in _workspaceNodes)
+        {
+            var asset = _candidateCatalog?.Assets.FirstOrDefault(candidate => candidate.Id == item.Value.AssetId);
+            var height = asset is null ? 0.5f : (float)asset.Bounds.HeightM * 0.5f;
+            var center = item.Value.Node.GlobalPosition + Vector3.Up * height;
+            if (_mainCamera.IsPositionBehind(center)) continue;
+            var distance = _mainCamera.UnprojectPosition(center).DistanceTo(point);
+            if (distance < closest)
+            {
+                closest = distance;
+                selected = item.Key;
+            }
+        }
+        SelectPlacement(selected, additive);
+    }
+
+    private Rect2 ScreenRectForWorkspacePlacements(IEnumerable<string> instanceIds, float padding)
+    {
+        if (_mainCamera is null) return new Rect2();
+        var points = instanceIds.Where(_workspaceNodes.ContainsKey).Select(id =>
+        {
+            var placement = _workspaceNodes[id];
+            var asset = _candidateCatalog?.Assets.FirstOrDefault(candidate => candidate.Id == placement.AssetId);
+            var height = asset is null ? 0.5f : (float)asset.Bounds.HeightM * 0.5f;
+            return _mainCamera.UnprojectPosition(placement.Node.GlobalPosition + Vector3.Up * height);
+        }).ToArray();
+        if (points.Length == 0) return new Rect2();
+        var min = points.Aggregate(points[0], (value, point) => new Vector2(
+            MathF.Min(value.X, point.X), MathF.Min(value.Y, point.Y)));
+        var max = points.Aggregate(points[0], (value, point) => new Vector2(
+            MathF.Max(value.X, point.X), MathF.Max(value.Y, point.Y)));
+        return new Rect2(min - Vector2.One * padding, max - min + Vector2.One * padding * 2.0f);
+    }
+
+    private static Vector2 ClampToRect(Vector2 point, Rect2 rect) => new(
+        Mathf.Clamp(point.X, rect.Position.X, rect.End.X),
+        Mathf.Clamp(point.Y, rect.Position.Y, rect.End.Y));
+
+    private void GroupSelection()
+    {
+        var members = _selectedPlacementIds.Where(_workspaceNodes.ContainsKey).ToArray();
+        if (members.Length < 2)
+        {
+            _simulatorShell?.SetWorkspaceStatus("Group rejected · select at least two placements", isError: true);
+            return;
+        }
+        if (ExactSelectedGroup() is not null)
+        {
+            _simulatorShell?.SetWorkspaceStatus("Group unchanged · selection already matches a group");
+            return;
+        }
+        RecordUndo();
+        var id = NextId("group", _workspaceGroups.Select(group => group.Id));
+        var ordinal = _workspaceGroups.Count + 1;
+        _workspaceGroups.Add(new WorkspaceGroup(id, $"Group {ordinal:000}", members));
+        foreach (var child in _workspaceGroups.Where(group => group.Id != id && group.ParentGroupId is null
+                     && group.MemberInstanceIds.All(members.Contains)).ToArray())
+        {
+            var childIndex = _workspaceGroups.FindIndex(group => group.Id == child.Id);
+            _workspaceGroups[childIndex] = child with { ParentGroupId = id };
+        }
+        RefreshWorkspaceUi();
+        _simulatorShell?.SetWorkspaceStatus($"Created Group {ordinal:000} · {members.Length} placements");
+        _simulatorShell?.SetWorkspaceDirty(true);
+    }
+
+    private void UngroupSelection()
+    {
+        var groups = _workspaceGroups.Where(group => group.ParentGroupId is null &&
+            group.MemberInstanceIds.Any(_selectedPlacementIds.Contains)).ToArray();
+        if (groups.Length == 0)
+        {
+            _simulatorShell?.SetWorkspaceStatus("Ungroup skipped · selection is not grouped", isError: true);
+            return;
+        }
+        RecordUndo();
+        foreach (var group in groups)
+        {
+            foreach (var child in _workspaceGroups.Where(item => item.ParentGroupId == group.Id).ToArray())
+            {
+                var childIndex = _workspaceGroups.FindIndex(item => item.Id == child.Id);
+                _workspaceGroups[childIndex] = child with { ParentGroupId = null };
+            }
+            _workspaceGroups.Remove(group);
+        }
+        RefreshWorkspaceUi();
+        _simulatorShell?.SetWorkspaceStatus($"Removed {groups.Length} group{(groups.Length == 1 ? "" : "s")}");
+        _simulatorShell?.SetWorkspaceDirty(true);
+    }
+
+    private void RenameGroup(string groupId, string requestedName)
+    {
+        var index = _workspaceGroups.FindIndex(group => group.Id == groupId);
+        if (index < 0)
+        {
+            _simulatorShell?.SetWorkspaceStatus("Rename failed · group no longer exists", isError: true);
+            return;
+        }
+        var name = requestedName.Trim();
+        if (name.Length == 0)
+        {
+            _simulatorShell?.SetWorkspaceStatus("Rename rejected · group name cannot be blank", isError: true);
+            return;
+        }
+        if (_workspaceGroups.Any(group => group.Id != groupId
+            && group.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
+        {
+            _simulatorShell?.SetWorkspaceStatus($"Rename rejected · group name '{name}' already exists", isError: true);
+            return;
+        }
+        if (_workspaceGroups[index].Name == name) return;
+        RecordUndo();
+        var group = _workspaceGroups[index];
+        _workspaceGroups[index] = new WorkspaceGroup(group.Id, name, group.MemberInstanceIds, group.Pivot, group.ParentGroupId);
+        RefreshWorkspaceUi();
+        _simulatorShell?.SetWorkspaceStatus($"Renamed group · {name}");
+        _simulatorShell?.SetWorkspaceDirty(true);
+    }
+
+    private List<string[]> SelectedArrangementUnits()
+    {
+        var selected = _selectedPlacementIds.Where(_workspaceNodes.ContainsKey)
+            .ToHashSet(StringComparer.Ordinal);
+        var consumed = new HashSet<string>(StringComparer.Ordinal);
+        var units = new List<string[]>();
+        foreach (var id in selected.OrderBy(value => value, StringComparer.Ordinal))
+        {
+            if (!consumed.Add(id)) continue;
+            var group = GroupFor(id);
+            var members = group is null
+                ? [id]
+                : group.MemberInstanceIds.Where(selected.Contains).ToArray();
+            foreach (var member in members) consumed.Add(member);
+            units.Add(members);
+        }
+        return units;
+    }
+
+    private void ArrangeSelection(WorkspaceArrangeOperation operation)
+    {
+        var units = SelectedArrangementUnits();
+        var distribute = operation is WorkspaceArrangeOperation.DistributeX
+            or WorkspaceArrangeOperation.DistributeY or WorkspaceArrangeOperation.DistributeZ;
+        var minimum = distribute ? 3 : 2;
+        if (units.Count < minimum)
+        {
+            _simulatorShell?.SetWorkspaceStatus(
+                $"Arrange rejected · select at least {minimum} independent objects or groups", isError: true);
+            return;
+        }
+        var axis = operation is WorkspaceArrangeOperation.AlignX or WorkspaceArrangeOperation.DistributeX ? 0
+            : operation is WorkspaceArrangeOperation.AlignY or WorkspaceArrangeOperation.DistributeY ? 1 : 2;
+        Vector3 Pivot(string[] unit) => unit.Aggregate(Vector3.Zero,
+            (sum, id) => sum + _workspaceNodes[id].Node.Position) / unit.Length;
+        float Component(Vector3 value) => axis == 0 ? value.X : axis == 1 ? value.Y : value.Z;
+        Vector3 AxisVector() => axis == 0 ? Vector3.Right : axis == 1 ? Vector3.Up : Vector3.Back;
+        void Translate(string[] unit, float delta)
+        {
+            foreach (var id in unit) _workspaceNodes[id].Node.Position += AxisVector() * delta;
+        }
+
+        RecordUndo();
+        if (!distribute)
+        {
+            var primary = units.FirstOrDefault(unit => _selectedPlacementId is not null
+                && unit.Contains(_selectedPlacementId, StringComparer.Ordinal)) ?? units[0];
+            var target = Component(Pivot(primary));
+            foreach (var unit in units)
+                Translate(unit, target - Component(Pivot(unit)));
+        }
+        else
+        {
+            var ordered = units.OrderBy(unit => Component(Pivot(unit))).ToArray();
+            var first = Component(Pivot(ordered[0]));
+            var last = Component(Pivot(ordered[^1]));
+            var spacing = (last - first) / (ordered.Length - 1);
+            for (var index = 1; index < ordered.Length - 1; index++)
+                Translate(ordered[index], first + spacing * index - Component(Pivot(ordered[index])));
+        }
+        UpdateTransformGizmo();
+        RefreshWorkspaceUi();
+        RefreshConnectionVisuals();
+        _simulatorShell?.SetWorkspaceStatus($"Selection arranged · {operation}");
+        _simulatorShell?.SetWorkspaceDirty(true);
+    }
+
+    private void TransformPlacement(string instanceId, Vector3 position, Vector3 rotation, Vector3 scale)
+    {
+        if (!_workspaceNodes.TryGetValue(instanceId, out var placement)) return;
+        if (!IsFinite(position) || !IsFinite(rotation) || !IsFinite(scale))
+        {
+            _simulatorShell?.SetWorkspaceStatus("Transform rejected · values must be finite", isError: true);
+            RefreshWorkspaceUi();
+            return;
+        }
+        if (_snapEnabled)
+        {
+            position = Snap(position, _positionSnapM);
+            rotation = Snap(rotation, _rotationSnapDegrees);
+        }
+        if (scale.X <= 0 || scale.Y <= 0 || scale.Z <= 0)
+        {
+            _simulatorShell?.SetWorkspaceStatus("Transform rejected · scale must be positive", isError: true);
+            RefreshWorkspaceUi();
+            return;
+        }
+        if (placement.Node.Position.IsEqualApprox(position)
+            && placement.Node.RotationDegrees.IsEqualApprox(rotation)
+            && placement.Node.Scale.IsEqualApprox(scale)) return;
+        RecordUndo();
+        placement.Node.Position = position;
+        placement.Node.RotationDegrees = rotation;
+        placement.Node.Scale = scale;
+        SelectPlacement(instanceId);
+        _simulatorShell?.SetWorkspaceStatus($"Updated transform · {instanceId}");
+        _simulatorShell?.SetWorkspaceDirty(true);
+    }
+
+    private void DuplicatePlacement(string instanceId)
+    {
+        if (!_workspaceNodes.TryGetValue(instanceId, out var source)
+            || _candidateCatalog?.Assets.FirstOrDefault(item => item.Id == source.AssetId) is not { } asset)
+            return;
+        RecordUndo();
+        var duplicateId = NextPlacementInstanceId(asset.Id);
+        var offset = MathF.Max((float)asset.Bounds.WidthM * 0.65f, 0.50f);
+        var position = source.Node.Position + Vector3.Right * offset;
+        if (_snapEnabled) position = Snap(position, _positionSnapM);
+        var document = new WorkspacePlacement(
+            duplicateId,
+            asset.Id,
+            Array(position),
+            Array(source.Node.RotationDegrees),
+            Array(source.Node.Scale)
+        );
+        PlaceAsset(asset, document, recordUndo: false);
+        _simulatorShell?.SetWorkspaceStatus($"Duplicated placement · {duplicateId}");
+        _simulatorShell?.SetWorkspaceDirty(true);
+    }
+
+    private void DuplicateSelection()
+    {
+        if (_selectedPlacementIds.Count == 0) return;
+        CopySelection();
+        PasteSelection();
+    }
+
+    private void CopySelection()
+    {
+        if (_currentSceneId is null || _selectedPlacementIds.Count == 0)
+        {
+            _simulatorShell?.SetWorkspaceStatus("Copy skipped · no workspace selection", isError: true);
+            return;
+        }
+        var selected = _selectedPlacementIds.ToHashSet(StringComparer.Ordinal);
+        var placements = CreateWorkspaceDocument().Placements
+            .Where(item => selected.Contains(item.InstanceId)).ToArray();
+        var connectors = _connectorLinks.Where(link =>
+            selected.Contains(link.FromInstanceId) && selected.Contains(link.ToInstanceId)).ToArray();
+        var signals = _signalLinks.Where(link => selected.Contains(link.InstanceId)).ToArray();
+        var groups = _workspaceGroups.Where(group =>
+            group.MemberInstanceIds.All(selected.Contains)).ToArray();
+        _workspaceClipboard = new WorkspaceDocument(5, _currentSceneId, placements, connectors, signals, groups);
+        _simulatorShell?.SetWorkspaceStatus($"Copied {placements.Length} placement{(placements.Length == 1 ? "" : "s")}");
+    }
+
+    private void PasteSelection()
+    {
+        if (_workspaceClipboard is null || _candidateCatalog is null || _currentSceneId is null)
+        {
+            _simulatorShell?.SetWorkspaceStatus("Paste skipped · clipboard is empty", isError: true);
+            return;
+        }
+        RecordUndo();
+        var idMap = new Dictionary<string, string>(StringComparer.Ordinal);
+        var pastedIds = new List<string>();
+        foreach (var source in _workspaceClipboard.Placements)
+        {
+            var asset = _candidateCatalog.Assets.FirstOrDefault(item => item.Id == source.AssetId);
+            if (asset is null) continue;
+            var newId = NextPlacementInstanceId(asset.Id);
+            idMap[source.InstanceId] = newId;
+            var position = Vector(source.Position) + new Vector3(0.5f, 0.0f, 0.5f);
+            if (_snapEnabled) position = Snap(position, _positionSnapM);
+            PlaceAsset(asset, new WorkspacePlacement(
+                newId,
+                source.AssetId,
+                Array(position),
+                source.Rotation.ToArray(),
+                source.Scale.ToArray()
+            ), recordUndo: false);
+            pastedIds.Add(newId);
+        }
+        foreach (var link in _workspaceClipboard.ConnectorLinks ?? [])
+        {
+            if (!idMap.TryGetValue(link.FromInstanceId, out var from)
+                || !idMap.TryGetValue(link.ToInstanceId, out var to)) continue;
+            _connectorLinks.Add(new WorkspaceConnectorLink(
+                NextId("connector-link", _connectorLinks.Select(item => item.Id)),
+                from, link.FromConnectorId, to, link.ToConnectorId));
+        }
+        var skippedSignalMappings = 0;
+        foreach (var link in _workspaceClipboard.SignalLinks ?? [])
+        {
+            if (!idMap.TryGetValue(link.InstanceId, out var instance)
+                || !_workspaceNodes.TryGetValue(instance, out var placement)
+                || _candidateCatalog.Assets.FirstOrDefault(item => item.Id == placement.AssetId) is not { } asset
+                || asset.Signals.FirstOrDefault(item => item.Id == link.SignalId) is not { } signal
+                || ScenePointType(link.PointName) is not { } pointType
+                || !TypesCompatible(signal.DataType, pointType))
+            {
+                skippedSignalMappings++;
+                continue;
+            }
+            _signalLinks.Add(new WorkspaceSignalLink(
+                NextId("signal-link", _signalLinks.Select(item => item.Id)),
+                instance, link.SignalId, link.PointName));
+        }
+        var copiedGroups = _workspaceClipboard.Groups ?? [];
+        var allocatedGroupIds = _workspaceGroups.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
+        var groupIds = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var group in copiedGroups)
+        {
+            var next = NextId("group", allocatedGroupIds);
+            allocatedGroupIds.Add(next);
+            groupIds.Add(group.Id, next);
+        }
+        foreach (var group in copiedGroups)
+        {
+            var members = group.MemberInstanceIds
+                .Where(idMap.ContainsKey)
+                .Select(member => idMap[member]).ToArray();
+            if (members.Length < 2) continue;
+            var id = groupIds[group.Id];
+            var pivot = group.Pivot is null ? null : Array(Vector(group.Pivot) + new Vector3(0.5f, 0.0f, 0.5f));
+            _workspaceGroups.Add(new WorkspaceGroup(id,
+                $"{group.Name} Copy", members, pivot,
+                group.ParentGroupId is null ? null : groupIds.GetValueOrDefault(group.ParentGroupId)));
+        }
+        SetSelection(pastedIds);
+        RefreshConnectionVisuals();
+        _simulatorShell?.SetWorkspaceStatus(
+            $"Pasted {pastedIds.Count} placement{(pastedIds.Count == 1 ? "" : "s")}" +
+            (skippedSignalMappings > 0
+                ? $" · skipped {skippedSignalMappings} scene-incompatible signal mapping{(skippedSignalMappings == 1 ? "" : "s")}"
+                : string.Empty),
+            isError: skippedSignalMappings > 0);
+        _simulatorShell?.SetWorkspaceDirty(true);
+    }
+
+    private string NextPlacementInstanceId(string assetId)
+    {
+        string candidate;
+        do
+        {
+            _placedAssetCount++;
+            candidate = $"placement-{_placedAssetCount:000}-{SafeNodeName(assetId)}";
+        } while (_workspaceNodes.ContainsKey(candidate));
+        return candidate;
+    }
+
+    private void FocusPlacement(string instanceId)
+    {
+        if (!_workspaceNodes.TryGetValue(instanceId, out var placement)
+            || _candidateCatalog?.Assets.FirstOrDefault(item => item.Id == placement.AssetId) is not { } asset)
+            return;
+        var center = placement.Node.GlobalPosition + Vector3.Up * ((float)asset.Bounds.HeightM * 0.5f);
+        var radius = MathF.Max((float)Math.Max(asset.Bounds.WidthM,
+            Math.Max(asset.Bounds.HeightM, asset.Bounds.DepthM)), 0.25f);
+        _cameraController?.FocusOn(center, radius);
+        _simulatorShell?.SetWorkspaceStatus($"Focused selection · {instanceId}");
+    }
+
+    private void ResetPlacementTransform(string instanceId)
+    {
+        if (!_workspaceNodes.TryGetValue(instanceId, out var placement)) return;
+        TransformPlacement(instanceId, placement.Node.Position, Vector3.Zero, Vector3.One);
+    }
+
+    private void SetSnapSettings(bool enabled, double positionM, double rotationDegrees)
+    {
+        _snapEnabled = enabled;
+        _positionSnapM = MathF.Max((float)positionM, 0.001f);
+        _rotationSnapDegrees = MathF.Max((float)rotationDegrees, 0.1f);
+        _simulatorShell?.SetWorkspaceStatus(enabled
+            ? $"Snapping enabled · {_positionSnapM:0.###} m / {_rotationSnapDegrees:0.#}°"
+            : "Snapping disabled");
+    }
+
+    private void SetTransformMode(WorkspaceTransformMode mode)
+    {
+        _transformGizmo?.SetMode(mode);
+        _simulatorShell?.SetTransformMode(mode);
+        _simulatorShell?.SetWorkspaceStatus($"Transform mode · {mode.ToString().ToUpperInvariant()}  (drag colored handles)");
+    }
+
+    private void SetTransformSpace(WorkspaceTransformSpace space)
+    {
+        _transformSpace = space;
+        _transformGizmo?.SetSpace(space);
+        _simulatorShell?.SetTransformSpace(space);
+        UpdateTransformGizmo();
+        _simulatorShell?.SetWorkspaceStatus($"Transform axes · {space.ToString().ToUpperInvariant()}");
+    }
+
+    private void UpdateTransformGizmo()
+    {
+        if (_transformGizmo is null) return;
+        var selected = _selectedPlacementIds
+            .Where(_workspaceNodes.ContainsKey)
+            .Select(id => _workspaceNodes[id].Node.GlobalPosition)
+            .ToArray();
+        if (selected.Length == 0)
+        {
+            _transformGizmo.Detach();
+            return;
+        }
+        var orientation = Basis.Identity;
+        if (_transformSpace == WorkspaceTransformSpace.Local
+            && _selectedPlacementId is not null
+            && _workspaceNodes.TryGetValue(_selectedPlacementId, out var primary))
+            orientation = primary.Node.GlobalBasis.Orthonormalized();
+        var pivot = SharedLocalPivot();
+        var primaryParent = _selectedPlacementId is not null && _workspaceNodes.TryGetValue(_selectedPlacementId, out var pivotPrimary)
+            ? pivotPrimary.Node.GetParent() as Node3D
+            : null;
+        var globalPivot = primaryParent is null ? pivot : primaryParent.ToGlobal(pivot);
+        _transformGizmo.AttachTo(globalPivot, orientation);
+    }
+
+    private void ApplyGizmoDrag(float amount)
+    {
+        if (_transformGizmo is null || _dragStartTransforms.Count == 0) return;
+        var worldAxis = _transformGizmo.ActiveAxisWorld();
+        var axisIndex = _transformGizmo.ActiveAxis;
+        var localComponent = WorkspaceTransformGizmo.Axis(axisIndex).Abs();
+        foreach (var item in _dragStartTransforms)
+        {
+            if (!_workspaceNodes.TryGetValue(item.Key, out var placement)) continue;
+            var start = item.Value;
+            var parent = placement.Node.GetParent() as Node3D;
+            var axis = parent is null
+                ? worldAxis
+                : (parent.GlobalBasis.Inverse() * worldAxis).Normalized();
+            switch (_transformGizmo.Mode)
+            {
+                case WorkspaceTransformMode.Move:
+                    var position = start.Position + axis * amount;
+                    placement.Node.Position = _snapEnabled ? Snap(position, _positionSnapM) : position;
+                    break;
+                case WorkspaceTransformMode.Rotate:
+                    var rotationAmount = _snapEnabled
+                        ? MathF.Round(amount / _rotationSnapDegrees) * _rotationSnapDegrees
+                        : amount;
+                    var basis = new Basis(axis, Mathf.DegToRad(rotationAmount));
+                    placement.Node.Position = _dragPivot + basis * (start.Position - _dragPivot);
+                    var startBasis = Basis.FromEuler(start.Rotation * (Mathf.Pi / 180.0f));
+                    placement.Node.Rotation = (basis * startBasis).GetEuler();
+                    break;
+                case WorkspaceTransformMode.Scale:
+                    var factor = MathF.Max(1.0f + amount, 0.01f);
+                    var offset = start.Position - _dragPivot;
+                    placement.Node.Position = _dragPivot
+                        + offset + axis * (offset.Dot(axis) * (factor - 1.0f));
+                    var scale = start.Scale * (Vector3.One + localComponent * (factor - 1.0f));
+                    placement.Node.Scale = new Vector3(
+                        MathF.Max(scale.X, 0.01f),
+                        MathF.Max(scale.Y, 0.01f),
+                        MathF.Max(scale.Z, 0.01f));
+                    break;
+            }
+        }
+        UpdateTransformGizmo();
+    }
+
+    private void CaptureDragStartTransforms()
+    {
+        _dragStartTransforms.Clear();
+        foreach (var id in _selectedPlacementIds)
+            if (_workspaceNodes.TryGetValue(id, out var placement))
+                _dragStartTransforms[id] = (
+                    placement.Node.Position,
+                    placement.Node.RotationDegrees,
+                    placement.Node.Scale);
+        _dragPivot = SharedLocalPivot();
+    }
+
+    private bool VerifyGizmoInteraction(string instanceId)
+    {
+        if (_transformGizmo is null || _mainCamera is null
+            || !_workspaceNodes.TryGetValue(instanceId, out var placement)) return false;
+        SelectPlacement(instanceId);
+
+        bool Drag(WorkspaceTransformMode mode, Vector3 worldHandle, Vector2 screenDelta)
+        {
+            SetTransformMode(mode);
+            var pointer = _mainCamera.UnprojectPosition(
+                _transformGizmo.GlobalPosition + worldHandle);
+            if (!_transformGizmo.BeginDrag(_mainCamera, pointer)) return false;
+            CaptureDragStartTransforms();
+            var amount = _transformGizmo.DragAmount(_mainCamera, pointer + screenDelta);
+            ApplyGizmoDrag(amount);
+            _transformGizmo.EndDrag();
+            return MathF.Abs(amount) > 0.001f;
+        }
+
+        SetTransformMode(WorkspaceTransformMode.Move);
+        var original = placement.Node.Position;
+        var originScreen = _mainCamera.UnprojectPosition(_transformGizmo.GlobalPosition);
+        var axisScreen = _mainCamera.UnprojectPosition(
+            _transformGizmo.GlobalPosition + Vector3.Right * 0.65f);
+        var direction = (axisScreen - originScreen).Normalized();
+        if (direction.LengthSquared() < 0.5f
+            || !_transformGizmo.BeginDrag(_mainCamera, axisScreen)) return false;
+        CaptureDragStartTransforms();
+        var amount = _transformGizmo.DragAmount(_mainCamera, axisScreen + direction * 24.0f);
+        ApplyGizmoDrag(amount);
+        _transformGizmo.EndDrag();
+        var movePassed = placement.Node.Position.X > original.X + 0.01f;
+        placement.Node.Position = original;
+
+        var originalRotation = placement.Node.RotationDegrees;
+        var rotatePassed = Drag(WorkspaceTransformMode.Rotate, Vector3.Right * 0.85f,
+            new Vector2(0, 28));
+        rotatePassed &= !placement.Node.RotationDegrees.IsEqualApprox(originalRotation);
+        placement.Node.RotationDegrees = originalRotation;
+
+        var originalScale = placement.Node.Scale;
+        var scaleOrigin = _mainCamera.UnprojectPosition(_transformGizmo.GlobalPosition);
+        var scaleHandle = _mainCamera.UnprojectPosition(
+            _transformGizmo.GlobalPosition + Vector3.Right * 0.65f);
+        var scaleDirection = (scaleHandle - scaleOrigin).Normalized();
+        var scalePassed = Drag(WorkspaceTransformMode.Scale, Vector3.Right * 0.65f,
+            scaleDirection * 24.0f);
+        scalePassed &= !placement.Node.Scale.IsEqualApprox(originalScale);
+        placement.Node.Scale = originalScale;
+
+        SetTransformMode(WorkspaceTransformMode.Move);
+        UpdateTransformGizmo();
+        return movePassed && rotatePassed && scalePassed;
+    }
+
+    private bool VerifyGroupGizmo(string firstId, string secondId)
+    {
+        if (_transformGizmo is null || _mainCamera is null
+            || !_workspaceNodes.TryGetValue(firstId, out var first)
+            || !_workspaceNodes.TryGetValue(secondId, out var second)) return false;
+        SetSelection([secondId, firstId]);
+        SetTransformMode(WorkspaceTransformMode.Move);
+        var firstStart = first.Node.Position;
+        var secondStart = second.Node.Position;
+        var originScreen = _mainCamera.UnprojectPosition(_transformGizmo.GlobalPosition);
+        var axisScreen = _mainCamera.UnprojectPosition(
+            _transformGizmo.GlobalPosition + Vector3.Right * 0.65f);
+        var direction = (axisScreen - originScreen).Normalized();
+        if (direction.LengthSquared() < 0.5f
+            || !_transformGizmo.BeginDrag(_mainCamera, axisScreen)) return false;
+        CaptureDragStartTransforms();
+        var amount = _transformGizmo.DragAmount(_mainCamera, axisScreen + direction * 24.0f);
+        ApplyGizmoDrag(amount);
+        _transformGizmo.EndDrag();
+        var firstDelta = first.Node.Position - firstStart;
+        var secondDelta = second.Node.Position - secondStart;
+        var passed = firstDelta.X > 0.01f && firstDelta.IsEqualApprox(secondDelta);
+        first.Node.Position = firstStart;
+        second.Node.Position = secondStart;
+        _dragStartTransforms.Clear();
+
+        var firstRotationStart = first.Node.RotationDegrees;
+        var secondRotationStart = second.Node.RotationDegrees;
+        var originalSeparation = firstStart.DistanceTo(secondStart);
+        SetTransformMode(WorkspaceTransformMode.Rotate);
+        UpdateTransformGizmo();
+        var rotatePointer = _mainCamera.UnprojectPosition(
+            _transformGizmo.GlobalPosition + Vector3.Right * 0.85f);
+        var rotatePassed = _transformGizmo.BeginDrag(_mainCamera, rotatePointer);
+        if (rotatePassed)
+        {
+            CaptureDragStartTransforms();
+            amount = _transformGizmo.DragAmount(_mainCamera, rotatePointer + new Vector2(0, 28));
+            ApplyGizmoDrag(amount);
+            _transformGizmo.EndDrag();
+            rotatePassed = MathF.Abs(amount) > 0.1f
+                && MathF.Abs(first.Node.Position.DistanceTo(second.Node.Position) - originalSeparation) < 0.001f
+                && (!first.Node.Position.IsEqualApprox(firstStart)
+                    || !second.Node.Position.IsEqualApprox(secondStart));
+        }
+        first.Node.Position = firstStart;
+        second.Node.Position = secondStart;
+        first.Node.RotationDegrees = firstRotationStart;
+        second.Node.RotationDegrees = secondRotationStart;
+        _dragStartTransforms.Clear();
+
+        var firstScaleStart = first.Node.Scale;
+        var secondScaleStart = second.Node.Scale;
+        SetTransformMode(WorkspaceTransformMode.Scale);
+        UpdateTransformGizmo();
+        originScreen = _mainCamera.UnprojectPosition(_transformGizmo.GlobalPosition);
+        axisScreen = _mainCamera.UnprojectPosition(
+            _transformGizmo.GlobalPosition + Vector3.Right * 0.65f);
+        direction = (axisScreen - originScreen).Normalized();
+        var scalePassed = direction.LengthSquared() >= 0.5f
+            && _transformGizmo.BeginDrag(_mainCamera, axisScreen);
+        if (scalePassed)
+        {
+            CaptureDragStartTransforms();
+            amount = _transformGizmo.DragAmount(_mainCamera, axisScreen + direction * 24.0f);
+            ApplyGizmoDrag(amount);
+            _transformGizmo.EndDrag();
+            scalePassed = !first.Node.Scale.IsEqualApprox(firstScaleStart)
+                && !second.Node.Scale.IsEqualApprox(secondScaleStart)
+                && MathF.Abs((first.Node.Position - second.Node.Position).X)
+                    > MathF.Abs((firstStart - secondStart).X);
+        }
+        first.Node.Position = firstStart;
+        second.Node.Position = secondStart;
+        first.Node.Scale = firstScaleStart;
+        second.Node.Scale = secondScaleStart;
+        _dragStartTransforms.Clear();
+
+        var firstRotation = first.Node.RotationDegrees;
+        first.Node.RotationDegrees = new Vector3(0, 45, 0);
+        SetTransformMode(WorkspaceTransformMode.Move);
+        SetTransformSpace(WorkspaceTransformSpace.Local);
+        UpdateTransformGizmo();
+        var localAxis = (first.Node.GlobalBasis * Vector3.Right).Normalized();
+        originScreen = _mainCamera.UnprojectPosition(_transformGizmo.GlobalPosition);
+        axisScreen = _mainCamera.UnprojectPosition(
+            _transformGizmo.GlobalPosition + localAxis * 0.65f);
+        direction = (axisScreen - originScreen).Normalized();
+        var localPassed = direction.LengthSquared() >= 0.5f
+            && _transformGizmo.BeginDrag(_mainCamera, axisScreen);
+        if (localPassed)
+        {
+            CaptureDragStartTransforms();
+            amount = _transformGizmo.DragAmount(_mainCamera, axisScreen + direction * 24.0f);
+            ApplyGizmoDrag(amount);
+            _transformGizmo.EndDrag();
+            firstDelta = first.Node.Position - firstStart;
+            secondDelta = second.Node.Position - secondStart;
+            localPassed = firstDelta.Length() > 0.01f
+                && firstDelta.Normalized().Dot(localAxis) > 0.98f
+                && firstDelta.IsEqualApprox(secondDelta);
+        }
+        first.Node.Position = firstStart;
+        second.Node.Position = secondStart;
+        first.Node.RotationDegrees = firstRotation;
+        _dragStartTransforms.Clear();
+        SetTransformSpace(WorkspaceTransformSpace.World);
+        UpdateTransformGizmo();
+        GD.Print($"GROUP_GIZMO_VERIFY move={passed} rotate={rotatePassed} scale={scalePassed} local={localPassed} firstDelta={firstDelta} secondDelta={secondDelta} localAxis={localAxis}");
+        return passed && rotatePassed && scalePassed && localPassed;
+    }
+
+    private bool VerifyCustomGroupPivot(string firstId, string secondId)
+    {
+        if (_transformGizmo is null || _mainCamera is null
+            || !_workspaceNodes.TryGetValue(firstId, out var first)
+            || !_workspaceNodes.TryGetValue(secondId, out var second)) return false;
+        SetSelection([firstId]);
+        var firstStart = first.Node.Position;
+        var secondStart = second.Node.Position;
+        var firstRotation = first.Node.RotationDegrees;
+        var secondRotation = second.Node.RotationDegrees;
+        var visualPivotPassed = _transformGizmo.GlobalPosition.IsEqualApprox(first.Node.GlobalPosition);
+        SetTransformMode(WorkspaceTransformMode.Rotate);
+        UpdateTransformGizmo();
+        var pointer = _mainCamera.UnprojectPosition(_transformGizmo.GlobalPosition + Vector3.Right * 0.85f);
+        var rotated = _transformGizmo.BeginDrag(_mainCamera, pointer);
+        if (rotated)
+        {
+            CaptureDragStartTransforms();
+            var amount = _transformGizmo.DragAmount(_mainCamera, pointer + new Vector2(0, 28));
+            ApplyGizmoDrag(amount);
+            _transformGizmo.EndDrag();
+            rotated = MathF.Abs(amount) > 0.1f
+                && first.Node.Position.IsEqualApprox(firstStart)
+                && !second.Node.Position.IsEqualApprox(secondStart);
+        }
+        first.Node.Position = firstStart;
+        second.Node.Position = secondStart;
+        first.Node.RotationDegrees = firstRotation;
+        second.Node.RotationDegrees = secondRotation;
+        _dragStartTransforms.Clear();
+        SetTransformMode(WorkspaceTransformMode.Move);
+        UpdateTransformGizmo();
+        return visualPivotPassed && rotated;
+    }
+
+    private bool VerifyArrangeSelection(string firstId, string secondId, AssetDefinition thirdAsset)
+    {
+        var snapshot = CreateWorkspaceDocument();
+        var undoCount = _undoHistory.Count;
+        _workspaceNodes[firstId].Node.Position = new Vector3(0, 1, 0);
+        _workspaceNodes[secondId].Node.Position = new Vector3(4, 3, 2);
+        SetSelection([firstId, secondId]);
+        ArrangeSelection(WorkspaceArrangeOperation.AlignY);
+        var alignPassed = MathF.Abs(_workspaceNodes[firstId].Node.Position.Y - 3.0f) < 0.001f
+            && MathF.Abs(_workspaceNodes[firstId].Node.Position.X) < 0.001f;
+
+        PlaceAsset(thirdAsset, recordUndo: false);
+        var thirdId = _workspaceNodes.Keys.First(id => id != firstId && id != secondId);
+        _workspaceNodes[firstId].Node.Position = new Vector3(0, 0, 0);
+        _workspaceNodes[secondId].Node.Position = new Vector3(17, 0, 0);
+        _workspaceNodes[thirdId].Node.Position = new Vector3(20, 0, 0);
+        SetSelection([firstId, secondId, thirdId]);
+        ArrangeSelection(WorkspaceArrangeOperation.DistributeX);
+        var distribution = _workspaceNodes.Values.Select(item => item.Node.Position.X)
+            .OrderBy(value => value).ToArray();
+        var distributePassed = distribution.Length == 3
+            && MathF.Abs(distribution[0]) < 0.001f
+            && MathF.Abs(distribution[1] - 10.0f) < 0.001f
+            && MathF.Abs(distribution[2] - 20.0f) < 0.001f;
+        ApplyWorkspaceSnapshot(snapshot);
+        while (_undoHistory.Count > undoCount) _undoHistory.RemoveAt(_undoHistory.Count - 1);
+        return alignPassed && distributePassed;
+    }
+
+    private static Vector3 Snap(Vector3 value, float increment) => new(
+        MathF.Round(value.X / increment) * increment,
+        MathF.Round(value.Y / increment) * increment,
+        MathF.Round(value.Z / increment) * increment
+    );
+
+    private static bool IsFinite(Vector3 value) =>
+        float.IsFinite(value.X) && float.IsFinite(value.Y) && float.IsFinite(value.Z);
+
+    private void DeletePlacement(string instanceId)
+    {
+        if (!_workspaceNodes.TryGetValue(instanceId, out var placement)) return;
+        RecordUndo();
+        placement.Node.GetParent()?.RemoveChild(placement.Node);
+        placement.Node.QueueFree();
+        _workspaceNodes.Remove(instanceId);
+        _connectorLinks.RemoveAll(link => link.FromInstanceId == instanceId || link.ToInstanceId == instanceId);
+        _signalLinks.RemoveAll(link => link.InstanceId == instanceId);
+        RemoveGroupMembers([instanceId]);
+        _selectedPlacementIds.Remove(instanceId);
+        _selectedPlacementId = _selectedPlacementIds.LastOrDefault();
+        RefreshWorkspaceUi();
+        _simulatorShell?.SetWorkspaceStatus($"Deleted placement · {_workspaceNodes.Count} remain");
+        _simulatorShell?.SetWorkspaceDirty(true);
+        GD.Print($"ASSET_PLACEMENT_DELETED {instanceId}");
+    }
+
+    private void DeleteSelection()
+    {
+        var selected = _selectedPlacementIds.Where(_workspaceNodes.ContainsKey).ToArray();
+        if (selected.Length == 0) return;
+        RecordUndo();
+        var selectedSet = selected.ToHashSet(StringComparer.Ordinal);
+        foreach (var id in selected)
+        {
+            var placement = _workspaceNodes[id];
+            placement.Node.GetParent()?.RemoveChild(placement.Node);
+            placement.Node.QueueFree();
+            _workspaceNodes.Remove(id);
+        }
+        _connectorLinks.RemoveAll(link => selectedSet.Contains(link.FromInstanceId)
+            || selectedSet.Contains(link.ToInstanceId));
+        _signalLinks.RemoveAll(link => selectedSet.Contains(link.InstanceId));
+        RemoveGroupMembers(selectedSet);
+        _selectedPlacementIds.Clear();
+        _selectedPlacementId = null;
+        UpdateTransformGizmo();
+        RefreshWorkspaceUi();
+        _simulatorShell?.SetWorkspaceStatus($"Deleted {selected.Length} selected placements · {_workspaceNodes.Count} remain");
+        _simulatorShell?.SetWorkspaceDirty(true);
+    }
+
+    private void RemoveGroupMembers(IEnumerable<string> removedIds)
+    {
+        var removed = removedIds.ToHashSet(StringComparer.Ordinal);
+        for (var index = _workspaceGroups.Count - 1; index >= 0; index--)
+        {
+            var group = _workspaceGroups[index];
+            var remaining = group.MemberInstanceIds.Where(member => !removed.Contains(member)).ToArray();
+            if (remaining.Length < 2) _workspaceGroups.RemoveAt(index);
+            else if (remaining.Length != group.MemberInstanceIds.Count)
+                _workspaceGroups[index] = group with { MemberInstanceIds = remaining };
+        }
+    }
+
+    private void RecordUndo()
+    {
+        if (_currentSceneId is null) return;
+        _undoHistory.Add(CreateWorkspaceDocument());
+        if (_undoHistory.Count > 100) _undoHistory.RemoveAt(0);
+        _redoHistory.Clear();
+    }
+
+    private void UndoWorkspace()
+    {
+        if (_undoHistory.Count == 0) return;
+        _redoHistory.Add(CreateWorkspaceDocument());
+        var snapshot = _undoHistory[^1];
+        _undoHistory.RemoveAt(_undoHistory.Count - 1);
+        ApplyWorkspaceSnapshot(snapshot);
+        _simulatorShell?.SetWorkspaceStatus("Undo applied");
+        _simulatorShell?.SetWorkspaceDirty(true);
+    }
+
+    private void RedoWorkspace()
+    {
+        if (_redoHistory.Count == 0) return;
+        _undoHistory.Add(CreateWorkspaceDocument());
+        var snapshot = _redoHistory[^1];
+        _redoHistory.RemoveAt(_redoHistory.Count - 1);
+        ApplyWorkspaceSnapshot(snapshot);
+        _simulatorShell?.SetWorkspaceStatus("Redo applied");
+        _simulatorShell?.SetWorkspaceDirty(true);
+    }
+
+    private void ApplyWorkspaceSnapshot(WorkspaceDocument snapshot)
+    {
+        if (snapshot.SourceSceneId != _currentSceneId)
+            throw new InvalidOperationException("Undo snapshot belongs to another scene.");
+        foreach (var placement in _workspaceNodes.Values)
+        {
+            placement.Node.GetParent()?.RemoveChild(placement.Node);
+            placement.Node.QueueFree();
+        }
+        _workspaceNodes.Clear();
+        _connectorLinks.Clear();
+        _signalLinks.Clear();
+        _workspaceGroups.Clear();
+        _selectedPlacementId = null;
+        _selectedPlacementIds.Clear();
+        foreach (var placement in snapshot.Placements)
+        {
+            var asset = _candidateCatalog?.Assets.FirstOrDefault(item => item.Id == placement.AssetId)
+                ?? throw new InvalidOperationException($"Undo asset '{placement.AssetId}' is unavailable.");
+            PlaceAsset(asset, placement, recordUndo: false);
+        }
+        _connectorLinks.AddRange(snapshot.ConnectorLinks ?? []);
+        _signalLinks.AddRange(snapshot.SignalLinks ?? []);
+        _workspaceGroups.AddRange(snapshot.Groups ?? []);
+        RefreshWorkspaceUi();
+    }
+
+    private void RefreshWorkspaceUi()
+    {
+        if (_simulatorShell is null || _currentSceneId is null) return;
+        _simulatorShell.UpdateWorkspace(
+            CreateWorkspaceDocument().Placements,
+            _selectedPlacementId,
+            _undoHistory.Count > 0,
+            _redoHistory.Count > 0,
+            _connectorLinks,
+            _signalLinks,
+            ApplySignalMappings(),
+            _selectedPlacementIds,
+            _workspaceGroups
+        );
+        RefreshConnectionVisuals();
+    }
+
+    private void ApplyWorkspaceSignalMappings()
+    {
+        ApplySignalMappings();
+    }
+
+    private IReadOnlyDictionary<string, SignalMappingRuntimeStatus> ApplySignalMappings()
+    {
+        var statuses = new Dictionary<string, SignalMappingRuntimeStatus>(StringComparer.Ordinal);
+        if (_sceneRuntime is null || _candidateCatalog is null) return statuses;
+
+        foreach (var link in _signalLinks)
+        {
+            if (!_workspaceNodes.TryGetValue(link.InstanceId, out var placement)
+                || _candidateCatalog.Assets.FirstOrDefault(item => item.Id == placement.AssetId) is not { } asset
+                || asset.Signals.FirstOrDefault(item => item.Id == link.SignalId) is not { } signal
+                || !_sceneRuntime.Points.TryGetValue(link.PointName, out var pointValue))
+            {
+                statuses[link.Id] = new SignalMappingRuntimeStatus(
+                    SignalMappingRuntimeState.AuthoredOnly,
+                    "AUTHORED ONLY",
+                    "The saved mapping references an unavailable runtime endpoint."
+                );
+                continue;
+            }
+
+            statuses[link.Id] = WorkspaceSignalRuntimeAdapter.Apply(
+                asset,
+                placement.Node,
+                signal,
+                pointValue
+            );
+        }
+        return statuses;
+    }
+
+    private void RefreshConnectionVisuals()
+    {
+        if (_connectionVisuals is not null)
+        {
+            _connectionVisuals.GetParent()?.RemoveChild(_connectionVisuals);
+            _connectionVisuals.QueueFree();
+        }
+        _connectionVisuals = new Node3D { Name = "WorkspaceConnectionVisuals" };
+        _sceneCompositionRoot?.AddChild(_connectionVisuals);
+        foreach (var link in _connectorLinks)
+        {
+            if (!_workspaceNodes.TryGetValue(link.FromInstanceId, out var fromPlacement)
+                || !_workspaceNodes.TryGetValue(link.ToInstanceId, out var toPlacement)
+                || !TryResolveConnector(link.FromInstanceId, link.FromConnectorId, out var from)
+                || !TryResolveConnector(link.ToInstanceId, link.ToConnectorId, out var to)) continue;
+            var start = fromPlacement.Node.Transform * ConnectorPosition(from);
+            var end = toPlacement.Node.Transform * ConnectorPosition(to);
+            var color = ConnectorColor(from.Kind, to.Kind);
+            var material = new StandardMaterial3D
+            {
+                AlbedoColor = color,
+                ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
+                NoDepthTest = true,
+                EmissionEnabled = true,
+                Emission = color,
+                EmissionEnergyMultiplier = 2.0f,
+            };
+            var lines = new ImmediateMesh();
+            lines.SurfaceBegin(Mesh.PrimitiveType.LineStrip, material);
+            var midpointX = (start.X + end.X) * 0.5f;
+            lines.SurfaceAddVertex(start);
+            lines.SurfaceAddVertex(new Vector3(midpointX, start.Y, start.Z));
+            lines.SurfaceAddVertex(new Vector3(midpointX, end.Y, end.Z));
+            lines.SurfaceAddVertex(end);
+            lines.SurfaceEnd();
+            _connectionVisuals.AddChild(new MeshInstance3D
+            {
+                Name = $"Link_{SafeNodeName(link.Id)}",
+                Mesh = lines,
+                CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
+            });
+            AddConnectorMarker(_connectionVisuals, start, color, $"From_{SafeNodeName(link.Id)}");
+            AddConnectorMarker(_connectionVisuals, end, color, $"To_{SafeNodeName(link.Id)}");
+        }
+    }
+
+    private static Vector3 ConnectorPosition(AssetConnector connector) => new(
+        (float)connector.PositionM[0],
+        (float)connector.PositionM[2],
+        -(float)connector.PositionM[1]
+    );
+
+    private static Color ConnectorColor(string fromKind, string toKind)
+    {
+        var combined = $"{fromKind} {toKind}";
+        if (combined.Contains("electrical", StringComparison.OrdinalIgnoreCase)) return new Color("f3c64f");
+        if (combined.Contains("process", StringComparison.OrdinalIgnoreCase)) return new Color("4aa5ff");
+        if (combined.Contains("pneumatic", StringComparison.OrdinalIgnoreCase)) return new Color("b48cff");
+        return new Color("42d3ff");
+    }
+
+    private static void AddConnectorMarker(Node3D parent, Vector3 position, Color color, string name)
+    {
+        var material = new StandardMaterial3D
+        {
+            AlbedoColor = color,
+            ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
+            EmissionEnabled = true,
+            Emission = color,
+            EmissionEnergyMultiplier = 2.2f,
+        };
+        parent.AddChild(new MeshInstance3D
+        {
+            Name = name,
+            Position = position,
+            Mesh = new SphereMesh { Radius = 0.065f, Height = 0.13f, Material = material },
+            CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
+        });
+    }
+
+    private void CreateConnectorLink(
+        string fromInstance,
+        string fromConnectorId,
+        string toInstance,
+        string toConnectorId
+    )
+    {
+        if (!TryResolveConnector(fromInstance, fromConnectorId, out var from)
+            || !TryResolveConnector(toInstance, toConnectorId, out var to))
+        {
+            _simulatorShell?.SetWorkspaceStatus("Connection rejected · endpoint is unavailable", isError: true);
+            return;
+        }
+        if (fromInstance == toInstance && fromConnectorId == toConnectorId)
+        {
+            _simulatorShell?.SetWorkspaceStatus("Connection rejected · endpoint cannot connect to itself", isError: true);
+            return;
+        }
+        if (!from.CompatibleKinds.Contains(to.Kind, StringComparer.Ordinal)
+            && !to.CompatibleKinds.Contains(from.Kind, StringComparer.Ordinal))
+        {
+            _simulatorShell?.SetWorkspaceStatus($"Connection rejected · {from.Kind} is incompatible with {to.Kind}", isError: true);
+            return;
+        }
+        var duplicate = _connectorLinks.Any(link =>
+            (link.FromInstanceId == fromInstance && link.FromConnectorId == fromConnectorId
+             && link.ToInstanceId == toInstance && link.ToConnectorId == toConnectorId)
+            || (link.FromInstanceId == toInstance && link.FromConnectorId == toConnectorId
+                && link.ToInstanceId == fromInstance && link.ToConnectorId == fromConnectorId));
+        if (duplicate)
+        {
+            _simulatorShell?.SetWorkspaceStatus("Connection rejected · duplicate link", isError: true);
+            return;
+        }
+        RecordUndo();
+        _connectorLinks.Add(new WorkspaceConnectorLink(
+            NextId("connector-link", _connectorLinks.Select(link => link.Id)),
+            fromInstance,
+            fromConnectorId,
+            toInstance,
+            toConnectorId
+        ));
+        RefreshWorkspaceUi();
+        _simulatorShell?.SetWorkspaceStatus($"Connector link created · {from.Kind} ↔ {to.Kind}");
+        _simulatorShell?.SetWorkspaceDirty(true);
+    }
+
+    private void CreateSignalLink(string instanceId, string signalId, string pointName)
+    {
+        if (!_workspaceNodes.TryGetValue(instanceId, out var placement)
+            || _candidateCatalog?.Assets.FirstOrDefault(item => item.Id == placement.AssetId) is not { } asset
+            || asset.Signals.FirstOrDefault(item => item.Id == signalId) is not { } signal)
+        {
+            _simulatorShell?.SetWorkspaceStatus("Signal mapping rejected · asset signal is unavailable", isError: true);
+            return;
+        }
+        var pointType = ScenePointType(pointName);
+        if (pointType is null || !TypesCompatible(signal.DataType, pointType))
+        {
+            _simulatorShell?.SetWorkspaceStatus($"Signal mapping rejected · {signal.DataType} is incompatible with {pointType ?? "missing point"}", isError: true);
+            return;
+        }
+        if (_signalLinks.Any(link => link.InstanceId == instanceId && link.SignalId == signalId))
+        {
+            _simulatorShell?.SetWorkspaceStatus("Signal mapping rejected · asset signal is already mapped", isError: true);
+            return;
+        }
+        RecordUndo();
+        _signalLinks.Add(new WorkspaceSignalLink(
+            NextId("signal-link", _signalLinks.Select(link => link.Id)),
+            instanceId,
+            signalId,
+            pointName
+        ));
+        ApplySignalMappings();
+        RefreshWorkspaceUi();
+        _simulatorShell?.SetWorkspaceStatus($"Signal mapped · {signalId} ↔ {pointName}");
+        _simulatorShell?.SetWorkspaceDirty(true);
+    }
+
+    private void DeleteConnectorLink(string id)
+    {
+        if (!_connectorLinks.Any(link => link.Id == id)) return;
+        RecordUndo();
+        _connectorLinks.RemoveAll(link => link.Id == id);
+        RefreshWorkspaceUi();
+        _simulatorShell?.SetWorkspaceStatus("Connector link deleted");
+        _simulatorShell?.SetWorkspaceDirty(true);
+    }
+
+    private void DeleteSignalLink(string id)
+    {
+        if (!_signalLinks.Any(link => link.Id == id)) return;
+        RecordUndo();
+        _signalLinks.RemoveAll(link => link.Id == id);
+        RefreshWorkspaceUi();
+        _simulatorShell?.SetWorkspaceStatus("Signal mapping deleted");
+        _simulatorShell?.SetWorkspaceDirty(true);
+    }
+
+    private bool TryResolveConnector(string instanceId, string connectorId, out AssetConnector connector)
+    {
+        connector = null!;
+        if (!_workspaceNodes.TryGetValue(instanceId, out var placement)) return false;
+        var asset = _candidateCatalog?.Assets.FirstOrDefault(item => item.Id == placement.AssetId);
+        connector = asset?.Connectors.FirstOrDefault(item => item.Id == connectorId)!;
+        return connector is not null;
+    }
+
+    private string? ScenePointType(string pointName)
+    {
+        if (_activeSceneDefinition?.Simulation.ValueKind != System.Text.Json.JsonValueKind.Object
+            || !_activeSceneDefinition.Simulation.TryGetProperty("points", out var points)
+            || points.ValueKind != System.Text.Json.JsonValueKind.Array) return null;
+        foreach (var point in points.EnumerateArray())
+        {
+            if (point.TryGetProperty("name", out var name)
+                && name.GetString() == pointName
+                && point.TryGetProperty("type", out var type)) return type.GetString();
+        }
+        return null;
+    }
+
+    private static bool TypesCompatible(string signalType, string pointType) =>
+        (signalType.ToLowerInvariant(), pointType.ToUpperInvariant()) switch
+        {
+            ("bool", "BOOL") => true,
+            ("float32", "REAL") => true,
+            ("int32", "DINT") => true,
+            ("int32", "INT") => true,
+            _ => false,
+        };
+
+    private static string NextId(string prefix, IEnumerable<string> existing)
+    {
+        var used = existing.ToHashSet(StringComparer.Ordinal);
+        for (var index = 1; ; index++)
+        {
+            var candidate = $"{prefix}-{index:000}";
+            if (!used.Contains(candidate)) return candidate;
+        }
+    }
+
+    private Vector3 FindOpenPlacementPosition(AssetDefinition asset)
+    {
+        if (_sceneCompositionRoot is null) return Vector3.Zero;
+        var points = new List<Vector3>();
+        foreach (Node child in _sceneCompositionRoot.GetChildren())
+        {
+            if (child.Name.ToString().StartsWith("UserPlacement_", StringComparison.Ordinal)) continue;
+            foreach (var node in child.FindChildren("*", "MeshInstance3D", true, false))
+            {
+                if (node is not MeshInstance3D mesh) continue;
+                var bounds = mesh.GetAabb();
+                for (var mask = 0; mask < 8; mask++)
+                {
+                    var corner = bounds.Position + new Vector3(
+                        (mask & 1) == 0 ? 0 : bounds.Size.X,
+                        (mask & 2) == 0 ? 0 : bounds.Size.Y,
+                        (mask & 4) == 0 ? 0 : bounds.Size.Z
+                    );
+                    points.Add(mesh.GlobalTransform * corner);
+                }
+            }
+        }
+        if (points.Count == 0) return Vector3.Zero;
+        var minimum = points[0];
+        var maximum = points[0];
+        foreach (var point in points)
+        {
+            minimum = new Vector3(MathF.Min(minimum.X, point.X), MathF.Min(minimum.Y, point.Y), MathF.Min(minimum.Z, point.Z));
+            maximum = new Vector3(MathF.Max(maximum.X, point.X), MathF.Max(maximum.Y, point.Y), MathF.Max(maximum.Z, point.Z));
+        }
+        var column = (_placedAssetCount - 1) % 4;
+        var row = (_placedAssetCount - 1) / 4;
+        var width = Math.Max((float)asset.Bounds.WidthM, 0.5f);
+        var depth = Math.Max((float)asset.Bounds.DepthM, 0.5f);
+        return new Vector3(
+            minimum.X + width * 0.5f + column * (width + 0.75f),
+            0.0f,
+            minimum.Z - depth * 0.5f - 1.0f - row * (depth + 0.75f)
+        );
+    }
+
+    private void SaveWorkspace()
+        => SaveWorkspaceToPath(WorkspaceRepository.LastWorkspacePath);
+
+    private void SaveWorkspaceToPath(string path)
+    {
+        if (_currentSceneId is null)
+        {
+            const string message = "Save failed: no active scene is loaded.";
+            _simulatorShell?.SetWorkspaceStatus(message, isError: true);
+            _simulatorShell?.ShowWorkspaceFeedback(message, isError: true);
+            return;
+        }
+        try
+        {
+            var savedPath = WorkspaceRepository.Save(CreateWorkspaceDocument(), path);
+            _simulatorShell?.SetWorkspaceStatus($"Saved {_workspaceNodes.Count} placements · {savedPath}");
+            _simulatorShell?.SetWorkspaceDirty(false);
+            GD.Print($"WORKSPACE_SAVED {savedPath} placements={_workspaceNodes.Count}");
+        }
+        catch (Exception exception)
+        {
+            var message = $"Save failed: {exception.Message}";
+            _simulatorShell?.SetWorkspaceStatus(message, isError: true);
+            _simulatorShell?.ShowWorkspaceFeedback(message, isError: true);
+            GD.PushError($"WORKSPACE_SAVE_FAILED {exception.Message}");
+        }
+    }
+
+    private WorkspaceDocument CreateWorkspaceDocument()
+    {
+        if (_currentSceneId is null) throw new InvalidOperationException("No active scene.");
+        var placements = _workspaceNodes.Select(item => new WorkspacePlacement(
+            item.Key,
+            item.Value.AssetId,
+            Array(item.Value.Node.Position),
+            Array(item.Value.Node.RotationDegrees),
+            Array(item.Value.Node.Scale)
+        )).ToArray();
+        return new WorkspaceDocument(5, _currentSceneId, placements,
+            _connectorLinks.ToArray(), _signalLinks.ToArray(), _workspaceGroups.ToArray());
+    }
+
+    private void LoadWorkspace()
+        => LoadWorkspaceFromPath(WorkspaceRepository.LastWorkspacePath);
+
+    private void LoadWorkspaceFromPath(string path)
+    {
+        if (_candidateCatalog is null || _sceneCatalog is null || _mainCamera is null)
+        {
+            const string message = "Load failed: project catalogs are unavailable.";
+            _simulatorShell?.SetWorkspaceStatus(message, isError: true);
+            _simulatorShell?.ShowWorkspaceFeedback(message, isError: true);
+            return;
+        }
+        try
+        {
+            var document = WorkspaceRepository.Load(_candidateCatalog, _sceneCatalog, path);
+            AddMigratedScene(document.SourceSceneId, _candidateCatalog, _mainCamera,
+                showRuntimeControls: false, autoRun: false);
+            foreach (var placement in document.Placements)
+            {
+                var asset = _candidateCatalog.Assets.First(item => item.Id == placement.AssetId);
+                PlaceAsset(asset, placement, recordUndo: false);
+            }
+            _connectorLinks.AddRange(document.ConnectorLinks ?? []);
+            _signalLinks.AddRange(document.SignalLinks ?? []);
+            _workspaceGroups.AddRange(document.Groups ?? []);
+            _undoHistory.Clear();
+            _redoHistory.Clear();
+            RefreshWorkspaceUi();
+            var message = $"Loaded {document.Placements.Count} placements from {System.IO.Path.GetFileName(path)}.\n\nScene: {document.SourceSceneId}";
+            _simulatorShell?.SetWorkspaceStatus(message.Replace("\n\n", " · "), isError: false);
+            _simulatorShell?.SetWorkspaceDirty(false);
+            _simulatorShell?.ShowWorkspaceFeedback(message);
+            GD.Print($"WORKSPACE_LOADED scene={document.SourceSceneId} placements={document.Placements.Count}");
+        }
+        catch (Exception exception)
+        {
+            var message = $"Load failed: {exception.Message}\n\nFor a Ladder agent project, use File → Open Ladder Agent Project….\nFor a scene workspace, use File → Save Workspace As… first.";
+            _simulatorShell?.SetWorkspaceStatus(message.Replace("\n\n", " · "), isError: true);
+            _simulatorShell?.ShowWorkspaceFeedback(message, isError: true);
+            GD.PushWarning($"WORKSPACE_LOAD_FAILED {exception.Message}");
+        }
+    }
+
+    private void AddMigratedScene(
+        string sceneId,
+        AssetCatalogDocument candidates,
+        Camera3D camera,
+        bool showRuntimeControls = true,
+        bool autoRun = true
+    )
+    {
+        if (_externalConnection?.State == ConnectionState.Connected)
+            _externalConnection.Disconnect();
+        if (_virtualController is not null) DisableVirtualController();
+        CloseAssetPreview();
+        var catalog = SceneCatalogLoader.LoadCatalog(
+            "res://scenes/catalog/original-scenes.catalog.json"
+        );
+        var entry = catalog.Scenes.FirstOrDefault(scene => scene.Id == sceneId)
+            ?? throw new InvalidOperationException($"Unknown migrated scene '{sceneId}'.");
+        var scene = SceneCatalogLoader.LoadScene(entry);
+        _activeSceneDefinition = scene;
+        var composition = SceneComposer.Compose(
+            scene,
+            candidates,
+            false
+        );
+        _workspaceNodes.Clear();
+        _connectorLinks.Clear();
+        _signalLinks.Clear();
+        _workspaceGroups.Clear();
+        _selectedPlacementId = null;
+        _selectedPlacementIds.Clear();
+        _undoHistory.Clear();
+        _redoHistory.Clear();
+        _transformGizmo?.Detach();
+        if (_sceneRuntime is not null)
+        {
+            _sceneRuntime.StateChanged -= ApplyWorkspaceSignalMappings;
+            RemoveChild(_sceneRuntime);
+            _sceneRuntime.QueueFree();
+            _sceneRuntime = null;
+        }
+        _sceneControlInteractor = null;
+        if (_sceneCompositionRoot is not null)
+        {
+            RemoveChild(_sceneCompositionRoot);
+            _sceneCompositionRoot.QueueFree();
+            _sceneCompositionRoot = null;
+        }
+        AddChild(composition.Root);
+        _sceneRuntime = new SceneSimulationRuntime(scene.Simulation, composition.Root);
+        _sceneControlInteractor = new SceneControlInteractor(scene, composition.Root);
+        _sceneRuntime.StateChanged += ApplyWorkspaceSignalMappings;
+        AddChild(_sceneRuntime);
+        if (_verifySceneContract)
+        {
+            var passed = _sceneRuntime.VerifyDeclaredCases(scene.Verification);
+            GetTree().Quit(passed ? 0 : 1);
+        }
+        else if (autoRun
+            && _simulatorShell?.IsExternalMode != true
+            && !_captureState.Equals("stopped", StringComparison.OrdinalIgnoreCase))
+        {
+            if (_sceneAction is null)
+            {
+                _sceneRuntime.RunDefault();
+            }
+            else
+            {
+                foreach (var actionId in _sceneAction.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+                {
+                    if (!_sceneRuntime.ExecuteAction(actionId))
+                    {
+                        throw new InvalidOperationException($"Scene action '{actionId}' could not execute.");
+                    }
+                }
+            }
+        }
+        if (showRuntimeControls && _capturePath is null && !_verifySceneContract)
+        {
+            AddRuntimeControls(scene, _sceneRuntime);
+        }
+        var sourceCameraPosition = new Vector3(
+            (float)scene.Camera.Position[0],
+            (float)scene.Camera.Position[1],
+            (float)scene.Camera.Position[2]
+        );
+        var authoredTarget = new Vector3(
+            (float)scene.Camera.Target[0],
+            (float)scene.Camera.Target[1],
+            (float)scene.Camera.Target[2]
+        );
+        camera.Fov = (float)scene.Camera.Fov;
+        FrameComposition(camera, composition.Root, sourceCameraPosition - authoredTarget);
+        _sceneCamera = camera;
+        _sceneCompositionRoot = composition.Root;
+        _sceneCameraDirection = sourceCameraPosition - authoredTarget;
+        _placedAssetCount = 0;
+        _currentSceneId = scene.Id;
+        _cameraController?.CaptureCurrentView();
+        _simulatorShell?.AttachScene(scene, _sceneRuntime, composition);
+        _simulatorShell?.SetWorkspaceDirty(false);
+        RefreshWorkspaceUi();
+        GD.Print($"MIGRATED_SCENE_LOADED {scene.Id} rendered={composition.RenderedEquipmentIds.Count} deferred={composition.DeferredEquipmentIds.Count}");
+        if (composition.DeferredEquipmentIds.Count > 0)
+        {
+            GD.Print($"MIGRATED_SCENE_DEFERRED {string.Join(',', composition.DeferredEquipmentIds)}");
+        }
+    }
+
+    private void AddRuntimeControls(SceneDefinition scene, SceneSimulationRuntime runtime)
+    {
+        var layer = new CanvasLayer { Name = "RuntimeControls" };
+        var panel = new PanelContainer
+        {
+            Name = "ControlPanel",
+            OffsetLeft = 18,
+            OffsetTop = 18,
+            OffsetRight = 378,
+            OffsetBottom = 230,
+        };
+        var content = new VBoxContainer();
+        content.AddChild(new Label { Text = scene.Name });
+        content.AddChild(new Label { Text = $"Runtime: {runtime.RuntimeType}" });
+        var status = new Label { AutowrapMode = TextServer.AutowrapMode.WordSmart };
+        content.AddChild(status);
+
+        var controls = new HBoxContainer();
+        var run = new Button { Text = "Run" };
+        var stop = new Button { Text = "Stop" };
+        var reset = new Button { Text = "Reset" };
+        run.Pressed += () => runtime.RunDefault();
+        stop.Pressed += runtime.StopSimulation;
+        reset.Pressed += runtime.ResetSimulation;
+        controls.AddChild(run);
+        controls.AddChild(stop);
+        controls.AddChild(reset);
+        content.AddChild(controls);
+        panel.AddChild(content);
+        layer.AddChild(panel);
+        AddChild(layer);
+
+        void RefreshStatus()
+        {
+            var values = runtime.Points.Take(8)
+                .Select(point => $"{point.Key}: {point.Value}");
+            status.Text = string.Join("   |   ", values);
+        }
+        runtime.StateChanged += RefreshStatus;
+        RefreshStatus();
+    }
+
+    private static void FrameComposition(Camera3D camera, Node3D root, Vector3 authoredDirection)
+    {
+        var points = new List<Vector3>();
+        foreach (var node in root.FindChildren("*", "MeshInstance3D", true, false))
+        {
+            if (node is not MeshInstance3D mesh)
+            {
+                continue;
+            }
+            var bounds = mesh.GetAabb();
+            for (var mask = 0; mask < 8; mask++)
+            {
+                var corner = bounds.Position + new Vector3(
+                    (mask & 1) == 0 ? 0 : bounds.Size.X,
+                    (mask & 2) == 0 ? 0 : bounds.Size.Y,
+                    (mask & 4) == 0 ? 0 : bounds.Size.Z
+                );
+                points.Add(mesh.GlobalTransform * corner);
+            }
+        }
+        if (points.Count == 0)
+        {
+            return;
+        }
+
+        var minimum = points[0];
+        var maximum = points[0];
+        foreach (var point in points)
+        {
+            minimum = new Vector3(MathF.Min(minimum.X, point.X), MathF.Min(minimum.Y, point.Y), MathF.Min(minimum.Z, point.Z));
+            maximum = new Vector3(MathF.Max(maximum.X, point.X), MathF.Max(maximum.Y, point.Y), MathF.Max(maximum.Z, point.Z));
+        }
+        var center = (minimum + maximum) * 0.5f;
+        var direction = authoredDirection.Normalized();
+        var right = direction.Cross(Vector3.Up).Normalized();
+        var viewUp = right.Cross(direction).Normalized();
+        var halfWidth = 0.0f;
+        var halfHeight = 0.0f;
+        var halfDepth = 0.0f;
+        foreach (var point in points)
+        {
+            var offset = point - center;
+            halfWidth = MathF.Max(halfWidth, MathF.Abs(offset.Dot(right)));
+            halfHeight = MathF.Max(halfHeight, MathF.Abs(offset.Dot(viewUp)));
+            halfDepth = MathF.Max(halfDepth, MathF.Abs(offset.Dot(direction)));
+        }
+        var verticalTangent = MathF.Tan(Mathf.DegToRad(camera.Fov * 0.5f));
+        var aspect = (float)camera.GetViewport().GetVisibleRect().Size.X
+            / (float)camera.GetViewport().GetVisibleRect().Size.Y;
+        var distance = MathF.Max(halfHeight / verticalTangent, halfWidth / (verticalTangent * aspect));
+        distance = (distance + halfDepth) * 1.16f;
+        camera.Position = center + direction * MathF.Max(distance, 2.5f);
+        camera.LookAt(center, Vector3.Up);
+    }
+
+    public override void _Process(double delta)
+    {
+        _sceneControlInteractor?.AdvanceFeedback(delta);
+        if (_sceneControlInteractor is not null && _sceneRuntime is not null)
+            _sceneControlInteractor.SynchronizeFeedback(_sceneRuntime.Points);
+        if (_captureWitness is not null && _previewSpeedReader is not null)
+        {
+            _captureWitness.Position += Vector3.Right
+                * _previewSpeedReader()
+                * (float)delta;
+        }
+
+        if (_capturePath is null)
+        {
+            return;
+        }
+        _captureFramesRemaining--;
+        if (_captureFramesRemaining == 1 && _sceneCamera is not null && _sceneCompositionRoot is not null)
+        {
+            FrameComposition(_sceneCamera, _sceneCompositionRoot, _sceneCameraDirection);
+            return;
+        }
+        if (_captureFramesRemaining > 0) return;
+
+        var capturePath = _capturePath;
+        _capturePath = null;
+        var image = GetViewport().GetTexture().GetImage();
+        if (image is null || image.IsEmpty())
+        {
+            GD.PushError("Runtime capture requires a rendering display; the headless dummy renderer has no viewport image.");
+            GetTree().Quit(2);
+            return;
+        }
+
+        var error = image.SavePng(capturePath);
+        if (error != Error.Ok)
+        {
+            GD.PushError($"Unable to save runtime capture '{capturePath}': {error}.");
+            GetTree().Quit(1);
+            return;
+        }
+
+        GD.Print($"RUNTIME_CAPTURE_SAVED {capturePath}");
+        GetTree().Quit();
+    }
+
+    public override void _PhysicsProcess(double delta)
+    {
+        if (_externalConnection?.State == ConnectionState.Connected)
+            AdvanceExternalPlc();
+        if (_virtualController is null || _sceneRuntime is null) return;
+        _virtualController.Advance(
+            delta,
+            SampleVirtualControllerInputs,
+            SampleVirtualControllerNumericInputs,
+            CommitVirtualControllerOutputs,
+            CommitVirtualControllerNumericOutputs,
+            _sceneRuntime.AdvanceSimulation);
+    }
+
+    private void AdvanceExternalPlc()
+    {
+        if (_externalConnection?.ActiveDescriptor is not JsonElement descriptor
+            || _sceneRuntime is null
+            || _currentSceneId is null)
+            return;
+        try
+        {
+            var pcPoints = new Dictionary<string, object?>(StringComparer.Ordinal);
+            if (descriptor.TryGetProperty("pcPointScope", out var scope)
+                && scope.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var item in scope.EnumerateArray())
+                {
+                    var name = item.GetProperty("name").GetString() ?? string.Empty;
+                    if (name.Length == 0 || !_sceneRuntime.Points.TryGetValue(name, out var value))
+                        throw new InvalidOperationException($"Scene is missing external PLC input point '{name}'.");
+                    pcPoints[name] = value;
+                }
+            }
+            var result = _externalConnection.Cycle(_currentSceneId, pcPoints);
+            if (result.TryGetProperty("plcPoints", out var outputs)
+                && outputs.ValueKind == JsonValueKind.Object)
+            {
+                var mapped = outputs.EnumerateObject().ToDictionary(
+                    item => item.Name,
+                    item => JsonValue(item.Value),
+                    StringComparer.Ordinal);
+                _sceneRuntime.CommitExternalPlcOutputs(mapped);
+            }
+        }
+        catch (Exception exception)
+        {
+            _simulatorShell?.SetWorkspaceStatus($"External PLC exchange failed · {exception.Message}", isError: true);
+            _externalConnection?.Disconnect();
+        }
+    }
+
+    private static object? JsonValue(JsonElement value)
+    {
+        return value.ValueKind switch
+        {
+            JsonValueKind.True => true,
+            JsonValueKind.False => false,
+            JsonValueKind.Number when value.TryGetInt64(out var integer) => integer,
+            JsonValueKind.Number when value.TryGetDouble(out var number) => number,
+            JsonValueKind.String => value.GetString(),
+            _ => null,
+        };
+    }
+
+    public override void _UnhandledInput(InputEvent inputEvent)
+    {
+        if (_simulatorShell is null) return;
+        if (inputEvent is InputEventKey { Pressed: true, Echo: false } key)
+        {
+            if (key.CtrlPressed && key.Keycode == Key.S)
+            {
+                if (_simulatorShell.IsLadderView) _simulatorShell.ShowLadderSaveDialog();
+                else SaveWorkspace();
+            }
+            else if (key.CtrlPressed && key.Keycode == Key.O)
+            {
+                if (_simulatorShell.IsLadderView) _simulatorShell.ShowLadderLoadDialog();
+                else LoadWorkspace();
+            }
+            else if (key.CtrlPressed && key.Keycode == Key.Z && key.ShiftPressed)
+            {
+                if (_simulatorShell.IsLadderView) _simulatorShell.TryRedoLadderEdit(out _);
+                else RedoWorkspace();
+            }
+            else if (key.CtrlPressed && key.Keycode == Key.Z)
+            {
+                if (_simulatorShell.IsLadderView) _simulatorShell.TryUndoLadderEdit(out _);
+                else UndoWorkspace();
+            }
+            else if (key.CtrlPressed && key.Keycode == Key.Y)
+            {
+                if (_simulatorShell.IsLadderView) _simulatorShell.TryRedoLadderEdit(out _);
+                else RedoWorkspace();
+            }
+            else if (key.Keycode == Key.F1 && _simulatorShell.IsLadderView)
+                _simulatorShell.ShowLadderInstructionHelp();
+            else if (key.CtrlPressed && key.ShiftPressed && key.Keycode == Key.G) UngroupSelection();
+            else if (key.CtrlPressed && key.Keycode == Key.G) GroupSelection();
+            else if (key.CtrlPressed && key.Keycode == Key.C) CopySelection();
+            else if (key.CtrlPressed && key.Keycode == Key.V) PasteSelection();
+            else if (key.CtrlPressed && key.Keycode == Key.D && _selectedPlacementIds.Count > 0) DuplicateSelection();
+            else if (key.Keycode == Key.F && _selectedPlacementId is not null) FocusPlacement(_selectedPlacementId);
+            else if (key.Keycode == Key.W) SetTransformMode(WorkspaceTransformMode.Move);
+            else if (key.Keycode == Key.E) SetTransformMode(WorkspaceTransformMode.Rotate);
+            else if (key.Keycode == Key.R) SetTransformMode(WorkspaceTransformMode.Scale);
+            else if (key.Keycode == Key.Q) SetTransformSpace(
+                _transformSpace == WorkspaceTransformSpace.World
+                    ? WorkspaceTransformSpace.Local
+                    : WorkspaceTransformSpace.World);
+            else if (key.Keycode == Key.Delete && _selectedPlacementIds.Count > 0) DeleteSelection();
+            else if (key.Keycode == Key.Escape && (_marqueePending || _marqueeActive))
+            {
+                _marqueePending = false;
+                _marqueeActive = false;
+                _simulatorShell.SetSelectionMarquee(Vector2.Zero, Vector2.Zero, false);
+                _simulatorShell.SetWorkspaceStatus("Marquee selection cancelled");
+            }
+            else if (key.Keycode == Key.Escape && _transformGizmo?.IsDragging == true)
+            {
+                foreach (var item in _dragStartTransforms)
+                    if (_workspaceNodes.TryGetValue(item.Key, out var placement))
+                    {
+                        placement.Node.Position = item.Value.Position;
+                        placement.Node.RotationDegrees = item.Value.Rotation;
+                        placement.Node.Scale = item.Value.Scale;
+                    }
+                _transformGizmo.EndDrag();
+                _gizmoStartSnapshot = null;
+                _dragStartTransforms.Clear();
+                UpdateTransformGizmo();
+                RefreshWorkspaceUi();
+            }
+            else if (key.Keycode == Key.Escape) SelectPlacement(null);
+            else return;
+            GetViewport().SetInputAsHandled();
+            return;
+        }
+        if (_mainCamera is null) return;
+        if (inputEvent is InputEventMouseMotion motion && _transformGizmo?.IsDragging == true)
+        {
+            ApplyGizmoDrag(_transformGizmo.DragAmount(_mainCamera, motion.Position));
+            GetViewport().SetInputAsHandled();
+            return;
+        }
+        if (inputEvent is InputEventMouseMotion marqueeMotion && _marqueePending)
+        {
+            var marqueePoint = ClampToRect(marqueeMotion.Position, _simulatorShell.SceneViewportRect());
+            if (!_marqueeActive && marqueePoint.DistanceTo(_marqueeStart) >= 6.0f)
+                _marqueeActive = true;
+            if (_marqueeActive)
+                _simulatorShell.SetSelectionMarquee(_marqueeStart, marqueePoint, true);
+            GetViewport().SetInputAsHandled();
+            return;
+        }
+        if (inputEvent is InputEventMouseButton { ButtonIndex: MouseButton.Left, Pressed: false }
+            && _transformGizmo?.IsDragging == true)
+        {
+            _transformGizmo.EndDrag();
+            if (_gizmoStartSnapshot is not null)
+            {
+                _undoHistory.Add(_gizmoStartSnapshot);
+                if (_undoHistory.Count > 100) _undoHistory.RemoveAt(0);
+                _redoHistory.Clear();
+                _gizmoStartSnapshot = null;
+            }
+            _dragStartTransforms.Clear();
+            RefreshWorkspaceUi();
+            RefreshConnectionVisuals();
+            _simulatorShell.SetWorkspaceStatus("Viewport transform applied");
+            _simulatorShell.SetWorkspaceDirty(true);
+            GetViewport().SetInputAsHandled();
+            return;
+        }
+        if (inputEvent is InputEventMouseButton { ButtonIndex: MouseButton.Left, Pressed: false } marqueeRelease
+            && _marqueePending)
+        {
+            var wasActive = _marqueeActive;
+            _marqueePending = false;
+            _marqueeActive = false;
+            _simulatorShell.SetSelectionMarquee(Vector2.Zero, Vector2.Zero, false);
+            if (wasActive)
+            {
+                var releasePoint = ClampToRect(marqueeRelease.Position, _simulatorShell.SceneViewportRect());
+                var position = new Vector2(
+                    MathF.Min(_marqueeStart.X, releasePoint.X),
+                    MathF.Min(_marqueeStart.Y, releasePoint.Y));
+                var rect = new Rect2(position, new Vector2(
+                    MathF.Abs(releasePoint.X - _marqueeStart.X),
+                    MathF.Abs(releasePoint.Y - _marqueeStart.Y)));
+                var count = SelectPlacementsInScreenRect(rect, _marqueeAdditive);
+                _simulatorShell.SetWorkspaceStatus($"Marquee selected {count} placement{(count == 1 ? "" : "s")}");
+            }
+            else
+            {
+                SelectAtScreenPoint(marqueeRelease.Position, _marqueeAdditive);
+            }
+            GetViewport().SetInputAsHandled();
+            return;
+        }
+        if (inputEvent is not InputEventMouseButton { ButtonIndex: MouseButton.Left, Pressed: true } click)
+            return;
+        if (_simulatorShell.SceneViewportRect().HasPoint(click.Position)
+            && TryExecuteSceneControl(click.Position))
+        {
+            GetViewport().SetInputAsHandled();
+            return;
+        }
+        if (_selectedPlacementId is not null && _transformGizmo?.BeginDrag(_mainCamera, click.Position) == true
+            && _workspaceNodes.ContainsKey(_selectedPlacementId))
+        {
+            _gizmoStartSnapshot = CreateWorkspaceDocument();
+            CaptureDragStartTransforms();
+            GetViewport().SetInputAsHandled();
+            return;
+        }
+        if (_simulatorShell.SceneViewportRect().HasPoint(click.Position))
+        {
+            _marqueePending = true;
+            _marqueeActive = false;
+            _marqueeAdditive = click.CtrlPressed || click.ShiftPressed;
+            _marqueeStart = click.Position;
+            GetViewport().SetInputAsHandled();
+        }
+    }
+
+    public override void _Input(InputEvent inputEvent)
+    {
+        // The full-screen CanvasLayer consumes pointer events before
+        // _UnhandledInput. Scene controls therefore need to be considered at
+        // the raw input stage, but only inside the unobstructed 3D aperture.
+        if (_simulatorShell is null
+            || inputEvent is not InputEventMouseButton { ButtonIndex: MouseButton.Left, Pressed: true } click
+            || !_simulatorShell.SceneViewportRect().HasPoint(click.Position)
+            || !TryExecuteSceneControl(click.Position))
+        {
+            return;
+        }
+        GetViewport().SetInputAsHandled();
+    }
+
+    private bool TryExecuteSceneControl(Vector2 screenPosition)
+    {
+        if (_sceneControlInteractor is null || _sceneRuntime is null || _mainCamera is null
+            || !_sceneControlInteractor.TryPick(_mainCamera, screenPosition, out var control)
+            || control is null)
+        {
+            return false;
+        }
+
+        // The declared action is the only path from a 3D control to the
+        // symbolic runtime. This method intentionally does not read or write
+        // physical I/O, transport adapters, addresses, or controller state.
+        var executed = _sceneRuntime.ExecuteAction(control.ActionId);
+        if (executed) _sceneControlInteractor.PlayAcceptedFeedback(control);
+        _simulatorShell?.SetWorkspaceStatus(executed
+            ? $"Scene control · {control.Label} → {control.ActionId}"
+            : $"Scene control blocked · {control.Label} → {control.ActionId}", isError: !executed);
+        return true;
+    }
+
+    private void AddCandidatePreview(AssetDefinition asset)
+    {
+        var packedScene = ResourceLoader.Load<PackedScene>(asset.Model.DeliveryGltf)
+            ?? throw new System.InvalidOperationException(
+                $"Unable to load candidate model {asset.Model.DeliveryGltf}."
+            );
+        var model = packedScene.Instantiate<Node3D>();
+        model.Name = "CandidatePreview";
+        AddChild(model);
+        _candidatePreviewRoot = model;
+
+        if (asset.Id.Contains("pallet-roller-conveyor", StringComparison.Ordinal))
+        {
+            var controller = new RollerConveyorController
+            {
+                Name = "RollerConveyorController",
+                RunCommand = !_captureState.Equals("stopped", StringComparison.OrdinalIgnoreCase),
+                EstopOk = true,
+                SpeedSetpointMps = 0.45f,
+            };
+            model.AddChild(controller);
+            _previewSpeedReader = () => controller.ActualSpeedMps;
+        }
+        else
+        {
+            var controller = new ConveyorController
+            {
+                Name = "ConveyorController",
+                RunCommand = !_captureState.Equals("stopped", StringComparison.OrdinalIgnoreCase),
+                EstopOk = true,
+                SpeedSetpointMps = 0.65f,
+            };
+            model.AddChild(controller);
+            _previewSpeedReader = () => controller.ActualSpeedMps;
+        }
+    }
+
+    private void AddCaptureWitness(AssetDefinition asset)
+    {
+        if (asset.Id.Contains("pallet-roller-conveyor", StringComparison.Ordinal))
+        {
+            AddPalletWitness();
+            return;
+        }
+
+        var box = new BoxMesh { Size = new Vector3(0.42f, 0.28f, 0.42f) };
+        box.Material = new StandardMaterial3D
+        {
+            AlbedoColor = new Color(0.92f, 0.56f, 0.03f),
+            Metallic = 0.04f,
+            Roughness = 0.64f,
+        };
+        _captureWitness = new MeshInstance3D
+        {
+            Name = "ReviewMotionWitness",
+            Mesh = box,
+            Position = new Vector3(-1.60f, 1.205f, 0.0f),
+        };
+        AddChild(_captureWitness);
+    }
+
+    private void AddPalletWitness()
+    {
+        var root = new Node3D
+        {
+            Name = "ReviewPalletWitness",
+            Position = new Vector3(-1.25f, 1.095f, 0.0f),
+        };
+        var wood = new StandardMaterial3D
+        {
+            AlbedoColor = new Color(0.43f, 0.24f, 0.09f),
+            Metallic = 0.02f,
+            Roughness = 0.72f,
+        };
+        foreach (var z in new[] { -0.40f, 0.0f, 0.40f })
+        {
+            AddWitnessBox(root, new Vector3(1.20f, 0.10f, 0.10f), new Vector3(0, 0.05f, z), wood);
+        }
+        foreach (var x in new[] { -0.53f, -0.35f, -0.17f, 0.0f, 0.17f, 0.35f, 0.53f })
+        {
+            AddWitnessBox(root, new Vector3(0.13f, 0.045f, 1.0f), new Vector3(x, 0.12f, 0), wood);
+        }
+        _captureWitness = root;
+        AddChild(root);
+    }
+
+    private static void AddWitnessBox(Node parent, Vector3 size, Vector3 position, Material material)
+    {
+        var mesh = new BoxMesh { Size = size, Material = material };
+        parent.AddChild(new MeshInstance3D { Mesh = mesh, Position = position });
+    }
+
+    private static Node3D CreateSelectionOutline(AssetDefinition asset)
+    {
+        var width = Math.Max((float)asset.Bounds.WidthM, 0.08f);
+        var height = Math.Max((float)asset.Bounds.HeightM, 0.08f);
+        var depth = Math.Max((float)asset.Bounds.DepthM, 0.08f);
+        var minimum = new Vector3(-width * 0.5f, 0.0f, -depth * 0.5f);
+        var maximum = new Vector3(width * 0.5f, height, depth * 0.5f);
+        var corners = new[]
+        {
+            new Vector3(minimum.X, minimum.Y, minimum.Z),
+            new Vector3(maximum.X, minimum.Y, minimum.Z),
+            new Vector3(maximum.X, minimum.Y, maximum.Z),
+            new Vector3(minimum.X, minimum.Y, maximum.Z),
+            new Vector3(minimum.X, maximum.Y, minimum.Z),
+            new Vector3(maximum.X, maximum.Y, minimum.Z),
+            new Vector3(maximum.X, maximum.Y, maximum.Z),
+            new Vector3(minimum.X, maximum.Y, maximum.Z),
+        };
+        var edges = new (int Start, int End)[]
+        {
+            (0, 1), (1, 2), (2, 3), (3, 0),
+            (4, 5), (5, 6), (6, 7), (7, 4),
+            (0, 4), (1, 5), (2, 6), (3, 7),
+        };
+        var material = new StandardMaterial3D
+        {
+            AlbedoColor = new Color("42d3ff"),
+            ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
+            NoDepthTest = true,
+            EmissionEnabled = true,
+            Emission = new Color("42d3ff"),
+            EmissionEnergyMultiplier = 2.0f,
+        };
+        var lines = new ImmediateMesh();
+        lines.SurfaceBegin(Mesh.PrimitiveType.Lines, material);
+        foreach (var edge in edges)
+        {
+            lines.SurfaceAddVertex(corners[edge.Start]);
+            lines.SurfaceAddVertex(corners[edge.End]);
+        }
+        lines.SurfaceEnd();
+        return new MeshInstance3D
+        {
+            Name = "EditorSelectionOutline",
+            Mesh = lines,
+            Visible = false,
+            CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
+        };
+    }
+
+    private static string SafeNodeName(string value) => value
+        .Replace("-", "_", StringComparison.Ordinal)
+        .Replace(".", "_", StringComparison.Ordinal)
+        .Replace("/", "_", StringComparison.Ordinal);
+
+    private static Vector3 Vector(double[] values) => new(
+        (float)values[0], (float)values[1], (float)values[2]
+    );
+
+    private static double[] Array(Vector3 value) =>
+        [value.X, value.Y, value.Z];
+}

@@ -1,0 +1,382 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-10-01-drive-alarm-code-string",
+  "name": "Lab 10.1 - Drive Alarm-Code String",
+  "description": "A drive alarm string is received, searched for a selected code, and converted into a PLC alarm result.",
+  "camera": {
+    "position": [
+      11,
+      8,
+      12
+    ],
+    "target": [
+      0,
+      1.1,
+      0
+    ],
+    "fov": 45
+  },
+  "equipment": [
+    {
+      "id": "motor_0",
+      "type": "motor",
+      "label": "Drive Alarm-Code String motor",
+      "position": [
+        -3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "running": false
+      }
+    },
+    {
+      "id": "machine_1",
+      "type": "machine",
+      "label": "Drive Alarm-Code String machine",
+      "position": [
+        -1.1,
+        0,
+        0
+      ],
+      "config": {
+        "size": [
+          2.1,
+          2.7,
+          1.7
+        ],
+        "color": 5466227,
+        "running": false
+      }
+    },
+    {
+      "id": "indicator_2",
+      "type": "indicator",
+      "label": "Drive Alarm-Code String indicator",
+      "position": [
+        1.1,
+        0,
+        0
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    },
+    {
+      "id": "training_accessory_3",
+      "type": "trainingAccessory",
+      "label": "Drive Alarm-Code String - VFD diagnostic panel",
+      "position": [
+        3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "assetName": "VFD diagnostic panel",
+        "catalogAssetId": "training.accessory.vfd_diagnostic_panel.v1"
+      }
+    },
+    {
+      "id": "training_accessory_4",
+      "type": "trainingAccessory",
+      "label": "Drive Alarm-Code String - fieldbus alarm-string display",
+      "position": [
+        -3.3000000000000003,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "fieldbus alarm-string display",
+        "catalogAssetId": "training.accessory.fieldbus_alarm_string_display.v1"
+      }
+    },
+    {
+      "id": "training_accessory_5",
+      "type": "trainingAccessory",
+      "label": "Drive Alarm-Code String - drive status indicator",
+      "position": [
+        -1.1,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "drive status indicator",
+        "catalogAssetId": "training.accessory.drive_status_indicator.v1"
+      }
+    },
+    {
+      "id": "switch_6",
+      "type": "switch",
+      "label": "Drive Alarm-Code String operator input",
+      "position": [
+        1.55,
+        0,
+        2.35
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-drive_alarm_string_valid",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "switch_7",
+      "type": "switch",
+      "label": "Drive Alarm-Code String operator input",
+      "position": [
+        3.7500000000000004,
+        0,
+        2.35
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-alarm_code_found",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "switch_8",
+      "type": "switch",
+      "label": "Drive Alarm-Code String operator input",
+      "position": [
+        -2.4000000000000004,
+        0,
+        4.7
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-alarm_reset",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "indicator_9",
+      "type": "indicator",
+      "label": "Drive Alarm-Code String output indication",
+      "position": [
+        -0.20000000000000007,
+        0,
+        4.7
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    }
+  ],
+  "simulation": {
+    "type": "booleanPanel",
+    "points": [
+      {
+        "name": "drive_alarm_string_valid",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "alarm_code_found",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "alarm_reset",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "drive_alarm_active",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "alarm_match_valid",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      }
+    ],
+    "actions": [
+      {
+        "id": "toggle-drive_alarm_string_valid",
+        "label": "Toggle drive alarm string valid",
+        "type": "toggle",
+        "point": "drive_alarm_string_valid"
+      },
+      {
+        "id": "toggle-alarm_code_found",
+        "label": "Toggle alarm code found",
+        "type": "toggle",
+        "point": "alarm_code_found"
+      },
+      {
+        "id": "toggle-alarm_reset",
+        "label": "Toggle alarm reset",
+        "type": "toggle",
+        "point": "alarm_reset"
+      }
+    ],
+    "rules": [],
+    "edgeRules": [],
+    "pointBindings": [
+      {
+        "point": "drive_alarm_string_valid",
+        "equipmentId": "switch_6",
+        "mode": "switch"
+      },
+      {
+        "point": "alarm_code_found",
+        "equipmentId": "switch_7",
+        "mode": "switch"
+      },
+      {
+        "point": "alarm_reset",
+        "equipmentId": "switch_8",
+        "mode": "switch"
+      },
+      {
+        "point": "drive_alarm_active",
+        "equipmentId": "indicator_2",
+        "mode": "indicator",
+        "activeColor": "green"
+      },
+      {
+        "point": "alarm_match_valid",
+        "equipmentId": "indicator_9",
+        "mode": "indicator",
+        "activeColor": "green"
+      }
+    ]
+  },
+  "training": {
+    "hints": [
+      "Translate the lesson into explicit state and permissive logic: The alarm result is active only for a valid drive message containing the selected code.",
+      "Inputs are simulator feedback (drive_alarm_string_valid, alarm_code_found, alarm_reset); PLC logic owns drive_alarm_active, alarm_match_valid.",
+      "Test the initial state, the valid condition, and at least one missing permissive."
+    ],
+    "solution": {
+      "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
+      "steps": [
+        "Require the documented inputs: drive_alarm_string_valid, alarm_code_found, alarm_reset.",
+        "Command the documented outputs: drive_alarm_active, alarm_match_valid.",
+        "Remove PLC commands when the permissive is lost."
+      ],
+      "acceptance": "The alarm result is active only for a valid drive message containing the selected code."
+    },
+    "assetRequirements": [
+      "VFD diagnostic panel",
+      "fieldbus alarm-string display",
+      "drive status indicator"
+    ],
+    "machineGuide": {
+      "purpose": "A drive alarm string is received, searched for a selected code, and converted into a PLC alarm result.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state."
+      ],
+      "normalSequence": [
+        "Apply the requested input condition.",
+        "Verify only the documented PLC outputs respond."
+      ],
+      "stopBehavior": [
+        "Removing the permissive removes PLC-owned commands.",
+        "Reset returns the module to its initial state."
+      ],
+      "faultBehavior": [
+        "A missing or stale input must fail safe and remain diagnosable."
+      ],
+      "expectedObservations": [
+        "The alarm result is active only for a valid drive message containing the selected code."
+      ]
+    },
+    "sequenceNumber": 59,
+    "inheritsFrom": "lab-9-12-ev-charging-manager",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout"
+    ],
+    "addedTags": [
+      "drive_alarm_string_valid",
+      "alarm_code_found",
+      "alarm_reset",
+      "drive_alarm_active",
+      "alarm_match_valid"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-9-12-ev-charging-manager"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "initial-safe-state",
+        "expect": {
+          "drive_alarm_active": false,
+          "alarm_match_valid": false
+        }
+      }
+    ]
+  },
+  "migration": {
+    "sourceFile": "prototype/scenes/lab-10-01-drive-alarm-code-string.plcscene",
+    "sourceFormat": "plcscene",
+    "assetMappings": {
+      "conveyor": "material-handling.belt-conveyor.600x6000.v1",
+      "photoeye": "sensing.photoelectric.through-beam.v1",
+      "switch": "controls.operator-station.single-pushbutton.v1",
+      "indicator": "controls.beacon.single-tier.v1",
+      "pusher": "actuation.pneumatic-pusher.1350mm.v1",
+      "motor": "drives.motor.ac-induction.v1",
+      "pipe": "process.pipe.flanged-spool.v1",
+      "tank": "process.tank.vertical-3000x5000.v1",
+      "pump": "process.pump.centrifugal-skid.v1",
+      "valve": "process.valve.actuated-ball.v1",
+      "levelSensor": "sensing.level.analog-4-20ma.v1",
+      "radarLevelSensor": "sensing.level.radar.v1",
+      "rotarySwitch": "controls.operator-station.selector.v1",
+      "fan": "air-handling.fan.axial-1900.v1",
+      "liftTable": "material-handling.lift.scissor-table.v1",
+      "drillPress": "machining.drill-press.pedestal.v1",
+      "robotArm": "robotics.robot.six-axis-medium.v1",
+      "rotaryTable": "material-handling.table.powered-rotary.v1",
+      "rollerShutter": "access-control.door.roller-shutter.v1",
+      "machine": "machining.machine.enclosed-center.v1",
+      "palletLoad": "loads.palletized-cases.gma-48x40.v1",
+      "toteFiller": "process.packaging.filler.tote-volumetric.v1",
+      "toteCapper": "process.packaging.capper.tote-inline.v1",
+      "toteLabeler": "process.packaging.labeler.tote-pressure-sensitive.v1",
+      "toteVision": "inspection.vision.tote-multicamera.v1",
+      "meteringSkid": "process.dosing.skid.liquid-metering.v1",
+      "containerReceiver": "material-handling.receiver.container-two-position.v1",
+      "sizeSensorBank": "sensing.dimensioning.parcel-three-height.v1"
+    },
+    "scenePropTypes": [
+      "box"
+    ],
+    "unresolvedAssetTypes": [
+      "trainingAccessory"
+    ],
+    "visualStatus": "partial",
+    "productionApproved": false,
+    "reason": "Production approval requires every reusable asset and the complete scene to pass visual review."
+  }
+}

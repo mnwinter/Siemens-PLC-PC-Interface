@@ -1,0 +1,8 @@
+{
+  "assetId": "drives.motor.stepper-nema.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-086",
+  "identifiedFamily": "Square-frame hybrid stepper motor (NEMA-style, four-lead bipolar type)",
+  "confidence": 0.86,
+  "concerns": "Shaft is oversized; body bands resemble heatsink ribs rather than realistic motor laminations; only three face fasteners are visible; cable exit lacks a gland or strain relief.",
+  "sourceReview": "build/blind-review-assets/image_086.mechanical-round1b.review.md"
+}

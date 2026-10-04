@@ -1,0 +1,8 @@
+{
+  "assetId": "material-handling.feeder.vibratory-bowl.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-102",
+  "identifiedFamily": "Vibratory bowl feeder with an internal spiral track for orienting and singulating small parts",
+  "confidence": 0.97,
+  "concerns": "Stylized rendering; the spiral track, tooling, drive mechanism, and discharge chute are simplified or unclear, while several parts appear to float unrealistically.",
+  "sourceReview": "build/blind-review-assets/image_102.material-round1.review.md"
+}

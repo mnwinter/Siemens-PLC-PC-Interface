@@ -1,0 +1,1 @@
+{"assetId":"safety.interlock.coded-magnetic-pair.v1","reviewerId":"codex-agent-source-blind-coded-magnetic-final-review","identifiedFamily":"coded guard-door safety sensor with separate actuator","confidence":0.93,"result":"pass","reviewRound":4,"defects":["Role differentiation partly relies on small face labels.","Door travel, connector, and fastening details are simplified."]}

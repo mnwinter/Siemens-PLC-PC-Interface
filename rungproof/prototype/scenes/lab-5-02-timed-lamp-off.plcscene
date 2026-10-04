@@ -1,0 +1,195 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-5-02-timed-lamp-off",
+  "name": "Lab 5.2 - Timed Lamp-Off",
+  "description": "A pushbutton starts a fixed on-time and the lamp drops out when the interval expires.",
+  "camera": {
+    "position": [
+      11,
+      8,
+      12
+    ],
+    "target": [
+      0,
+      1.1,
+      0
+    ],
+    "fov": 45
+  },
+  "equipment": [
+    {
+      "id": "switch_0",
+      "type": "switch",
+      "label": "Timed Lamp-Off switch",
+      "position": [
+        -3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-start_pulse",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "indicator_1",
+      "type": "indicator",
+      "label": "Timed Lamp-Off indicator",
+      "position": [
+        -1.1,
+        0,
+        0
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    },
+    {
+      "id": "switch_2",
+      "type": "switch",
+      "label": "Timed Lamp-Off operator input",
+      "position": [
+        1.1,
+        0,
+        0
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-time_active",
+        "color": 2204518
+      }
+    }
+  ],
+  "simulation": {
+    "type": "booleanPanel",
+    "points": [
+      {
+        "name": "start_pulse",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "time_active",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "timed_lamp",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      }
+    ],
+    "actions": [
+      {
+        "id": "toggle-start_pulse",
+        "label": "Toggle start pulse",
+        "type": "toggle",
+        "point": "start_pulse"
+      },
+      {
+        "id": "toggle-time_active",
+        "label": "Toggle time active",
+        "type": "toggle",
+        "point": "time_active"
+      }
+    ],
+    "rules": [],
+    "edgeRules": [],
+    "pointBindings": [
+      {
+        "point": "start_pulse",
+        "equipmentId": "switch_0",
+        "mode": "switch"
+      },
+      {
+        "point": "time_active",
+        "equipmentId": "switch_2",
+        "mode": "switch"
+      },
+      {
+        "point": "timed_lamp",
+        "equipmentId": "indicator_1",
+        "mode": "indicator",
+        "activeColor": "green"
+      }
+    ]
+  },
+  "training": {
+    "hints": [
+      "Translate the lesson into explicit state and permissive logic: The lamp is on only during the active timing window.",
+      "Inputs are simulator feedback (start_pulse, time_active); PLC logic owns timed_lamp.",
+      "Test the initial state, the valid condition, and at least one missing permissive."
+    ],
+    "solution": {
+      "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
+      "steps": [
+        "Require the documented inputs: start_pulse, time_active.",
+        "Command the documented outputs: timed_lamp.",
+        "Remove PLC commands when the permissive is lost."
+      ],
+      "acceptance": "The lamp is on only during the active timing window."
+    },
+    "assetRequirements": [],
+    "machineGuide": {
+      "purpose": "A pushbutton starts a fixed on-time and the lamp drops out when the interval expires.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state."
+      ],
+      "normalSequence": [
+        "Apply the requested input condition.",
+        "Verify only the documented PLC outputs respond."
+      ],
+      "stopBehavior": [
+        "Removing the permissive removes PLC-owned commands.",
+        "Reset returns the module to its initial state."
+      ],
+      "faultBehavior": [
+        "A missing or stale input must fail safe and remain diagnosable."
+      ],
+      "expectedObservations": [
+        "The lamp is on only during the active timing window."
+      ]
+    },
+    "sequenceNumber": 41,
+    "inheritsFrom": "lab-5-01-delayed-lamp",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout"
+    ],
+    "addedTags": [
+      "start_pulse",
+      "time_active",
+      "timed_lamp"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-5-01-delayed-lamp"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "initial-safe-state",
+        "expect": {
+          "timed_lamp": false
+        }
+      }
+    ]
+  }
+}

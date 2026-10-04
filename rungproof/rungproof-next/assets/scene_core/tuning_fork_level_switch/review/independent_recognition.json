@@ -1,0 +1,9 @@
+{
+  "assetId": "sensing.level.tuning-fork.v1",
+  "reviewerId": "codex-agent-01a0bb9a-870b-7d63-80c2-30871097158a",
+  "identifiedFamily": "tuning-fork point level switch for liquid or bulk-material detection",
+  "confidence": 0.97,
+  "result": "pass",
+  "reviewRound": 1,
+  "majorDefects": []
+}

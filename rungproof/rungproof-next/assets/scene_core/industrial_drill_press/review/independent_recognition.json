@@ -1,0 +1,9 @@
+{
+  "assetId": "machining.drill-press.pedestal.v1",
+  "reviewerId": "codex-agent-01a0c42b-drill-press-final-pass",
+  "identifiedFamily": "benchtop industrial drill press",
+  "confidence": 0.95,
+  "result": "pass",
+  "reviewRound": 3,
+  "defects": []
+}

@@ -1,0 +1,328 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-2-08-inspection-vote",
+  "name": "Lab 2.8 - Inspection Vote Stacklight",
+  "description": "Two inspectors enter independent votes. One vote shows the corresponding disposition; simultaneous votes force a red conflict indication.",
+  "camera": {
+    "position": [
+      10,
+      7,
+      10
+    ],
+    "target": [
+      0,
+      1.2,
+      0
+    ],
+    "fov": 43
+  },
+  "equipment": [
+    {
+      "id": "left_vote",
+      "type": "switch",
+      "label": "Inspector A vote",
+      "position": [
+        -2.6,
+        0,
+        0
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-left",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "right_vote",
+      "type": "switch",
+      "label": "Inspector B vote",
+      "position": [
+        -1.0,
+        0,
+        0
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-right",
+        "color": 15902976
+      }
+    },
+    {
+      "id": "vote_stacklight",
+      "type": "indicator",
+      "label": "Inspection result stacklight",
+      "position": [
+        0.8,
+        0,
+        0
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": null
+      }
+    }
+  ],
+  "simulation": {
+    "type": "booleanPanel",
+    "points": [
+      {
+        "name": "vote_a",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "vote_b",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "pass_indication",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "hold_indication",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "conflict_indication",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      }
+    ],
+    "actions": [
+      {
+        "id": "toggle-left",
+        "label": "Toggle inspector A",
+        "type": "toggle",
+        "point": "vote_a"
+      },
+      {
+        "id": "toggle-right",
+        "label": "Toggle inspector B",
+        "type": "toggle",
+        "point": "vote_b"
+      }
+    ],
+    "rules": [
+      {
+        "when": {
+          "vote_a": false,
+          "vote_b": false
+        },
+        "set": {}
+      },
+      {
+        "when": {
+          "vote_a": true,
+          "vote_b": false
+        },
+        "set": {
+          "pass_indication": true
+        }
+      },
+      {
+        "when": {
+          "vote_a": false,
+          "vote_b": true
+        },
+        "set": {
+          "hold_indication": true
+        }
+      },
+      {
+        "when": {
+          "vote_a": true,
+          "vote_b": true
+        },
+        "set": {
+          "conflict_indication": true
+        }
+      }
+    ],
+    "edgeRules": [],
+    "pointBindings": [
+      {
+        "point": "vote_a",
+        "equipmentId": "left_vote",
+        "mode": "switch"
+      },
+      {
+        "point": "vote_b",
+        "equipmentId": "right_vote",
+        "mode": "switch"
+      },
+      {
+        "point": "pass_indication",
+        "equipmentId": "vote_stacklight",
+        "mode": "indicator",
+        "activeColor": "green"
+      },
+      {
+        "point": "hold_indication",
+        "equipmentId": "vote_stacklight",
+        "mode": "indicator",
+        "activeColor": "amber"
+      },
+      {
+        "point": "conflict_indication",
+        "equipmentId": "vote_stacklight",
+        "mode": "indicator",
+        "activeColor": "red"
+      }
+    ]
+  },
+  "training": {
+    "hints": [
+      "Define the required result before writing logic: Single votes select green or amber; simultaneous votes select red only.",
+      "Treat vote_a, vote_b as simulator-to-PLC inputs. The PLC should command only pass_indication, hold_indication, conflict_indication.",
+      "List the required input and memory states before assigning any output. Test every state, including the all-false state."
+    ],
+    "solution": {
+      "summary": "This is one valid functional reference. The same behavior may be implemented in LAD, FBD, or SCL; the rung layout is not prescribed.",
+      "steps": [
+        "When vote_a = false, vote_b = false, set the step is active.",
+        "When vote_a = true, vote_b = false, set pass_indication = true.",
+        "When vote_a = false, vote_b = true, set hold_indication = true.",
+        "When vote_a = true, vote_b = true, set conflict_indication = true."
+      ],
+      "acceptance": "Single votes select green or amber; simultaneous votes select red only."
+    },
+    "machineGuide": {
+      "purpose": "Two inspectors enter independent votes. One vote shows the corresponding disposition; simultaneous votes force a red conflict indication.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state.",
+        "The PLC is ready to command pass_indication, hold_indication, conflict_indication."
+      ],
+      "normalSequence": [
+        "Observe the initial input state.",
+        "Apply vote_a, vote_b.",
+        "Verify the PLC produces only the required pass_indication, hold_indication, conflict_indication."
+      ],
+      "stopBehavior": [
+        "A normal stop removes PLC-owned commands and leaves the equipment in a safe state.",
+        "Reset returns the scene to its documented initial condition."
+      ],
+      "faultBehavior": [
+        "A missing, stale, or incorrectly typed input must not be replaced by simulator logic.",
+        "A missing PLC command leaves the affected equipment stopped and the test diagnosable."
+      ],
+      "expectedObservations": [
+        "Single votes select green or amber; simultaneous votes select red only."
+      ]
+    },
+    "sequenceNumber": 8,
+    "inheritsFrom": "lab-2-07-dual-contact-permissive",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout"
+    ],
+    "addedTags": [
+      "vote_a",
+      "vote_b",
+      "pass_indication",
+      "hold_indication",
+      "conflict_indication"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-2-07-dual-contact-permissive"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "vote-a",
+        "actions": [
+          "toggle-left"
+        ],
+        "expect": {
+          "pass_indication": true,
+          "conflict_indication": false
+        }
+      },
+      {
+        "name": "vote-b",
+        "actions": [
+          "toggle-right"
+        ],
+        "expect": {
+          "hold_indication": true,
+          "conflict_indication": false
+        }
+      },
+      {
+        "name": "conflict",
+        "actions": [
+          "toggle-left",
+          "toggle-right"
+        ],
+        "expect": {
+          "conflict_indication": true,
+          "pass_indication": false,
+          "hold_indication": false
+        }
+      }
+    ]
+  },
+  "migration": {
+    "sourceFile": "prototype/scenes/lab-2-08-inspection-vote.plcscene",
+    "sourceFormat": "plcscene",
+    "assetMappings": {
+      "conveyor": "material-handling.belt-conveyor.600x6000.v1",
+      "photoeye": "sensing.photoelectric.through-beam.v1",
+      "switch": "controls.operator-station.single-pushbutton.v1",
+      "indicator": "controls.beacon.single-tier.v1",
+      "pusher": "actuation.pneumatic-pusher.1350mm.v1",
+      "motor": "drives.motor.ac-induction.v1",
+      "pipe": "process.pipe.flanged-spool.v1",
+      "tank": "process.tank.vertical-3000x5000.v1",
+      "pump": "process.pump.centrifugal-skid.v1",
+      "valve": "process.valve.actuated-ball.v1",
+      "levelSensor": "sensing.level.analog-4-20ma.v1",
+      "radarLevelSensor": "sensing.level.radar.v1",
+      "rotarySwitch": "controls.operator-station.selector.v1",
+      "fan": "air-handling.fan.axial-1900.v1",
+      "liftTable": "material-handling.lift.scissor-table.v1",
+      "drillPress": "machining.drill-press.pedestal.v1",
+      "robotArm": "robotics.robot.six-axis-medium.v1",
+      "rotaryTable": "material-handling.table.powered-rotary.v1",
+      "rollerShutter": "access-control.door.roller-shutter.v1",
+      "machine": "machining.machine.enclosed-center.v1",
+      "palletLoad": "loads.palletized-cases.gma-48x40.v1",
+      "toteFiller": "process.packaging.filler.tote-volumetric.v1",
+      "toteCapper": "process.packaging.capper.tote-inline.v1",
+      "toteLabeler": "process.packaging.labeler.tote-pressure-sensitive.v1",
+      "toteVision": "inspection.vision.tote-multicamera.v1",
+      "meteringSkid": "process.dosing.skid.liquid-metering.v1",
+      "containerReceiver": "material-handling.receiver.container-two-position.v1",
+      "sizeSensorBank": "sensing.dimensioning.parcel-three-height.v1"
+    },
+    "scenePropTypes": [
+      "box"
+    ],
+    "unresolvedAssetTypes": [],
+    "visualStatus": "mapped",
+    "productionApproved": false,
+    "reason": "Production approval requires every reusable asset and the complete scene to pass visual review."
+  }
+}

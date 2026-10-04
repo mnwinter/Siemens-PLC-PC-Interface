@@ -1,0 +1,1 @@
+{"assetId":"instrumentation.pressure.analog-gauge.v1","reviewerId":"codex-agent-source-blind-analog-gauge-final-review","identifiedFamily":"Bourdon-style analog pressure gauge","confidence":0.94,"result":"pass","reviewRound":1,"defects":["Dial has no numeric scale.","Process connection and pipe context are simplified."]}

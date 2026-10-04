@@ -1,0 +1,8 @@
+{
+  "assetId": "electrical.mcc.bucket.withdrawable-motor-feeder.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-120",
+  "identifiedFamily": "Withdrawable motor control center feeder bucket in its compartment/cradle",
+  "confidence": 0.93,
+  "concerns": "Stylized geometry; exposed shelf-like rails and oversized enclosure proportions do not closely match a production MCC compartment or stab/racking mechanism",
+  "sourceReview": "build/blind-review-assets/image_120.readable-labels.review.md"
+}

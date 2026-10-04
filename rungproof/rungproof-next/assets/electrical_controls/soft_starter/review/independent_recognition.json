@@ -1,0 +1,8 @@
+{
+  "assetId": "drives.soft-starter.three-phase.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-133",
+  "identifiedFamily": "Enclosed three-phase AC motor soft starter with L1/L2/L3 line terminals",
+  "confidence": 0.87,
+  "concerns": "Highly simplified render; six exposed block terminals, labeling, display, enclosure details, and proportions are not realistic enough to identify a specific make or series.",
+  "sourceReview": "build/blind-review-assets/image_133.readable-labels-round2.review.md"
+}

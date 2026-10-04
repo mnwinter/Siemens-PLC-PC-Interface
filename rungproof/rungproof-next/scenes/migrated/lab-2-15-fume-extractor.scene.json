@@ -1,0 +1,426 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-2-15-fume-extractor",
+  "name": "Lab 2.15 - Weld Fume Extractor",
+  "description": "A light switch and four-position speed selector independently control an inspection light and a guarded extraction fan.",
+  "camera": {
+    "position": [
+      9.5,
+      6.8,
+      10
+    ],
+    "target": [
+      0.4,
+      1.5,
+      0
+    ],
+    "fov": 43
+  },
+  "equipment": [
+    {
+      "id": "hood_light_switch",
+      "type": "switch",
+      "label": "Hood light switch",
+      "position": [
+        -1.2,
+        0,
+        -0.75
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-light",
+        "color": 15332085
+      }
+    },
+    {
+      "id": "fan_speed_selector",
+      "type": "rotarySwitch",
+      "label": "Fan speed selector",
+      "position": [
+        -2.4,
+        0,
+        -0.75
+      ],
+      "config": {
+        "action": "next-speed",
+        "positionCount": 4,
+        "initialPosition": 0
+      }
+    },
+    {
+      "id": "hood_light",
+      "type": "indicator",
+      "label": "Inspection light",
+      "position": [
+        0,
+        0,
+        -1.8
+      ],
+      "config": {
+        "colors": [
+          "white"
+        ],
+        "active": null
+      }
+    },
+    {
+      "id": "extractor_fan",
+      "type": "fan",
+      "label": "Guarded extraction fan",
+      "position": [
+        1,
+        0,
+        0
+      ],
+      "config": {
+        "diameter": 2.4,
+        "centerHeight": 1.9,
+        "bladeCount": 6,
+        "running": false
+      }
+    },
+    {
+      "id": "speed_display",
+      "type": "indicator",
+      "label": "Speed indication",
+      "position": [
+        3.2,
+        0,
+        -1.2
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": null
+      }
+    }
+  ],
+  "simulation": {
+    "type": "booleanPanel",
+    "points": [
+      {
+        "name": "hood_light_request",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "hood_light_on",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "fan_selector_position",
+        "type": "DINT",
+        "owner": "PC",
+        "initial": 0
+      },
+      {
+        "name": "fan_run",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "fan_speed_percent",
+        "type": "DINT",
+        "owner": "PLC",
+        "initial": 0,
+        "role": "output",
+        "unit": "%"
+      },
+      {
+        "name": "low_speed",
+        "type": "BOOL",
+        "owner": "SIM",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "medium_speed",
+        "type": "BOOL",
+        "owner": "SIM",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "high_speed",
+        "type": "BOOL",
+        "owner": "SIM",
+        "initial": false,
+        "role": "output"
+      }
+    ],
+    "actions": [
+      {
+        "id": "toggle-light",
+        "label": "Toggle hood light request",
+        "type": "toggle",
+        "point": "hood_light_request"
+      },
+      {
+        "id": "next-speed",
+        "label": "Advance fan speed",
+        "type": "cycle",
+        "point": "fan_selector_position",
+        "values": [
+          0,
+          1,
+          2,
+          3
+        ]
+      }
+    ],
+    "rules": [
+      {
+        "when": {
+          "hood_light_request": false
+        },
+        "set": {
+          "hood_light_on": false
+        }
+      },
+      {
+        "when": {
+          "hood_light_request": true
+        },
+        "set": {
+          "hood_light_on": true
+        }
+      },
+      {
+        "when": {
+          "fan_selector_position": 0
+        },
+        "set": {
+          "fan_run": false,
+          "fan_speed_percent": 0
+        }
+      },
+      {
+        "when": {
+          "fan_selector_position": 1
+        },
+        "set": {
+          "fan_run": true,
+          "fan_speed_percent": 35,
+          "low_speed": true
+        }
+      },
+      {
+        "when": {
+          "fan_selector_position": 2
+        },
+        "set": {
+          "fan_run": true,
+          "fan_speed_percent": 65,
+          "medium_speed": true
+        }
+      },
+      {
+        "when": {
+          "fan_selector_position": 3
+        },
+        "set": {
+          "fan_run": true,
+          "fan_speed_percent": 100,
+          "high_speed": true
+        }
+      }
+    ],
+    "edgeRules": [],
+    "pointBindings": [
+      {
+        "point": "hood_light_request",
+        "equipmentId": "hood_light_switch",
+        "mode": "switch"
+      },
+      {
+        "point": "hood_light_on",
+        "equipmentId": "hood_light",
+        "mode": "indicator",
+        "activeColor": "white"
+      },
+      {
+        "point": "fan_selector_position",
+        "equipmentId": "fan_speed_selector",
+        "mode": "selector"
+      },
+      {
+        "point": "fan_run",
+        "equipmentId": "extractor_fan",
+        "mode": "running"
+      },
+      {
+        "point": "low_speed",
+        "equipmentId": "speed_display",
+        "mode": "indicator",
+        "activeColor": "green"
+      },
+      {
+        "point": "medium_speed",
+        "equipmentId": "speed_display",
+        "mode": "indicator",
+        "activeColor": "amber"
+      },
+      {
+        "point": "high_speed",
+        "equipmentId": "speed_display",
+        "mode": "indicator",
+        "activeColor": "red"
+      }
+    ]
+  },
+  "training": {
+    "hints": [
+      "Define the required result before writing logic: Light is independent; selector positions command off/35/65/100% and one speed indication.",
+      "Treat hood_light_request, fan_selector_position as simulator-to-PLC inputs. The PLC should command only hood_light_on, fan_run, fan_speed_percent.",
+      "List the required input and memory states before assigning any output. Test every state, including the all-false state."
+    ],
+    "solution": {
+      "summary": "This is one valid functional reference. The same behavior may be implemented in LAD, FBD, or SCL; the rung layout is not prescribed.",
+      "steps": [
+        "When hood_light_request = false, set hood_light_on = false.",
+        "When hood_light_request = true, set hood_light_on = true.",
+        "When fan_selector_position = 0, set fan_run = false, fan_speed_percent = 0.",
+        "When fan_selector_position = 1, set fan_run = true, fan_speed_percent = 35, low_speed = true.",
+        "When fan_selector_position = 2, set fan_run = true, fan_speed_percent = 65, medium_speed = true.",
+        "When fan_selector_position = 3, set fan_run = true, fan_speed_percent = 100, high_speed = true."
+      ],
+      "acceptance": "Light is independent; selector positions command off/35/65/100% and one speed indication."
+    },
+    "machineGuide": {
+      "purpose": "A light switch and four-position speed selector independently control an inspection light and a guarded extraction fan.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state.",
+        "The PLC is ready to command hood_light_on, fan_run, fan_speed_percent."
+      ],
+      "normalSequence": [
+        "Observe the initial input state.",
+        "Apply hood_light_request, fan_selector_position.",
+        "Verify the PLC produces only the required hood_light_on, fan_run, fan_speed_percent."
+      ],
+      "stopBehavior": [
+        "A normal stop removes PLC-owned commands and leaves the equipment in a safe state.",
+        "Reset returns the scene to its documented initial condition."
+      ],
+      "faultBehavior": [
+        "A missing, stale, or incorrectly typed input must not be replaced by simulator logic.",
+        "A missing PLC command leaves the affected equipment stopped and the test diagnosable."
+      ],
+      "expectedObservations": [
+        "Light is independent; selector positions command off/35/65/100% and one speed indication."
+      ]
+    },
+    "sequenceNumber": 15,
+    "inheritsFrom": "lab-2-14-sump-pump",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout"
+    ],
+    "addedTags": [
+      "hood_light_request",
+      "hood_light_on",
+      "fan_selector_position",
+      "fan_run",
+      "fan_speed_percent",
+      "low_speed",
+      "medium_speed",
+      "high_speed"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-2-14-sump-pump"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "off",
+        "expect": {
+          "fan_run": false,
+          "fan_speed_percent": 0,
+          "hood_light_on": false
+        }
+      },
+      {
+        "name": "low-with-light",
+        "actions": [
+          "toggle-light",
+          "next-speed"
+        ],
+        "expect": {
+          "fan_run": true,
+          "fan_speed_percent": 35,
+          "hood_light_on": true
+        }
+      },
+      {
+        "name": "high",
+        "actions": [
+          "next-speed",
+          "next-speed",
+          "next-speed"
+        ],
+        "expect": {
+          "fan_run": true,
+          "fan_speed_percent": 100,
+          "high_speed": true
+        }
+      }
+    ]
+  },
+  "migration": {
+    "sourceFile": "prototype/scenes/lab-2-15-fume-extractor.plcscene",
+    "sourceFormat": "plcscene",
+    "assetMappings": {
+      "conveyor": "material-handling.belt-conveyor.600x6000.v1",
+      "photoeye": "sensing.photoelectric.through-beam.v1",
+      "switch": "controls.operator-station.single-pushbutton.v1",
+      "indicator": "controls.beacon.single-tier.v1",
+      "pusher": "actuation.pneumatic-pusher.1350mm.v1",
+      "motor": "drives.motor.ac-induction.v1",
+      "pipe": "process.pipe.flanged-spool.v1",
+      "tank": "process.tank.vertical-3000x5000.v1",
+      "pump": "process.pump.centrifugal-skid.v1",
+      "valve": "process.valve.actuated-ball.v1",
+      "levelSensor": "sensing.level.analog-4-20ma.v1",
+      "radarLevelSensor": "sensing.level.radar.v1",
+      "rotarySwitch": "controls.operator-station.selector.v1",
+      "fan": "air-handling.fan.axial-1900.v1",
+      "liftTable": "material-handling.lift.scissor-table.v1",
+      "drillPress": "machining.drill-press.pedestal.v1",
+      "robotArm": "robotics.robot.six-axis-medium.v1",
+      "rotaryTable": "material-handling.table.powered-rotary.v1",
+      "rollerShutter": "access-control.door.roller-shutter.v1",
+      "machine": "machining.machine.enclosed-center.v1",
+      "palletLoad": "loads.palletized-cases.gma-48x40.v1",
+      "toteFiller": "process.packaging.filler.tote-volumetric.v1",
+      "toteCapper": "process.packaging.capper.tote-inline.v1",
+      "toteLabeler": "process.packaging.labeler.tote-pressure-sensitive.v1",
+      "toteVision": "inspection.vision.tote-multicamera.v1",
+      "meteringSkid": "process.dosing.skid.liquid-metering.v1",
+      "containerReceiver": "material-handling.receiver.container-two-position.v1",
+      "sizeSensorBank": "sensing.dimensioning.parcel-three-height.v1"
+    },
+    "scenePropTypes": [
+      "box"
+    ],
+    "unresolvedAssetTypes": [],
+    "visualStatus": "mapped",
+    "productionApproved": false,
+    "reason": "Production approval requires every reusable asset and the complete scene to pass visual review."
+  }
+}

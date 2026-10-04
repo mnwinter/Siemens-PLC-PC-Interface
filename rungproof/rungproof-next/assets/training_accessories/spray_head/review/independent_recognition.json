@@ -1,0 +1,10 @@
+{
+  "assetId": "training.accessory.spray_head.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-171",
+  "identifiedFamily": "Robotic paint spray gun / industrial robot-mounted paint applicator (identical generic basis model)",
+  "confidence": 0.96,
+  "concerns": "Stylized generic geometry with no visible brand, model, or clear distinction between liquid-paint and powder-coating variants.",
+  "sourceReview": "build/blind-review-assets/image_171.robotics-round1b.review.md",
+  "sourceAssetId": "robotics.end-effector.paint.automatic-spray-gun.v1",
+  "evidenceBasis": "delivery GLB is byte-identical to the independently reviewed generic basis asset"
+}

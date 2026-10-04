@@ -1,0 +1,8 @@
+{
+  "assetId": "utilities.compressed-air.dryer.refrigerated.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-136",
+  "identifiedFamily": "Refrigerated compressed-air dryer",
+  "confidence": 0.96,
+  "concerns": "Stylized render; exposed fan/compressor-like components and oversized side ports are less realistic than typical enclosed packaged dryers.",
+  "sourceReview": "build/blind-review-assets/image_136.readable-labels.review.md"
+}

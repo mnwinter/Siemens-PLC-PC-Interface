@@ -1,0 +1,8 @@
+{
+  "assetId": "utilities.gas-generation.nitrogen-psa-twin-tower.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-145",
+  "identifiedFamily": "Skid-mounted twin-tower pressure-swing adsorption (PSA) nitrogen generator with product receiver and control cabinet",
+  "confidence": 0.98,
+  "concerns": "Simplified piping omits visible valves, manifolds, filters, gauges, and instrumentation; vessel supports and some pipe connections appear unrealistic or incomplete",
+  "sourceReview": "build/blind-review-assets/image_145.readable-labels.review.md"
+}

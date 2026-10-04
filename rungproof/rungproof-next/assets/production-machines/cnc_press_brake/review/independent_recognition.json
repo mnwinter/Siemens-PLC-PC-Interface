@@ -1,0 +1,8 @@
+{
+  "assetId": "machines.forming.press-brake.cnc-hydraulic.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-150",
+  "identifiedFamily": "Compact hydraulic sheet-metal press brake (small powered bending press)",
+  "confidence": 0.84,
+  "concerns": "Missing visible hydraulic cylinder, ram guides, and clear V-die/punch geometry; proportions could also indicate a compact stamping or forming press.",
+  "sourceReview": "build/blind-review-assets/image_150.production-machines-round1.review.md"
+}

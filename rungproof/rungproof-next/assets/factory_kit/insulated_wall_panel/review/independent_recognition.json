@@ -1,0 +1,8 @@
+{
+  "assetId": "safety.fence.solid-acoustic-panel-4x3.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-027",
+  "identifiedFamily": "Freestanding industrial machine-guarding/safety-fence panel section with vertical infill panels between steel posts",
+  "confidence": 0.9,
+  "concerns": "No visible hinges, latch, mesh, or access hardware, so it is ambiguous whether this is a fixed guard panel, privacy partition, or closed sliding-gate leaf; proportions appear stylized for a catalog render",
+  "sourceReview": "build/blind-review-assets/image_027.factory-round6.review.md"
+}

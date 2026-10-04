@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 260" role="img" aria-labelledby="title desc">
+  <title id="title">RungProof wordmark</title>
+  <desc id="desc">RungProof wordmark with a ladder baseline and proof-green signal.</desc>
+  <text x="34" y="144" fill="#071a2a" font-family="Segoe UI, Arial, sans-serif" font-size="116" font-weight="750" letter-spacing="-5">Rung<tspan fill="#16a34a">Proof</tspan></text>
+  <path d="M40 205h900" fill="none" stroke="#071a2a" stroke-width="8" stroke-linecap="square"/>
+  <path d="M102 181v48M128 181v48M792 181v48M818 181v48" fill="none" stroke="#28a9e2" stroke-width="8" stroke-linecap="square"/>
+  <path d="M128 205h664" fill="none" stroke="#16a34a" stroke-width="8" stroke-linecap="square"/>
+</svg>

@@ -1,0 +1,8 @@
+{
+  "assetId": "mechanical.coupling.flexible-jaw.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-090",
+  "identifiedFamily": "Elastomeric jaw-type flexible shaft coupling with two interlocking hubs and a spider insert",
+  "confidence": 0.93,
+  "concerns": "Hub jaws are unusually block-like, the orange spider appears fragmented rather than continuous, and the oversized cylindrical hub geometry is only moderately realistic",
+  "sourceReview": "build/blind-review-assets/image_090.mechanical-round1.review.md"
+}

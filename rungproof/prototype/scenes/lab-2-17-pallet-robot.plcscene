@@ -1,0 +1,459 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-2-17-pallet-robot",
+  "name": "Lab 2.17 - Twin-Container Pallet Cell",
+  "description": "A robot transfers two process containers from a staged pallet, then releases the empty pallet to the outbound conveyor.",
+  "camera": {
+    "position": [
+      12.5,
+      8,
+      12.5
+    ],
+    "target": [
+      0,
+      1.3,
+      0
+    ],
+    "fov": 43
+  },
+  "equipment": [
+    {
+      "id": "robot_pallet_conveyor",
+      "type": "conveyor",
+      "label": "Pallet staging conveyor",
+      "position": [
+        -1,
+        0,
+        0
+      ],
+      "config": {
+        "length": 8,
+        "width": 1.5,
+        "deckHeight": 0.9,
+        "beltColor": 2568760,
+        "running": false
+      }
+    },
+    {
+      "id": "robot_pallet",
+      "type": "box",
+      "label": "Staging pallet",
+      "position": [
+        -2.8,
+        0.98,
+        0
+      ],
+      "config": {
+        "size": [
+          2.2,
+          0.22,
+          1.5
+        ],
+        "color": 9071426
+      }
+    },
+    {
+      "id": "container_a",
+      "type": "box",
+      "label": "Process container A",
+      "position": [
+        -3.15,
+        1.2,
+        -0.4
+      ],
+      "config": {
+        "size": [
+          0.62,
+          1,
+          0.62
+        ],
+        "color": 15332085
+      }
+    },
+    {
+      "id": "container_b",
+      "type": "box",
+      "label": "Process container B",
+      "position": [
+        -2.45,
+        1.2,
+        0.4
+      ],
+      "config": {
+        "size": [
+          0.62,
+          1,
+          0.62
+        ],
+        "color": 15332085
+      }
+    },
+    {
+      "id": "pallet_robot",
+      "type": "robotArm",
+      "label": "Pallet unloading robot",
+      "position": [
+        1.3,
+        0,
+        -2.2
+      ],
+      "config": {
+        "initialPosition": 0,
+        "running": false
+      }
+    },
+    {
+      "id": "process_receiver",
+      "type": "containerReceiver",
+      "label": "Container process receiver",
+      "position": [
+        3.6,
+        0,
+        1.2
+      ],
+      "config": {
+        "size": [
+          2.1,
+          2.7,
+          1.7
+        ],
+        "color": 5466227,
+        "running": false
+      }
+    },
+    {
+      "id": "pallet_ready_sensor",
+      "type": "photoeye",
+      "label": "Pallet ready sensor",
+      "position": [
+        -2.7,
+        0,
+        0
+      ],
+      "config": {
+        "span": 2.05,
+        "height": 0.7,
+        "beamCenterHeightM": 1.45,
+        "blocked": false
+      }
+    },
+    {
+      "id": "robot_cycle_start",
+      "type": "switch",
+      "label": "Start robot cycle",
+      "position": [
+        -3.7,
+        0,
+        2.2
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "start-robot",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "robot_cell_status",
+      "type": "indicator",
+      "label": "Robot cell status",
+      "position": [
+        4.4,
+        0,
+        -1.8
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "amber"
+      }
+    }
+  ],
+  "simulation": {
+    "type": "sequence",
+    "points": [
+      {
+        "name": "pallet_ready",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": true
+      },
+      {
+        "name": "robot_run",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false
+      },
+      {
+        "name": "conveyor_run",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false
+      },
+      {
+        "name": "placed_count",
+        "type": "DINT",
+        "owner": "SIM",
+        "initial": 0
+      },
+      {
+        "name": "cell_color",
+        "type": "STRING",
+        "owner": "SIM",
+        "initial": "amber"
+      },
+      {
+        "name": "cycle_complete",
+        "type": "BOOL",
+        "owner": "SIM",
+        "initial": false
+      }
+    ],
+    "actions": [
+      {
+        "id": "start-robot",
+        "label": "Start pallet unload",
+        "type": "start",
+        "sequence": "unload-cycle",
+        "requires": {
+          "pallet_ready": true
+        }
+      },
+      {
+        "id": "stop-robot",
+        "label": "Stop robot cell",
+        "type": "stop"
+      },
+      {
+        "id": "reset-robot",
+        "label": "Reset pallet cell",
+        "type": "reset"
+      }
+    ],
+    "pointBindings": [
+      {
+        "point": "pallet_ready",
+        "equipmentId": "pallet_ready_sensor",
+        "mode": "photoeye"
+      },
+      {
+        "point": "robot_run",
+        "equipmentId": "pallet_robot",
+        "mode": "running"
+      },
+      {
+        "point": "conveyor_run",
+        "equipmentId": "robot_pallet_conveyor",
+        "mode": "running"
+      },
+      {
+        "point": "cell_color",
+        "equipmentId": "robot_cell_status",
+        "mode": "indicator"
+      }
+    ],
+    "sequences": {
+      "unload-cycle": [
+        {
+          "name": "pick first",
+          "durationS": 1.2,
+          "set": {
+            "robot_run": true,
+            "conveyor_run": false,
+            "placed_count": 0,
+            "cycle_complete": false,
+            "cell_color": "amber"
+          },
+          "motions": [
+            {
+              "type": "position",
+              "equipmentId": "pallet_robot",
+              "from": 0,
+              "to": 0.55
+            },
+            {
+              "type": "translate",
+              "equipmentId": "container_a",
+              "axis": "x",
+              "from": -3.15,
+              "to": 1.5
+            },
+            {
+              "type": "translate",
+              "equipmentId": "container_a",
+              "axis": "z",
+              "from": -0.4,
+              "to": 1.2
+            }
+          ]
+        },
+        {
+          "name": "place first",
+          "durationS": 0.5,
+          "set": {
+            "placed_count": 1
+          }
+        },
+        {
+          "name": "pick second",
+          "durationS": 1.2,
+          "motions": [
+            {
+              "type": "position",
+              "equipmentId": "pallet_robot",
+              "from": 0.55,
+              "to": 1
+            },
+            {
+              "type": "translate",
+              "equipmentId": "container_b",
+              "axis": "x",
+              "from": -2.45,
+              "to": 2.2
+            },
+            {
+              "type": "translate",
+              "equipmentId": "container_b",
+              "axis": "z",
+              "from": 0.4,
+              "to": 1.2
+            }
+          ]
+        },
+        {
+          "name": "place second",
+          "durationS": 0.5,
+          "set": {
+            "placed_count": 2,
+            "robot_run": false
+          }
+        },
+        {
+          "name": "release pallet",
+          "durationS": 1.5,
+          "set": {
+            "pallet_ready": false,
+            "conveyor_run": true,
+            "cell_color": "green"
+          },
+          "motions": [
+            {
+              "type": "translate",
+              "equipmentId": "robot_pallet",
+              "axis": "x",
+              "from": -2.8,
+              "to": 2.8
+            }
+          ]
+        },
+        {
+          "name": "ready",
+          "durationS": 0.1,
+          "set": {
+            "conveyor_run": false,
+            "cycle_complete": true,
+            "cell_color": "amber"
+          }
+        }
+      ]
+    },
+    "defaultSequence": "unload-cycle",
+    "safeState": {
+      "robot_run": false,
+      "conveyor_run": false,
+      "cell_color": "red"
+    },
+    "completionState": {},
+    "conveyorSpeedMps": 0.75
+  },
+  "training": {
+    "hints": [
+      "Define the required result before writing logic: Exactly two containers are placed before the pallet conveyor releases.",
+      "Treat pallet_ready as simulator-to-PLC inputs. The PLC should command only robot_run, conveyor_run.",
+      "Use a step/state approach and prove the transition order: pick first \u2192 place first \u2192 pick second \u2192 place second \u2192 release pallet \u2192 ready."
+    ],
+    "solution": {
+      "summary": "This is one valid functional reference. The same behavior may be implemented in LAD, FBD, or SCL; the rung layout is not prescribed.",
+      "steps": [
+        "pick first: robot_run = true, conveyor_run = false.",
+        "place first: no PLC command changes.",
+        "pick second: no PLC command changes.",
+        "place second: robot_run = false.",
+        "release pallet: conveyor_run = true.",
+        "ready: conveyor_run = false."
+      ],
+      "acceptance": "Exactly two containers are placed before the pallet conveyor releases."
+    },
+    "machineGuide": {
+      "purpose": "A robot transfers two process containers from a staged pallet, then releases the empty pallet to the outbound conveyor.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state.",
+        "The PLC is ready to command robot_run, conveyor_run."
+      ],
+      "normalSequence": [
+        "pick first",
+        "place first",
+        "pick second",
+        "place second",
+        "release pallet",
+        "ready"
+      ],
+      "stopBehavior": [
+        "A normal stop removes PLC-owned commands and leaves the equipment in a safe state.",
+        "Reset returns the scene to its documented initial condition."
+      ],
+      "faultBehavior": [
+        "A missing, stale, or incorrectly typed input must not be replaced by simulator logic.",
+        "A missing PLC command leaves the affected equipment stopped and the test diagnosable."
+      ],
+      "expectedObservations": [
+        "Exactly two containers are placed before the pallet conveyor releases."
+      ]
+    },
+    "sequenceNumber": 17,
+    "inheritsFrom": "lab-2-16-safe-drill",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout",
+      "cycle_complete"
+    ],
+    "addedTags": [
+      "pallet_ready",
+      "robot_run",
+      "conveyor_run",
+      "placed_count",
+      "cell_color"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-2-16-safe-drill"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "two-container-unload",
+        "phases": [
+          {
+            "action": "start-robot",
+            "runForS": 5.4
+          }
+        ],
+        "expect": {
+          "placed_count": 2,
+          "robot_run": false,
+          "conveyor_run": false,
+          "cycle_complete": true
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "assetId": "training.accessory.parking_barrier_arm.v1",
+  "reviewerId": "blind-2026-09-30-parking-round1-image-127",
+  "identifiedFamily": "Automatic parking barrier gate (boom gate) for vehicle access control (identical generic basis model)",
+  "confidence": 0.99,
+  "concerns": "Stylized render; control hardware and safety sensors are not visibly identifiable",
+  "sourceReview": "build/blind-review-assets/image_127.parking-round1.review.md",
+  "sourceAssetId": "material-handling.barrier.parking-boom.v1",
+  "evidenceBasis": "delivery GLB is byte-identical to the independently reviewed generic basis asset"
+}

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">RungProof application icon</title>
+  <desc id="desc">A bold RungProof ladder baseline with proof-green contacts.</desc>
+  <rect width="256" height="256" rx="48" fill="#f7fafb"/>
+  <path d="M24 128h208" fill="none" stroke="#071a2a" stroke-width="14" stroke-linecap="square"/>
+  <path d="M42 76v104M214 76v104" fill="none" stroke="#071a2a" stroke-width="14" stroke-linecap="square"/>
+  <path d="M88 92v72M116 92v72M140 92v72M168 92v72" fill="none" stroke="#28a9e2" stroke-width="12" stroke-linecap="square"/>
+  <path d="M116 128h24" fill="none" stroke="#16a34a" stroke-width="14" stroke-linecap="square"/>
+</svg>

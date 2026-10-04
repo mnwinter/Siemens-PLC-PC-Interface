@@ -1,0 +1,8 @@
+{
+  "assetId": "safety.mat.pressure-sensitive-2x1m.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-076",
+  "identifiedFamily": "Industrial pressure-sensitive safety mat (presence-sensing safety floor mat)",
+  "confidence": 0.94,
+  "concerns": "Stylized rendering; internal sensing construction and safety-rated components are not verifiable visually.",
+  "sourceReview": "build/blind-review-assets/image_076.controls-round3.review.md"
+}

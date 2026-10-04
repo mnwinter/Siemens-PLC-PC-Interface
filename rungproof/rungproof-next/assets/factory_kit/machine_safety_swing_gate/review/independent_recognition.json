@@ -1,0 +1,13 @@
+{
+  "assetId": "safety.gate.mesh-swing-2m.v1",
+  "reviewerId": "codex-agent-01a0c42b-machine-safety-swing-gate-blind-review",
+  "identifiedFamily": "yellow mesh-panel swing gate for machine perimeter guarding/access control",
+  "confidence": 0.93,
+  "result": "pass",
+  "reviewRound": 1,
+  "defects": [
+    "Hinge/latch and interlock hardware are not visually unmistakable at the hero angle.",
+    "Caster-like support has no asserted functional role.",
+    "No open-state, signage, or safety-switch claim is made."
+  ]
+}

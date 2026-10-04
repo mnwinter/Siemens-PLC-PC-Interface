@@ -1,0 +1,412 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-2-19-service-door",
+  "name": "Lab 2.19 - Service Door Shutter",
+  "description": "Open, close, and stop commands move a service-door shutter between normally-closed cable-monitored limits.",
+  "camera": {
+    "position": [
+      9.8,
+      6.4,
+      10.5
+    ],
+    "target": [
+      0.8,
+      1.7,
+      0
+    ],
+    "fov": 43
+  },
+  "equipment": [
+    {
+      "id": "service_shutter",
+      "type": "rollerShutter",
+      "label": "Service door shutter",
+      "position": [
+        0.8,
+        0,
+        0
+      ],
+      "config": {
+        "width": 4.2,
+        "height": 3.5,
+        "initialPosition": 1
+      }
+    },
+    {
+      "id": "door_open_button",
+      "type": "switch",
+      "label": "Open door",
+      "position": [
+        -3.5,
+        0,
+        0
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "open-door",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "door_stop_button",
+      "type": "switch",
+      "label": "Stop door",
+      "position": [
+        -2.6,
+        0,
+        0
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "stop-door",
+        "color": 14695473
+      }
+    },
+    {
+      "id": "door_close_button",
+      "type": "switch",
+      "label": "Close door",
+      "position": [
+        -1.7,
+        0,
+        0
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "close-door",
+        "color": 3050449
+      }
+    },
+    {
+      "id": "door_open_lamp",
+      "type": "indicator",
+      "label": "Door open limit",
+      "position": [
+        2.9,
+        0,
+        0
+      ],
+      "config": {
+        "colors": [
+          "green"
+        ],
+        "active": null
+      }
+    },
+    {
+      "id": "door_closed_lamp",
+      "type": "indicator",
+      "label": "Door closed limit",
+      "position": [
+        4.1,
+        0,
+        0
+      ],
+      "config": {
+        "colors": [
+          "amber"
+        ],
+        "active": null
+      }
+    }
+  ],
+  "simulation": {
+    "type": "sequence",
+    "points": [
+      {
+        "name": "motor_open",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false
+      },
+      {
+        "name": "motor_close",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false
+      },
+      {
+        "name": "open_limit_nc",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": true
+      },
+      {
+        "name": "closed_limit_nc",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "door_position",
+        "type": "REAL",
+        "owner": "SIM",
+        "initial": 100,
+        "unit": "% closed"
+      },
+      {
+        "name": "cycle_complete",
+        "type": "BOOL",
+        "owner": "SIM",
+        "initial": false
+      }
+    ],
+    "actions": [
+      {
+        "id": "open-door",
+        "label": "Open service door",
+        "type": "start",
+        "sequence": "open"
+      },
+      {
+        "id": "close-door",
+        "label": "Close service door",
+        "type": "start",
+        "sequence": "close"
+      },
+      {
+        "id": "stop-door",
+        "label": "Immediate stop",
+        "type": "stop"
+      },
+      {
+        "id": "reset-door",
+        "label": "Reset door",
+        "type": "reset"
+      }
+    ],
+    "pointBindings": [
+      {
+        "point": "motor_open",
+        "equipmentId": "service_shutter",
+        "mode": "running"
+      },
+      {
+        "point": "motor_close",
+        "equipmentId": "service_shutter",
+        "mode": "running"
+      },
+      {
+        "point": "open_limit_nc",
+        "equipmentId": "door_open_lamp",
+        "mode": "indicator",
+        "activeColor": "green"
+      },
+      {
+        "point": "closed_limit_nc",
+        "equipmentId": "door_closed_lamp",
+        "mode": "indicator",
+        "activeColor": "amber"
+      }
+    ],
+    "sequences": {
+      "open": [
+        {
+          "name": "opening",
+          "durationS": 2.5,
+          "set": {
+            "motor_open": true,
+            "motor_close": false,
+            "open_limit_nc": true,
+            "closed_limit_nc": true,
+            "cycle_complete": false
+          },
+          "motions": [
+            {
+              "type": "position",
+              "equipmentId": "service_shutter",
+              "from": 1,
+              "to": 0
+            }
+          ]
+        },
+        {
+          "name": "open limit",
+          "durationS": 0.1,
+          "set": {
+            "motor_open": false,
+            "open_limit_nc": false,
+            "door_position": 0,
+            "cycle_complete": true
+          }
+        }
+      ],
+      "close": [
+        {
+          "name": "closing",
+          "durationS": 2.5,
+          "set": {
+            "motor_close": true,
+            "motor_open": false,
+            "open_limit_nc": true,
+            "closed_limit_nc": true,
+            "cycle_complete": false
+          },
+          "motions": [
+            {
+              "type": "position",
+              "equipmentId": "service_shutter",
+              "from": 0,
+              "to": 1
+            }
+          ]
+        },
+        {
+          "name": "closed limit",
+          "durationS": 0.1,
+          "set": {
+            "motor_close": false,
+            "closed_limit_nc": false,
+            "door_position": 100,
+            "cycle_complete": true
+          }
+        }
+      ]
+    },
+    "defaultSequence": "open",
+    "safeState": {
+      "motor_open": false,
+      "motor_close": false
+    },
+    "completionState": {},
+    "conveyorSpeedMps": 0.75
+  },
+  "training": {
+    "hints": [
+      "Define the required result before writing logic: Each direction stops at its limit; open and close outputs are never on together.",
+      "Treat open_limit_nc, closed_limit_nc as simulator-to-PLC inputs. The PLC should command only motor_open, motor_close.",
+      "Use a step/state approach and prove the transition order: opening \u2192 open limit."
+    ],
+    "solution": {
+      "summary": "This is one valid functional reference. The same behavior may be implemented in LAD, FBD, or SCL; the rung layout is not prescribed.",
+      "steps": [
+        "opening: motor_open = true, motor_close = false.",
+        "open limit: motor_open = false."
+      ],
+      "acceptance": "Each direction stops at its limit; open and close outputs are never on together."
+    },
+    "machineGuide": {
+      "purpose": "Open, close, and stop commands move a service-door shutter between normally-closed cable-monitored limits.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state.",
+        "The PLC is ready to command motor_open, motor_close."
+      ],
+      "normalSequence": [
+        "opening",
+        "open limit"
+      ],
+      "stopBehavior": [
+        "A normal stop removes PLC-owned commands and leaves the equipment in a safe state.",
+        "Reset returns the scene to its documented initial condition."
+      ],
+      "faultBehavior": [
+        "A missing, stale, or incorrectly typed input must not be replaced by simulator logic.",
+        "A missing PLC command leaves the affected equipment stopped and the test diagnosable."
+      ],
+      "expectedObservations": [
+        "Each direction stops at its limit; open and close outputs are never on together."
+      ]
+    },
+    "sequenceNumber": 19,
+    "inheritsFrom": "lab-2-18-pallet-pickup",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout",
+      "cycle_complete"
+    ],
+    "addedTags": [
+      "motor_open",
+      "motor_close",
+      "open_limit_nc",
+      "closed_limit_nc",
+      "door_position"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-2-18-pallet-pickup"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "open",
+        "phases": [
+          {
+            "action": "open-door",
+            "runForS": 2.8
+          }
+        ],
+        "expect": {
+          "motor_open": false,
+          "open_limit_nc": false,
+          "door_position": 0
+        }
+      },
+      {
+        "name": "open-close",
+        "phases": [
+          {
+            "action": "open-door",
+            "runForS": 2.8
+          },
+          {
+            "action": "close-door",
+            "runForS": 2.8
+          }
+        ],
+        "expect": {
+          "motor_close": false,
+          "closed_limit_nc": false,
+          "door_position": 100
+        }
+      }
+    ]
+  },
+  "migration": {
+    "sourceFile": "prototype/scenes/lab-2-19-service-door.plcscene",
+    "sourceFormat": "plcscene",
+    "assetMappings": {
+      "conveyor": "material-handling.belt-conveyor.600x6000.v1",
+      "photoeye": "sensing.photoelectric.through-beam.v1",
+      "switch": "controls.operator-station.single-pushbutton.v1",
+      "indicator": "controls.beacon.single-tier.v1",
+      "pusher": "actuation.pneumatic-pusher.1350mm.v1",
+      "motor": "drives.motor.ac-induction.v1",
+      "pipe": "process.pipe.flanged-spool.v1",
+      "tank": "process.tank.vertical-3000x5000.v1",
+      "pump": "process.pump.centrifugal-skid.v1",
+      "valve": "process.valve.actuated-ball.v1",
+      "levelSensor": "sensing.level.analog-4-20ma.v1",
+      "radarLevelSensor": "sensing.level.radar.v1",
+      "rotarySwitch": "controls.operator-station.selector.v1",
+      "fan": "air-handling.fan.axial-1900.v1",
+      "liftTable": "material-handling.lift.scissor-table.v1",
+      "drillPress": "machining.drill-press.pedestal.v1",
+      "robotArm": "robotics.robot.six-axis-medium.v1",
+      "rotaryTable": "material-handling.table.powered-rotary.v1",
+      "rollerShutter": "access-control.door.roller-shutter.v1",
+      "machine": "machining.machine.enclosed-center.v1",
+      "palletLoad": "loads.palletized-cases.gma-48x40.v1",
+      "toteFiller": "process.packaging.filler.tote-volumetric.v1",
+      "toteCapper": "process.packaging.capper.tote-inline.v1",
+      "toteLabeler": "process.packaging.labeler.tote-pressure-sensitive.v1",
+      "toteVision": "inspection.vision.tote-multicamera.v1",
+      "meteringSkid": "process.dosing.skid.liquid-metering.v1",
+      "containerReceiver": "material-handling.receiver.container-two-position.v1",
+      "sizeSensorBank": "sensing.dimensioning.parcel-three-height.v1"
+    },
+    "scenePropTypes": [
+      "box"
+    ],
+    "unresolvedAssetTypes": [],
+    "visualStatus": "mapped",
+    "productionApproved": false,
+    "reason": "Production approval requires every reusable asset and the complete scene to pass visual review."
+  }
+}

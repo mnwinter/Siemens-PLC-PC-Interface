@@ -1,0 +1,8 @@
+{
+  "assetId": "machines.finishing.grinder.double-ended-pedestal.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-153",
+  "identifiedFamily": "Pedestal-mounted double-ended industrial grinder (pedestal bench grinder)",
+  "confidence": 0.94,
+  "concerns": "Stylized geometry obscures the grinding wheels and drive details; guards and tool rests are unusually oversized.",
+  "sourceReview": "build/blind-review-assets/image_153.production-machines-round1.review.md"
+}

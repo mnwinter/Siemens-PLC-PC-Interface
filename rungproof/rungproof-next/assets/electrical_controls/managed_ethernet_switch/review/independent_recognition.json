@@ -1,0 +1,8 @@
+{
+  "assetId": "network.industrial-ethernet.managed-8port.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-130",
+  "identifiedFamily": "Eight-port managed industrial Ethernet switch with front-facing RJ45-style ports and end-mounted uplink/power connectors",
+  "confidence": 0.89,
+  "concerns": "Stylized geometry omits connector openings, contacts, markings, mounting hardware, and realistic power terminals; blue end blocks are ambiguous and the port proportions are simplified",
+  "sourceReview": "build/blind-review-assets/image_130.readable-labels.review.md"
+}

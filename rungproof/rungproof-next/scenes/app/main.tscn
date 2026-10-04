@@ -1,0 +1,42 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://src/App/Main.cs" id="1_main"]
+
+[sub_resource type="Environment" id="Environment_main"]
+background_mode = 1
+background_color = Color(0.018, 0.031, 0.038, 1)
+ambient_light_source = 3
+ambient_light_color = Color(0.55, 0.67, 0.72, 1)
+ambient_light_energy = 0.65
+tonemap_mode = 2
+
+[sub_resource type="PlaneMesh" id="Plane_floor"]
+size = Vector2(40, 40)
+
+[sub_resource type="StandardMaterial3D" id="Material_floor"]
+albedo_color = Color(0.15, 0.18, 0.20, 1)
+metallic = 0.05
+roughness = 0.88
+
+[node name="RungProofNext" type="Node3D"]
+script = ExtResource("1_main")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_main")
+
+[node name="KeyLight" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-52, -38, 0)
+light_energy = 1.05
+shadow_enabled = true
+
+[node name="FillLight" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-24, 142, 0)
+light_color = Color(0.36, 0.67, 0.82, 1)
+light_energy = 0.35
+
+[node name="Camera" type="Camera3D" parent="."]
+current = true
+
+[node name="Floor" type="MeshInstance3D" parent="."]
+material_override = SubResource("Material_floor")
+mesh = SubResource("Plane_floor")

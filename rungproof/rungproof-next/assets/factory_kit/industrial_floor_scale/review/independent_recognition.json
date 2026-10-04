@@ -1,0 +1,13 @@
+{
+  "assetId": "sensing.scale.floor-platform.v1",
+  "reviewerId": "codex-agent-industrial-floor-scale-rereview",
+  "identifiedFamily": "industrial platform or floor scale with mast-mounted indicator",
+  "confidence": 0.92,
+  "result": "pass",
+  "reviewRound": 2,
+  "defects": [
+    "Perimeter/ramp geometry makes load-entry direction somewhat unclear.",
+    "Indicator lacks legible display digits or controls.",
+    "Finish and understructure remain visually stylized."
+  ]
+}

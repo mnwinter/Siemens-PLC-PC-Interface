@@ -1,0 +1,388 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-10-03-vision-package-sorter",
+  "name": "Lab 10.3 - Vision Package Sorter",
+  "description": "A vision result routes packages to one of four destination lanes using a conveyor and actuator handshake.",
+  "camera": {
+    "position": [
+      11,
+      8,
+      12
+    ],
+    "target": [
+      0,
+      1.1,
+      0
+    ],
+    "fov": 45
+  },
+  "equipment": [
+    {
+      "id": "conveyor_0",
+      "type": "conveyor",
+      "label": "Vision Package Sorter conveyor",
+      "position": [
+        -3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "length": 6.5,
+        "width": 1.4,
+        "deckHeight": 0.9,
+        "beltColor": 2568760,
+        "running": false
+      }
+    },
+    {
+      "id": "box_1",
+      "type": "box",
+      "label": "Vision Package Sorter box",
+      "position": [
+        -1.1,
+        0,
+        0
+      ],
+      "config": {
+        "size": [
+          0.85,
+          0.72,
+          0.72
+        ],
+        "color": 13142603
+      }
+    },
+    {
+      "id": "photoeye_2",
+      "type": "photoeye",
+      "label": "Vision Package Sorter photoeye",
+      "position": [
+        1.1,
+        0,
+        0
+      ],
+      "config": {
+        "span": 2.05,
+        "height": 0.7,
+        "beamCenterHeightM": 1.1,
+        "blocked": false
+      }
+    },
+    {
+      "id": "rotaryTable_3",
+      "type": "rotaryTable",
+      "label": "Vision Package Sorter rotary Table",
+      "position": [
+        3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "radius": 1.2,
+        "angleRangeDeg": 360,
+        "initialPosition": 0
+      }
+    },
+    {
+      "id": "indicator_4",
+      "type": "indicator",
+      "label": "Vision Package Sorter indicator",
+      "position": [
+        -2.85,
+        0,
+        2.35
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    },
+    {
+      "id": "training_accessory_5",
+      "type": "trainingAccessory",
+      "label": "Vision Package Sorter - industrial vision camera",
+      "position": [
+        -1.1,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "industrial vision camera",
+        "catalogAssetId": "training.accessory.industrial_vision_camera.v1"
+      }
+    },
+    {
+      "id": "training_accessory_6",
+      "type": "trainingAccessory",
+      "label": "Vision Package Sorter - package-class result display",
+      "position": [
+        1.1,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "package-class result display",
+        "catalogAssetId": "training.accessory.package_class_result_display.v1"
+      }
+    },
+    {
+      "id": "training_accessory_7",
+      "type": "trainingAccessory",
+      "label": "Vision Package Sorter - four-lane diverter",
+      "position": [
+        3.3000000000000003,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "four-lane diverter",
+        "catalogAssetId": "training.accessory.four_lane_diverter.v1"
+      }
+    },
+    {
+      "id": "training_accessory_8",
+      "type": "trainingAccessory",
+      "label": "Vision Package Sorter - destination conveyor bank",
+      "position": [
+        -3.3000000000000003,
+        0,
+        3.6
+      ],
+      "config": {
+        "assetName": "destination conveyor bank",
+        "catalogAssetId": "training.accessory.destination_conveyor_bank.v1"
+      }
+    },
+    {
+      "id": "switch_9",
+      "type": "switch",
+      "label": "Vision Package Sorter operator input",
+      "position": [
+        -0.20000000000000007,
+        0,
+        4.7
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-package_present",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "switch_10",
+      "type": "switch",
+      "label": "Vision Package Sorter operator input",
+      "position": [
+        2,
+        0,
+        4.7
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-vision_result_valid",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "switch_11",
+      "type": "switch",
+      "label": "Vision Package Sorter operator input",
+      "position": [
+        4.2,
+        0,
+        4.7
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-destination_clear",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "indicator_12",
+      "type": "indicator",
+      "label": "Vision Package Sorter output indication",
+      "position": [
+        -1.9500000000000002,
+        0,
+        7.050000000000001
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    }
+  ],
+  "simulation": {
+    "type": "booleanPanel",
+    "points": [
+      {
+        "name": "package_present",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "vision_result_valid",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "destination_clear",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "sort_conveyor_run",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "diverter_enable",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      }
+    ],
+    "actions": [
+      {
+        "id": "toggle-package_present",
+        "label": "Toggle package present",
+        "type": "toggle",
+        "point": "package_present"
+      },
+      {
+        "id": "toggle-vision_result_valid",
+        "label": "Toggle vision result valid",
+        "type": "toggle",
+        "point": "vision_result_valid"
+      },
+      {
+        "id": "toggle-destination_clear",
+        "label": "Toggle destination clear",
+        "type": "toggle",
+        "point": "destination_clear"
+      }
+    ],
+    "rules": [],
+    "edgeRules": [],
+    "pointBindings": [
+      {
+        "point": "package_present",
+        "equipmentId": "switch_9",
+        "mode": "switch"
+      },
+      {
+        "point": "vision_result_valid",
+        "equipmentId": "switch_10",
+        "mode": "switch"
+      },
+      {
+        "point": "destination_clear",
+        "equipmentId": "switch_11",
+        "mode": "switch"
+      },
+      {
+        "point": "sort_conveyor_run",
+        "equipmentId": "indicator_4",
+        "mode": "indicator",
+        "activeColor": "green"
+      },
+      {
+        "point": "diverter_enable",
+        "equipmentId": "indicator_12",
+        "mode": "indicator",
+        "activeColor": "green"
+      }
+    ]
+  },
+  "training": {
+    "hints": [
+      "Translate the lesson into explicit state and permissive logic: Sorting is enabled only for a present package with a valid vision result and clear destination.",
+      "Inputs are simulator feedback (package_present, vision_result_valid, destination_clear); PLC logic owns sort_conveyor_run, diverter_enable.",
+      "Test the initial state, the valid condition, and at least one missing permissive."
+    ],
+    "solution": {
+      "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
+      "steps": [
+        "Require the documented inputs: package_present, vision_result_valid, destination_clear.",
+        "Command the documented outputs: sort_conveyor_run, diverter_enable.",
+        "Remove PLC commands when the permissive is lost."
+      ],
+      "acceptance": "Sorting is enabled only for a present package with a valid vision result and clear destination."
+    },
+    "assetRequirements": [
+      "industrial vision camera",
+      "package-class result display",
+      "four-lane diverter",
+      "destination conveyor bank"
+    ],
+    "machineGuide": {
+      "purpose": "A vision result routes packages to one of four destination lanes using a conveyor and actuator handshake.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state."
+      ],
+      "normalSequence": [
+        "Apply the requested input condition.",
+        "Verify only the documented PLC outputs respond."
+      ],
+      "stopBehavior": [
+        "Removing the permissive removes PLC-owned commands.",
+        "Reset returns the module to its initial state."
+      ],
+      "faultBehavior": [
+        "A missing or stale input must fail safe and remain diagnosable."
+      ],
+      "expectedObservations": [
+        "Sorting is enabled only for a present package with a valid vision result and clear destination."
+      ]
+    },
+    "sequenceNumber": 61,
+    "inheritsFrom": "lab-10-02-chicken-label-print",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout"
+    ],
+    "addedTags": [
+      "package_present",
+      "vision_result_valid",
+      "destination_clear",
+      "sort_conveyor_run",
+      "diverter_enable"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-10-02-chicken-label-print"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "initial-safe-state",
+        "expect": {
+          "sort_conveyor_run": false,
+          "diverter_enable": false
+        }
+      }
+    ]
+  }
+}

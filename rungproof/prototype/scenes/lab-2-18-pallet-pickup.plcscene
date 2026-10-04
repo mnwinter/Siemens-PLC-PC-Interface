@@ -1,0 +1,395 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-2-18-pallet-pickup",
+  "name": "Lab 2.18 - Shipping Pallet Accumulation",
+  "description": "Automatic mode advances a loaded shipping pallet to the pickup photoeye; a separate jog sequence demonstrates manual positioning.",
+  "camera": {
+    "position": [
+      11.5,
+      6.8,
+      10.2
+    ],
+    "target": [
+      0,
+      1,
+      0
+    ],
+    "fov": 43
+  },
+  "equipment": [
+    {
+      "id": "pickup_conveyor",
+      "type": "conveyor",
+      "label": "Shipping pallet conveyor",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "config": {
+        "length": 9,
+        "width": 1.5,
+        "deckHeight": 0.9,
+        "beltColor": 2568760,
+        "running": false
+      }
+    },
+    {
+      "id": "shipping_pallet",
+      "type": "palletLoad",
+      "label": "Loaded shipping pallet",
+      "position": [
+        -3.8,
+        0.99,
+        0
+      ],
+      "config": {
+        "caseWidthM": 0.5,
+        "caseHeightM": 0.32,
+        "caseDepthM": 0.42,
+        "layers": 2,
+        "color": 10254930
+      }
+    },
+    {
+      "id": "pickup_end_sensor",
+      "type": "photoeye",
+      "label": "Forklift pickup sensor",
+      "position": [
+        3.1,
+        0,
+        0
+      ],
+      "config": {
+        "span": 2.05,
+        "height": 1.1,
+        "beamCenterHeightM": 1.35,
+        "blocked": false
+      }
+    },
+    {
+      "id": "pickup_mode",
+      "type": "rotarySwitch",
+      "label": "Auto / manual selector",
+      "position": [
+        -3.7,
+        0,
+        2.2
+      ],
+      "config": {
+        "action": "set-auto",
+        "positionCount": 2,
+        "initialPosition": 1
+      }
+    },
+    {
+      "id": "auto_start",
+      "type": "switch",
+      "label": "Automatic start",
+      "position": [
+        -2.7,
+        0,
+        2.2
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "start-auto",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "manual_jog",
+      "type": "switch",
+      "label": "Manual jog",
+      "position": [
+        -1.7,
+        0,
+        2.2
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "manual-jog",
+        "color": 3050449
+      }
+    },
+    {
+      "id": "pickup_status",
+      "type": "indicator",
+      "label": "Pickup conveyor status",
+      "position": [
+        4,
+        0,
+        -1.7
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "amber"
+      }
+    }
+  ],
+  "simulation": {
+    "type": "sequence",
+    "points": [
+      {
+        "name": "auto_mode",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": true
+      },
+      {
+        "name": "conveyor_run",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false
+      },
+      {
+        "name": "pickup_sensor",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "pallet_position",
+        "type": "REAL",
+        "owner": "SIM",
+        "initial": 0,
+        "unit": "%"
+      },
+      {
+        "name": "status_color",
+        "type": "STRING",
+        "owner": "SIM",
+        "initial": "amber"
+      },
+      {
+        "name": "cycle_complete",
+        "type": "BOOL",
+        "owner": "SIM",
+        "initial": false
+      }
+    ],
+    "actions": [
+      {
+        "id": "set-auto",
+        "label": "Toggle auto mode",
+        "type": "togglePoint",
+        "point": "auto_mode"
+      },
+      {
+        "id": "start-auto",
+        "label": "Start automatic travel",
+        "type": "start",
+        "sequence": "automatic",
+        "requires": {
+          "auto_mode": true
+        },
+        "blockedMessage": "Automatic start blocked - select AUTO"
+      },
+      {
+        "id": "manual-jog",
+        "label": "Jog pallet one increment",
+        "type": "start",
+        "sequence": "manual"
+      },
+      {
+        "id": "stop-pickup",
+        "label": "Stop conveyor",
+        "type": "stop"
+      },
+      {
+        "id": "reset-pickup",
+        "label": "Reset pallet",
+        "type": "reset"
+      }
+    ],
+    "pointBindings": [
+      {
+        "point": "auto_mode",
+        "equipmentId": "pickup_mode",
+        "mode": "selector"
+      },
+      {
+        "point": "conveyor_run",
+        "equipmentId": "pickup_conveyor",
+        "mode": "running"
+      },
+      {
+        "point": "pickup_sensor",
+        "equipmentId": "pickup_end_sensor",
+        "mode": "photoeye"
+      },
+      {
+        "point": "status_color",
+        "equipmentId": "pickup_status",
+        "mode": "indicator"
+      }
+    ],
+    "sequences": {
+      "automatic": [
+        {
+          "name": "automatic travel",
+          "durationS": 3.4,
+          "set": {
+            "conveyor_run": true,
+            "pickup_sensor": false,
+            "pallet_position": 0,
+            "cycle_complete": false,
+            "status_color": "green"
+          },
+          "motions": [
+            {
+              "type": "translate",
+              "equipmentId": "shipping_pallet",
+              "axis": "x",
+              "from": -3.8,
+              "to": 3.1
+            }
+          ]
+        },
+        {
+          "name": "pickup position",
+          "durationS": 0.1,
+          "set": {
+            "conveyor_run": false,
+            "pickup_sensor": true,
+            "pallet_position": 100,
+            "cycle_complete": true,
+            "status_color": "amber"
+          }
+        }
+      ],
+      "manual": [
+        {
+          "name": "manual jog",
+          "durationS": 1,
+          "set": {
+            "conveyor_run": true,
+            "cycle_complete": false,
+            "status_color": "amber"
+          },
+          "motions": [
+            {
+              "type": "translate",
+              "equipmentId": "shipping_pallet",
+              "axis": "x",
+              "from": -3.8,
+              "to": -2.1
+            }
+          ]
+        },
+        {
+          "name": "jog stopped",
+          "durationS": 0.1,
+          "set": {
+            "conveyor_run": false,
+            "pallet_position": 25,
+            "cycle_complete": true
+          }
+        }
+      ]
+    },
+    "defaultSequence": "automatic",
+    "safeState": {
+      "conveyor_run": false,
+      "status_color": "red"
+    },
+    "completionState": {},
+    "conveyorSpeedMps": 0.75
+  },
+  "training": {
+    "hints": [
+      "Define the required result before writing logic: Auto stops at the pickup sensor; manual jog moves only one bounded increment.",
+      "Treat auto_mode, pickup_sensor as simulator-to-PLC inputs. The PLC should command only conveyor_run.",
+      "Use a step/state approach and prove the transition order: automatic travel \u2192 pickup position."
+    ],
+    "solution": {
+      "summary": "This is one valid functional reference. The same behavior may be implemented in LAD, FBD, or SCL; the rung layout is not prescribed.",
+      "steps": [
+        "automatic travel: conveyor_run = true.",
+        "pickup position: conveyor_run = false."
+      ],
+      "acceptance": "Auto stops at the pickup sensor; manual jog moves only one bounded increment."
+    },
+    "machineGuide": {
+      "purpose": "Automatic mode advances a loaded shipping pallet to the pickup photoeye; a separate jog sequence demonstrates manual positioning.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state.",
+        "The PLC is ready to command conveyor_run."
+      ],
+      "normalSequence": [
+        "automatic travel",
+        "pickup position"
+      ],
+      "stopBehavior": [
+        "A normal stop removes PLC-owned commands and leaves the equipment in a safe state.",
+        "Reset returns the scene to its documented initial condition."
+      ],
+      "faultBehavior": [
+        "A missing, stale, or incorrectly typed input must not be replaced by simulator logic.",
+        "A missing PLC command leaves the affected equipment stopped and the test diagnosable."
+      ],
+      "expectedObservations": [
+        "Auto stops at the pickup sensor; manual jog moves only one bounded increment."
+      ]
+    },
+    "sequenceNumber": 18,
+    "inheritsFrom": "lab-2-17-pallet-robot",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout",
+      "conveyor_run",
+      "cycle_complete"
+    ],
+    "addedTags": [
+      "auto_mode",
+      "pickup_sensor",
+      "pallet_position",
+      "status_color"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-2-17-pallet-robot"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "automatic-stop",
+        "phases": [
+          {
+            "action": "start-auto",
+            "runForS": 3.8
+          }
+        ],
+        "expect": {
+          "conveyor_run": false,
+          "pickup_sensor": true,
+          "pallet_position": 100
+        }
+      },
+      {
+        "name": "manual-jog",
+        "phases": [
+          {
+            "action": "manual-jog",
+            "runForS": 1.3
+          }
+        ],
+        "expect": {
+          "conveyor_run": false,
+          "pallet_position": 25
+        }
+      }
+    ]
+  }
+}

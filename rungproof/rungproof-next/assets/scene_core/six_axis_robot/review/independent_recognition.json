@@ -1,0 +1,9 @@
+{
+  "assetId": "robotics.robot.six-axis-medium.v1",
+  "reviewerId": "codex-agent-01a0c42b-robot-recognition-final",
+  "identifiedFamily": "six-axis articulated industrial robot",
+  "confidence": 0.95,
+  "result": "pass",
+  "reviewRound": 4,
+  "defects": []
+}

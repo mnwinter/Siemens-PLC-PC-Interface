@@ -1,0 +1,78 @@
+# Lab 3.1 - Guarded Pallet Transfer help
+
+Scene ID: `lab-3-01-guarded-pallet-transfer`  
+Migrated source: `prototype/scenes/lab-3-01-guarded-pallet-transfer.plcscene`  
+Scene contract: `prototype/scenes/lab-3-01-guarded-pallet-transfer.plcscene`
+
+## Purpose
+
+A pallet transfer lane runs only while the access protection and clear-path inputs agree.
+
+## Expected I/O to operate this scene
+
+All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or hardware addresses. PC-owned points are simulator feedback; PLC-owned points are commands supplied by the controller; SIM points are internal and should not be wired as external I/O.
+
+| Point | Type | Owner | Initial value |
+| --- | --- | --- | --- |
+| `guard_closed` | `BOOL` | **PC** | `False` |
+| `entry_clear` | `BOOL` | **PC** | `False` |
+| `exit_clear` | `BOOL` | **PC** | `False` |
+| `transfer_run` | `BOOL` | **PLC** | `False` |
+| `transfer_permissive` | `BOOL` | **PLC** | `False` |
+
+## Operator actions
+
+| Action | Type | Bound point/sequence |
+| --- | --- | --- |
+| `Toggle guard closed` | `toggle` | `guard_closed` |
+| `Toggle entry clear` | `toggle` | `entry_clear` |
+| `Toggle exit clear` | `toggle` | `exit_clear` |
+
+## Equipment bindings
+
+| Symbolic point | Equipment | Mode |
+| --- | --- | --- |
+| `guard_closed` | `switch_4` | `switch` |
+| `entry_clear` | `switch_9` | `switch` |
+| `exit_clear` | `switch_10` | `switch` |
+| `transfer_run` | `indicator_5` | `indicator` |
+| `transfer_permissive` | `indicator_11` | `indicator` |
+
+## Expected equipment
+
+| ID | Type | Label |
+| --- | --- | --- |
+| `conveyor_0` | `conveyor` | Guarded Pallet Transfer conveyor |
+| `box_1` | `box` | Guarded Pallet Transfer box |
+| `photoeye_2` | `photoeye` | Guarded Pallet Transfer photoeye |
+| `photoeye_3` | `photoeye` | Guarded Pallet Transfer photoeye |
+| `switch_4` | `switch` | Guarded Pallet Transfer switch |
+| `indicator_5` | `indicator` | Guarded Pallet Transfer indicator |
+| `training_accessory_6` | `trainingAccessory` | Guarded Pallet Transfer - safety light-curtain pair |
+| `training_accessory_7` | `trainingAccessory` | Guarded Pallet Transfer - guarded access gate |
+| `training_accessory_8` | `trainingAccessory` | Guarded Pallet Transfer - safety relay/status beacon |
+| `switch_9` | `switch` | Guarded Pallet Transfer operator input |
+| `switch_10` | `switch` | Guarded Pallet Transfer operator input |
+| `indicator_11` | `indicator` | Guarded Pallet Transfer output indication |
+
+## Stop and safety boundary
+
+A normal Stop removes PLC-owned commands according to the scene runtime. This document does not prove a safety function, a real E-stop circuit, a PLC watchdog, or live-machine commissioning.
+
+## Machine guide
+
+A pallet transfer lane runs only while the access protection and clear-path inputs agree.
+
+### Start conditions
+
+- The common PLC/watchdog foundation is healthy.
+- All required simulator inputs are at their documented initial state.
+
+### Normal sequence
+
+- Apply the requested input condition.
+- Verify only the documented PLC outputs respond.
+
+### Expected observations
+
+- The transfer runs only with protection closed and both path sensors clear.

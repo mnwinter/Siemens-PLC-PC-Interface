@@ -1,0 +1,14 @@
+{
+  "assetId": "training.accessory.safety_light_curtain_pair.v1",
+  "reviewerId": "codex-agent-01a0c42b-safety-light-curtain-final-review",
+  "identifiedFamily": "paired safety light curtain / optoelectronic perimeter guard (identical generic basis model)",
+  "confidence": 0.96,
+  "result": "pass",
+  "reviewRound": 3,
+  "defects": [
+    "Visible beam witness styling is more solid than physical light.",
+    "Pair accent colors are intentionally distinct."
+  ],
+  "sourceAssetId": "safety.light-curtain.1800mm.v1",
+  "evidenceBasis": "delivery GLB is byte-identical to the independently reviewed generic basis asset"
+}

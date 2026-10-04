@@ -1,0 +1,310 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-2-02-dual-confirmation",
+  "name": "Lab 2.2 - Dual Confirmation Lamp",
+  "description": "A handoff-ready lamp turns on only after both the operator and quality confirmation buttons are active.",
+  "camera": {
+    "position": [
+      10,
+      7,
+      10
+    ],
+    "target": [
+      0,
+      1.2,
+      0
+    ],
+    "fov": 43
+  },
+  "equipment": [
+    {
+      "id": "operator_confirm_button",
+      "type": "switch",
+      "label": "Operator confirmation",
+      "position": [
+        -2.5,
+        0,
+        0
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-operator-confirm",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "quality_confirm_button",
+      "type": "switch",
+      "label": "Quality confirmation",
+      "position": [
+        -1.1,
+        0,
+        0
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-quality-confirm",
+        "color": 3050449
+      }
+    },
+    {
+      "id": "handoff_ready_lamp",
+      "type": "indicator",
+      "label": "Handoff ready lamp",
+      "position": [
+        0.8,
+        0,
+        0
+      ],
+      "config": {
+        "colors": [
+          "green"
+        ],
+        "active": null
+      }
+    }
+  ],
+  "simulation": {
+    "type": "booleanPanel",
+    "points": [
+      {
+        "name": "operator_confirmed",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "quality_confirmed",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "handoff_ready",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      }
+    ],
+    "actions": [
+      {
+        "id": "toggle-operator-confirm",
+        "label": "Press / release operator confirm",
+        "type": "toggle",
+        "point": "operator_confirmed"
+      },
+      {
+        "id": "toggle-quality-confirm",
+        "label": "Press / release quality confirm",
+        "type": "toggle",
+        "point": "quality_confirmed"
+      }
+    ],
+    "rules": [
+      {
+        "when": {
+          "operator_confirmed": false,
+          "quality_confirmed": false
+        },
+        "set": {
+          "handoff_ready": false
+        }
+      },
+      {
+        "when": {
+          "operator_confirmed": true,
+          "quality_confirmed": false
+        },
+        "set": {
+          "handoff_ready": false
+        }
+      },
+      {
+        "when": {
+          "operator_confirmed": false,
+          "quality_confirmed": true
+        },
+        "set": {
+          "handoff_ready": false
+        }
+      },
+      {
+        "when": {
+          "operator_confirmed": true,
+          "quality_confirmed": true
+        },
+        "set": {
+          "handoff_ready": true
+        }
+      }
+    ],
+    "edgeRules": [],
+    "pointBindings": [
+      {
+        "point": "operator_confirmed",
+        "equipmentId": "operator_confirm_button",
+        "mode": "switch"
+      },
+      {
+        "point": "quality_confirmed",
+        "equipmentId": "quality_confirm_button",
+        "mode": "switch"
+      },
+      {
+        "point": "handoff_ready",
+        "equipmentId": "handoff_ready_lamp",
+        "mode": "indicator",
+        "activeColor": "green"
+      }
+    ]
+  },
+  "training": {
+    "hints": [
+      "Define the required result before writing logic: The ready lamp is on only when both confirmation inputs are active.",
+      "Treat operator_confirmed, quality_confirmed as simulator-to-PLC inputs. The PLC should command only handoff_ready.",
+      "List the required input and memory states before assigning any output. Test every state, including the all-false state."
+    ],
+    "solution": {
+      "summary": "This is one valid functional reference. The same behavior may be implemented in LAD, FBD, or SCL; the rung layout is not prescribed.",
+      "steps": [
+        "When operator_confirmed = false, quality_confirmed = false, set handoff_ready = false.",
+        "When operator_confirmed = true, quality_confirmed = false, set handoff_ready = false.",
+        "When operator_confirmed = false, quality_confirmed = true, set handoff_ready = false.",
+        "When operator_confirmed = true, quality_confirmed = true, set handoff_ready = true."
+      ],
+      "acceptance": "The ready lamp is on only when both confirmation inputs are active."
+    },
+    "machineGuide": {
+      "purpose": "A handoff-ready lamp turns on only after both the operator and quality confirmation buttons are active.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state.",
+        "The PLC is ready to command handoff_ready."
+      ],
+      "normalSequence": [
+        "Observe the initial input state.",
+        "Apply operator_confirmed, quality_confirmed.",
+        "Verify the PLC produces only the required handoff_ready."
+      ],
+      "stopBehavior": [
+        "A normal stop removes PLC-owned commands and leaves the equipment in a safe state.",
+        "Reset returns the scene to its documented initial condition."
+      ],
+      "faultBehavior": [
+        "A missing, stale, or incorrectly typed input must not be replaced by simulator logic.",
+        "A missing PLC command leaves the affected equipment stopped and the test diagnosable."
+      ],
+      "expectedObservations": [
+        "The ready lamp is on only when both confirmation inputs are active."
+      ]
+    },
+    "sequenceNumber": 2,
+    "inheritsFrom": "lab-2-01-workstation-call",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout"
+    ],
+    "addedTags": [
+      "operator_confirmed",
+      "quality_confirmed",
+      "handoff_ready"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-2-01-workstation-call"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "neither-confirmed",
+        "expect": {
+          "operator_confirmed": false,
+          "quality_confirmed": false,
+          "handoff_ready": false
+        }
+      },
+      {
+        "name": "operator-only",
+        "actions": [
+          "toggle-operator-confirm"
+        ],
+        "expect": {
+          "operator_confirmed": true,
+          "quality_confirmed": false,
+          "handoff_ready": false
+        }
+      },
+      {
+        "name": "quality-only",
+        "actions": [
+          "toggle-quality-confirm"
+        ],
+        "expect": {
+          "operator_confirmed": false,
+          "quality_confirmed": true,
+          "handoff_ready": false
+        }
+      },
+      {
+        "name": "both-confirmed",
+        "actions": [
+          "toggle-operator-confirm",
+          "toggle-quality-confirm"
+        ],
+        "expect": {
+          "operator_confirmed": true,
+          "quality_confirmed": true,
+          "handoff_ready": true
+        }
+      }
+    ]
+  },
+  "migration": {
+    "sourceFile": "prototype/scenes/lab-2-02-dual-confirmation.plcscene",
+    "sourceFormat": "plcscene",
+    "assetMappings": {
+      "conveyor": "material-handling.belt-conveyor.600x6000.v1",
+      "photoeye": "sensing.photoelectric.through-beam.v1",
+      "switch": "controls.operator-station.single-pushbutton.v1",
+      "indicator": "controls.beacon.single-tier.v1",
+      "pusher": "actuation.pneumatic-pusher.1350mm.v1",
+      "motor": "drives.motor.ac-induction.v1",
+      "pipe": "process.pipe.flanged-spool.v1",
+      "tank": "process.tank.vertical-3000x5000.v1",
+      "pump": "process.pump.centrifugal-skid.v1",
+      "valve": "process.valve.actuated-ball.v1",
+      "levelSensor": "sensing.level.analog-4-20ma.v1",
+      "radarLevelSensor": "sensing.level.radar.v1",
+      "rotarySwitch": "controls.operator-station.selector.v1",
+      "fan": "air-handling.fan.axial-1900.v1",
+      "liftTable": "material-handling.lift.scissor-table.v1",
+      "drillPress": "machining.drill-press.pedestal.v1",
+      "robotArm": "robotics.robot.six-axis-medium.v1",
+      "rotaryTable": "material-handling.table.powered-rotary.v1",
+      "rollerShutter": "access-control.door.roller-shutter.v1",
+      "machine": "machining.machine.enclosed-center.v1",
+      "palletLoad": "loads.palletized-cases.gma-48x40.v1",
+      "toteFiller": "process.packaging.filler.tote-volumetric.v1",
+      "toteCapper": "process.packaging.capper.tote-inline.v1",
+      "toteLabeler": "process.packaging.labeler.tote-pressure-sensitive.v1",
+      "toteVision": "inspection.vision.tote-multicamera.v1",
+      "meteringSkid": "process.dosing.skid.liquid-metering.v1",
+      "containerReceiver": "material-handling.receiver.container-two-position.v1",
+      "sizeSensorBank": "sensing.dimensioning.parcel-three-height.v1"
+    },
+    "scenePropTypes": [
+      "box"
+    ],
+    "unresolvedAssetTypes": [],
+    "visualStatus": "mapped",
+    "productionApproved": false,
+    "reason": "Production approval requires every reusable asset and the complete scene to pass visual review."
+  }
+}

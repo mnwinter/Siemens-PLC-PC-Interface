@@ -1,0 +1,8 @@
+{
+  "assetId": "safety.estop.rope-pull-switch.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-075",
+  "identifiedFamily": "Wire-rope pull emergency-stop switch (cable-pull safety switch)",
+  "confidence": 0.91,
+  "concerns": "The red cable appears rigid like a rod, and the yellow guide loops and enclosure proportions look stylized; exact catalog model is ambiguous.",
+  "sourceReview": "build/blind-review-assets/image_075.controls-round2.review.md"
+}

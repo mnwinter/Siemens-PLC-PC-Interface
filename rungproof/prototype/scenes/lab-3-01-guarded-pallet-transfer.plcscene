@@ -1,0 +1,374 @@
+{
+  "fileType": "plc-visual-scene",
+  "version": 1,
+  "id": "lab-3-01-guarded-pallet-transfer",
+  "name": "Lab 3.1 - Guarded Pallet Transfer",
+  "description": "A pallet transfer lane runs only while the access protection and clear-path inputs agree.",
+  "camera": {
+    "position": [
+      11,
+      8,
+      12
+    ],
+    "target": [
+      0,
+      1.1,
+      0
+    ],
+    "fov": 45
+  },
+  "equipment": [
+    {
+      "id": "conveyor_0",
+      "type": "conveyor",
+      "label": "Guarded Pallet Transfer conveyor",
+      "position": [
+        -3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "length": 6.5,
+        "width": 1.4,
+        "deckHeight": 0.9,
+        "beltColor": 2568760,
+        "running": false
+      }
+    },
+    {
+      "id": "box_1",
+      "type": "box",
+      "label": "Guarded Pallet Transfer box",
+      "position": [
+        -1.1,
+        0,
+        0
+      ],
+      "config": {
+        "size": [
+          0.85,
+          0.72,
+          0.72
+        ],
+        "color": 13142603
+      }
+    },
+    {
+      "id": "photoeye_2",
+      "type": "photoeye",
+      "label": "Guarded Pallet Transfer photoeye",
+      "position": [
+        1.1,
+        0,
+        0
+      ],
+      "config": {
+        "span": 2.05,
+        "height": 0.7,
+        "beamCenterHeightM": 1.1,
+        "blocked": false
+      }
+    },
+    {
+      "id": "photoeye_3",
+      "type": "photoeye",
+      "label": "Guarded Pallet Transfer photoeye",
+      "position": [
+        3.3000000000000003,
+        0,
+        0
+      ],
+      "config": {
+        "span": 2.05,
+        "height": 0.7,
+        "beamCenterHeightM": 1.1,
+        "blocked": false
+      }
+    },
+    {
+      "id": "switch_4",
+      "type": "switch",
+      "label": "Guarded Pallet Transfer switch",
+      "position": [
+        -2.85,
+        0,
+        2.35
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-guard_closed",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "indicator_5",
+      "type": "indicator",
+      "label": "Guarded Pallet Transfer indicator",
+      "position": [
+        -0.6500000000000001,
+        0,
+        2.35
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    },
+    {
+      "id": "training_accessory_6",
+      "type": "trainingAccessory",
+      "label": "Guarded Pallet Transfer - safety light-curtain pair",
+      "position": [
+        1.1,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "safety light-curtain pair",
+        "catalogAssetId": "training.accessory.safety_light_curtain_pair.v1"
+      }
+    },
+    {
+      "id": "training_accessory_7",
+      "type": "trainingAccessory",
+      "label": "Guarded Pallet Transfer - guarded access gate",
+      "position": [
+        3.3000000000000003,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "guarded access gate",
+        "catalogAssetId": "training.accessory.guarded_access_gate.v1"
+      }
+    },
+    {
+      "id": "training_accessory_8",
+      "type": "trainingAccessory",
+      "label": "Guarded Pallet Transfer - safety relay/status beacon",
+      "position": [
+        -3.3000000000000003,
+        0,
+        3.6
+      ],
+      "config": {
+        "assetName": "safety relay/status beacon",
+        "catalogAssetId": "training.accessory.safety_relay_status_beacon.v1"
+      }
+    },
+    {
+      "id": "switch_9",
+      "type": "switch",
+      "label": "Guarded Pallet Transfer operator input",
+      "position": [
+        -0.20000000000000007,
+        0,
+        4.7
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-entry_clear",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "switch_10",
+      "type": "switch",
+      "label": "Guarded Pallet Transfer operator input",
+      "position": [
+        2,
+        0,
+        4.7
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-exit_clear",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "indicator_11",
+      "type": "indicator",
+      "label": "Guarded Pallet Transfer output indication",
+      "position": [
+        4.2,
+        0,
+        4.7
+      ],
+      "config": {
+        "colors": [
+          "red",
+          "amber",
+          "green"
+        ],
+        "active": "red"
+      }
+    }
+  ],
+  "simulation": {
+    "type": "booleanPanel",
+    "points": [
+      {
+        "name": "guard_closed",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "entry_clear",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "exit_clear",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "transfer_run",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "transfer_permissive",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      }
+    ],
+    "actions": [
+      {
+        "id": "toggle-guard_closed",
+        "label": "Toggle guard closed",
+        "type": "toggle",
+        "point": "guard_closed"
+      },
+      {
+        "id": "toggle-entry_clear",
+        "label": "Toggle entry clear",
+        "type": "toggle",
+        "point": "entry_clear"
+      },
+      {
+        "id": "toggle-exit_clear",
+        "label": "Toggle exit clear",
+        "type": "toggle",
+        "point": "exit_clear"
+      }
+    ],
+    "rules": [],
+    "edgeRules": [],
+    "pointBindings": [
+      {
+        "point": "guard_closed",
+        "equipmentId": "switch_4",
+        "mode": "switch"
+      },
+      {
+        "point": "entry_clear",
+        "equipmentId": "switch_9",
+        "mode": "switch"
+      },
+      {
+        "point": "exit_clear",
+        "equipmentId": "switch_10",
+        "mode": "switch"
+      },
+      {
+        "point": "transfer_run",
+        "equipmentId": "indicator_5",
+        "mode": "indicator",
+        "activeColor": "green"
+      },
+      {
+        "point": "transfer_permissive",
+        "equipmentId": "indicator_11",
+        "mode": "indicator",
+        "activeColor": "green"
+      }
+    ]
+  },
+  "training": {
+    "hints": [
+      "Translate the lesson into explicit state and permissive logic: The transfer runs only with protection closed and both path sensors clear.",
+      "Inputs are simulator feedback (guard_closed, entry_clear, exit_clear); PLC logic owns transfer_run, transfer_permissive.",
+      "Test the initial state, the valid condition, and at least one missing permissive."
+    ],
+    "solution": {
+      "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
+      "steps": [
+        "Require the documented inputs: guard_closed, entry_clear, exit_clear.",
+        "Command the documented outputs: transfer_run, transfer_permissive.",
+        "Remove PLC commands when the permissive is lost."
+      ],
+      "acceptance": "The transfer runs only with protection closed and both path sensors clear."
+    },
+    "assetRequirements": [
+      "safety light-curtain pair",
+      "guarded access gate",
+      "safety relay/status beacon"
+    ],
+    "machineGuide": {
+      "purpose": "A pallet transfer lane runs only while the access protection and clear-path inputs agree.",
+      "startConditions": [
+        "The common PLC/watchdog foundation is healthy.",
+        "All required simulator inputs are at their documented initial state."
+      ],
+      "normalSequence": [
+        "Apply the requested input condition.",
+        "Verify only the documented PLC outputs respond."
+      ],
+      "stopBehavior": [
+        "Removing the permissive removes PLC-owned commands.",
+        "Reset returns the module to its initial state."
+      ],
+      "faultBehavior": [
+        "A missing or stale input must fail safe and remain diagnosable."
+      ],
+      "expectedObservations": [
+        "The transfer runs only with protection closed and both path sensors clear."
+      ]
+    },
+    "sequenceNumber": 26,
+    "inheritsFrom": "lab-2-25-inspection-toggle",
+    "foundation": "common-plc-watchdog-foundation",
+    "retainedTags": [
+      "PC_Heartbeat",
+      "PLC_Heartbeat_Echo",
+      "Simulation_Enable",
+      "Simulation_Comm_OK",
+      "Simulation_Timeout"
+    ],
+    "addedTags": [
+      "guard_closed",
+      "entry_clear",
+      "exit_clear",
+      "transfer_run",
+      "transfer_permissive"
+    ],
+    "changedTags": [],
+    "previousAcceptance": [
+      "lab-2-25-inspection-toggle"
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "initial-safe-state",
+        "expect": {
+          "transfer_run": false,
+          "transfer_permissive": false
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "assetId": "utilities.air.blower.regenerative-side-channel.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-142",
+  "identifiedFamily": "Side-channel regenerative blower (ring compressor), not a centrifugal pump",
+  "confidence": 0.82,
+  "concerns": "Stylized geometry; inlet/outlet blocks and toroidal casing are oversized, simplified, and lack realistic flanges, fasteners, guards, and volute details",
+  "sourceReview": "build/blind-review-assets/image_142.readable-labels-b.review.md"
+}

@@ -1,0 +1,8 @@
+{
+  "assetId": "robotics.end-effector.welding.mig-torch.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-169",
+  "identifiedFamily": "Robotic MIG welding torch/gun assembly",
+  "confidence": 0.99,
+  "concerns": "Stylized geometry and proportions; torch/nozzle details are not catalog-realistic.",
+  "sourceReview": "build/blind-review-assets/image_169.robotics-round1.review.md"
+}

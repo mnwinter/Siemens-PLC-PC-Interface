@@ -1,0 +1,14 @@
+{
+  "assetId": "training.accessory.floor_position_sensor.v1",
+  "reviewerId": "codex-agent-01a0c42b-floorstanding-enclosure-blind-review",
+  "identifiedFamily": "floor-standing industrial electrical control enclosure / PLC cabinet (identical generic basis model)",
+  "confidence": 0.94,
+  "result": "pass",
+  "reviewRound": 1,
+  "defects": [
+    "Generic blank face.",
+    "No asserted energized or electrical performance."
+  ],
+  "sourceAssetId": "controls.enclosure.floorstanding.v1",
+  "evidenceBasis": "delivery GLB is byte-identical to the independently reviewed generic basis asset"
+}

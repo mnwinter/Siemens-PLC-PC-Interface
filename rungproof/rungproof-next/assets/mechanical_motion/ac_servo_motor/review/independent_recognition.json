@@ -1,0 +1,8 @@
+{
+  "assetId": "drives.motor.ac-servo-flange.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-085",
+  "identifiedFamily": "Industrial AC servo motor with mounting flange, output shaft, and separate power/feedback cables",
+  "confidence": 0.91,
+  "concerns": "Stylized geometry; cables lack realistic connectors and strain relief, shaft/flange proportions are unusual, and no visible encoder or nameplate details confirm the subtype",
+  "sourceReview": "build/blind-review-assets/image_085.mechanical-round3.review.md"
+}

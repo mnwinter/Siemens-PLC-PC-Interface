@@ -1,0 +1,13 @@
+{
+  "assetId": "loads.pallet.gma-48x40.v1",
+  "reviewerId": "codex-agent-gma-wood-pallet-rereview",
+  "identifiedFamily": "wooden forklift or warehouse material-handling pallet",
+  "confidence": 0.98,
+  "result": "pass",
+  "reviewRound": 2,
+  "defects": [
+    "Hero crop limits inspection of the complete pallet and all fork entries.",
+    "End-grain texture repetition and the darker support-block finish remain stylized at close inspection.",
+    "Uniform fasteners are clean game-asset details rather than evidence of a used or inspected pallet."
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "assetId": "process.valve.actuated-ball.v1",
+  "reviewerId": "codex-agent-01a0bb68-a2e2-7752-8fe0-43dbacd9f606",
+  "identifiedFamily": "pneumatically actuated quarter-turn process valve, likely a ball valve",
+  "confidence": 0.98,
+  "result": "pass",
+  "reviewRound": 10,
+  "majorDefects": []
+}

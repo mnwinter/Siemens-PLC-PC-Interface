@@ -1,0 +1,8 @@
+{
+  "assetId": "utilities.vacuum.pump.oil-sealed-rotary-vane.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-141",
+  "identifiedFamily": "Oil-lubricated rotary-vane vacuum pump package with an electric motor",
+  "confidence": 0.93,
+  "concerns": "Stylized geometry; fittings, shaft coupling/guard, oil sight glass, and inlet/exhaust layout are simplified or potentially unrealistic",
+  "sourceReview": "build/blind-review-assets/image_141.readable-labels.review.md"
+}

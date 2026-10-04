@@ -1,0 +1,8 @@
+{
+  "assetId": "actuation.pneumatic.rotary.rack-pinion.v1",
+  "reviewerId": "blind-2026-09-17-rerun-image-081",
+  "identifiedFamily": "Double-acting rack-and-pinion pneumatic quarter-turn valve actuator",
+  "confidence": 0.88,
+  "concerns": "Stylized geometry; A/B air ports resemble manual levers, and the oversized side cylinders/top mechanism lack realistic mounting and sealing details",
+  "sourceReview": "build/blind-review-assets/image_081.mechanical-round3.review.md"
+}

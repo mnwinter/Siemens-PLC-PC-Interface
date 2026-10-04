@@ -1,0 +1,9 @@
+{
+  "assetId": "material-handling.pallet-roller-conveyor.1000x4000.v1",
+  "reviewerId": "codex-agent-01a0ba96-3355-76f3-ad87-353f376fb54a",
+  "identifiedFamily": "powered pallet roller conveyor",
+  "confidence": 0.98,
+  "result": "pass",
+  "reviewRound": 2,
+  "majorDefects": []
+}
