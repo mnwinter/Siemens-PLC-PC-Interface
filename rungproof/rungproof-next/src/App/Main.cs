@@ -67,6 +67,7 @@ public partial class Main : Node3D
     private SceneCatalogDocument? _sceneCatalog;
     private Camera3D? _mainCamera;
     private SceneCameraController? _cameraController;
+    private Rect2? _lastFramedAperture;
     private SceneDefinition? _activeSceneDefinition;
     private readonly Dictionary<string, (string AssetId, Node3D Node)> _workspaceNodes =
         new(StringComparer.Ordinal);
@@ -1004,8 +1005,38 @@ public partial class Main : Node3D
         var result = "shell unavailable";
         if (_simulatorShell is not null && _simulatorShell.VerifySplitLayout(out result))
         {
-            GD.Print($"SPLIT_VIEW_VERIFY PASS {result}");
-            GetTree().Quit(0);
+            var aperture = _simulatorShell.SceneViewportRect();
+            var targetCentered = _mainCamera is not null && _cameraController is not null
+                && _mainCamera.UnprojectPosition(_cameraController.ViewTarget).DistanceTo(aperture.GetCenter()) < 1.0f;
+            const string routinePath = "Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/TIA Portal/Workbench/EditorAndTasks/EditorAndInspector/ProgramEditor/RoutineView";
+            var routine = _simulatorShell.GetNode<Control>(routinePath);
+            var initialHeight = routine.Size.Y;
+            var toggle = _simulatorShell.GetNode<Button>("Workspace/DiagnosticsDock/DiagnosticsBody/DiagnosticsHeader/DiagnosticsToggle");
+            var tables = _simulatorShell.GetNode<Control>("Workspace/DiagnosticsDock/DiagnosticsBody/OperatorPointTables");
+            var inputTable = tables.GetNode<Control>("SimulatorToPlcPoints").GetGlobalRect();
+            var columnsAligned = Math.Abs(inputTable.End.X - (aperture.End.X + 4.0f)) < 8.0f;
+            toggle.EmitSignal(BaseButton.SignalName.Pressed);
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            var collapseReclaimsSpace = !tables.Visible && routine.Size.Y > initialHeight + 60.0f;
+            toggle.EmitSignal(BaseButton.SignalName.Pressed);
+            _simulatorShell.SetReviewState("ladder", string.Empty);
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            var dock = _simulatorShell.GetNode<Control>("Workspace/DiagnosticsDock");
+            var ladder = _simulatorShell.GetNode<Control>("Workspace/LadderWorkspace");
+            var standalonePoints = tables.Visible && dock.Visible
+                && ladder.GetGlobalRect().End.Y <= dock.GetGlobalRect().Position.Y;
+            var projectPanel = _simulatorShell.GetNode<Control>("Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/TIA Portal/Workbench/ProjectDockHost/ProjectOrganization");
+            var wasProjectVisible = projectPanel.Visible;
+            _simulatorShell.SetReviewState("operator", string.Empty);
+            _simulatorShell.SetReviewState("split", string.Empty);
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            var drawerStatePreserved = projectPanel.Visible == wasProjectVisible;
+            var passed = targetCentered && columnsAligned && collapseReclaimsSpace && standalonePoints && drawerStatePreserved;
+            GD.Print($"SPLIT_VIEW_VERIFY {(passed ? "PASS" : "FAIL")} {result} targetCentered={targetCentered} columnsAligned={columnsAligned} collapseReclaimsSpace={collapseReclaimsSpace} standalonePoints={standalonePoints} drawerStatePreserved={drawerStatePreserved}");
+            GetTree().Quit(passed ? 0 : 1);
             return;
         }
         var failure = _simulatorShell is null ? "shell unavailable" : result;
@@ -1427,7 +1458,6 @@ public partial class Main : Node3D
         if (restored is null && _mainCamera is not null)
         {
             FrameComposition(_mainCamera, _sceneCompositionRoot, _sceneCameraDirection);
-            _cameraController?.CaptureCurrentView();
         }
         _simulatorShell?.SetWorkspaceStatus($"Workspace modified · {_workspaceNodes.Count} placed assets");
         if (recordUndo) _simulatorShell?.SetWorkspaceDirty(true);
@@ -1454,7 +1484,6 @@ public partial class Main : Node3D
         if (_connectionVisuals is not null) _connectionVisuals.Visible = false;
         if (_transformGizmo is not null) _transformGizmo.Visible = false;
         FrameComposition(_mainCamera, _assetPreviewRoot, _sceneCameraDirection);
-        _cameraController?.CaptureCurrentView();
         _simulatorShell?.SetAssetPreviewState(asset);
         GD.Print($"ASSET_PREVIEW_OPEN id={asset.Id}");
     }
@@ -1471,7 +1500,6 @@ public partial class Main : Node3D
         if (_mainCamera is not null && _sceneCompositionRoot is not null)
         {
             FrameComposition(_mainCamera, _sceneCompositionRoot, _sceneCameraDirection);
-            _cameraController?.CaptureCurrentView();
         }
         _simulatorShell?.SetAssetPreviewState(null);
         GD.Print("ASSET_PREVIEW_CLOSE");
@@ -2945,7 +2973,6 @@ public partial class Main : Node3D
         _sceneCameraDirection = sourceCameraPosition - authoredTarget;
         _placedAssetCount = 0;
         _currentSceneId = scene.Id;
-        _cameraController?.CaptureCurrentView();
         _simulatorShell?.AttachScene(scene, _sceneRuntime, composition);
         _simulatorShell?.SetWorkspaceDirty(false);
         RefreshWorkspaceUi();
@@ -2998,7 +3025,7 @@ public partial class Main : Node3D
         RefreshStatus();
     }
 
-    private static void FrameComposition(Camera3D camera, Node3D root, Vector3 authoredDirection)
+    private void FrameComposition(Camera3D camera, Node3D root, Vector3 authoredDirection)
     {
         var points = new List<Vector3>();
         foreach (var node in root.FindChildren("*", "MeshInstance3D", true, false))
@@ -3045,16 +3072,27 @@ public partial class Main : Node3D
             halfDepth = MathF.Max(halfDepth, MathF.Abs(offset.Dot(direction)));
         }
         var verticalTangent = MathF.Tan(Mathf.DegToRad(camera.Fov * 0.5f));
-        var aspect = (float)camera.GetViewport().GetVisibleRect().Size.X
-            / (float)camera.GetViewport().GetVisibleRect().Size.Y;
-        var distance = MathF.Max(halfHeight / verticalTangent, halfWidth / (verticalTangent * aspect));
+        var viewport = camera.GetViewport().GetVisibleRect();
+        var aperture = _simulatorShell?.SceneViewportRect() ?? viewport;
+        if (aperture.Size.X <= 0 || aperture.Size.Y <= 0) aperture = viewport;
+        camera.KeepAspect = Camera3D.KeepAspectEnum.Height;
+        var distance = MathF.Max(halfHeight * viewport.Size.Y / (verticalTangent * aperture.Size.Y),
+            halfWidth * viewport.Size.Y / (verticalTangent * aperture.Size.X));
         distance = (distance + halfDepth) * 1.16f;
         camera.Position = center + direction * MathF.Max(distance, 2.5f);
         camera.LookAt(center, Vector3.Up);
+        _cameraController?.CaptureCurrentView(center);
+        _lastFramedAperture = _simulatorShell?.SceneViewportRect();
     }
 
     public override void _Process(double delta)
     {
+        if (_simulatorShell is not null && _mainCamera is not null && _sceneCompositionRoot is not null)
+        {
+            var aperture = _simulatorShell.SceneViewportRect();
+            if (aperture.Size.X > 0 && aperture.Size.Y > 0 && aperture != _lastFramedAperture)
+                FrameComposition(_mainCamera, _assetPreviewRoot ?? _sceneCompositionRoot, _sceneCameraDirection);
+        }
         _sceneControlInteractor?.AdvanceFeedback(delta);
         if (_sceneControlInteractor is not null && _sceneRuntime is not null)
             _sceneControlInteractor.SynchronizeFeedback(_sceneRuntime.Points);

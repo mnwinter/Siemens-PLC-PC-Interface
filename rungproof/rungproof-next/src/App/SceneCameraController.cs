@@ -15,6 +15,7 @@ public partial class SceneCameraController : Node
     private bool _panning;
     /// <summary>Returns the unobstructed 3D aperture in viewport coordinates.</summary>
     public Func<Rect2>? ViewportRectProvider { get; set; }
+    public Vector3 ViewTarget => _target;
 
     public SceneCameraController(Camera3D camera)
     {
@@ -23,13 +24,29 @@ public partial class SceneCameraController : Node
         CaptureCurrentView();
     }
 
-    public void CaptureCurrentView()
+    public void CaptureCurrentView(Vector3? framedTarget = null)
     {
         var forward = -_camera.GlobalBasis.Z.Normalized();
-        _distance = Mathf.Clamp(_camera.Position.Length() * 0.55f, 2.0f, 80.0f);
-        _target = _camera.Position + forward * _distance;
+        _distance = framedTarget.HasValue
+            ? _camera.Position.DistanceTo(framedTarget.Value)
+            : Mathf.Clamp(_camera.Position.Length() * 0.55f, 2.0f, 80.0f);
+        _target = framedTarget ?? _camera.Position + forward * _distance;
         _yaw = Mathf.Atan2(forward.X, forward.Z);
         _pitch = Mathf.Asin(Mathf.Clamp(forward.Y, -0.99f, 0.99f));
+        UpdateViewportOffsets();
+    }
+
+    private void UpdateViewportOffsets()
+    {
+        var viewport = _camera.GetViewport().GetVisibleRect();
+        var aperture = ViewportRectProvider?.Invoke() ?? viewport;
+        if (aperture.Size.X <= 0 || aperture.Size.Y <= 0) aperture = viewport;
+        var worldUnitsPerPixel = 2.0f * _distance
+            * Mathf.Tan(Mathf.DegToRad(_camera.Fov * 0.5f)) / viewport.Size.Y;
+        // Godot camera offsets participate in projection and ray picking. Keep
+        // the scene center inside the actual aperture, including after zoom.
+        _camera.HOffset = (viewport.GetCenter().X - aperture.GetCenter().X) * worldUnitsPerPixel;
+        _camera.VOffset = (aperture.GetCenter().Y - viewport.GetCenter().Y) * worldUnitsPerPixel;
     }
 
     /// <summary>
@@ -98,5 +115,6 @@ public partial class SceneCameraController : Node
         );
         _camera.Position = _target - direction * _distance;
         _camera.LookAt(_target, Vector3.Up);
+        UpdateViewportOffsets();
     }
 }

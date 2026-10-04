@@ -83,6 +83,8 @@ public partial class SimulatorShell : CanvasLayer
     private PanelContainer _diagnosticsDock = null!;
     private PanelContainer _transportDock = null!;
     private bool _diagnosticsExpanded;
+    private bool _pointsCollapsed;
+    private bool _compactDockDefaultsApplied;
     private string _activeSceneName = "Loading project…";
     private ItemList _diagnosticList = null!;
     private Label _sceneTitle = null!;
@@ -278,11 +280,13 @@ public partial class SimulatorShell : CanvasLayer
         PopulateDiagnostics();
         RefreshConnection();
         _connection.StateChanged += RefreshConnection;
+        GetViewport().SizeChanged += RefreshViewportLayout;
     }
 
     public override void _ExitTree()
     {
         _connection.StateChanged -= RefreshConnection;
+        GetViewport().SizeChanged -= RefreshViewportLayout;
         if (_runtime is not null)
         {
             _runtime.StateChanged -= RefreshRuntimeState;
@@ -336,14 +340,7 @@ public partial class SimulatorShell : CanvasLayer
             var width = viewport.Size.X;
             if (width > 0.0f)
             {
-                var minimumLadderWidth = _ladderWorkspace.GetCombinedMinimumSize().X + 16.0f;
-                var maximumRatio = 1.0f - minimumLadderWidth / width;
-                var minimumRatio = Mathf.Clamp(320.0f / width, 0.18f, 0.42f);
-                _splitDividerRatio = Mathf.Clamp(
-                    (motion.Position.X - viewport.Position.X) / width,
-                    minimumRatio,
-                    Mathf.Max(minimumRatio, maximumRatio));
-                ApplySplitLayout();
+                MoveSplitDivider(motion.Position.X);
                 GetViewport().SetInputAsHandled();
             }
         }
@@ -367,6 +364,8 @@ public partial class SimulatorShell : CanvasLayer
         LoadAuthoredDemoLadder(scene.Id);
         AlignDefaultConveyorBindings(scene);
         _sceneTitle.Text = _activeSceneName;
+        _sceneTitle.TooltipText = _activeSceneName;
+        GetWindow().Title = $"RungProof · {_activeSceneName}";
         RecordOperatorEvent($"Loaded {_activeSceneName}");
         _selectedAsset = null;
         _placeAsset.Disabled = true;
@@ -685,8 +684,11 @@ public partial class SimulatorShell : CanvasLayer
             errors.Add($"scene pane is too small: {scene.Size.X:0.##}x{scene.Size.Y:0.##}");
         if (ladderCanvas is null || !ladderCanvas.Visible)
             errors.Add("ladder canvas is not visible");
-        if (!_leftDock.Visible || !_rightDock.Visible || !_diagnosticsDock.Visible || !_operatorPointTables.Visible)
-            errors.Add("operator console or local model points are missing from split view");
+        if (!_diagnosticsDock.Visible || !_operatorPointTables.Visible)
+            errors.Add("local model points are missing from split view");
+        var routineView = ladderCanvas?.GetParent() as Control;
+        if (routineView is not null && routineView.Size.Y < 150.0f)
+            errors.Add($"usable ladder viewport is too short: {routineView.Size.Y:0.##}");
         result = errors.Count == 0
             ? $"scene={scene.Size.X:0}x{scene.Size.Y:0} ladder={ladder.Size.X:0}x{ladder.Size.Y:0}"
             : string.Join("; ", errors);
@@ -696,6 +698,13 @@ public partial class SimulatorShell : CanvasLayer
     public Rect2 SceneViewportRect()
     {
         var toolbar = GetNode<Control>("Workspace/Toolbar").GetGlobalRect();
+        if (_productView == "ladder") return new Rect2();
+        if (_productView == "floor")
+        {
+            var floorViewport = GetViewport().GetVisibleRect();
+            return new Rect2(new Vector2(floorViewport.Position.X, toolbar.End.Y),
+                new Vector2(floorViewport.Size.X, floorViewport.End.Y - toolbar.End.Y));
+        }
         if (_productView == "split")
         {
             var viewport = GetViewport().GetVisibleRect();
@@ -703,7 +712,7 @@ public partial class SimulatorShell : CanvasLayer
             return new Rect2(
                 new Vector2(viewport.Position.X, toolbar.End.Y),
                 new Vector2(ladder.Position.X - viewport.Position.X - 8.0f,
-                    GetViewport().GetVisibleRect().End.Y - toolbar.End.Y - 50.0f));
+                    _diagnosticsDock.GetGlobalRect().Position.Y - toolbar.End.Y));
         }
         if (_productView == "operator")
         {
@@ -1414,6 +1423,7 @@ public partial class SimulatorShell : CanvasLayer
         brand.AddChild(Heading("Proof", 20, new Color("16a34a")));
         toolbarRow.AddChild(brand);
         var subtitle = Heading("PLC VISUAL SIMULATOR", 9, new Color("7fa7ba"));
+        subtitle.Name = "BrandSubtitle";
         toolbarRow.AddChild(subtitle);
         toolbarRow.AddChild(VRule());
         toolbarRow.AddChild(VRule());
@@ -1669,15 +1679,17 @@ public partial class SimulatorShell : CanvasLayer
         _diagnosticSummary.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         diagnosticsHeader.AddChild(_diagnosticSummary);
         diagnosticsHeader.AddChild(_workspaceStatus);
-        var diagnosticsToggle = new Button { Name = "DiagnosticsToggle", Text = "EXPAND", Flat = true };
+        var diagnosticsToggle = new Button { Name = "DiagnosticsToggle", Text = "COLLAPSE", Flat = true };
         diagnosticsToggle.Pressed += () =>
         {
-            _diagnosticsExpanded = !_diagnosticsExpanded;
-            diagnosticsToggle.Text = _diagnosticsExpanded ? "COLLAPSE" : "EXPAND";
+            if (_productView is "operator" or "ladder" or "split")
+                _pointsCollapsed = !_pointsCollapsed;
+            else _diagnosticsExpanded = !_diagnosticsExpanded;
             ApplyDiagnosticsLayout();
         };
         diagnosticsHeader.AddChild(diagnosticsToggle);
         _operatorPointTables = new HBoxContainer { Name = "OperatorPointTables" };
+        _operatorPointTables.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
         _operatorPointTables.AddThemeConstantOverride("separation", 8);
         _tagWatchPanel = PanelContainer("TagWatch", new Color("0b171deF"), new Color("294252"));
         _tagWatchPanel.CustomMinimumSize = new Vector2(230, 0);
@@ -1702,8 +1714,8 @@ public partial class SimulatorShell : CanvasLayer
         inputPanel.AddChild(inputBody);
         inputBody.AddChild(SectionLabel("SIMULATOR → PLC · LOCAL MODEL"));
         _operatorInputPoints = Inspector("SimulatorToPlcPointTable");
-        _operatorInputPoints.CustomMinimumSize = new Vector2(0, 128);
-        _operatorInputPoints.FitContent = true;
+        _operatorInputPoints.CustomMinimumSize = new Vector2(0, 32);
+        _operatorInputPoints.FitContent = false;
         _operatorInputPoints.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
         inputBody.AddChild(_operatorInputPoints);
         var outputPanel = PanelContainer("PlcToSimulatorPoints", new Color("0b171deF"), new Color("294252"));
@@ -1712,8 +1724,8 @@ public partial class SimulatorShell : CanvasLayer
         outputPanel.AddChild(outputBody);
         outputBody.AddChild(SectionLabel("PLC → SIMULATOR · LOCAL MODEL"));
         _operatorOutputPoints = Inspector("PlcToSimulatorPointTable");
-        _operatorOutputPoints.CustomMinimumSize = new Vector2(0, 128);
-        _operatorOutputPoints.FitContent = true;
+        _operatorOutputPoints.CustomMinimumSize = new Vector2(0, 32);
+        _operatorOutputPoints.FitContent = false;
         _operatorOutputPoints.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
         outputBody.AddChild(_operatorOutputPoints);
         _operatorPointTables.AddChild(inputPanel);
@@ -1754,12 +1766,12 @@ public partial class SimulatorShell : CanvasLayer
         var load = ToolbarButton("LoadButton", "LOAD", new Color("3d5868"), 60);
         save.Pressed += () =>
         {
-            if (_productView == "ladder") _ladderSaveDialog.PopupCenteredRatio(0.72f);
+            if (IsLadderView) _ladderSaveDialog.PopupCenteredRatio(0.72f);
             else ShowWorkspaceSaveDialog();
         };
         load.Pressed += () =>
         {
-            if (_productView == "ladder") _ladderLoadDialog.PopupCenteredRatio(0.72f);
+            if (IsLadderView) _ladderLoadDialog.PopupCenteredRatio(0.72f);
             else ShowWorkspaceLoadDialog();
         };
         transportRow.AddChild(save);
@@ -1798,11 +1810,7 @@ public partial class SimulatorShell : CanvasLayer
                 var width = GetViewport().GetVisibleRect().Size.X;
                 if (width > 0.0f)
                 {
-                    _splitDividerRatio = Mathf.Clamp(
-                        (motion.GlobalPosition.X - GetViewport().GetVisibleRect().Position.X) / width,
-                        0.24f,
-                        0.68f);
-                    ApplySplitLayout();
+                    MoveSplitDivider(motion.GlobalPosition.X);
                     _splitDivider.AcceptEvent();
                 }
             }
@@ -2157,13 +2165,13 @@ public partial class SimulatorShell : CanvasLayer
         var operatorConsole = view == "operator";
         var ladder = view == "ladder";
         var split = view == "split";
-        _leftDock.Visible = engineering || operatorConsole || split;
-        _rightDock.Visible = engineering || operatorConsole || split;
-        _diagnosticsDock.Visible = engineering || operatorConsole || split;
+        _leftDock.Visible = engineering || operatorConsole;
+        _rightDock.Visible = engineering || operatorConsole;
+        _diagnosticsDock.Visible = engineering || operatorConsole || split || ladder;
         // Ladder workspace is elevated above the scene in split mode. Raise
         // the shared local-model dock with it so the point tables remain a
         // real bottom region instead of being painted underneath the ladder.
-        _diagnosticsDock.ZIndex = split ? 30 : 0;
+        _diagnosticsDock.ZIndex = split || ladder ? 30 : 0;
         _transportDock.Visible = operatorConsole || ladder || split;
         _ladderWorkspace.Visible = ladder || split;
         // The ladder editor has a substantial minimum width from its existing
@@ -2234,9 +2242,9 @@ public partial class SimulatorShell : CanvasLayer
             _inspectorTabs.CurrentTab = 0;
         }
         ApplySplitLayout();
-        _operatorPointTables.Visible = operatorConsole || split;
+        _operatorPointTables.Visible = (operatorConsole || split || ladder) && !_pointsCollapsed;
         _diagnosticList.Visible = engineering;
-        _diagnosticSummary.Text = operatorConsole || split
+        _diagnosticSummary.Text = operatorConsole || split || ladder
             ? "LOCAL MODEL POINTS"
             : DiagnosticSummaryText();
         foreach (var item in _productViewButtons)
@@ -2253,9 +2261,12 @@ public partial class SimulatorShell : CanvasLayer
                     ? "SCENE + LADDER SPLIT · live offline logic beside the scene"
                 : operatorConsole
                     ? "LOCAL MODEL · symbolic points only · no PLC transport"
+                : ladder
+                    ? "LOGIC EDITOR · local model points below · offline ladder execution"
                 : "CLASSIC VIEW · use TOOLS to open scenes, assets, or inspection";
         _workspaceStatus.AddThemeColorOverride("font_color", new Color("7fa7ba"));
         ProductViewChanged?.Invoke(view);
+        ApplyDiagnosticsLayout();
         CallDeferred(nameof(ApplyToolbarClearance));
     }
 
@@ -2269,6 +2280,12 @@ public partial class SimulatorShell : CanvasLayer
 
     private void ApplyToolbarClearance()
     {
+        var compact = GetViewport().GetVisibleRect().Size.X < 1400;
+        var row = GetNode<HBoxContainer>("Workspace/Toolbar/ToolbarMargin/ToolbarRow");
+        row.GetNode<Control>("BrandWordmark").Visible = !compact;
+        row.GetNode<Control>("BrandSubtitle").Visible = !compact;
+        row.AddThemeConstantOverride("separation", compact ? 6 : 10);
+        _sceneTitle.CustomMinimumSize = new Vector2(compact ? 160 : 0, 0);
         var top = ToolbarClearanceOffset();
         _leftDock.OffsetTop = top;
         _rightDock.OffsetTop = top;
@@ -2276,9 +2293,30 @@ public partial class SimulatorShell : CanvasLayer
         _splitDivider.OffsetTop = top;
     }
 
+    private void RefreshViewportLayout()
+    {
+        ApplySplitLayout();
+        ApplyDiagnosticsLayout();
+        CallDeferred(nameof(ApplyToolbarClearance));
+    }
+
+    private void MoveSplitDivider(float x)
+    {
+        var viewport = GetViewport().GetVisibleRect();
+        var minimumRatio = 400.0f / viewport.Size.X;
+        var maximumRatio = 1.0f - (_ladderWorkspace.GetCombinedMinimumSize().X + 16.0f) / viewport.Size.X;
+        _splitDividerRatio = Mathf.Clamp((x - viewport.Position.X) / viewport.Size.X,
+            minimumRatio, Mathf.Max(minimumRatio, maximumRatio));
+        ApplySplitLayout();
+    }
+
     private void ApplySplitLayout()
     {
         var split = _productView == "split";
+        if (_operatorPointTables.GetNodeOrNull<Control>("SimulatorToPlcPoints") is { } inputPoints)
+            inputPoints.SizeFlagsStretchRatio = split ? _splitDividerRatio : 1.0f;
+        if (_operatorPointTables.GetNodeOrNull<Control>("PlcToSimulatorPoints") is { } outputPoints)
+            outputPoints.SizeFlagsStretchRatio = split ? 1.0f - _splitDividerRatio : 1.0f;
         _splitDivider.Visible = split;
         foreach (var environment in new[] { "TIA Portal", "Studio 5000" })
         {
@@ -2286,29 +2324,42 @@ public partial class SimulatorShell : CanvasLayer
             var projectPanel = GetNodeOrNull<Control>($"{root}/ProjectDockHost/ProjectOrganization");
             var toolPanel = GetNodeOrNull<Control>($"{root}/EditorAndTasks/ToolDockHost/InstructionAndTags");
             var compact = split && GetViewport().GetVisibleRect().Size.X < 1900.0f;
-            if (GetNodeOrNull<Control>($"{root}/ProjectDockHost/ReopenProjectDock") is { } projectHandle)
-                projectHandle.Visible = compact;
-            if (GetNodeOrNull<Control>($"{root}/EditorAndTasks/ToolDockHost/ReopenToolDock") is { } toolHandle)
-                toolHandle.Visible = compact;
             var inspectorRoot = $"{root}/EditorAndTasks/EditorAndInspector";
-            if (GetNodeOrNull<Control>($"{inspectorRoot}/BottomDockHost/InspectorOutputDock") is { } bottomPanel)
-                bottomPanel.Visible = !split;
-            if (GetNodeOrNull<Control>($"{inspectorRoot}/BottomDockHost/ReopenBottomDock") is { } bottomHandle)
-                bottomHandle.Visible = split;
-            if (!split || GetViewport().GetVisibleRect().Size.X >= 1900.0f)
+            if (compact && !_compactDockDefaultsApplied)
             {
-                if (projectPanel is not null) projectPanel.Visible = true;
-                if (toolPanel is not null) toolPanel.Visible = true;
-            }
-            else
-            {
-                // At 1600-class widths preserve the full ladder canvas and
-                // monitor; these auxiliary docks remain available in the
-                // standalone Logic Editor and can be reopened there.
                 if (projectPanel is not null) projectPanel.Visible = false;
                 if (toolPanel is not null) toolPanel.Visible = false;
+                if (GetNodeOrNull<HSplitContainer>(root) is { } workSplit) workSplit.SplitOffsets = [30];
+                if (GetNodeOrNull<HSplitContainer>($"{root}/EditorAndTasks") is { } taskSplit) taskSplit.SplitOffsets = [600];
+                if (GetNodeOrNull<Control>($"{inspectorRoot}/BottomDockHost/InspectorOutputDock") is { } bottomPanel)
+                    bottomPanel.Visible = false;
             }
+            if (GetNodeOrNull<Control>($"{root}/ProjectDockHost/ReopenProjectDock") is { } projectHandle)
+                projectHandle.Visible = projectPanel?.Visible != true;
+            if (GetNodeOrNull<Control>($"{root}/EditorAndTasks/ToolDockHost/ReopenToolDock") is { } toolHandle)
+                toolHandle.Visible = toolPanel?.Visible != true;
+            if (GetNodeOrNull<Control>($"{inspectorRoot}/BottomDockHost/ReopenBottomDock") is { } bottomHandle)
+                bottomHandle.Visible = GetNodeOrNull<Control>($"{inspectorRoot}/BottomDockHost/InspectorOutputDock")?.Visible != true;
+            var programRoot = $"{inspectorRoot}/ProgramEditor";
+            var narrowHeight = IsLadderView && GetViewport().GetVisibleRect().Size.Y < 760;
+            if (narrowHeight && GetNodeOrNull<Control>($"{root}/EditorAndTasks/ToolDockHost") is { Visible: false } toolHost)
+            {
+                toolHost.Visible = true;
+                if (toolPanel is not null) toolPanel.Visible = false;
+                if (GetNodeOrNull<Control>($"{root}/EditorAndTasks/ToolDockHost/ReopenToolDock") is { } narrowHandle)
+                    narrowHandle.Visible = true;
+            }
+            if (GetNodeOrNull<Control>($"{programRoot}/InstructionToolbarChrome") is { } palette)
+            {
+                palette.Visible = !narrowHeight;
+                palette.CustomMinimumSize = new Vector2(0, split ? 104 : 140);
+            }
+            if (GetNodeOrNull<Control>($"{programRoot}/InstructionToolbarChrome/InstructionToolbar/Selection") is { } selection)
+                selection.Visible = !split;
         }
+        if (split && GetViewport().GetVisibleRect().Size.X < 1900.0f) _compactDockDefaultsApplied = true;
+        if (GetNodeOrNull<Control>("Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderHeader") is { } header)
+            header.Visible = !(IsLadderView && GetViewport().GetVisibleRect().Size.Y < 760);
         if (!split) return;
 
         _ladderWorkspace.AnchorLeft = _splitDividerRatio;
@@ -2341,9 +2392,6 @@ public partial class SimulatorShell : CanvasLayer
         foreach (var environment in new[] { "TIA Portal", "Studio 5000" })
         {
             var root = $"Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/{environment}/Workbench";
-            if (GetNodeOrNull<HSplitContainer>(root) is { } workSplit) workSplit.SplitOffsets = [30];
-            if (GetNodeOrNull<HSplitContainer>($"{root}/EditorAndTasks") is { } taskSplit) taskSplit.SplitOffsets = [600];
-            if (GetNodeOrNull<VSplitContainer>($"{root}/EditorAndTasks/EditorAndInspector") is { } inspectorSplit) inspectorSplit.SplitOffsets = [400];
             if (GetNodeOrNull<Control>($"{root}/ProjectDockHost/ProjectOrganization") is { } projectPanel)
                 projectPanel.CustomMinimumSize = new Vector2(150, 0);
             if (GetNodeOrNull<Control>($"{root}/EditorAndTasks/ToolDockHost/InstructionAndTags") is { } toolPanel)
@@ -3297,14 +3345,38 @@ public partial class SimulatorShell : CanvasLayer
 
     private void ApplyDiagnosticsLayout()
     {
-        if (_productView == "operator")
+        var modelPointsView = _productView is "operator" or "ladder" or "split";
+        var toggle = GetNodeOrNull<Button>("Workspace/DiagnosticsDock/DiagnosticsBody/DiagnosticsHeader/DiagnosticsToggle");
+        if (modelPointsView)
         {
-            var operatorHeight = _diagnosticsExpanded ? 320.0f : 230.0f;
+            _operatorPointTables.Visible = !_pointsCollapsed;
+            if (toggle is not null) toggle.Text = _pointsCollapsed ? "EXPAND" : "COLLAPSE";
+            var operatorHeight = _pointsCollapsed ? 38.0f
+                : GetViewport().GetVisibleRect().Size.Y < 760 ? 146.0f : 180.0f;
+            var fontSize = GetViewport().GetVisibleRect().Size.Y < 760 ? 12 : 14;
+            foreach (var table in new[] { _operatorInputPoints, _operatorOutputPoints })
+            {
+                var fontChanged = table.GetThemeFontSize("normal_font_size") != fontSize;
+                table.AddThemeFontSizeOverride("normal_font_size", fontSize);
+                table.AddThemeFontSizeOverride("bold_font_size", fontSize);
+                if (fontChanged)
+                {
+                    // Godot retains BBCode table column measurements when only
+                    // the theme changes. Reparse so a resized window measures
+                    // its columns with the new font instead of wrapping values.
+                    var contents = table.Text;
+                    table.Text = "";
+                    table.Text = contents;
+                }
+            }
             _diagnosticsDock.OffsetTop = -(operatorHeight + 58.0f);
+            _diagnosticsDock.OffsetBottom = -58;
             _leftDock.OffsetBottom = -(operatorHeight + 66.0f);
             _rightDock.OffsetBottom = -(operatorHeight + 66.0f);
+            _ladderWorkspace.OffsetBottom = _diagnosticsDock.OffsetTop - 8.0f;
             return;
         }
+        if (toggle is not null) toggle.Text = _diagnosticsExpanded ? "COLLAPSE" : "EXPAND";
         var engineeringHeight = _diagnosticsExpanded ? 270.0f : 118.0f;
         _diagnosticsDock.OffsetTop = -engineeringHeight;
         _diagnosticsDock.OffsetBottom = -8;
@@ -3844,8 +3916,11 @@ public partial class SimulatorShell : CanvasLayer
             }
             return menu;
         }
-        var chrome = PanelContainer("VendorChrome", siemens ? new Color("e4e8ea") : new Color("333840"), accent);
-        chrome.CustomMinimumSize = new Vector2(0, 36);
+        var chrome = new ScrollContainer { Name = "VendorChrome",
+            HorizontalScrollMode = ScrollContainer.ScrollMode.Auto,
+            VerticalScrollMode = ScrollContainer.ScrollMode.Disabled,
+            CustomMinimumSize = new Vector2(0, 56) };
+        chrome.AddThemeStyleboxOverride("panel", BoxStyle(siemens ? new Color("e4e8ea") : new Color("333840"), accent));
         var chromeRow = new HBoxContainer { Name = "VendorMenuBar" };
         chromeRow.AddThemeConstantOverride("separation", 12);
         chrome.AddChild(chromeRow);
@@ -3886,6 +3961,7 @@ public partial class SimulatorShell : CanvasLayer
         viewMenu.GetPopup().AddItem("Find / cross-reference", 3);
         viewMenu.GetPopup().AddItem("Instruction help", 4);
         viewMenu.GetPopup().AddItem(siemens ? "Watch table" : "Watch List", 5);
+        viewMenu.GetPopup().AddItem("Instruction browser", 6);
         chromeRow.AddChild(viewMenu);
         var toolsMenu = VendorMenu("LadderToolsMenu", "Tools");
         toolsMenu.GetPopup().AddItem("Add BOOL tag", 0);
@@ -3913,14 +3989,14 @@ public partial class SimulatorShell : CanvasLayer
 
         var work = new HSplitContainer { Name = "Workbench" };
         work.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
-        work.SplitOffsets = [180];
+        work.SplitOffsets = [280];
         ConfigureDockSplit(work);
-        var projectDockSplitOffset = 180;
+        var projectDockSplitOffset = 280;
         root.AddChild(work);
 
         var projectDockHost = new HBoxContainer { Name = "ProjectDockHost" };
         projectDockHost.AddThemeConstantOverride("separation", 0);
-        var reopenProjectDock = ToolbarButton("ReopenProjectDock", "PROJECT  ▶", new Color("4d6674"), 30);
+        var reopenProjectDock = ToolbarButton("ReopenProjectDock", "▶", new Color("4d6674"), 30);
         reopenProjectDock.CustomMinimumSize = new Vector2(30, 0);
         reopenProjectDock.TooltipText = siemens ? "Show project tree" : "Show Controller Organizer";
         reopenProjectDock.Visible = false;
@@ -4076,6 +4152,9 @@ public partial class SimulatorShell : CanvasLayer
         var editorTab = PanelContainer("EditorTab", new Color("d9dde0"), new Color("9aa7ad"));
         var editorTabTitle = Heading(string.Empty, 12, new Color("202b31"));
         editorTabTitle.Name = "EditorTabTitle";
+        editorTabTitle.ClipText = true;
+        editorTabTitle.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
+        editorTabTitle.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         editorTab.AddChild(editorTabTitle);
         center.AddChild(editorTab);
 
@@ -4774,7 +4853,7 @@ public partial class SimulatorShell : CanvasLayer
                     : string.Join("    ", activeBlock.Interface.Select(parameter =>
                         $"[b]{parameter.Section.ToString().ToUpperInvariant()}[/b] {Escape(parameter.Name)} : {parameter.Type.ToString().ToUpperInvariant()}"));
                 blockInterfaceSummary!.Text = $"[b]{activeBlock.BlockType switch { LadderBlockType.OrganizationBlock => "OB", LadderBlockType.FunctionBlock => "FB", LadderBlockType.Function => "FC", LadderBlockType.DataBlock => "DB", _ => "BLOCK" }} INTERFACE[/b]    {interfaceText}";
-                blockInterfaceSummary.Visible = siemens;
+                blockInterfaceSummary.Visible = siemens && activeBlock.Interface.Count > 0;
             }
             while (taskItems.Count < document.Tasks.Count)
             {
@@ -5969,12 +6048,21 @@ public partial class SimulatorShell : CanvasLayer
         var toolDockHost = new HBoxContainer { Name = "ToolDockHost", Visible = false };
         toolDockHost.AddThemeConstantOverride("separation", 0);
         toolDockHost.AddChild(toolPanel);
-        var reopenToolDock = ToolbarButton("ReopenToolDock", "◀  TOOLS", new Color("4d6674"), 30);
+        var reopenToolDock = ToolbarButton("ReopenToolDock", "◀", new Color("4d6674"), 30);
         reopenToolDock.CustomMinimumSize = new Vector2(30, 0);
         reopenToolDock.TooltipText = siemens ? "Show Instructions / PLC tags" : "Show Instruction Toolbox";
         reopenToolDock.Visible = false;
         toolDockHost.AddChild(reopenToolDock);
         editorAndTasks.AddChild(toolDockHost);
+
+        void ShowToolDock(int tab)
+        {
+            toolDockHost.Visible = true;
+            toolPanel.Visible = true;
+            reopenToolDock.Visible = false;
+            toolTabs.CurrentTab = tab;
+            editorAndTasks.SplitOffsets = [Math.Max(0, (int)editorAndTasks.Size.X - 320)];
+        }
 
         collapseToolDock.Pressed += () =>
         {
@@ -5987,8 +6075,7 @@ public partial class SimulatorShell : CanvasLayer
         };
         reopenToolDock.Pressed += () =>
         {
-            reopenToolDock.Visible = false;
-            toolPanel.Visible = true;
+            ShowToolDock(toolTabs.CurrentTab);
             editorAndTasks.SplitOffsets = [toolDockSplitOffset];
         };
 
@@ -7437,7 +7524,7 @@ public partial class SimulatorShell : CanvasLayer
             }
             else if (id == 3)
             {
-                toolTabs.CurrentTab = 1;
+                ShowToolDock(1);
                 searchQuery.GrabFocus();
                 output.Text = "[b]Project Find / Cross-reference[/b] · searches every tag, block, task, rung, and instruction operand.";
             }
@@ -7455,6 +7542,7 @@ public partial class SimulatorShell : CanvasLayer
                 watchSymbol.GrabFocus();
                 output.Text = "[b]Watch table active.[/b] Typed values are read from the loaded offline runtime snapshot.";
             }
+            else if (id == 6) ShowToolDock(0);
         };
         toolsMenu.GetPopup().IdPressed += id =>
         {
@@ -7470,7 +7558,7 @@ public partial class SimulatorShell : CanvasLayer
             }
             else
             {
-                toolTabs.CurrentTab = 1;
+                ShowToolDock(1);
                 searchQuery.GrabFocus();
                 output.Text = siemens
                     ? "[b]Cross-reference[/b] · enter an exact tag or block symbol to list declarations, reads, writes, calls, and schedules."
@@ -9027,10 +9115,25 @@ public partial class SimulatorShell : CanvasLayer
             && toolTabs.CurrentTab == 2
             && helpDetails.Text.Contains("Non-retentive", StringComparison.Ordinal)
             && helpDetails.Text.Contains("Q and DN", StringComparison.Ordinal);
-        var toolRailWorked = toolTabs.GetTabCount() == 3
+        var browserMenu = GetNode<MenuButton>("Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/TIA Portal/VendorChrome/VendorMenuBar/LadderViewMenu");
+        var toolHostWasVisible = toolDockHostNode.Visible;
+        var toolPanelWasVisible = toolPanelNode.Visible;
+        var reopenToolsWasVisible = reopenTools.Visible;
+        var browserTabBefore = toolTabs.CurrentTab;
+        var browserSplitBefore = toolSplit.SplitOffsets;
+        browserMenu.GetPopup().EmitSignal(PopupMenu.SignalName.IdPressed, 6);
+        var browserOpened = toolDockHostNode.Visible && toolPanelNode.Visible && toolTabs.CurrentTab == 0;
+        collapseTools.EmitSignal(BaseButton.SignalName.Pressed);
+        var browserCollapsed = toolDockHostNode.Visible && !toolPanelNode.Visible && reopenTools.Visible;
+        toolDockHostNode.Visible = toolHostWasVisible;
+        toolPanelNode.Visible = toolPanelWasVisible;
+        reopenTools.Visible = reopenToolsWasVisible;
+        toolTabs.CurrentTab = browserTabBefore;
+        toolSplit.SplitOffsets = browserSplitBefore;
+        GD.Print($"INSTRUCTION_BROWSER_VERIFY {(browserOpened && browserCollapsed ? "PASS" : "FAIL")} opened={browserOpened} collapsed={browserCollapsed}");
+        var toolRailWorked = browserOpened && browserCollapsed && toolTabs.GetTabCount() == 3
             && !toolTabs.TabsVisible
             && toolDockHostNode is not null
-            && !toolDockHostNode.Visible
             && projectTabs is not null
             && projectTabs.TabsVisible
             && projectTabs.GetTabCount() == 3
