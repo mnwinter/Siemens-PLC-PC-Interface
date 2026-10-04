@@ -8,6 +8,25 @@ temporary runtime state.
 
 ## Product intent
 
+Whole-program review final checkpoint (2026-10-04): Windows startup, all five
+authored demos, controller ownership, editor/history/persistence, native
+workspace authoring and malformed-file rejection were inspected and repaired.
+Native tank fill/drain, analog feedback, Stop hold and Reset are verified.
+Final suites pass: 142 controller, 16 connection, 129 canonical Python,
+16 fake Python, 69 selected legacy Python and 28 Node tests; eight plant traces
+match 83 snapshots. All 77 scenes load; 71 have passing declared cases and six
+have none. Rendered app-shell/editor/split/controls/playback/plant checks pass.
+The vendor manifest now matches the reviewed existing adapter patches and
+normalizes Windows line endings while rejecting other changes. The legacy
+renderer rejects 31 Godot-only accessory scenes explicitly.
+
+Use the current matrix in `WHOLE_PROGRAM_REVIEW.md`; older checkpoint statuses
+below are historical. Remaining capabilities include crash recovery, full lab
+reference programs, actual FB instances/closed-loop pallet placement, automatic
+reconnect/profile editing UI and a standalone installer. Full visual/runtime
+acceptance of every scene and live PLC commissioning remain unverified. No
+hardware connection or push was performed.
+
 Editor completion checkpoint (2026-10-04): timer Reset records its tag creation
 inside Undo; rejected interface edits retain history/monitoring. Native tag and
 block forms now wrap at minimum/default window sizes with readable labels.

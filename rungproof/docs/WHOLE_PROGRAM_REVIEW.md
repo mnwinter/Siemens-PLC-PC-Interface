@@ -1,7 +1,11 @@
 # Whole program review - 2026-10-03
 
 Scope: the entire canonical PLC interface and RungProof application. Demo 5
-is one reproduction example, not the acceptance boundary. Goal remains active.
+is one reproduction example, not the acceptance boundary. The review and repair
+pass covers startup, scene/controller ownership, editor/persistence, workspace
+authoring, external IPC, Python interface and retained legacy tools. The current
+matrix below separates verified repairs from remaining product capabilities;
+older checkpoints preserve the evidence and status at that time.
 
 Checkout: `Siemens-PLC-PC-Interface`, branch `agent/add-config-foundation`.
 Restore tag: `codex/whole-app-review-baseline-20261003` at `c4cda6b`.
@@ -41,19 +45,19 @@ No changes have been pushed. No plant connection has been attempted.
 
 ## Review matrix
 
-| Area | Current evidence | Remaining work |
+| Area | Current evidence | Remaining acceptance / capabilities |
 | --- | --- | --- |
 | Launch/import/toolchain | Fresh tracked-source copy reproduced missing restore; repaired launcher restores/builds/imports and opens a working native window. Missing Godot/.NET/console stop with exact paths | Portable tools require setup; no standalone export preset/installer supplied |
 | All scene data | All 77 catalog entries load; 71 have declared cases and pass; six have none. Rerun logs in `.tools/plant-scene-review` | Visual controls and runtime coverage; many declared cases cover only initial state |
 | Authored demos | All five compile; 142 controller tests pass. Native demos 1-4 exercised; Demo 5 four-pick completion, mixed instructions, FB/FC/DB views, gantry command motion, Stop and Reset inspected | Broader scene runtime coverage; Demo 5 remains a manual-feedback command visualization |
 | Operator controls | Native Run/Stop, normal conveyor Start/E-stop/Reset, action inputs and history; complete runtime/health rails now scroll at 1200x675 and 1600x900 | E-stop/reset across other applicable scenes |
-| Conveyor/pusher/tank plant execution | Pusher repeated transfers, stroke/sensor feedback, Stop and Reset; tank fill, analog/full-level feedback, Stop and Reset inspected natively through File/Open. Fill/drain regression passes; model matches eight Python traces / 83 snapshots | Other scene runtime coverage; native tank drain |
-| Ladder editor | Native drag insertion/Undo, block browsing, Save/Open, invalid drafts, retained execution, multi-scene close guards, watch controls, tag edit/deletion guards and interface validation/Undo verified; rendered interaction verifier passed | Native help; crash recovery |
-| Scene/workspace authoring | Rendered mappings, transforms, atomic Save and replacement guards; native asset placement/selection, Undo/Redo, close Cancel, scene-change Save and workspace Open verified | Native mappings/transforms and malformed files |
-| Layout/camera | Split regressions and native resize/points/browser/scrollable rails inspected; block summary bounded and hovered selection contrast repaired | Remaining native tag/edit flows; broader scene visual acceptance |
-| External execution boundary | 16 offline bridge/contract/playback tests; 16 fake Python tests; fake full-app exchange/playback regression and native Run/Stop/Reset; profile guards, exclusive source, atomic output | Broader profile/cadence integration, reconnect, configuration editing and mapping UI; authorized live commissioning |
-| Python canonical interface / legacy tools | 129 root tests and 16 fake live/diagnostic tests passed | Continue source review for legacy conflicts |
-| Shutdown/resource lifecycle | Orphan Studio block selector repaired; diagnostic/rendered tests exit without resource leak reports; native launch/close completes; 13 offline connection lifecycle tests pass | Repeat resource behavior during longer native authoring sessions |
+| Conveyor/pusher/tank plant execution | Pusher repeated transfers, stroke/sensor feedback, Stop and Reset; native tank fill/drain, level/analog feedback, Stop hold and Reset through File/Open. Plant regression passes 19 checks; model matches eight Python traces / 83 snapshots | Other scene runtime coverage |
+| Ladder editor | Native drag insertion/Undo, block browsing, Save/Open, invalid drafts, retained execution, multi-scene close guards, watch controls, tag edit/deletion guards, interface validation/Undo and Instruction Help verified; rendered interaction verifier passed | Crash/power-loss recovery; broader instruction/application acceptance |
+| Scene/workspace authoring | Native placement, numeric transform, Undo/Redo, authored mapping, Save/Open and guards verified. Cyclic hierarchy formerly hung validation; now rejected promptly while preserving the current native workspace | Complete runtime behavior for all authored asset/mapping combinations |
+| Layout/camera | Split regressions and native resize/points/browser/scrollable rails/forms inspected at 1200x675 and 1600x900; bounded dropdowns and readable tag/block forms | Broader scene visual acceptance |
+| External execution boundary | 16 offline bridge/contract tests; 16 fake Python tests; fake full-app exchange/playback regression and native Run/Stop/Reset; profile guards, exclusive source, atomic output | Two supplied profiles only; file editing while disconnected, renewed verification and manual Connect; live commissioning/cadence unverified |
+| Python canonical interface / legacy tools | 129 root tests, 16 fake live/diagnostic tests, 69 selected legacy Python tests, 28 Node tests and vendor metadata test pass. Reviewed existing heartbeat/transport patches and repaired stale portable hash manifest | Retained Qt GUI/installer not executed. 31 migrated accessory scenes explicitly unsupported by the legacy renderer |
+| Shutdown/resource lifecycle | Orphan Studio block selector repaired; rendered checks/native launch-close complete; 16 offline connection lifecycle/contract tests pass, including hung process and stale-session recovery | Longer endurance/resource testing |
 
 ## Specific open issues
 
@@ -61,22 +65,24 @@ No changes have been pushed. No plant connection has been attempted.
   now guard unsaved work. Crash/power-loss recovery remains unimplemented.
 - Non-demo labs open as blank exercises with matching typed scene tags. One
   catalog I/O type is unsupported by the offline controller and is reported.
-  Complete lab instruction/reference-program coverage remains under review.
+  Complete lab reference programs and full workflow coverage are not supplied.
 - External playback/readiness now follows the existing native/reference
-  binding; offline full-app and native controls verified. Broader profiles and
-  reconnect remain under review. No live communication has been verified.
-- Demo 5 currently commands output indicators; complete palletizing motion and
-  reusable FB interface/instance behavior require further verification.
+  binding; offline full-app and native controls verified. Automatic reconnect
+  and an in-dialog endpoint/mapping editor are absent. No live communication
+  has been verified.
+- Demo 5 commands indicators and gantry XYZ motion. Feedback is manually set;
+  it does not perform closed-loop carton placement. FB interfaces/DB views are
+  declarations with shared tags, not independently instantiated PLC blocks.
 - Workspace placements/groups/links now compare with a saved baseline and are
   protected on scene changes, Load, cross-scene ladder Open and close. Failed or
   cancelled Save prevents replacement. Crash/power-loss recovery remains open.
 
-## Checkpoint results
+## Initial checkpoint results (historical)
 
 - .NET build: zero warnings and errors.
 - Controller unit/behavior suite: 139 passed, zero failed, no transport created.
 - Canonical Python interface: 129 passed. Fake live/diagnostic suites: 16 passed.
-- Declared scene contracts: 77 scene files passed their stated cases.
+- All 77 catalog files load; 71 have declared cases and pass; six have none.
 - Godot app shell, cross-scene persistence, numeric scene I/O, stable operator
   controls, rendered ladder editor, and rendered workspace verifiers passed.
 - Headless workspace gizmo failures were retested with a rendered viewport.
@@ -648,6 +654,51 @@ the two supplied profiles; endpoint/mapping changes require disconnected file
 editing and renewed verification. Automatic reconnect and an in-dialog profile
 editor are absent. Existing fake reconnect/stale-session tests pass; live
 cadence and commissioning remain unverified.
+
+## Legacy migration and final regression checkpoint - 2026-10-04
+
+Restore tag `codex/legacy-manifest-review-baseline-20261004` at `4cbef9a`
+precedes these repairs. Vendor verification rejected four existing heartbeat/
+runtime/update-loop/transport patches; its older hashes also depended on CRLF
+checkout bytes. The patches were compared with the canonical interface and
+existing exact-heartbeat/timeout regressions passed. No adapter implementation
+was changed. The manifest now hashes canonical LF bytes; a new fixture proves
+both LF/CRLF acceptance and rejection of code changes or inventory drift.
+
+Legacy scene tests still assumed a 32-scene catalog. All 77 current entries are
+now classified: 46 are compatible with the retained schema; 31 catalog accessory
+scenes explicitly reject because that renderer has no implementation. Node
+ownership checks exercise all 39 compatible labs and assert rejection of those
+31 scenes. A fresh checkout's absent, generated saved-scenes directory is
+treated as empty; other I/O errors still fail. This preserves strict validation
+instead of suggesting unsupported assets can run in the old renderer.
+
+Native File/Open loaded the separate tank drain ladder. Run lowered level and
+analog feedback together (42 / 10.72 to 40.11 / 10.4176, eventually 0 / 4).
+Stop closed the valve and held a nonempty level at 41.01 / 10.5616 across later
+observations. Reset restored 42 / 10.72, false outputs and stopped scan zero.
+The visible sight level moved consistently; native close was clean. Evidence:
+`.tools/tank-drain-native-final.log` and the inspected native Windows frames.
+
+Final automated results:
+
+- Controller 142 passed; offline connection/contract tests 16 passed.
+- Plant reference: eight cases, 83 matching snapshots; plant motion 19 checks.
+- Canonical Python 129 passed; fake live/read-only Python 16 passed.
+- Selected legacy Python 69 passed; Node 28 passed; vendor metadata one passed.
+- Scene cases: 71 passed, zero failed; all 77 load, six have no declared cases.
+- Rendered app-shell, ladder interaction, split, scene controls, offline external
+  playback and plant motion all pass against the final application code.
+- No rendered error/leak reports; app-shell's deliberately absent last-workspace
+  fixture reports its expected handled warning.
+
+Logs are under `rungproof-next/.tools`: `final-controller.log`,
+`final-connections.log`, `final-plant-reference.log`, `final-root-python.log`,
+`final-fake-python.log`, `final-legacy-python.log`, `final-legacy-node.log`,
+`final-vendor-metadata.log`, `final-scene-contracts.log` and
+`review-final-{app-shell,ladder-editor,split-view,scene-controls,external-playback,plant-motion}.log`.
+These results complete the bounded review/repair pass, not release acceptance
+or implementation of every capability listed in the current review matrix.
 
 ## Verification boundary
 

@@ -22,17 +22,28 @@ class SceneContractTests(unittest.TestCase):
     def _load(self, file_name: str) -> dict[str, object]:
         return json.loads((SCENES / file_name).read_text(encoding="utf-8"))
 
-    def test_every_built_in_scene_is_valid_for_server_persistence(self) -> None:
+    def test_catalog_scenes_are_legacy_compatible_or_explicitly_godot_only(self) -> None:
         paths = sorted((*SCENES.glob("*.plcscene"), *SCENES.glob("*.json")))
 
-        self.assertEqual(len(paths), 32)
+        self.assertEqual(len(paths), 77)
+        compatible = 0
+        godot_only = 0
         for path in paths:
             with self.subTest(path=path.name):
                 document = json.loads(path.read_text(encoding="utf-8"))
+                if any(item["type"] == "trainingAccessory" for item in document["equipment"]):
+                    # These catalog-backed assets have no renderer in the retained
+                    # browser/Qt prototype. Keep its strict rejection boundary.
+                    with self.assertRaises(SceneContractError):
+                        validate_scene_document(document, SCHEMA)
+                    godot_only += 1
+                    continue
                 self.assertIs(
                     validate_scene_document(document, SCHEMA),
                     document,
                 )
+                compatible += 1
+        self.assertEqual((compatible, godot_only), (46, 31))
 
     def test_rejects_unbounded_geometry_and_unknown_config(self) -> None:
         document = self._load("equipment-gallery.json")

@@ -1,7 +1,7 @@
 # Siemens PLC/PC Interface provenance
 
-This package is a pinned source snapshot used only by RungProof's read-only PLC
-diagnostic adapter and PyInstaller build.
+This package is a pinned source snapshot with local patches used by RungProof's
+guarded PLC runtime, read-only diagnostic adapter and retained PyInstaller build.
 
 - Upstream repository: `https://github.com/mnwinter/Siemens-PLC-PC-Interface`
 - Upstream commit: `754fcfb88192f2a932bd7df70feea0d08088ab97`
@@ -11,7 +11,15 @@ diagnostic adapter and PyInstaller build.
 - Local audited heartbeat patch: health advances only when the PLC echo exactly
   acknowledges the heartbeat written during the preceding cycle; an unrelated
   changing DINT cannot satisfy readiness.
-- Exact local Python-source hashes: `SOURCE-SHA256.txt`; the package build
+- Local transport patch: configure the pinned Snap7 timeout parameters and
+  socket timeout so communication/shutdown remain bounded.
+- Migration review 2026-10-04: the tracked source already contained the above
+  heartbeat/runtime/update-loop and transport patches, but its manifest retained
+  older hashes. Source was compared with the canonical interface and the
+  existing native runtime tests, including unrelated echo rejection, passed.
+  No adapter implementation was changed by this manifest repair.
+- Exact local Python-source hashes, with CRLF normalized to LF:
+  `SOURCE-SHA256.txt`; the package build
   rejects missing, additional, or modified adapter source.
 - Runtime dependency: `python-snap7==3.1.0`
 

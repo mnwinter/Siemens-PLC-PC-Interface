@@ -41,7 +41,9 @@ def verify() -> None:
         path = (VENDOR_ROOT / relative).resolve()
         if path.parent != (VENDOR_ROOT / relative).parent.resolve():
             raise ValueError(f"Vendor source path escaped its folder: {relative}")
-        actual_digest = hashlib.sha256(path.read_bytes()).hexdigest()
+        # Git may check text out as CRLF on Windows and LF elsewhere. Compare
+        # canonical LF bytes; every other byte remains part of the exact hash.
+        actual_digest = hashlib.sha256(path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
         if actual_digest != expected_digest:
             raise ValueError(f"Vendor source hash mismatch: {relative}")
 

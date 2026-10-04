@@ -215,8 +215,20 @@ const labFiles = (await readdir(
 ))
   .filter((name) => /^lab-\d+-\d{2}-.+\.plcscene$/i.test(name))
   .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+let legacyLabs = 0;
+let godotOnlyLabs = 0;
 for (const fileName of labFiles) {
+  const raw = JSON.parse(await readFile(path.join(projectRoot, "prototype", "scenes", fileName), "utf8"));
+  if (raw.equipment.some((item) => item.type === "trainingAccessory")) {
+    let rejected = false;
+    try { validateSceneDocument(raw); }
+    catch (error) { rejected = /trainingAccessory.*not supported/.test(error.message); }
+    assert(rejected, `${fileName}: Godot-only catalog accessories must reject in the retained prototype.`);
+    godotOnlyLabs++;
+    continue;
+  }
   const scene = await loadScene(fileName);
+  legacyLabs++;
   const { simulation } = buildRuntime(scene);
   for (const action of simulation.getActions()) {
     simulation.handleAction(action.id);
@@ -242,4 +254,6 @@ console.log("FAKE_PLC_REFERENCE_LOGIC: PASS");
 console.log("FAKE_PLC_WRONG_OUTPUT_RESPONSE: PASS");
 console.log("TRUE_REFERENCE_OUTPUT_FAILS_SAFE: PASS");
 console.log("SEQUENCE_CONTROLLER_GATE: PASS");
-console.log(`ALL_LABS_DISCONNECTED_SAFE: ${labFiles.length}`);
+assert(godotOnlyLabs === 31, "Expected the 31 migrated Godot-only accessory scenes.");
+console.log(`LEGACY_LABS_DISCONNECTED_SAFE: ${legacyLabs}`);
+console.log(`GODOT_ONLY_LABS_REJECTED: ${godotOnlyLabs}`);

@@ -175,7 +175,12 @@ const savedSceneDirectory = path.join(
   "prototype",
   "saved-scenes",
 );
-for (const fileName of (await readdir(savedSceneDirectory)).filter((name) =>
+// Saved scenes are user-generated and absent from a fresh checkout. Preserve
+// failures other than ENOENT; a permission/I/O error must not look like no work.
+let savedSceneFiles;
+try { savedSceneFiles = await readdir(savedSceneDirectory); }
+catch (error) { if (error.code !== "ENOENT") throw error; savedSceneFiles = []; }
+for (const fileName of savedSceneFiles.filter((name) =>
   name.endsWith(".plcscene"),
 )) {
   const savedScene = validateSceneDocument(

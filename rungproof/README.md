@@ -18,6 +18,9 @@ subject to the approved CPU/profile and exact scope.
 The following describes the retained Qt pilot and `RUN-3D-PLAYER.cmd`.
 Its launcher, renderer and older verification counts do not describe the
 current Godot application.
+Of the 77 migrated scenes, 31 use catalog accessories supported only by Godot;
+the retained browser/Qt schema rejects those scenes explicitly. Use the current
+launcher for the complete catalog.
 
 RungProof is a PLC-led native plant simulator for testing ladder logic against
 deterministic machine behavior and a real Siemens S7-1500. TIA creates the
