@@ -8,6 +8,14 @@ temporary runtime state.
 
 ## Product intent
 
+Editor completion checkpoint (2026-10-04): timer Reset records its tag creation
+inside Undo; rejected interface edits retain history/monitoring. Native tag and
+block forms now wrap at minimum/default window sizes with readable labels.
+Unknown startup scene IDs recover to the default and report the reason.
+Instruction Help now reveals its dock through the shared open path; native TON
+documentation and scrolling inspected. Build and rendered ladder regression
+pass. Whole-program review remains active; see the current review matrix.
+
 Fresh-source startup checkpoint (2026-10-04): the launcher now restores NuGet
 packages and imports assets before native startup. A tracked-source copy with
 no generated caches reproduced NETSDK1004 before the fix, then built/imported

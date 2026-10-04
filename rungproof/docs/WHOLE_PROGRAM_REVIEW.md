@@ -612,6 +612,18 @@ menus/editor. Build is clean and native close succeeds. Logs:
 Native Instruction Help testing then exposed a separate hidden-dock issue;
 its menu changed tab content without revealing the dock.
 
+## Instruction Help checkpoint - 2026-10-04
+
+Restore tag `codex/help-review-baseline-20261004` at `10bf159` precedes this
+fix. Instruction Help changed the selected tab while its dock remained hidden.
+All explicit Help-open paths now use the shared dock-opening function. The
+rendered regression first failed with a collapsed dock, then passed for the
+button and menu paths. Native View > Instruction Help opened the dock; selecting
+TON and scrolling exposed its parameters, scan behavior and offline boundary.
+Build is clean and the native session closes cleanly. Logs:
+`.tools/help-dock-before.log`, `.tools/help-dock-final.log`,
+`.tools/help-dock-native.log`.
+
 ## Verification boundary
 
 Native mouse/keyboard interaction proves only the inspected Windows workflows.

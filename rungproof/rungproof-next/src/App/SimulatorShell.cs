@@ -6538,6 +6538,16 @@ public partial class SimulatorShell : CanvasLayer
         };
         toolTabs.AddChild(searchPage);
 
+        var toolDockHost = new HBoxContainer { Name = "ToolDockHost", Visible = false };
+        toolDockHost.AddThemeConstantOverride("separation", 0);
+        toolDockHost.AddChild(toolPanel);
+        var reopenToolDock = ToolbarButton("ReopenToolDock", "◀", new Color("4d6674"), 30);
+        reopenToolDock.CustomMinimumSize = new Vector2(30, 0);
+        reopenToolDock.TooltipText = siemens ? "Show Instructions / PLC tags" : "Show Instruction Toolbox";
+        reopenToolDock.Visible = false;
+        toolDockHost.AddChild(reopenToolDock);
+        editorAndTasks.AddChild(toolDockHost);
+
         var helpPage = new VBoxContainer { Name = "Instruction help" };
         var helpSelector = new OptionButton
         {
@@ -6573,7 +6583,7 @@ public partial class SimulatorShell : CanvasLayer
                 $"[color=#ef7777][b]Restrictions / boundary[/b][/color]\n{Escape(entry.Restrictions)}\n\n" +
                 $"[b]Example[/b]\n[font_size=13]{Escape(entry.Example)}[/font_size]\n\n" +
                 "[color=#f1aa5b]RungProof offline semantics only. No vendor project file, online help database, or physical PLC connection.[/color]";
-            if (openPage) toolTabs.CurrentTab = 2;
+            if (openPage) ShowToolDock(2);
         }
 
         helpSelector.ItemSelected += index =>
@@ -6614,16 +6624,6 @@ public partial class SimulatorShell : CanvasLayer
         }
         toolTabs.CurrentTab = 0;
         RenderInstructionHelp(currentHelpKey, false);
-        var toolDockHost = new HBoxContainer { Name = "ToolDockHost", Visible = false };
-        toolDockHost.AddThemeConstantOverride("separation", 0);
-        toolDockHost.AddChild(toolPanel);
-        var reopenToolDock = ToolbarButton("ReopenToolDock", "◀", new Color("4d6674"), 30);
-        reopenToolDock.CustomMinimumSize = new Vector2(30, 0);
-        reopenToolDock.TooltipText = siemens ? "Show Instructions / PLC tags" : "Show Instruction Toolbox";
-        reopenToolDock.Visible = false;
-        toolDockHost.AddChild(reopenToolDock);
-        editorAndTasks.AddChild(toolDockHost);
-
         void ShowToolDock(int tab)
         {
             toolDockHost.Visible = true;
@@ -9849,6 +9849,7 @@ public partial class SimulatorShell : CanvasLayer
         var searchNavigated = navigableResult >= 0 && output.Text.Contains("Opened", StringComparison.Ordinal);
         var tonHelpIndex = Enumerable.Range(0, helpSelector.ItemCount)
             .FirstOrDefault(index => helpSelector.GetItemMetadata(index).AsString() == "ton", -1);
+        collapseTools.EmitSignal(BaseButton.SignalName.Pressed);
         if (tonHelpIndex >= 0)
         {
             helpSelector.Select(tonHelpIndex);
@@ -9856,10 +9857,16 @@ public partial class SimulatorShell : CanvasLayer
             openHelp.EmitSignal(BaseButton.SignalName.Pressed);
         }
         var instructionHelpWorked = tonHelpIndex >= 0
+            && toolDockHostNode.Visible && toolPanelNode.Visible && !reopenTools.Visible
             && toolTabs.CurrentTab == 2
             && helpDetails.Text.Contains("Non-retentive", StringComparison.Ordinal)
             && helpDetails.Text.Contains("Q and DN", StringComparison.Ordinal);
         var browserMenu = GetNode<MenuButton>("Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/TIA Portal/VendorChrome/VendorMenuBar/LadderViewMenu");
+        collapseTools.EmitSignal(BaseButton.SignalName.Pressed);
+        browserMenu.GetPopup().EmitSignal(PopupMenu.SignalName.IdPressed, 4);
+        instructionHelpWorked &= toolDockHostNode.Visible && toolPanelNode.Visible && !reopenTools.Visible
+            && toolTabs.CurrentTab == 2;
+        GD.Print($"HELP_DOCK_VERIFY visibleFromButtonAndMenu={instructionHelpWorked}");
         var toolHostWasVisible = toolDockHostNode.Visible;
         var toolPanelWasVisible = toolPanelNode.Visible;
         var reopenToolsWasVisible = reopenTools.Visible;
