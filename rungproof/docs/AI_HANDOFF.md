@@ -8,10 +8,11 @@ temporary runtime state.
 
 ## Product intent
 
-Latest local review checkpoint (2026-10-04): scene navigation now retains each
-ladder draft, saved baseline/path, and Undo/Redo. See `WHOLE_PROGRAM_REVIEW.md`
-for failing-before/passing-after regression and native Windows evidence. Drafts
-remain in memory; Save is required before exit. Non-demo starter programs/Run,
+Latest local review checkpoint (2026-10-04): scene navigation retains each
+ladder draft, saved baseline/path, and Undo/Redo; Demo 4 counts only valid
+pallet-detection edges. Native demo 1-4 workflows have now been exercised. See
+`WHOLE_PROGRAM_REVIEW.md` for regression and Windows evidence. Drafts remain
+in memory; Save is required before exit. Non-demo starter programs/Run,
 remaining native workflows, external reference semantics, and shutdown leaks
 still require work. The whole-program review is active; no live PLC acceptance
 or complete product acceptance has been established.

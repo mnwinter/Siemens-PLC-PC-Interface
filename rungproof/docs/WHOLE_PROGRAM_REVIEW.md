@@ -45,7 +45,7 @@ No changes have been pushed. No plant connection has been attempted.
 | --- | --- | --- |
 | Launch/import/toolchain | Pinned Godot/.NET start; native window opened; build clean | Fresh install/export and missing-dependency recovery |
 | All scene data | All 77 catalog entries load and pass their declared cases; logs in `.tools/scene-review` | Visual controls and unsupported runtime types; many declared cases cover only initial state |
-| Authored demos | All five compile; behavior tests for demos 1-4 and two Demo 5 regressions; 139 controller tests pass | Native interaction for demos 1-4; all FB/FC/DB views, animation/bindings, repeated run/reset |
+| Authored demos | All five compile; 139 controller tests pass. Native demos 1-4 counter, delay, conveyor/photoeye, and batch-valid threshold exercised; Demo 5 inputs/lost-permissive previously exercised | All FB/FC/DB views, full animation/bindings, repeated run/reset |
 | Operator controls | Demo 5 inputs, Run, Stop, command removal and normal conveyor Start/E-stop/Reset retested with real mouse input; event history displayed | E-stop/reset across other applicable scenes; visible runtime summary clipping |
 | Ladder editor | Native add-network, Undo, Redo, and Save verified; rendered interaction verifier passed; cross-scene load regression passed | Native cross-scene load, drag insertion, tags, block interfaces, watch, validation failure, help |
 | Scene/workspace authoring | Rendered workspace verifier passed, including mapping Run and Stop | Native asset placement, mappings, selection, undo, save/load, malformed files |
@@ -56,7 +56,11 @@ No changes have been pushed. No plant connection has been attempted.
 
 ## Specific open issues
 
-- Switching scenes does not yet prove preservation of unsaved user ladder work.
+- Unsaved ladder drafts/history now survive scene changes; exit/crash recovery
+  and unsaved-work close prompts remain under review.
+- Non-demo labs currently receive an unrelated conveyor project, causing Run
+  binding failures (native Lab 2.1 reproduced). Many labs have exercises and
+  scene points but no authored ladder. Their runtime ownership also needs review.
 - External playback/readiness semantics still require comparison against the
   existing native/reference binding. No live communication has been verified.
 - Demo 5 currently commands output indicators; complete palletizing motion and
@@ -149,6 +153,26 @@ The unrelated conveyor template assigned to non-demo labs and their Run path
 remain under review, as do shutdown resource leaks and the rest of the matrix.
 
 ## Verification boundary
+
+## Native demo / valid-event checkpoint - 2026-10-04
+
+Restore tag `codex/lab-execution-baseline-20261004` at `a7d455d` precedes
+these changes. Demo 4 counted invalid detections without type-valid or
+count-request, so enabling permissives later could validate an old count.
+The counter now sees a raw pallet-detection rising edge qualified by both
+permissives. Regression failed before the fix (expected 0, actual 5) and now
+passes for each missing-permissive combination, held detection, five valid
+events, and loss of type-valid. Controller suite passes 139/139, build has
+zero warnings/errors, and app-shell/draft regressions pass.
+
+Native Windows checks cover Demo 1's lamp off through two rising edges and on
+at three, Stop output removal and Reset; Demo 2's initial delay, subsequent
+lamp activation and removal on request loss; Demo 3's package motion after
+Start and stop at photoeye position 0.5; and corrected Demo 4's ignored invalid
+event, output off through four valid events/on at five, and removal when the
+type permissive drops. These are bounded user workflow checks, not complete
+scene visual or hardware acceptance. Demo 4's shutter partly obscures its
+equipment; broader visual and block-structure review remains open.
 
 Native mouse/keyboard interaction proves only the inspected Windows workflows.
 Headless declared scene cases prove only the stated cases, not full user

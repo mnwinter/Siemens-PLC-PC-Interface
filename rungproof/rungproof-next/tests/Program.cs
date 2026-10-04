@@ -199,13 +199,25 @@ internal static class Program
         False(conveyor.Scan(Inputs(("start_command", true), ("simulated_photoeye", true))).Outputs["conveyor_running"]);
 
         var batch = AuthoredRuntime("lab-9-11-pallet-counting");
+        // Reject invalid pallet events, including ones received before the
+        // count request. Later permissives must not validate those old events.
+        foreach (var (validType, request) in new[] { (false, false), (false, true), (true, false) })
+        for (var count = 0; count < 5; count++)
+        {
+            batch.Scan(Inputs(("pallet_detected", false), ("pallet_type_valid", validType), ("count_request", request)));
+            batch.Scan(Inputs(("pallet_detected", true), ("pallet_type_valid", validType), ("count_request", request)));
+        }
+        Equal(0L, batch.Snapshot.Counters["batch_count"].Accumulated);
+        False(batch.Scan(Inputs(("pallet_detected", true), ("pallet_type_valid", true),
+            ("count_request", true))).Outputs["pallet_count_valid"]);
+        Equal(0L, batch.Snapshot.Counters["batch_count"].Accumulated);
         for (var count = 1; count <= 5; count++)
         {
-            batch.Scan(Inputs(("pallet_detected", false)));
-            batch.Scan(Inputs(("pallet_detected", true)));
+            batch.Scan(Inputs(("pallet_detected", false), ("pallet_type_valid", true), ("count_request", true)));
+            batch.Scan(Inputs(("pallet_detected", true), ("pallet_type_valid", true), ("count_request", true)));
+            Equal((long)count, batch.Snapshot.Counters["batch_count"].Accumulated);
+            Equal(count == 5, batch.Snapshot.Outputs["pallet_count_valid"]);
         }
-        False(batch.Snapshot.Outputs["pallet_count_valid"]);
-        True(batch.Scan(Inputs(("pallet_type_valid", true), ("count_request", true))).Outputs["pallet_count_valid"]);
         False(batch.Scan(Inputs(("pallet_type_valid", false), ("count_request", true))).Outputs["pallet_count_valid"]);
     }
 

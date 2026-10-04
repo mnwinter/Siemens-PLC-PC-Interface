@@ -91,7 +91,12 @@ public static class AuthoredDemoLadderPrograms
         document.WatchVariables.AddRange(["pallet_detected", "pallet_type_valid", "count_request", "batch_count", "pallet_count_valid"]);
 
         document.AddCounterRung("Count valid pallets", "batch_count", 5);
-        document.AddContact(0, 0, "pallet_detected", false);
+        // Count the detection edge only when that event has both permissives.
+        // Gating a held detection with a newly enabled permissive must not
+        // manufacture a new pallet event.
+        document.InsertEdgeContact(0, 0, 0, "pallet_detected", LadderEdgeMode.Rising);
+        document.AddContact(0, 0, "pallet_type_valid", false);
+        document.AddContact(0, 0, "count_request", false);
         document.AddRung("Batch ready permissive", "batch_ready");
         document.AddContact(1, 0, "pallet_type_valid", false);
         document.AddContact(1, 0, "count_request", false);
