@@ -43,7 +43,7 @@ No changes have been pushed. No plant connection has been attempted.
 
 | Area | Current evidence | Remaining work |
 | --- | --- | --- |
-| Launch/import/toolchain | Pinned Godot/.NET start; native window opened; build clean | Fresh install/export and missing-dependency recovery |
+| Launch/import/toolchain | Fresh tracked-source copy reproduced missing restore; repaired launcher restores/builds/imports and opens a working native window. Missing Godot/.NET/console stop with exact paths | Portable tools require setup; no standalone export preset/installer supplied |
 | All scene data | All 77 catalog entries load; 71 have declared cases and pass; six have none. Rerun logs in `.tools/plant-scene-review` | Visual controls and runtime coverage; many declared cases cover only initial state |
 | Authored demos | All five compile; 142 controller tests pass. Native demos 1-4 exercised; Demo 5 four-pick completion, mixed instructions, FB/FC/DB views, gantry command motion, Stop and Reset inspected | Broader scene runtime coverage; Demo 5 remains a manual-feedback command visualization |
 | Operator controls | Native Run/Stop, normal conveyor Start/E-stop/Reset, action inputs and history; complete runtime/health rails now scroll at 1200x675 and 1600x900 | E-stop/reset across other applicable scenes |
@@ -533,6 +533,31 @@ Build has zero warnings/errors; rendered ladder interaction passes. Logs:
 `.tools/watch-stability-before.log`, `.tools/watch-stability-final.log`,
 `.tools/watch-native-final.log`, `.tools/watch-controls-native-final.log`.
 Whole-program review remains active.
+
+## Fresh-source startup checkpoint - 2026-10-04
+
+Restore tag `codex/startup-review-baseline-20261004` at `218bbc1` precedes
+this fix. An isolated copy of all tracked Next files, without `.godot` or
+NuGet object files, reproduced launcher failure NETSDK1004. The launcher used
+`--no-restore` and also omitted asset import. It now restores during build,
+then invokes the matching Godot console's headless import before opening the
+native player. Failure stops startup; missing Godot, .NET and console paths
+were individually checked and returned exit code 1.
+
+The source copy reused only the pinned portable tools through a junction; it
+did not copy generated caches or alter the canonical import cache. Its build
+had zero warnings/errors, imported 900 resources, and rendered the actual
+Windows conveyor scene. Normal Run and the operator Start produced conveyor
+motion and photoeye feedback; native close completed. App-shell and cached-draft
+guards pass in the copy. Headless popup positioning produces expected display
+errors in guard-dialog checks; the native player has no such startup errors.
+Evidence: `rungproof/build/cold-start-review-20261004/launch-review.log` and
+`cold-shell-review.log`. The isolated review copy is ignored, not a release.
+
+Setup and README now describe the actual launcher, current catalog and guarded
+bridge. No export preset/standalone installer exists; offline source execution
+is the supported entry point. External mode needs the parent Python bridge and
+profiles. These packaging gaps are recorded rather than claimed verified.
 
 ## Verification boundary
 

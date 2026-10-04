@@ -16,7 +16,16 @@ part of this production catalog.
 - Python 3 only for repository validation/build tooling.
 
 The verified portable toolchain is stored in the ignored `.tools` directory.
-See `docs/DEVELOPMENT_SETUP.md` for reproducible setup and launch commands.
+Double-click `RUN-RUNGPROOF-NEXT.cmd` to restore packages, build, import assets,
+and open the Windows application. A fresh source copy does not need generated
+Godot/NuGet caches. See `docs/DEVELOPMENT_SETUP.md` for the required tool layout.
+
+Current review evidence is maintained in
+[`../docs/WHOLE_PROGRAM_REVIEW.md`](../docs/WHOLE_PROGRAM_REVIEW.md).
+The catalog contains 77 scenes in three groups, including five authored demos,
+and 294 runtime assets. Candidate/training inclusion does not establish
+production quality approval. Older phase descriptions below record the
+original milestones; use the review matrix for current verification boundaries.
 
 ## Architecture rule
 
@@ -81,7 +90,7 @@ count.
 Normal launch now opens the simulator shell rather than an asset-preview
 harness. The current vertical slice includes:
 
-- all 32 migrated scenes in a selectable scene browser;
+- all 77 catalog scenes in a selectable scene browser;
 - searchable access to all candidate assets, with metadata, signal, connector,
   scale, and recognition evidence in the inspector;
 - Run, Stop, and Reset controls backed by the deterministic symbolic scene
@@ -114,9 +123,11 @@ In-scene controls invoke the scene action declared in that scene's JSON
 contract. They do not write a PLC, resolve a physical address, or bypass a
 declared interlock. A blocked action is reported in the workspace status line.
 
-The guarded PLC client intentionally starts disconnected. Live transport,
-profile authorization, and physical address mapping are not yet implemented in
-this Godot application and must not be inferred from scene contracts.
+The guarded PLC client starts disconnected. External PLC Settings loads the
+parent repository's configured profiles through the Python bridge; approval,
+typed ownership and scene/profile matching guard connection and exchange.
+The Godot process owns no S7 socket. Offline/fake-adapter checks do not establish
+live PLC commissioning; scene contracts alone never authorize physical I/O.
 
 Launch with `RUN-RUNGPROOF-NEXT.cmd`. Headless verification is available with
 `--verify-app-shell`, `--verify-hud`, `--verify-workspace`, and

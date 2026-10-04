@@ -7,8 +7,31 @@ Pin the toolchain before authoring production assets:
 3. Use Blender 5.2.2 LTS for the pinned asset-authoring pipeline.
 4. Keep downloaded tools outside source control; `.tools/` is ignored. The
    verified workstation toolchain is portable under `.tools/`.
-5. Open `project.godot` with the .NET Godot editor and allow it to restore the
-   `Godot.NET.Sdk/4.7.2` package.
+5. Extract the full Godot .NET bundle, including its console executable and
+   `GodotSharp` folder, into the Godot directory below. Install/extract the
+   x64 .NET SDK into `.tools/dotnet`; a runtime-only installation cannot build.
+6. Double-click `RUN-RUNGPROOF-NEXT.cmd`. It restores NuGet packages, builds
+   the C# assembly, imports runtime assets, then opens the application. The
+   first launch requires package access and can take several minutes to import
+   the full catalog. Later launches reuse unchanged imports. Blender is not
+   required to run the delivered GLBs.
+
+The launcher reports the exact missing executable or stops on build/import
+failure. Run it from an existing terminal to retain that output:
+
+```powershell
+& .\RUN-RUNGPROOF-NEXT.cmd
+```
+
+Use the matching pinned .NET Godot bundle from the
+[official release archive](https://godotengine.org/download/archive/) and the
+[Microsoft .NET SDK downloads](https://dotnet.microsoft.com/download/dotnet/10.0).
+Do not mix a non-.NET Godot bundle with this C# project.
+
+This is a source-run entry point. No Windows export preset or standalone
+installer is currently supplied. The guarded external-PLC path additionally
+requires the parent `rungproof` Python tools and configured profiles; copying
+only `rungproof-next` provides offline operation.
 
 Do not migrate primitive geometry into the production catalog. The first
 accepted asset must pass `ASSET_QUALITY_STANDARD.md` from Blender source through

@@ -8,6 +8,15 @@ temporary runtime state.
 
 ## Product intent
 
+Fresh-source startup checkpoint (2026-10-04): the launcher now restores NuGet
+packages and imports assets before native startup. A tracked-source copy with
+no generated caches reproduced NETSDK1004 before the fix, then built/imported
+and ran the conveyor through normal Windows controls. Missing Godot/.NET/console
+checks stop with exact paths. Portable tool setup remains required, and there
+is no standalone export preset/installer. Review copy and logs are ignored at
+`build/cold-start-review-20261004`; its `.tools` is a junction to the pinned
+tools, so do not recursively delete through that junction. Goal remains active.
+
 Current checkpoint (2026-10-04, watch review): controller suite 142/142;
 plant regression 19 checks; rendered ladder interaction passes. Native Demo 5
 first Run preserves preconfigured inputs, its four-pick layer stops commands,
