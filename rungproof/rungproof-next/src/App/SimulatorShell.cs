@@ -6922,6 +6922,9 @@ public partial class SimulatorShell : CanvasLayer
         addTimerReset.Pressed += () =>
         {
             if (document.Rungs.Count == 0) return;
+            // The generated timer tag and reset instruction form one edit.
+            // Capture history before either mutation so Undo removes both.
+            if (!BeginEdit(siemens ? "Insert timer reset" : "Insert timer RES")) return;
             var timerTag = document.Tags.FirstOrDefault(tag => tag.Type == PlcVariableType.Timer);
             if (timerTag is null)
             {
@@ -6930,7 +6933,6 @@ public partial class SimulatorShell : CanvasLayer
                 while (document.Tags.Any(tag => tag.Name == name)) name = $"timer_{++suffix}";
                 timerTag = document.AddTag(name, PlcVariableRole.Memory, type: PlcVariableType.Timer);
             }
-            if (!BeginEdit(siemens ? "Insert timer reset" : "Insert timer RES")) return;
             var rung = document.Rungs[selectedRung];
             rung.IsTimer = false;
             rung.IsTimerReset = true;
@@ -7174,7 +7176,12 @@ public partial class SimulatorShell : CanvasLayer
         {
             if (!siemens || document.Blocks.Count == 0 || string.IsNullOrWhiteSpace(interfaceName.Text)) return;
             var activeBlock = document.Blocks[document.ActiveBlockIndex];
-            if (!BeginEdit("Add block interface parameter")) return;
+            var parameterName = interfaceName.Text.Trim();
+            if (activeBlock.Interface.Any(parameter => parameter.Name.Equals(parameterName, StringComparison.Ordinal)))
+            {
+                output.Text = $"[color=#d64545]Interface parameter rejected.[/color] {Escape(parameterName)} already exists.";
+                return;
+            }
             var type = interfaceType.Selected switch
             {
                 1 => PlcVariableType.Int,
@@ -7188,9 +7195,11 @@ public partial class SimulatorShell : CanvasLayer
                 output.Text = $"[color=#d64545]Interface parameter rejected.[/color] {Escape(error)}";
                 return;
             }
+            // Reject form errors before history/monitor state changes.
+            if (!BeginEdit("Add block interface parameter")) return;
             try
             {
-                document.AddInterfaceParameter(activeBlock.Id, interfaceName.Text.Trim(), type,
+                document.AddInterfaceParameter(activeBlock.Id, parameterName, type,
                     (LadderInterfaceSection)Math.Clamp(interfaceSection.Selected, 0, 4), initial);
                 interfaceName.Clear();
                 interfaceInitial.Text = "0";
@@ -9588,6 +9597,20 @@ public partial class SimulatorShell : CanvasLayer
             .Select(rung => (Rung: rung, rung.IsTimer, rung.IsTimerReset, rung.TimerVariable, rung.TimerPreset, rung.TimerKind, rung.IsCounter, rung.IsCounterReset, rung.IsCounterLoad, rung.CounterKind, rung.CounterVariable, rung.CounterPreset))
             .ToArray();
         var startingTags = _ladderDocument.Tags.Count;
+        var beforeTimerReset = _ladderDocument.CaptureSnapshot();
+        var beforeTimerResetJson = LadderEditorProjectJson.Save(_ladderDocument);
+        addTimerReset.EmitSignal(BaseButton.SignalName.Pressed);
+        undo.EmitSignal(BaseButton.SignalName.Pressed);
+        var firstTimerResetUndoExact = LadderEditorProjectJson.Save(_ladderDocument) == beforeTimerResetJson;
+        _ladderDocument.RestoreSnapshot(beforeTimerReset);
+        _ladderHistory.Clear();
+        foreach (var refresh in _ladderEditorRefreshers) refresh();
+        // Undo restores block objects, so capture them again for the checks below.
+        originalTimerOutputs = _ladderDocument.Rungs
+            .Select(rung => (Rung: rung, rung.IsTimer, rung.IsTimerReset, rung.TimerVariable, rung.TimerPreset, rung.TimerKind,
+                rung.IsCounter, rung.IsCounterReset, rung.IsCounterLoad, rung.CounterKind, rung.CounterVariable, rung.CounterPreset))
+            .ToArray();
+        GD.Print($"EDITOR_MUTATION_VERIFY firstTimerResetUndoExact={firstTimerResetUndoExact}");
         addTimer.EmitSignal(BaseButton.SignalName.Pressed);
         var timerInserted = _ladderDocument.Rungs.Any(rung => rung.IsTimer
             && _ladderDocument.Tags.Any(tag => tag.Name == rung.TimerVariable && tag.Type == PlcVariableType.Timer));
@@ -9861,6 +9884,8 @@ public partial class SimulatorShell : CanvasLayer
         var watchMetadataKeptMonitor = false;
         var watchUndoRestored = false;
         var watchStableAcrossScans = false;
+        var rejectedInterfaceKeptMonitor = false;
+        var duplicateInterfaceUndoExact = false;
         if (monitorCompilation.IsValid && monitorCompilation.Program is not null)
         {
             var monitorRuntime = new VirtualControllerRuntime(monitorCompilation.Program);
@@ -9917,6 +9942,28 @@ public partial class SimulatorShell : CanvasLayer
                 && !logixEditorTabTitle.Text.StartsWith("* ", StringComparison.Ordinal);
             _ladderSavedProjectJson = baselineBeforeWatch;
             foreach (var refresh in _ladderEditorRefreshers) refresh();
+            var interfaceNameField = GetNode<LineEdit>($"{projectObjectsRoot}/InterfaceFields/InterfaceName");
+            var interfaceInitialField = GetNode<LineEdit>($"{projectObjectsRoot}/InterfaceFields/InterfaceInitial");
+            _ladderHistory.Clear();
+            interfaceNameField.Text = "verify_parameter";
+            interfaceInitialField.Text = "not_a_bool";
+            addInterface.EmitSignal(BaseButton.SignalName.Pressed);
+            rejectedInterfaceKeptMonitor = editorCanvas.MonitorActive && logixCanvas.MonitorActive
+                && !_ladderHistory.CanUndo;
+            _ladderHistory.Clear();
+            interfaceInitialField.Text = "FALSE";
+            addInterface.EmitSignal(BaseButton.SignalName.Pressed);
+            interfaceNameField.Text = "verify_parameter";
+            addInterface.EmitSignal(BaseButton.SignalName.Pressed);
+            undo.EmitSignal(BaseButton.SignalName.Pressed);
+            duplicateInterfaceUndoExact = !_ladderDocument.Blocks[_ladderDocument.ActiveBlockIndex].Interface
+                .Any(parameter => parameter.Name == "verify_parameter");
+            // Retain the verifier's original controller/document after a failing red run.
+            _ladderDocument.Blocks[_ladderDocument.ActiveBlockIndex].Interface
+                .RemoveAll(parameter => parameter.Name == "verify_parameter");
+            _ladderHistory.Clear();
+            foreach (var refresh in _ladderEditorRefreshers) refresh();
+            GD.Print($"INTERFACE_REJECTION_VERIFY monitorRetained={rejectedInterfaceKeptMonitor} duplicateUndoExact={duplicateInterfaceUndoExact}");
             addRung.EmitSignal(BaseButton.SignalName.Pressed);
             staleMonitorCleared = !editorCanvas.MonitorActive && !logixCanvas.MonitorActive;
             undo.EmitSignal(BaseButton.SignalName.Pressed);
@@ -9929,6 +9976,7 @@ public partial class SimulatorShell : CanvasLayer
         return selectable && addBlockFromTree is not null && projectPersistenceWorked && newProjectWorked && rungLayoutWorked && contextualPropertiesWorked && logixContextualPropertiesWorked && instructionContextMenuWorked && docksWorked && dockResizeWorked && selectionHandled && crossReferenceFound && searchNavigated && instructionHelpWorked && toolRailWorked && added && undoWorked && redoWorked && instructionAdded && timerInserted && offDelayInserted && pulseTimerInserted && retentiveTimerInserted && timerResetInserted
             && monitorWorked && staleMonitorCleared && undoMonitorRestored
             && watchTableWorked && watchMetadataKeptMonitor && watchUndoRestored && watchStableAcrossScans
+            && firstTimerResetUndoExact && rejectedInterfaceKeptMonitor && duplicateInterfaceUndoExact
             && bindingBrowserWorked
             && structuredValidationWorked && validationNavigationWorked && validationCleared
             && insertionCursorSelected && exactInsertionWorked && exactInsertionUndone

@@ -559,6 +559,28 @@ bridge. No export preset/standalone installer exists; offline source execution
 is the supported entry point. External mode needs the parent Python bridge and
 profiles. These packaging gaps are recorded rather than claimed verified.
 
+## Editor mutation boundary checkpoint - 2026-10-04
+
+Restore tag `codex/editor-mutation-review-baseline-20261004` at `ad8ec7e`
+precedes these fixes. A first timer Reset created its timer tag before recording
+history, so Undo left an unwanted tag. History now precedes both mutations.
+Invalid initial values and duplicate interface parameters previously recorded
+an empty Undo entry and invalidated the loaded monitor. They now reject before
+edit state changes. The rendered regression reproduced all three failures,
+then passed exact timer-Reset Undo, retained rejected-edit monitoring and a
+single Undo of an accepted parameter after duplicate rejection.
+
+Native Demo 4 main/FB/FC monitoring was inspected. The declaration form rejected
+an invalid BOOL while retaining live highlights, accepted a valid parameter,
+rejected its duplicate and restored the clean/monitored document with one
+toolbar Undo. Native timer Reset and Undo restored the original monitored rung
+and clean title. Session closed cleanly. Build has zero warnings/errors and
+rendered ladder interaction passes; logs `.tools/editor-mutation-before.log`,
+`.tools/editor-mutation-final.log`, `.tools/editor-mutation-native-final.log`.
+Native form inspection found weak label contrast and fields requiring excessive
+dock width; this is the next layout repair. An invalid review CLI scene ID also
+revealed startup left half initialized instead of rejecting/falling back.
+
 ## Verification boundary
 
 Native mouse/keyboard interaction proves only the inspected Windows workflows.
