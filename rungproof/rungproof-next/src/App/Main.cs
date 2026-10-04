@@ -395,7 +395,13 @@ public partial class Main : Node3D
         _simulatorShell.ControllerModeChanged += external =>
         {
             if (_virtualController is not null) DisableVirtualController();
-            if (_sceneRuntime is not null) _sceneRuntime.UsesExternalClock = external;
+            if (_sceneRuntime is not null)
+            {
+                // Both shell modes require a selected controller. The scene's
+                // reference fake-PLC rules are for standalone previews/tests.
+                _sceneRuntime.UsesExternalClock = true;
+                if (!external) _sceneRuntime.ResetSimulation();
+            }
         };
         _simulatorShell.VirtualControllerDemoRequested += EnableVirtualControllerDemo;
         _simulatorShell.VirtualControllerProgramRequested += EnableVirtualControllerProgram;
@@ -585,7 +591,7 @@ public partial class Main : Node3D
         _virtualSnapshot = null;
         if (_sceneRuntime is not null)
         {
-            _sceneRuntime.UsesExternalClock = false;
+            _sceneRuntime.UsesExternalClock = _simulatorShell is not null;
             _sceneRuntime.StopSimulation();
         }
         _simulatorShell?.DetachVirtualController();
@@ -1029,6 +1035,36 @@ public partial class Main : Node3D
 
     private async void VerifySplitView()
     {
+        _simulatorShell?.SetReviewState("ladder", string.Empty);
+        var freshDrawersFit = true;
+        if (_simulatorShell is not null)
+        {
+            var vendors = _simulatorShell.GetNode<TabContainer>(
+                "Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs");
+            for (var vendor = 0; vendor < vendors.GetTabCount(); vendor++)
+            {
+                vendors.CurrentTab = vendor;
+                var environment = vendors.GetCurrentTabControl();
+                var tabs = environment.GetNode<TabContainer>(
+                    "Workbench/ProjectDockHost/ProjectOrganization/ProjectBody/ProjectTreeAndTags");
+                foreach (var tab in new[] { 0, 1, 2 })
+                {
+                    tabs.CurrentTab = tab;
+                    await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+                    await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+                    var dockTop = _simulatorShell.GetNode<Control>("Workspace/DiagnosticsDock").GetGlobalRect().Position.Y;
+                    foreach (var path in new[] { "Workbench", "Workbench/ProjectDockHost/ProjectOrganization/ProjectBody/ProjectTitle",
+                        "Workbench/EditorAndTasks/EditorAndInspector/BottomDockHost" })
+                    {
+                        var control = environment.GetNode<Control>(path);
+                        freshDrawersFit &= control.GetGlobalRect().End.Y <= dockTop - 4;
+                        GD.Print($"EDITOR_DRAWER_BOUNDS vendor={vendor} tab={tab} node={path} end={control.GetGlobalRect().End.Y} dock={dockTop} minimum={control.GetCombinedMinimumSize()}");
+                    }
+                }
+                tabs.CurrentTab = 0;
+            }
+            vendors.CurrentTab = 0;
+        }
         _simulatorShell?.SetReviewState("split", string.Empty);
         // Container minimum sizes and deferred toolbar clearance settle after
         // the view switch. Measure the rendered layout, not the previous view.
@@ -1059,6 +1095,27 @@ public partial class Main : Node3D
             var ladder = _simulatorShell.GetNode<Control>("Workspace/LadderWorkspace");
             var standalonePoints = tables.Visible && dock.Visible
                 && ladder.GetGlobalRect().End.Y <= dock.GetGlobalRect().Position.Y;
+            var projectPagesFit = true;
+            var environments = _simulatorShell.GetNode<TabContainer>(
+                "Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs");
+            for (var vendor = 0; vendor < environments.GetTabCount(); vendor++)
+            {
+                environments.CurrentTab = vendor;
+                var projectTabs = environments.GetCurrentTabControl().GetNode<TabContainer>(
+                    "Workbench/ProjectDockHost/ProjectOrganization/ProjectBody/ProjectTreeAndTags");
+                foreach (var tab in new[] { 1, 2 })
+                {
+                    projectTabs.CurrentTab = tab;
+                    await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+                    await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+                    var page = projectTabs.GetCurrentTabControl();
+                    projectPagesFit &= page.GetGlobalRect().End.Y <= ladder.GetGlobalRect().End.Y + 1.0f
+                        && ladder.GetGlobalRect().End.Y <= dock.GetGlobalRect().Position.Y
+                        && projectTabs.GetGlobalRect().End.Y <= ladder.GetGlobalRect().End.Y + 1.0f;
+                }
+                projectTabs.CurrentTab = 0;
+            }
+            environments.CurrentTab = 0;
             var projectPanel = _simulatorShell.GetNode<Control>("Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/TIA Portal/Workbench/ProjectDockHost/ProjectOrganization");
             var wasProjectVisible = projectPanel.Visible;
             _simulatorShell.SetReviewState("operator", string.Empty);
@@ -1066,8 +1123,8 @@ public partial class Main : Node3D
             await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
             await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
             var drawerStatePreserved = projectPanel.Visible == wasProjectVisible;
-            var passed = targetCentered && columnsAligned && collapseReclaimsSpace && standalonePoints && drawerStatePreserved;
-            GD.Print($"SPLIT_VIEW_VERIFY {(passed ? "PASS" : "FAIL")} {result} targetCentered={targetCentered} columnsAligned={columnsAligned} collapseReclaimsSpace={collapseReclaimsSpace} standalonePoints={standalonePoints} drawerStatePreserved={drawerStatePreserved}");
+            var passed = freshDrawersFit && targetCentered && columnsAligned && collapseReclaimsSpace && standalonePoints && drawerStatePreserved && projectPagesFit;
+            GD.Print($"SPLIT_VIEW_VERIFY {(passed ? "PASS" : "FAIL")} {result} targetCentered={targetCentered} columnsAligned={columnsAligned} collapseReclaimsSpace={collapseReclaimsSpace} standalonePoints={standalonePoints} drawerStatePreserved={drawerStatePreserved} projectPagesFit={projectPagesFit} freshDrawersFit={freshDrawersFit}");
             GetTree().Quit(passed ? 0 : 1);
             return;
         }
@@ -1160,6 +1217,11 @@ public partial class Main : Node3D
         var controlFaceDirection = (control.Node.GlobalBasis * Vector3.Back).Normalized();
         var facesOperator = controlFaceDirection.Dot(operatorDirection) > 0.25f;
         var pointer = _mainCamera.UnprojectPosition(mesh.GlobalPosition);
+        RunActiveController();
+        void ScanOnce() => _virtualController?.Advance(0.020,
+            SampleVirtualControllerInputs, SampleVirtualControllerNumericInputs,
+            CommitVirtualControllerOutputs, CommitVirtualControllerNumericOutputs,
+            _sceneRuntime.AdvanceSimulation);
         // Exercise the same GUI input route used by an operator. Calling the
         // command method directly would miss a CanvasLayer interception bug.
         GetViewport().PushInput(new InputEventMouseButton
@@ -1168,6 +1230,7 @@ public partial class Main : Node3D
             Pressed = true,
             Position = pointer,
         }, true);
+        ScanOnce();
         _sceneControlInteractor.AdvanceFeedback(0.08);
         var depressed = feedbackTarget.Transform.Origin.DistanceTo(authoredPosition) > 0.001f;
         _sceneControlInteractor.AdvanceFeedback(0.30);
@@ -1197,7 +1260,8 @@ public partial class Main : Node3D
             Position = pointer,
         }, true);
         var restartBlocked = _sceneRuntime.Points.TryGetValue("conveyor_run", out var blockedValue) && blockedValue is false;
-        _sceneRuntime.ResetSimulation();
+        ResetActiveController();
+        RunActiveController();
         _sceneControlInteractor.SynchronizeFeedback(_sceneRuntime.Points);
         var resetReleased = _sceneRuntime.Points.TryGetValue("estop_ok", out var resetValue) && resetValue is true;
         GetViewport().PushInput(new InputEventMouseButton
@@ -1206,13 +1270,11 @@ public partial class Main : Node3D
             Pressed = true,
             Position = pointer,
         }, true);
+        ScanOnce();
         var restarted = _sceneRuntime.Points.TryGetValue("conveyor_run", out var restartedValue) && restartedValue is true;
         // Repeat at the controller seam; scene-only tests miss scan overwrites.
+        ResetActiveController();
         RunActiveController();
-        void ScanOnce() => _virtualController?.Advance(0.020,
-            SampleVirtualControllerInputs, SampleVirtualControllerNumericInputs,
-            CommitVirtualControllerOutputs, CommitVirtualControllerNumericOutputs,
-            _sceneRuntime.AdvanceSimulation);
         bool OutputOn() => _sceneRuntime.Points.GetValueOrDefault("conveyor_run") is true;
         var virtualReady = _virtualController is not null;
         GetViewport().PushInput(new InputEventMouseButton
@@ -1250,7 +1312,8 @@ public partial class Main : Node3D
         ResetActiveController();
         var externalImagePreserved = OutputOn();
         plcMenu?.EmitSignal(PopupMenu.SignalName.IdPressed, 10);
-        var fallbackRestored = !_sceneRuntime.UsesExternalClock;
+        var awaitingController = _sceneRuntime.UsesExternalClock && _virtualController is null
+            && !ExecuteSelectedControllerAction("conveyor_run") && !OutputOn();
         // A feedback action under controller ownership must not execute the
         // fallback PLC rule, even if its condition becomes true.
         using var fixtureJson = System.Text.Json.JsonDocument.Parse("""
@@ -1275,10 +1338,10 @@ public partial class Main : Node3D
         var passed = facesOperator && running && depressed && restored && estopLatched && stopped && restartBlocked
             && resetReleased && restarted && virtualReady && virtualStart && virtualStopCommand && immediateEstop
             && virtualRestartBlocked && resetDoesNotStart && virtualRestarted && exclusiveExternal && externalActionBlocked
-            && externalImagePreserved && fallbackRestored && noFallbackOverwrite && fallbackRulesWork
+            && externalImagePreserved && awaitingController && noFallbackOverwrite && fallbackRulesWork
             && invalidOutputRejected && atomicImageRejected;
         GD.Print($"EXTERNAL_IMAGE_VERIFY {(invalidOutputRejected && atomicImageRejected ? "PASS" : "FAIL")} typed={invalidOutputRejected} atomic={atomicImageRejected}");
-        GD.Print($"SCENE_CONTROL_VERIFY {(passed ? "PASS" : "FAIL")} facesOperator={facesOperator} start={running} depressed={depressed} restored={restored} estopLatched={estopLatched} stopped={stopped} restartBlocked={restartBlocked} resetReleased={resetReleased} restarted={restarted} virtualReady={virtualReady} virtualStart={virtualStart} virtualStopCommand={virtualStopCommand} immediateEstop={immediateEstop} virtualRestartBlocked={virtualRestartBlocked} resetDoesNotStart={resetDoesNotStart} virtualRestarted={virtualRestarted} exclusiveExternal={exclusiveExternal} externalActionBlocked={externalActionBlocked} externalImagePreserved={externalImagePreserved} fallbackRestored={fallbackRestored} noFallbackOverwrite={noFallbackOverwrite} fallbackRulesWork={fallbackRulesWork}");
+        GD.Print($"SCENE_CONTROL_VERIFY {(passed ? "PASS" : "FAIL")} facesOperator={facesOperator} start={running} depressed={depressed} restored={restored} estopLatched={estopLatched} stopped={stopped} restartBlocked={restartBlocked} resetReleased={resetReleased} restarted={restarted} virtualReady={virtualReady} virtualStart={virtualStart} virtualStopCommand={virtualStopCommand} immediateEstop={immediateEstop} virtualRestartBlocked={virtualRestartBlocked} resetDoesNotStart={resetDoesNotStart} virtualRestarted={virtualRestarted} exclusiveExternal={exclusiveExternal} externalActionBlocked={externalActionBlocked} externalImagePreserved={externalImagePreserved} awaitingController={awaitingController} noFallbackOverwrite={noFallbackOverwrite} fallbackRulesWork={fallbackRulesWork}");
         GetTree().Quit(passed ? 0 : 1);
     }
 
@@ -2964,7 +3027,7 @@ public partial class Main : Node3D
         }
         AddChild(composition.Root);
         _sceneRuntime = new SceneSimulationRuntime(scene.Simulation, composition.Root);
-        _sceneRuntime.UsesExternalClock = _simulatorShell?.IsExternalMode == true;
+        _sceneRuntime.UsesExternalClock = _simulatorShell is not null;
         _sceneControlInteractor = new SceneControlInteractor(scene, composition.Root);
         _sceneRuntime.StateChanged += ApplyWorkspaceSignalMappings;
         AddChild(_sceneRuntime);
@@ -3463,7 +3526,12 @@ public partial class Main : Node3D
                 return Block("External PLC owns this command; no local output was changed");
             return _sceneRuntime.ExecuteAction(actionId);
         }
-        if (_virtualController is null) return _sceneRuntime.ExecuteAction(actionId);
+        if (_virtualController is null)
+        {
+            if (type is "start" or "run" || _sceneRuntime.IsPlcOwnedPoint(point))
+                return Block("No ladder controller is loaded; add or load scene logic and Run first");
+            return _sceneRuntime.ExecuteAction(actionId);
+        }
         if (type == "emergencyStop")
         {
             _sceneRuntime.ExecuteAction(actionId);

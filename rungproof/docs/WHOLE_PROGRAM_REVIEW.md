@@ -58,9 +58,9 @@ No changes have been pushed. No plant connection has been attempted.
 
 - Unsaved ladder drafts/history now survive scene changes; exit/crash recovery
   and unsaved-work close prompts remain under review.
-- Non-demo labs currently receive an unrelated conveyor project, causing Run
-  binding failures (native Lab 2.1 reproduced). Many labs have exercises and
-  scene points but no authored ladder. Their runtime ownership also needs review.
+- Non-demo labs open as blank exercises with matching typed scene tags. One
+  catalog I/O type is unsupported by the offline controller and is reported.
+  Complete lab instruction/reference-program coverage remains under review.
 - External playback/readiness semantics still require comparison against the
   existing native/reference binding. No live communication has been verified.
 - Demo 5 currently commands output indicators; complete palletizing motion and
@@ -152,8 +152,6 @@ confirms the third network, dirty marker, and Undo/Redo after the round trip.
 The unrelated conveyor template assigned to non-demo labs and their Run path
 remain under review, as do shutdown resource leaks and the rest of the matrix.
 
-## Verification boundary
-
 ## Native demo / valid-event checkpoint - 2026-10-04
 
 Restore tag `codex/lab-execution-baseline-20261004` at `a7d455d` precedes
@@ -173,6 +171,35 @@ event, output off through four valid events/on at five, and removal when the
 type permissive drops. These are bounded user workflow checks, not complete
 scene visual or hardware acceptance. Demo 4's shutter partly obscures its
 equipment; broader visual and block-structure review remains open.
+
+## Lab authoring / bounded drawers checkpoint - 2026-10-04
+
+Restore tag `codex/lab-project-baseline-20261004` at `6ee9328` precedes
+these changes. Non-demo scenes incorrectly opened the conveyor ladder and
+could run hidden scene rules instead of the user's selected controller.
+They now open blank exercise projects with PC-owned inputs and PLC-owned
+outputs mapped to their actual BOOL/INT/DINT/REAL points. Unsupported types
+are reported rather than coerced. The conveyor starter and five authored
+demos retain their programs. Empty exercise Run and Verify + Load report
+EDIT001; scene feedback alone cannot fabricate a PLC output without logic.
+
+The exercise factory regression checks all 77 scenes, including owner/type
+binding consistency and one reported unsupported type. Controller suite is
+140/140; build has zero warnings/errors. App-shell/draft and rendered editor
+interaction regressions pass. Native Lab 2.1 testing covers empty Run feedback,
+adding a network/contact with the correct lamp coil, Run/scan monitoring,
+input true/lamp on, input false/lamp off, Stop, and Save through the file
+dialog. Saved JSON contains the matching scene ID, tags, contact, and coil;
+the native tab title reflects its filename and clears the dirty marker.
+
+Native use also exposed project/footer and diagnostics overlap under points.
+Tag/block forms and inspector pages now scroll within their docks; the palette
+compacts by height. A strengthened fresh-editor regression first failed with
+all drawers open and now passes at 1200x675 and 1600x900 in both vendor views.
+Native 1600x900 inspection confirms usable footer, diagnostics, and routine.
+This checkpoint does not complete the review matrix or prove physical PLC I/O.
+
+## Verification boundary
 
 Native mouse/keyboard interaction proves only the inspected Windows workflows.
 Headless declared scene cases prove only the stated cases, not full user

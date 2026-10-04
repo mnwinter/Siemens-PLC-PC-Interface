@@ -10,9 +10,12 @@ temporary runtime state.
 
 Latest local review checkpoint (2026-10-04): scene navigation retains each
 ladder draft, saved baseline/path, and Undo/Redo; Demo 4 counts only valid
-pallet-detection edges. Native demo 1-4 workflows have now been exercised. See
+pallet-detection edges. Labs now open blank exercises with their own typed
+scene bindings; empty Run reports missing logic and hidden scene rules cannot
+compete with the selected controller. Fresh editor drawers fit at 1200x675 and
+1600x900. Native demo 1-4 and Lab 2.1 author/run workflows were exercised. See
 `WHOLE_PROGRAM_REVIEW.md` for regression and Windows evidence. Drafts remain
-in memory; Save is required before exit. Non-demo starter programs/Run,
+in memory; Save is required before exit. Complete lab/reference coverage,
 remaining native workflows, external reference semantics, and shutdown leaks
 still require work. The whole-program review is active; no live PLC acceptance
 or complete product acceptance has been established.

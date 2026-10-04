@@ -401,17 +401,22 @@ public partial class SimulatorShell : CanvasLayer
             _ladderProjectPath = draft.ProjectPath;
             _ladderHistory = draft.History;
             _ladderWorkspaceStatus.Text = "SCENE DRAFT RESTORED · VERIFY + LOAD BEFORE RUN";
+            _ladderWorkspaceStatus.TooltipText = "The scene's exact offline draft and edit history were restored. Save to retain it after exit.";
             RefreshLadderMonitorMatch();
             return;
         }
 
         var authored = AuthoredDemoLadderPrograms.TryCreate(scene.Id, out var starter);
-        starter ??= LadderEditorDocument.CreateConveyorExample();
+        IReadOnlyList<SceneIoPoint> unsupported = [];
+        if (!authored)
+            starter = scene.Id == "conveyor-cell" ? LadderEditorDocument.CreateConveyorExample()
+                : SceneLadderProject.Create(scene.Id, scene.Name, ScenePoints(),
+                    _runtime?.Points ?? new Dictionary<string, object?>(), out unsupported);
         _ladderDocument.RestoreSnapshot(starter.CaptureSnapshot());
         _ladderDocument.SourceSceneId = scene.Id;
         // Align only a fresh template. Restoring a draft must never rewrite
         // bindings the user has deliberately edited.
-        if (!authored) AlignDefaultConveyorBindings(scene);
+        if (scene.Id == "conveyor-cell") AlignDefaultConveyorBindings(scene);
         _ladderSavedProjectJson = LadderEditorProjectJson.Save(_ladderDocument);
         _ladderProjectPath = null;
         _ladderHistory = new LadderEditorHistory(150);
@@ -430,7 +435,12 @@ public partial class SimulatorShell : CanvasLayer
                 }));
             _ladderWorkspaceStatus.Text = authored
                 ? $"AUTHORED LADDER LOADED · {blockSummary}"
-                : "NEW OFFLINE PROJECT · VERIFY SCENE BINDINGS BEFORE RUN";
+                : scene.Id == "conveyor-cell" ? "CONVEYOR LADDER READY · VERIFY + LOAD"
+                : unsupported.Count > 0 ? $"EXERCISE · {unsupported.Count} UNSUPPORTED I/O TYPES · LADDER REQUIRED"
+                : "EXERCISE · SCENE TAGS READY · ADD LADDER NETWORKS BEFORE RUN";
+            _ladderWorkspaceStatus.TooltipText = unsupported.Count > 0
+                ? "Offline ladder cannot bind: " + string.Join(", ", unsupported.Select(point => $"{point.Name} [{point.Type}]"))
+                : "Demos contain reference programs. Other labs are exercises with their declared scene tags.";
             _ladderWorkspaceStatus.AddThemeColorOverride("font_color", new Color("65d49a"));
         }
     }
@@ -827,7 +837,7 @@ public partial class SimulatorShell : CanvasLayer
                 ShowClassicTool("ladder");
                 _ladderDocument.Rungs[0].CoilVariable = "start_command";
                 GetNodeOrNull<Button>(
-                    "Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/TIA Portal/Workbench/ProjectDockHost/ProjectOrganization/ProjectBody/ProjectTreeAndTags/PLC tags/ValidateAndLoadButton")
+                    "Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/TIA Portal/Workbench/ProjectDockHost/ProjectOrganization/ProjectBody/ProjectTreeAndTags/PLC tags/TagContent/ValidateAndLoadButton")
                     ?.EmitSignal(BaseButton.SignalName.Pressed);
                 break;
             case "ladder-bindings":
@@ -2374,6 +2384,11 @@ public partial class SimulatorShell : CanvasLayer
                 bottomHandle.Visible = GetNodeOrNull<Control>($"{inspectorRoot}/BottomDockHost/InspectorOutputDock")?.Visible != true;
             var programRoot = $"{inspectorRoot}/ProgramEditor";
             var narrowHeight = IsLadderView && GetViewport().GetVisibleRect().Size.Y < 760;
+            // The selection row is redundant with instruction Properties and
+            // consumes the routine's last usable rows in a 900px window.
+            // Compact it by height as well as by split view, before the
+            // container's minimum size can extend below Local Model Points.
+            var compactPalette = split || GetViewport().GetVisibleRect().Size.Y < 1000;
             if (narrowHeight && GetNodeOrNull<Control>($"{root}/EditorAndTasks/ToolDockHost") is { Visible: false } toolHost)
             {
                 toolHost.Visible = true;
@@ -2384,10 +2399,10 @@ public partial class SimulatorShell : CanvasLayer
             if (GetNodeOrNull<Control>($"{programRoot}/InstructionToolbarChrome") is { } palette)
             {
                 palette.Visible = !narrowHeight;
-                palette.CustomMinimumSize = new Vector2(0, split ? 104 : 140);
+                palette.CustomMinimumSize = new Vector2(0, compactPalette ? 104 : 140);
             }
             if (GetNodeOrNull<Control>($"{programRoot}/InstructionToolbarChrome/InstructionToolbar/Selection") is { } selection)
-                selection.Visible = !split;
+                selection.Visible = !compactPalette;
         }
         if (split && GetViewport().GetVisibleRect().Size.X < 1900.0f) _compactDockDefaultsApplied = true;
         if (GetNodeOrNull<Control>("Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderHeader") is { } header)
@@ -3890,15 +3905,10 @@ public partial class SimulatorShell : CanvasLayer
         _ladderContactClipboard = null;
         foreach (var refresh in _ladderEditorRefreshers) refresh();
         RefreshLadderMonitorMatch();
-        var program = _ladderDocument.BuildProgram();
-        var compiled = LadderCompiler.Compile(program);
-        var issues = compiled.Issues
-            .Concat(SceneIoBindingValidator.Validate(program, ScenePoints()))
-            .ToArray();
-        if (issues.Length > 0 || compiled.Program is null)
+        if (!TryBuildCurrentLadderProgram(out var program, out var issues))
         {
             SetVirtualControllerValidation(issues);
-            message = $"PROJECT OPENED · {System.IO.Path.GetFileName(path)} · VERIFY + LOAD REQUIRED · {issues.Length} issue(s)";
+            message = $"PROJECT OPENED · {System.IO.Path.GetFileName(path)} · VERIFY + LOAD REQUIRED · {issues.Count} issue(s)";
             return true;
         }
         VirtualControllerProgramRequested?.Invoke(program);
@@ -3918,6 +3928,11 @@ public partial class SimulatorShell : CanvasLayer
         var originalDrafts = _sceneLadderDrafts.ToArray();
         try
         {
+            SceneRequested?.Invoke("lab-2-01-workstation-call");
+            var labTags = _ladderDocument.Tags.Select(tag => tag.Name).OrderBy(name => name).ToArray();
+            var labProject = labTags.SequenceEqual(new[] { "material_call_on", "material_call_pressed" })
+                && _ladderDocument.SourceSceneId == "lab-2-01-workstation-call"
+                && _ladderDocument.Blocks.All(block => block.Rungs.Count == 0);
             SceneRequested?.Invoke("scene-1-conveyor-stop");
             var baseline = _ladderDocument.CaptureSnapshot();
             _ladderHistory = new LadderEditorHistory(150);
@@ -3939,9 +3954,9 @@ public partial class SimulatorShell : CanvasLayer
             var redo = TryRedoLadderEdit(out _) && LadderEditorProjectJson.Save(_ladderDocument) == draft;
             SceneRequested?.Invoke("scene-1-conveyor-stop");
             var sameScene = LadderEditorProjectJson.Save(_ladderDocument) == draft && _ladderHistory.CanUndo;
-            result = $"draft={retained} isolated={isolated} undo={undo} redo={redo} sameScene={sameScene}";
+            result = $"draft={retained} isolated={isolated} undo={undo} redo={redo} sameScene={sameScene} labProject={labProject}";
             _ladderDocument.RestoreSnapshot(baseline);
-            return retained && isolated && undo && redo && sameScene;
+            return retained && isolated && undo && redo && sameScene && labProject;
         }
         finally
         {
@@ -5376,6 +5391,24 @@ public partial class SimulatorShell : CanvasLayer
         bottomTabs.AddThemeStyleboxOverride("tab_unselected", BoxStyle(new Color("d9dfe2"), new Color("aeb8bd")));
         bottomBody.AddChild(bottomTabs);
 
+        void AddInspectorPage(VBoxContainer content)
+        {
+            // A short desktop window must still expose the dock footer and
+            // error/watch controls. Scroll content rather than propagating
+            // every tab's form height into the entire workbench minimum.
+            var page = new ScrollContainer
+            {
+                Name = content.Name,
+                HorizontalScrollMode = ScrollContainer.ScrollMode.Auto,
+                VerticalScrollMode = ScrollContainer.ScrollMode.Auto,
+            };
+            content.Name = "Content";
+            content.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+            content.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
+            page.AddChild(content);
+            bottomTabs.AddChild(page);
+        }
+
         var errorPage = new VBoxContainer { Name = "Error List" };
         validationSummary = Heading("0 ERRORS · program not yet verified", 11, new Color("4f6874"));
         validationSummary.Name = "ValidationSummary";
@@ -5390,16 +5423,21 @@ public partial class SimulatorShell : CanvasLayer
         validationIssueList.AddThemeColorOverride("font_selected_color", new Color("ffffff"));
         validationIssueList.AddThemeStyleboxOverride("panel", BoxStyle(new Color("fffafa"), new Color("c9a2a2")));
         errorPage.AddChild(validationIssueList);
-        bottomTabs.AddChild(errorPage);
+        validationIssueList.CustomMinimumSize = new Vector2(0, 66);
+        AddInspectorPage(errorPage);
 
         var outputPage = new VBoxContainer { Name = "Output" };
         var outputDescription = Heading(
             "Validation, compile, load, search, navigation, and controller-runtime messages appear here.",
             11, new Color("4f6874"));
+        // Keep the explanation available without dedicating a fixed-height
+        // row to it. The output itself already describes each operation.
+        outputDescription.Visible = false;
+        output.TooltipText = outputDescription.Text;
         outputPage.AddChild(outputDescription);
         output.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
         outputPage.AddChild(output);
-        bottomTabs.AddChild(outputPage);
+        AddInspectorPage(outputPage);
 
         var watchPage = new VBoxContainer { Name = siemens ? "Watch table 1" : "Watch List" };
         watchPage.AddThemeConstantOverride("separation", 3);
@@ -5448,7 +5486,8 @@ public partial class SimulatorShell : CanvasLayer
         watchTable.AddThemeStyleboxOverride("selected", BoxStyle(accent, accent));
         watchTable.AddThemeStyleboxOverride("selected_focus", BoxStyle(accent, accent));
         watchPage.AddChild(watchTable);
-        bottomTabs.AddChild(watchPage);
+        watchTable.CustomMinimumSize = new Vector2(0, 66);
+        AddInspectorPage(watchPage);
         bottomTabs.CurrentTab = 1;
         bottomTabs.SetDeferred("current_tab", 1);
 
@@ -5772,7 +5811,11 @@ public partial class SimulatorShell : CanvasLayer
         };
         toolTabs.AddChild(instructionPage);
 
-        var tagPage = new VBoxContainer { Name = siemens ? "PLC tags" : "Controller Tags" };
+        var tagPage = new VBoxContainer
+        {
+            Name = "TagContent",
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+        };
         tagPage.AddChild(tagList);
         var xrefSelectedTag = ToolbarButton("CrossReferenceSelectedTag", siemens ? "XREF SELECTED TAG" : "FIND ALL FOR SELECTED TAG", accent, 200);
         tagPage.AddChild(xrefSelectedTag);
@@ -5804,7 +5847,14 @@ public partial class SimulatorShell : CanvasLayer
         tagEditActions.AddChild(applyTagEdit);
         tagEditActions.AddChild(deleteTag);
         tagPage.AddChild(tagEditActions);
-        projectTabs.AddChild(tagPage);
+        var tagScroll = new ScrollContainer
+        {
+            Name = siemens ? "PLC tags" : "Controller Tags",
+            HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
+            VerticalScrollMode = ScrollContainer.ScrollMode.Auto,
+        };
+        tagScroll.AddChild(tagPage);
+        projectTabs.AddChild(tagScroll);
         var apply = ToolbarButton("ValidateAndLoadButton", "VERIFY + LOAD OFFLINE", new Color("1f8a58"), 210);
         tagPage.AddChild(apply);
         var boundary = Inspector("VendorBoundary");
@@ -5815,7 +5865,11 @@ public partial class SimulatorShell : CanvasLayer
             : "Simulator-native Logix-style workbench. No ACD file or Rockwell connection is created.";
         tagPage.AddChild(boundary);
 
-        var projectPage = new VBoxContainer { Name = siemens ? "Project objects" : "Controller objects" };
+        var projectPage = new VBoxContainer
+        {
+            Name = "ObjectContent",
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+        };
         projectPage.AddThemeConstantOverride("separation", 6);
         projectPage.AddChild(Heading(siemens ? "PROGRAM BLOCK" : "ROUTINE", 11, new Color("344851")));
         projectPage.AddChild(blockName);
@@ -5857,7 +5911,14 @@ public partial class SimulatorShell : CanvasLayer
         taskCommands.AddChild(applyTask);
         taskCommands.AddChild(removeTask);
         projectPage.AddChild(taskCommands);
-        projectTabs.AddChild(projectPage);
+        var objectsScroll = new ScrollContainer
+        {
+            Name = siemens ? "Project objects" : "Controller objects",
+            HorizontalScrollMode = ScrollContainer.ScrollMode.Auto,
+            VerticalScrollMode = ScrollContainer.ScrollMode.Auto,
+        };
+        objectsScroll.AddChild(projectPage);
+        projectTabs.AddChild(objectsScroll);
 
         var searchPage = new VBoxContainer { Name = siemens ? "Find and cross-reference" : "Find All" };
         var searchQuery = new LineEdit
@@ -7381,15 +7442,11 @@ public partial class SimulatorShell : CanvasLayer
         validationIssueList.ItemActivated += index => NavigateValidationIssue((int)index);
         apply.Pressed += () =>
         {
-            var program = document.BuildProgram();
-            var compiled = LadderCompiler.Compile(program);
-            var issues = compiled.Issues
-                .Concat(SceneIoBindingValidator.Validate(program, ScenePoints()))
-                .ToArray();
+            var valid = TryBuildCurrentLadderProgram(out var program, out var issues);
             ShowValidationIssues(issues);
-            if (!compiled.IsValid || issues.Length > 0)
+            if (!valid)
             {
-                output.Text = $"[color=#d64545]Verification failed.[/color] {issues.Length} error(s). Open Error List and double-click an item to navigate.";
+                output.Text = $"[color=#d64545]Verification failed.[/color] {issues.Count} error(s). Open Error List and double-click an item to navigate.";
                 _ladderWorkspaceStatus.Text = "VALIDATION FAILED · PROGRAM NOT LOADED";
                 _ladderWorkspaceStatus.AddThemeColorOverride("font_color", new Color("ef7777"));
                 return;
@@ -8329,7 +8386,11 @@ public partial class SimulatorShell : CanvasLayer
     {
         program = _ladderDocument.BuildProgram();
         var compiled = LadderCompiler.Compile(program);
-        issues = compiled.Issues
+        var emptyIssues = (_ladderDocument.Blocks.All(block => block.Rungs.Count == 0))
+            ? new[] { new LadderValidationIssue("EDIT001", "$.blocks",
+                "This exercise has no ladder networks. Add your scene logic, then Verify + Load before Run.") }
+            : Array.Empty<LadderValidationIssue>();
+        issues = compiled.Issues.Concat(emptyIssues)
             .Concat(SceneIoBindingValidator.Validate(program, ScenePoints()))
             .ToArray();
         return compiled.IsValid && issues.Count == 0;
@@ -8635,7 +8696,7 @@ public partial class SimulatorShell : CanvasLayer
         var inspectorRoot = $"{root}/EditorAndTasks/EditorAndInspector/BottomDockHost/InspectorOutputDock/InspectorOutputBody";
         var toolRoot = $"{root}/EditorAndTasks/ToolDockHost/InstructionAndTags/ToolBody";
         var projectTabsRoot = $"{root}/ProjectDockHost/ProjectOrganization/ProjectBody/ProjectTreeAndTags";
-        var projectObjectsRoot = $"{projectTabsRoot}/Project objects";
+        var projectObjectsRoot = $"{projectTabsRoot}/Project objects/ObjectContent";
         var blockCommandsRoot = $"{projectObjectsRoot}/BlockCommands";
         var taskCommandsRoot = $"{projectObjectsRoot}/TaskCommands";
         var blockName = GetNodeOrNull<LineEdit>($"{projectObjectsRoot}/BlockName");
@@ -8657,9 +8718,9 @@ public partial class SimulatorShell : CanvasLayer
         var undo = GetNodeOrNull<Button>("Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/TIA Portal/VendorChrome/VendorMenuBar/LadderUndo");
         var redo = GetNodeOrNull<Button>("Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/TIA Portal/VendorChrome/VendorMenuBar/LadderRedo");
         var bottomTabs = GetNodeOrNull<TabContainer>($"{inspectorRoot}/InspectorOutputTabs");
-        var validationSummary = GetNodeOrNull<Label>($"{inspectorRoot}/InspectorOutputTabs/Error List/ValidationSummary");
-        var validationIssues = GetNodeOrNull<ItemList>($"{inspectorRoot}/InspectorOutputTabs/Error List/ValidationIssues");
-        var output = GetNodeOrNull<RichTextLabel>($"{inspectorRoot}/InspectorOutputTabs/Output/OutputWindow");
+        var validationSummary = GetNodeOrNull<Label>($"{inspectorRoot}/InspectorOutputTabs/Error List/Content/ValidationSummary");
+        var validationIssues = GetNodeOrNull<ItemList>($"{inspectorRoot}/InspectorOutputTabs/Error List/Content/ValidationIssues");
+        var output = GetNodeOrNull<RichTextLabel>($"{inspectorRoot}/InspectorOutputTabs/Output/Content/OutputWindow");
         const string contextualPropertiesRoot = "Workspace/LadderWorkspace/LadderMargin/LadderBody/LadderEnvironmentTabs/TIA Portal/InstructionPropertiesLayer/InstructionPropertiesPopup/InstructionPropertiesFrame/InstructionPropertiesBody";
         var numericSourceBField = GetNodeOrNull<LineEdit>($"{contextualPropertiesRoot}/NumericPropertyRow/NumericSourceB");
         var numericSourceCField = GetNodeOrNull<LineEdit>($"{contextualPropertiesRoot}/NumericPropertyRow/NumericSourceC");
@@ -8674,7 +8735,7 @@ public partial class SimulatorShell : CanvasLayer
         var numericPropertyRow = GetNodeOrNull<Control>($"{contextualPropertiesRoot}/NumericPropertyRow");
         var jumpLabelPropertyRow = GetNodeOrNull<Control>($"{contextualPropertiesRoot}/JumpLabelPropertyRow");
         var programControlLabel = GetNodeOrNull<LineEdit>($"{contextualPropertiesRoot}/JumpLabelPropertyRow/ProgramControlLabel");
-        var watchRoot = $"{inspectorRoot}/InspectorOutputTabs/Watch table 1";
+        var watchRoot = $"{inspectorRoot}/InspectorOutputTabs/Watch table 1/Content";
         var watchStatus = GetNodeOrNull<Label>($"{watchRoot}/WatchHeader/WatchStatus");
         var watchTable = GetNodeOrNull<Tree>($"{watchRoot}/WatchTable");
         var clearWatch = GetNodeOrNull<Button>($"{watchRoot}/WatchHeader/ClearWatchSymbols");
@@ -8688,7 +8749,7 @@ public partial class SimulatorShell : CanvasLayer
         var toolTabs = GetNodeOrNull<TabContainer>($"{toolRoot}/ToolTabsHost/ToolTabs");
         var toolRail = GetNodeOrNull<VBoxContainer>($"{toolRoot}/ToolTabsHost/ToolTabRail");
         var projectTabs = GetNodeOrNull<TabContainer>(projectTabsRoot);
-        var tagPageRoot = $"{projectTabsRoot}/PLC tags";
+        var tagPageRoot = $"{projectTabsRoot}/PLC tags/TagContent";
         var verifyAndLoad = GetNodeOrNull<Button>($"{tagPageRoot}/ValidateAndLoadButton");
         var editorTagList = GetNodeOrNull<Tree>($"{tagPageRoot}/TagTable");
         var editorTagName = GetNodeOrNull<LineEdit>($"{tagPageRoot}/TagNameRow/NewTagName");
@@ -8850,6 +8911,9 @@ public partial class SimulatorShell : CanvasLayer
         reopenTools.EmitSignal(BaseButton.SignalName.Pressed);
         var toolDockReopened = toolPanelNode.Visible && !reopenTools.Visible;
         var toolSplitRestored = toolSplit.SplitOffsets[0] == toolSplitBeforeCollapse;
+        // As with the tool dock, test a split inside the rendered pane. A
+        // preferred 400px offset can already exceed a short editor's height.
+        bottomSplit.SplitOffsets = [Math.Max(0, (int)bottomSplit.Size.Y / 2)];
         var bottomSplitBeforeCollapse = bottomSplit.SplitOffsets[0];
         collapseBottom.EmitSignal(BaseButton.SignalName.Pressed);
         var bottomDockCollapsed = reopenBottom.Visible && !bottomPanelNode.Visible;

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using RungProof.Next.VirtualController;
 
 internal static class Program
@@ -150,6 +151,7 @@ internal static class Program
         Test("authored palletizer removes commands on every lost permissive", TestPalletizerPermissives);
         Test("authored palletizer counts one layer per completion edge", TestPalletizerLayerCount);
         Test("authored demos 1 through 4 execute their documented behavior", TestOtherAuthoredDemos);
+        Test("scene exercise projects bind declared I/O across the catalog", TestSceneExerciseProjects);
 
         Console.WriteLine($"VIRTUAL_CONTROLLER_TESTS_PASS {_passed}");
         Console.WriteLine($"VIRTUAL_CONTROLLER_TESTS_FAIL {_failed}");
@@ -172,6 +174,53 @@ internal static class Program
         var runtime = Runtime(document.BuildProgram());
         runtime.Run();
         return runtime;
+    }
+
+    private static void TestSceneExerciseProjects()
+    {
+        var root = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".."));
+        var files = Directory.GetFiles(Path.Combine(root, "scenes", "migrated"), "*.scene.json");
+        Equal(77, files.Length);
+        var unsupportedCount = 0;
+        foreach (var path in files)
+        {
+            using var scene = JsonDocument.Parse(File.ReadAllText(path));
+            var id = scene.RootElement.GetProperty("id").GetString()!;
+            var points = new List<SceneIoPoint>();
+            var initial = new Dictionary<string, object?>();
+            if (scene.RootElement.GetProperty("simulation").TryGetProperty("points", out var scenePoints))
+            foreach (var point in scenePoints.EnumerateArray())
+            {
+                var name = point.GetProperty("name").GetString()!;
+                var type = point.GetProperty("type").GetString()!;
+                var owner = point.GetProperty("owner").GetString()!;
+                points.Add(new(name, type, owner, string.Empty, string.Empty));
+                if (!point.TryGetProperty("initial", out var value)) continue;
+                initial[name] = value.ValueKind switch
+                {
+                    JsonValueKind.True => true,
+                    JsonValueKind.False => false,
+                    JsonValueKind.Number when type is "INT" or "DINT" => value.GetInt64(),
+                    JsonValueKind.Number => value.GetDouble(),
+                    _ => null,
+                };
+            }
+            var document = SceneLadderProject.Create(id, "Exercise", points, initial, out var unsupported);
+            unsupportedCount += unsupported.Count;
+            Equal(id, document.SourceSceneId);
+            True(document.Blocks.All(block => block.Rungs.Count == 0));
+            var program = document.BuildProgram();
+            True(LadderCompiler.Compile(program).IsValid);
+            Equal(0, SceneIoBindingValidator.Validate(program, points).Count);
+            foreach (var tag in document.Tags)
+            {
+                var point = points.Single(point => point.Name == tag.Binding);
+                Equal(point.Owner == "PC" ? PlcVariableRole.Input : PlcVariableRole.Output, tag.Role);
+                True(SceneIoBindingValidator.TypesCompatible(tag.Type, point.Type));
+            }
+            foreach (var point in unsupported) False(document.Tags.Any(tag => tag.Binding == point.Name));
+        }
+        Console.WriteLine($"SCENE_EXERCISE_CATALOG scenes={files.Length} unsupportedIOTypes={unsupportedCount}");
     }
 
     private static void TestOtherAuthoredDemos()
