@@ -31,7 +31,25 @@ public static class LadderEditorProjectJson
         WriteIndented = true,
     };
 
-    public static string Save(LadderEditorDocument document)
+    public static string Save(LadderEditorDocument document) => Save(document, contentOnly: false);
+
+    public static bool HasUnsavedChanges(LadderEditorDocument document, string? savedJson)
+    {
+        if (savedJson is null) return true;
+        try
+        {
+            var saved = JsonSerializer.Deserialize<ProjectDto>(savedJson, Options);
+            if (saved is null) return true;
+            // Selecting a block is navigation. Preserve it in saved files,
+            // but do not confuse it with an edit to the project contents.
+            saved.ActiveBlockIndex = 0;
+            return !string.Equals(JsonSerializer.Serialize(saved, Options),
+                Save(document, contentOnly: true), StringComparison.Ordinal);
+        }
+        catch (JsonException) { return true; }
+    }
+
+    private static string Save(LadderEditorDocument document, bool contentOnly)
     {
         ArgumentNullException.ThrowIfNull(document);
         var snapshot = document.CaptureSnapshot();
@@ -43,7 +61,7 @@ public static class LadderEditorProjectJson
             Name = snapshot.Name,
             SourceSceneId = snapshot.SourceSceneId,
             ScanPeriodMs = snapshot.ScanPeriod.TotalMilliseconds,
-            ActiveBlockIndex = snapshot.ActiveBlockIndex,
+            ActiveBlockIndex = contentOnly ? 0 : snapshot.ActiveBlockIndex,
             EntryBlockId = snapshot.EntryBlockId,
             NextId = snapshot.NextId,
             Tags = snapshot.Tags.Select(Tag).ToList(),

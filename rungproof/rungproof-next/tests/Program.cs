@@ -152,12 +152,31 @@ internal static class Program
         Test("authored palletizer counts one layer per completion edge", TestPalletizerLayerCount);
         Test("authored demos 1 through 4 execute their documented behavior", TestOtherAuthoredDemos);
         Test("scene exercise projects bind declared I/O across the catalog", TestSceneExerciseProjects);
+        Test("ladder dirty state ignores block browsing but retains project edits", TestBlockBrowsingDirtyState);
 
         Console.WriteLine($"VIRTUAL_CONTROLLER_TESTS_PASS {_passed}");
         Console.WriteLine($"VIRTUAL_CONTROLLER_TESTS_FAIL {_failed}");
         Console.WriteLine("REAL_PLC_TRANSPORT_CONSTRUCTED FALSE");
         Console.WriteLine("REAL_PLC_CONNECTION_ATTEMPTED FALSE");
         return _failed == 0 ? 0 : 1;
+    }
+
+    private static void TestBlockBrowsingDirtyState()
+    {
+        True(AuthoredDemoLadderPrograms.TryCreate("lab-11-13-xy-palletizing", out var document));
+        var baseline = LadderEditorProjectJson.Save(document);
+        for (var index = 0; index < document.Blocks.Count; index++)
+        {
+            document.SelectBlock(index);
+            False(LadderEditorProjectJson.HasUnsavedChanges(document, baseline));
+        }
+        var opened = LadderEditorProjectJson.Load(LadderEditorProjectJson.Save(document));
+        True(opened.IsReadable);
+        Equal(document.ActiveBlockIndex, opened.Document!.ActiveBlockIndex);
+        document.SelectBlock(0);
+        document.Rungs[0].Label += " edited";
+        True(LadderEditorProjectJson.HasUnsavedChanges(document, baseline));
+        True(LadderEditorProjectJson.HasUnsavedChanges(document, null));
     }
 
     private static VirtualControllerRuntime PalletizerRuntime()

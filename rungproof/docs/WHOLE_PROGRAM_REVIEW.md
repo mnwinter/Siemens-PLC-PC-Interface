@@ -45,12 +45,12 @@ No changes have been pushed. No plant connection has been attempted.
 | --- | --- | --- |
 | Launch/import/toolchain | Pinned Godot/.NET start; native window opened; build clean | Fresh install/export and missing-dependency recovery |
 | All scene data | All 77 catalog entries load; 71 have declared cases and pass; six have none. Rerun logs in `.tools/plant-scene-review` | Visual controls and runtime coverage; many declared cases cover only initial state |
-| Authored demos | All five compile; 140 controller tests pass. Native demos 1-4 counter, delay, conveyor/photoeye, and batch-valid threshold exercised; Demo 5 inputs/lost-permissive previously exercised | All FB/FC/DB views, full animation/bindings, repeated run/reset |
-| Operator controls | Demo 5 inputs, Run, Stop, command removal and normal conveyor Start/E-stop/Reset retested with real mouse input; event history displayed | E-stop/reset across other applicable scenes; visible runtime summary clipping |
-| Conveyor/pusher/tank plant execution | Pusher ladder completes repeated transfers with sensor/stroke feedback; tank fill/drain, analog feedback, limits, saturation, Stop/Reset regression passes; conveyor model matches eight Python traces / 83 snapshots | Native pusher/tank 3D and normal file-loading inspection pending; other scene runtime coverage |
-| Ladder editor | Native add-network/contact, Undo/Redo, Save, cross-scene Open, invalid draft feedback, retained good execution, and multi-scene close Save/Cancel verified; rendered interaction verifier passed | Native drag insertion, tag editing, block interfaces, watch, help; crash recovery |
-| Scene/workspace authoring | Rendered workspace verifier passed, including mapping Run and Stop | Native asset placement, mappings, selection, undo, save/load, malformed files |
-| Layout/camera | Split 1200x675 and 1600x900 regressions; native minimum/default/maximized views, points collapse, browser, and resize reflow inspected | Remaining native block/tag/edit flows and runtime summary clipping; broader scene visual acceptance |
+| Authored demos | All five compile; 141 controller tests pass. Native demos 1-4 counter, delay, conveyor/photoeye, and batch-valid threshold exercised; Demo 5 inputs/lost-permissive and FB/FC/DB browsing exercised | Full palletizing animation/bindings, mixed instruction coverage, repeated run/reset |
+| Operator controls | Native Run/Stop, normal conveyor Start/E-stop/Reset, action inputs and history; complete runtime/health rails now scroll at 1200x675 and 1600x900 | E-stop/reset across other applicable scenes |
+| Conveyor/pusher/tank plant execution | Pusher repeated transfers, stroke/sensor feedback, Stop and Reset; tank fill, analog/full-level feedback, Stop and Reset inspected natively through File/Open. Fill/drain regression passes; model matches eight Python traces / 83 snapshots | Other scene runtime coverage; native tank drain |
+| Ladder editor | Native drag insertion/Undo, block browsing, Save/Open, invalid drafts, retained execution, and multi-scene close guards verified; rendered interaction verifier passed | Native tag editing, interface editing, watch, help; crash recovery |
+| Scene/workspace authoring | Rendered mappings, transforms, atomic Save and replacement guards; native asset placement/selection, Undo/Redo, close Cancel, scene-change Save and workspace Open verified | Native mappings/transforms and malformed files |
+| Layout/camera | Split regressions and native resize/points/browser/scrollable rails inspected; block summary bounded and hovered selection contrast repaired | Remaining native tag/edit flows; broader scene visual acceptance |
 | External execution boundary | 16 offline bridge/contract/playback tests; 16 fake Python tests; fake full-app exchange/playback regression and native Run/Stop/Reset; profile guards, exclusive source, atomic output | Broader profile/cadence integration, reconnect, configuration editing and mapping UI; authorized live commissioning |
 | Python canonical interface / legacy tools | 129 root tests and 16 fake live/diagnostic tests passed | Continue source review for legacy conflicts |
 | Shutdown/resource lifecycle | Orphan Studio block selector repaired; diagnostic/rendered tests exit without resource leak reports; native launch/close completes; 13 offline connection lifecycle tests pass | Repeat resource behavior during longer native authoring sessions |
@@ -67,9 +67,9 @@ No changes have been pushed. No plant connection has been attempted.
   reconnect remain under review. No live communication has been verified.
 - Demo 5 currently commands output indicators; complete palletizing motion and
   reusable FB interface/instance behavior require further verification.
-- Unsaved workspace placements/groups/links are not yet protected by the
-  ladder close guard. Scene changes and workspace Load still replace them.
-  Workspace dirty state now compares the document with its saved baseline.
+- Workspace placements/groups/links now compare with a saved baseline and are
+  protected on scene changes, Load, cross-scene ladder Open and close. Failed or
+  cancelled Save prevents replacement. Crash/power-loss recovery remains open.
 
 ## Checkpoint results
 
@@ -449,6 +449,29 @@ Native sessions closed normally with no ERROR or leak reports. Logs include
 `.tools/operator-native-narrow-final.log`. Whole-program review remains active;
 remaining editor interactions, demo presentation/sequence boundaries, external
 profiles, installation/export and legacy-path conflicts still need review.
+
+## Editor browsing and contrast checkpoint - 2026-10-04
+
+Restore tag `codex/editor-review-baseline-20261004` at `aca9e3f` precedes
+these fixes. Selecting another block previously marked the project unsaved and
+caused an unnecessary close prompt. Dirty comparison now excludes navigation
+while saved files still retain the selected block. Real network edits and
+cached drafts still require Save/Discard/Cancel. The controller suite passes
+141/141, including every Demo 5 block, saved navigation and actual edits.
+
+Native drag insertion at an FB wire and Undo were exercised. FB, FC and DB
+pages were inspected; selecting/hovering rows now keeps readable text and
+backgrounds. The shared selection styles cover project, instruction, interface,
+tag, watch, validation and search browsers. The interface summary stays bounded
+and scrollable, and explicitly identifies declarations/shared project tags.
+Offline parameter passing and per-instance FB storage remain unimplemented;
+the UI must not imply those declarations execute as real Siemens interfaces.
+
+Build (zero warnings/errors), rendered ladder interaction and split/layout
+checks pass. Logs: `.tools/editor-review-controller.log`,
+`.tools/editor-review-rendered.log`, `.tools/editor-review-split.log`, and
+`.tools/editor-review-native.log`. Native clean block browsing closes without a
+false save prompt. Whole-program review remains active.
 
 ## Verification boundary
 

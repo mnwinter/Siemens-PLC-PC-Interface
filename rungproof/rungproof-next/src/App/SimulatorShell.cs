@@ -3621,7 +3621,7 @@ public partial class SimulatorShell : CanvasLayer
         }
     }
 
-    private static void ConfigureSelectableList(ItemList list)
+    private static void ConfigureSelectableList(Control list)
     {
         // Godot's Windows compatibility renderer can omit ItemList's default
         // selected background.  Every simulator browser uses an explicit high-
@@ -3629,6 +3629,18 @@ public partial class SimulatorShell : CanvasLayer
         list.AddThemeColorOverride("font_selected_color", new Color("ffffff"));
         list.AddThemeStyleboxOverride("selected", BoxStyle(new Color("276b89"), new Color("174f68")));
         list.AddThemeStyleboxOverride("selected_focus", BoxStyle(new Color("276b89"), new Color("174f68")));
+        if (list is Tree)
+        {
+            // Tree draws separate styles while the pointer is over a row.
+            // Keep selection readable with and without keyboard focus.
+            list.AddThemeColorOverride("font_hovered_color", new Color("263943"));
+            list.AddThemeColorOverride("font_hovered_dimmed_color", new Color("263943"));
+            list.AddThemeColorOverride("font_hovered_selected_color", new Color("ffffff"));
+            list.AddThemeStyleboxOverride("hovered", BoxStyle(new Color("d9e9ef"), new Color("b6cbd4")));
+            list.AddThemeStyleboxOverride("hovered_dimmed", BoxStyle(new Color("d9e9ef"), new Color("b6cbd4")));
+            list.AddThemeStyleboxOverride("hovered_selected", BoxStyle(new Color("276b89"), new Color("174f68")));
+            list.AddThemeStyleboxOverride("hovered_selected_focus", BoxStyle(new Color("276b89"), new Color("174f68")));
+        }
     }
 
     private void FilterAssets(string query)
@@ -4001,6 +4013,13 @@ public partial class SimulatorShell : CanvasLayer
         return LadderEditorProjectJson.Save(document);
     }
 
+    private static bool DraftHasUnsavedChanges(SceneLadderDraft draft)
+    {
+        var document = new LadderEditorDocument();
+        document.RestoreSnapshot(draft.Document);
+        return LadderEditorProjectJson.HasUnsavedChanges(document, draft.SavedJson);
+    }
+
     public void RequestWindowClose()
     {
         Action close = () => RequestLadderAction(() => GetTree().Quit(), allScenes: true);
@@ -4012,10 +4031,10 @@ public partial class SimulatorShell : CanvasLayer
         if (_pendingLadderAction is not null) return;
         var currentId = _activeScene?.Id ?? string.Empty;
         var current = CaptureSceneLadderDraft();
-        if (current.SavedJson != DraftJson(current)) _pendingDraftSaves.Enqueue((currentId, current));
+        if (DraftHasUnsavedChanges(current)) _pendingDraftSaves.Enqueue((currentId, current));
         if (allScenes)
             foreach (var entry in _sceneLadderDrafts)
-                if (entry.Key != currentId && entry.Value.SavedJson != DraftJson(entry.Value))
+                if (entry.Key != currentId && DraftHasUnsavedChanges(entry.Value))
                     _pendingDraftSaves.Enqueue((entry.Key, entry.Value));
         if (_pendingDraftSaves.Count == 0) { action(); return; }
         _pendingLadderAction = action;
@@ -4505,6 +4524,7 @@ public partial class SimulatorShell : CanvasLayer
         };
         organization.AddThemeColorOverride("font_color", new Color("263943"));
         organization.AddThemeColorOverride("font_selected_color", new Color("ffffff"));
+        ConfigureSelectableList(organization);
         organization.AddThemeColorOverride("guide_color", new Color("9aa7ad"));
         organization.AddThemeStyleboxOverride("panel", BoxStyle(new Color("f8f9fa"), new Color("b7c0c5")));
         var controllerItem = organization.CreateItem();
@@ -4750,6 +4770,7 @@ public partial class SimulatorShell : CanvasLayer
         interfaceTable.SetColumnTitle(2, "TYPE");
         interfaceTable.SetColumnTitle(3, "INITIAL");
         interfaceTable.AddThemeColorOverride("font_color", new Color("263943"));
+        ConfigureSelectableList(interfaceTable);
         interfaceTable.AddThemeStyleboxOverride("panel", BoxStyle(new Color("f8f9fa"), new Color("b7c0c5")));
         var taskTarget = new OptionButton { Name = "TaskTarget", CustomMinimumSize = new Vector2(180, 32) };
         var taskName = new LineEdit
@@ -4815,12 +4836,8 @@ public partial class SimulatorShell : CanvasLayer
         tagList.SetColumnCustomMinimumWidth(3, 72);
         tagList.SetColumnExpand(4, true);
         tagList.AddThemeColorOverride("font_color", new Color("263943"));
-        // Keep selected rows legible even on renderers that do not paint ItemList's
-        // custom selection style (observed in the Windows compatibility renderer).
-        tagList.AddThemeColorOverride("font_selected_color", new Color("ffffff"));
+        ConfigureSelectableList(tagList);
         tagList.AddThemeStyleboxOverride("panel", BoxStyle(new Color("f8f9fa"), new Color("b7c0c5")));
-        tagList.AddThemeStyleboxOverride("selected", BoxStyle(new Color("276b89"), new Color("174f68")));
-        tagList.AddThemeStyleboxOverride("selected_focus", BoxStyle(new Color("276b89"), new Color("174f68")));
         var tagName = new LineEdit { Name = "NewTagName", PlaceholderText = "new_bool_tag" };
         var tagType = new OptionButton { Name = "NewTagType" };
         tagType.AddItem("BOOL");
@@ -5229,8 +5246,7 @@ public partial class SimulatorShell : CanvasLayer
             var activeBlockName = document.Blocks.Count > 0
                 ? document.Blocks[Math.Clamp(document.ActiveBlockIndex, 0, document.Blocks.Count - 1)].Name
                 : "<no block>";
-            var projectDirty = _ladderSavedProjectJson is null
-                || !string.Equals(_ladderSavedProjectJson, LadderEditorProjectJson.Save(document), StringComparison.Ordinal);
+            var projectDirty = LadderEditorProjectJson.HasUnsavedChanges(document, _ladderSavedProjectJson);
             var projectFileName = _ladderProjectPath is null
                 ? "Untitled.rpproj.json"
                 : System.IO.Path.GetFileName(_ladderProjectPath);
@@ -5303,8 +5319,8 @@ public partial class SimulatorShell : CanvasLayer
                     ? (activeBlock.BlockType == LadderBlockType.DataBlock ? "[b]DB DATA[/b]  ·  no members declared" : "[b]BLOCK INTERFACE[/b]  ·  no parameters declared")
                     : string.Join("    ", activeBlock.Interface.Select(parameter =>
                         $"[b]{parameter.Section.ToString().ToUpperInvariant()}[/b] {Escape(parameter.Name)} : {parameter.Type.ToString().ToUpperInvariant()}"));
-                blockInterfaceSummary!.Text = $"[b]{activeBlock.BlockType switch { LadderBlockType.OrganizationBlock => "OB", LadderBlockType.FunctionBlock => "FB", LadderBlockType.Function => "FC", LadderBlockType.DataBlock => "DB", _ => "BLOCK" }} INTERFACE[/b]    {interfaceText}";
-                blockInterfaceSummary.Visible = siemens && activeBlock.Interface.Count > 0;
+                blockInterfaceSummary!.Text = $"[b]{activeBlock.BlockType switch { LadderBlockType.OrganizationBlock => "OB", LadderBlockType.FunctionBlock => "FB", LadderBlockType.Function => "FC", LadderBlockType.DataBlock => "DB", _ => "BLOCK" }} DECLARATIONS[/b]  ·  shared project tags\n{interfaceText}";
+                blockInterfaceSummary.Visible = siemens && (activeBlock.Interface.Count > 0 || activeBlock.BlockType == LadderBlockType.DataBlock);
             }
             while (taskItems.Count < document.Tasks.Count)
             {
@@ -5682,8 +5698,9 @@ public partial class SimulatorShell : CanvasLayer
             // wrapped text at the initial narrow width and can force the
             // entire workbench beyond the viewport and the points dock.
             FitContent = false,
-            CustomMinimumSize = new Vector2(0, 42),
+            CustomMinimumSize = new Vector2(0, 64),
             ScrollActive = true,
+            TooltipText = "Scroll to inspect interface declarations. Offline calls currently use shared project tags; parameter passing and per-instance FB storage are not implemented.",
         };
         blockInterfaceSummary.AddThemeColorOverride("default_color", new Color("263943"));
         blockInterfaceSummary.AddThemeStyleboxOverride("normal", BoxStyle(new Color("e8eef1"), new Color("9aa7ad")));
@@ -5759,6 +5776,7 @@ public partial class SimulatorShell : CanvasLayer
         };
         validationIssueList.AddThemeColorOverride("font_color", new Color("8c2f2f"));
         validationIssueList.AddThemeColorOverride("font_selected_color", new Color("ffffff"));
+        ConfigureSelectableList(validationIssueList);
         validationIssueList.AddThemeStyleboxOverride("panel", BoxStyle(new Color("fffafa"), new Color("c9a2a2")));
         errorPage.AddChild(validationIssueList);
         validationIssueList.CustomMinimumSize = new Vector2(0, 66);
@@ -5819,10 +5837,8 @@ public partial class SimulatorShell : CanvasLayer
         watchTable.SetColumnExpand(4, true);
         watchTable.SetColumnExpand(5, true);
         watchTable.AddThemeColorOverride("font_color", new Color("263943"));
-        watchTable.AddThemeColorOverride("font_selected_color", new Color("ffffff"));
+        ConfigureSelectableList(watchTable);
         watchTable.AddThemeStyleboxOverride("panel", BoxStyle(new Color("ffffff"), new Color("b7c0c5")));
-        watchTable.AddThemeStyleboxOverride("selected", BoxStyle(accent, accent));
-        watchTable.AddThemeStyleboxOverride("selected_focus", BoxStyle(accent, accent));
         watchPage.AddChild(watchTable);
         watchTable.CustomMinimumSize = new Vector2(0, 66);
         AddInspectorPage(watchPage);
@@ -5994,6 +6010,7 @@ public partial class SimulatorShell : CanvasLayer
         };
         instructionTree.AddThemeColorOverride("font_color", new Color("263943"));
         instructionTree.AddThemeColorOverride("font_selected_color", new Color("ffffff"));
+        ConfigureSelectableList(instructionTree);
         instructionTree.AddThemeColorOverride("guide_color", new Color("aeb8bd"));
         instructionTree.AddThemeStyleboxOverride("panel", BoxStyle(new Color("f8f9fa"), new Color("b7c0c5")));
         var instructionRoot = instructionTree.CreateItem();
@@ -6225,6 +6242,10 @@ public partial class SimulatorShell : CanvasLayer
         interfaceHeading = Heading(siemens ? "FB / FC INTERFACE" : "ROUTINE PARAMETERS", 11, new Color("344851"));
         interfaceHeading.Name = "BlockInterfaceHeading";
         projectPage.AddChild(interfaceHeading);
+        var interfaceExecutionNote = Heading("Declarations only; shared project tags.", 11, new Color("344851"));
+        interfaceExecutionNote.Name = "InterfaceExecutionNote";
+        interfaceExecutionNote.TooltipText = "Interface declarations are saved. Offline block calls do not yet pass parameters or allocate per-instance FB storage. Declare executable variables in PLC tags.";
+        projectPage.AddChild(interfaceExecutionNote);
         var interfaceFields = new HBoxContainer { Name = "InterfaceFields" };
         interfaceFields.AddThemeConstantOverride("separation", 3);
         interfaceFields.AddChild(interfaceName);
@@ -6290,6 +6311,7 @@ public partial class SimulatorShell : CanvasLayer
         };
         searchResults.AddThemeColorOverride("font_color", new Color("263943"));
         searchResults.AddThemeColorOverride("font_selected_color", new Color("ffffff"));
+        ConfigureSelectableList(searchResults);
         searchResults.AddThemeStyleboxOverride("panel", BoxStyle(new Color("f8f9fa"), new Color("b7c0c5")));
         searchPage.AddChild(searchResults);
         var visibleSearchResults = new List<LadderProjectReference>();

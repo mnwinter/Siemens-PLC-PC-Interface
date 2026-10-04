@@ -79,6 +79,16 @@ Next review areas are remaining editor workflows, Demo 4/5 presentation and
 complete sequence boundaries, external profiles, install/export and legacy
 conflicts. The goal is active; prior pending-rail statements are historical.
 
+Latest editor checkpoint: block navigation no longer marks a project dirty or
+prompts on clean close; save files still preserve the active block. The
+controller suite passes 141/141. Native FB/FC/DB browsing and drag insertion/Undo
+were exercised. All editor Tree browsers now use readable selected/hovered
+states; interface summaries are bounded and explicitly identify declarations
+and shared project tags. Offline calls do not implement parameter passing or
+per-instance FB storage. Build, rendered ladder interaction and split tests
+pass. See the editor browsing checkpoint in `WHOLE_PROGRAM_REVIEW.md`; keep the
+goal active for remaining editor, demo sequence, external and install review.
+
 RungProof is a Windows PLC visual simulator and training environment. A user
 selects a scenario, sees the 3D machine, edits ladder logic in a TIA Portal or
 Studio 5000 styled workbench, runs a deterministic built-in controller, and
