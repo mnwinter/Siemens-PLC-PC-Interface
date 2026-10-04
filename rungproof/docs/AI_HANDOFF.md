@@ -46,6 +46,13 @@ File/Open inspection are still pending because a Windows update overlay
 blocks native input. Generated native review projects are under
 `rungproof-next/.tools/plant-review-*.rpproj.json`. Keep the goal active.
 
+Workspace save now completes a temporary file before replacing the destination;
+Windows failed-replacement preservation/cleanup/retry and the rendered workspace
+regression pass. Unsaved placements/groups/links still need scene/Load/close
+guards and saved-baseline comparison for Undo. Preserve synchronous scene
+attachment during ladder Open; a deferred Main SceneRequested callback alone
+would reopen that prior corruption bug. See the workspace write checkpoint.
+
 RungProof is a Windows PLC visual simulator and training environment. A user
 selects a scenario, sees the 3D machine, edits ladder logic in a TIA Portal or
 Studio 5000 styled workbench, runs a deterministic built-in controller, and

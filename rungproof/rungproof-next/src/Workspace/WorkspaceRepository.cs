@@ -27,24 +27,25 @@ public static class WorkspaceRepository
     )
     {
         ValidateShape(document);
-        var directory = ProjectSettings.GlobalizePath("user://workspaces");
         var json = JsonSerializer.Serialize(document, JsonOptions);
-        if (System.IO.Path.IsPathRooted(resourcePath))
+        var path = System.IO.Path.GetFullPath(ProjectSettings.GlobalizePath(resourcePath));
+        var directory = System.IO.Path.GetDirectoryName(path);
+        if (string.IsNullOrWhiteSpace(directory))
+            throw new InvalidOperationException("Workspace path has no parent directory.");
+        System.IO.Directory.CreateDirectory(directory);
+        // Finish writing in the destination directory before replacing the
+        // saved workspace. A failed write cannot truncate the previous file.
+        var temporary = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
+        try
         {
-            var absoluteDirectory = System.IO.Path.GetDirectoryName(resourcePath);
-            if (string.IsNullOrWhiteSpace(absoluteDirectory))
-                throw new InvalidOperationException("Workspace path has no parent directory.");
-            System.IO.Directory.CreateDirectory(absoluteDirectory);
-            System.IO.File.WriteAllText(resourcePath, json);
-            return resourcePath;
+            System.IO.File.WriteAllText(temporary, json);
+            System.IO.File.Move(temporary, path, overwrite: true);
         }
-        var directoryError = DirAccess.MakeDirRecursiveAbsolute(directory);
-        if (directoryError != Error.Ok && directoryError != Error.AlreadyExists)
-            throw new InvalidOperationException($"Unable to create workspace directory: {directoryError}.");
-        using var file = GodotFileAccess.Open(resourcePath, GodotFileAccess.ModeFlags.Write)
-            ?? throw new InvalidOperationException("Unable to open workspace file for writing.");
-        file.StoreString(json);
-        return ProjectSettings.GlobalizePath(resourcePath);
+        finally
+        {
+            if (System.IO.File.Exists(temporary)) System.IO.File.Delete(temporary);
+        }
+        return path;
     }
 
     public static WorkspaceDocument Load(

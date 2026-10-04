@@ -67,6 +67,9 @@ No changes have been pushed. No plant connection has been attempted.
   reconnect remain under review. No live communication has been verified.
 - Demo 5 currently commands output indicators; complete palletizing motion and
   reusable FB interface/instance behavior require further verification.
+- Unsaved workspace placements/groups/links are not yet protected by the
+  ladder close guard. Scene changes and workspace Load replace them, and Undo
+  marks the workspace dirty even when returning to its saved baseline.
 
 ## Checkpoint results
 
@@ -349,6 +352,25 @@ No visual acceptance is claimed for this checkpoint. Review fixtures are
 generated under `.tools/plant-review-scene2.rpproj.json` and
 `.tools/plant-review-tank.rpproj.json` for subsequent native File/Open testing.
 The review goal remains active and no PLC connection was attempted.
+
+## Workspace write checkpoint - 2026-10-04
+
+Restore tag `codex/workspace-review-baseline-20261004` at `84714d7`
+precedes this fix. Workspace saves previously wrote over the destination
+directly. They now finish a temporary file in the destination directory and
+replace the saved workspace only after that write completes, for both absolute
+and Godot user paths. The rendered workspace regression passes its existing
+group, hierarchy, mapping, transform, Undo/Redo and Save/Load assertions.
+A Windows exclusive-reader failure check also passes: the original saved JSON
+survives failed replacement, the temporary file is removed, and retry succeeds.
+Build is clean; log: `.tools/workspace-atomic-final.log`.
+
+Remaining work: preserve/protect unsaved workspace changes at scene replacement,
+workspace Load and close, and compare Undo state against the saved document.
+Keep cross-scene ladder Open synchronous until attachment is complete; inserting
+an asynchronous guard only in Main's SceneRequested callback would restore the
+ladder into the old scene before attachment and reintroduce the earlier bug.
+Native inspection remains pending behind the Windows update overlay.
 
 ## Verification boundary
 

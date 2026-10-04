@@ -1653,6 +1653,7 @@ public partial class Main : Node3D
             var nestedUngroupUndoPassed = _workspaceGroups.Count == 3
                 && _workspaceGroups.Count(group => group.ParentGroupId == nestedRootId) == 2;
             var expected = CreateWorkspaceDocument();
+            VerifyWorkspaceWriteFailure(expected);
             var invalidSibling = new WorkspaceGroup("group-overlap", "Overlapping sibling",
                 [expected.Placements[0].InstanceId, expected.Placements[1].InstanceId]);
             var siblingOverlapRejected = false;
