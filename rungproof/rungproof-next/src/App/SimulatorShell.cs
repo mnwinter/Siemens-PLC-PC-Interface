@@ -359,6 +359,7 @@ public partial class SimulatorShell : CanvasLayer
         _activeSceneName = ScenarioDisplayName(scene);
         _runtime = runtime;
         _runtime.StateChanged += RefreshRuntimeState;
+        RebuildOperatorActions();
         LoadAuthoredDemoLadder(scene.Id);
         AlignDefaultConveyorBindings(scene);
         _sceneTitle.Text = _activeSceneName;
@@ -2397,10 +2398,17 @@ public partial class SimulatorShell : CanvasLayer
         _workspaceStatus.AddThemeColorOverride("font_color", new Color("7fa7ba"));
     }
 
-    private void RefreshOperatorPanels()
+    private void RebuildOperatorActions()
     {
-        if (_runtime is null || _activeScene is null || _operatorActions is null) return;
-        foreach (var child in _operatorActions.GetChildren()) child.QueueFree();
+        if (_runtime is null || _operatorActions is null) return;
+        // Controls must survive between mouse-down and mouse-up. A controller
+        // publishes several updates per scan; rebuilding here on every update
+        // discarded the pressed button before it could emit Pressed.
+        foreach (var child in _operatorActions.GetChildren())
+        {
+            _operatorActions.RemoveChild(child);
+            child.QueueFree();
+        }
         foreach (var action in _runtime.GetActions())
         {
             var button = ToolbarButton($"Action_{action.Id.Replace('-', '_')}", action.Label.ToUpperInvariant(), new Color("276b89"));
@@ -2409,16 +2417,26 @@ public partial class SimulatorShell : CanvasLayer
         }
         if (_operatorActions.GetChildCount() == 0)
             _operatorActions.AddChild(SectionLabel("No scene-specific actions declared."));
+    }
 
-        _transportScene.Text = $"{Escape(_activeScene.Name)} · {(_runtime.IsRunning ? "RUNNING" : "STOPPED")}";
+    private bool ActiveRuntimeRunning => _externalMode
+        ? _runtime?.IsRunning == true
+        : _virtualSnapshot is not null
+            ? _virtualSnapshot.State == VirtualControllerState.Running
+            : _runtime?.IsRunning == true;
+
+    private void RefreshOperatorPanels()
+    {
+        if (_runtime is null || _activeScene is null || _operatorActions is null) return;
+        _transportScene.Text = $"{Escape(_activeSceneName)} · {(ActiveRuntimeRunning ? "RUNNING" : "STOPPED")}";
         _operatorSceneSummary.Text =
             $"[font_size=18][b]{Escape(_activeScene.Name)}[/b][/font_size]\n" +
             $"[color=#9db4c0]{Escape(_activeScene.Description)}[/color]\n\n" +
             $"[color=#7fa7ba]{_activeScene.Equipment.Count} declared equipment items · symbolic local model[/color]";
-        var external = _connection is ExternalPlcRuntimeClient;
+        var external = _externalMode;
         _operatorRuntimeSummary.Text =
             $"[b]Player[/b]  {(external ? "EXTERNAL PLC" : "BUILT-IN SIMULATOR")}\n" +
-            $"[b]State[/b]  {(_runtime.IsRunning ? "RUNNING" : "STOPPED")}\n" +
+            $"[b]State[/b]  {(ActiveRuntimeRunning ? "RUNNING" : "STOPPED")}\n" +
             $"[b]Scene[/b]  {Escape(_activeScene.Id)}\n" +
             $"[b]Points[/b]  {_runtime.Points.Count}\n" +
             $"[b]PLC exchange[/b]  {(external ? _connection.State.ToString().ToUpperInvariant() : "LOCAL MODEL")}";
@@ -3581,11 +3599,11 @@ public partial class SimulatorShell : CanvasLayer
     private void RefreshRuntimeState()
     {
         if (_runtime is null) return;
-        _runtimeStatus.Text = _runtime.IsRunning
+        _runtimeStatus.Text = ActiveRuntimeRunning
             ? "LOCAL RUNTIME  •  RUNNING"
             : "LOCAL RUNTIME  •  STOPPED";
         _runtimeStatus.AddThemeColorOverride("font_color",
-            _runtime.IsRunning ? new Color("65d49a") : new Color("8aa5b4"));
+            ActiveRuntimeRunning ? new Color("65d49a") : new Color("8aa5b4"));
         RefreshIoInspector();
         RefreshOperatorPanels();
         RefreshOperatorPointTables();
@@ -3731,10 +3749,13 @@ public partial class SimulatorShell : CanvasLayer
             message = "PROJECT REJECTED · " + loaded.Issues[0].Message.ToUpperInvariant();
             return false;
         }
+        // Loading a scene installs its authored starter program. Do that
+        // first, then restore the user's saved program so it cannot be replaced
+        // by the demo template during a cross-scene open.
+        if (loaded.Document.SourceSceneId.Length > 0
+            && !string.Equals(_activeScene?.Id, loaded.Document.SourceSceneId, StringComparison.Ordinal))
+            SceneRequested?.Invoke(loaded.Document.SourceSceneId);
         _ladderDocument.RestoreSnapshot(loaded.Document.CaptureSnapshot());
-        if (_ladderDocument.SourceSceneId.Length > 0
-            && !string.Equals(_activeScene?.Id, _ladderDocument.SourceSceneId, StringComparison.Ordinal))
-            SceneRequested?.Invoke(_ladderDocument.SourceSceneId);
         _ladderProjectPath = System.IO.Path.GetFullPath(path);
         _ladderSavedProjectJson = LadderEditorProjectJson.Save(_ladderDocument);
         _ladderHistory.Clear();
@@ -3758,6 +3779,41 @@ public partial class SimulatorShell : CanvasLayer
         _ladderWorkspaceStatus.AddThemeColorOverride("font_color", new Color("65d49a"));
         message = $"PROJECT OPENED · {System.IO.Path.GetFileName(path)} · VERIFIED + LOADED OFFLINE";
         return true;
+    }
+
+    public bool VerifyCrossSceneProjectOpen(out string result)
+    {
+        var sceneId = _activeScene?.Id ?? string.Empty;
+        var original = _ladderDocument.CaptureSnapshot();
+        var savedJson = _ladderSavedProjectJson;
+        var projectPath = _ladderProjectPath;
+        var path = System.IO.Path.Combine(OS.GetUserDataDir(),
+            $"cross-scene-review-{Guid.NewGuid():N}.rpproj.json");
+        try
+        {
+            const string marker = "Saved user network - cross-scene regression";
+            _ladderDocument.Rungs[0].Label = marker;
+            var saved = TrySaveLadderProject(path, out var saveResult);
+            SceneRequested?.Invoke("lab-11-13-xy-palletizing");
+            var changedScene = _activeScene?.Id != sceneId;
+            var opened = TryOpenLadderProject(path, out var openResult);
+            var preserved = changedScene && saved && opened
+                && _activeScene?.Id == sceneId
+                && _ladderDocument.Rungs[0].Label == marker
+                && _virtualProgram?.Networks[0].Label == marker;
+            result = $"preserved={preserved} changedScene={changedScene} {saveResult} {openResult}";
+            return preserved;
+        }
+        finally
+        {
+            VirtualControllerDisabled?.Invoke();
+            if (_activeScene?.Id != sceneId) SceneRequested?.Invoke(sceneId);
+            _ladderDocument.RestoreSnapshot(original);
+            _ladderSavedProjectJson = savedJson;
+            _ladderProjectPath = projectPath;
+            foreach (var refresh in _ladderEditorRefreshers) refresh();
+            System.IO.File.Delete(path);
+        }
     }
 
     private Control BuildLadderEnvironment(string tabName, bool siemens)
@@ -8164,6 +8220,7 @@ public partial class SimulatorShell : CanvasLayer
         foreach (var refresh in _ladderWatchRefreshers) refresh(null);
         _cycleStatus.Text = "CYCLE  —  ·  LADDER NOT LOADED";
         _cycleStatus.AddThemeColorOverride("font_color", new Color("7fa7ba"));
+        RefreshRuntimeState();
     }
 
     private void RefreshLadderMonitorMatch()

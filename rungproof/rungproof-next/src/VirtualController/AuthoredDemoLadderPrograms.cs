@@ -115,6 +115,7 @@ public static class AuthoredDemoLadderPrograms
         document.AddTag("cell_permissive", PlcVariableRole.Memory);
         document.AddTag("pick_permissive", PlcVariableRole.Memory);
         document.AddTag("sequence_ready", PlcVariableRole.Memory);
+        document.AddTag("always_scan", PlcVariableRole.Memory, initialValue: true);
         document.AddTag("layer_count", PlcVariableRole.Memory, type: PlcVariableType.DInt);
         document.AddTag("position_sum", PlcVariableRole.Memory, type: PlcVariableType.DInt);
         document.AddTag("pick_timer", PlcVariableRole.Memory, type: PlcVariableType.Timer);
@@ -163,20 +164,22 @@ public static class AuthoredDemoLadderPrograms
         document.AddContact(0, 0, "sequence_ready", false);
 
         document.SelectBlock(0);
+        // Scan permissive-producing blocks even when their inputs are false.
+        // Skipping a call retains its previous memory and can leave commands on.
         document.AddRung("Safety interlock block call", string.Empty);
-        document.AddContact(0, 0, "gantry_home", false);
+        document.AddContact(0, 0, "always_scan", false);
         document.Rungs[0].IsCall = true;
         document.Rungs[0].CallTarget = safety.Id;
         document.AddRung("Pick and place block call", string.Empty);
-        document.AddContact(1, 0, "cell_permissive", false);
+        document.AddContact(1, 0, "always_scan", false);
         document.Rungs[1].IsCall = true;
         document.Rungs[1].CallTarget = pick.Id;
         document.AddRung("Sequence supervisor function call", string.Empty);
-        document.AddContact(2, 0, "cell_permissive", false);
+        document.AddContact(2, 0, "always_scan", false);
         document.Rungs[2].IsCall = true;
         document.Rungs[2].CallTarget = sequence.Id;
         document.AddRung("Inspection math function call", string.Empty);
-        document.AddContact(3, 0, "sequence_ready", false);
+        document.AddContact(3, 0, "always_scan", false);
         document.Rungs[3].IsCall = true;
         document.Rungs[3].CallTarget = math.Id;
         document.AddRung("Gantry cycle command", "gantry_cycle");
@@ -187,11 +190,11 @@ public static class AuthoredDemoLadderPrograms
         document.AddRung("Layer completion output", "layer_complete");
         document.AddContact(6, 0, "cycle_count.DN", false);
         document.AddTimerRung("Pick dwell timer", "pick_timer", TimeSpan.FromMilliseconds(750));
-        document.AddContact(7, 0, "carton_at_pick", false);
+        document.AddContact(7, 0, "pick_permissive", false);
         document.AddCounterRung("Count completed picks", "cycle_count", 4);
         document.AddContact(8, 0, "pick_timer.Q", false);
         document.AddNumericOperationRung("Advance layer count", LadderNumericOperationKind.Add, "layer_count", "1", "layer_count");
-        document.AddContact(9, 0, "layer_complete", false);
+        document.InsertEdgeContact(9, 0, 0, "layer_complete", LadderEdgeMode.Rising);
 
         document.SelectBlock(0);
         return document;

@@ -139,11 +139,26 @@ public static class ProjectValidator
             var scope = $"Scene: {scene.Name}";
             AddDuplicateErrors(scene.Equipment.Select(item => item.Id), issues,
                 "SCN-EQUIPMENT-DUPLICATE", scope, "equipment ID");
-            if (scene.Migration.UnresolvedAssetTypes.Count > 0)
+            // Migration metadata predates the configured accessory catalog.
+            // Resolve each configured asset against the current catalog rather
+            // than reporting a stale type-level failure for mapped equipment.
+            var unresolvedTypes = scene.Migration.UnresolvedAssetTypes.Where(type =>
+                type != "trainingAccessory" || scene.Equipment.Where(item => item.Type == type)
+                    .Any(item => !assetIds.Contains(Text(item.Config, "catalogAssetId"))))
+                .ToArray();
+            if (unresolvedTypes.Length > 0)
             {
                 AddError(issues, "SCN-ASSET-UNRESOLVED", scope,
-                    $"Unresolved equipment types: {string.Join(", ", scene.Migration.UnresolvedAssetTypes)}.",
+                    $"Unresolved equipment types: {string.Join(", ", unresolvedTypes)}.",
                     "Map each source type to a catalog family before release.");
+            }
+            foreach (var equipment in scene.Equipment.Where(item => item.Type == "trainingAccessory"))
+            {
+                var assetId = Text(equipment.Config, "catalogAssetId");
+                if (!assetIds.Contains(assetId))
+                    AddError(issues, "SCN-ACCESSORY-MISSING", scope,
+                        $"Equipment '{equipment.Id}' references unavailable accessory '{assetId}'.",
+                        "Configure an existing catalog asset ID for this equipment.");
             }
             foreach (var mapping in scene.Migration.AssetMappings)
             {

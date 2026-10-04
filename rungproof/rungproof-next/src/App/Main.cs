@@ -729,6 +729,9 @@ public partial class Main : Node3D
         }
         _virtualController.PulseInput("start_command");
         _virtualController.Run();
+        var operatorActions = _simulatorShell.GetNode<VBoxContainer>(
+            "Workspace/LeftDock/LeftTabs/Operator/OperatorActions");
+        var originalButtons = operatorActions.GetChildren().OfType<Button>().ToArray();
         for (var index = 0; index < 90; index++)
         {
             _virtualController.Advance(
@@ -740,6 +743,9 @@ public partial class Main : Node3D
                 _sceneRuntime.AdvanceSimulation);
         }
         var photoeye = _sceneRuntime.Points.TryGetValue("simulated_photoeye", out var sensor) && sensor is true;
+        var actionsStable = originalButtons.Length > 0
+            && originalButtons.SequenceEqual(operatorActions.GetChildren().OfType<Button>())
+            && originalButtons.All(button => !button.IsQueuedForDeletion());
         var stopped = _virtualSnapshot is not null
             && !_virtualSnapshot.Outputs.GetValueOrDefault("conveyor_running")
             && !_virtualSnapshot.Variables.GetValueOrDefault("seal_in");
@@ -777,8 +783,8 @@ public partial class Main : Node3D
             && _sceneRuntime.Points.TryGetValue("simulated_photoeye", out var resetSensor)
             && resetSensor is false
             && _virtualSnapshot.Forces.Count == 0;
-        var passed = photoeye && stopped && restartBlocked && forcedOutput && forceSafeStop && reset && ui;
-        GD.Print($"VIRTUAL_CONTROLLER_UI_VERIFY {(passed ? "PASS" : "FAIL")} photoeye={photoeye} stopped={stopped} restartBlocked={restartBlocked} forcedOutput={forcedOutput} forceSafeStop={forceSafeStop} reset={reset} {uiResult}");
+        var passed = actionsStable && photoeye && stopped && restartBlocked && forcedOutput && forceSafeStop && reset && ui;
+        GD.Print($"VIRTUAL_CONTROLLER_UI_VERIFY {(passed ? "PASS" : "FAIL")} actionsStable={actionsStable} photoeye={photoeye} stopped={stopped} restartBlocked={restartBlocked} forcedOutput={forcedOutput} forceSafeStop={forceSafeStop} reset={reset} {uiResult}");
         GD.Print("VIRTUAL_CONTROLLER_REAL_PLC_CONNECTION_ATTEMPTED FALSE");
         GetTree().Quit(passed ? 0 : 1);
     }
@@ -904,6 +910,7 @@ public partial class Main : Node3D
         var menuResult = "shell unavailable";
         var plcResult = "shell unavailable";
         var scenarioResult = "shell unavailable";
+        var projectResult = "shell unavailable";
         var structurePassed = _simulatorShell is not null
             && _simulatorShell.VerifyStructure(out result);
         var menuPassed = _simulatorShell is not null
@@ -912,9 +919,11 @@ public partial class Main : Node3D
             && _simulatorShell.VerifyExternalPlcMenu(out plcResult);
         var scenarioPassed = _simulatorShell is not null
             && _simulatorShell.VerifyScenarioMenuSelection(out scenarioResult);
-        if (structurePassed && menuPassed && plcPassed && scenarioPassed)
+        var projectPassed = _simulatorShell is not null
+            && _simulatorShell.VerifyCrossSceneProjectOpen(out projectResult);
+        if (structurePassed && menuPassed && plcPassed && scenarioPassed && projectPassed)
         {
-            GD.Print($"APP_SHELL_VERIFY PASS {result} workspaceMenu={menuResult} plcMenu={plcResult} scenarioMenu={scenarioResult}");
+            GD.Print($"APP_SHELL_VERIFY PASS {result} workspaceMenu={menuResult} plcMenu={plcResult} scenarioMenu={scenarioResult} crossSceneProject={projectResult}");
             GetTree().Quit(0);
             return;
         }
@@ -925,6 +934,7 @@ public partial class Main : Node3D
             if (!menuPassed) failure += $"; workspaceMenu={menuResult}";
             if (!plcPassed) failure += $"; plcMenu={plcResult}";
             if (!scenarioPassed) failure += $"; scenarioMenu={scenarioResult}";
+            if (!projectPassed) failure += $"; crossSceneProject={projectResult}";
         }
         GD.PushError($"APP_SHELL_VERIFY FAIL {failure}");
         GetTree().Quit(1);
@@ -1198,14 +1208,15 @@ public partial class Main : Node3D
             SelectPlacement(instanceId);
             var groupSelectionPassed = _selectedPlacementIds.Count == 2;
             var groupGizmoPassed = VerifyGroupGizmo(instanceId, photoeyeInstance);
-            var mappingStatus = ApplySignalMappings().GetValueOrDefault(_signalLinks[0].Id);
             _sceneRuntime?.RunDefault();
+            var mappingStatus = ApplySignalMappings().GetValueOrDefault(_signalLinks[0].Id);
             var mappedController = _workspaceNodes[instanceId].Node
                 .GetNodeOrNull<ConveyorController>("WorkspaceRuntimeAdapter");
             var mappingLive = mappingStatus?.State == SignalMappingRuntimeState.LiveInput
                 && mappedController is not null
-                && !mappedController.RunCommand;
+                && mappedController.RunCommand;
             _sceneRuntime?.StopSimulation();
+            mappingLive &= mappedController is not null && !mappedController.RunCommand;
             SetSelection([instanceId, photoeyeInstance]);
             CopySelection();
             PasteSelection();

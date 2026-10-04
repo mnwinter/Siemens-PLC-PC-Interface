@@ -146,12 +146,103 @@ internal static class Program
         Test("JMP LBL JSON editor round-trip preserves targets", TestJumpLabelRoundTrip);
         Test("backward JMP loop watchdog stops and drives outputs safe", TestJumpLoopWatchdog);
         Test("offline engineering workflow persists validates loads exchanges monitors and forces", TestOfflineEngineeringWorkflow);
+        Test("authored palletizer removes commands on every lost permissive", TestPalletizerPermissives);
+        Test("authored palletizer counts one layer per completion edge", TestPalletizerLayerCount);
+        Test("authored demos 1 through 4 execute their documented behavior", TestOtherAuthoredDemos);
 
         Console.WriteLine($"VIRTUAL_CONTROLLER_TESTS_PASS {_passed}");
         Console.WriteLine($"VIRTUAL_CONTROLLER_TESTS_FAIL {_failed}");
         Console.WriteLine("REAL_PLC_TRANSPORT_CONSTRUCTED FALSE");
         Console.WriteLine("REAL_PLC_CONNECTION_ATTEMPTED FALSE");
         return _failed == 0 ? 0 : 1;
+    }
+
+    private static VirtualControllerRuntime PalletizerRuntime()
+    {
+        True(AuthoredDemoLadderPrograms.TryCreate("lab-11-13-xy-palletizing", out var document));
+        var runtime = Runtime(document.BuildProgram());
+        runtime.Run();
+        return runtime;
+    }
+
+    private static VirtualControllerRuntime AuthoredRuntime(string sceneId)
+    {
+        True(AuthoredDemoLadderPrograms.TryCreate(sceneId, out var document));
+        var runtime = Runtime(document.BuildProgram());
+        runtime.Run();
+        return runtime;
+    }
+
+    private static void TestOtherAuthoredDemos()
+    {
+        var press = AuthoredRuntime("lab-4-01-press-count-lamp");
+        for (var count = 1; count <= 3; count++)
+        {
+            press.Scan(Inputs(("pulse_received", false)));
+            var snapshot = press.Scan(Inputs(("pulse_received", true)));
+            Equal((long)count, snapshot.Counters["press_count"].Accumulated);
+            Equal(count == 3, snapshot.Outputs["threshold_lamp"]);
+        }
+        False(press.Reset().Outputs["threshold_lamp"]);
+
+        var timer = AuthoredRuntime("lab-5-01-delayed-lamp");
+        for (var scan = 0; scan < 99; scan++)
+            False(timer.Scan(Inputs(("timer_request", true))).Outputs["delayed_lamp"]);
+        True(timer.Scan(Inputs(("timer_request", true))).Outputs["delayed_lamp"]);
+        False(timer.Scan(Inputs(("timer_request", false))).Outputs["delayed_lamp"]);
+
+        var conveyor = AuthoredRuntime("scene-1-conveyor-stop");
+        True(conveyor.Scan(Inputs(("start_command", true))).Outputs["conveyor_running"]);
+        True(conveyor.Scan(Inputs(("start_command", false))).Outputs["conveyor_running"]);
+        False(conveyor.Scan(Inputs(("stop_command", true))).Outputs["conveyor_running"]);
+        False(conveyor.Scan(Inputs(("start_command", true), ("simulated_photoeye", true))).Outputs["conveyor_running"]);
+
+        var batch = AuthoredRuntime("lab-9-11-pallet-counting");
+        for (var count = 1; count <= 5; count++)
+        {
+            batch.Scan(Inputs(("pallet_detected", false)));
+            batch.Scan(Inputs(("pallet_detected", true)));
+        }
+        False(batch.Snapshot.Outputs["pallet_count_valid"]);
+        True(batch.Scan(Inputs(("pallet_type_valid", true), ("count_request", true))).Outputs["pallet_count_valid"]);
+        False(batch.Scan(Inputs(("pallet_type_valid", false), ("count_request", true))).Outputs["pallet_count_valid"]);
+    }
+
+    private static void TestPalletizerPermissives()
+    {
+        foreach (var lostInput in new[] { "gantry_home", "pallet_position_valid", "carton_at_pick" })
+        {
+            var runtime = PalletizerRuntime();
+            var inputs = Inputs(("gantry_home", true), ("pallet_position_valid", true), ("carton_at_pick", true));
+            var enabled = runtime.Scan(inputs);
+            True(enabled.Outputs["gantry_cycle"]);
+            True(enabled.Outputs["vacuum_pick"]);
+            inputs[lostInput] = false;
+            var blocked = runtime.Scan(inputs);
+            False(blocked.Outputs["gantry_cycle"]);
+            False(blocked.Outputs["vacuum_pick"]);
+            // An unavailable carton or permissive cannot finish a pick dwell.
+            for (var scan = 0; scan < 50; scan++) blocked = runtime.Scan(inputs);
+            Equal(0L, blocked.Counters["cycle_count"].Accumulated);
+        }
+    }
+
+    private static void TestPalletizerLayerCount()
+    {
+        var runtime = PalletizerRuntime();
+        var inputs = Inputs(("gantry_home", true), ("pallet_position_valid", true), ("carton_at_pick", false));
+        for (var pick = 0; pick < 4; pick++)
+        {
+            runtime.Scan(inputs);
+            inputs["carton_at_pick"] = true;
+            for (var scan = 0; scan < 40; scan++) runtime.Scan(inputs);
+            inputs["carton_at_pick"] = false;
+        }
+        True(runtime.Snapshot.Outputs["layer_complete"]);
+        var count = runtime.Snapshot.NumericVariables["layer_count"];
+        Equal(1.0, count);
+        for (var scan = 0; scan < 20; scan++) runtime.Scan(inputs);
+        Equal(count, runtime.Snapshot.NumericVariables["layer_count"]);
     }
 
     private static void Test(string name, Action body)
