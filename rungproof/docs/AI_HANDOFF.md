@@ -17,16 +17,22 @@ gripper motion are corrected and inspected from five angles; seven focused
 geometry checks pass. REAL scene initial JSON integer tokens now normalize at
 the scene-project boundary; the previously mismatched catalog test reproduces
 the production reader and all 142 tests pass. The complete 77-scene shell bounds
-inventory now flags 44 scenes for interpretation. Powder-mixer placement and
+inventory now flags 45 scenes for interpretation. Powder-mixer placement and
 tank shell sizing are repaired; an original static open chute replaces the
 copied roller-shutter, and inherited door evidence is archived/removed from
 current approval. Its five-view native reinspection verifies bounded static
 clearance, not a powder-flow process. Scaled radar feedback and Reset projection
-are corrected. Twelve focused geometry, 19 plant, three family-selection and
+are corrected. Twenty-one focused geometry, 19 plant, three family-selection and
 71 authored scene-case checks pass (six scenes have no authored cases).
-Parcel-sorter five-view inspection also fails: intersecting turntables/belts
-and unsupported/intersecting cartons. Its repaired native scene and exercise
-editor now open with REAL route_position=0. Six scenes inspected; 71 pending.
+Parcel-sorter geometry is repaired: flat indexed tables, supported bridge and
+takeaway paths, common deck elevations, raised header and configured optical
+heights. Five static views plus final portal/table details were inspected. Native
+declared plant preview Run/Stop/Reset and count=3 completion were observed from
+front-left/rear-right; this is scripted geometry, not contact dynamics or sensor
+validation. Normal shell Run opens the blank editor with NO CONTROLLER LOADED;
+no supplied sorter reference controller exists. Do not count preview as operator
+Run acceptance. Shared conveyor width/deck sizing now works; Demo 5 static
+five-view regression passes, but all other conveyor scenes need native review. Six scenes inspected; 71 pending.
 Workstation Call, Dual Confirmation and Service Marker have clear supports/spacing but incorrect
 generic START plates. Global help validation fails at Count Display's inherited
 door-axis metadata; investigate actual identity before refreshing that help.

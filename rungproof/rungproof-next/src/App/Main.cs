@@ -141,7 +141,8 @@ public partial class Main : Node3D
         _verifyPlantMotion = userArguments.Contains("--verify-plant-motion", StringComparer.Ordinal);
         _verifySceneGeometry = userArguments.Contains("--verify-scene-geometry", StringComparer.Ordinal);
         _reportSceneGeometry = userArguments.Contains("--report-scene-geometry", StringComparer.Ordinal);
-        _visualSceneReview = userArguments.Contains("--visual-scene-review", StringComparer.Ordinal);
+        _visualPlantReview = userArguments.Contains("--visual-plant-review", StringComparer.Ordinal);
+        _visualSceneReview = _visualPlantReview || userArguments.Contains("--visual-scene-review", StringComparer.Ordinal);
         _verifyWorkspace = userArguments.Contains("--verify-workspace", StringComparer.Ordinal);
         _verifyHud = userArguments.Contains("--verify-hud", StringComparer.Ordinal);
         _verifyCameraInput = userArguments.Contains("--verify-camera-input", StringComparer.Ordinal);
@@ -158,9 +159,15 @@ public partial class Main : Node3D
         _mcpSceneId = userArguments
             .FirstOrDefault(argument => argument.StartsWith("--mcp-scene=", StringComparison.Ordinal))?
             .Substring("--mcp-scene=".Length);
-        _appShellRequested = _reportSceneGeometry || _verifySceneGeometry || _visualSceneReview || _verifyAppShell || _verifyExternalDialog || _verifyExternalPlayback || _verifyPlantMotion || _verifyWorkspace || _verifyHud || _verifyCameraInput || _verifySceneControls
+        _appShellRequested = _reportSceneGeometry || _verifySceneGeometry || (_visualSceneReview && !_visualPlantReview) || _verifyAppShell || _verifyExternalDialog || _verifyExternalPlayback || _verifyPlantMotion || _verifyWorkspace || _verifyHud || _verifyCameraInput || _verifySceneControls
             || _verifyVirtualController || _verifyNumericSceneIo || _verifyLadderEditor || _verifySplitView || _verifyUiDensity || _virtualControllerDemo
             || userArguments.Contains("--app-shell", StringComparer.Ordinal);
+        if (_visualPlantReview && (_sceneId is null || _appShellRequested || _verifySceneContract))
+        {
+            GD.PushError("--visual-plant-review requires --scene-id and cannot be combined with app-shell or verification modes.");
+            GetTree().Quit(1);
+            return;
+        }
         _shellView = userArguments
             .FirstOrDefault(argument => argument.StartsWith("--shell-view=", StringComparison.Ordinal))?
             .Substring("--shell-view=".Length) ?? string.Empty;
@@ -213,7 +220,14 @@ public partial class Main : Node3D
 
         if (_sceneId is not null)
         {
-            AddMigratedScene(_sceneId, assets, camera);
+            if (_visualPlantReview)
+            {
+                _mainCamera = camera;
+                _candidateCatalog = assets;
+                _sceneCatalog = SceneCatalogLoader.LoadCatalog("res://scenes/catalog/original-scenes.catalog.json");
+            }
+            AddMigratedScene(_sceneId, assets, camera, autoRun: !_visualPlantReview);
+            if (_visualPlantReview) AddVisualSceneReviewControls();
         }
         else if (_candidateId is not null || (_capturePath is not null && !_appShellRequested))
         {
@@ -3381,7 +3395,7 @@ public partial class Main : Node3D
         var points = new List<Vector3>();
         foreach (var node in root.FindChildren("*", "MeshInstance3D", true, false))
         {
-            if (node is not MeshInstance3D mesh)
+            if (node is not MeshInstance3D mesh || !mesh.IsVisibleInTree())
             {
                 continue;
             }

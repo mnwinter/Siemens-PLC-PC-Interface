@@ -43,7 +43,7 @@
       "config": {
         "length": 2.8,
         "width": 1.4,
-        "deckHeight": 0.9,
+        "deckHeight": 1.055,
         "beltColor": 2568760,
         "running": false
       }

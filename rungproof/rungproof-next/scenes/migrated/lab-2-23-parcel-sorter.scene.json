@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-2-23-parcel-sorter",
   "name": "Lab 2.23 - Parcel Size Sorter",
-  "description": "Three parcels are classified by a sensor bank and routed onto large, medium, and small takeaway lanes.",
+  "description": "Illustrative three-parcel transfer: load, index the flat primary table, then send each parcel onto its supported takeaway path. A secondary table carries the medium route.",
   "camera": {
     "position": [
       16,
@@ -23,82 +23,104 @@
       "type": "conveyor",
       "label": "Parcel infeed",
       "position": [
-        -3.8,
+        -4.935,
         0,
         0
       ],
       "config": {
         "length": 6,
-        "width": 1.5,
-        "deckHeight": 0.9,
+        "width": 1.2,
+        "deckHeight": 1.055,
         "beltColor": 2568760,
         "running": false
-      }
+      },
+      "rotation": [
+        0,
+        0,
+        0
+      ]
     },
     {
       "id": "large_lane",
       "type": "conveyor",
       "label": "Large parcel lane",
       "position": [
-        3.2,
+        4.935,
         0,
-        -3
+        0
       ],
       "config": {
         "length": 6,
-        "width": 1.5,
-        "deckHeight": 0.9,
+        "width": 1.2,
+        "deckHeight": 1.055,
         "beltColor": 2568760,
         "running": false
-      }
+      },
+      "rotation": [
+        0,
+        0,
+        0
+      ]
     },
     {
       "id": "medium_lane",
       "type": "conveyor",
       "label": "Medium parcel lane",
       "position": [
-        3.2,
+        7.520080617918932,
         0,
-        0
+        -7.520080617918932
       ],
       "config": {
         "length": 6,
-        "width": 1.5,
-        "deckHeight": 0.9,
+        "width": 1.0,
+        "deckHeight": 1.055,
         "beltColor": 2568760,
         "running": false
-      }
+      },
+      "rotation": [
+        0,
+        45,
+        0
+      ]
     },
     {
       "id": "small_lane",
       "type": "conveyor",
       "label": "Small parcel lane",
       "position": [
-        3.2,
         0,
-        3
+        0,
+        -4.935
       ],
       "config": {
         "length": 6,
-        "width": 1.5,
-        "deckHeight": 0.9,
+        "width": 1.0,
+        "deckHeight": 1.055,
         "beltColor": 2568760,
         "running": false
-      }
+      },
+      "rotation": [
+        0,
+        90,
+        0
+      ]
     },
     {
       "id": "sort_turntable_a",
       "type": "rotaryTable",
       "label": "Primary routing table",
       "position": [
-        -0.2,
+        0,
         0,
         0
       ],
       "config": {
-        "radius": 1.35,
+        "radius": 1.8,
         "angleRangeDeg": 90,
-        "initialPosition": 0
+        "initialPosition": 0,
+        "deckHeight": 1.055,
+        "parcelTransfer": true
       }
     },
     {
@@ -106,14 +128,42 @@
       "type": "rotaryTable",
       "label": "Secondary routing table",
       "position": [
-        1.4,
+        4.242640687119285,
         0,
-        1.5
+        -4.242640687119285
       ],
       "config": {
-        "radius": 1.2,
+        "radius": 1.5,
         "angleRangeDeg": 90,
-        "initialPosition": 0
+        "initialPosition": 0,
+        "deckHeight": 1.055,
+        "parcelTransfer": true
+      },
+      "rotation": [
+        0,
+        45,
+        0
+      ]
+    },
+    {
+      "id": "medium_transfer",
+      "type": "conveyor",
+      "label": "Medium parcel transfer between tables",
+      "position": [
+        2.3334523779156067,
+        0,
+        -2.3334523779156067
+      ],
+      "rotation": [
+        0,
+        45,
+        0
+      ],
+      "config": {
+        "length": 2.2,
+        "width": 1.0,
+        "deckHeight": 1.055,
+        "running": false
       }
     },
     {
@@ -121,8 +171,8 @@
       "type": "box",
       "label": "Large parcel",
       "position": [
-        -5,
-        0.99,
+        -4.6,
+        1.055,
         0
       ],
       "config": {
@@ -139,8 +189,8 @@
       "type": "box",
       "label": "Medium parcel",
       "position": [
-        -5.9,
-        0.99,
+        -5.8,
+        1.055,
         0
       ],
       "config": {
@@ -157,8 +207,8 @@
       "type": "box",
       "label": "Small parcel",
       "position": [
-        -6.7,
-        0.99,
+        -6.65,
+        1.055,
         0
       ],
       "config": {
@@ -175,18 +225,19 @@
       "type": "sizeSensorBank",
       "label": "Three-height size sensor bank",
       "position": [
-        -2.2,
+        -3.6,
         0,
         0
       ],
       "config": {
         "span": 2.05,
         "beamHeightsM": [
-          0.95,
           1.3,
-          1.65
+          1.65,
+          2.05
         ],
-        "blocked": false
+        "blocked": false,
+        "portalClearHeight": 2.3
       }
     },
     {
@@ -209,9 +260,9 @@
       "type": "indicator",
       "label": "Sorter status",
       "position": [
-        5.5,
+        7.4,
         0,
-        -4.3
+        2.6
       ],
       "config": {
         "colors": [
@@ -328,13 +379,28 @@
         "point": "status_color",
         "equipmentId": "sorter_status",
         "mode": "indicator"
+      },
+      {
+        "point": "conveyors_run",
+        "equipmentId": "medium_transfer",
+        "mode": "running"
+      },
+      {
+        "point": "conveyors_run",
+        "equipmentId": "sort_turntable_a",
+        "mode": "running"
+      },
+      {
+        "point": "conveyors_run",
+        "equipmentId": "sort_turntable_b",
+        "mode": "running"
       }
     ],
     "sequences": {
       "sort-batch": [
         {
-          "name": "route large",
-          "durationS": 1.7,
+          "name": "load large onto primary table",
+          "durationS": 5.111111111111111,
           "set": {
             "conveyors_run": true,
             "large_detected": true,
@@ -350,72 +416,161 @@
               "type": "translate",
               "equipmentId": "large_parcel",
               "axis": "x",
-              "from": -5,
-              "to": 3.2
-            },
+              "from": -4.6,
+              "to": 0
+            }
+          ]
+        },
+        {
+          "name": "route large",
+          "durationS": 5.4833333333333325,
+          "motions": [
             {
               "type": "translate",
               "equipmentId": "large_parcel",
-              "axis": "z",
+              "axis": "x",
               "from": 0,
-              "to": -3
+              "to": 4.935
             }
           ]
         },
         {
           "name": "large complete",
-          "durationS": 0.2,
+          "durationS": 0.1,
           "set": {
             "large_detected": false,
             "sorted_count": 1
           }
         },
         {
-          "name": "route medium",
-          "durationS": 1.7,
+          "name": "load medium onto primary table",
+          "durationS": 6.444444444444444,
           "set": {
-            "medium_detected": true,
-            "route_position": 0.5
+            "medium_detected": true
           },
           "motions": [
             {
               "type": "translate",
               "equipmentId": "medium_parcel",
               "axis": "x",
-              "from": -5.9,
-              "to": 3.2
+              "from": -5.8,
+              "to": 0
+            }
+          ]
+        },
+        {
+          "name": "index medium",
+          "durationS": 0.6,
+          "set": {
+            "route_position": 0.5
+          },
+          "motions": [
+            {
+              "type": "rotate",
+              "equipmentId": "medium_parcel",
+              "axis": "y",
+              "from": 0,
+              "to": 45
+            }
+          ]
+        },
+        {
+          "name": "transfer medium to secondary table",
+          "durationS": 6.666666666666666,
+          "motions": [
+            {
+              "type": "translate",
+              "equipmentId": "medium_parcel",
+              "axis": "x",
+              "from": 0,
+              "to": 4.242640687119285
+            },
+            {
+              "type": "translate",
+              "equipmentId": "medium_parcel",
+              "axis": "z",
+              "from": 0,
+              "to": -4.242640687119285
+            }
+          ]
+        },
+        {
+          "name": "route medium",
+          "durationS": 5.1499999999999995,
+          "motions": [
+            {
+              "type": "translate",
+              "equipmentId": "medium_parcel",
+              "axis": "x",
+              "from": 4.242640687119285,
+              "to": 7.520080617918932
+            },
+            {
+              "type": "translate",
+              "equipmentId": "medium_parcel",
+              "axis": "z",
+              "from": -4.242640687119285,
+              "to": -7.520080617918932
             }
           ]
         },
         {
           "name": "medium complete",
-          "durationS": 0.2,
+          "durationS": 0.1,
           "set": {
             "medium_detected": false,
             "sorted_count": 2
           }
         },
         {
-          "name": "route small",
-          "durationS": 1.7,
+          "name": "return primary table for small parcel",
+          "durationS": 0.6,
           "set": {
-            "small_detected": true,
-            "route_position": 1
+            "route_position": 0
+          }
+        },
+        {
+          "name": "load small onto primary table",
+          "durationS": 7.388888888888889,
+          "set": {
+            "small_detected": true
           },
           "motions": [
             {
               "type": "translate",
               "equipmentId": "small_parcel",
               "axis": "x",
-              "from": -6.7,
-              "to": 3.2
-            },
+              "from": -6.65,
+              "to": 0
+            }
+          ]
+        },
+        {
+          "name": "index small",
+          "durationS": 1.2,
+          "set": {
+            "route_position": 1
+          },
+          "motions": [
+            {
+              "type": "rotate",
+              "equipmentId": "small_parcel",
+              "axis": "y",
+              "from": 0,
+              "to": 90
+            }
+          ]
+        },
+        {
+          "name": "route small",
+          "durationS": 5.4833333333333325,
+          "motions": [
             {
               "type": "translate",
               "equipmentId": "small_parcel",
               "axis": "z",
               "from": 0,
-              "to": 3
+              "to": -4.935
             }
           ]
         },
@@ -459,17 +614,24 @@
       "acceptance": "One parcel reaches each lane and the sorted count ends at three."
     },
     "machineGuide": {
-      "purpose": "Three parcels are classified by a sensor bank and routed onto large, medium, and small takeaway lanes.",
+      "purpose": "Illustrative three-parcel transfer: load, index the flat primary table, then send each parcel onto its supported takeaway path. A secondary table carries the medium route. This is scripted plant geometry, not a validated conveyor contact or real PLC process model.",
       "startConditions": [
-        "The common PLC/watchdog foundation is healthy.",
+        "For the operator shell, author/load the required ladder and command bindings; no parcel-sorter reference ladder is supplied.",
         "All required simulator inputs are at their documented initial state.",
         "The PLC is ready to command conveyors_run, route_position."
       ],
       "normalSequence": [
+        "load large onto primary table",
         "route large",
         "large complete",
+        "load medium onto primary table",
+        "index medium",
+        "transfer medium to secondary table",
         "route medium",
         "medium complete",
+        "return primary table for small parcel",
+        "load small onto primary table",
+        "index small",
         "route small",
         "batch complete"
       ],
@@ -482,7 +644,8 @@
         "A missing PLC command leaves the affected equipment stopped and the test diagnosable."
       ],
       "expectedObservations": [
-        "One parcel reaches each lane and the sorted count ends at three."
+        "One parcel reaches each lane and the sorted count ends at three.",
+        "The cartons pause at the table center before indexing. Scripted queue holds and size feedback do not prove physical sensing, friction or throughput."
       ]
     },
     "sequenceNumber": 23,
@@ -517,7 +680,7 @@
         "phases": [
           {
             "action": "start-sort",
-            "runForS": 5.9
+            "runForS": 45.42777777777778
           }
         ],
         "expect": {

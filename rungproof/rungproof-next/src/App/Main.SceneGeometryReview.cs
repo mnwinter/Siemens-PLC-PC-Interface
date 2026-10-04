@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Godot;
+using RungProof.Next.Scenes;
 
 namespace RungProof.Next.App;
 
@@ -9,8 +11,11 @@ public partial class Main
     private bool _verifySceneGeometry;
     private bool _reportSceneGeometry;
     private bool _visualSceneReview;
+    private bool _visualPlantReview;
     private Label? _visualReviewLabel;
     private bool _visualReviewClose;
+    private OptionButton? _visualReviewFocus;
+    private string? _visualReviewFocusId;
 
     // This opt-in inspection bar uses the real shell, scene composer, meshes
     // and camera. It does not execute scene actions or open a PLC connection.
@@ -18,7 +23,7 @@ public partial class Main
     {
         var layer = new CanvasLayer { Name = "VisualSceneReview", Layer = 20 };
         AddChild(layer);
-        var bar = new HBoxContainer { Position = new Vector2(310, 126) };
+        var bar = new HBoxContainer { Position = new Vector2(310, _visualPlantReview ? 300 : 126) };
         layer.AddChild(bar);
         if (_simulatorShell is not null)
             _simulatorShell.ProductViewChanged += view => bar.Visible = view == "operator";
@@ -28,8 +33,12 @@ public partial class Main
             button.Pressed += action;
             bar.AddChild(button);
         }
-        Button("Previous", () => ChangeVisualReviewScene(-1));
-        Button("Next", () => ChangeVisualReviewScene(1));
+        if (!_visualPlantReview)
+        {
+            Button("Previous", () => ChangeVisualReviewScene(-1));
+            Button("Next", () => ChangeVisualReviewScene(1));
+        }
+        else bar.AddChild(new Label { Text = "PLANT PREVIEW · NO PLC CONTROLLER" });
         Button("Front right", () => SetVisualReviewAngle(new Vector3(11, 7, 12), "front-right"));
         Button("Front left", () => SetVisualReviewAngle(new Vector3(-11, 7, 12), "front-left"));
         Button("Rear left", () => SetVisualReviewAngle(new Vector3(-11, 7, -12), "rear-left"));
@@ -42,6 +51,14 @@ public partial class Main
         });
         _visualReviewLabel = new Label();
         bar.AddChild(_visualReviewLabel);
+        _visualReviewFocus = new OptionButton { CustomMinimumSize = new Vector2(180, 0) };
+        _visualReviewFocus.ItemSelected += index =>
+        {
+            _visualReviewFocusId = index == 0 ? null : _visualReviewFocus.GetItemText((int)index);
+            _visualReviewClose = false;
+            SetVisualReviewAngle(_sceneCameraDirection, $"focus-{_visualReviewFocusId ?? "scene"}");
+        };
+        bar.AddChild(_visualReviewFocus);
         UpdateVisualReviewLabel();
     }
 
@@ -61,6 +78,12 @@ public partial class Main
         if (_sceneCatalog is null || _visualReviewLabel is null) return;
         var index = _sceneCatalog.Scenes.ToList().FindIndex(scene => scene.Id == _currentSceneId);
         _visualReviewLabel.Text = $"{index + 1}/{_sceneCatalog.Scenes.Count}";
+        _visualReviewFocusId = null;
+        _visualReviewFocus?.Clear();
+        _visualReviewFocus?.AddItem("Full scene");
+        if (_sceneCompositionRoot is not null)
+            foreach (var node in _sceneCompositionRoot.GetChildren().OfType<Node3D>().Where(node => ReviewMeshes(node).Length > 0))
+                _visualReviewFocus?.AddItem(node.Name);
         GD.Print($"VISUAL_REVIEW_SCENE {_currentSceneId} index={index + 1}");
         if (_sceneCompositionRoot is not null) LogBoundsCandidates(_sceneCompositionRoot);
     }
@@ -68,7 +91,9 @@ public partial class Main
     private void SetVisualReviewAngle(Vector3 direction, string label)
     {
         if (_mainCamera is null || _sceneCompositionRoot is null) return;
-        FrameComposition(_mainCamera, _sceneCompositionRoot, direction);
+        var focus = _visualReviewFocusId is null ? _sceneCompositionRoot
+            : _sceneCompositionRoot.GetNodeOrNull<Node3D>(_visualReviewFocusId) ?? _sceneCompositionRoot;
+        FrameComposition(_mainCamera, focus, direction);
         if (_visualReviewClose && _cameraController is not null)
         {
             var target = _cameraController.ViewTarget;
@@ -241,6 +266,8 @@ public partial class Main
                 && MathF.Abs(ReviewBounds(mixer.GetNode<Node3D>("valve_4")).Position.Y) < 0.01f,
                 "mixer_chute_and_valve_supports_rest_on_floor");
 
+            VerifyParcelGeometry(Check);
+
             AddMigratedScene("tank-radar", _candidateCatalog!, _mainCamera!, false, false);
             // Exercise an authored parent scale as well as configured sizing.
             var radarTank = _sceneCompositionRoot!.GetNode<Node3D>("water_tank_radar");
@@ -260,5 +287,187 @@ public partial class Main
             GD.PushError($"SCENE_GEOMETRY_VERIFY FAIL {exception}");
             GetTree().Quit(1);
         }
+    }
+
+    private void VerifyParcelGeometry(Action<bool, string> check)
+    {
+        AddMigratedScene("lab-2-23-parcel-sorter", _candidateCatalog!, _mainCamera!, false, false);
+        var root = _sceneCompositionRoot!;
+        var runtime = _sceneRuntime!;
+        var definition = SceneCatalogLoader.LoadScene(_sceneCatalog!.Scenes.First(scene => scene.Id == "lab-2-23-parcel-sorter"));
+        var equipment = root.GetChildren().OfType<Node3D>().ToArray();
+        var cartons = equipment.Where(node => node.Name.ToString().EndsWith("_parcel", StringComparison.Ordinal)).ToArray();
+        var authored = cartons.ToDictionary(node => node, node => node.Transform);
+        var tables = equipment.Where(node => node.Name.ToString().StartsWith("sort_turntable_", StringComparison.Ordinal)).ToArray();
+        var motions = tables.SelectMany(node => node.FindChildren("*", string.Empty, true, false)
+            .OfType<EquipmentMotionController>()).ToArray();
+        check(tables.Length == 2 && motions.Length == 2 && tables.All(table => !ReviewMeshes(table).Any(mesh =>
+            mesh.Name.ToString().StartsWith("TABLE_fixture_", StringComparison.Ordinal))), "parcel_tables_have_no_machining_jaws_in_load_path");
+        check(equipment.Where(node => definition.Equipment.Any(item => item.Id == node.Name && item.Type == "conveyor"))
+            .All(node => MathF.Abs(ReviewBounds(node).Position.Y) < 0.01f), "parcel_conveyor_feet_grounded");
+        var deck = root.GetNode<Node3D>("sort_infeed").FindChild("KIN_belt_surface", true, false) as MeshInstance3D;
+        var deckBounds = ReviewBounds(deck!);
+        check(MathF.Abs(deckBounds.Size.Z - 1.2f) < 0.01f && MathF.Abs(deckBounds.End.Y - 1.055f) < 0.01f,
+            "parcel_infeed_honors_belt_width_and_deck_height");
+        var portal = root.GetNode<Node3D>("size_sensor_bank");
+        var beamHeights = Enumerable.Range(1, 3).Select(channel =>
+            ReviewBounds((MeshInstance3D)portal.FindChild($"KIN_beam_size_{channel}", true, false)).GetCenter().Y).ToArray();
+        var parcelTops = new[] { "small_parcel", "medium_parcel", "large_parcel" }
+            .Select(id => ReviewBounds(root.GetNode<Node3D>(id)).End.Y).ToArray();
+        check(beamHeights[0] > deckBounds.End.Y && beamHeights[0] < parcelTops[0]
+            && beamHeights[1] > parcelTops[0] && beamHeights[1] < parcelTops[1]
+            && beamHeights[2] > parcelTops[1] && beamHeights[2] < parcelTops[2],
+            "parcel_optical_beams_clear_deck_and_distinguish_three_carton_heights");
+
+        var cartonSizes = cartons.ToDictionary(node => node, node => definition.Equipment.First(item => item.Id == node.Name)
+            .Config.GetProperty("size").EnumerateArray().Select(value => value.GetSingle()).ToArray());
+        var supports = definition.Equipment.Where(item => item.Type is "conveyor" or "rotaryTable").Select(item =>
+        {
+            var node = root.GetNode<Node3D>(item.Id);
+            return (Inverse: node.GlobalTransform.AffineInverse(), Height: item.Config.GetProperty("deckHeight").GetSingle(),
+                Circle: item.Type == "rotaryTable", HalfLength: item.Type == "conveyor" ? item.Config.GetProperty("length").GetSingle() * 2.935f / 6f : 0,
+                HalfWidth: item.Type == "conveyor" ? item.Config.GetProperty("width").GetSingle() / 2f : 0,
+                Radius: item.Type == "rotaryTable" ? item.Config.GetProperty("radius").GetSingle() : 0);
+        }).ToArray();
+        // These supports/frames stay fixed throughout the declared path. The
+        // only rotating table surfaces are below the cartons' bottom plane.
+        // Cache their bounds rather than making millions of Godot interop calls.
+        var solids = equipment.Except(cartons).SelectMany(node => ReviewMeshes(node).Where(mesh =>
+            !mesh.Name.ToString().Contains("beam", StringComparison.OrdinalIgnoreCase))
+            .Select(mesh => (Equipment: node.Name, Mesh: mesh.Name, Node: mesh, Bounds: ReviewBounds(mesh))))
+            .Where(solid => solid.Bounds.End.Y > 1.061f).ToArray();
+        var cartonMeshes = cartons.ToDictionary(node => node, ReviewMeshes);
+
+        bool Supported(Node3D carton)
+        {
+            var size = cartonSizes[carton];
+            var transform = carton.GlobalTransform;
+            var contacts = new List<Vector2>();
+            // Sample actual oriented bottom footprints, including transitions
+            // across the small nose gaps. A support hull containing the center
+            // checks balanced geometry; it is not a dynamics/load calculation.
+            for (var ix = 0; ix < 7; ix++)
+            for (var iz = 0; iz < 7; iz++)
+            {
+                var point = transform * new Vector3(size[0] * (ix / 6f - 0.5f), 0, size[2] * (iz / 6f - 0.5f));
+                foreach (var support in supports)
+                {
+                    var local = support.Inverse * point;
+                    if (MathF.Abs(local.Y - support.Height) > 0.015f) continue;
+                    var covered = !support.Circle
+                        ? MathF.Abs(local.X) <= support.HalfLength && MathF.Abs(local.Z) <= support.HalfWidth
+                        : new Vector2(local.X, local.Z).Length() <= support.Radius;
+                    if (!covered) continue;
+                    contacts.Add(new Vector2(point.X, point.Z));
+                    break;
+                }
+            }
+            if (contacts.Count < 18) return false;
+            var hull = ContactHull(contacts);
+            var center = new Vector2(carton.GlobalPosition.X, carton.GlobalPosition.Z);
+            return hull.Count >= 3 && Enumerable.Range(0, hull.Count).All(index =>
+                (hull[(index + 1) % hull.Count] - hull[index]).Cross(center - hull[index]) >= -0.001f);
+        }
+
+        var supported = cartons.Length == 3 && cartons.All(Supported);
+        var clear = true;
+        var reported = false;
+        runtime.UsesExternalClock = false; // Declared plant preview only, no controller/PLC seam.
+        runtime.ExecuteAction("start-sort");
+        for (var frame = 0; frame < 2300; frame++)
+        {
+            runtime.AdvanceSimulation(0.02);
+            foreach (var motion in motions) motion._PhysicsProcess(0.02);
+            supported &= cartons.All(Supported);
+            var cartonBounds = cartons.ToDictionary(node => node, ReviewBounds);
+            foreach (var carton in cartons)
+            foreach (var solid in solids.Concat(cartons.Where(node => node != carton).SelectMany(node =>
+                cartonMeshes[node].Select(mesh => (Equipment: node.Name, Mesh: mesh.Name, Node: mesh, Bounds: cartonBounds[node])))))
+            {
+                var overlap = cartonBounds[carton].Intersection(solid.Bounds).Size;
+                if (overlap.X <= 0.005f || overlap.Y <= 0.005f || overlap.Z <= 0.005f) continue;
+                if (!cartonMeshes[carton].Any(mesh => OrientedBoxesPenetrate(mesh, solid.Node))) continue;
+                clear = false;
+                if (!reported)
+                {
+                    GD.Print($"PARCEL_PATH_INTERFERENCE frame={frame} {carton.Name}/{solid.Equipment} mesh={solid.Mesh} overlap={overlap}");
+                    reported = true;
+                }
+            }
+        }
+        check(supported, "parcel_full_path_has_balanced_surface_contacts");
+        check(clear, "parcel_full_path_clear_of_other_cartons_and_solid_equipment");
+        check(Convert.ToInt64(runtime.Points["sorted_count"]) == 3 && runtime.Points["cycle_complete"] is true,
+            "parcel_supported_path_finishes_three_way_batch");
+
+        runtime.ResetSimulation();
+        runtime.ExecuteAction("start-sort");
+        for (var frame = 0; frame < 870; frame++)
+        {
+            runtime.AdvanceSimulation(0.02);
+            foreach (var motion in motions) motion._PhysicsProcess(0.02);
+        }
+        runtime.StopSimulation();
+        var held = cartons.ToDictionary(node => node, node => node.Transform);
+        var heldPlates = tables.Select(table => table.FindChild("KIN_table", true, false) as Node3D).ToArray();
+        var heldTransforms = heldPlates.Select(plate => plate!.Transform).ToArray();
+        runtime.AdvanceSimulation(0.4);
+        foreach (var motion in motions) motion._PhysicsProcess(0.4);
+        check(cartons.All(node => node.Transform == held[node]) && heldPlates.Select((plate, index) =>
+            plate!.Transform == heldTransforms[index]).All(value => value), "parcel_stop_holds_cartons_and_indexing_tables");
+        runtime.ResetSimulation();
+        check(cartons.All(node => node.Transform == authored[node]) && motions.All(motion => motion.PositionPercent == 0),
+            "parcel_reset_restores_cartons_and_table_pose");
+    }
+
+    private static List<Vector2> ContactHull(IEnumerable<Vector2> contacts)
+    {
+        var points = contacts.Distinct().OrderBy(point => point.X).ThenBy(point => point.Y).ToArray();
+        var hull = new List<Vector2>();
+        foreach (var point in points)
+        {
+            while (hull.Count >= 2 && (hull[^1] - hull[^2]).Cross(point - hull[^1]) <= 0) hull.RemoveAt(hull.Count - 1);
+            hull.Add(point);
+        }
+        var lower = hull.Count;
+        foreach (var point in points.Reverse().Skip(1))
+        {
+            while (hull.Count > lower && (hull[^1] - hull[^2]).Cross(point - hull[^1]) <= 0) hull.RemoveAt(hull.Count - 1);
+            hull.Add(point);
+        }
+        if (hull.Count > 1) hull.RemoveAt(hull.Count - 1);
+        return hull;
+    }
+
+    // Separating axes for transformed mesh boxes. Unlike world AABBs, this
+    // keeps the diagonal belt motor separate from a carton centered on it.
+    // It still bounds meshes rather than testing triangles or certifying fit.
+    private static bool OrientedBoxesPenetrate(MeshInstance3D left, MeshInstance3D right)
+    {
+        (Vector3 Center, Vector3[] Edges) Box(MeshInstance3D mesh)
+        {
+            var bounds = mesh.GetAabb();
+            var transform = mesh.GlobalTransform;
+            return (transform * bounds.GetCenter(), new[] {
+                transform.Basis.X * bounds.Size.X / 2,
+                transform.Basis.Y * bounds.Size.Y / 2,
+                transform.Basis.Z * bounds.Size.Z / 2 });
+        }
+        var a = Box(left); var b = Box(right);
+        var axes = new List<Vector3>();
+        foreach (var box in new[] { a, b })
+        {
+            axes.Add(box.Edges[0].Cross(box.Edges[1]));
+            axes.Add(box.Edges[1].Cross(box.Edges[2]));
+            axes.Add(box.Edges[2].Cross(box.Edges[0]));
+        }
+        foreach (var edgeA in a.Edges)
+        foreach (var edgeB in b.Edges) axes.Add(edgeA.Cross(edgeB));
+        foreach (var axis in axes.Where(axis => axis.LengthSquared() > 1e-10f).Select(axis => axis.Normalized()))
+        {
+            var radius = a.Edges.Sum(edge => MathF.Abs(axis.Dot(edge))) + b.Edges.Sum(edge => MathF.Abs(axis.Dot(edge)));
+            if (radius - MathF.Abs(axis.Dot(a.Center - b.Center)) <= 0.005f) return false;
+        }
+        return true;
     }
 }

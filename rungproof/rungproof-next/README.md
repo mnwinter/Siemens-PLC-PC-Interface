@@ -29,10 +29,16 @@ original milestones; use the review matrix for current verification boundaries.
 
 For native multi-angle inspection, launch Godot with `-- --app-shell
 --visual-scene-review`. The opt-in review bar provides catalog navigation, four
-diagonal camera views, overhead and a detail zoom. Scene navigation uses the
+diagonal camera views, overhead, detail zoom and an equipment-focus selector. Scene navigation uses the
 normal unsaved-work guards. Normal launch has no review bar.
-`-- --verify-scene-geometry` runs 12 focused checks for Demo 5 clearance/attachment,
-mixer placement/tank sizing/chute identity/floor support and scaled radar feedback.
+`-- --verify-scene-geometry` runs 21 focused checks for Demo 5 clearance/attachment,
+mixer placement/tank sizing/chute identity/floor support, scaled radar feedback,
+and the parcel sorter's supported paths, optical heights and Stop/Reset.
+For the declared plant geometry only, use `-- --scene-id=lab-2-23-parcel-sorter
+--visual-plant-review`. It starts stopped and labels the preview as having no PLC
+controller. This mode cannot be combined with app-shell/verification modes.
+It does not establish normal operator Run behavior: this sorter currently has
+no supplied reference controller, and its normal shell Run opens the blank editor.
 `-- --report-scene-geometry` inventories the actual composed meshes in
 all 77 shell scenes. Overlapping bounds are inspection candidates, not proof of
 solid collision or visual acceptance. Track native observations in

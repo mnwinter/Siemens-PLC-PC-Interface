@@ -19,18 +19,21 @@ REAL points initialized with JSON `0` reached the strict ladder editor as a long
 Normalize that numeric token to double at the scene-project boundary. The catalog
 test now uses the plant's actual scalar-reading behavior; it failed before the
 fix and all 142 tests pass afterward. All 77 shell scenes now inventory without
-that error. The current inventory flags candidates in 44 scenes and does not
+that error. The current inventory flags candidates in 45 scenes and does not
 grant visual approval. Powder-mixer placement is now repaired; tank shell sizing
 honors the authored diameter/height, and an original static open chute replaces
 the incorrectly labeled roller-shutter. Its inherited door approval is removed.
 Five-view native reinspection verifies the bounded static layout. Radar feedback
 now accounts for parent scale, and Reset projects its restored feedback.
-Twelve focused geometry checks, 19 plant checks and 71 authored scene cases pass;
+Twenty-one focused geometry checks, 19 plant checks and 71 authored scene cases pass;
 six scenes have no authored cases. Three family-selection regression cases pass.
 
 Parcel-sorter startup and native exercise-editor opening now work with REAL
-`route_position=0`. Its five-view inspection still finds turntable/belt and
-carton interference. Current native static coverage is 6/77, with 71 pending.
+`route_position=0`. Its table/belt layout, carton support, optical heights and indexed paths
+are repaired. Five native static views plus portal/table details were inspected;
+plant preview Run/Stop/Reset and a three-route completion were observed. Normal
+shell Run opens a blank editor with NO CONTROLLER LOADED; no reference controller
+is supplied for this scene. The declared plant preview does not pass that workflow. Current native static coverage is 6/77, with 71 pending.
 Workstation Call, Dual Confirmation and Service Marker have clear spacing/supports but generic
 START plates for other input functions; their labels still need correction.
 Global help validation also fails on Count Display's inherited door metadata.

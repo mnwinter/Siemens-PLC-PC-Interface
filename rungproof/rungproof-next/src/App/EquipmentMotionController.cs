@@ -40,6 +40,9 @@ public partial class EquipmentMotionController : Node
     [Export(PropertyHint.Range, "-360,360,1,suffix:deg")]
     public float TravelDegrees { get; set; } = 90.0f;
     [Export] public bool PositionInputInverted { get; set; }
+    // Opt-in setpoint slew for indexed parcel tables. Other assets retain
+    // their existing immediate position contract when this value is zero.
+    [Export] public float PositionInputSlewSeconds { get; set; }
 
     public bool Running => RunCommand;
     public float PositionPercent => _position * 100.0f;
@@ -49,6 +52,7 @@ public partial class EquipmentMotionController : Node
     private readonly Dictionary<Node3D, Vector3> _authoredScales = [];
     private Vector3 _fanCenter;
     private float _position;
+    private float _targetPosition;
     private float _angleRadians;
 
     public override void _Ready()
@@ -98,6 +102,16 @@ public partial class EquipmentMotionController : Node
                 }
                 break;
             case MotionKind.PositionRotation:
+                if (PositionInputSlewSeconds > 0)
+                {
+                    if (RunCommand)
+                    {
+                        _position = Mathf.MoveToward(_position, _targetPosition, seconds / PositionInputSlewSeconds);
+                        ApplyPosition();
+                    }
+                    break;
+                }
+                goto case MotionKind.LinearX;
             case MotionKind.LinearX:
             case MotionKind.LinearY:
             case MotionKind.PneumaticPusher:
@@ -118,7 +132,9 @@ public partial class EquipmentMotionController : Node
 
     public void SetPositionNormalized(float position)
     {
-        _position = Mathf.Clamp(PositionInputInverted ? 1.0f - position : position, 0.0f, 1.0f);
+        _targetPosition = Mathf.Clamp(PositionInputInverted ? 1.0f - position : position, 0.0f, 1.0f);
+        if (Kind == MotionKind.PositionRotation && PositionInputSlewSeconds > 0) return;
+        _position = _targetPosition;
         if (Kind is MotionKind.PositionRotation
             or MotionKind.LinearX
             or MotionKind.LinearY
@@ -134,6 +150,7 @@ public partial class EquipmentMotionController : Node
     {
         RunCommand = false;
         _position = 0.0f;
+        _targetPosition = 0.0f;
         _angleRadians = 0.0f;
         foreach (var (node, transform) in _authoredTransforms)
         {

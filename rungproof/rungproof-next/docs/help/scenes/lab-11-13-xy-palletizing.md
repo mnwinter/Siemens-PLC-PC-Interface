@@ -2,7 +2,7 @@
 
 Scene ID: `lab-11-13-xy-palletizing`  
 Migrated source: `prototype/scenes/lab-11-13-xy-palletizing.plcscene`  
-Scene contract: `prototype/scenes/lab-11-13-xy-palletizing.plcscene`
+Scene contract: `res://scenes/migrated/lab-11-13-xy-palletizing.scene.json`
 
 ## Purpose
 
@@ -12,7 +12,7 @@ sweep illustrates the command; it does not place cartons or generate position
 or pick-complete feedback.
 
 The white pallet is centered inside the four gantry posts and rests on the base
-slab. The carton rests on the conveyor deck. The orange tool follows the X/Y/Z
+slab. The carton rests on the 1.055 m conveyor deck; the carrying belt is 1.4 m wide. The orange tool follows the X/Y/Z
 command offsets with its Z axis; Stop holds that attached pose and Reset
 restores it. The separate vacuum-gripper model remains an illustrative accessory.
 

@@ -55,8 +55,7 @@ public static class SceneComposer
                 "containerReceiver" => CreateMappedAsset(equipment, candidates,
                     "material-handling.receiver.container-two-position.v1"),
                 "photoeye" => CreatePhotoeyeAsset(equipment, candidates),
-                "sizeSensorBank" => CreateMappedAsset(equipment, candidates,
-                    "sensing.dimensioning.parcel-three-height.v1"),
+                "sizeSensorBank" => CreateSizeSensorBank(equipment, candidates),
                 "switch" => CreateSwitchAsset(equipment, candidates),
                 "indicator" => CreateIndicatorAsset(equipment, candidates),
                 "pusher" => CreateControlledAsset(equipment, candidates, "actuation.pneumatic-pusher.1350mm.v1", runCommands,
@@ -86,8 +85,7 @@ public static class SceneComposer
                     EquipmentMotionController.MotionKind.ContinuousRotation, "KIN_spindle", speedRpm: 900.0f),
                 "robotArm" => CreateControlledAsset(equipment, candidates, "robotics.robot.six-axis-medium.v1", runCommands,
                     EquipmentMotionController.MotionKind.OscillatingRotation, "KIN_axis_1", travelDegrees: 55.0f),
-                "rotaryTable" => CreateControlledAsset(equipment, candidates, "material-handling.table.powered-rotary.v1", runCommands,
-                    EquipmentMotionController.MotionKind.ContinuousRotation, "KIN_table", speedRpm: 8.0f),
+                "rotaryTable" => CreateRotaryTable(equipment, candidates, runCommands),
                 "rollerShutter" => CreateShutterAsset(equipment, candidates, runCommands),
                 "machine" => equipment.Label.Contains("Hand-Dryer", StringComparison.OrdinalIgnoreCase)
                     ? CreateHandDryerAsset()
@@ -134,7 +132,17 @@ public static class SceneComposer
         var model = packed.Instantiate<Node3D>();
 
         var requestedLength = Number(equipment.Config, "length", 6.0);
-        model.Scale = new Vector3((float)(requestedLength / 6.0), 1.0f, 1.0f);
+        var requestedWidth = Number(equipment.Config, "width", 0.6);
+        var requestedHeight = Number(equipment.Config, "deckHeight", 1.055);
+        if (!double.IsFinite(requestedLength) || !double.IsFinite(requestedWidth)
+            || !double.IsFinite(requestedHeight) || requestedLength <= 0 || requestedWidth <= 0 || requestedHeight <= 0)
+            throw new InvalidOperationException($"Conveyor '{equipment.Id}' requires positive finite dimensions.");
+        // Width describes the carrying belt, not the overall motor/leg envelope.
+        // The authored foot bottoms are at 0.04 m and the belt top at 1.055 m.
+        // Size above the feet, then ground the model; keep equipment.Scale separate.
+        var heightScale = (float)(requestedHeight / (1.055 - 0.04));
+        model.Scale = new Vector3((float)(requestedLength / 6.0), heightScale, (float)(requestedWidth / 0.6));
+        model.Position = new Vector3(0, -0.04f * heightScale, 0);
         model.AddChild(new ConveyorController
         {
             Name = "ConveyorController",
@@ -142,6 +150,78 @@ public static class SceneComposer
             EstopOk = true,
             SpeedSetpointMps = 0.65f,
         });
+        var root = new Node3D();
+        root.AddChild(model);
+        return root;
+    }
+
+    private static Node3D CreateRotaryTable(SceneEquipment equipment, AssetCatalogDocument candidates, bool runCommand)
+    {
+        if (!equipment.Config.TryGetProperty("parcelTransfer", out var variant) || variant.ValueKind != JsonValueKind.True)
+            return CreateControlledAsset(equipment, candidates, "material-handling.table.powered-rotary.v1", runCommand,
+                EquipmentMotionController.MotionKind.ContinuousRotation, "KIN_table", speedRpm: 8.0f);
+
+        var model = CreateMappedAsset(equipment, candidates, "material-handling.table.powered-rotary.v1");
+        // This illustrative parcel variant omits the modeled machining fixture:
+        // its load path needs a flat surface without jaws or raised markers.
+        foreach (var mesh in model.FindChildren("*", "MeshInstance3D", true, false).OfType<MeshInstance3D>())
+        {
+            var name = mesh.Name.ToString();
+            if (name.StartsWith("TABLE_fixture_", StringComparison.Ordinal)
+                || name.StartsWith("TABLE_index_", StringComparison.Ordinal)
+                || name == "TABLE_center_register") mesh.Visible = false;
+            if (name.StartsWith("TABLE_radial_slot_", StringComparison.Ordinal))
+            {
+                mesh.Scale = new Vector3(mesh.Scale.X, mesh.Scale.Y * 0.1f, mesh.Scale.Z);
+                // These meshes are children of the platen pivot; lower their
+                // local height by 17 mm rather than assigning a world height.
+                mesh.Position -= Vector3.Up * 0.017f;
+            }
+        }
+        var radius = Number(equipment.Config, "radius", 1.28);
+        var deckHeight = Number(equipment.Config, "deckHeight", 0.93);
+        if (!double.IsFinite(radius) || !double.IsFinite(deckHeight) || radius <= 0 || deckHeight <= 0)
+            throw new InvalidOperationException($"Parcel table '{equipment.Id}' requires positive finite radius/deckHeight.");
+        model.Scale = new Vector3((float)(radius / 1.28), (float)(deckHeight / 0.93), (float)(radius / 1.28));
+        model.AddChild(new EquipmentMotionController
+        {
+            Name = "ParcelTableMotion", Kind = EquipmentMotionController.MotionKind.PositionRotation,
+            TargetPrefix = "KIN_table", TravelDegrees = 90, RunCommand = runCommand,
+            PositionInputSlewSeconds = 1.2f,
+        });
+        var root = new Node3D();
+        root.AddChild(model);
+        return root;
+    }
+
+    private static Node3D CreateSizeSensorBank(SceneEquipment equipment, AssetCatalogDocument candidates)
+    {
+        var model = CreateMappedAsset(equipment, candidates, "sensing.dimensioning.parcel-three-height.v1");
+        var clearance = Number(equipment.Config, "portalClearHeight", 2.09);
+        if (!double.IsFinite(clearance) || clearance <= 0.12)
+            throw new InvalidOperationException($"Sensor portal '{equipment.Id}' requires positive clearance above its base.");
+        var rise = (float)(clearance - 2.09);
+        var authoredHeights = new[] { 0.95f, 1.30f, 1.65f };
+        var heights = equipment.Config.TryGetProperty("beamHeightsM", out var configured)
+            ? configured.EnumerateArray().Select(value => value.GetSingle()).ToArray() : authoredHeights;
+        if (heights.Length != 3 || heights.Any(height => !float.IsFinite(height) || height <= 0.12f || height + 0.11f >= clearance)
+            || heights[0] >= heights[1] || heights[1] >= heights[2])
+            throw new InvalidOperationException($"Sensor portal '{equipment.Id}' requires three ascending beam heights below its header.");
+        foreach (var mesh in model.FindChildren("*", "MeshInstance3D", true, false).OfType<MeshInstance3D>())
+        {
+            var name = mesh.Name.ToString();
+            if (name.StartsWith("PORTAL_POST_", StringComparison.Ordinal))
+            {
+                mesh.Scale = new Vector3(mesh.Scale.X, mesh.Scale.Y * (2.12f + rise) / 2.12f, mesh.Scale.Z);
+                mesh.Position += Vector3.Up * rise / 2;
+            }
+            else if (name == "PORTAL_HEADER" || name.StartsWith("HEIGHT_", StringComparison.Ordinal))
+                mesh.Position += Vector3.Up * rise;
+            for (var channel = 1; channel <= 3; channel++)
+                if (name.StartsWith($"SENSOR_HOUSING_{channel}_", StringComparison.Ordinal)
+                    || name.StartsWith($"LENS_{channel}_", StringComparison.Ordinal) || name == $"KIN_beam_size_{channel}")
+                    mesh.Position += Vector3.Up * (heights[channel - 1] - authoredHeights[channel - 1]);
+        }
         return model;
     }
 

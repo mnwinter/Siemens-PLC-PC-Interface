@@ -2,8 +2,8 @@
 
 Status: **active**. The prior software review did not establish multi-angle
 visual acceptance. Six scenes have five-view native static inspections; 71 remain pending.
-Demo 5 and Powder Batch Mixer have repaired layouts. Parcel Size Sorter still
-requires repair; three simple panels have clear spacing but incorrect START plates. Other scenes
+Demo 5, Powder Batch Mixer and Parcel Size Sorter have repaired layouts.
+The sorter operator Run still lacks a controller; three simple panels have clear spacing but incorrect START plates. Other scenes
 remain pending unless their row explicitly records observation.
 
 ## Acceptance method
@@ -21,7 +21,7 @@ not catalog dimensions. Its column counts intersecting mesh AABBs between
 separate equipment, with more than 5 mm overlap on each axis. Curved/rotated
 meshes and intentional connections can create false positives. Zero candidates
 also does not prove proper support, equipment identity, or moving clearance.
-44 of 77 scenes have positive counts after the mixer and tank-sizing repairs.
+45 of 77 scenes have positive counts after the mixer, tank and conveyor sizing repairs.
 Every row requires native inspection.
 
 ## Repairs and open findings
@@ -33,6 +33,10 @@ Every row requires native inspection.
   geometry checks pass. Native static five-view inspection is complete. Motion
   was observed from front-left and rear-right, including Stop/Reset. No real
   carton transfer or automatic home/pick feedback is implemented.
+  Conveyor width/deck sizing is now honored by the shared composer, with model
+  sizing isolated from equipment scale. Demo 5 explicitly retains its reviewed
+  1.055 m deck height; its five static views were rechecked after this change.
+  Other conveyor scenes still need native support/clearance checks.
 - Powder Batch Mixer: the intersecting tanks and motor/hopper interference are
   repaired. Tank diameter/height now size the actual cylindrical shell (2.6 m /
   2.5 m here), with equipment scale applied separately. A copied roller-shutter
@@ -58,11 +62,26 @@ Every row requires native inspection.
   of following the plant reader. The test now reproduces the actual boundary
   and failed before normalization in `SceneLadderProject`. All 142 tests pass
   after the fix, and the shell inventory completes for all 77 scenes.
-- Parcel Size Sorter: the repaired build opens normally in Windows with
-  `route_position` REAL = 0. Five-view static inspection finds overlapping
-  turntables, belts through turntable supports, boxes penetrating the deck and
-  overlapping each other, and the smallest box overhanging the infeed end.
-  These require placement/transfer repair; successful startup is not acceptance.
+- Parcel Size Sorter: repaired the overlapping tables/belts and cartons. Two
+  fixture-free flat table variants, five conveyors (including a new bridge),
+  grounded feet and common 1.055 m surfaces provide the declared three-way path.
+  Indexing uses 0/45/90 degrees with explicit dwell; cartons yaw with the index.
+  The sweep found a header collision and Reset leaving carton rotations behind.
+  Both are repaired. Close native views then found the lowest beam below the
+  belt; configured optical heights now position housings/lenses/beams together
+  at 1.30/1.65/2.05 m, above the belt and between the three carton top heights.
+  Five full-scene static views and five final portal detail views were inspected,
+  with the secondary table junction inspected overhead and from front-right.
+  Native plant motion was observed from front-left and rear-right. Stop held
+  after two routes; Reset restored initial poses; the second pass completed
+  count=3/cycle_complete=true with cartons on distinct takeaways, then Reset.
+  The 46 s sampled geometry check uses bottom contact samples and a center-support
+  hull plus oriented mesh boxes to screen solid interference. It does not prove
+  friction, dynamics, stability, throughput, triangulated collision or real sensor
+  response. Queue holding and feedback remain scripted in this plant preview.
+  Normal shell Run was also tried: it opens a blank editor with NO CONTROLLER
+  LOADED. No supplied sorter reference ladder exists. That operator workflow
+  remains open; the explicitly labeled plant preview does not pass it.
 
 ## Evidence
 
@@ -73,8 +92,8 @@ Local ignored logs under `rungproof-next/.tools/`:
 `scene-real-initial-after.log`, `all-scene-geometry-inventory.log`,
 `multi-angle-native-parcel.log`, `geometry-review-shell-final.log`.
 Build: zero warnings/errors. Controller: 142 pass / 0 fail. Existing plant:
-19 checks pass. Twelve focused geometry checks pass (seven Demo 5, four mixer,
-one scaled radar); all 71 authored scene cases pass, with six scenes having none.
+19 checks pass. Twenty-one focused geometry checks pass (seven Demo 5, four mixer,
+nine parcel, one scaled radar); all 71 authored scene cases pass, with six scenes having none.
 Three family-selection regression cases pass. Current mixer evidence:
 `mixer-build.log`, `powder-chute-build.log`, `mixer-import.log`,
 `mixer-geometry-final.log`, `mixer-plant-regression.log`,
@@ -83,6 +102,13 @@ Three family-selection regression cases pass. Current mixer evidence:
 the unrelated Count Display metadata/document mismatch. These counts do not
 approve the rest of the catalog. Restore tag:
 `codex/multi-angle-review-baseline-20261004` at `2c3de4b`.
+
+Parcel follow-up evidence: `parcel-geometry.log`, `parcel-plant-regression.log`,
+`parcel-scene-contracts.log`, `parcel-inventory-final.log`,
+`parcel-native-final-shell.log`, `parcel-native-plant.log` and
+`demo5-conveyor-native.log`. CLI preview rejects missing scene IDs and app-shell
+combinations before creating a scene/transport. Native screenshots were inspected
+in this session; navigation logs alone do not constitute visual acceptance.
 
 ## Catalog coverage
 
@@ -96,13 +122,13 @@ count as this scene's multi-angle or runtime acceptance.
 | 1 | `conveyor-cell` | 14 | Pending | Pending |
 | 2 | `equipment-gallery` | 5 | Pending | Pending |
 | 3 | `lab-10-01-drive-alarm-code-string` | 56 | Pending | Pending |
-| 4 | `lab-10-02-chicken-label-print` | 131 | Pending | Pending |
-| 5 | `lab-10-03-vision-package-sorter` | 40 | Pending | Pending |
+| 4 | `lab-10-02-chicken-label-print` | 144 | Pending | Pending |
+| 5 | `lab-10-03-vision-package-sorter` | 38 | Pending | Pending |
 | 6 | `lab-10-04-motor-enum-state` | 0 | Pending | Pending |
 | 7 | `lab-10-05-motor-struct-data` | 67 | Pending | Pending |
 | 8 | `lab-10-06-ten-motor-array-startup` | 260 | Pending | Pending |
 | 9 | `lab-11-06-wastewater-collection` | 222 | Pending | Pending |
-| 10 | `lab-11-07-multi-conveyor-pallet-route` | 693 | Pending | Pending |
+| 10 | `lab-11-07-multi-conveyor-pallet-route` | 904 | Pending | Pending |
 | 11 | `lab-11-11-service-elevator` | 63 | Pending | Pending |
 | 12 | `lab-11-12-mobile-traffic-lights` | 21 | Pending | Pending |
 | 13 | `lab-11-13-xy-palletizing` | 0 | FR/FL/RL/RR/T | Repaired; bounded static/motion checks pass |
@@ -117,22 +143,22 @@ count as this scene's multi-angle or runtime acceptance.
 | 22 | `lab-2-08-inspection-vote` | 0 | Pending | Pending |
 | 23 | `lab-2-09-maintenance-beacon` | 0 | Pending | Pending |
 | 24 | `lab-2-10-dust-collector-seal-in` | 0 | Pending | Pending |
-| 25 | `lab-2-11-inbound-tote-stop` | 4 | Pending | Pending |
+| 25 | `lab-2-11-inbound-tote-stop` | 14 | Pending | Pending |
 | 26 | `lab-2-12-assembly-lift` | 0 | Pending | Pending |
-| 27 | `lab-2-13-coolant-jug-fill` | 39 | Pending | Pending |
+| 27 | `lab-2-13-coolant-jug-fill` | 55 | Pending | Pending |
 | 28 | `lab-2-14-sump-pump` | 41 | Pending | Pending |
 | 29 | `lab-2-15-fume-extractor` | 0 | Pending | Pending |
 | 30 | `lab-2-16-safe-drill` | 24 | Pending | Pending |
-| 31 | `lab-2-17-pallet-robot` | 24 | Pending | Pending |
-| 32 | `lab-2-18-pallet-pickup` | 8 | Pending | Pending |
+| 31 | `lab-2-17-pallet-robot` | 23 | Pending | Pending |
+| 32 | `lab-2-18-pallet-pickup` | 32 | Pending | Pending |
 | 33 | `lab-2-19-service-door` | 54 | Pending | Pending |
-| 34 | `lab-2-20-bottle-shuttle` | 0 | Pending | Pending |
-| 35 | `lab-2-21-tote-finishing` | 88 | Pending | Pending |
+| 34 | `lab-2-20-bottle-shuttle` | 36 | Pending | Pending |
+| 35 | `lab-2-21-tote-finishing` | 29 | Pending | Pending |
 | 36 | `lab-2-22-dual-spindle` | 2 | Pending | Pending |
-| 37 | `lab-2-23-parcel-sorter` | 198 | FR/FL/RL/RR/T | FAIL: table/belt and carton interference; startup fixed |
-| 38 | `lab-2-24-robot-cnc` | 6 | Pending | Pending |
+| 37 | `lab-2-23-parcel-sorter` | 174 | FR/FL/RL/RR/T | Repaired static/declared plant path; normal Run lacks controller |
+| 38 | `lab-2-24-robot-cnc` | 26 | Pending | Pending |
 | 39 | `lab-2-25-inspection-toggle` | 0 | Pending | Pending |
-| 40 | `lab-3-01-guarded-pallet-transfer` | 24 | Pending | Pending |
+| 40 | `lab-3-01-guarded-pallet-transfer` | 20 | Pending | Pending |
 | 41 | `lab-3-02-robot-cell-safe-restart` | 42 | Pending | Pending |
 | 42 | `lab-4-01-press-count-lamp` | 0 | Pending | Pending |
 | 43 | `lab-4-02-counter-reset-lamp` | 0 | Pending | Pending |
@@ -141,10 +167,10 @@ count as this scene's multi-angle or runtime acceptance.
 | 46 | `lab-4-05-dual-input-count-window` | 0 | Pending | Pending |
 | 47 | `lab-4-06-multi-press-confirmation` | 0 | Pending | Pending |
 | 48 | `lab-4-07-parking-garage-entry` | 20 | Pending | Pending |
-| 49 | `lab-4-08-package-grouping` | 24 | Pending | Pending |
-| 50 | `lab-4-09-chain-drive-lift` | 54 | Pending | Pending |
-| 51 | `lab-4-10-cookie-packaging` | 170 | Pending | Pending |
-| 52 | `lab-4-11-barrel-fill-station` | 151 | Pending | Pending |
+| 49 | `lab-4-08-package-grouping` | 118 | Pending | Pending |
+| 50 | `lab-4-09-chain-drive-lift` | 145 | Pending | Pending |
+| 51 | `lab-4-10-cookie-packaging` | 197 | Pending | Pending |
+| 52 | `lab-4-11-barrel-fill-station` | 146 | Pending | Pending |
 | 53 | `lab-4-12-cable-cut-length` | 21 | Pending | Pending |
 | 54 | `lab-5-01-delayed-lamp` | 0 | Pending | Pending |
 | 55 | `lab-5-02-timed-lamp-off` | 0 | Pending | Pending |
@@ -154,19 +180,19 @@ count as this scene's multi-angle or runtime acceptance.
 | 59 | `lab-5-06-running-light-tower` | 0 | Pending | Pending |
 | 60 | `lab-5-07-pedestrian-crossing` | 26 | Pending | Pending |
 | 61 | `lab-5-08-drawbridge-control` | 43 | Pending | Pending |
-| 62 | `lab-5-09-bag-indexing-conveyor` | 41 | Pending | Pending |
-| 63 | `lab-5-10-coating-line` | 84 | Pending | Pending |
-| 64 | `lab-6-07-luggage-weight-sort` | 108 | Pending | Pending |
+| 62 | `lab-5-09-bag-indexing-conveyor` | 37 | Pending | Pending |
+| 63 | `lab-5-10-coating-line` | 97 | Pending | Pending |
+| 64 | `lab-6-07-luggage-weight-sort` | 110 | Pending | Pending |
 | 65 | `lab-6-08-hand-dryer` | 634 | Pending | Pending |
 | 66 | `lab-9-01-sum-function` | 0 | Pending | Pending |
 | 67 | `lab-9-02-product-function` | 0 | Pending | Pending |
 | 68 | `lab-9-03-sum-and-counter-function` | 0 | Pending | Pending |
 | 69 | `lab-9-04-function-selector` | 0 | Pending | Pending |
 | 70 | `lab-9-10-box-volume` | 46 | Pending | Pending |
-| 71 | `lab-9-11-pallet-counting` | 68 | Pending | Pending |
+| 71 | `lab-9-11-pallet-counting` | 86 | Pending | Pending |
 | 72 | `lab-9-12-ev-charging-manager` | 95 | Pending | Pending |
-| 73 | `scene-1-conveyor-stop` | 8 | Pending | Pending |
-| 74 | `scene-2-conveyor-pusher` | 29 | Pending | Pending |
+| 73 | `scene-1-conveyor-stop` | 40 | Pending | Pending |
+| 74 | `scene-2-conveyor-pusher` | 96 | Pending | Pending |
 | 75 | `tank-high-low` | 60 | Pending | Pending |
 | 76 | `tank-level` | 52 | Pending | Pending |
 | 77 | `tank-radar` | 80 | Pending | Pending |

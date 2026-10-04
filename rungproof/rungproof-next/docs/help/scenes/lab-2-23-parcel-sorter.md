@@ -6,7 +6,7 @@ Scene contract: `res://scenes/migrated/lab-2-23-parcel-sorter.scene.json`
 
 ## Purpose
 
-Three parcels are classified by a sensor bank and routed onto large, medium, and small takeaway lanes.
+Illustrative three-parcel transfer: load, index the flat primary table, then send each parcel onto its supported takeaway path. A secondary table carries the medium route.
 
 ## Expected I/O to operate this scene
 
@@ -42,6 +42,9 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | `large_detected` | `size_sensor_bank` | `photoeye` |
 | `route_position` | `sort_turntable_a` | `position` |
 | `status_color` | `sorter_status` | `indicator` |
+| `conveyors_run` | `medium_transfer` | `running` |
+| `conveyors_run` | `sort_turntable_a` | `running` |
+| `conveyors_run` | `sort_turntable_b` | `running` |
 
 ## Expected equipment
 
@@ -53,6 +56,7 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | `small_lane` | `conveyor` | Small parcel lane |
 | `sort_turntable_a` | `rotaryTable` | Primary routing table |
 | `sort_turntable_b` | `rotaryTable` | Secondary routing table |
+| `medium_transfer` | `conveyor` | Medium parcel transfer between tables |
 | `large_parcel` | `box` | Large parcel |
 | `medium_parcel` | `box` | Medium parcel |
 | `small_parcel` | `box` | Small parcel |
@@ -73,23 +77,31 @@ Declared simulation safe state:
 
 ## Machine guide
 
-Three parcels are classified by a sensor bank and routed onto large, medium, and small takeaway lanes.
+Illustrative three-parcel transfer: load, index the flat primary table, then send each parcel onto its supported takeaway path. A secondary table carries the medium route. This is scripted plant geometry, not a validated conveyor contact or real PLC process model.
 
 ### Start conditions
 
-- The common PLC/watchdog foundation is healthy.
+- For the operator shell, author/load the required ladder and command bindings; no parcel-sorter reference ladder is supplied.
 - All required simulator inputs are at their documented initial state.
 - The PLC is ready to command conveyors_run, route_position.
 
 ### Normal sequence
 
+- load large onto primary table
 - route large
 - large complete
+- load medium onto primary table
+- index medium
+- transfer medium to secondary table
 - route medium
 - medium complete
+- return primary table for small parcel
+- load small onto primary table
+- index small
 - route small
 - batch complete
 
 ### Expected observations
 
 - One parcel reaches each lane and the sorted count ends at three.
+- The cartons pause at the table center before indexing. Scripted queue holds and size feedback do not prove physical sensing, friction or throughput.

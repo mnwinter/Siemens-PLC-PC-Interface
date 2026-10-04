@@ -24,6 +24,8 @@ public partial class SceneSimulationRuntime : Node
     private readonly Dictionary<string, string> _pointOwners = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _pointTypes = new(StringComparer.Ordinal);
     private readonly Dictionary<string, Vector3> _initialEquipmentPositions = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, Vector3> _initialEquipmentRotations = new(StringComparer.Ordinal);
+    private readonly HashSet<string> _sequenceRotatedEquipment = new(StringComparer.Ordinal);
     private readonly Dictionary<Node3D, (Vector3 Scale, Vector3 Position, float Height)> _liquidAuthored = [];
     private JsonElement _activeSteps;
     private int _activeStepIndex = -1;
@@ -131,6 +133,7 @@ public partial class SceneSimulationRuntime : Node
             if (child is Node3D equipment)
             {
                 _initialEquipmentPositions[equipment.Name.ToString()] = equipment.Position;
+                _initialEquipmentRotations[equipment.Name.ToString()] = equipment.RotationDegrees;
             }
         }
     }
@@ -350,6 +353,9 @@ public partial class SceneSimulationRuntime : Node
             if (_sceneRoot.GetNodeOrNull<Node3D>(name) is { } equipment)
             {
                 equipment.Position = position;
+                // Restore only roots rotated by the declared plant sequence;
+                // leave unrelated workspace rotations/scales under editor ownership.
+                if (_sequenceRotatedEquipment.Contains(name)) equipment.RotationDegrees = _initialEquipmentRotations[name];
             }
         }
         foreach (var (liquid, authored) in _liquidAuthored)
@@ -572,6 +578,12 @@ public partial class SceneSimulationRuntime : Node
                     {
                         controller.SetPositionNormalized(value);
                     }
+                    break;
+                case "rotate":
+                    _sequenceRotatedEquipment.Add(equipmentId);
+                    var rotation = equipment.RotationDegrees;
+                    rotation[AxisIndex(Text(motion, "axis", "y"))] = value;
+                    equipment.RotationDegrees = rotation;
                     break;
                 case "tankLevel":
                     ApplyTankLevel(equipment, value);
