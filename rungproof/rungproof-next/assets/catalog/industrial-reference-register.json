@@ -5549,33 +5549,6 @@
       ]
     },
     {
-      "assetId": "training.accessory.checkweigher.v1",
-      "status": "referenced",
-      "comparisonStatus": "reference-identified",
-      "comparisonNotes": "Generic family reference inherited for candidate package review; the training accessory must be independently compared before promotion.",
-      "referenceFamily": "industrial coiling steel service door",
-      "sources": [
-        {
-          "publisher": "Clopay",
-          "title": "Roll-Up Sheet Doors product page",
-          "url": "https://www.clopaydoor.com/coiling-sheet-doors",
-          "sourceType": "oem-product-page",
-          "accessed": "2026-09-22"
-        }
-      ],
-      "modeledFeatures": [
-        "interlocking horizontal curtain slats",
-        "vertical guide tracks",
-        "header coil/shaft zone",
-        "bottom bar",
-        "side-mounted operator context"
-      ],
-      "intentionallyGeneric": [
-        "No Clopay mark, slat gauge, curtain material, door size, drive voltage, cycle count, weather sealing, or safety edge is reproduced.",
-        "Simulator travel is not a real door safety or commissioning claim."
-      ]
-    },
-    {
       "assetId": "training.accessory.coating_enclosure.v1",
       "status": "referenced",
       "comparisonStatus": "reference-identified",
@@ -6095,62 +6068,6 @@
       ]
     },
     {
-      "assetId": "training.accessory.food_product_load.v1",
-      "status": "referenced",
-      "comparisonStatus": "reference-identified",
-      "comparisonNotes": "Generic family reference inherited for candidate package review; the training accessory must be independently compared before promotion.",
-      "referenceFamily": "double-acting single-rod pneumatic cylinder used as a pusher",
-      "sources": [
-        {
-          "publisher": "SMC",
-          "title": "CS1 Large Bore Tie Rod Actuator product page",
-          "url": "https://www.smcusa.com/products/pneumatic-actuators/linear-actuators/tie-rod/cs1~53642",
-          "sourceType": "oem-product-page",
-          "accessed": "2026-09-22"
-        }
-      ],
-      "modeledFeatures": [
-        "cylinder barrel",
-        "end caps",
-        "single extending rod",
-        "mounting feet/clevis interface",
-        "air-port zone"
-      ],
-      "intentionallyGeneric": [
-        "No SMC mark, bore, stroke rating, pressure, cushioning, switch type, port thread, mounting load, or pneumatic circuit is reproduced.",
-        "Pusher motion remains symbolic simulator kinematics."
-      ]
-    },
-    {
-      "assetId": "training.accessory.formatted_label_display.v1",
-      "status": "referenced",
-      "comparisonStatus": "reference-identified",
-      "comparisonNotes": "Generic family reference inherited for candidate package review; the training accessory must be independently compared before promotion.",
-      "referenceFamily": "pressure-sensitive print-and-apply labeling station",
-      "sources": [
-        {
-          "publisher": "Videojet",
-          "title": "9550 label printer applicator",
-          "url": "https://www.videojet.com/us/homepage/industry-solutions/pharma-hub/videojet-coding-and-marking-technology-lpa.html",
-          "sourceType": "oem-product-page",
-          "accessed": "2026-09-22"
-        }
-      ],
-      "modeledFeatures": [
-        "print/apply enclosure",
-        "label-roll window",
-        "roll core",
-        "exit slot",
-        "tamp slide",
-        "applicator pad",
-        "applied-label treatment"
-      ],
-      "intentionallyGeneric": [
-        "No Videojet mark, printer technology, label size, print quality, throughput, air requirement, barcode content, data integration, or certification is reproduced.",
-        "The visual does not print, encode, verify, or apply a physical label."
-      ]
-    },
-    {
       "assetId": "training.accessory.four_lane_diverter.v1",
       "status": "referenced",
       "comparisonStatus": "reference-identified",
@@ -6420,35 +6337,6 @@
       "intentionallyGeneric": [
         "No SICK mark, optics, resolution, measurement range, illumination, network interface, protection rating, calibration, accuracy, or safety classification is reproduced.",
         "The visual does not emit light, capture images, or produce a dimensional measurement."
-      ]
-    },
-    {
-      "assetId": "training.accessory.label_printer.v1",
-      "status": "referenced",
-      "comparisonStatus": "reference-identified",
-      "comparisonNotes": "Generic family reference inherited for candidate package review; the training accessory must be independently compared before promotion.",
-      "referenceFamily": "pressure-sensitive print-and-apply labeling station",
-      "sources": [
-        {
-          "publisher": "Videojet",
-          "title": "9550 label printer applicator",
-          "url": "https://www.videojet.com/us/homepage/industry-solutions/pharma-hub/videojet-coding-and-marking-technology-lpa.html",
-          "sourceType": "oem-product-page",
-          "accessed": "2026-09-22"
-        }
-      ],
-      "modeledFeatures": [
-        "print/apply enclosure",
-        "label-roll window",
-        "roll core",
-        "exit slot",
-        "tamp slide",
-        "applicator pad",
-        "applied-label treatment"
-      ],
-      "intentionallyGeneric": [
-        "No Videojet mark, printer technology, label size, print quality, throughput, air requirement, barcode content, data integration, or certification is reproduced.",
-        "The visual does not print, encode, verify, or apply a physical label."
       ]
     },
     {

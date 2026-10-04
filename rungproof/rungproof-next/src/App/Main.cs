@@ -1441,6 +1441,31 @@ public partial class Main : Node3D
             SampleVirtualControllerInputs, SampleVirtualControllerNumericInputs,
             CommitVirtualControllerOutputs, CommitVirtualControllerNumericOutputs,
             _sceneRuntime.AdvanceSimulation);
+        var reviewBarBlocked = true;
+        var reviewPopupBlocked = true;
+        if (_visualReviewBar is not null && _visualReviewLabel is not null && _visualReviewFocus is not null)
+        {
+            // Put the noninteractive coverage label directly over the real Start
+            // mesh. The same raw-input route must leave the PLC image unchanged.
+            var barPosition = _visualReviewBar.Position;
+            _visualReviewBar.Position += pointer - _visualReviewLabel.GetGlobalRect().GetCenter();
+            GD.Print($"REVIEW_OVERLAY_FIXTURE visible={_visualReviewBar.IsVisibleInTree()} pointer={pointer} bar={_visualReviewBar.GetGlobalRect()} label={_visualReviewLabel.GetGlobalRect()}");
+            GetViewport().PushInput(new InputEventMouseButton
+            { ButtonIndex = MouseButton.Left, Pressed = true, Position = pointer }, true);
+            ScanOnce();
+            reviewBarBlocked = _sceneRuntime.Points.GetValueOrDefault("conveyor_run") is false;
+            _visualReviewBar.Position = barPosition;
+            ResetActiveController();
+            RunActiveController();
+            _visualReviewFocus.GetPopup().Popup();
+            _Input(new InputEventMouseButton
+            { ButtonIndex = MouseButton.Left, Pressed = true, Position = pointer });
+            ScanOnce();
+            reviewPopupBlocked = _sceneRuntime.Points.GetValueOrDefault("conveyor_run") is false;
+            _visualReviewFocus.GetPopup().Hide();
+            ResetActiveController();
+            RunActiveController();
+        }
         // Exercise the same GUI input route used by an operator. Calling the
         // command method directly would miss a CanvasLayer interception bug.
         GetViewport().PushInput(new InputEventMouseButton
@@ -1558,7 +1583,8 @@ public partial class Main : Node3D
             && resetReleased && restarted && virtualReady && virtualStart && virtualStopCommand && immediateEstop
             && virtualRestartBlocked && resetDoesNotStart && virtualRestarted && exclusiveExternal && externalActionBlocked
             && externalImagePreserved && awaitingController && noFallbackOverwrite && fallbackRulesWork
-            && invalidOutputRejected && atomicImageRejected;
+            && invalidOutputRejected && atomicImageRejected && reviewBarBlocked && reviewPopupBlocked;
+        GD.Print($"REVIEW_OVERLAY_INPUT_VERIFY {(reviewBarBlocked && reviewPopupBlocked ? "PASS" : "FAIL")} enabled={_visualReviewBar is not null} bar={reviewBarBlocked} popup={reviewPopupBlocked}");
         GD.Print($"EXTERNAL_IMAGE_VERIFY {(invalidOutputRejected && atomicImageRejected ? "PASS" : "FAIL")} typed={invalidOutputRejected} atomic={atomicImageRejected}");
         GD.Print($"SCENE_CONTROL_VERIFY {(passed ? "PASS" : "FAIL")} facesOperator={facesOperator} start={running} depressed={depressed} restored={restored} estopLatched={estopLatched} stopped={stopped} restartBlocked={restartBlocked} resetReleased={resetReleased} restarted={restarted} virtualReady={virtualReady} virtualStart={virtualStart} virtualStopCommand={virtualStopCommand} immediateEstop={immediateEstop} virtualRestartBlocked={virtualRestartBlocked} resetDoesNotStart={resetDoesNotStart} virtualRestarted={virtualRestarted} exclusiveExternal={exclusiveExternal} externalActionBlocked={externalActionBlocked} externalImagePreserved={externalImagePreserved} awaitingController={awaitingController} noFallbackOverwrite={noFallbackOverwrite} fallbackRulesWork={fallbackRulesWork}");
         GetTree().Quit(passed ? 0 : 1);
@@ -3759,6 +3785,11 @@ public partial class Main : Node3D
 
     private bool TryExecuteSceneControl(Vector2 screenPosition)
     {
+        // Review controls sit inside the aperture. Both raw and unhandled input
+        // must defer to this overlay; labels/gaps can pass through GUI dispatch.
+        if (_visualReviewBar?.IsVisibleInTree() == true
+            && (_visualReviewBar.GetGlobalRect().HasPoint(screenPosition)
+                || _visualReviewFocus?.GetPopup().Visible == true)) return false;
         if (_sceneControlInteractor is null || _sceneRuntime is null || _mainCamera is null
             || !_sceneControlInteractor.TryPick(_mainCamera, screenPosition, out var control)
             || control is null)

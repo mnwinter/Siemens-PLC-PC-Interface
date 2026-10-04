@@ -16,6 +16,7 @@ public partial class Main
     private bool _visualReviewClose;
     private OptionButton? _visualReviewFocus;
     private string? _visualReviewFocusId;
+    private HBoxContainer? _visualReviewBar;
 
     // This opt-in inspection bar uses the real shell, scene composer, meshes
     // and camera. It does not execute scene actions or open a PLC connection.
@@ -24,6 +25,7 @@ public partial class Main
         var layer = new CanvasLayer { Name = "VisualSceneReview", Layer = 20 };
         AddChild(layer);
         var bar = new HBoxContainer { Position = new Vector2(310, _visualPlantReview ? 300 : 126) };
+        _visualReviewBar = bar;
         layer.AddChild(bar);
         if (_simulatorShell is not null)
             _simulatorShell.ProductViewChanged += view => bar.Visible = view == "operator";
@@ -271,6 +273,7 @@ public partial class Main
             VerifyGalleryGeometry(Check);
             VerifyDriveAlarmGeometry(Check);
             VerifyMotorStateProjection(Check);
+            VerifyLabelPrintGeometry(Check);
 
             AddMigratedScene("tank-radar", _candidateCatalog!, _mainCamera!, false, false);
             // Exercise an authored parent scale as well as configured sizing.
@@ -519,6 +522,50 @@ public partial class Main
         _sceneRuntime.ResetSimulation();
         check(alarmLens.MaterialOverride is StandardMaterial3D { EmissionEnabled: false }
             && _sceneRuntime.Points["drive_alarm_active"] is false, "drive_alarm_reset_clears_status_lens");
+    }
+
+    private void VerifyLabelPrintGeometry(Action<bool, string> check)
+    {
+        AddMigratedScene("lab-10-02-chicken-label-print", _candidateCatalog!, _mainCamera!, false, false);
+        var root = _sceneCompositionRoot!;
+        check(root.GetChildren().OfType<Node3D>().Where(node => ReviewMeshes(node).Length > 0)
+            .All(node => ReviewBounds(node).Position.Y >= -0.005f), "label_print_visible_equipment_above_finished_floor");
+        check(LogBoundsCandidates(root) == 0, "label_print_separate_solid_equipment_clear");
+        var weigh = root.GetNode<Node3D>("training_accessory_5");
+        var deck = ReviewBounds((MeshInstance3D)weigh.FindChild("WEIGH_DECK_surface", true, false));
+        var food = ReviewBounds(root.GetNode<Node3D>("training_accessory_4"));
+        check(MathF.Abs(deck.End.Y - 0.9f) < 0.005f && MathF.Abs(food.Position.Y - deck.End.Y) < 0.005f
+            && food.Position.X >= deck.Position.X && food.End.X <= deck.End.X
+            && food.Position.Z >= deck.Position.Z && food.End.Z <= deck.End.Z,
+            "label_print_food_tray_supported_by_actual_weigh_deck");
+        var carton = ReviewBounds(root.GetNode<Node3D>("box_2"));
+        check(ReviewMeshes(root.GetNode("conveyor_0")).Where(mesh => mesh.Name == "KIN_belt_surface").Any(mesh =>
+        {
+            var belt = ReviewBounds(mesh);
+            return MathF.Abs(carton.Position.Y - belt.End.Y) < 0.005f
+                && carton.Position.X >= belt.Position.X && carton.End.X <= belt.End.X
+                && carton.Position.Z >= belt.Position.Z && carton.End.Z <= belt.End.Z;
+        }), "label_print_carton_supported_by_actual_input_belt");
+        check(root.GetNode("training_accessory_4").FindChild("FOOD_TRAY_bottom", true, false) is not null
+            && weigh.FindChild("WEIGH_DECK_surface", true, false) is not null
+            && root.GetNode("training_accessory_6").FindChild("PRINTER_exit_slot", true, false) is not null
+            && root.GetNode("training_accessory_7").FindChild("LABEL_DISPLAY_screen", true, false) is not null
+            && !ReviewMeshes(root).Any(mesh => mesh.Name.ToString().StartsWith("SHUTTER_", StringComparison.Ordinal)
+                || mesh.Name.ToString().StartsWith("PUSHER_", StringComparison.Ordinal)),
+            "label_print_correct_training_prop_families");
+        var foot = ReviewBounds((MeshInstance3D)weigh.FindChild("WEIGH_readout_foot", true, false));
+        var mast = ReviewBounds((MeshInstance3D)weigh.FindChild("WEIGH_readout_mast", true, false));
+        check(MathF.Abs(foot.Position.Y) < 0.005f && MathF.Abs(mast.Position.Y - foot.End.Y) < 0.005f
+            && mast.Position.X >= foot.Position.X && mast.End.X <= foot.End.X
+            && mast.Position.Z >= foot.Position.Z && mast.End.Z <= foot.End.Z,
+            "label_print_readout_mast_supported_on_grounded_foot");
+        var printer = root.GetNode<Node3D>("training_accessory_6");
+        var paper = ReviewBounds((MeshInstance3D)printer.FindChild("PRINTER_demo_paper", true, false));
+        var tray = ReviewBounds((MeshInstance3D)printer.FindChild("PRINTER_output_tray", true, false));
+        check(MathF.Abs(paper.Position.Y - tray.End.Y) < 0.002f
+            && paper.Position.X >= tray.Position.X && paper.End.X <= tray.End.X
+            && paper.Position.Z >= tray.Position.Z && paper.End.Z <= tray.End.Z,
+            "label_print_demo_paper_rests_on_output_tray");
     }
 
     private void VerifyMotorStateProjection(Action<bool, string> check)

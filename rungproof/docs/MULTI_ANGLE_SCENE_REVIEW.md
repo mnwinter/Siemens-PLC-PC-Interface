@@ -3,7 +3,7 @@
 Status: **active**. The prior software review did not establish multi-angle
 visual acceptance. Fourteen scenes have five-view native static inspections; 63 remain pending.
 Demo 5, Powder Batch Mixer, Parcel Size Sorter, Conveyor Inspection Cell,
-the Equipment Gallery and Drive Alarm-Code String have repaired layouts.
+the Equipment Gallery, Drive Alarm-Code String and Chicken Label Print have repaired static layouts.
 The sorter operator Run still lacks a controller; three simple panels have clear spacing but incorrect START plates. Other scenes
 remain pending unless their row explicitly records observation. Inspection coverage
 includes failed scenes; it is not a count of accepted scenes.
@@ -23,7 +23,7 @@ not catalog dimensions. Its column counts intersecting mesh AABBs between
 separate equipment, with more than 5 mm overlap on each axis. Curved/rotated
 meshes and intentional connections can create false positives. Zero candidates
 also does not prove proper support, equipment identity, or moving clearance.
-43 of 77 scenes have positive counts after the mixer, tank and conveyor sizing repairs.
+42 of 77 scenes have positive counts in the current label-print inventory.
 Every row requires native inspection.
 
 ## Repairs and open findings
@@ -172,10 +172,12 @@ the isolated review window closed cleanly.
   open the empty editor with NO CONTROLLER LOADED. Their five-point Boolean
   contracts do not implement the named weight/class/enum/struct/array concepts.
   These observations are failures/open work, not lesson acceptance.
-  - Chicken Label Print: conveyor intersects the CNC cabinet; carton is on the
-    floor instead of the belt. The checkweigher is a roller shutter, food-product
-    load is a pneumatic pusher, and formatted-label display is a tote labeler.
-    No weight data, label-text formatting or printing process is implemented.
+  - Chicken Label Print: those baseline model/support failures are now repaired.
+    The wrong shutter/pusher/tote-labeler packages were replaced, the unrelated
+    CNC removed, and the tray/carton are supported. Final five views plus
+    focused supports, printer paper, display and all three plates were inspected.
+    Normal Run still opens the empty editor. No actual weight data, label-text
+    formatting, printing or reference controller is implemented.
   - Vision Package Sorter: a close front-right carton view confirms it is under
     the belt, among its frame/end hardware. Class-result display is a photoeye;
     four-lane diverter is a selector switch. There are two disconnected parallel
@@ -213,7 +215,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 1 | `conveyor-cell` | 11 | FR/FL/RL/RR/T | Repaired support/sensor clearance; normal offline Run/Start/Stop/Reset and E-stop inspected |
 | 2 | `equipment-gallery` | 0 | FR/FL/RL/RR/T | Repaired floor/display support; normal Run opens blank editor, animation workflow open |
 | 3 | `lab-10-01-drive-alarm-code-string` | 0 | FR/FL/RL/RR/T | Repaired prop identity, spacing and supports; normal Run opens blank editor; string processing absent |
-| 4 | `lab-10-02-chicken-label-print` | 144 | FR/FL/RL/RR/T | FAIL: wrong checkweigher/load/display models, CNC/belt intersection, unsupported carton, empty editor on Run |
+| 4 | `lab-10-02-chicken-label-print` | 0 | FR/FL/RL/RR/T + support/printer/display/plate details; repeated after repair | Repaired static identity/support/spacing; actual weighing/formatting/printing/controller absent; normal Run opens empty editor |
 | 5 | `lab-10-03-vision-package-sorter` | 32 | FR/FL/RL/RR/T + carton FR | FAIL: carton under belt, wrong display/diverter models, no four-lane path, empty editor on Run |
 | 6 | `lab-10-04-motor-enum-state` | 0 | FR/FL/RL/RR/T + three plate details; repeated after repair | Repaired plates and symbolic shaft binding; enum state/controller absent, normal Run opens empty editor |
 | 7 | `lab-10-05-motor-struct-data` | 67 | FR/FL/RL/RR/T | FAIL: shutter copies instead of displays, interference, no STRUCT data, empty editor on Run |
@@ -260,7 +262,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 48 | `lab-4-07-parking-garage-entry` | 20 | Pending | Pending |
 | 49 | `lab-4-08-package-grouping` | 118 | Pending | Pending |
 | 50 | `lab-4-09-chain-drive-lift` | 145 | Pending | Pending |
-| 51 | `lab-4-10-cookie-packaging` | 196 | Pending | Pending |
+| 51 | `lab-4-10-cookie-packaging` | 146 | Pending | Pending |
 | 52 | `lab-4-11-barrel-fill-station` | 143 | Pending | Pending |
 | 53 | `lab-4-12-cable-cut-length` | 21 | Pending | Pending |
 | 54 | `lab-5-01-delayed-lamp` | 0 | Pending | Pending |
@@ -291,3 +293,41 @@ count as this scene's multi-angle or runtime acceptance.
 Drive-alarm follow-up evidence: `.tools/drive-alarm-{props-build,build,import,geometry,inventory,scene-contracts,rendered-controls,plant-regression}.log`, `catalog-next-shell-native.log` (baseline), `drive-alarm-native-supported.log` (support and plates), and `drive-alarm-native-final-complete.log` (final five views, keypad detail, failed normal Run). Build zero warnings/errors; 38 focused geometry, 19 plant, rendered scene controls and 71 authored cases pass. These do not approve uninspected scenes, missing controllers, string functionality or hardware.
 
 Catalog scenes 4-8 follow-up evidence: `.tools/catalog-scenes-4-8-native.log` records native navigation; screenshots were individually inspected. Normal Run was observed separately for all five. `.tools/motor-state-{red-build,red-geometry,build,geometry,scene-contracts,native-final}.log` records the failing projection checks, repaired 42-check pass, 71 authored-case pass and final native camera/plate review. Logs do not replace visual observation or supply a controller. Goal active: 63 inspections remain, and recorded failures require repair.
+
+Label-print repair and review-input follow-up (2026-10-04): four wrong
+source packages are replaced by original static training props: food tray,
+weigh deck/readout, supported desktop printer and label-preview display. The
+unbound CNC placeholder was removed (11 equipment items). The staged carton
+rests on the actual 0.9 m belt; the tray rests on the actual 0.9 m weigh deck.
+Readout feet/masts and printer-paper contact are checked. Inherited recognition
+and unrelated pictures are archived as invalid identity evidence; quality stays
+candidate/unapproved, stale kinematics and unrelated industrial references are
+removed. Five final native FR/FL/RL/RR/T views and focused support, printer,
+display and three button-plate views were inspected. A tighter check caught a
+5 mm printer-paper gap, failed before repair and passes after correction.
+
+Native camera review then reproduced an input conflict: Wide/close triggered
+the label-data-valid button behind the review bar instead of changing the camera.
+The shared pick path now defers to the visible review bar and its open menu in
+both raw and unhandled input. Rendered regression cases put the real Start mesh
+behind the coverage label and an open menu: both failed before repair, both pass
+afterward. Normal rendered 3D controls still pass. The exact native overhead
+Wide click was repeated: camera changes, no scene-action event. This repair is
+for the opt-in review overlay; it does not certify all other overlays.
+
+Normal Run after the final repair still opens the empty editor with NO CONTROLLER
+LOADED. No measured weight, label formatting, product transfer or actual printing
+is implemented. Static layout repair does not pass the lesson workflow.
+Fresh build: zero warnings/errors. All 49 geometry checks, 19 plant checks,
+rendered controls (with and without review bar) and 71 authored cases pass.
+The 77-scene inventory has 42 scenes with positive bounds counts; scene 4 is now
+zero. Shared printer-package changes also alter Cookie Packaging's inventory
+196 -> 146; that scene remains uninspected and unapproved. Global help validation
+still has the previously recorded unrelated Count Display identity problem.
+Evidence under rungproof-next/.tools: label-print-{props-build,build,import,
+geometry,paper-red,inventory,scene-contracts,plant-regression,rendered-controls,
+native-final,native-paper-final,native-overlay-final}.log and
+review-overlay-{red,green}.log. Camera logs record navigation; screenshots were
+inspected separately. Isolated native windows closed cleanly; the user's Demo 1
+window was preserved. Coverage stays 14/77 inspected, 63 pending, with recorded
+failures still open. Goal active.

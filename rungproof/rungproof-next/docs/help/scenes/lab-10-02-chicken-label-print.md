@@ -2,11 +2,11 @@
 
 Scene ID: `lab-10-02-chicken-label-print`  
 Migrated source: `prototype/scenes/lab-10-02-chicken-label-print.plcscene`  
-Scene contract: `prototype/scenes/lab-10-02-chicken-label-print.plcscene`
+Scene contract: `res://scenes/migrated/lab-10-02-chicken-label-print.scene.json`
 
 ## Purpose
 
-A weighed product receives a formatted label after the weight and printer-ready signals are valid.
+Boolean label-request exercise with supported food tray, weigh deck, printer and static label-preview props. No measured weight, text formatting, printing or reference controller is supplied.
 
 ## Expected I/O to operate this scene
 
@@ -42,37 +42,37 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 
 | ID | Type | Label |
 | --- | --- | --- |
-| `conveyor_0` | `conveyor` | Chicken Label Print conveyor |
-| `machine_1` | `machine` | Chicken Label Print machine |
-| `box_2` | `box` | Chicken Label Print box |
-| `indicator_3` | `indicator` | Chicken Label Print indicator |
+| `conveyor_0` | `conveyor` | Input conveyor (static training layout) |
+| `box_2` | `box` | Staged carton on input conveyor |
+| `indicator_3` | `indicator` | Print request output |
 | `training_accessory_4` | `trainingAccessory` | Chicken Label Print - food product load |
 | `training_accessory_5` | `trainingAccessory` | Chicken Label Print - checkweigher |
 | `training_accessory_6` | `trainingAccessory` | Chicken Label Print - label printer |
 | `training_accessory_7` | `trainingAccessory` | Chicken Label Print - formatted label display |
-| `switch_8` | `switch` | Chicken Label Print operator input |
-| `switch_9` | `switch` | Chicken Label Print operator input |
-| `switch_10` | `switch` | Chicken Label Print operator input |
-| `indicator_11` | `indicator` | Chicken Label Print output indication |
+| `switch_8` | `switch` | Toggle product weighed |
+| `switch_9` | `switch` | Toggle printer ready |
+| `switch_10` | `switch` | Toggle label data valid |
+| `indicator_11` | `indicator` | Label-applied output |
 
 ## Stop and safety boundary
 
-A normal Stop removes PLC-owned commands according to the scene runtime. This document does not prove a safety function, a real E-stop circuit, a PLC watchdog, or live-machine commissioning.
+Playback Stop freezes local execution; the supplied controller logic owns removal of its output commands. This document does not prove a safety function, a real E-stop circuit, a PLC watchdog, or live-machine commissioning.
 
 ## Machine guide
 
-A weighed product receives a formatted label after the weight and printer-ready signals are valid.
+Boolean label-request exercise with supported food tray, weigh deck, printer and static label-preview props. No measured weight, text formatting, printing or reference controller is supplied.
 
 ### Start conditions
 
-- The common PLC/watchdog foundation is healthy.
-- All required simulator inputs are at their documented initial state.
+- Author or load a valid offline controller for the five declared BOOL points.
+- Validity inputs begin false; the simulator shell has no live PLC transport.
 
 ### Normal sequence
 
-- Apply the requested input condition.
-- Verify only the documented PLC outputs respond.
+- Toggle product_weighed, printer_ready and label_data_valid as manual symbolic inputs.
+- Observe controller-owned print_request and label_applied indicators; static props do not execute a product-transfer or print cycle.
 
 ### Expected observations
 
-- A label request is issued only when the product data and printer are ready.
+- The five BOOL points represent manual validity inputs and controller-owned output indications. The weigh-deck DEMO readout, printer paper and label preview are static; no actual weight or label text is processed.
+- A normal Run opens an empty editor until valid controller logic is supplied.

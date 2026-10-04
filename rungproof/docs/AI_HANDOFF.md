@@ -7,6 +7,44 @@ machine-local Codex databases, credentials, screenshots from private chats, and
 temporary runtime state.
 
 
+Label-print repair and review-input follow-up (2026-10-04): four wrong
+source packages are replaced by original static training props: food tray,
+weigh deck/readout, supported desktop printer and label-preview display. The
+unbound CNC placeholder was removed (11 equipment items). The staged carton
+rests on the actual 0.9 m belt; the tray rests on the actual 0.9 m weigh deck.
+Readout feet/masts and printer-paper contact are checked. Inherited recognition
+and unrelated pictures are archived as invalid identity evidence; quality stays
+candidate/unapproved, stale kinematics and unrelated industrial references are
+removed. Five final native FR/FL/RL/RR/T views and focused support, printer,
+display and three button-plate views were inspected. A tighter check caught a
+5 mm printer-paper gap, failed before repair and passes after correction.
+
+Native camera review then reproduced an input conflict: Wide/close triggered
+the label-data-valid button behind the review bar instead of changing the camera.
+The shared pick path now defers to the visible review bar and its open menu in
+both raw and unhandled input. Rendered regression cases put the real Start mesh
+behind the coverage label and an open menu: both failed before repair, both pass
+afterward. Normal rendered 3D controls still pass. The exact native overhead
+Wide click was repeated: camera changes, no scene-action event. This repair is
+for the opt-in review overlay; it does not certify all other overlays.
+
+Normal Run after the final repair still opens the empty editor with NO CONTROLLER
+LOADED. No measured weight, label formatting, product transfer or actual printing
+is implemented. Static layout repair does not pass the lesson workflow.
+Fresh build: zero warnings/errors. All 49 geometry checks, 19 plant checks,
+rendered controls (with and without review bar) and 71 authored cases pass.
+The 77-scene inventory has 42 scenes with positive bounds counts; scene 4 is now
+zero. Shared printer-package changes also alter Cookie Packaging's inventory
+196 -> 146; that scene remains uninspected and unapproved. Global help validation
+still has the previously recorded unrelated Count Display identity problem.
+Evidence under rungproof-next/.tools: label-print-{props-build,build,import,
+geometry,paper-red,inventory,scene-contracts,plant-regression,rendered-controls,
+native-final,native-paper-final,native-overlay-final}.log and
+review-overlay-{red,green}.log. Camera logs record navigation; screenshots were
+inspected separately. Isolated native windows closed cleanly; the user's Demo 1
+window was preserved. Coverage stays 14/77 inspected, 63 pending, with recorded
+failures still open. Goal active.
+
 Catalog scenes 4-8 follow-up (2026-10-04): Chicken Label Print, Vision Package
 Sorter, Motor Operating-State Enum, Motor STRUCT Data and Ten-Motor Array Startup
 have native FR/FL/RL/RR/T inspections. Each normal Run was clicked and opens an

@@ -10191,29 +10191,13 @@
         "thumbnailFile": "res://assets/training_accessories/checkweigher/thumbnail.png"
       },
       "bounds": {
-        "widthM": 5.3,
-        "heightM": 4.2,
-        "depthM": 0.8
+        "widthM": 1.7999999523162842,
+        "heightM": 1.5449999570846558,
+        "depthM": 1.6000000834465027
       },
       "connectors": [],
-      "kinematics": [
-        {
-          "id": "door_position",
-          "kind": "linear",
-          "nodePath": "KIN_bottom_bar",
-          "minimum": 0,
-          "maximum": 3.2,
-          "unit": "m",
-          "maximumRate": 1.2
-        }
-      ],
-      "animationTags": [
-        {
-          "id": "door_position",
-          "nodePath": "KIN_bottom_bar",
-          "kind": "linear"
-        }
-      ],
+      "kinematics": [],
+      "animationTags": [],
       "signals": [],
       "quality": {
         "status": "candidate",
@@ -10222,10 +10206,9 @@
         "topologyReviewed": false,
         "materialReviewed": false,
         "scaleReviewed": false,
-        "animationReviewed": true
+        "animationReviewed": false
       },
       "trainingRequirement": "checkweigher",
-      "genericBasisAssetId": "access-control.door.roller-shutter.v1",
       "copyrightBoundary": "Generic training visual; no logo, trade dress, product number, or exact OEM claim."
     },
     {
@@ -11249,29 +11232,13 @@
         "thumbnailFile": "res://assets/training_accessories/food_product_load/thumbnail.png"
       },
       "bounds": {
-        "widthM": 3.1,
-        "heightM": 1.1,
-        "depthM": 0.72
+        "widthM": 0.5199999809265137,
+        "heightM": 0.11899999529123306,
+        "depthM": 0.36000001430511475
       },
       "connectors": [],
-      "kinematics": [
-        {
-          "id": "pusher_position",
-          "kind": "linear",
-          "nodePath": "KIN_pusher_plate",
-          "minimum": 0,
-          "maximum": 1.35,
-          "unit": "m",
-          "maximumRate": 0.65
-        }
-      ],
-      "animationTags": [
-        {
-          "id": "pusher_position",
-          "nodePath": "KIN_pusher_plate",
-          "kind": "linear"
-        }
-      ],
+      "kinematics": [],
+      "animationTags": [],
       "signals": [],
       "quality": {
         "status": "candidate",
@@ -11280,10 +11247,9 @@
         "topologyReviewed": false,
         "materialReviewed": false,
         "scaleReviewed": false,
-        "animationReviewed": true
+        "animationReviewed": false
       },
       "trainingRequirement": "food product load",
-      "genericBasisAssetId": "actuation.pneumatic-pusher.1350mm.v1",
       "copyrightBoundary": "Generic training visual; no logo, trade dress, product number, or exact OEM claim."
     },
     {
@@ -11303,29 +11269,13 @@
         "thumbnailFile": "res://assets/training_accessories/formatted_label_display/thumbnail.png"
       },
       "bounds": {
-        "widthM": 2.1,
-        "heightM": 2.6,
-        "depthM": 1.8
+        "widthM": 1.5499999523162842,
+        "heightM": 1.8799999952316284,
+        "depthM": 0.949999988079071
       },
       "connectors": [],
-      "kinematics": [
-        {
-          "id": "label_roll_rotation",
-          "kind": "continuous",
-          "nodePath": "KIN_label_roll",
-          "minimum": 0,
-          "maximum": 360,
-          "unit": "deg",
-          "maximumRate": 55
-        }
-      ],
-      "animationTags": [
-        {
-          "id": "label_roll_rotation",
-          "nodePath": "KIN_label_roll",
-          "kind": "continuous"
-        }
-      ],
+      "kinematics": [],
+      "animationTags": [],
       "signals": [],
       "quality": {
         "status": "candidate",
@@ -11334,10 +11284,9 @@
         "topologyReviewed": false,
         "materialReviewed": false,
         "scaleReviewed": false,
-        "animationReviewed": true
+        "animationReviewed": false
       },
       "trainingRequirement": "formatted label display",
-      "genericBasisAssetId": "process.packaging.labeler.tote-pressure-sensitive.v1",
       "copyrightBoundary": "Generic training visual; no logo, trade dress, product number, or exact OEM claim."
     },
     {
@@ -11849,29 +11798,13 @@
         "thumbnailFile": "res://assets/training_accessories/label_printer/thumbnail.png"
       },
       "bounds": {
-        "widthM": 2.1,
-        "heightM": 2.6,
-        "depthM": 1.8
+        "widthM": 1.5,
+        "heightM": 1.6699999570846558,
+        "depthM": 1.100000023841858
       },
       "connectors": [],
-      "kinematics": [
-        {
-          "id": "label_roll_rotation",
-          "kind": "continuous",
-          "nodePath": "KIN_label_roll",
-          "minimum": 0,
-          "maximum": 360,
-          "unit": "deg",
-          "maximumRate": 55
-        }
-      ],
-      "animationTags": [
-        {
-          "id": "label_roll_rotation",
-          "nodePath": "KIN_label_roll",
-          "kind": "continuous"
-        }
-      ],
+      "kinematics": [],
+      "animationTags": [],
       "signals": [],
       "quality": {
         "status": "candidate",
@@ -11880,10 +11813,9 @@
         "topologyReviewed": false,
         "materialReviewed": false,
         "scaleReviewed": false,
-        "animationReviewed": true
+        "animationReviewed": false
       },
       "trainingRequirement": "label printer",
-      "genericBasisAssetId": "process.packaging.labeler.tote-pressure-sensitive.v1",
       "copyrightBoundary": "Generic training visual; no logo, trade dress, product number, or exact OEM claim."
     },
     {

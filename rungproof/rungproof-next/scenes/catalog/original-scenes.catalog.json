@@ -106,12 +106,11 @@
       "name": "Lab 10.2 - Chicken Label Print",
       "path": "res://scenes/migrated/lab-10-02-chicken-label-print.scene.json",
       "sourceFile": "prototype/scenes/lab-10-02-chicken-label-print.plcscene",
-      "equipmentCount": 12,
+      "equipmentCount": 11,
       "equipmentTypes": [
         "box",
         "conveyor",
         "indicator",
-        "machine",
         "switch",
         "trainingAccessory"
       ],
