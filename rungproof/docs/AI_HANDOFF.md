@@ -8,6 +8,21 @@ temporary runtime state.
 
 ## Product intent
 
+Current checkpoint (2026-10-04, watch review): controller suite 142/142;
+plant regression 19 checks; rendered ladder interaction passes. Native Demo 5
+first Run preserves preconfigured inputs, its four-pick layer stops commands,
+and command-driven XYZ motion holds on Stop and resets. Demo 4 now calls its
+counter FB and validation FC. Demo 5 has two FBs, two FCs, two populated DB
+declaration views, timer/counter/comparison/math/parallel logic. It remains a
+manual-feedback visualization; DB interfaces are declarations/shared tags.
+Watch rows/pickers retain identity across scans; Remove/Clear update both
+editor titles and toolbar Undo without dropping runtime monitoring. Native
+Remove/Clear/Undo in TIA and Studio 5000 passed; sessions closed cleanly.
+The Windows overlay mentioned in older checkpoints below is gone, and native
+pusher/tank, authoring and watch workflows have since been inspected. See
+`WHOLE_PROGRAM_REVIEW.md` for current matrix and evidence. Goal remains active;
+fresh install/export and remaining native flows are still under review.
+
 Latest local review checkpoint (2026-10-04): scene navigation retains each
 ladder draft, saved baseline/path, and Undo/Redo; Demo 4 counts only valid
 pallet-detection edges. Labs now open blank exercises with their own typed

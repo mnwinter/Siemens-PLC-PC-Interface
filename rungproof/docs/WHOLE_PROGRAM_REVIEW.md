@@ -45,10 +45,10 @@ No changes have been pushed. No plant connection has been attempted.
 | --- | --- | --- |
 | Launch/import/toolchain | Pinned Godot/.NET start; native window opened; build clean | Fresh install/export and missing-dependency recovery |
 | All scene data | All 77 catalog entries load; 71 have declared cases and pass; six have none. Rerun logs in `.tools/plant-scene-review` | Visual controls and runtime coverage; many declared cases cover only initial state |
-| Authored demos | All five compile; 141 controller tests pass. Native demos 1-4 counter, delay, conveyor/photoeye, and batch-valid threshold exercised; Demo 5 inputs/lost-permissive and FB/FC/DB browsing exercised | Full palletizing animation/bindings, mixed instruction coverage, repeated run/reset |
+| Authored demos | All five compile; 142 controller tests pass. Native demos 1-4 exercised; Demo 5 four-pick completion, mixed instructions, FB/FC/DB views, gantry command motion, Stop and Reset inspected | Broader scene runtime coverage; Demo 5 remains a manual-feedback command visualization |
 | Operator controls | Native Run/Stop, normal conveyor Start/E-stop/Reset, action inputs and history; complete runtime/health rails now scroll at 1200x675 and 1600x900 | E-stop/reset across other applicable scenes |
 | Conveyor/pusher/tank plant execution | Pusher repeated transfers, stroke/sensor feedback, Stop and Reset; tank fill, analog/full-level feedback, Stop and Reset inspected natively through File/Open. Fill/drain regression passes; model matches eight Python traces / 83 snapshots | Other scene runtime coverage; native tank drain |
-| Ladder editor | Native drag insertion/Undo, block browsing, Save/Open, invalid drafts, retained execution, and multi-scene close guards verified; rendered interaction verifier passed | Native tag editing, interface editing, watch, help; crash recovery |
+| Ladder editor | Native drag insertion/Undo, block browsing, Save/Open, invalid drafts, retained execution, multi-scene close guards and watch Remove/Clear/Undo in both views verified; rendered interaction verifier passed | Native tag editing, interface editing, help; crash recovery |
 | Scene/workspace authoring | Rendered mappings, transforms, atomic Save and replacement guards; native asset placement/selection, Undo/Redo, close Cancel, scene-change Save and workspace Open verified | Native mappings/transforms and malformed files |
 | Layout/camera | Split regressions and native resize/points/browser/scrollable rails inspected; block summary bounded and hovered selection contrast repaired | Remaining native tag/edit flows; broader scene visual acceptance |
 | External execution boundary | 16 offline bridge/contract/playback tests; 16 fake Python tests; fake full-app exchange/playback regression and native Run/Stop/Reset; profile guards, exclusive source, atomic output | Broader profile/cadence integration, reconnect, configuration editing and mapping UI; authorized live commissioning |
@@ -512,6 +512,27 @@ completion, watch resizing and comparison/DB views were inspected. Logs:
 `.tools/demo-sequence-controller-final.log`, `.tools/demo-sequence-shell-final.log`,
 `.tools/demo-sequence-plant-final.log`, and
 `.tools/demo-sequence-native-acceptance.log`. Goal remains active.
+
+## Watch stability and saved metadata checkpoint - 2026-10-04
+
+Restore tag `codex/watch-review-baseline-20261004` at `bd99654` precedes
+these fixes. Every scan recreated watch rows and symbol-menu items, losing
+selection and disrupting Remove or an open picker. Controls now retain identity
+until symbols or membership change; scans update values in place. The rendered
+regression failed before the change and now passes selection/value checks.
+
+Watch edits also left the unsaved marker and toolbar Undo stale. Both editor
+views now refresh saved-metadata state without invalidating the executing
+controller. The regression verifies Clear/Undo, both titles and retained
+monitoring. Native Windows Remove and Clear updated the marker and enabled
+Undo; toolbar Undo in TIA and Studio 5000 restored the clean baseline while
+scans continued. Earlier native testing also retained an open picker across
+scans and added a symbol successfully. Native sessions closed cleanly.
+
+Build has zero warnings/errors; rendered ladder interaction passes. Logs:
+`.tools/watch-stability-before.log`, `.tools/watch-stability-final.log`,
+`.tools/watch-native-final.log`, `.tools/watch-controls-native-final.log`.
+Whole-program review remains active.
 
 ## Verification boundary
 

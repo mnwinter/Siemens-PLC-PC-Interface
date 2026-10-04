@@ -5845,6 +5845,10 @@ public partial class SimulatorShell : CanvasLayer
         bottomTabs.CurrentTab = 1;
         bottomTabs.SetDeferred("current_tab", 1);
 
+        string[] watchTagNames = [];
+        string[] watchRowNames = [];
+        var watchRows = new List<TreeItem>();
+
         string WatchValue(PlcVariable variable, VirtualControllerSnapshot snapshot)
         {
             if (variable.Type == PlcVariableType.Bool)
@@ -5865,20 +5869,44 @@ public partial class SimulatorShell : CanvasLayer
 
         void RefreshWatchTable(VirtualControllerSnapshot? snapshot)
         {
-            var selectedSymbol = watchSymbol.Selected >= 0 ? watchSymbol.GetItemText(watchSymbol.Selected) : string.Empty;
-            watchSymbol.Clear();
-            foreach (var tag in document.Tags) watchSymbol.AddItem(tag.Name);
-            var selectedIndex = document.Tags.FindIndex(tag => tag.Name == selectedSymbol);
-            if (selectedIndex >= 0) watchSymbol.Select(selectedIndex);
-            watchTable.Clear();
-            var rootItem = watchTable.CreateItem();
-            foreach (var name in document.WatchVariables)
+            // Scan publication changes values, not the controls' identity.
+            // Clearing each scan loses selection and disrupts an open symbol
+            // menu or a Remove click between mouse-down and mouse-up.
+            var tagNames = document.Tags.Select(tag => tag.Name).ToArray();
+            if (!watchTagNames.SequenceEqual(tagNames, StringComparer.Ordinal))
             {
-                var variable = document.Tags.FirstOrDefault(tag => tag.Name == name);
-                if (variable is null) continue;
-                var item = watchTable.CreateItem(rootItem);
-                item.SetMetadata(0, name);
-                item.SetText(0, name);
+                var selectedSymbol = watchSymbol.Selected >= 0 ? watchSymbol.GetItemText(watchSymbol.Selected) : string.Empty;
+                watchSymbol.Clear();
+                foreach (var name in tagNames) watchSymbol.AddItem(name);
+                var selectedIndex = Array.IndexOf(tagNames, selectedSymbol);
+                if (selectedIndex >= 0) watchSymbol.Select(selectedIndex);
+                watchTagNames = tagNames;
+            }
+            var variables = document.WatchVariables
+                .Select(name => document.Tags.FirstOrDefault(tag => tag.Name == name))
+                .OfType<PlcVariable>().ToArray();
+            var rowNames = variables.Select(variable => variable.Name).ToArray();
+            if (watchTable.GetRoot() is null || !watchRowNames.SequenceEqual(rowNames, StringComparer.Ordinal))
+            {
+                var selectedName = watchTable.GetSelected()?.GetMetadata(0).AsString() ?? string.Empty;
+                watchTable.Clear();
+                watchRows.Clear();
+                var rootItem = watchTable.CreateItem();
+                foreach (var name in rowNames)
+                {
+                    var item = watchTable.CreateItem(rootItem);
+                    item.SetMetadata(0, name);
+                    item.SetText(0, name);
+                    if (name == selectedName) item.Select(0);
+                    watchRows.Add(item);
+                }
+                watchRowNames = rowNames;
+            }
+            for (var index = 0; index < variables.Length; index++)
+            {
+                var variable = variables[index];
+                var name = variable.Name;
+                var item = watchRows[index];
                 item.SetText(1, variable.Type.ToString().ToUpperInvariant());
                 var current = snapshot is not null && _ladderMonitorMatchesLoadedProgram;
                 item.SetText(2, current ? WatchValue(variable, snapshot!) : "—");
@@ -5898,6 +5926,14 @@ public partial class SimulatorShell : CanvasLayer
                 snapshot is not null && _ladderMonitorMatchesLoadedProgram ? new Color("18864b") : new Color("b36c16"));
         }
 
+        void RefreshWatchMetadataEditors()
+        {
+            // Watch membership is saved project metadata. Refresh both vendor
+            // workbenches' dirty titles and Undo/Redo without invalidating the
+            // executable controller or its monitoring snapshot.
+            foreach (var refresh in _ladderEditorRefreshers) refresh();
+        }
+
         addWatch.Pressed += () =>
         {
             if (watchSymbol.Selected < 0) return;
@@ -5905,7 +5941,7 @@ public partial class SimulatorShell : CanvasLayer
             if (document.WatchVariables.Contains(name, StringComparer.Ordinal)) return;
             if (!BeginProjectMetadataEdit("Add watch-table symbol")) return;
             document.WatchVariables.Add(name);
-            RefreshWatchTable(_virtualSnapshot);
+            RefreshWatchMetadataEditors();
         };
         removeWatch.Pressed += () =>
         {
@@ -5913,7 +5949,7 @@ public partial class SimulatorShell : CanvasLayer
             var name = selected?.GetMetadata(0).AsString() ?? string.Empty;
             if (name.Length == 0 || !BeginProjectMetadataEdit("Remove watch-table symbol")) return;
             document.WatchVariables.RemoveAll(item => item.Equals(name, StringComparison.Ordinal));
-            RefreshWatchTable(_virtualSnapshot);
+            RefreshWatchMetadataEditors();
         };
         addAllWatch.Pressed += () =>
         {
@@ -5921,13 +5957,13 @@ public partial class SimulatorShell : CanvasLayer
                 .Where(name => !document.WatchVariables.Contains(name, StringComparer.Ordinal)).ToArray();
             if (missing.Length == 0 || !BeginProjectMetadataEdit("Add all watch-table symbols")) return;
             document.WatchVariables.AddRange(missing);
-            RefreshWatchTable(_virtualSnapshot);
+            RefreshWatchMetadataEditors();
         };
         clearWatch.Pressed += () =>
         {
             if (document.WatchVariables.Count == 0 || !BeginProjectMetadataEdit("Clear watch table")) return;
             document.WatchVariables.Clear();
-            RefreshWatchTable(_virtualSnapshot);
+            RefreshWatchMetadataEditors();
         };
         bottomDockHost.AddChild(bottomPanel);
         editorAndInspector.AddChild(bottomDockHost);
@@ -9824,6 +9860,7 @@ public partial class SimulatorShell : CanvasLayer
         var watchTableWorked = false;
         var watchMetadataKeptMonitor = false;
         var watchUndoRestored = false;
+        var watchStableAcrossScans = false;
         if (monitorCompilation.IsValid && monitorCompilation.Program is not null)
         {
             var monitorRuntime = new VirtualControllerRuntime(monitorCompilation.Program);
@@ -9848,13 +9885,38 @@ public partial class SimulatorShell : CanvasLayer
                 && startWatch.GetText(2) == "TRUE"
                 && startWatch.GetText(4).Contains("GOOD · SCAN", StringComparison.Ordinal)
                 && watchStatus.Text.Contains("SIMULATOR ONLY", StringComparison.Ordinal);
+            if (startWatch is not null)
+            {
+                startWatch.Select(0);
+                for (var scan = 0; scan < 3; scan++)
+                    UpdateVirtualController(monitorRuntime.Scan(new Dictionary<string, bool>(StringComparer.Ordinal)
+                    {
+                        ["start_command"] = false,
+                        ["stop_command"] = false,
+                        ["simulated_photoeye"] = false,
+                    }));
+                watchStableAcrossScans = ReferenceEquals(watchTable.GetSelected(), startWatch)
+                    && startWatch.GetText(2) == "FALSE";
+                UpdateVirtualController(monitorSnapshot);
+            }
+            GD.Print($"WATCH_REFRESH_VERIFY stableSelectedRowAndUpdatedValue={watchStableAcrossScans}");
             var originalWatchCount = _ladderDocument.WatchVariables.Count;
+            var baselineBeforeWatch = _ladderSavedProjectJson;
+            _ladderSavedProjectJson = LadderEditorProjectJson.Save(_ladderDocument);
+            _ladderHistory.Clear();
+            foreach (var refresh in _ladderEditorRefreshers) refresh();
             clearWatch.EmitSignal(BaseButton.SignalName.Pressed);
             watchMetadataKeptMonitor = _ladderDocument.WatchVariables.Count == 0
-                && editorCanvas.MonitorActive && logixCanvas.MonitorActive;
+                && editorCanvas.MonitorActive && logixCanvas.MonitorActive
+                && !undo.Disabled && tiaEditorTabTitle.Text.StartsWith("* ", StringComparison.Ordinal)
+                && logixEditorTabTitle.Text.StartsWith("* ", StringComparison.Ordinal);
             undo.EmitSignal(BaseButton.SignalName.Pressed);
             watchUndoRestored = _ladderDocument.WatchVariables.Count == originalWatchCount
-                && editorCanvas.MonitorActive && logixCanvas.MonitorActive;
+                && editorCanvas.MonitorActive && logixCanvas.MonitorActive
+                && !tiaEditorTabTitle.Text.StartsWith("* ", StringComparison.Ordinal)
+                && !logixEditorTabTitle.Text.StartsWith("* ", StringComparison.Ordinal);
+            _ladderSavedProjectJson = baselineBeforeWatch;
+            foreach (var refresh in _ladderEditorRefreshers) refresh();
             addRung.EmitSignal(BaseButton.SignalName.Pressed);
             staleMonitorCleared = !editorCanvas.MonitorActive && !logixCanvas.MonitorActive;
             undo.EmitSignal(BaseButton.SignalName.Pressed);
@@ -9866,7 +9928,7 @@ public partial class SimulatorShell : CanvasLayer
         result = $"treeSelectable={selectable} addBlockFromTree={addBlockFromTree is not null} projectPersistence={projectPersistenceWorked} newProject={newProjectWorked} rungLayout={rungLayoutWorked} contextualProperties={contextualPropertiesWorked}/{logixContextualPropertiesWorked}/{instructionContextMenuWorked} clipboard={instructionClipboardWorked}/{instructionClipboardUndone}/{rungClipboardWorked}/{rungClipboardUndone} monitor={monitorWorked}/{staleMonitorCleared}/{undoMonitorRestored} watchTable={watchTableWorked}/{watchMetadataKeptMonitor}/{watchUndoRestored} edges={risingEdgeInserted}/{fallingEdgeInserted} advancedMath={moduloInserted}/{squareRootInserted}/{exponentiateInserted}/{truncateInserted} scaling={normalizeInserted}/{scaleInserted} conversion={convertInserted}/{roundInserted}/{ceilingInserted}/{floorInserted} timers={timerInserted}/{offDelayInserted}/{pulseTimerInserted}/{retentiveTimerInserted}/{timerResetInserted} bindingBrowser={bindingBrowserWorked} validation={structuredValidationWorked}/{validationNavigationWorked}/{validationCleared} docksWorked={docksWorked}/{dockResizeWorked}[project={projectDockCollapsed}/{projectDockReopened},tools={toolDockCollapsed}/{toolDockReopened},bottom={bottomDockCollapsed}/{bottomDockReopened}] exactInsert={insertionCursorSelected}/{exactInsertionWorked}/{exactInsertionUndone} dragDrop={dragPreviewWorked}/{dragDropWorked}/{dragDropUndone} elementMove={exactMoveWorked}/{exactMoveRestored} exactDelete={exactDeleteWorked}/{exactDeleteUndone} branchDelete={branchDeleteWorked}/{branchDeleteUndone} tagEdit={unusedTagDeleted}/{tagRenameWorked}/{tagInitialValueWorked}/{tagRenameUndone} selectionHandled={selectionHandled} crossReferenceFound={crossReferenceFound} searchNavigated={searchNavigated} instructionHelpWorked={instructionHelpWorked} toolRailWorked={toolRailWorked} rungAdded={added} undoWorked={undoWorked} redoWorked={redoWorked} instructionAdded={instructionAdded} comparisonInserted={comparisonInserted} numericInserted={numericInserted} blockLifecycle={blockAdded}/{blockRenamed}/{blockDeleted} callInserted={callInserted} returnInserted={returnInserted} jumpLabel={jumpInserted}/{labelInserted}/{labelPropertyEdited}/{labelContextualPropertiesWorked} taskLifecycle={taskAdded}/{taskRenamed}/{taskDeleted} counterInserted={counterInserted} counterDownInserted={counterDownInserted} counterLoadInserted={counterLoadInserted} counterResetInserted={counterResetInserted} setInserted={setInserted} resetInserted={resetInserted} rungRestored={restored} instructionRestored={instructionRestored}";
         return selectable && addBlockFromTree is not null && projectPersistenceWorked && newProjectWorked && rungLayoutWorked && contextualPropertiesWorked && logixContextualPropertiesWorked && instructionContextMenuWorked && docksWorked && dockResizeWorked && selectionHandled && crossReferenceFound && searchNavigated && instructionHelpWorked && toolRailWorked && added && undoWorked && redoWorked && instructionAdded && timerInserted && offDelayInserted && pulseTimerInserted && retentiveTimerInserted && timerResetInserted
             && monitorWorked && staleMonitorCleared && undoMonitorRestored
-            && watchTableWorked && watchMetadataKeptMonitor && watchUndoRestored
+            && watchTableWorked && watchMetadataKeptMonitor && watchUndoRestored && watchStableAcrossScans
             && bindingBrowserWorked
             && structuredValidationWorked && validationNavigationWorked && validationCleared
             && insertionCursorSelected && exactInsertionWorked && exactInsertionUndone
