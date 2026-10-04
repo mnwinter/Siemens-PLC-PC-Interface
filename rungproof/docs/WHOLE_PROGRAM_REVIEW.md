@@ -56,8 +56,8 @@ No changes have been pushed. No plant connection has been attempted.
 
 ## Specific open issues
 
-- Unsaved ladder drafts/history now survive scene changes; exit/crash recovery
-  and unsaved-work close prompts remain under review.
+- Unsaved ladder drafts/history survive scene changes; New/Open and close
+  now guard unsaved work. Crash/power-loss recovery remains unimplemented.
 - Non-demo labs open as blank exercises with matching typed scene tags. One
   catalog I/O type is unsupported by the offline controller and is reported.
   Complete lab instruction/reference-program coverage remains under review.
@@ -199,8 +199,6 @@ all drawers open and now passes at 1200x675 and 1600x900 in both vendor views.
 Native 1600x900 inspection confirms usable footer, diagnostics, and routine.
 This checkpoint does not complete the review matrix or prove physical PLC I/O.
 
-## Verification boundary
-
 ## Draft validation / loaded controller checkpoint - 2026-10-04
 
 Restore tag `codex/validation-state-baseline-20261004` at `1e5b22b`
@@ -220,6 +218,26 @@ is clean. Native Windows testing confirms cross-scene Open from Demo 1 to the
 saved Lab 2.1 project, Run, invalid draft Open, retained advancing scans,
 and correct lamp response from the previous good program. Unsaved replacement
 and exit prompts, resource cleanup, and remaining review areas stay open.
+
+## Unsaved replacement / close checkpoint - 2026-10-04
+
+Restore tag `codex/unsaved-work-baseline-20261004` at `433454f` precedes
+this fix. New/Open require Save, Discard, or Cancel for the current dirty
+ladder; close checks the current and all cached scene drafts. Cancel is the
+default focus. Save prompts for each queued project and blocks the pending
+action until every write succeeds. Saving cached drafts never attaches their
+scene or controller. Cancelling a later Save keeps earlier saves and leaves
+the remaining drafts protected. Writes complete in a temporary file before
+replacing an existing project, avoiding truncation during a failed write.
+
+Build is clean. App-shell regression verifies all-scene detection, Cancel,
+failed Save preventing continuation, waiting for all saves, matching saved
+contents/source IDs, and Discard. Rendered editor regression verifies the
+New guard's Cancel and Discard branches. Native Windows checks cover close
+Cancel, two-scene detection, sequential Save dialogs, and cancelling the
+second Save; the next close lists only the remaining cached draft. Saving
+that final draft produced the correct scene JSON and the review process exited.
+Crash recovery is outside this repair and remains absent.
 
 ## Verification boundary
 

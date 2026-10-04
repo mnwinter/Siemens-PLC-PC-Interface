@@ -235,6 +235,12 @@ public partial class Main : Node3D
         _externalConnection?.Dispose();
     }
 
+    public override void _Notification(int what)
+    {
+        if (what == NotificationWMCloseRequest && _simulatorShell is not null)
+            _simulatorShell.RequestWindowClose();
+    }
+
     /// <summary>
     /// Headless verification entry point for the local RungProof MCP server.
     /// It loads only editor JSON and scene-declared symbolic points, compiles
@@ -346,6 +352,7 @@ public partial class Main : Node3D
         _externalConnection = new ExternalPlcRuntimeClient(ProjectSettings.GlobalizePath("res://.."));
         IGuardedRuntimeClient connection = _externalConnection;
         _simulatorShell = new SimulatorShell(candidates, sceneCatalog, diagnostics, connection);
+        GetTree().AutoAcceptQuit = false;
         _simulatorShell.SceneRequested += sceneId =>
         {
             try
@@ -974,8 +981,11 @@ public partial class Main : Node3D
         var draftPassed = _simulatorShell is not null
             && _simulatorShell.VerifySceneDraftPersistence(out draftResult);
         GD.Print($"SCENE_DRAFT_VERIFY {(draftPassed ? "PASS" : "FAIL")} {draftResult}");
+        var unsavedResult = "shell unavailable";
+        var unsavedPassed = _simulatorShell is not null && _simulatorShell.VerifyUnsavedWorkGuard(out unsavedResult);
+        GD.Print($"UNSAVED_WORK_VERIFY {(unsavedPassed ? "PASS" : "FAIL")} {unsavedResult}");
         GD.Print($"EXTERNAL_PROFILE_GUARD_VERIFY {(guardPassed ? "PASS" : "FAIL")} {guardResult}");
-        if (structurePassed && menuPassed && plcPassed && scenarioPassed && projectPassed && guardPassed && draftPassed)
+        if (structurePassed && menuPassed && plcPassed && scenarioPassed && projectPassed && guardPassed && draftPassed && unsavedPassed)
         {
             GD.Print($"APP_SHELL_VERIFY PASS {result} workspaceMenu={menuResult} plcMenu={plcResult} scenarioMenu={scenarioResult} crossSceneProject={projectResult}");
             GetTree().Quit(0);

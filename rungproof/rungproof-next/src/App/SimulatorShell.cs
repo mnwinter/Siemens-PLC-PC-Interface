@@ -189,6 +189,10 @@ public partial class SimulatorShell : CanvasLayer
     private readonly List<Action<IReadOnlyList<LadderValidationIssue>>> _ladderValidationRefreshers = [];
     private FileDialog _ladderSaveDialog = null!;
     private FileDialog _ladderLoadDialog = null!;
+    private ConfirmationDialog _unsavedLadderDialog = null!;
+    private FileDialog _pendingDraftSaveDialog = null!;
+    private Action? _pendingLadderAction;
+    private readonly Queue<(string SceneId, SceneLadderDraft Draft)> _pendingDraftSaves = [];
     private FileDialog _workspaceSaveDialog = null!;
     private FileDialog _workspaceLoadDialog = null!;
     private string? _ladderSavedProjectJson;
@@ -1814,7 +1818,7 @@ public partial class SimulatorShell : CanvasLayer
         };
         load.Pressed += () =>
         {
-            if (IsLadderView) _ladderLoadDialog.PopupCenteredRatio(0.72f);
+            if (IsLadderView) ShowLadderLoadDialog();
             else ShowWorkspaceLoadDialog();
         };
         transportRow.AddChild(save);
@@ -3852,7 +3856,126 @@ public partial class SimulatorShell : CanvasLayer
             }
         };
         panel.AddChild(_ladderLoadDialog);
+        _unsavedLadderDialog = new ConfirmationDialog
+        {
+            Name = "UnsavedLadderDialog", Title = "Unsaved ladder work",
+            OkButtonText = "Discard changes", CancelButtonText = "Cancel",
+        };
+        _unsavedLadderDialog.AddButton("Save…", true, "save");
+        _unsavedLadderDialog.Confirmed += CompletePendingLadderAction;
+        _unsavedLadderDialog.Canceled += CancelPendingLadderAction;
+        _unsavedLadderDialog.CustomAction += action =>
+        {
+            if (action != "save") return;
+            _unsavedLadderDialog.Hide();
+            ShowNextPendingDraftSave();
+        };
+        panel.AddChild(_unsavedLadderDialog);
+        _pendingDraftSaveDialog = new FileDialog
+        {
+            Name = "SavePendingDraftDialog", FileMode = FileDialog.FileModeEnum.SaveFile,
+            Access = FileDialog.AccessEnum.Filesystem,
+            Filters = ["*.rpproj.json ; RungProof editable Ladder project"],
+        };
+        _pendingDraftSaveDialog.FileSelected += SaveNextPendingDraft;
+        _pendingDraftSaveDialog.Canceled += CancelPendingLadderAction;
+        panel.AddChild(_pendingDraftSaveDialog);
         return panel;
+    }
+
+    private static string DraftJson(SceneLadderDraft draft)
+    {
+        var document = new LadderEditorDocument();
+        document.RestoreSnapshot(draft.Document);
+        return LadderEditorProjectJson.Save(document);
+    }
+
+    public void RequestWindowClose() => RequestLadderAction(() => GetTree().Quit(), allScenes: true);
+
+    private void RequestLadderAction(Action action, bool allScenes = false)
+    {
+        if (_pendingLadderAction is not null) return;
+        var currentId = _activeScene?.Id ?? string.Empty;
+        var current = CaptureSceneLadderDraft();
+        if (current.SavedJson != DraftJson(current)) _pendingDraftSaves.Enqueue((currentId, current));
+        if (allScenes)
+            foreach (var entry in _sceneLadderDrafts)
+                if (entry.Key != currentId && entry.Value.SavedJson != DraftJson(entry.Value))
+                    _pendingDraftSaves.Enqueue((entry.Key, entry.Value));
+        if (_pendingDraftSaves.Count == 0) { action(); return; }
+        _pendingLadderAction = action;
+        ShowUnsavedLadderDialog();
+    }
+
+    private void ShowUnsavedLadderDialog(string error = "")
+    {
+        _unsavedLadderDialog.DialogText = error +
+            $"{_pendingDraftSaves.Count} unsaved ladder project(s).\n" +
+            string.Join("\n", _pendingDraftSaves.Select(target => target.SceneId)) +
+            "\n\nSave each project before continuing, discard these changes, or cancel.\n" +
+            "Saving preserves work in progress even when ladder verification fails.";
+        _unsavedLadderDialog.PopupCentered(new Vector2I(650, 320));
+        _unsavedLadderDialog.GetCancelButton().GrabFocus();
+    }
+
+    private void CancelPendingLadderAction()
+    {
+        _pendingLadderAction = null;
+        _pendingDraftSaves.Clear();
+        _unsavedLadderDialog.Hide();
+        _pendingDraftSaveDialog.Hide();
+    }
+
+    private void CompletePendingLadderAction()
+    {
+        var action = _pendingLadderAction;
+        CancelPendingLadderAction();
+        action?.Invoke();
+    }
+
+    private void ShowNextPendingDraftSave()
+    {
+        if (_pendingDraftSaves.Count == 0) { CompletePendingLadderAction(); return; }
+        var target = _pendingDraftSaves.Peek();
+        _pendingDraftSaveDialog.Title = $"Save unsaved ladder - {target.SceneId} ({_pendingDraftSaves.Count} remaining)";
+        if (target.Draft.ProjectPath is not null) _pendingDraftSaveDialog.CurrentPath = target.Draft.ProjectPath;
+        else _pendingDraftSaveDialog.CurrentFile =
+            string.Concat(target.SceneId.Select(character => char.IsLetterOrDigit(character) || character is '-' or '_' ? character : '_'))
+            + ".rpproj.json";
+        _pendingDraftSaveDialog.PopupCenteredRatio(0.72f);
+    }
+
+    private void SaveNextPendingDraft(string path)
+    {
+        if (_pendingLadderAction is null || _pendingDraftSaves.Count == 0) return;
+        var target = _pendingDraftSaves.Peek();
+        try
+        {
+            // Save the queued snapshot directly. Saving a cached scene must
+            // neither switch the machine nor load its controller program.
+            var document = new LadderEditorDocument();
+            document.RestoreSnapshot(target.Draft.Document);
+            document.SourceSceneId = target.SceneId;
+            var json = LadderEditorProjectJson.Save(document);
+            var fullPath = System.IO.Path.GetFullPath(path);
+            WriteLadderProjectFile(fullPath, json);
+            if (target.SceneId == _activeScene?.Id)
+            {
+                _ladderDocument.SourceSceneId = target.SceneId;
+                _ladderSavedProjectJson = json;
+                _ladderProjectPath = fullPath;
+                foreach (var refresh in _ladderEditorRefreshers) refresh();
+            }
+            else _sceneLadderDrafts[target.SceneId] = target.Draft with
+            { Document = document.CaptureSnapshot(), SavedJson = json, ProjectPath = fullPath };
+            _pendingDraftSaves.Dequeue();
+            ShowNextPendingDraftSave();
+        }
+        catch (Exception exception) when (exception is System.IO.IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            // A failed Save cannot authorize the destructive action.
+            ShowUnsavedLadderDialog("Save failed: " + exception.Message + "\n\n");
+        }
     }
 
     private bool TrySaveLadderProject(string path, out string message)
@@ -3861,7 +3984,7 @@ public partial class SimulatorShell : CanvasLayer
         {
             _ladderDocument.SourceSceneId = _activeScene?.Id ?? string.Empty;
             var projectJson = LadderEditorProjectJson.Save(_ladderDocument);
-            System.IO.File.WriteAllText(path, projectJson);
+            WriteLadderProjectFile(path, projectJson);
             _ladderProjectPath = System.IO.Path.GetFullPath(path);
             _ladderSavedProjectJson = projectJson;
             foreach (var refresh in _ladderEditorRefreshers) refresh();
@@ -3872,6 +3995,88 @@ public partial class SimulatorShell : CanvasLayer
         {
             message = "PROJECT SAVE FAILED · " + exception.Message.ToUpperInvariant();
             return false;
+        }
+    }
+
+    private static void WriteLadderProjectFile(string path, string json)
+    {
+        // Write completely before replacing an existing project. An I/O
+        // failure during serialization/write must not truncate the old file.
+        var fullPath = System.IO.Path.GetFullPath(path);
+        var temporary = fullPath + "." + Guid.NewGuid().ToString("N") + ".tmp";
+        try
+        {
+            System.IO.File.WriteAllText(temporary, json, new UTF8Encoding(false));
+            System.IO.File.Move(temporary, fullPath, overwrite: true);
+        }
+        finally
+        {
+            if (System.IO.File.Exists(temporary)) System.IO.File.Delete(temporary);
+        }
+    }
+
+    public bool VerifyUnsavedWorkGuard(out string result)
+    {
+        var original = CaptureSceneLadderDraft();
+        var originalDrafts = _sceneLadderDrafts.ToArray();
+        var originalScene = _activeScene?.Id ?? string.Empty;
+        var pathA = System.IO.Path.Combine(OS.GetUserDataDir(), $"guard-current-{Guid.NewGuid():N}.rpproj.json");
+        var pathB = System.IO.Path.Combine(OS.GetUserDataDir(), $"guard-cached-{Guid.NewGuid():N}.rpproj.json");
+        try
+        {
+            _sceneLadderDrafts.Clear();
+            _ladderDocument.Rungs[0].Label = "Current unsaved guard review";
+            var cached = LadderEditorDocument.CreateConveyorExample();
+            cached.SourceSceneId = "lab-2-01-workstation-call";
+            var cachedBaseline = LadderEditorProjectJson.Save(cached);
+            cached.Rungs[0].Label = "Cached unsaved guard review";
+            _sceneLadderDrafts[cached.SourceSceneId] = new(cached.CaptureSnapshot(), cachedBaseline, null, new LadderEditorHistory(150));
+            var currentJson = LadderEditorProjectJson.Save(_ladderDocument);
+            var actions = 0;
+            RequestLadderAction(() => actions++, allScenes: true);
+            var detectsAll = _unsavedLadderDialog.Visible && _pendingDraftSaves.Count == 2;
+            _unsavedLadderDialog.EmitSignal(AcceptDialog.SignalName.Canceled);
+            var cancelPreserves = actions == 0 && _pendingLadderAction is null
+                && LadderEditorProjectJson.Save(_ladderDocument) == currentJson;
+            RequestLadderAction(() => actions++, allScenes: true);
+            _unsavedLadderDialog.EmitSignal(AcceptDialog.SignalName.CustomAction, "save");
+            SaveNextPendingDraft(OS.GetUserDataDir()); // Directory target must fail without proceeding.
+            var failureBlocks = actions == 0 && _pendingDraftSaves.Count == 2 && _unsavedLadderDialog.Visible;
+            _unsavedLadderDialog.Hide();
+            _pendingDraftSaveDialog.Hide();
+            SaveNextPendingDraft(pathA);
+            var waitsForAll = actions == 0 && _pendingDraftSaves.Count == 1;
+            _pendingDraftSaveDialog.Hide();
+            SaveNextPendingDraft(pathB);
+            var savedCurrent = LadderEditorProjectJson.Load(System.IO.File.ReadAllText(pathA));
+            var savedCached = LadderEditorProjectJson.Load(System.IO.File.ReadAllText(pathB));
+            var savesAll = actions == 1 && _pendingLadderAction is null
+                && _activeScene?.Id == originalScene
+                && savedCurrent.Document?.Rungs[0].Label == "Current unsaved guard review"
+                && savedCurrent.Document.SourceSceneId == originalScene
+                && savedCached.Document?.Rungs[0].Label == "Cached unsaved guard review"
+                && savedCached.Document.SourceSceneId == cached.SourceSceneId
+                && _ladderSavedProjectJson == LadderEditorProjectJson.Save(_ladderDocument)
+                && _sceneLadderDrafts[cached.SourceSceneId].SavedJson == DraftJson(_sceneLadderDrafts[cached.SourceSceneId]);
+            _ladderDocument.Rungs[0].Label += " discard";
+            RequestLadderAction(() => actions++);
+            _unsavedLadderDialog.EmitSignal(AcceptDialog.SignalName.Confirmed);
+            var discardProceeds = actions == 2 && _pendingLadderAction is null;
+            result = $"allScenes={detectsAll} cancel={cancelPreserves} failureBlocks={failureBlocks} waitsForAll={waitsForAll} savesAll={savesAll} discard={discardProceeds}";
+            return detectsAll && cancelPreserves && failureBlocks && waitsForAll && savesAll && discardProceeds;
+        }
+        finally
+        {
+            CancelPendingLadderAction();
+            _ladderDocument.RestoreSnapshot(original.Document);
+            _ladderSavedProjectJson = original.SavedJson;
+            _ladderProjectPath = original.ProjectPath;
+            _ladderHistory = original.History;
+            _sceneLadderDrafts.Clear();
+            foreach (var entry in originalDrafts) _sceneLadderDrafts.Add(entry.Key, entry.Value);
+            foreach (var refresh in _ladderEditorRefreshers) refresh();
+            System.IO.File.Delete(pathA);
+            System.IO.File.Delete(pathB);
         }
     }
 
@@ -7615,6 +7820,8 @@ public partial class SimulatorShell : CanvasLayer
         {
             if (id == 0)
             {
+                RequestLadderAction(() =>
+                {
                 document.ResetProject(
                     "offline-controller",
                     siemens ? "Main" : "MainRoutine",
@@ -7637,9 +7844,10 @@ public partial class SimulatorShell : CanvasLayer
                 _ladderWorkspaceStatus.Text = "NEW PROJECT · NOT VERIFIED · VERIFY + LOAD REQUIRED";
                 _ladderWorkspaceStatus.AddThemeColorOverride("font_color", new Color("f1aa5b"));
                 output.Text = "[color=#18864b]New offline Ladder project created.[/color] Add logic, then Verify + Load.";
+                });
             }
             else if (id == 1) _ladderSaveDialog.PopupCenteredRatio(0.72f);
-            else if (id == 2) _ladderLoadDialog.PopupCenteredRatio(0.72f);
+            else if (id == 2) RequestLadderAction(() => _ladderLoadDialog.PopupCenteredRatio(0.72f));
         };
         editMenu.GetPopup().IdPressed += id =>
         {
@@ -8237,7 +8445,7 @@ public partial class SimulatorShell : CanvasLayer
 
     public void ShowLadderSaveDialog() => _ladderSaveDialog.PopupCenteredRatio(0.72f);
 
-    public void ShowLadderLoadDialog() => _ladderLoadDialog.PopupCenteredRatio(0.72f);
+    public void ShowLadderLoadDialog() => RequestLadderAction(() => _ladderLoadDialog.PopupCenteredRatio(0.72f));
 
     public bool TryUndoLadderEdit(out string description)
     {
@@ -8857,8 +9065,15 @@ public partial class SimulatorShell : CanvasLayer
             RefreshLadderMonitorMatch();
             if (System.IO.File.Exists(projectRoundTripPath)) System.IO.File.Delete(projectRoundTripPath);
         }
+        _ladderDocument.Rungs[0].Label += " unsaved guard review";
+        var guardedJson = LadderEditorProjectJson.Save(_ladderDocument);
         projectMenu.GetPopup().EmitSignal(PopupMenu.SignalName.IdPressed, 0L);
-        var newProjectWorked = _ladderDocument.Id == "offline-controller"
+        var replacementGuardWorked = _unsavedLadderDialog.Visible;
+        _unsavedLadderDialog.EmitSignal(AcceptDialog.SignalName.Canceled);
+        replacementGuardWorked &= LadderEditorProjectJson.Save(_ladderDocument) == guardedJson;
+        projectMenu.GetPopup().EmitSignal(PopupMenu.SignalName.IdPressed, 0L);
+        _unsavedLadderDialog.EmitSignal(AcceptDialog.SignalName.Confirmed);
+        var newProjectWorked = replacementGuardWorked && _ladderDocument.Id == "offline-controller"
             && _ladderDocument.Name == "Main"
             && _ladderDocument.ScanPeriod == TimeSpan.FromMilliseconds(20)
             && _ladderDocument.Tags.Select(tag => tag.Name).SequenceEqual(["input_1", "output_1"])
