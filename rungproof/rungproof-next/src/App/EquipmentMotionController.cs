@@ -23,6 +23,7 @@ public partial class EquipmentMotionController : Node
         FanRotor,
         ScissorLift,
         RollerShutter,
+        CartesianGantry,
     }
 
     [Export] public MotionKind Kind { get; set; }
@@ -84,6 +85,16 @@ public partial class EquipmentMotionController : Node
                 {
                     _angleRadians += seconds * 0.8f;
                     ApplyRotation(MathF.Sin(_angleRadians) * Mathf.DegToRad(TravelDegrees));
+                }
+                break;
+            case MotionKind.CartesianGantry:
+                if (RunCommand)
+                {
+                    // Illustrative command sweep only. No fabricated home or
+                    // pick-complete feedback is sent to the controller.
+                    _angleRadians = (_angleRadians + seconds * MathF.PI / MathF.Max(TravelTimeSeconds, 0.05f)) % MathF.Tau;
+                    _position = (1.0f - MathF.Cos(_angleRadians)) * 0.5f;
+                    ApplyGantryPosition();
                 }
                 break;
             case MotionKind.PositionRotation:
@@ -176,6 +187,26 @@ public partial class EquipmentMotionController : Node
         }
     }
 
+    private void ApplyGantryPosition()
+    {
+        // The delivered gantry's three KIN nodes are siblings, rather than a
+        // transform hierarchy. Move carriage and Z axis with the X bridge.
+        foreach (var target in _targets)
+        {
+            var name = target.Name.ToString();
+            var offset = Vector3.Right * (TravelM * _position);
+            if (name.StartsWith("KIN_Y_CARRIAGE", StringComparison.Ordinal)
+                || name.StartsWith("KIN_Z_AXIS", StringComparison.Ordinal))
+                offset += Vector3.Back * (0.45f * _position);
+            if (name.StartsWith("KIN_Z_AXIS", StringComparison.Ordinal))
+                // Keep this delivered solid rod inside the carriage housing.
+                // It is not a modeled telescoping actuator.
+                offset += Vector3.Down * (0.12f * _position);
+            var authored = _authoredTransforms[target];
+            target.Transform = new Transform3D(authored.Basis, authored.Origin + offset);
+        }
+    }
+
     private void ApplyRotation(float radians)
     {
         foreach (var target in _targets)
@@ -204,6 +235,10 @@ public partial class EquipmentMotionController : Node
 
     private bool IsTarget(string name)
     {
+        if (Kind == MotionKind.CartesianGantry)
+            return name.StartsWith("KIN_X_BRIDGE", StringComparison.Ordinal)
+                || name.StartsWith("KIN_Y_CARRIAGE", StringComparison.Ordinal)
+                || name.StartsWith("KIN_Z_AXIS", StringComparison.Ordinal);
         if (Kind == MotionKind.ScissorLift)
         {
             return name.StartsWith("KIN_platform", StringComparison.Ordinal)

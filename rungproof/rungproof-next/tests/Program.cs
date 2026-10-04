@@ -153,6 +153,7 @@ internal static class Program
         Test("authored demos 1 through 4 execute their documented behavior", TestOtherAuthoredDemos);
         Test("scene exercise projects bind declared I/O across the catalog", TestSceneExerciseProjects);
         Test("ladder dirty state ignores block browsing but retains project edits", TestBlockBrowsingDirtyState);
+        Test("authored block demos include their promised executable instruction mix", TestAuthoredDemoStructure);
 
         Console.WriteLine($"VIRTUAL_CONTROLLER_TESTS_PASS {_passed}");
         Console.WriteLine($"VIRTUAL_CONTROLLER_TESTS_FAIL {_failed}");
@@ -177,6 +178,25 @@ internal static class Program
         document.Rungs[0].Label += " edited";
         True(LadderEditorProjectJson.HasUnsavedChanges(document, baseline));
         True(LadderEditorProjectJson.HasUnsavedChanges(document, null));
+    }
+
+    private static void TestAuthoredDemoStructure()
+    {
+        True(AuthoredDemoLadderPrograms.TryCreate("lab-9-11-pallet-counting", out var batch));
+        True(batch.Blocks.Any(block => block.BlockType == LadderBlockType.FunctionBlock));
+        True(batch.Blocks.Any(block => block.BlockType == LadderBlockType.Function));
+        True(LadderCompiler.Compile(batch.BuildProgram()).IsValid);
+        True(AuthoredDemoLadderPrograms.TryCreate("lab-11-13-xy-palletizing", out var cell));
+        True(cell.Blocks.Count(block => block.BlockType == LadderBlockType.FunctionBlock) >= 2);
+        True(cell.Blocks.Count(block => block.BlockType == LadderBlockType.Function) >= 2);
+        True(cell.Blocks.Count(block => block.BlockType == LadderBlockType.DataBlock && block.Interface.Count > 0) >= 2);
+        var rungs = cell.Blocks.SelectMany(block => block.Rungs).ToArray();
+        True(rungs.Any(rung => rung.IsTimer));
+        True(rungs.Any(rung => rung.IsCounter));
+        True(rungs.Any(rung => rung.IsNumericOperation));
+        True(rungs.Any(rung => rung.Branches.Any(branch => branch.Contacts.Any(contact => contact.IsComparison))));
+        True(rungs.Any(rung => rung.Branches.Count > 1));
+        True(LadderCompiler.Compile(cell.BuildProgram()).IsValid);
     }
 
     private static VirtualControllerRuntime PalletizerRuntime()
@@ -324,6 +344,21 @@ internal static class Program
         Equal(1.0, count);
         for (var scan = 0; scan < 20; scan++) runtime.Scan(inputs);
         Equal(count, runtime.Snapshot.NumericVariables["layer_count"]);
+        // Completion is a stopped layer, not another pick opportunity. Held
+        // feedback must never add a fifth carton or leave actuator commands on.
+        inputs["carton_at_pick"] = true;
+        for (var scan = 0; scan < 100; scan++) runtime.Scan(inputs);
+        Equal(4L, runtime.Snapshot.Counters["cycle_count"].Accumulated);
+        False(runtime.Snapshot.Outputs["gantry_cycle"]);
+        False(runtime.Snapshot.Outputs["vacuum_pick"]);
+        False(runtime.Snapshot.Variables["cell_active"]);
+        Equal(1.0, runtime.Snapshot.NumericVariables["layer_count"]);
+        runtime.Reset();
+        runtime.Run();
+        True(runtime.Scan(inputs).Outputs["gantry_cycle"]);
+        True(runtime.Snapshot.Variables["cell_active"]);
+        Equal(0L, runtime.Snapshot.Counters["cycle_count"].Accumulated);
+        Equal(0.0, runtime.Snapshot.NumericVariables["layer_count"]);
     }
 
     private static void Test(string name, Action body)

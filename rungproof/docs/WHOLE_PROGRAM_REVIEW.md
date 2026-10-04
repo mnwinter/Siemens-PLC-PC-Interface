@@ -473,6 +473,46 @@ checks pass. Logs: `.tools/editor-review-controller.log`,
 `.tools/editor-review-native.log`. Native clean block browsing closes without a
 false save prompt. Whole-program review remains active.
 
+## Authored demo sequence and first Run checkpoint - 2026-10-04
+
+Restore tag `codex/demo-sequence-review-baseline-20261004` at `5cc5dff`
+precedes these fixes. Native testing found that setting scene inputs before the
+first Run lost them when loading the controller reset the plant. Initial Run
+now preserves current feedback; explicit Reset and explicit program loading
+retain their reset behavior. Native inputs-before-Run and the rendered plant
+regression both confirm the correction.
+
+Demo 4's advertised block program previously had only its main block and an
+unused timer. Its existing qualified counter and immediate completion output
+now execute in a counter FB and validation FC, called each scan. Existing
+invalid-event and threshold behavior still passes.
+
+Demo 5 now demonstrates comparisons, a meaningful parallel actuator-status
+branch and two populated DB declaration views in addition to its two FBs,
+two FCs, timer, counter and arithmetic. Its completed four-pick layer removes
+pick commands and cannot accept a fifth pick until Reset. Held carton feedback
+counts once; completed-layer arithmetic increments once. Native four-carton
+input sequence showed layer_complete=True and both commands=False; native
+FB comparison monitoring and DB declarations were inspected. The watch dock
+can be resized; its per-scan row recreation needs further review.
+
+The XYZ gantry now follows gantry_cycle while playback runs, holds on Stop or
+loss of command, and resets its authored pose. The three delivered sibling KIN
+nodes move together; Z travel stays within the solid-rod/carriage overlap.
+The shutter-shaped coordinate-sensor substitute in this scene was replaced
+by a sensor pair and overlapping equipment was spaced to expose the gantry.
+The scene/help now state the actual manual-feedback/command-visualization
+boundary: this is not a closed-loop carton placement model or real FB/DB
+instance execution. Other generic accessory substitutions remain under review.
+
+Build is clean; controller suite passes 142/142; app-shell, cached-draft/unsaved
+guards, profile guards and settled orphan checks pass; plant regression passes
+19 checks. Native first Run, gantry motion, Stop hold, Reset pose, four-pick
+completion, watch resizing and comparison/DB views were inspected. Logs:
+`.tools/demo-sequence-controller-final.log`, `.tools/demo-sequence-shell-final.log`,
+`.tools/demo-sequence-plant-final.log`, and
+`.tools/demo-sequence-native-acceptance.log`. Goal remains active.
+
 ## Verification boundary
 
 Native mouse/keyboard interaction proves only the inspected Windows workflows.

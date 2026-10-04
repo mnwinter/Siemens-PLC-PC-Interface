@@ -89,6 +89,22 @@ per-instance FB storage. Build, rendered ladder interaction and split tests
 pass. See the editor browsing checkpoint in `WHOLE_PROGRAM_REVIEW.md`; keep the
 goal active for remaining editor, demo sequence, external and install review.
 
+Latest authored demo checkpoint: first Run preserves operator-established scene
+feedback instead of resetting it during initial controller load. Demo 4 now
+executes its qualified counter in an FB and validation in an FC; its unused
+timer was removed without changing completion behavior. Demo 5 includes
+comparisons, a parallel actuator-status branch and two populated DB declaration
+views. A completed four-pick layer stops pick commands and requires Reset.
+Its three delivered XYZ nodes now animate from gantry_cycle and hold on Stop
+or command loss; Reset restores them. The coordinate-sensor shutter substitute
+was replaced in this scene by a sensor pair. The scene/help explicitly retain
+manual feedback and identify the motion as a command visualization, not a
+closed-loop placement model. Build, 142 controller tests, app-shell/guard/orphan
+checks and 19 plant checks pass. Native first Run, motion, Stop/Reset, four-pick
+completion and block views were inspected. Next review: watch-table row
+stability under scans, remaining native editor workflows, external profiles,
+install/export and generic accessory substitutions. The goal stays active.
+
 RungProof is a Windows PLC visual simulator and training environment. A user
 selects a scenario, sees the 3D machine, edits ladder logic in a TIA Portal or
 Studio 5000 styled workbench, runs a deterministic built-in controller, and

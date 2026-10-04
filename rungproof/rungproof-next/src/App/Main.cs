@@ -599,7 +599,9 @@ public partial class Main : Node3D
         EnableVirtualControllerProgram(loaded.Program);
     }
 
-    private void EnableVirtualControllerProgram(LadderProgram program)
+    private void EnableVirtualControllerProgram(LadderProgram program) => EnableVirtualControllerProgram(program, resetScene: true);
+
+    private void EnableVirtualControllerProgram(LadderProgram program, bool resetScene)
     {
         if (_candidateCatalog is null || _mainCamera is null || _simulatorShell is null) return;
         if (_simulatorShell.IsExternalMode)
@@ -621,7 +623,7 @@ public partial class Main : Node3D
         _virtualController = new VirtualControllerSession(new VirtualControllerRuntime(compiled.Program));
         _virtualController.SnapshotPublished += OnVirtualSnapshot;
         _sceneRuntime.UsesExternalClock = true;
-        _sceneRuntime.ResetSimulation();
+        if (resetScene) _sceneRuntime.ResetSimulation();
         _virtualSnapshot = _virtualController.Reset();
         CommitVirtualControllerSnapshot(_virtualSnapshot);
         _simulatorShell.AttachVirtualController(_virtualProgram, _virtualSnapshot);
@@ -864,7 +866,9 @@ public partial class Main : Node3D
                 _simulatorShell.SetVirtualControllerValidation(validationIssues);
                 return;
             }
-            EnableVirtualControllerProgram(currentProgram);
+            // First Run loads the authored controller without discarding the
+            // feedback the operator just established. Reset remains explicit.
+            EnableVirtualControllerProgram(currentProgram, resetScene: false);
         }
         if (_virtualController is not null)
         {

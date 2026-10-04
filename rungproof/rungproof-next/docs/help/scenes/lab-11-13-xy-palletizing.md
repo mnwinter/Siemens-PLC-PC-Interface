@@ -6,7 +6,10 @@ Scene contract: `prototype/scenes/lab-11-13-xy-palletizing.plcscene`
 
 ## Purpose
 
-A gantry places cartons at indexed pallet positions and reports a full-layer condition.
+Symbolic palletizing cell: manual carton/home/pallet permissives drive XY gantry
+command motion and a four-pick layer count. Reset starts a new layer. The XYZ
+sweep illustrates the command; it does not place cartons or generate position
+or pick-complete feedback.
 
 ## Expected I/O to operate this scene
 
@@ -38,6 +41,7 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | `pallet_position_valid` | `switch_11` | `switch` |
 | `vacuum_pick` | `indicator_3` | `indicator` |
 | `gantry_cycle` | `indicator_12` | `indicator` |
+| `gantry_cycle` | `training_accessory_4` | `running` (XYZ command sweep) |
 | `layer_complete` | `indicator_13` | `indicator` |
 
 ## Expected equipment
@@ -52,7 +56,7 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | `training_accessory_5` | `trainingAccessory` | XY Palletizing Cell - vacuum gripper |
 | `training_accessory_6` | `trainingAccessory` | XY Palletizing Cell - pallet magazine |
 | `training_accessory_7` | `trainingAccessory` | XY Palletizing Cell - carton load |
-| `training_accessory_8` | `trainingAccessory` | XY Palletizing Cell - coordinate sensors |
+| `training_accessory_8` | `trainingAccessory` | Manual coordinate-permissive sensor pair |
 | `switch_9` | `switch` | XY Palletizing Cell operator input |
 | `switch_10` | `switch` | XY Palletizing Cell operator input |
 | `switch_11` | `switch` | XY Palletizing Cell operator input |
@@ -61,11 +65,16 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 
 ## Stop and safety boundary
 
-A normal Stop removes PLC-owned commands according to the scene runtime. This document does not prove a safety function, a real E-stop circuit, a PLC watchdog, or live-machine commissioning.
+Stop freezes playback. Loss of a pick permissive removes gantry and vacuum
+commands on the next offline scan. Reset restores the pose, inputs and counters
+without running. This scene has no authored E-stop input; it does not prove a
+safety function, a real E-stop circuit, watchdog, or live commissioning.
 
 ## Machine guide
 
-A gantry places cartons at indexed pallet positions and reports a full-layer condition.
+Demo 5 uses two FBs, two FCs, two DB declaration views, a 750-ms timer, a
+four-pick counter, comparisons, arithmetic and a parallel actuator-status
+branch. DB/interface fields are declarations; runtime values use project tags.
 
 ### Start conditions
 
@@ -74,9 +83,14 @@ A gantry places cartons at indexed pallet positions and reports a full-layer con
 
 ### Normal sequence
 
-- Apply the requested input condition.
-- Verify only the documented PLC outputs respond.
+- Run, enable gantry-home and pallet-position-valid, then present a carton.
+- Hold carton-present for at least 750 ms to count one pick. Clear it before
+  presenting the next carton. A held carton counts once.
+- After four picks, layer-complete stays on and pick commands stop. Reset
+  clears the completed layer and requires a new Run.
 
 ### Expected observations
 
-- A carton is picked only at home and placed only at a valid pallet position.
+- XYZ nodes move only while gantry-cycle is commanded and playback is running.
+- Stop or loss of a pick permissive holds the command pose; Reset restores it.
+- The manually supplied home permissive does not track the illustrated pose.

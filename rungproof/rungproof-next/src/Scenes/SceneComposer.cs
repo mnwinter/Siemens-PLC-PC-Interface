@@ -93,8 +93,7 @@ public static class SceneComposer
                     ? CreateHandDryerAsset()
                     : CreateControlledAsset(equipment, candidates, "machining.machine.enclosed-center.v1", runCommands,
                         EquipmentMotionController.MotionKind.ContinuousRotation, "KIN_spindle", speedRpm: 3200.0f),
-                "trainingAccessory" => CreateOptionalMappedAsset(equipment, candidates,
-                    Text(equipment.Config, "catalogAssetId", string.Empty)),
+                "trainingAccessory" => CreateTrainingAccessory(equipment, candidates),
                 _ => null,
             };
 
@@ -162,6 +161,20 @@ public static class SceneComposer
             var requestedSpan = (float)Number(equipment.Config, "span", 1.44);
             model.Scale = new Vector3(1.0f, 1.0f, requestedSpan / 1.44f);
         }
+        return model;
+    }
+
+    private static Node3D? CreateTrainingAccessory(SceneEquipment equipment, AssetCatalogDocument candidates)
+    {
+        var model = CreateOptionalMappedAsset(equipment, candidates, Text(equipment.Config, "catalogAssetId", string.Empty));
+        if (model is not null && Text(equipment.Config, "motion", string.Empty) == "gantryCommandSweep")
+            model.AddChild(new EquipmentMotionController
+            {
+                Name = "GantryCommandMotion",
+                Kind = EquipmentMotionController.MotionKind.CartesianGantry,
+                TravelM = 0.7f,
+                TravelTimeSeconds = 1.5f,
+            });
         return model;
     }
 

@@ -87,9 +87,12 @@ public static class AuthoredDemoLadderPrograms
         document.AddTag("pallet_count_valid", PlcVariableRole.Output, "pallet_count_valid");
         document.AddTag("batch_count", PlcVariableRole.Memory, type: PlcVariableType.Counter);
         document.AddTag("batch_ready", PlcVariableRole.Memory);
-        document.AddTag("batch_timer", PlcVariableRole.Memory, type: PlcVariableType.Timer);
+        document.AddTag("always_scan", PlcVariableRole.Memory, initialValue: true);
         document.WatchVariables.AddRange(["pallet_detected", "pallet_type_valid", "count_request", "batch_count", "pallet_count_valid"]);
 
+        var counter = document.AddBlock("FB_ValidPalletCounter", LadderBlockType.FunctionBlock);
+        var validation = document.AddBlock("FC_BatchValidation", LadderBlockType.Function);
+        document.SelectBlock(1);
         document.AddCounterRung("Count valid pallets", "batch_count", 5);
         // Count the detection edge only when that event has both permissives.
         // Gating a held detection with a newly enabled permissive must not
@@ -97,14 +100,16 @@ public static class AuthoredDemoLadderPrograms
         document.InsertEdgeContact(0, 0, 0, "pallet_detected", LadderEdgeMode.Rising);
         document.AddContact(0, 0, "pallet_type_valid", false);
         document.AddContact(0, 0, "count_request", false);
+        document.SelectBlock(2);
         document.AddRung("Batch ready permissive", "batch_ready");
-        document.AddContact(1, 0, "pallet_type_valid", false);
-        document.AddContact(1, 0, "count_request", false);
+        document.AddContact(0, 0, "pallet_type_valid", false);
+        document.AddContact(0, 0, "count_request", false);
         document.AddRung("Validate pallet count", "pallet_count_valid");
-        document.AddContact(2, 0, "batch_count.DN", false);
-        document.AddContact(2, 0, "batch_ready", false);
-        document.AddTimerRung("Batch completion delay", "batch_timer", TimeSpan.FromSeconds(1));
-        document.AddContact(3, 0, "batch_ready", false);
+        document.AddContact(1, 0, "batch_count.DN", false);
+        document.AddContact(1, 0, "batch_ready", false);
+        document.SelectBlock(0);
+        AddAlwaysScannedCall(document, "Count valid pallet events", counter.Id);
+        AddAlwaysScannedCall(document, "Validate batch completion", validation.Id);
         return document;
     }
 
@@ -120,12 +125,13 @@ public static class AuthoredDemoLadderPrograms
         document.AddTag("cell_permissive", PlcVariableRole.Memory);
         document.AddTag("pick_permissive", PlcVariableRole.Memory);
         document.AddTag("sequence_ready", PlcVariableRole.Memory);
+        document.AddTag("cell_active", PlcVariableRole.Memory);
         document.AddTag("always_scan", PlcVariableRole.Memory, initialValue: true);
         document.AddTag("layer_count", PlcVariableRole.Memory, type: PlcVariableType.DInt);
         document.AddTag("position_sum", PlcVariableRole.Memory, type: PlcVariableType.DInt);
         document.AddTag("pick_timer", PlcVariableRole.Memory, type: PlcVariableType.Timer);
         document.AddTag("cycle_count", PlcVariableRole.Memory, type: PlcVariableType.Counter);
-        document.WatchVariables.AddRange(["carton_at_pick", "gantry_home", "pallet_position_valid", "vacuum_pick", "gantry_cycle", "layer_complete", "layer_count", "cycle_count"]);
+        document.WatchVariables.AddRange(["carton_at_pick", "gantry_home", "pallet_position_valid", "vacuum_pick", "gantry_cycle", "layer_complete", "layer_count", "cycle_count", "cell_active", "position_sum"]);
 
         var safety = document.AddBlock("FB_SafetyInterlock", LadderBlockType.FunctionBlock);
         document.AddInterfaceParameter(safety.Id, "GantryHome", PlcVariableType.Bool, LadderInterfaceSection.Input);
@@ -148,7 +154,14 @@ public static class AuthoredDemoLadderPrograms
         document.AddInterfaceParameter(math.Id, "LayerCount", PlcVariableType.DInt, LadderInterfaceSection.Input);
         document.AddInterfaceParameter(math.Id, "PositionSum", PlcVariableType.DInt, LadderInterfaceSection.Output);
 
-        _ = document.AddBlock("DB_CellData", LadderBlockType.DataBlock);
+        // DB members are presentation declarations in this simulator. Runtime
+        // values remain the matching project tags, as the workbench explains.
+        var data = document.AddBlock("DB_CellData", LadderBlockType.DataBlock);
+        document.AddInterfaceParameter(data.Id, "layer_count", PlcVariableType.DInt, LadderInterfaceSection.Static);
+        document.AddInterfaceParameter(data.Id, "position_sum", PlcVariableType.DInt, LadderInterfaceSection.Static);
+        var diagnostics = document.AddBlock("DB_CellStatus", LadderBlockType.DataBlock);
+        document.AddInterfaceParameter(diagnostics.Id, "cell_active", PlcVariableType.Bool, LadderInterfaceSection.Static);
+        document.AddInterfaceParameter(diagnostics.Id, "layer_complete", PlcVariableType.Bool, LadderInterfaceSection.Static);
 
         document.SelectBlock(1);
         document.AddRung("Home and pallet permissive", "cell_permissive");
@@ -159,6 +172,9 @@ public static class AuthoredDemoLadderPrograms
         document.AddRung("Pick command", "pick_permissive");
         document.AddContact(0, 0, "cell_permissive", false);
         document.AddContact(0, 0, "carton_at_pick", false);
+        // Finish one four-carton layer and require Reset before another layer.
+        // Held carton feedback must not issue a fifth pick after completion.
+        document.AddComparison(0, 0, "cycle_count.ACC", LadderCompareOperator.LessThan, "4");
 
         document.SelectBlock(3);
         document.AddRung("Sequence ready", "sequence_ready");
@@ -188,21 +204,33 @@ public static class AuthoredDemoLadderPrograms
         document.Rungs[3].IsCall = true;
         document.Rungs[3].CallTarget = math.Id;
         document.AddRung("Gantry cycle command", "gantry_cycle");
-        document.AddContact(4, 0, "cell_permissive", false);
-        document.AddContact(4, 0, "carton_at_pick", false);
+        document.AddContact(4, 0, "pick_permissive", false);
         document.AddRung("Vacuum pick command", "vacuum_pick");
         document.AddContact(5, 0, "pick_permissive", false);
         document.AddRung("Layer completion output", "layer_complete");
-        document.AddContact(6, 0, "cycle_count.DN", false);
+        document.AddComparison(6, 0, "cycle_count.ACC", LadderCompareOperator.GreaterOrEqual, "4");
         document.AddTimerRung("Pick dwell timer", "pick_timer", TimeSpan.FromMilliseconds(750));
         document.AddContact(7, 0, "pick_permissive", false);
         document.AddCounterRung("Count completed picks", "cycle_count", 4);
         document.AddContact(8, 0, "pick_timer.Q", false);
         document.AddNumericOperationRung("Advance layer count", LadderNumericOperationKind.Add, "layer_count", "1", "layer_count");
         document.InsertEdgeContact(9, 0, 0, "layer_complete", LadderEdgeMode.Rising);
+        document.AddRung("Cell active status: either commanded actuator", "cell_active");
+        document.AddContact(10, 0, "vacuum_pick", false);
+        document.AddParallelBranch(10);
+        document.AddContact(10, 1, "gantry_cycle", false);
 
         document.SelectBlock(0);
         return document;
+    }
+
+    private static void AddAlwaysScannedCall(LadderEditorDocument document, string label, string target)
+    {
+        var index = document.Rungs.Count;
+        document.AddRung(label, string.Empty);
+        document.AddContact(index, 0, "always_scan", false);
+        document.Rungs[index].IsCall = true;
+        document.Rungs[index].CallTarget = target;
     }
 
     private static LadderEditorDocument New(string id, string name, string sceneId)

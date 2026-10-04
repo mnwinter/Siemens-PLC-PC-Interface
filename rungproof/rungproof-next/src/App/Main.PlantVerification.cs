@@ -110,6 +110,40 @@ public partial class Main
                 "tank_low_limit_and_drain_saturation");
             ResetActiveController();
             Check(Math.Abs(Convert.ToDouble(_sceneRuntime.Points["tank_level"]) - initial) < 1e-6, "tank_reset_restores_level");
+
+            AddMigratedScene("lab-11-13-xy-palletizing", _candidateCatalog!, _mainCamera!, false, false);
+            var gantry = _sceneCompositionRoot!.GetNode<Node3D>("training_accessory_4");
+            var motion = gantry.GetNode<EquipmentMotionController>("GantryCommandMotion");
+            var axes = gantry.FindChildren("KIN_*", string.Empty, true, false).OfType<Node3D>().ToArray();
+            var initialPose = axes.Select(axis => axis.Transform).ToArray();
+            Check(axes.Length == 3, "demo5_delivered_xyz_motion_nodes_bound");
+            _sceneRuntime!.ExecuteAction("toggle-gantry_home");
+            _sceneRuntime.ExecuteAction("toggle-pallet_position_valid");
+            _sceneRuntime.ExecuteAction("toggle-carton_at_pick");
+            RunActiveController();
+            Advance(1);
+            Check(_sceneRuntime.Points["gantry_home"] is true && _sceneRuntime.Points["pallet_position_valid"] is true
+                && _sceneRuntime.Points["carton_at_pick"] is true && _sceneRuntime.Points["gantry_cycle"] is true,
+                "first_run_preserves_operator_feedback_before_loading_program");
+            for (var tick = 0; tick < 20; tick++) motion._PhysicsProcess(0.02);
+            Check(motion.IsPhysicsProcessing() && motion.RunCommand
+                && axes.Select((axis, index) => axis.Transform != initialPose[index]).All(changed => changed),
+                "demo5_actual_ladder_command_moves_all_xyz_nodes");
+            StopActiveController();
+            var stoppedPose = axes.Select(axis => axis.Transform).ToArray();
+            Advance(30);
+            Check(!motion.IsPhysicsProcessing() && axes.Select((axis, index) => axis.Transform == stoppedPose[index]).All(held => held),
+                "demo5_stop_freezes_command_pose");
+            RunActiveController();
+            _sceneRuntime.ExecuteAction("toggle-gantry_home");
+            Advance(1);
+            for (var tick = 0; tick < 20; tick++) motion._PhysicsProcess(0.02);
+            Check(!motion.RunCommand && axes.Select((axis, index) => axis.Transform == stoppedPose[index]).All(held => held),
+                "demo5_lost_permissive_removes_motion_command");
+            ResetActiveController();
+            Check(axes.Select((axis, index) => axis.Transform == initialPose[index]).All(reset => reset)
+                && _sceneRuntime.Points["gantry_home"] is false && _sceneRuntime.Points["gantry_cycle"] is false,
+                "demo5_reset_restores_pose_and_manual_feedback");
             GD.Print($"PLANT_MOTION_VERIFY {(passed ? "PASS" : "FAIL")} offline-only; no PLC transport");
             GetTree().Quit(passed ? 0 : 1);
         }

@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-11-13-xy-palletizing",
   "name": "Lab 11.13 - XY Palletizing Cell",
-  "description": "A gantry places cartons at indexed pallet positions and reports a full-layer condition.",
+  "description": "Symbolic palletizing cell: manual carton/home/pallet permissives drive XY gantry command motion and a four-pick layer count. Reset starts a new layer.",
   "camera": {
     "position": [
       11,
@@ -23,9 +23,9 @@
       "type": "robotArm",
       "label": "XY Palletizing Cell robot Arm",
       "position": [
-        -3.3000000000000003,
+        -4.8,
         0,
-        0
+        -1.8
       ],
       "config": {
         "running": false
@@ -36,12 +36,12 @@
       "type": "conveyor",
       "label": "XY Palletizing Cell conveyor",
       "position": [
-        -1.1,
+        -2.8,
         0,
-        0
+        -1.2
       ],
       "config": {
-        "length": 6.5,
+        "length": 2.8,
         "width": 1.4,
         "deckHeight": 0.9,
         "beltColor": 2568760,
@@ -53,8 +53,8 @@
       "type": "box",
       "label": "XY Palletizing Cell box",
       "position": [
-        1.1,
-        0,
+        -1.2,
+        0.9,
         0
       ],
       "config": {
@@ -89,13 +89,14 @@
       "type": "trainingAccessory",
       "label": "XY Palletizing Cell - XY gantry",
       "position": [
-        -3.3000000000000003,
         0,
-        1.8
+        0,
+        0
       ],
       "config": {
         "assetName": "XY gantry",
-        "catalogAssetId": "training.accessory.xy_gantry.v1"
+        "catalogAssetId": "training.accessory.xy_gantry.v1",
+        "motion": "gantryCommandSweep"
       }
     },
     {
@@ -103,9 +104,9 @@
       "type": "trainingAccessory",
       "label": "XY Palletizing Cell - vacuum gripper",
       "position": [
-        -1.1,
         0,
-        1.8
+        0,
+        3.2
       ],
       "config": {
         "assetName": "vacuum gripper",
@@ -119,7 +120,7 @@
       "position": [
         1.1,
         0,
-        1.8
+        0.7
       ],
       "config": {
         "assetName": "pallet magazine",
@@ -131,9 +132,9 @@
       "type": "trainingAccessory",
       "label": "XY Palletizing Cell - carton load",
       "position": [
-        3.3000000000000003,
+        2.8,
         0,
-        1.8
+        0.7
       ],
       "config": {
         "assetName": "carton load",
@@ -143,15 +144,15 @@
     {
       "id": "training_accessory_8",
       "type": "trainingAccessory",
-      "label": "XY Palletizing Cell - coordinate sensors",
+      "label": "Manual coordinate-permissive sensor pair",
       "position": [
-        -3.3000000000000003,
         0,
-        3.6
+        0,
+        2
       ],
       "config": {
         "assetName": "coordinate sensors",
-        "catalogAssetId": "training.accessory.coordinate_sensors.v1"
+        "catalogAssetId": "sensing.photoelectric.through-beam.v1"
       }
     },
     {
@@ -334,6 +335,11 @@
         "equipmentId": "indicator_13",
         "mode": "indicator",
         "activeColor": "green"
+      },
+      {
+        "point": "gantry_cycle",
+        "equipmentId": "training_accessory_4",
+        "mode": "running"
       }
     ]
   },
@@ -341,7 +347,8 @@
     "hints": [
       "Translate the lesson into explicit state and permissive logic: A carton is picked only at home and placed only at a valid pallet position.",
       "Inputs are simulator feedback (carton_at_pick, gantry_home, pallet_position_valid); PLC logic owns vacuum_pick, gantry_cycle, layer_complete.",
-      "Test the initial state, the valid condition, and at least one missing permissive."
+      "Test the initial state, the valid condition, and at least one missing permissive.",
+      "Demo 5 counts one four-pick layer, then requires Reset. Its XY sweep illustrates the command, not a closed-loop pallet placement model."
     ],
     "solution": {
       "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
@@ -360,14 +367,15 @@
       "coordinate sensors"
     ],
     "machineGuide": {
-      "purpose": "A gantry places cartons at indexed pallet positions and reports a full-layer condition.",
+      "purpose": "Symbolic palletizing cell: manual carton/home/pallet permissives drive XY gantry command motion and a four-pick layer count. Reset starts a new layer.",
       "startConditions": [
         "The common PLC/watchdog foundation is healthy.",
         "All required simulator inputs are at their documented initial state."
       ],
       "normalSequence": [
-        "Apply the requested input condition.",
-        "Verify only the documented PLC outputs respond."
+        "Run the simulator; enable gantry home and pallet-position valid, then present a carton.",
+        "Keep the carton permissive true for at least 750 ms to count one pick. Clear it before presenting the next carton.",
+        "After four picks the layer-complete lamp turns on and gantry/vacuum commands stop. Reset clears the count for a new layer."
       ],
       "stopBehavior": [
         "Removing the permissive removes PLC-owned commands.",
@@ -377,7 +385,8 @@
         "A missing or stale input must fail safe and remain diagnosable."
       ],
       "expectedObservations": [
-        "A carton is picked only at home and placed only at a valid pallet position."
+        "The three gantry axes move only while gantry_cycle is true and playback is running. Stop freezes the pose; Reset restores it.",
+        "Home, carton and pallet inputs are manually supplied permissives. The sweep is a command visualization; it does not generate physical position or pick-complete feedback."
       ]
     },
     "sequenceNumber": 69,
