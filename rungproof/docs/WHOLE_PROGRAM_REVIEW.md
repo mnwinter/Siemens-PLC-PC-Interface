@@ -700,6 +700,14 @@ Logs are under `rungproof-next/.tools`: `final-controller.log`,
 These results complete the bounded review/repair pass, not release acceptance
 or implementation of every capability listed in the current review matrix.
 
+The final normal `.cmd` launch restored/built with zero warnings/errors,
+imported assets without error and opened the native Windows application.
+Scenario > Scenario Browser selected Demo 5; toggling carton-at-pick, gantry-home
+and pallet-position-valid before Run retained those inputs and produced both
+vacuum and gantry commands. Stop cleared outputs; Reset restored its initial
+pose/inputs and stopped scan zero. The normal app was left open at this reset
+Demo 5 state. Launcher log: `.tools/review-final-normal-launch.log`.
+
 ## Verification boundary
 
 Native mouse/keyboard interaction proves only the inspected Windows workflows.
