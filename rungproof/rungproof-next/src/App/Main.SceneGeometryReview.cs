@@ -270,6 +270,7 @@ public partial class Main
             VerifyInspectionConveyorGeometry(Check);
             VerifyGalleryGeometry(Check);
             VerifyDriveAlarmGeometry(Check);
+            VerifyMotorStateProjection(Check);
 
             AddMigratedScene("tank-radar", _candidateCatalog!, _mainCamera!, false, false);
             // Exercise an authored parent scale as well as configured sizing.
@@ -518,6 +519,35 @@ public partial class Main
         _sceneRuntime.ResetSimulation();
         check(alarmLens.MaterialOverride is StandardMaterial3D { EmissionEnabled: false }
             && _sceneRuntime.Points["drive_alarm_active"] is false, "drive_alarm_reset_clears_status_lens");
+    }
+
+    private void VerifyMotorStateProjection(Action<bool, string> check)
+    {
+        AddMigratedScene("lab-10-04-motor-enum-state", _candidateCatalog!, _mainCamera!, false, false);
+        var root = _sceneCompositionRoot!;
+        var runtime = _sceneRuntime!;
+        var labels = new Dictionary<string, string>
+        {
+            ["switch_1"] = "START REQUEST", ["switch_3"] = "STOP REQUEST", ["switch_4"] = "FAULT ACTIVE",
+        };
+        check(labels.All(pair => root.GetNode(pair.Key).FindChild("OperatorFaceLabel", true, false)
+            is Label3D label && label.Text == pair.Value), "motor_state_operator_plates_identify_distinct_inputs");
+        var motor = root.GetNode<Node3D>("motor_0");
+        var motion = motor.FindChildren("*", string.Empty, true, false).OfType<EquipmentMotionController>().Single();
+        var shaft = motor.FindChildren("KIN_motor_*", string.Empty, true, false).OfType<Node3D>().First();
+        var authored = shaft.Transform;
+        // Supply the declared symbolic output image only. No controller logic,
+        // enum state transitions, or physical PLC behavior is inferred here.
+        runtime.CommitExternalPlcOutputs(new Dictionary<string, object?> { ["motor_running"] = true });
+        motion._PhysicsProcess(0.137);
+        check(motion.Running && shaft.Transform != authored, "motor_state_true_output_turns_actual_shaft");
+        runtime.CommitExternalPlcOutputs(new Dictionary<string, object?> { ["motor_running"] = false });
+        var held = shaft.Transform;
+        motion._PhysicsProcess(0.137);
+        check(!motion.Running && shaft.Transform == held, "motor_state_false_output_holds_actual_shaft");
+        runtime.ResetSimulation();
+        check(!motion.Running && shaft.Transform == authored && runtime.Points["motor_running"] is false,
+            "motor_state_reset_restores_shaft_and_output");
     }
 
     private void VerifyGalleryGeometry(Action<bool, string> check)

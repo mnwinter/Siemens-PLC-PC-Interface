@@ -1,5 +1,26 @@
 # Whole program review - 2026-10-03
 
+Catalog scenes 4-8 follow-up (2026-10-04): Chicken Label Print, Vision Package
+Sorter, Motor Operating-State Enum, Motor STRUCT Data and Ten-Motor Array Startup
+have native FR/FL/RL/RR/T inspections. Each normal Run was clicked and opens an
+empty editor with NO CONTROLLER LOADED. Wrong asset identities, unsupported or
+intersecting equipment, missing four-lane routing, five rather than ten motors,
+and absent weight/class/enum/STRUCT/array data are recorded in the visual ledger.
+These are failed/open inspections, not acceptance. Motor-state plates/colors and
+the missing motor_running shaft binding are repaired; final five views and all
+three plate close-ups were inspected. The description/help explicitly disclose
+the Boolean scope and missing enum/controller. Four added projection checks
+reproduce plate/shaft failures before repair and pass afterward. Current build
+has zero warnings/errors, all 42 geometry checks and 71 authored scene cases
+pass. Prior 19 plant/rendered-controls evidence was not rerun for this JSON-only
+scene repair and verifier addition. Evidence: catalog-scenes-4-8-native.log,
+motor-state-{red-build,red-geometry,build,geometry,scene-contracts,native-final}.log
+under rungproof-next/.tools. Coverage is 14/77 inspected, 63 pending; not 14 passed.
+No native motor-state controller motion, real PLC execution or hardware behavior
+was proven. Goal active; next work includes replacing verified wrong source
+packages and repairing failed layouts/workflows, plus the remaining inspections.
+
+
 ## Current status: visual review reopened (2026-10-04)
 
 The user identified a pallet intersecting a Demo 5 gantry post after the prior
@@ -33,7 +54,7 @@ Parcel-sorter startup and native exercise-editor opening now work with REAL
 are repaired. Five native static views plus portal/table details were inspected;
 plant preview Run/Stop/Reset and a three-route completion were observed. Normal
 shell Run opens a blank editor with NO CONTROLLER LOADED; no reference controller
-is supplied for this scene. The declared plant preview does not pass that workflow. Current native static coverage is 9/77, with 68 pending.
+is supplied for this scene. The declared plant preview does not pass that workflow. Current native static coverage is 14/77, with 63 pending; inspections include failures.
 Conveyor inspection now has supported cartons, grounded/photoeye stands clear
 of frame/pull-cord hardware, and correctly projected beam feedback. Five native
 views plus normal offline Run/Start/Stop/Reset and simulated E-stop/restart gating

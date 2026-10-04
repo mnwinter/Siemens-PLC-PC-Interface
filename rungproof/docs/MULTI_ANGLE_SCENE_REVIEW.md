@@ -1,11 +1,12 @@
 # Multi-angle scene review - 2026-10-04
 
 Status: **active**. The prior software review did not establish multi-angle
-visual acceptance. Nine scenes have five-view native static inspections; 68 remain pending.
+visual acceptance. Fourteen scenes have five-view native static inspections; 63 remain pending.
 Demo 5, Powder Batch Mixer, Parcel Size Sorter, Conveyor Inspection Cell,
 the Equipment Gallery and Drive Alarm-Code String have repaired layouts.
 The sorter operator Run still lacks a controller; three simple panels have clear spacing but incorrect START plates. Other scenes
-remain pending unless their row explicitly records observation.
+remain pending unless their row explicitly records observation. Inspection coverage
+includes failed scenes; it is not a count of accepted scenes.
 
 ## Acceptance method
 
@@ -166,6 +167,40 @@ the isolated review window closed cleanly.
   actual string processing remain open. The original wall-VFD family builder
   also hides its keypad keys; only this training package is corrected here.
 
+- Labs 10.2 through 10.6: native FR/FL/RL/RR/T baseline views were inspected in
+  the full shell, and normal Run was clicked separately in each scene. All five
+  open the empty editor with NO CONTROLLER LOADED. Their five-point Boolean
+  contracts do not implement the named weight/class/enum/struct/array concepts.
+  These observations are failures/open work, not lesson acceptance.
+  - Chicken Label Print: conveyor intersects the CNC cabinet; carton is on the
+    floor instead of the belt. The checkweigher is a roller shutter, food-product
+    load is a pneumatic pusher, and formatted-label display is a tote labeler.
+    No weight data, label-text formatting or printing process is implemented.
+  - Vision Package Sorter: a close front-right carton view confirms it is under
+    the belt, among its frame/end hardware. Class-result display is a photoeye;
+    four-lane diverter is a selector switch. There are two disconnected parallel
+    belts and a fixture table, not four connected destination lanes. Five BOOL
+    points contain no class/destination value or routing controller.
+  - Motor Operating-State Enum: supports/spacing are clear. Three generic START
+    plates incorrectly identified Start, Stop and Fault inputs, and motor_running
+    was bound only to the lamp, leaving the actual shaft stationary. Corrected
+    START REQUEST/STOP REQUEST/FAULT ACTIVE plates and green/red/amber buttons
+    were inspected closely; final FR/FL/RL/RR/T views were repeated. The existing
+    symbolic motor_running output now drives the shaft as well as the lamp.
+    Four regression checks cover plates, actual shaft true/false behavior and
+    Reset. The plate and shaft checks failed before repair and pass afterward.
+    This is output-image projection evidence, not native controller execution;
+    no enum-valued point/named state or reference controller is supplied. Normal
+    Run after repair still opens an empty editor. Scene/help now state that scope.
+  - Motor STRUCT Data: diagnostic faceplate and structured-data monitor are
+    roller shutters; temperature display is an RTD probe. Shutter posts and
+    nearby equipment overlap. The contract has BOOL validity/enable points,
+    not a structured motor record or numeric temperature.
+  - Ten-Motor Array Startup: only five actual motors; the claimed ten-motor
+    lineup and group-status panel are overlapping roller shutters. Sequence
+    display is a three-button box. No per-motor array commands or staggered
+    startup timing exist in the five-BOOL contract.
+
 ## Catalog coverage
 
 FR/FL/RL/RR/T = front-right / front-left / rear-left / rear-right / top.
@@ -178,11 +213,11 @@ count as this scene's multi-angle or runtime acceptance.
 | 1 | `conveyor-cell` | 11 | FR/FL/RL/RR/T | Repaired support/sensor clearance; normal offline Run/Start/Stop/Reset and E-stop inspected |
 | 2 | `equipment-gallery` | 0 | FR/FL/RL/RR/T | Repaired floor/display support; normal Run opens blank editor, animation workflow open |
 | 3 | `lab-10-01-drive-alarm-code-string` | 0 | FR/FL/RL/RR/T | Repaired prop identity, spacing and supports; normal Run opens blank editor; string processing absent |
-| 4 | `lab-10-02-chicken-label-print` | 144 | Pending | Pending |
-| 5 | `lab-10-03-vision-package-sorter` | 32 | Pending | Pending |
-| 6 | `lab-10-04-motor-enum-state` | 0 | Pending | Pending |
-| 7 | `lab-10-05-motor-struct-data` | 67 | Pending | Pending |
-| 8 | `lab-10-06-ten-motor-array-startup` | 260 | Pending | Pending |
+| 4 | `lab-10-02-chicken-label-print` | 144 | FR/FL/RL/RR/T | FAIL: wrong checkweigher/load/display models, CNC/belt intersection, unsupported carton, empty editor on Run |
+| 5 | `lab-10-03-vision-package-sorter` | 32 | FR/FL/RL/RR/T + carton FR | FAIL: carton under belt, wrong display/diverter models, no four-lane path, empty editor on Run |
+| 6 | `lab-10-04-motor-enum-state` | 0 | FR/FL/RL/RR/T + three plate details; repeated after repair | Repaired plates and symbolic shaft binding; enum state/controller absent, normal Run opens empty editor |
+| 7 | `lab-10-05-motor-struct-data` | 67 | FR/FL/RL/RR/T | FAIL: shutter copies instead of displays, interference, no STRUCT data, empty editor on Run |
+| 8 | `lab-10-06-ten-motor-array-startup` | 260 | FR/FL/RL/RR/T | FAIL: five motors and overlapping shutter copies, no array/timed startup, empty editor on Run |
 | 9 | `lab-11-06-wastewater-collection` | 222 | Pending | Pending |
 | 10 | `lab-11-07-multi-conveyor-pallet-route` | 892 | Pending | Pending |
 | 11 | `lab-11-11-service-elevator` | 63 | Pending | Pending |
@@ -254,3 +289,5 @@ count as this scene's multi-angle or runtime acceptance.
 | 77 | `tank-radar` | 80 | Pending | Pending |
 
 Drive-alarm follow-up evidence: `.tools/drive-alarm-{props-build,build,import,geometry,inventory,scene-contracts,rendered-controls,plant-regression}.log`, `catalog-next-shell-native.log` (baseline), `drive-alarm-native-supported.log` (support and plates), and `drive-alarm-native-final-complete.log` (final five views, keypad detail, failed normal Run). Build zero warnings/errors; 38 focused geometry, 19 plant, rendered scene controls and 71 authored cases pass. These do not approve uninspected scenes, missing controllers, string functionality or hardware.
+
+Catalog scenes 4-8 follow-up evidence: `.tools/catalog-scenes-4-8-native.log` records native navigation; screenshots were individually inspected. Normal Run was observed separately for all five. `.tools/motor-state-{red-build,red-geometry,build,geometry,scene-contracts,native-final}.log` records the failing projection checks, repaired 42-check pass, 71 authored-case pass and final native camera/plate review. Logs do not replace visual observation or supply a controller. Goal active: 63 inspections remain, and recorded failures require repair.

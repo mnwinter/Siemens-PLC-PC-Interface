@@ -31,10 +31,13 @@ For native multi-angle inspection, launch Godot with `-- --app-shell
 --visual-scene-review`. The opt-in review bar provides catalog navigation, four
 diagonal camera views, overhead, detail zoom and an equipment-focus selector. Scene navigation uses the
 normal unsaved-work guards. Normal launch has no review bar.
-`-- --verify-scene-geometry` runs 38 focused checks for Demo 5 clearance/attachment,
+`-- --verify-scene-geometry` runs 42 focused checks for Demo 5 clearance/attachment,
 mixer placement/tank sizing/chute identity/floor support, scaled radar feedback,
 the parcel sorter's supported paths, optical heights and Stop/Reset,
-inspection conveyor support/photoeye clearance/feedback, gallery floor/probe support, and drive-alarm identity, labels, mast support and alarm projection.
+inspection conveyor support/photoeye clearance/feedback, gallery floor/probe support,
+drive-alarm identity/labels/mast support/alarm projection, and motor-state plates
+and actual shaft true/false/Reset output projection. These checks do not supply
+missing controllers or implement enum/STRUCT/array lesson behavior.
 For the declared plant geometry only, use `-- --scene-id=lab-2-23-parcel-sorter
 --visual-plant-review`. It starts stopped and labels the preview as having no PLC
 controller. This mode cannot be combined with app-shell/verification modes.

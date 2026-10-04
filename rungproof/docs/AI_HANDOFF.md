@@ -6,6 +6,27 @@ would otherwise be trapped in a local Codex session. It intentionally excludes
 machine-local Codex databases, credentials, screenshots from private chats, and
 temporary runtime state.
 
+
+Catalog scenes 4-8 follow-up (2026-10-04): Chicken Label Print, Vision Package
+Sorter, Motor Operating-State Enum, Motor STRUCT Data and Ten-Motor Array Startup
+have native FR/FL/RL/RR/T inspections. Each normal Run was clicked and opens an
+empty editor with NO CONTROLLER LOADED. Wrong asset identities, unsupported or
+intersecting equipment, missing four-lane routing, five rather than ten motors,
+and absent weight/class/enum/STRUCT/array data are recorded in the visual ledger.
+These are failed/open inspections, not acceptance. Motor-state plates/colors and
+the missing motor_running shaft binding are repaired; final five views and all
+three plate close-ups were inspected. The description/help explicitly disclose
+the Boolean scope and missing enum/controller. Four added projection checks
+reproduce plate/shaft failures before repair and pass afterward. Current build
+has zero warnings/errors, all 42 geometry checks and 71 authored scene cases
+pass. Prior 19 plant/rendered-controls evidence was not rerun for this JSON-only
+scene repair and verifier addition. Evidence: catalog-scenes-4-8-native.log,
+motor-state-{red-build,red-geometry,build,geometry,scene-contracts,native-final}.log
+under rungproof-next/.tools. Coverage is 14/77 inspected, 63 pending; not 14 passed.
+No native motor-state controller motion, real PLC execution or hardware behavior
+was proven. Goal active; next work includes replacing verified wrong source
+packages and repairing failed layouts/workflows, plus the remaining inspections.
+
 ## Product intent
 
 Visual review reopened (2026-10-04): the user reported a pallet intersecting a
@@ -32,7 +53,7 @@ front-left/rear-right; this is scripted geometry, not contact dynamics or sensor
 validation. Normal shell Run opens the blank editor with NO CONTROLLER LOADED;
 no supplied sorter reference controller exists. Do not count preview as operator
 Run acceptance. Shared conveyor width/deck sizing now works; Demo 5 static
-five-view regression passes, and the inspection conveyor is now reviewed; other conveyor scenes still need native review. Nine scenes inspected; 68 pending.
+five-view regression passes, and the inspection conveyor is now reviewed; other conveyor scenes still need native review. Fourteen scenes inspected; 63 pending (including failed inspections).
 Conveyor inspection now has supported cartons, grounded/photoeye stands clear
 of frame/pull-cord hardware, and correctly projected beam feedback. Five native
 views plus normal offline Run/Start/Stop/Reset and simulated E-stop/restart gating

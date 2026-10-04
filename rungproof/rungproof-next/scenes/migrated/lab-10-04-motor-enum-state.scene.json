@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-10-04-motor-enum-state",
   "name": "Lab 10.4 - Motor Operating-State Enum",
-  "description": "A motor state machine exposes one named operating state at a time and rejects conflicting commands.",
+  "description": "Boolean inputs and motor/status outputs for an operating-state exercise. No enum-valued state or reference controller is supplied; author or load controller logic before Run.",
   "camera": {
     "position": [
       11,
@@ -21,7 +21,7 @@
     {
       "id": "motor_0",
       "type": "motor",
-      "label": "Motor Operating-State Enum motor",
+      "label": "Motor commanded by motor_running",
       "position": [
         -3.3000000000000003,
         0,
@@ -34,7 +34,7 @@
     {
       "id": "switch_1",
       "type": "switch",
-      "label": "Motor Operating-State Enum switch",
+      "label": "Start request",
       "position": [
         -1.1,
         0,
@@ -43,13 +43,14 @@
       "config": {
         "style": "pushbutton",
         "action": "toggle-start_request",
-        "color": 2204518
+        "color": 2204518,
+        "faceLabel": "START REQUEST"
       }
     },
     {
       "id": "indicator_2",
       "type": "indicator",
-      "label": "Motor Operating-State Enum indicator",
+      "label": "Motor running indication",
       "position": [
         1.1,
         0,
@@ -67,7 +68,7 @@
     {
       "id": "switch_3",
       "type": "switch",
-      "label": "Motor Operating-State Enum operator input",
+      "label": "Stop request",
       "position": [
         3.3000000000000003,
         0,
@@ -76,13 +77,14 @@
       "config": {
         "style": "pushbutton",
         "action": "toggle-stop_request",
-        "color": 2204518
+        "color": 14695473,
+        "faceLabel": "STOP REQUEST"
       }
     },
     {
       "id": "switch_4",
       "type": "switch",
-      "label": "Motor Operating-State Enum operator input",
+      "label": "Simulated fault active",
       "position": [
         -2.85,
         0,
@@ -91,13 +93,14 @@
       "config": {
         "style": "pushbutton",
         "action": "toggle-fault_active",
-        "color": 2204518
+        "color": 15902976,
+        "faceLabel": "FAULT ACTIVE"
       }
     },
     {
       "id": "indicator_5",
       "type": "indicator",
-      "label": "Motor Operating-State Enum output indication",
+      "label": "State-valid indication",
       "position": [
         -0.6500000000000001,
         0,
@@ -198,6 +201,11 @@
         "equipmentId": "indicator_5",
         "mode": "indicator",
         "activeColor": "green"
+      },
+      {
+        "point": "motor_running",
+        "equipmentId": "motor_0",
+        "mode": "running"
       }
     ]
   },
@@ -205,10 +213,11 @@
     "hints": [
       "Translate the lesson into explicit state and permissive logic: A fault or stop request dominates start and leaves the motor in a safe stopped state.",
       "Inputs are simulator feedback (start_request, stop_request, fault_active); PLC logic owns motor_running, state_valid.",
-      "Test the initial state, the valid condition, and at least one missing permissive."
+      "Test the initial state, the valid condition, and at least one missing permissive.",
+      "Current scene exposes five BOOL points only. It does not implement or display an enum state. No reference ladder is supplied; normal Run opens the editor until valid controller logic is loaded."
     ],
     "solution": {
-      "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
+      "summary": "Controller design guidance only; no executable reference controller is supplied. The motor graphic projects motor_running, not a measured motor feedback signal.",
       "steps": [
         "Require the documented inputs: start_request, stop_request, fault_active.",
         "Command the documented outputs: motor_running, state_valid.",
@@ -218,24 +227,28 @@
     },
     "assetRequirements": [],
     "machineGuide": {
-      "purpose": "A motor state machine exposes one named operating state at a time and rejects conflicting commands.",
+      "purpose": "Boolean inputs and motor/status outputs for an operating-state exercise. No enum-valued state or reference controller is supplied; author or load controller logic before Run.",
       "startConditions": [
-        "The common PLC/watchdog foundation is healthy.",
-        "All required simulator inputs are at their documented initial state."
+        "Author or load a valid offline controller for the five declared BOOL points.",
+        "Keep stop_request and fault_active false before applying start_request.",
+        "The common watchdog tags are retained lesson metadata, not verified live PLC communication in this shell."
       ],
       "normalSequence": [
         "Apply the requested input condition.",
         "Verify only the documented PLC outputs respond."
       ],
       "stopBehavior": [
-        "Removing the permissive removes PLC-owned commands.",
+        "Controller logic must remove motor_running when a stop request or fault is active.",
+        "Playback Stop freezes local motion; it does not write a PLC or implement the missing controller logic.",
         "Reset returns the module to its initial state."
       ],
       "faultBehavior": [
         "A missing or stale input must fail safe and remain diagnosable."
       ],
       "expectedObservations": [
-        "A fault or stop request dominates start and leaves the motor in a safe stopped state."
+        "When supplied controller logic commands motor_running, the shaft graphic and running indicator follow that output.",
+        "The state-valid indicator follows state_valid; no named enum state is displayed.",
+        "Fault/stop priority must be implemented and verified in the supplied controller logic."
       ]
     },
     "sequenceNumber": 62,
