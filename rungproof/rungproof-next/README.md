@@ -128,6 +128,12 @@ parent repository's configured profiles through the Python bridge; approval,
 typed ownership and scene/profile matching guard connection and exchange.
 The Godot process owns no S7 socket. Offline/fake-adapter checks do not establish
 live PLC commissioning; scene contracts alone never authorize physical I/O.
+The settings dialog selects and verifies the two supplied JSON profiles; it
+does not edit endpoint addresses or mappings. Edit the parent profile/config
+files while disconnected, then Verify Profile and authorize the exact scope
+again. Faults close the session; reconnect is an explicit verified Connect,
+and recovered readiness requires a fresh Run. The configured cycle is a
+minimum exchange interval with one pending request, not real-time scheduling.
 
 Launch with `RUN-RUNGPROOF-NEXT.cmd`. Headless verification is available with
 `--verify-app-shell`, `--verify-hud`, `--verify-workspace`, and

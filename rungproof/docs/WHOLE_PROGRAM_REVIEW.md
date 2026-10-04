@@ -624,6 +624,31 @@ Build is clean and the native session closes cleanly. Logs:
 `.tools/help-dock-before.log`, `.tools/help-dock-final.log`,
 `.tools/help-dock-native.log`.
 
+## Workspace file and native authoring checkpoint - 2026-10-04
+
+Restore tag `codex/workspace-file-review-baseline-20261004` at `07a8302`
+precedes these fixes. A malformed descendant listed before a cyclic parent
+pair caused validation to loop forever. Validation now tracks every ancestor
+and rejects any repeat. The regression stalled at the cyclic hierarchy before
+the fix, then rejected it promptly and passed the complete workspace verifier.
+Native File > Open rejected the cyclic file with a parent-cycle message and
+retained the current sensor placement and mapping; the window remained usable.
+
+Native sensor placement, numeric X edit, Undo/Redo, authored-only mapping,
+Save on close and Open restored the exact transform and mapping. Long dropdown
+labels had pushed the Connections form past the right edge; clipped text now
+keeps selectors and commands inside the dock, inspected in the native window.
+Build and rendered HUD/workspace checks pass; native close is clean. Logs:
+`.tools/workspace-cycle-before.log`, `.tools/workspace-cycle-final.log`,
+`.tools/workspace-native-final.log`, `.tools/workspace-file-native.log`.
+
+Root and application READMEs now direct current Windows users to the Godot
+launcher and label the retained Qt pilot explicitly. External settings select
+the two supplied profiles; endpoint/mapping changes require disconnected file
+editing and renewed verification. Automatic reconnect and an in-dialog profile
+editor are absent. Existing fake reconnect/stale-session tests pass; live
+cadence and commissioning remain unverified.
+
 ## Verification boundary
 
 Native mouse/keyboard interaction proves only the inspected Windows workflows.

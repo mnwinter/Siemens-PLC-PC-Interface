@@ -131,9 +131,12 @@ public static class WorkspaceRepository
             if (!group.MemberInstanceIds.All(parent.MemberInstanceIds.Contains))
                 throw new InvalidOperationException($"Workspace group '{group.Id}' is not contained by its parent.");
             var cursor = parent;
+            // Malformed input may lead into a cycle that does not include the
+            // starting group. Track every ancestor, not just the original ID.
+            var visited = new HashSet<string>(StringComparer.Ordinal) { group.Id };
             while (cursor.ParentGroupId is not null)
             {
-                if (cursor.ParentGroupId == group.Id)
+                if (!visited.Add(cursor.Id))
                     throw new InvalidOperationException($"Workspace group '{group.Id}' creates a parent cycle.");
                 cursor = byId[cursor.ParentGroupId];
             }

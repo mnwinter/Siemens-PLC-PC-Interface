@@ -1687,6 +1687,24 @@ public partial class Main : Node3D
                 siblingOverlapRejected = true;
             }
             WorkspaceRepository.Save(expected, WorkspaceRepository.VerificationWorkspacePath);
+            // A descendant listed before a cyclic pair must also reject promptly.
+            // Checking only whether a parent returns to the starting group hangs here.
+            var cycleMembers = expected.Placements.Take(2).Select(item => item.InstanceId).ToArray();
+            var cycleRejected = false;
+            GD.Print("WORKSPACE_CYCLE_VERIFY starting descendant-first malformed hierarchy");
+            try
+            {
+                WorkspaceRepository.Save(expected with { Groups = [
+                    new WorkspaceGroup("descendant", "Descendant", cycleMembers, ParentGroupId: "cycle-a"),
+                    new WorkspaceGroup("cycle-a", "Cycle A", cycleMembers, ParentGroupId: "cycle-b"),
+                    new WorkspaceGroup("cycle-b", "Cycle B", cycleMembers, ParentGroupId: "cycle-a"),
+                ] }, WorkspaceRepository.VerificationWorkspacePath);
+            }
+            catch (InvalidOperationException exception)
+            {
+                cycleRejected = exception.Message.Contains("parent cycle", StringComparison.Ordinal);
+            }
+            GD.Print($"WORKSPACE_CYCLE_VERIFY rejected={cycleRejected}");
             var loaded = WorkspaceRepository.Load(
                 _candidateCatalog,
                 _sceneCatalog,
@@ -1709,7 +1727,7 @@ public partial class Main : Node3D
                 && blankRenameRejected && duplicateRenameRejected && pivotSetPassed
                 && groupGizmoPassed && ungroupPassed && ungroupUndoPassed
                 && nestedGroupsPassed && nestedHierarchySelectionPassed
-                && nestedUngroupPassed && nestedUngroupUndoPassed && siblingOverlapRejected;
+                && nestedUngroupPassed && nestedUngroupUndoPassed && siblingOverlapRejected && cycleRejected;
             GD.Print($"WORKSPACE_VERIFY {(passed ? "PASS" : "FAIL")} scene={loaded.SourceSceneId} placements={loaded.Placements.Count} gizmo={gizmoPassed} marquee={marqueePassed} arrange={arrangePassed} groupMarquee={groupMarqueePassed} group={groupPassed} hierarchyGroupSelect={hierarchyGroupSelectionPassed} rename={renamePassed} renameUndo={renameUndoPassed} renameRedo={renameRedoPassed} blankRenameReject={blankRenameRejected} duplicateRenameReject={duplicateRenameRejected} pivot={pivotSetPassed} groupSelect={groupSelectionPassed} groupGizmo={groupGizmoPassed} ungroup={ungroupPassed} ungroupUndo={ungroupUndoPassed} nested={nestedGroupsPassed} nestedHierarchySelect={nestedHierarchySelectionPassed} nestedUngroup={nestedUngroupPassed} nestedUngroupUndo={nestedUngroupUndoPassed} siblingOverlapReject={siblingOverlapRejected} undo={undoPassed} redo={redoPassed} snap={snapPassed} duplicate={duplicatePassed} duplicateUndo={duplicateUndoPassed} clipboard={clipboardPassed} clipboardUndo={clipboardUndoPassed} batchDelete={batchDeletePassed} batchDeleteUndo={batchDeleteUndoPassed} delete={deletePassed} restore={restorePassed} links={linksPassed} mappingLive={mappingLive}");
             DirAccess.RemoveAbsolute(path);
             GetTree().Quit(passed ? 0 : 1);

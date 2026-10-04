@@ -2,6 +2,23 @@
 
 **Build the logic. Prove the machine.**
 
+## Current Windows application
+
+Use [`rungproof-next/RUN-RUNGPROOF-NEXT.cmd`](rungproof-next/RUN-RUNGPROOF-NEXT.cmd)
+for the current Godot/C# application. Read its
+[setup](rungproof-next/docs/DEVELOPMENT_SETUP.md),
+[README](rungproof-next/README.md) and
+[whole-program review](docs/WHOLE_PROGRAM_REVIEW.md).
+It has five authored demos, 77 catalog scenes, an offline ladder runtime and
+a guarded Python bridge for external PLC execution. Live acceptance remains
+subject to the approved CPU/profile and exact scope.
+
+## Historical Qt pilot documentation
+
+The following describes the retained Qt pilot and `RUN-3D-PLAYER.cmd`.
+Its launcher, renderer and older verification counts do not describe the
+current Godot application.
+
 RungProof is a PLC-led native plant simulator for testing ladder logic against
 deterministic machine behavior and a real Siemens S7-1500. TIA creates the
 ladder, the PLC executes it, and RungProof simulates the machine feedback and

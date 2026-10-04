@@ -54,7 +54,7 @@ S7-1200 support is planned but has not yet been hardware-proven by this
 project. Other S7-1500 models and firmware must also be verified before being
 listed as proven.
 
-This repository is not yet a drag-and-drop scene editor. It contains a
+The Python communications/runtime layer described below contains a
 graphical conveyor/photoeye runtime and an offline-tested second conveyor/
 pusher scene in addition to the proven connection
 diagnostics, the PLC-side communication watchdog, the DB14 memory
@@ -81,6 +81,12 @@ gated false behavior when heartbeat progression stops.
 ## Start here
 
 ### Migrated RungProof visualizer
+
+For the current Windows Godot application, launch
+[`rungproof/rungproof-next/RUN-RUNGPROOF-NEXT.cmd`](rungproof/rungproof-next/RUN-RUNGPROOF-NEXT.cmd)
+after following its [development setup](rungproof/rungproof-next/docs/DEVELOPMENT_SETUP.md).
+It includes the offline ladder editor, scene workspace authoring and guarded
+external bridge. The older Qt launcher is a retained reference implementation.
 
 This repository is the canonical home of the PLC-to-PC visualizer. The
 complete migrated application is under [`rungproof/`](rungproof/README.md);

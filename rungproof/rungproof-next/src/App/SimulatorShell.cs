@@ -3085,6 +3085,7 @@ public partial class SimulatorShell : CanvasLayer
         Name = name,
         SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
         FitToLongestItem = false,
+        ClipText = true,
     };
 
     private static SpinBox CompactSpinBox(
