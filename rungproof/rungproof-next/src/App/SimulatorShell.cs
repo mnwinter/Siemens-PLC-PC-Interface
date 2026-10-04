@@ -186,6 +186,7 @@ public partial class SimulatorShell : CanvasLayer
     private bool _ladderMonitorMatchesLoadedProgram;
     private readonly List<Action> _ladderEditorRefreshers = [];
     private readonly List<Action<VirtualControllerSnapshot?>> _ladderWatchRefreshers = [];
+    private readonly List<Action<IReadOnlyList<LadderValidationIssue>>> _ladderValidationRefreshers = [];
     private FileDialog _ladderSaveDialog = null!;
     private FileDialog _ladderLoadDialog = null!;
     private FileDialog _workspaceSaveDialog = null!;
@@ -3908,7 +3909,8 @@ public partial class SimulatorShell : CanvasLayer
         if (!TryBuildCurrentLadderProgram(out var program, out var issues))
         {
             SetVirtualControllerValidation(issues);
-            message = $"PROJECT OPENED · {System.IO.Path.GetFileName(path)} · VERIFY + LOAD REQUIRED · {issues.Count} issue(s)";
+            var retained = _virtualProgram is null ? "NO CONTROLLER LOADED" : "PREVIOUS CONTROLLER RETAINED";
+            message = $"PROJECT OPENED · {System.IO.Path.GetFileName(path)} · VERIFY + LOAD REQUIRED · {issues.Count} issue(s) · {retained}";
             return true;
         }
         VirtualControllerProgramRequested?.Invoke(program);
@@ -4858,7 +4860,8 @@ public partial class SimulatorShell : CanvasLayer
         {
             if (refreshingEditor)
             {
-                output.Text = "[color=#d17a00]Editor is still refreshing; try the edit again.[/color]";
+                // Programmatic field refresh raises the same signals as edits.
+                // Ignore it silently; no user operation was attempted here.
                 return false;
             }
             _ladderMonitorMatchesLoadedProgram = false;
@@ -7378,7 +7381,7 @@ public partial class SimulatorShell : CanvasLayer
             }
             validationSummary.Text = issues.Count == 0
                 ? "0 ERRORS · verification passed"
-                : $"{issues.Count} ERROR{(issues.Count == 1 ? string.Empty : "S")} · program not loaded · double-click to navigate";
+                : $"{issues.Count} ERROR{(issues.Count == 1 ? string.Empty : "S")} · edit not loaded · double-click to navigate";
             validationSummary.AddThemeColorOverride("font_color",
                 issues.Count == 0 ? new Color("18864b") : new Color("b3261e"));
             bottomPanel.Visible = true;
@@ -7447,7 +7450,9 @@ public partial class SimulatorShell : CanvasLayer
             if (!valid)
             {
                 output.Text = $"[color=#d64545]Verification failed.[/color] {issues.Count} error(s). Open Error List and double-click an item to navigate.";
-                _ladderWorkspaceStatus.Text = "VALIDATION FAILED · PROGRAM NOT LOADED";
+                _ladderWorkspaceStatus.Text = _virtualProgram is null
+                    ? "EDIT INVALID · NO CONTROLLER LOADED · SEE ERROR LIST"
+                    : "EDIT INVALID · PREVIOUS CONTROLLER RETAINED · SEE ERROR LIST";
                 _ladderWorkspaceStatus.AddThemeColorOverride("font_color", new Color("ef7777"));
                 return;
             }
@@ -7732,6 +7737,7 @@ public partial class SimulatorShell : CanvasLayer
         RefreshTagBindingOptions(SelectedTagType(), SelectedTagRole(SelectedTagType()), string.Empty);
         _ladderEditorRefreshers.Add(RefreshEditor);
         _ladderWatchRefreshers.Add(RefreshWatchTable);
+        _ladderValidationRefreshers.Add(ShowValidationIssues);
         RefreshEditor();
         static void AddVisibleSplitGrip(SplitContainer split, string text)
         {
@@ -8556,19 +8562,28 @@ public partial class SimulatorShell : CanvasLayer
 
     public void SetVirtualControllerValidation(IReadOnlyList<LadderValidationIssue> issues)
     {
-        _virtualProgram = null;
-        _virtualSnapshot = null;
+        // Rejected source is an editor result, not a controller Stop or unload.
+        // Main retains the previously loaded controller, so its program and
+        // snapshot must stay visible here as well. Never monitor invalid edits
+        // using instruction IDs from that older loaded program.
         _ladderMonitorMatchesLoadedProgram = false;
         foreach (var ladderCanvas in _ladderCanvases) ladderCanvas.SetMonitorSnapshot(null);
-        _virtualControllerStatus.Text = "VALIDATION FAILED · PROGRAM NOT RUNNING · NO PHYSICAL PLC";
-        _virtualControllerStatus.AddThemeColorOverride("font_color", new Color("ef7777"));
-        _virtualControllerLadder.Text = string.Join("\n", issues.Select(issue =>
-            $"[color=#ef7777][b]{Escape(issue.Code)}[/b][/color] {Escape(issue.Path)} · {Escape(issue.Message)}"));
-        _virtualControllerVariables.Text = "Malformed logic is rejected before execution.";
-        foreach (var refresh in _ladderWatchRefreshers) refresh(null);
-        ShowClassicTool("virtual-controller");
-        _cycleStatus.Text = "CYCLE  —  ·  PROGRAM INVALID";
-        _cycleStatus.AddThemeColorOverride("font_color", new Color("ef7777"));
+        foreach (var refresh in _ladderValidationRefreshers) refresh(issues);
+        SetProductView("ladder");
+        _ladderWorkspaceStatus.Text = _virtualProgram is null
+            ? "EDIT INVALID · NO CONTROLLER LOADED · SEE ERROR LIST"
+            : "EDIT INVALID · PREVIOUS CONTROLLER RETAINED · SEE ERROR LIST";
+        _ladderWorkspaceStatus.AddThemeColorOverride("font_color", new Color("ef7777"));
+        if (_virtualProgram is not null && _virtualSnapshot is not null)
+            UpdateVirtualController(_virtualSnapshot);
+        else
+        {
+            _virtualControllerStatus.Text = "NO CONTROLLER LOADED · EDIT VALIDATION FAILED";
+            _virtualControllerStatus.AddThemeColorOverride("font_color", new Color("ef7777"));
+            _cycleStatus.Text = "CYCLE  —  ·  NO CONTROLLER LOADED";
+            foreach (var refresh in _ladderWatchRefreshers) refresh(null);
+        }
+        RefreshRuntimeState();
     }
 
     public void SetVirtualControllerForceError(string message)
@@ -8786,10 +8801,18 @@ public partial class SimulatorShell : CanvasLayer
         var originalSavedProjectJson = _ladderSavedProjectJson;
         var originalProjectPath = _ladderProjectPath;
         var projectRoundTripPath = ProjectSettings.GlobalizePath("res://build/verify-ladder-project.rpproj.json");
+        var priorRuntimeProgram = _virtualProgram;
+        var priorRuntimeSnapshot = _virtualSnapshot;
         try
         {
             System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(projectRoundTripPath)!);
             if (System.IO.File.Exists(projectRoundTripPath)) System.IO.File.Delete(projectRoundTripPath);
+            var priorCompilation = LadderCompiler.Compile(originalProgram);
+            if (!priorCompilation.IsValid || priorCompilation.Program is null)
+                throw new InvalidOperationException("Persistence regression needs a valid loaded program.");
+            var persistenceRuntime = new VirtualControllerRuntime(priorCompilation.Program);
+            persistenceRuntime.Run();
+            AttachVirtualController(originalProgram, persistenceRuntime.Scan(new Dictionary<string, bool>()));
             var runtimeProgramBeforeOpen = _virtualProgram;
             var runtimeScanBeforeOpen = _virtualSnapshot?.ScanNumber;
             var draftContact = _ladderDocument.Rungs[0].Branches[0].Contacts[0];
@@ -8814,7 +8837,12 @@ public partial class SimulatorShell : CanvasLayer
                 && saveMessage.Contains("WORK IN PROGRESS PRESERVED", StringComparison.Ordinal)
                 && openMessage.Contains("VERIFY + LOAD REQUIRED", StringComparison.Ordinal)
                 && ReferenceEquals(runtimeProgramBeforeOpen, _virtualProgram)
-                && runtimeScanBeforeOpen == _virtualSnapshot?.ScanNumber;
+                && runtimeScanBeforeOpen == _virtualSnapshot?.ScanNumber
+                && _virtualSnapshot?.State == VirtualControllerState.Running
+                && _virtualControllerStatus.Text.Contains("RUNNING", StringComparison.Ordinal)
+                && _cycleStatus.Text.Contains("SCAN", StringComparison.Ordinal)
+                && !editorCanvas.MonitorActive && !logixCanvas.MonitorActive
+                && validationIssues.ItemCount > 0;
         }
         finally
         {
@@ -8822,6 +8850,9 @@ public partial class SimulatorShell : CanvasLayer
             _ladderSavedProjectJson = originalSavedProjectJson;
             _ladderProjectPath = originalProjectPath;
             _ladderHistory.Clear();
+            if (priorRuntimeProgram is not null && priorRuntimeSnapshot is not null)
+                AttachVirtualController(priorRuntimeProgram, priorRuntimeSnapshot);
+            else DetachVirtualController();
             foreach (var refresh in _ladderEditorRefreshers) refresh();
             RefreshLadderMonitorMatch();
             if (System.IO.File.Exists(projectRoundTripPath)) System.IO.File.Delete(projectRoundTripPath);

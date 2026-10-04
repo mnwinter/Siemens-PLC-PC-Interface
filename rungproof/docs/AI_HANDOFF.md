@@ -16,6 +16,8 @@ compete with the selected controller. Fresh editor drawers fit at 1200x675 and
 1600x900. Native demo 1-4 and Lab 2.1 author/run workflows were exercised. See
 `WHOLE_PROGRAM_REVIEW.md` for regression and Windows evidence. Drafts remain
 in memory; Save is required before exit. Complete lab/reference coverage,
+rejected drafts now retain the loaded controller's truthful state and show
+editor errors without stale ladder monitoring. Unsaved replacement/exit,
 remaining native workflows, external reference semantics, and shutdown leaks
 still require work. The whole-program review is active; no live PLC acceptance
 or complete product acceptance has been established.

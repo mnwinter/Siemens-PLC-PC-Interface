@@ -201,6 +201,28 @@ This checkpoint does not complete the review matrix or prove physical PLC I/O.
 
 ## Verification boundary
 
+## Draft validation / loaded controller checkpoint - 2026-10-04
+
+Restore tag `codex/validation-state-baseline-20261004` at `1e5b22b`
+precedes this fix. Native loading of a readable draft with an undeclared
+contact retained the good runtime in Main but erased its shell program and
+snapshot, falsely displaying Stopped/program not running. Validation now
+retains the loaded program/snapshot, reports draft errors in the editor's
+Error List, and suppresses monitoring of the mismatched edited ladder.
+Toolbar/footer execution and scans continue to reflect the loaded controller.
+Programmatic control refresh no longer emits a spurious user-edit warning.
+
+The rendered persistence regression now starts with a valid running program
+and requires its identity, running snapshot/scan, cycle status, cleared stale
+monitoring, and draft errors after invalid Open. It passes alongside the
+complete rendered editor interaction and app-shell/draft regressions; build
+is clean. Native Windows testing confirms cross-scene Open from Demo 1 to the
+saved Lab 2.1 project, Run, invalid draft Open, retained advancing scans,
+and correct lamp response from the previous good program. Unsaved replacement
+and exit prompts, resource cleanup, and remaining review areas stay open.
+
+## Verification boundary
+
 Native mouse/keyboard interaction proves only the inspected Windows workflows.
 Headless declared scene cases prove only the stated cases, not full user
 acceptance. Fake adapters and offline programs never prove live PLC behavior.
