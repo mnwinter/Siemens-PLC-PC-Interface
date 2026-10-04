@@ -34,6 +34,18 @@ Readiness recovery requires a new Run. Full-app fake exchange and native
 Run/Stop/Reset were verified without a PLC adapter or network. External source,
 playback and cycle labels now report actual state; REAL display is bounded.
 
+Latest plant checkpoint: Scene 2 lacked a conveyor/pusher physics implementation,
+and tank motion depended on a local Run flag not set by ladder execution. The
+ported canonical conveyor/pusher model now produces feedback and repeated
+transfers from real offline ladder scans; tank fill/drain and analog/limit
+feedback run from selected-controller playback. Stop holds the plant. Pure
+model comparison passes eight Python traces / 83 snapshots; the full-app
+`--verify-plant-motion` regression passes. All 77 scene files load, 71 with
+declared cases pass, and six have no declared cases. Native pusher/tank 3D and
+File/Open inspection are still pending because a Windows update overlay
+blocks native input. Generated native review projects are under
+`rungproof-next/.tools/plant-review-*.rpproj.json`. Keep the goal active.
+
 RungProof is a Windows PLC visual simulator and training environment. A user
 selects a scenario, sees the 3D machine, edits ladder logic in a TIA Portal or
 Studio 5000 styled workbench, runs a deterministic built-in controller, and

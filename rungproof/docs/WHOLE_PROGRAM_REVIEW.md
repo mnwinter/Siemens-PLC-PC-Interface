@@ -44,9 +44,10 @@ No changes have been pushed. No plant connection has been attempted.
 | Area | Current evidence | Remaining work |
 | --- | --- | --- |
 | Launch/import/toolchain | Pinned Godot/.NET start; native window opened; build clean | Fresh install/export and missing-dependency recovery |
-| All scene data | All 77 catalog entries load and pass their declared cases; logs in `.tools/scene-review` | Visual controls and unsupported runtime types; many declared cases cover only initial state |
+| All scene data | All 77 catalog entries load; 71 have declared cases and pass; six have none. Rerun logs in `.tools/plant-scene-review` | Visual controls and runtime coverage; many declared cases cover only initial state |
 | Authored demos | All five compile; 140 controller tests pass. Native demos 1-4 counter, delay, conveyor/photoeye, and batch-valid threshold exercised; Demo 5 inputs/lost-permissive previously exercised | All FB/FC/DB views, full animation/bindings, repeated run/reset |
 | Operator controls | Demo 5 inputs, Run, Stop, command removal and normal conveyor Start/E-stop/Reset retested with real mouse input; event history displayed | E-stop/reset across other applicable scenes; visible runtime summary clipping |
+| Conveyor/pusher/tank plant execution | Pusher ladder completes repeated transfers with sensor/stroke feedback; tank fill/drain, analog feedback, limits, saturation, Stop/Reset regression passes; conveyor model matches eight Python traces / 83 snapshots | Native pusher/tank 3D and normal file-loading inspection pending; other scene runtime coverage |
 | Ladder editor | Native add-network/contact, Undo/Redo, Save, cross-scene Open, invalid draft feedback, retained good execution, and multi-scene close Save/Cancel verified; rendered interaction verifier passed | Native drag insertion, tag editing, block interfaces, watch, help; crash recovery |
 | Scene/workspace authoring | Rendered workspace verifier passed, including mapping Run and Stop | Native asset placement, mappings, selection, undo, save/load, malformed files |
 | Layout/camera | Split 1200x675 and 1600x900 regressions; native minimum/default/maximized views, points collapse, browser, and resize reflow inspected | Remaining native block/tag/edit flows and runtime summary clipping; broader scene visual acceptance |
@@ -305,6 +306,49 @@ Run `--verify-external-playback` for the offline regression. Add
 controls; this flag only applies to that verifier and never selects real PLC
 transport. Logs are under `rungproof-next/.tools/external-playback-*` and
 `native-external-playback-*`.
+
+## Continuous plant execution checkpoint - 2026-10-04
+
+Restore tag `codex/scene-motion-baseline-20261004` at `3bff1d9` precedes
+this fix. The full-app execution test reproduced Scene 2's package/photoeye,
+pusher stroke/limits, and transfer count remaining unchanged under actual
+ladder scans. The `conveyorPusher` runtime had no update implementation. Tank
+outputs likewise failed to move the level because a separate local Run flag
+was never set by the selected ladder controller.
+
+The conveyor/photoeye/pusher plant now follows the existing canonical Python
+components and native reload policy. Physics produces PC-owned feedback from
+the commanded motion; it never writes PLC-owned commands or executes hidden
+PLC logic. Transfer requires a package at the photoeye crossing the declared
+stroke threshold. Reload waits for the delay and retracted limit. Photoeye
+sweep/hold handles crossing between steps, discharge counts once, and the
+package is hidden after discharge. Selected-controller execution now gates
+plant/equipment playback; Stop holds the plant, and Reset restores its model.
+Tank motion uses the selected playback state instead of the unused local flag.
+
+`--verify-plant-motion` passes actual ladder scan feedback, repeated pusher
+transfers, a Stop during partial stroke, Reset, the tank's declared 7 percent/s
+fill and 4.5 percent/s drain, 4-20 mA feedback, high/low limits, saturation,
+Stop and Reset. The pure model matches eight independent canonical Python
+traces (83 snapshots), including swept photoeye, hold decay, partial stroke,
+off-station extension, and counted discharge. The stored trace records its
+source SHA-256; tests reject a stale source. Invalid elapsed time is rejected.
+Run the suite with `dotnet run --project tests/Plant/RungProof.Next.Plant.Tests.csproj`.
+
+Build is clean; 140 controller tests, numeric I/O, rendered scene controls,
+app-shell/orphan checks, and external playback regression pass. All 77 scenes
+were rerun: 71 have passing declared cases, and these six have no cases:
+conveyor-cell, equipment-gallery, scene-1-conveyor-stop,
+scene-2-conveyor-pusher, tank-high-low, tank-radar. Loading them is not motion
+acceptance. The new motion checks cover previously untested execution paths.
+
+Native Windows inspection of the new pusher/tank visuals and normal file
+loading is pending: a Windows update overlay currently blocks native input.
+The normal launcher was opened, but the tool cannot target the system overlay.
+No visual acceptance is claimed for this checkpoint. Review fixtures are
+generated under `.tools/plant-review-scene2.rpproj.json` and
+`.tools/plant-review-tank.rpproj.json` for subsequent native File/Open testing.
+The review goal remains active and no PLC connection was attempted.
 
 ## Verification boundary
 

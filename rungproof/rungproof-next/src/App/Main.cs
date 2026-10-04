@@ -25,6 +25,7 @@ public partial class Main : Node3D
     private bool _verifyAppShell;
     private bool _verifyExternalDialog;
     private bool _verifyExternalPlayback;
+    private bool _verifyPlantMotion;
     private string? _offlinePlaybackModeFile;
     private bool _verifyWorkspace;
     private bool _verifyHud;
@@ -136,6 +137,7 @@ public partial class Main : Node3D
         _verifyAppShell = userArguments.Contains("--verify-app-shell", StringComparer.Ordinal);
         _verifyExternalDialog = userArguments.Contains("--verify-external-dialog", StringComparer.Ordinal);
         _verifyExternalPlayback = userArguments.Contains("--verify-external-playback", StringComparer.Ordinal);
+        _verifyPlantMotion = userArguments.Contains("--verify-plant-motion", StringComparer.Ordinal);
         _verifyWorkspace = userArguments.Contains("--verify-workspace", StringComparer.Ordinal);
         _verifyHud = userArguments.Contains("--verify-hud", StringComparer.Ordinal);
         _verifyCameraInput = userArguments.Contains("--verify-camera-input", StringComparer.Ordinal);
@@ -152,7 +154,7 @@ public partial class Main : Node3D
         _mcpSceneId = userArguments
             .FirstOrDefault(argument => argument.StartsWith("--mcp-scene=", StringComparison.Ordinal))?
             .Substring("--mcp-scene=".Length);
-        _appShellRequested = _verifyAppShell || _verifyExternalDialog || _verifyExternalPlayback || _verifyWorkspace || _verifyHud || _verifyCameraInput || _verifySceneControls
+        _appShellRequested = _verifyAppShell || _verifyExternalDialog || _verifyExternalPlayback || _verifyPlantMotion || _verifyWorkspace || _verifyHud || _verifyCameraInput || _verifySceneControls
             || _verifyVirtualController || _verifyNumericSceneIo || _verifyLadderEditor || _verifySplitView || _verifyUiDensity || _virtualControllerDemo
             || userArguments.Contains("--app-shell", StringComparer.Ordinal);
         _shellView = userArguments
@@ -475,6 +477,10 @@ public partial class Main : Node3D
         {
             CallDeferred(nameof(VerifyAppShell));
         }
+        else if (_verifyPlantMotion)
+        {
+            CallDeferred(nameof(VerifyPlantMotion));
+        }
         else if (_verifyExternalPlayback)
         {
             CallDeferred(nameof(VerifyExternalPlayback));
@@ -626,6 +632,7 @@ public partial class Main : Node3D
         _virtualSnapshot = null;
         if (_sceneRuntime is not null)
         {
+            _sceneRuntime.SetControllerPlaybackRunning(false);
             _sceneRuntime.UsesExternalClock = _simulatorShell is not null;
             _sceneRuntime.StopSimulation();
         }
@@ -636,6 +643,7 @@ public partial class Main : Node3D
     private void OnVirtualSnapshot(VirtualControllerSnapshot snapshot)
     {
         _virtualSnapshot = snapshot;
+        _sceneRuntime?.SetControllerPlaybackRunning(snapshot.State == VirtualControllerState.Running);
         _simulatorShell?.UpdateVirtualController(snapshot);
     }
 
@@ -3198,6 +3206,7 @@ public partial class Main : Node3D
         _sceneControlInteractor = new SceneControlInteractor(scene, composition.Root);
         _sceneRuntime.StateChanged += ApplyWorkspaceSignalMappings;
         AddChild(_sceneRuntime);
+        _sceneRuntime.SetControllerPlaybackRunning(false);
         SynchronizeExternalPlayback();
         if (_verifySceneContract)
         {

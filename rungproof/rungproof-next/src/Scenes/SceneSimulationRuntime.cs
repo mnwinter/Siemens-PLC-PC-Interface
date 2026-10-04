@@ -32,6 +32,9 @@ public partial class SceneSimulationRuntime : Node
     // their running state independently so a stopped tank cannot keep changing
     // level merely because a pump command remains authored in the scene.
     private bool _tankSimulationRunning;
+    private bool _controllerPlaybackRunning;
+    private bool _controllerClockInitialized;
+    private readonly ConveyorPlantModel? _conveyorPlant;
     private readonly HashSet<string> _pulsePoints = new(StringComparer.Ordinal);
 
     public event Action? StateChanged;
@@ -50,7 +53,7 @@ public partial class SceneSimulationRuntime : Node
         _externalPlaybackRunning = running;
         // Equipment animations have their own physics callbacks. Freeze those
         // as well as the plant model, without rewriting the PLC command image.
-        foreach (var controller in Controllers()) controller.SetPhysicsProcess(!selected || running);
+        RefreshEquipmentClock();
         if (selected && running) ApplyBindings();
     }
 
@@ -62,6 +65,24 @@ public partial class SceneSimulationRuntime : Node
         foreach (var (name, value) in controllerImage) _points[name] = value;
         ApplyBindings();
         StateChanged?.Invoke();
+    }
+
+    public void SetControllerPlaybackRunning(bool running)
+    {
+        if (_controllerClockInitialized && _controllerPlaybackRunning == running) return;
+        _controllerClockInitialized = true;
+        _controllerPlaybackRunning = running;
+        RefreshEquipmentClock();
+        if (RuntimeType == "tank") ProjectTankState();
+    }
+
+    private bool PlantPlaybackRunning => !UsesExternalClock ? _tankSimulationRunning
+        : _externalPlaybackSelected ? _externalPlaybackRunning : _controllerPlaybackRunning;
+
+    private void RefreshEquipmentClock()
+    {
+        foreach (var controller in Controllers())
+            controller.SetPhysicsProcess(!UsesExternalClock || (_externalPlaybackSelected ? _externalPlaybackRunning : _controllerPlaybackRunning));
     }
 
     public void ConsumeExternalInputPulses(IReadOnlyDictionary<string, object?> sampledPoints)
@@ -100,6 +121,11 @@ public partial class SceneSimulationRuntime : Node
         _sceneRoot = sceneRoot;
         Name = "SceneSimulationRuntime";
         LoadInitialPoints();
+        if (RuntimeType is "conveyorStop" or "conveyorPusher")
+            _conveyorPlant = new ConveyorPlantModel(Number(_definition, "lengthM", 1), Number(_definition, "speedMps", 0.5),
+                Number(_definition, "objectLengthM", 0.2), Number(_definition, "photoeyePositionM", 0.5),
+                Number(_definition, "minimumPhotoeyeOnS", 0.1), Number(_definition, "pusherStrokeTimeS", 0.3),
+                Number(_definition, "transferPositionFraction", 0.8), RuntimeType == "conveyorPusher" ? Number(_definition, "repeatLoadSeconds", 2.5) : null);
         foreach (Node child in sceneRoot.GetChildren())
         {
             if (child is Node3D equipment)
@@ -133,12 +159,14 @@ public partial class SceneSimulationRuntime : Node
             EvaluateRules();
         }
 
-        if (RuntimeType == "tank" && (_tankSimulationRunning || (_externalPlaybackSelected && _externalPlaybackRunning)))
+        if (UsesExternalClock && !PlantPlaybackRunning) return;
+
+        if (RuntimeType == "tank" && PlantPlaybackRunning)
         {
             AdvanceTank(delta);
         }
 
-        if (RuntimeType == "conveyorStop")
+        if (RuntimeType is "conveyorStop" or "conveyorPusher")
         {
             AdvanceConveyorStop(delta);
         }
@@ -310,6 +338,7 @@ public partial class SceneSimulationRuntime : Node
         _stepElapsed = 0.0;
         _tankSimulationRunning = false;
         _pulsePoints.Clear();
+        _conveyorPlant?.Reset();
         _points.Clear();
         foreach (var (name, value) in _initialPoints)
         {
@@ -346,6 +375,7 @@ public partial class SceneSimulationRuntime : Node
         ApplyInitialTankLevels();
         EvaluateRules();
         ApplyBindings();
+        ProjectConveyorPlant();
         StateChanged?.Invoke();
         GD.Print("SCENE_RUNTIME_RESET");
     }
@@ -590,32 +620,52 @@ public partial class SceneSimulationRuntime : Node
 
     private void AdvanceConveyorStop(double delta)
     {
-        var conveyorRunning = AsBool(_points.GetValueOrDefault("conveyor_running"));
-        var position = Convert.ToDouble(_points.GetValueOrDefault("object_position") ?? 0.0, CultureInfo.InvariantCulture);
-        var speed = Number(_definition, "speedMps", 0.5);
-        var sensorPosition = Number(_definition, "photoeyePositionM", 0.5);
-        var objectLength = Number(_definition, "objectLengthM", 0.2);
-        if (conveyorRunning) position += Math.Max(0.0, speed) * Math.Max(0.0, delta);
-        var blocked = position + 1e-9 >= sensorPosition && position <= sensorPosition + objectLength;
-        SetExistingPoint("object_position", position);
-        SetExistingPoint("simulated_photoeye", blocked);
-        SetExistingPoint("component_state", blocked
-            ? (conveyorRunning ? "sensor_blocked_running" : "stopped_loaded")
-            : conveyorRunning ? "running" : "stopped");
-
-        var productId = SafeNodeName(Text(_definition, "productId", string.Empty));
-        var photoeyeId = SafeNodeName(Text(_definition, "photoeyeId", string.Empty));
-        if (_sceneRoot.GetNodeOrNull<Node3D>(productId) is { } product
-            && _sceneRoot.GetNodeOrNull<Node3D>(photoeyeId) is { } photoeye
-            && _initialEquipmentPositions.TryGetValue(productId, out var initial))
-        {
-            var ratio = sensorPosition <= 1e-9 ? 1.0 : Math.Clamp(position / sensorPosition, 0.0, 1.0);
-            var target = initial;
-            target.X = Mathf.Lerp(initial.X, photoeye.Position.X, (float)ratio);
-            product.Position = target;
-        }
+        _conveyorPlant!.Step(delta, AsBool(_points.GetValueOrDefault("conveyor_running")),
+            AsBool(_points.GetValueOrDefault("pusher_extend")), RuntimeType == "conveyorPusher");
+        ProjectConveyorPlant();
         ApplyBindings();
         StateChanged?.Invoke();
+    }
+
+    private void ProjectConveyorPlant()
+    {
+        if (_conveyorPlant is null) return;
+        SetExistingPoint("object_position", _conveyorPlant.LeadingEdge ?? 0);
+        SetExistingPoint("simulated_photoeye", _conveyorPlant.PhotoeyeBlocked);
+        SetExistingPoint("part_at_pusher", _conveyorPlant.PhotoeyeBlocked);
+        SetExistingPoint("pusher_position", _conveyorPlant.PusherPosition * 100);
+        SetExistingPoint("pusher_extended", _conveyorPlant.PusherExtended);
+        SetExistingPoint("pusher_retracted", _conveyorPlant.PusherRetracted);
+        SetExistingPoint("parts_completed", _conveyorPlant.Completed);
+        SetExistingPoint("component_state", _conveyorPlant.State);
+        var productId = SafeNodeName(Text(_definition, "productId", string.Empty));
+        var photoeyeId = SafeNodeName(Text(_definition, "photoeyeId", string.Empty));
+        var pusherId = SafeNodeName(Text(_definition, "pusherId", string.Empty));
+        var stroke = 0.0f;
+        if (_sceneRoot.GetNodeOrNull<Node3D>(pusherId) is { } pusher)
+            foreach (var controller in Controllers(pusher).OfType<EquipmentMotionController>())
+            {
+                controller.SetPositionNormalized((float)_conveyorPlant.PusherPosition);
+                stroke = controller.TravelM;
+            }
+        if (_sceneRoot.GetNodeOrNull<Node3D>(productId) is { } product)
+        {
+            product.Visible = _conveyorPlant.ObjectPresent;
+            if (_initialEquipmentPositions.TryGetValue(productId, out var initial))
+            {
+                var target = initial;
+                if (_sceneRoot.GetNodeOrNull<Node3D>(photoeyeId) is { } photoeye)
+                {
+                    var sensorPosition = Number(_definition, "photoeyePositionM", 0.5);
+                    var scale = sensorPosition > 1e-9 ? (photoeye.Position.X - initial.X) / sensorPosition : 1;
+                    target.X += (float)((_conveyorPlant.LeadingEdge ?? 0) * scale);
+                    foreach (var beam in photoeye.FindChildren("KIN_beam*", string.Empty, true, false).OfType<Node3D>())
+                        beam.Visible = !_conveyorPlant.PhotoeyeBlocked;
+                }
+                target.Z += (float)_conveyorPlant.PusherPosition * stroke;
+                product.Position = target;
+            }
+        }
     }
 
     /// <summary>
@@ -713,7 +763,7 @@ public partial class SceneSimulationRuntime : Node
         var level = TankLevelFraction();
         var lowActive = level <= Number(_definition, "lowThreshold", 0.2);
         var highActive = level >= Number(_definition, "highThreshold", 0.8);
-        var pumpRunning = _tankSimulationRunning && AsBool(_points.GetValueOrDefault("inlet_pump_run"));
+        var pumpRunning = PlantPlaybackRunning && AsBool(_points.GetValueOrDefault("inlet_pump_run"));
 
         var tankId = SafeNodeName(Text(_definition, "tankId", string.Empty));
         var tank = _sceneRoot.GetNodeOrNull<Node3D>(tankId);
@@ -741,7 +791,7 @@ public partial class SceneSimulationRuntime : Node
         var indicatorId = SafeNodeName(Text(_definition, "indicatorId", string.Empty));
         if (_sceneRoot.GetNodeOrNull<Node3D>(indicatorId) is { } indicator)
         {
-            SetIndicator(indicator, _tankSimulationRunning, !_tankSimulationRunning ? "amber" : (lowActive || highActive ? "red" : "green"));
+            SetIndicator(indicator, PlantPlaybackRunning, !PlantPlaybackRunning ? "amber" : (lowActive || highActive ? "red" : "green"));
         }
     }
 
