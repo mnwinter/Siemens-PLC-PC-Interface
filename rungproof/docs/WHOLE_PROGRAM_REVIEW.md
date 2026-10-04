@@ -599,6 +599,19 @@ clean, rendered ladder interaction passes, and native sessions close cleanly.
 Logs `.tools/editor-form-final.log`, `.tools/editor-form-native.log`,
 `.tools/editor-form-native-narrow.log`. No live PLC action was taken.
 
+## Invalid startup scene checkpoint - 2026-10-04
+
+Restore tag `codex/startup-input-review-baseline-20261004` at `3a99bd2`
+precedes this fix. An unknown `--shell-scene` threw during `_Ready`, leaving a
+half-built native shell on Loading project. Startup now verifies the ID against
+the catalog, loads the default on a stale/invalid argument and reports the
+reason in status/Event History. The invalid-ID app-shell regression passes;
+native launch rendered the default scene with the recovery event and functional
+menus/editor. Build is clean and native close succeeds. Logs:
+`.tools/startup-invalid-scene-final.log`, `.tools/startup-recovery-native.log`.
+Native Instruction Help testing then exposed a separate hidden-dock issue;
+its menu changed tab content without revealing the dock.
+
 ## Verification boundary
 
 Native mouse/keyboard interaction proves only the inspected Windows workflows.

@@ -459,6 +459,14 @@ public partial class Main : Node3D
         if (sceneCatalog.Scenes.Count > 0)
         {
             var initialSceneId = _shellScene.Length > 0 ? _shellScene : sceneCatalog.Scenes[0].Id;
+            var unavailableRequestedScene = !sceneCatalog.Scenes.Any(scene => scene.Id.Equals(initialSceneId, StringComparison.Ordinal));
+            if (unavailableRequestedScene)
+            {
+                // A stale shortcut/review argument must not abort _Ready and
+                // leave a half-built shell displaying "Loading project".
+                GD.PushWarning($"Startup scene '{initialSceneId}' is unavailable; loading the default scene.");
+                initialSceneId = sceneCatalog.Scenes[0].Id;
+            }
             AddMigratedScene(
                 initialSceneId,
                 candidates,
@@ -466,6 +474,8 @@ public partial class Main : Node3D
                 showRuntimeControls: false,
                 autoRun: false
             );
+            if (unavailableRequestedScene)
+                _simulatorShell.SetWorkspaceStatus($"Startup scene '{_shellScene}' unavailable · default scene loaded");
         }
         if (_verifyHud)
         {
