@@ -1,8 +1,9 @@
 # Multi-angle scene review - 2026-10-04
 
 Status: **active**. The prior software review did not establish multi-angle
-visual acceptance. Three scenes have five-view native inspections in this pass:
-Demo 5 repaired; Powder Batch Mixer and Parcel Size Sorter require repair. Other scenes
+visual acceptance. Six scenes have five-view native static inspections; 71 remain pending.
+Demo 5 and Powder Batch Mixer have repaired layouts. Parcel Size Sorter still
+requires repair; three simple panels have clear spacing but incorrect START plates. Other scenes
 remain pending unless their row explicitly records observation.
 
 ## Acceptance method
@@ -20,7 +21,8 @@ not catalog dimensions. Its column counts intersecting mesh AABBs between
 separate equipment, with more than 5 mm overlap on each axis. Curved/rotated
 meshes and intentional connections can create false positives. Zero candidates
 also does not prove proper support, equipment identity, or moving clearance.
-45 of 77 scenes have positive counts. Every row requires native inspection.
+44 of 77 scenes have positive counts after the mixer and tank-sizing repairs.
+Every row requires native inspection.
 
 ## Repairs and open findings
 
@@ -31,13 +33,26 @@ also does not prove proper support, equipment identity, or moving clearance.
   geometry checks pass. Native static five-view inspection is complete. Motion
   was observed from front-left and rear-right, including Stop/Reset. No real
   carton transfer or automatic home/pick feedback is implemented.
-- Powder Batch Mixer: five-view inspection shows tanks intersecting and motor /
-  hopper interference. The authored 2.6 m / 2.5 m tank config is ignored by the
-  fixed 3 m / 5 m model mapping. The supposed powder discharge chute is visibly
-  a roller-shutter door. Its package basis is `access-control.door.roller-shutter.v1`;
-  `register_training_asset_packages.py` guesses families by keyword scores and
-  picks the alphabetically first asset even for zero matches. Placement and
-  equipment identity need repair; this scene has no visual acceptance.
+- Powder Batch Mixer: the intersecting tanks and motor/hopper interference are
+  repaired. Tank diameter/height now size the actual cylindrical shell (2.6 m /
+  2.5 m here), with equipment scale applied separately. A copied roller-shutter
+  previously labeled as a powder chute is replaced by an original static open
+  channel; its inherited door approval/reference is removed and the old review
+  is archived. The builder checks that cross-support corners stay below the
+  channel. Family registration rejects zero/tied matches and preserves existing
+  authored packages. Native five-view reinspection covers spacing, floor contact
+  and channel clearance, including close/overhead views where rear tanks occlude
+  details. The scene remains a symbolic batch exercise, with manual feedback and
+  PLC-driven indicators; no actual powder transfer, weighing, mixer process or
+  supplied batch reference ladder is proven.
+- Tank resizing exposed radar feedback that ignored parent scale. It now uses
+  the world-space liquid surface, and Reset projects the restored tank feedback.
+  The focused scaled-radar case passes; other tank scenes still need native review.
+- Workstation Call, Dual Confirmation and Service Marker inspections find clear supports/spacing
+  but generic START plates on call/confirmation buttons. This shared label issue
+  remains open. Global help validation also fails at Count Display's inherited
+  door-axis metadata (`KIN_bottom_bar`); do not regenerate help to legitimize that
+  identity without checking its actual model.
 - Whole-shell startup: the inventory reproduced REAL initial `0` arriving as a
   long in the editor. The catalog test previously decoded it as double instead
   of following the plant reader. The test now reproduces the actual boundary
@@ -58,7 +73,14 @@ Local ignored logs under `rungproof-next/.tools/`:
 `scene-real-initial-after.log`, `all-scene-geometry-inventory.log`,
 `multi-angle-native-parcel.log`, `geometry-review-shell-final.log`.
 Build: zero warnings/errors. Controller: 142 pass / 0 fail. Existing plant:
-19 checks pass. Demo 5: seven focused geometry checks pass. These counts do not
+19 checks pass. Twelve focused geometry checks pass (seven Demo 5, four mixer,
+one scaled radar); all 71 authored scene cases pass, with six scenes having none.
+Three family-selection regression cases pass. Current mixer evidence:
+`mixer-build.log`, `powder-chute-build.log`, `mixer-import.log`,
+`mixer-geometry-final.log`, `mixer-plant-regression.log`,
+`mixer-scene-contracts.log`, `mixer-native-final.log`,
+`all-scene-geometry-mixer-final.log`. Global help validation remains failed at
+the unrelated Count Display metadata/document mismatch. These counts do not
 approve the rest of the catalog. Restore tag:
 `codex/multi-angle-review-baseline-20261004` at `2c3de4b`.
 
@@ -79,15 +101,15 @@ count as this scene's multi-angle or runtime acceptance.
 | 6 | `lab-10-04-motor-enum-state` | 0 | Pending | Pending |
 | 7 | `lab-10-05-motor-struct-data` | 67 | Pending | Pending |
 | 8 | `lab-10-06-ten-motor-array-startup` | 260 | Pending | Pending |
-| 9 | `lab-11-06-wastewater-collection` | 260 | Pending | Pending |
+| 9 | `lab-11-06-wastewater-collection` | 222 | Pending | Pending |
 | 10 | `lab-11-07-multi-conveyor-pallet-route` | 693 | Pending | Pending |
 | 11 | `lab-11-11-service-elevator` | 63 | Pending | Pending |
 | 12 | `lab-11-12-mobile-traffic-lights` | 21 | Pending | Pending |
 | 13 | `lab-11-13-xy-palletizing` | 0 | FR/FL/RL/RR/T | Repaired; bounded static/motion checks pass |
-| 14 | `lab-11-19-powder-batch-mixer` | 203 | FR/FL/RL/RR/T | FAIL: intersections and incorrect chute model |
-| 15 | `lab-2-01-workstation-call` | 0 | Pending | Pending |
-| 16 | `lab-2-02-dual-confirmation` | 0 | Pending | Pending |
-| 17 | `lab-2-03-service-marker-inhibit` | 0 | Pending | Pending |
+| 14 | `lab-11-19-powder-batch-mixer` | 0 | FR/FL/RL/RR/T | Repaired static layout/chute; process behavior unverified |
+| 15 | `lab-2-01-workstation-call` | 0 | FR/FL/RL/RR/T | Clear supports/spacing; generic START plate needs correction; runtime pending |
+| 16 | `lab-2-02-dual-confirmation` | 0 | FR/FL/RL/RR/T | Clear three-component footprint/supports; generic START plates need correction; runtime pending |
+| 17 | `lab-2-03-service-marker-inhibit` | 0 | FR/FL/RL/RR/T | Clear button/beacon footprint/supports; incorrect START plate; runtime pending |
 | 18 | `lab-2-04-two-station-call` | 0 | Pending | Pending |
 | 19 | `lab-2-05-bay-light-selector` | 0 | Pending | Pending |
 | 20 | `lab-2-06-ready-attention` | 0 | Pending | Pending |
@@ -98,7 +120,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 25 | `lab-2-11-inbound-tote-stop` | 4 | Pending | Pending |
 | 26 | `lab-2-12-assembly-lift` | 0 | Pending | Pending |
 | 27 | `lab-2-13-coolant-jug-fill` | 39 | Pending | Pending |
-| 28 | `lab-2-14-sump-pump` | 45 | Pending | Pending |
+| 28 | `lab-2-14-sump-pump` | 41 | Pending | Pending |
 | 29 | `lab-2-15-fume-extractor` | 0 | Pending | Pending |
 | 30 | `lab-2-16-safe-drill` | 24 | Pending | Pending |
 | 31 | `lab-2-17-pallet-robot` | 24 | Pending | Pending |
@@ -122,7 +144,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 49 | `lab-4-08-package-grouping` | 24 | Pending | Pending |
 | 50 | `lab-4-09-chain-drive-lift` | 54 | Pending | Pending |
 | 51 | `lab-4-10-cookie-packaging` | 170 | Pending | Pending |
-| 52 | `lab-4-11-barrel-fill-station` | 129 | Pending | Pending |
+| 52 | `lab-4-11-barrel-fill-station` | 151 | Pending | Pending |
 | 53 | `lab-4-12-cable-cut-length` | 21 | Pending | Pending |
 | 54 | `lab-5-01-delayed-lamp` | 0 | Pending | Pending |
 | 55 | `lab-5-02-timed-lamp-off` | 0 | Pending | Pending |
@@ -145,6 +167,6 @@ count as this scene's multi-angle or runtime acceptance.
 | 72 | `lab-9-12-ev-charging-manager` | 95 | Pending | Pending |
 | 73 | `scene-1-conveyor-stop` | 8 | Pending | Pending |
 | 74 | `scene-2-conveyor-pusher` | 29 | Pending | Pending |
-| 75 | `tank-high-low` | 65 | Pending | Pending |
-| 76 | `tank-level` | 57 | Pending | Pending |
-| 77 | `tank-radar` | 74 | Pending | Pending |
+| 75 | `tank-high-low` | 60 | Pending | Pending |
+| 76 | `tank-level` | 52 | Pending | Pending |
+| 77 | `tank-radar` | 80 | Pending | Pending |

@@ -2,11 +2,11 @@
 
 Scene ID: `lab-11-19-powder-batch-mixer`  
 Migrated source: `prototype/scenes/lab-11-19-powder-batch-mixer.plcscene`  
-Scene contract: `prototype/scenes/lab-11-19-powder-batch-mixer.plcscene`
+Scene contract: `res://scenes/migrated/lab-11-19-powder-batch-mixer.scene.json`
 
 ## Purpose
 
-Ingredient hoppers dose a mixer, a load signal confirms the batch, and discharge occurs through a controlled valve.
+Batch-control exercise with manual recipe, dose-complete and mixer-ready inputs. PLC outputs drive indicators; equipment is an illustrative static layout.
 
 ## Expected I/O to operate this scene
 
@@ -67,12 +67,12 @@ A normal Stop removes PLC-owned commands according to the scene runtime. This do
 
 ## Machine guide
 
-Ingredient hoppers dose a mixer, a load signal confirms the batch, and discharge occurs through a controlled valve.
+Practice batch sequencing with symbolic inputs and output indicators. The separate equipment models do not simulate powder transfer, weighing or mixing. Tank diameter/height size the cylindrical shell; attachments remain proportional.
 
 ### Start conditions
 
-- The common PLC/watchdog foundation is healthy.
-- All required simulator inputs are at their documented initial state.
+- Author or load a controller program for this exercise; no batch reference ladder is supplied.
+- The local recipe_valid, dose_complete and mixer_ready inputs begin false.
 
 ### Normal sequence
 
@@ -81,4 +81,6 @@ Ingredient hoppers dose a mixer, a load signal confirms the batch, and discharge
 
 ### Expected observations
 
-- Dosing precedes mixing, and discharge is permitted only after a complete batch.
+- Input actions toggle recipe_valid, dose_complete and mixer_ready.
+- PLC output indicators display dose_run, mixer_run and discharge_valve_open from the user's controller.
+- A correct controller should enforce dosing before mixing and discharge after batch completion; the initial-safe-state case alone does not prove that sequence.

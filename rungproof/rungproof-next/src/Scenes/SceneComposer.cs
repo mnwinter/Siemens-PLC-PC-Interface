@@ -67,7 +67,7 @@ public static class SceneComposer
                     EquipmentMotionController.MotionKind.ContinuousRotation, "KIN_motor_", speedRpm: 1450.0f,
                     rotationAxis: Vector3.Right),
                 "pipe" => CreateMappedAsset(equipment, candidates, "process.pipe.flanged-spool.v1"),
-                "tank" => CreateMappedAsset(equipment, candidates, "process.tank.vertical-3000x5000.v1"),
+                "tank" => CreateTankAsset(equipment, candidates),
                 "pump" => CreateControlledAsset(equipment, candidates, "process.pump.centrifugal-skid.v1", runCommands,
                     EquipmentMotionController.MotionKind.ContinuousRotation, "KIN_pump_shaft", speedRpm: 1450.0f,
                     rotationAxis: Vector3.Right),
@@ -217,6 +217,26 @@ public static class SceneComposer
                 new Vector3(index * 0.105f, 0.70f, 0.37f), heat, false);
         AddBox(root, new Vector3(0.34f, 0.12f, 0.045f), new Vector3(0, 1.45f, 0.31f), sensor, false);
         AddBox(root, new Vector3(0.72f, 0.09f, 0.04f), new Vector3(0, 1.82f, 0.30f), dark, false);
+        return root;
+    }
+
+    private static Node3D CreateTankAsset(SceneEquipment equipment, AssetCatalogDocument candidates)
+    {
+        var model = CreateMappedAsset(equipment, candidates, "process.tank.vertical-3000x5000.v1");
+        var shell = model.FindChild("TANK_shell", true, false) as MeshInstance3D
+            ?? throw new InvalidOperationException("Tank model has no cylindrical shell for sizing.");
+        var shellSize = shell.GetAabb().Size;
+        // Diameter/height describe the cylindrical process shell. The model's
+        // roof, platform, legs and instrumentation remain in proportion.
+        var diameter = Number(equipment.Config, "diameter", shellSize.X);
+        var height = Number(equipment.Config, "height", shellSize.Y);
+        if (!double.IsFinite(diameter) || !double.IsFinite(height) || diameter <= 0 || height <= 0)
+            throw new InvalidOperationException($"Tank '{equipment.Id}' requires positive finite diameter/height.");
+        model.Scale = new Vector3((float)(diameter / shellSize.X),
+            (float)(height / shellSize.Y), (float)(diameter / shellSize.Z));
+        // Keep configuration sizing separate from an authored equipment scale.
+        var root = new Node3D();
+        root.AddChild(model);
         return root;
     }
 

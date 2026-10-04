@@ -220,6 +220,38 @@ public partial class Main
             Check(tool.Transform == heldTool, "gripper_holds_with_stopped_axes");
             motion.ResetMotion();
             Check(tool.Transform == authoredTool, "gripper_reset_restores_attached_authored_pose");
+
+            AddMigratedScene("lab-11-19-powder-batch-mixer", _candidateCatalog!, _mainCamera!, false, false);
+            var mixer = _sceneCompositionRoot!;
+            Check(LogBoundsCandidates(mixer) == 0, "mixer_static_equipment_clearance_screen");
+            var tankShells = ReviewMeshes(mixer).Where(mesh => mesh.Name == "TANK_shell").ToArray();
+            Check(tankShells.Length == 3 && tankShells.All(shell =>
+            {
+                var size = ReviewBounds(shell).Size;
+                return MathF.Abs(size.X - 2.6f) < 0.01f && MathF.Abs(size.Y - 2.5f) < 0.01f
+                    && MathF.Abs(size.Z - 2.6f) < 0.01f;
+            }), "mixer_tank_shells_match_authored_dimensions");
+            var chute = mixer.GetNode<Node3D>("training_accessory_10");
+            var chuteMeshes = ReviewMeshes(chute);
+            Check(chuteMeshes.Any(mesh => mesh.Name == "CHUTE_bottom")
+                && chuteMeshes.Count(mesh => mesh.Name.ToString().StartsWith("CHUTE_side_", StringComparison.Ordinal)) == 2
+                && !chuteMeshes.Any(mesh => mesh.Name.ToString().Contains("SHUTTER", StringComparison.Ordinal)),
+                "mixer_chute_is_open_channel_without_door_geometry");
+            Check(MathF.Abs(ReviewBounds(chute).Position.Y) < 0.01f
+                && MathF.Abs(ReviewBounds(mixer.GetNode<Node3D>("valve_4")).Position.Y) < 0.01f,
+                "mixer_chute_and_valve_supports_rest_on_floor");
+
+            AddMigratedScene("tank-radar", _candidateCatalog!, _mainCamera!, false, false);
+            // Exercise an authored parent scale as well as configured sizing.
+            var radarTank = _sceneCompositionRoot!.GetNode<Node3D>("water_tank_radar");
+            radarTank.Scale = new Vector3(0.7f, 0.6f, 0.7f);
+            _sceneRuntime!.ResetSimulation();
+            var liquid = radarTank.FindChild("KIN_liquid", true, false) as MeshInstance3D;
+            var transmitter = _sceneCompositionRoot.GetNode<Node3D>("radar_transmitter");
+            var expectedDistance = Math.Max(0.08, transmitter.GlobalPosition.Y - ReviewBounds(liquid!).End.Y);
+            var actualDistance = Convert.ToDouble(_sceneRuntime.Points["radar_distance"]);
+            GD.Print($"RADAR_GEOMETRY expected={expectedDistance} actual={actualDistance}");
+            Check(Math.Abs(actualDistance - expectedDistance) < 0.001, "radar_distance_uses_world_scaled_liquid_surface");
             GD.Print($"SCENE_GEOMETRY_VERIFY {(passed ? "PASS" : "FAIL")} bounds screen only; no mechanical or live acceptance");
             GetTree().Quit(passed ? 0 : 1);
         }

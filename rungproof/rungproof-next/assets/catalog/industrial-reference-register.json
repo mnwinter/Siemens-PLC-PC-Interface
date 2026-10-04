@@ -7265,33 +7265,6 @@
       ]
     },
     {
-      "assetId": "training.accessory.powder_discharge_chute.v1",
-      "status": "referenced",
-      "comparisonStatus": "reference-identified",
-      "comparisonNotes": "Generic family reference inherited for candidate package review; the training accessory must be independently compared before promotion.",
-      "referenceFamily": "industrial coiling steel service door",
-      "sources": [
-        {
-          "publisher": "Clopay",
-          "title": "Roll-Up Sheet Doors product page",
-          "url": "https://www.clopaydoor.com/coiling-sheet-doors",
-          "sourceType": "oem-product-page",
-          "accessed": "2026-09-22"
-        }
-      ],
-      "modeledFeatures": [
-        "interlocking horizontal curtain slats",
-        "vertical guide tracks",
-        "header coil/shaft zone",
-        "bottom bar",
-        "side-mounted operator context"
-      ],
-      "intentionallyGeneric": [
-        "No Clopay mark, slat gauge, curtain material, door size, drive voltage, cycle count, weather sealing, or safety edge is reproduced.",
-        "Simulator travel is not a real door safety or commissioning claim."
-      ]
-    },
-    {
       "assetId": "training.accessory.powered_roller_conveyor.v1",
       "status": "referenced",
       "comparisonStatus": "reference-identified",

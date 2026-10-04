@@ -17,11 +17,19 @@ gripper motion are corrected and inspected from five angles; seven focused
 geometry checks pass. REAL scene initial JSON integer tokens now normalize at
 the scene-project boundary; the previously mismatched catalog test reproduces
 the production reader and all 142 tests pass. The complete 77-scene shell bounds
-inventory flags 45 scenes for interpretation. Powder-mixer inspection fails:
-overlapping tanks and a powder chute copied from a roller-shutter model.
+inventory now flags 44 scenes for interpretation. Powder-mixer placement and
+tank shell sizing are repaired; an original static open chute replaces the
+copied roller-shutter, and inherited door evidence is archived/removed from
+current approval. Its five-view native reinspection verifies bounded static
+clearance, not a powder-flow process. Scaled radar feedback and Reset projection
+are corrected. Twelve focused geometry, 19 plant, three family-selection and
+71 authored scene-case checks pass (six scenes have no authored cases).
 Parcel-sorter five-view inspection also fails: intersecting turntables/belts
 and unsupported/intersecting cartons. Its repaired native scene and exercise
-editor now open with REAL route_position=0. Three scenes inspected; 74 pending.
+editor now open with REAL route_position=0. Six scenes inspected; 71 pending.
+Workstation Call, Dual Confirmation and Service Marker have clear supports/spacing but incorrect
+generic START plates. Global help validation fails at Count Display's inherited
+door-axis metadata; investigate actual identity before refreshing that help.
 Candidate AABB flags and scene loading are never visual acceptance. Restore tag
 `codex/multi-angle-review-baseline-20261004` preserves `2c3de4b`. No hardware or
 push. Continue the remaining ledger and asset/placement repairs.

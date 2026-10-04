@@ -375,6 +375,7 @@ public partial class SceneSimulationRuntime : Node
         ApplyInitialTankLevels();
         EvaluateRules();
         ApplyBindings();
+        if (RuntimeType == "tank") ProjectTankState();
         ProjectConveyorPlant();
         StateChanged?.Invoke();
         GD.Print("SCENE_RUNTIME_RESET");
@@ -805,8 +806,20 @@ public partial class SceneSimulationRuntime : Node
                 ? Convert.ToDouble(existing, CultureInfo.InvariantCulture)
                 : 0.08;
         }
-        var liquidHeight = liquid is MeshInstance3D mesh ? mesh.GetAabb().Size.Y * liquid.Scale.Y : 0.0f;
-        var liquidSurfaceY = liquid.GlobalPosition.Y + liquidHeight * 0.5f;
+        var liquidSurfaceY = liquid.GlobalPosition.Y;
+        if (liquid is MeshInstance3D mesh)
+        {
+            // A configured tank size or authored parent scale must also scale
+            // the measured surface. Local scale alone ignored those parents.
+            var bounds = mesh.GetAabb();
+            liquidSurfaceY = float.NegativeInfinity;
+            for (var corner = 0; corner < 8; corner++)
+            {
+                var local = bounds.Position + bounds.Size * new Vector3(
+                    (corner & 1) == 0 ? 0 : 1, (corner & 2) == 0 ? 0 : 1, (corner & 4) == 0 ? 0 : 1);
+                liquidSurfaceY = MathF.Max(liquidSurfaceY, (liquid.GlobalTransform * local).Y);
+            }
+        }
         return Math.Max(0.08, transmitter.GlobalPosition.Y - liquidSurfaceY);
     }
 

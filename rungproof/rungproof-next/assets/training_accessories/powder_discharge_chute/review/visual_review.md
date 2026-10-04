@@ -1,36 +1,24 @@
-# Motorized industrial roller shutter visual review
+# Powder discharge chute geometry review
 
-Review date: 2026-09-21
+Status: candidate; native static placement inspected in the powder-mixer scene.
 
-Disposition: **independent recognition passed - eligible for strict production gate**
+The previous package was a copy of a roller-shutter door. Its recognition result
+recognized a door, so it did not establish chute identity. Those files are
+preserved under `superseded-roller-shutter/` and do not apply to the new model.
 
-## Source corrections
+The replacement is original Blender geometry: an open inclined channel, two
+sidewalls, raised lips, two cross-supports, four floor-supported legs and feet,
+and frame braces. It has no curtain, door guides, motor or animated node contract.
+The source and four Blender camera images are reproducible with
+`tools/modeling/build_powder_discharge_chute.py` and Blender 5.2.2 LTS.
 
-- Preserved the existing `KIN_slat_*` and `KIN_bottom_bar` contract used by the
-  roller-shutter motion controller. Slat seam details are parented to their
-  respective slats; bottom end caps and the continuous safety edge are parented
-  to the moving bottom bar.
-- Rebuilt the fixed installation around the moving curtain: deep opposing guide
-  lips, anchored jambs, header access cover, roll end plates/bearings, and roll
-  support brackets.
-- Added an integrated motor, coupling, drive guard, motor mounting bracket,
-  control box, control gland, and routed motor cable. This is visual simulator
-  geometry only; it does not prove a commissioned door safety circuit.
-
-## Evidence inspection
-
-| Evidence | Result | Finding |
-| --- | --- | --- |
-| `hero.png` / `blind_review.png` | Pass | Curtain is captured by both guide channels, with supported header/roll enclosure, right-side drive/control hardware, and continuous yellow/black bottom safety edge. |
-| `guide_and_safety_edge.png` | Pass | Curtain edge capture, guide lips, bottom bar, end caps, and full-width edge are inspectable. |
-| `roll_and_drive.png` / `header_and_end_supports.png` | Pass | End plates, bearings, coupling, guarded motor support, header shroud, and roll support brackets are visible. |
-| `controls_and_motor_cable.png` | Pass | Local open/stop controls, cable gland, and retained motor cable are visible. |
-| `state_closed.png` / `state_open.png` | Pass | The closed curtain and compacted raised slat stack remain contained in the header/guide envelope. These are offline pose checks, not live control proof. |
-| `scale_reference.png` / `wireframe.png` | Pass | Scale and separate fixed/moving geometry are inspectable. |
-
-## Independent acceptance
-
-A separate context-free review identified a motorized industrial roller shutter
-at high confidence and returned PASS. It found the curtain retained by both
-guides, a supported header/roll enclosure, right-side drive/control hardware,
-and a clearly modeled bottom safety edge with no decisive geometry defect.
+No OEM dimensional equivalence, bulk-flow behavior, fabrication suitability or
+independent recognition is claimed. Catalog approval flags and the inherited
+door reference are removed. On 2026-10-04 the replacement was inspected in the
+native Windows powder-mixer scene from front-right, front-left, rear-left,
+rear-right and overhead, including close views of the channel and supports.
+The cross-supports stay below the inclined channel, the four feet rest on the
+floor, and neighboring equipment clears the chute. Rear tank occlusion was
+resolved with front/overhead views. The Blender builder also checks evaluated
+cross-support corners against the channel plane. These bounded checks do not
+grant independent recognition, production approval or material-flow acceptance.

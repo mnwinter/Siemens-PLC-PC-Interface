@@ -51,6 +51,10 @@ def choose_family(name: str, assets: list[dict]) -> dict:
         score = sum(word in haystack for word in words)
         scored.append((score, asset))
     scored.sort(key=lambda item: (-item[0], item[1]["id"]))
+    if not scored or scored[0][0] == 0:
+        raise ValueError(f"No model family matches {name!r}; author a model or specify a reviewed basis.")
+    if len(scored) > 1 and scored[0][0] == scored[1][0]:
+        raise ValueError(f"Ambiguous model family for {name!r}; specify a reviewed basis instead of choosing by asset ID.")
     return scored[0][1]
 
 
@@ -105,20 +109,11 @@ def main() -> int:
     for requirement in collect_requirements():
         slug = slugify(requirement)
         asset_id = f"training.accessory.{slug}.v1"
-        source = choose_family(requirement, family_assets)
         if asset_id in existing_ids:
-            for asset in existing_candidates:
-                if asset["id"] == asset_id:
-                    asset["trainingRequirement"] = requirement
-                    asset["genericBasisAssetId"] = source["id"]
-                    asset["copyrightBoundary"] = "Generic training visual; no logo, trade dress, product number, or exact OEM claim."
-                    asset["kinematics"] = source.get("kinematics", [])
-                    asset["animationTags"] = [
-                        {"id": item["id"], "nodePath": item["nodePath"], "kind": item["kind"]}
-                        for item in asset["kinematics"]
-                    ]
-                    break
+            # Existing packages may have a purpose-built replacement. Never
+            # overwrite its identity or node contract with a new keyword guess.
             continue
+        source = choose_family(requirement, family_assets)
         model = copy_package(source, asset_id)
         source_bounds = source["bounds"]
         candidate = {

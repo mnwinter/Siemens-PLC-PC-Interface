@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-11-19-powder-batch-mixer",
   "name": "Lab 11.19 - Powder Batch Mixer",
-  "description": "Ingredient hoppers dose a mixer, a load signal confirms the batch, and discharge occurs through a controlled valve.",
+  "description": "Batch-control exercise with manual recipe, dose-complete and mixer-ready inputs. PLC outputs drive indicators; equipment is an illustrative static layout.",
   "camera": {
     "position": [
       11,
@@ -23,9 +23,9 @@
       "type": "tank",
       "label": "Powder Batch Mixer tank",
       "position": [
-        -3.3000000000000003,
+        -4,
         0,
-        0
+        -1.7
       ],
       "config": {
         "diameter": 2.6,
@@ -39,9 +39,9 @@
       "type": "tank",
       "label": "Powder Batch Mixer tank",
       "position": [
-        -1.1,
         0,
-        0
+        0,
+        -1.7
       ],
       "config": {
         "diameter": 2.6,
@@ -55,9 +55,9 @@
       "type": "tank",
       "label": "Powder Batch Mixer tank",
       "position": [
-        1.1,
+        4,
         0,
-        0
+        -1.7
       ],
       "config": {
         "diameter": 2.6,
@@ -71,9 +71,9 @@
       "type": "motor",
       "label": "Powder Batch Mixer motor",
       "position": [
-        3.3000000000000003,
+        6.8,
         0,
-        0
+        -1.7
       ],
       "config": {
         "running": false
@@ -84,9 +84,9 @@
       "type": "valve",
       "label": "Powder Batch Mixer valve",
       "position": [
-        -2.85,
-        0,
-        2.35
+        -4,
+        -0.25,
+        1.8
       ],
       "config": {
         "initialPosition": 0
@@ -115,7 +115,7 @@
       "type": "trainingAccessory",
       "label": "Powder Batch Mixer - bulk powder hopper",
       "position": [
-        1.1,
+        4,
         0,
         1.8
       ],
@@ -129,7 +129,7 @@
       "type": "trainingAccessory",
       "label": "Powder Batch Mixer - slide-gate feeder",
       "position": [
-        3.3000000000000003,
+        6.5,
         0,
         1.8
       ],
@@ -143,7 +143,7 @@
       "type": "trainingAccessory",
       "label": "Powder Batch Mixer - load cell",
       "position": [
-        -3.3000000000000003,
+        -4,
         0,
         3.6
       ],
@@ -171,7 +171,7 @@
       "type": "trainingAccessory",
       "label": "Powder Batch Mixer - powder discharge chute",
       "position": [
-        1.1,
+        3.8,
         0,
         3.6
       ],
@@ -386,10 +386,10 @@
       "powder discharge chute"
     ],
     "machineGuide": {
-      "purpose": "Ingredient hoppers dose a mixer, a load signal confirms the batch, and discharge occurs through a controlled valve.",
+      "purpose": "Practice batch sequencing with symbolic inputs and output indicators. The separate equipment models do not simulate powder transfer, weighing or mixing. Tank diameter/height size the cylindrical shell; attachments remain proportional.",
       "startConditions": [
-        "The common PLC/watchdog foundation is healthy.",
-        "All required simulator inputs are at their documented initial state."
+        "Author or load a controller program for this exercise; no batch reference ladder is supplied.",
+        "The local recipe_valid, dose_complete and mixer_ready inputs begin false."
       ],
       "normalSequence": [
         "Apply the requested input condition.",
@@ -403,7 +403,9 @@
         "A missing or stale input must fail safe and remain diagnosable."
       ],
       "expectedObservations": [
-        "Dosing precedes mixing, and discharge is permitted only after a complete batch."
+        "Input actions toggle recipe_valid, dose_complete and mixer_ready.",
+        "PLC output indicators display dose_run, mixer_run and discharge_valve_open from the user's controller.",
+        "A correct controller should enforce dosing before mixing and discharge after batch completion; the initial-safe-state case alone does not prove that sequence."
       ]
     },
     "sequenceNumber": 70,
