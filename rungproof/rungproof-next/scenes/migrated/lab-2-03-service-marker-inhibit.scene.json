@@ -30,6 +30,7 @@
       "config": {
         "style": "pushbutton",
         "action": "toggle-marker-inhibit",
+        "faceLabel": "INHIBIT",
         "color": 14695473
       }
     },

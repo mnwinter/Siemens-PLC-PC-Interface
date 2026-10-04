@@ -30,6 +30,7 @@
       "config": {
         "style": "pushbutton",
         "action": "toggle-material-call",
+        "faceLabel": "MATERIAL CALL",
         "color": 3050449
       }
     },

@@ -30,6 +30,7 @@
       "config": {
         "style": "pushbutton",
         "action": "toggle-operator-confirm",
+        "faceLabel": "OPERATOR OK",
         "color": 2204518
       }
     },
@@ -45,6 +46,7 @@
       "config": {
         "style": "pushbutton",
         "action": "toggle-quality-confirm",
+        "faceLabel": "QUALITY OK",
         "color": 3050449
       }
     },

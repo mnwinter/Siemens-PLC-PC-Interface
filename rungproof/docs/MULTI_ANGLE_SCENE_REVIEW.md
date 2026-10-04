@@ -1,10 +1,10 @@
 # Multi-angle scene review - 2026-10-04
 
 Status: **active**. The prior software review did not establish multi-angle
-visual acceptance. Fourteen scenes have five-view native static inspections; 63 remain pending.
+visual acceptance. Eighteen scenes have five-view native static inspections; 59 remain pending.
 Demo 5, Powder Batch Mixer, Parcel Size Sorter, Conveyor Inspection Cell,
 the Equipment Gallery, Drive Alarm-Code String and Chicken Label Print have repaired static layouts.
-The sorter operator Run still lacks a controller; three simple panels have clear spacing but incorrect START plates. Other scenes
+The sorter operator Run still lacks a controller; three simple panels now have corrected function plates and clear spacing. Other scenes
 remain pending unless their row explicitly records observation. Inspection coverage
 includes failed scenes; it is not a count of accepted scenes.
 
@@ -54,9 +54,15 @@ Every row requires native inspection.
 - Tank resizing exposed radar feedback that ignored parent scale. It now uses
   the world-space liquid surface, and Reset projects the restored tank feedback.
   The focused scaled-radar case passes; other tank scenes still need native review.
-- Workstation Call, Dual Confirmation and Service Marker inspections find clear supports/spacing
-  but generic START plates on call/confirmation buttons. This shared label issue
-  remains open. Global help validation also fails at Count Display's inherited
+- Workstation Call, Dual Confirmation and Service Marker originally had generic
+  START plates on call/confirmation/inhibit buttons. Their four plates now read
+  MATERIAL CALL, OPERATOR OK, QUALITY OK and INHIBIT using the existing opt-in
+  faceLabel support. Five final native views and all four close plate views were
+  inspected. Their existing scene-contract cases pass. Normal Run was tried on
+  each and opens an empty editor with NO CONTROLLER LOADED. The source confirms
+  these labs intentionally start as tag-only exercises requiring user networks;
+  label repair does not supply a reference controller or prove running behavior.
+  Global help validation also fails at Count Display's inherited
   door-axis metadata (`KIN_bottom_bar`); do not regenerate help to legitimize that
   identity without checking its actual model.
 - Whole-shell startup: the inventory reproduced REAL initial `0` arriving as a
@@ -205,6 +211,37 @@ the isolated review window closed cleanly.
 
 ## Catalog coverage
 
+Scenes 9-12 follow-up: all four were opened in the native Windows shell and
+inspected from all five angles. Wastewater's three 2.6 m tanks are only 2.2 m
+apart; the additional collection-bank prop is a single large tank overlapping
+the row. The level transmitter is an unmounted probe/body, not mounted feedback
+from the three tanks. Its GLB contains PROBE_sensing_rod/process-flange nodes;
+this is a mounting/scene-integration failure, not proof of a different instrument.
+The claimed pipe manifold is a seven-station pneumatic assembly, confirmed by
+native appearance and MAIN_AIR_SUPPLY / DIN_PLUG / EXHAUST_MUFFLER nodes.
+
+The pallet-route close overhead/front-right views confirm belt/frame/end-roller
+interference between three conveyors on one centerline. The roller zone is
+beside them without a connected handoff. No pallet equipment exists. The handoff
+sensor GLB contains VIB_label / PILLOW_BLOCK / MACHINE_shaft rather than a pallet
+detection assembly. Service Elevator's rear views expose shutter/platform
+interference; BUCKET_* nodes confirm the shaft prop is a continuous bucket
+elevator. ENCLOSURE_body/FLOOR_plinth nodes confirm the position-sensor prop is
+a cabinet. Traffic Lights' top/rear views confirm a vertical window panel, no
+roadway, and two single amber beacon props. Each normal Run was tried separately
+and opens an empty editor. These observations fail acceptance; bounds counts
+alone neither locate every issue nor establish physical feasibility.
+
+Evidence: .tools/catalog-scenes-9-12-native.log and
+catalog-scenes-9-12-source.log. The three corrected simple panels were rechecked
+in .tools/call-panel-native-final.log, including five views per scene, all four
+plate close views and three separately observed Run failures. Their existing
+contracts pass in lab-2-01-workstation-call-plate-contract.log,
+lab-2-02-dual-confirmation-plate-contract.log and
+lab-2-03-service-marker-inhibit-plate-contract.log. These rule-contract checks
+do not supply the missing user ladder. Coverage is 18 inspected / 59 pending;
+earlier counts below describe their earlier checkpoints. Goal active.
+
 FR/FL/RL/RR/T = front-right / front-left / rear-left / rear-right / top.
 Pending means not inspected in this new pass. Previous single-view pictures,
 initial-state cases, inherited asset reviews and catalog `mapped` status do not
@@ -220,15 +257,15 @@ count as this scene's multi-angle or runtime acceptance.
 | 6 | `lab-10-04-motor-enum-state` | 0 | FR/FL/RL/RR/T + three plate details; repeated after repair | Repaired plates and symbolic shaft binding; enum state/controller absent, normal Run opens empty editor |
 | 7 | `lab-10-05-motor-struct-data` | 67 | FR/FL/RL/RR/T | FAIL: shutter copies instead of displays, interference, no STRUCT data, empty editor on Run |
 | 8 | `lab-10-06-ten-motor-array-startup` | 260 | FR/FL/RL/RR/T | FAIL: five motors and overlapping shutter copies, no array/timed startup, empty editor on Run |
-| 9 | `lab-11-06-wastewater-collection` | 222 | Pending | Pending |
-| 10 | `lab-11-07-multi-conveyor-pallet-route` | 892 | Pending | Pending |
-| 11 | `lab-11-11-service-elevator` | 63 | Pending | Pending |
-| 12 | `lab-11-12-mobile-traffic-lights` | 21 | Pending | Pending |
+| 9 | `lab-11-06-wastewater-collection` | 222 | FR/FL/RL/RR/T + transmitter T/FR | FAIL: overlapping tanks, unmounted probe, pneumatic manifold instead of process piping; empty editor on Run |
+| 10 | `lab-11-07-multi-conveyor-pallet-route` | 892 | FR/FL/RL/RR/T + conveyor T/FR | FAIL: three superimposed belts, disconnected roller zone, vibration/bearing prop instead of handoff sensor, no pallet; empty editor on Run |
+| 11 | `lab-11-11-service-elevator` | 63 | FR/FL/RL/RR/T | FAIL: shutter intersects scissor platform, bucket elevator instead of car/shaft, cabinets instead of call station/position sensor; empty editor on Run |
+| 12 | `lab-11-12-mobile-traffic-lights` | 21 | FR/FL/RL/RR/T | FAIL: vertical guard/window wall instead of roadway, single amber beacons instead of traffic head/link; empty editor on Run |
 | 13 | `lab-11-13-xy-palletizing` | 0 | FR/FL/RL/RR/T | Repaired; bounded static/motion checks pass |
 | 14 | `lab-11-19-powder-batch-mixer` | 0 | FR/FL/RL/RR/T | Repaired static layout/chute; process behavior unverified |
-| 15 | `lab-2-01-workstation-call` | 0 | FR/FL/RL/RR/T | Clear supports/spacing; generic START plate needs correction; runtime pending |
-| 16 | `lab-2-02-dual-confirmation` | 0 | FR/FL/RL/RR/T | Clear three-component footprint/supports; generic START plates need correction; runtime pending |
-| 17 | `lab-2-03-service-marker-inhibit` | 0 | FR/FL/RL/RR/T | Clear button/beacon footprint/supports; incorrect START plate; runtime pending |
+| 15 | `lab-2-01-workstation-call` | 0 | FR/FL/RL/RR/T + plate detail; repeated after repair | Clear supports/spacing; MATERIAL CALL plate repaired; normal Run opens empty exercise editor |
+| 16 | `lab-2-02-dual-confirmation` | 0 | FR/FL/RL/RR/T + two plate details; repeated after repair | Clear supports/spacing; OPERATOR OK / QUALITY OK plates repaired; normal Run opens empty exercise editor |
+| 17 | `lab-2-03-service-marker-inhibit` | 0 | FR/FL/RL/RR/T + plate detail; repeated after repair | Clear supports/spacing; INHIBIT plate repaired; normal Run opens empty exercise editor |
 | 18 | `lab-2-04-two-station-call` | 0 | Pending | Pending |
 | 19 | `lab-2-05-bay-light-selector` | 0 | Pending | Pending |
 | 20 | `lab-2-06-ready-attention` | 0 | Pending | Pending |

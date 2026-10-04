@@ -6,6 +6,26 @@ would otherwise be trapped in a local Codex session. It intentionally excludes
 machine-local Codex databases, credentials, screenshots from private chats, and
 temporary runtime state.
 
+Latest follow-up (2026-10-04): native coverage is 18/77 inspected, 59 pending,
+including failures. Scenes 9-12 (Wastewater Collection, Multi-Conveyor Pallet
+Route, Service Elevator, Mobile Traffic Lights) each have inspected FR/FL/RL/RR/T
+views and a separately clicked normal Run. All four fail geometry/identity and
+open an empty editor with NO CONTROLLER LOADED. See MULTI_ANGLE_SCENE_REVIEW.md
+for concrete findings. Source confirms their fresh ladder drafts are intentionally
+tag-only exercises; Run rejects empty networks. Missing reference controllers and
+machine behavior remain open alongside the visual repairs, not a transport bug.
+
+Workstation Call / Dual Confirmation / Service Marker now use four faceLabel
+settings: MATERIAL CALL / OPERATOR OK / QUALITY OK / INHIBIT. Their final five
+views and four close plate views were inspected. All three existing scene-contract
+checks pass, but each normal Run still opens its empty exercise editor. This is
+a JSON-only plate repair; prior build/49-geometry/19-plant results were not rerun.
+Evidence under rungproof-next/.tools: catalog-scenes-9-12-native.log,
+catalog-scenes-9-12-source.log, call-panel-native-final.log and the three
+lab-2-0*-plate-contract.log files. Isolated review windows closed cleanly; user's
+Demo 1 preserved. Goal remains active. Next: continue the remaining native
+inspections and repair the recorded failed source packages/layouts/workflows.
+
 
 Label-print repair and review-input follow-up (2026-10-04): four wrong
 source packages are replaced by original static training props: food tray,

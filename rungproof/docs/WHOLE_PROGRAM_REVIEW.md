@@ -1,5 +1,32 @@
 # Whole program review - 2026-10-03
 
+Catalog scenes 9-12 and panel plates follow-up (2026-10-04): coverage is now
+18/77 native five-view inspections, 59 pending. Wastewater Collection has
+overlapping tanks and a pneumatic valve bank labeled as process piping. The
+Pallet Route has three superimposed belts, a disconnected roller zone and no
+pallet; its handoff sensor package contains a vibration sensor/bearing assembly.
+Service Elevator has a shutter intersecting a scissor platform, a bucket
+elevator labeled car/shaft and cabinets labeled call station/position sensor.
+Mobile Traffic Lights uses a vertical observation-window wall as roadway and
+single amber beacons as traffic head/synchronization link. All four have failed
+FR/FL/RL/RR/T inspections; close transmitter and conveyor views were inspected.
+Normal Run was separately clicked on each: empty editor, NO CONTROLLER LOADED.
+Shared source review confirms these labs are tag-only exercises, not supplied
+reference ladder programs. No controller was fabricated to mask that boundary.
+
+The previously observed START-plate errors in Workstation Call, Dual Confirmation
+and Service Marker are repaired through four scene faceLabel settings. Final
+five-view inspections and all four close plates were inspected; MATERIAL CALL,
+OPERATOR OK, QUALITY OK and INHIBIT fit their plates. Existing scene-contract
+checks pass for all three. Normal Run on each still opens its empty exercise
+editor; no runtime behavior acceptance follows from the label change. No C# or
+asset geometry changed; the prior build/49-geometry/19-plant results were not
+rerun for this label-only change. Evidence: .tools/catalog-scenes-9-12-native.log,
+catalog-scenes-9-12-source.log, call-panel-native-final.log and
+lab-2-0{1-workstation-call,2-dual-confirmation,3-service-marker-inhibit}-plate-contract.log.
+The isolated review windows closed cleanly and the user's Demo 1 was preserved.
+Goal active; the four newly inspected failures need source/layout/runtime work.
+
 Label-print repair and review-input follow-up (2026-10-04): four wrong
 source packages are replaced by original static training props: food tray,
 weigh deck/readout, supported desktop printer and label-preview display. The
