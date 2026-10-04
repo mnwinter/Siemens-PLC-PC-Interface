@@ -398,6 +398,9 @@ public partial class Main : Node3D
         _simulatorShell.LoadWorkspaceRequested += LoadWorkspace;
         _simulatorShell.SaveWorkspaceToPathRequested += SaveWorkspaceToPath;
         _simulatorShell.LoadWorkspaceFromPathRequested += LoadWorkspaceFromPath;
+        _simulatorShell.WorkspaceReplacementGuard = GuardWorkspaceReplacement;
+        _simulatorShell.WorkspaceDiscardRequested += CompletePendingWorkspaceAction;
+        _simulatorShell.WorkspaceReplacementCancelled += CancelPendingWorkspaceAction;
         _simulatorShell.PlacementSelectionSetRequested += SetSelection;
         _simulatorShell.PlacementTransformRequested += TransformPlacement;
         _simulatorShell.UndoRequested += UndoWorkspace;
@@ -1533,6 +1536,7 @@ public partial class Main : Node3D
         try
         {
             VerifyWorkspaceDirtyUndo();
+            VerifyWorkspaceReplacementGuards();
             var conveyor = _candidateCatalog.Assets.First(
                 item => item.Id == "material-handling.belt-conveyor.600x6000.v1"
             );
@@ -3094,9 +3098,13 @@ public partial class Main : Node3D
         {
             var message = $"Save failed: {exception.Message}";
             _simulatorShell?.SetWorkspaceStatus(message, isError: true);
-            _simulatorShell?.ShowWorkspaceFeedback(message, isError: true);
+            if (_pendingWorkspaceAction is not null)
+                _simulatorShell?.ShowUnsavedWorkspaceDialog(message + "\n\n");
+            else _simulatorShell?.ShowWorkspaceFeedback(message, isError: true);
             GD.PushError($"WORKSPACE_SAVE_FAILED {exception.Message}");
+            return;
         }
+        CompletePendingWorkspaceAction();
     }
 
     private WorkspaceDocument CreateWorkspaceDocument()
@@ -3141,6 +3149,7 @@ public partial class Main : Node3D
         try
         {
             var document = WorkspaceRepository.Load(_candidateCatalog, _sceneCatalog, path);
+            if (!GuardWorkspaceReplacement(() => LoadWorkspaceFromPath(path))) return;
             AddMigratedScene(document.SourceSceneId, _candidateCatalog, _mainCamera,
                 showRuntimeControls: false, autoRun: false);
             foreach (var placement in document.Placements)

@@ -198,6 +198,7 @@ public partial class SimulatorShell : CanvasLayer
     private readonly Queue<(string SceneId, SceneLadderDraft Draft)> _pendingDraftSaves = [];
     private FileDialog _workspaceSaveDialog = null!;
     private FileDialog _workspaceLoadDialog = null!;
+    private ConfirmationDialog _unsavedWorkspaceDialog = null!;
     private string? _ladderSavedProjectJson;
     private string? _ladderProjectPath;
     private AcceptDialog _applicationSettingsDialog = null!;
@@ -227,6 +228,9 @@ public partial class SimulatorShell : CanvasLayer
     public event Action? LoadWorkspaceRequested;
     public event Action<string>? SaveWorkspaceToPathRequested;
     public event Action<string>? LoadWorkspaceFromPathRequested;
+    public Func<Action, bool>? WorkspaceReplacementGuard { get; set; }
+    public event Action? WorkspaceDiscardRequested;
+    public event Action? WorkspaceReplacementCancelled;
     public event Action<IReadOnlyList<string>>? PlacementSelectionSetRequested;
     public event Action<string, Vector3, Vector3, Vector3>? PlacementTransformRequested;
     public event Action? UndoRequested;
@@ -377,6 +381,7 @@ public partial class SimulatorShell : CanvasLayer
             _runtime.StateChanged -= RefreshRuntimeState;
         }
         _activeScene = scene;
+        SelectActiveScenarioRow();
         _activeSceneName = ScenarioDisplayName(scene);
         _runtime = runtime;
         _runtime.StateChanged += RefreshRuntimeState;
@@ -1579,7 +1584,7 @@ public partial class SimulatorShell : CanvasLayer
             {
                 SetProductView("operator");
                 SetWorkspaceStatus($"OPENING SCENARIO · {menuScenes[scenarioIndex].Name}");
-                SceneRequested?.Invoke(menuScenes[scenarioIndex].Id);
+                RequestSceneChange(menuScenes[scenarioIndex].Id);
             }
         };
         toolbarRow.AddChild(sceneMenu);
@@ -2006,7 +2011,26 @@ public partial class SimulatorShell : CanvasLayer
         };
         _workspaceSaveDialog.FileSelected += path =>
             SaveWorkspaceToPathRequested?.Invoke(EnsureWorkspaceExtension(path));
+        _workspaceSaveDialog.Canceled += () => WorkspaceReplacementCancelled?.Invoke();
         AddChild(_workspaceSaveDialog);
+
+        _unsavedWorkspaceDialog = new ConfirmationDialog
+        {
+            Name = "UnsavedWorkspaceDialog", Title = "Unsaved scene workspace",
+            OkButtonText = "Discard changes", CancelButtonText = "Cancel",
+        };
+        _unsavedWorkspaceDialog.AddButton("Save…", true, "save");
+        _unsavedWorkspaceDialog.GetLabel().AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        _unsavedWorkspaceDialog.GetLabel().CustomMaximumSize = new Vector2(600, -1);
+        _unsavedWorkspaceDialog.Confirmed += () => WorkspaceDiscardRequested?.Invoke();
+        _unsavedWorkspaceDialog.Canceled += () => WorkspaceReplacementCancelled?.Invoke();
+        _unsavedWorkspaceDialog.CustomAction += action =>
+        {
+            if (action != "save") return;
+            _unsavedWorkspaceDialog.Hide();
+            ShowWorkspaceSaveDialog();
+        };
+        AddChild(_unsavedWorkspaceDialog);
 
         _workspaceLoadDialog = new FileDialog
         {
@@ -2113,6 +2137,36 @@ public partial class SimulatorShell : CanvasLayer
     }
 
     public void ShowWorkspaceSaveDialog() => _workspaceSaveDialog.PopupCenteredRatio(0.72f);
+
+    public void ShowUnsavedWorkspaceDialog(string error = "")
+    {
+        _workspaceSaveDialog.Hide();
+        _unsavedWorkspaceDialog.DialogText = error +
+            "This scene has unsaved workspace edits.\n\n" +
+            "Save the placements, links, and groups before continuing, discard these edits, or cancel.";
+        _unsavedWorkspaceDialog.PopupCentered(new Vector2I(650, 250));
+        _unsavedWorkspaceDialog.GetCancelButton().GrabFocus();
+    }
+
+    public void HideWorkspaceReplacementDialogs()
+    {
+        _unsavedWorkspaceDialog.Hide();
+        _workspaceSaveDialog.Hide();
+    }
+
+    public void RequestSceneChange(string sceneId)
+    {
+        Action apply = () => SceneRequested?.Invoke(sceneId);
+        if (WorkspaceReplacementGuard?.Invoke(apply) != false) apply();
+        else SelectActiveScenarioRow();
+    }
+
+    private void SelectActiveScenarioRow()
+    {
+        var index = _scenarioBrowserRows.FindIndex(scene => scene?.Id == _activeScene?.Id);
+        _sceneList.DeselectAll();
+        if (index >= 0) _sceneList.Select(index);
+    }
 
     public void ShowWorkspaceLoadDialog() => _workspaceLoadDialog.PopupCenteredRatio(0.72f);
 
@@ -2717,7 +2771,7 @@ public partial class SimulatorShell : CanvasLayer
         {
             if (index >= 0 && index < _scenarioBrowserRows.Count
                 && _scenarioBrowserRows[(int)index] is { } scenario)
-                SceneRequested?.Invoke(scenario.Id);
+                RequestSceneChange(scenario.Id);
         };
         body.AddChild(_sceneList);
         return body;
@@ -3629,7 +3683,7 @@ public partial class SimulatorShell : CanvasLayer
         if (item.Kind == "scene")
         {
             AssetPreviewClosed?.Invoke();
-            SceneRequested?.Invoke(item.Id);
+            RequestSceneChange(item.Id);
             return;
         }
         if (item.Kind != "asset") return;
@@ -3925,7 +3979,11 @@ public partial class SimulatorShell : CanvasLayer
         return LadderEditorProjectJson.Save(document);
     }
 
-    public void RequestWindowClose() => RequestLadderAction(() => GetTree().Quit(), allScenes: true);
+    public void RequestWindowClose()
+    {
+        Action close = () => RequestLadderAction(() => GetTree().Quit(), allScenes: true);
+        if (WorkspaceReplacementGuard?.Invoke(close) != false) close();
+    }
 
     private void RequestLadderAction(Action action, bool allScenes = false)
     {
@@ -4139,7 +4197,20 @@ public partial class SimulatorShell : CanvasLayer
         // by the demo template during a cross-scene open.
         if (loaded.Document.SourceSceneId.Length > 0
             && !string.Equals(_activeScene?.Id, loaded.Document.SourceSceneId, StringComparison.Ordinal))
+        {
+            // Queue the whole open so the saved ladder is restored only after
+            // its target scene has actually been attached.
+            if (WorkspaceReplacementGuard?.Invoke(() =>
+                {
+                    TryOpenLadderProject(path, out var resumedMessage);
+                    _ladderWorkspaceStatus.Text = resumedMessage;
+                }) == false)
+            {
+                message = "PROJECT OPEN WAITING · RESOLVE UNSAVED WORKSPACE EDITS";
+                return false;
+            }
             SceneRequested?.Invoke(loaded.Document.SourceSceneId);
+        }
         _ladderDocument.RestoreSnapshot(loaded.Document.CaptureSnapshot());
         _ladderProjectPath = System.IO.Path.GetFullPath(path);
         _ladderSavedProjectJson = LadderEditorProjectJson.Save(_ladderDocument);

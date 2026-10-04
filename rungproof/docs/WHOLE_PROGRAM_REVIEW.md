@@ -391,6 +391,37 @@ passes. Logs: `.tools/workspace-dirty-before.log` and
 Next repair: scene replacement, workspace Load and close must consume this
 accurate dirty state without breaking cross-scene ladder attachment ordering.
 
+## Workspace replacement checkpoint - 2026-10-04
+
+Restore tag `codex/workspace-guards-baseline-20261004` at `ca9af4b`
+precedes this fix. Unsaved workspace edits now require Save, Discard, or Cancel
+before scene replacement, workspace Open/Load, cross-scene ladder Open, and
+window close. Save cancellation/failure retains the current document and blocks
+continuation; successful Save resumes the pending operation. Discard authorizes
+only that operation without falsely marking the current workspace saved. Close
+then checks current/cached ladder drafts. Cross-scene ladder Open queues the
+whole open and preserves attach-before-restore ordering. Scenario selection
+tracks the actual active scene when replacement is queued or loaded from a file.
+
+Build, rendered workspace replacement/dirty/atomic-write regression, and rendered
+ladder editor regression pass. The injected denied replacement intentionally
+logs WORKSPACE_SAVE_FAILED; it verifies preservation and successful retry.
+Logs: `.tools/workspace-guards-final.log`, `.tools/workspace-guards-ladder.log`.
+Native Windows launch and File/Open loaded the pusher and tank review projects.
+Pusher package advance, extended cylinder/transfer, repeated cycles, Stop hold,
+and Reset were inspected; tank fill, 42-percent/10.72-mA reset state, full-level
+20-mA feedback, indicators and Stop hold were inspected. This is offline visual
+simulation evidence, not live-machine or physical geometry acceptance.
+
+Native asset search/selection/placement, Undo/Redo header state, close Cancel,
+scene-change Save, and saved workspace File/Open round trip were also inspected.
+The bounded guard dialog defaults to Cancel. The own review file is
+`.tools/native-workspace-guard-20261004.rungproof.json`; it contains one sensor
+placement in tank-level. The Windows overlay has cleared. Remaining visual
+issues found here: the operator rail clips runtime/navigation on the tank, and
+Undo to an empty workspace leaves a stale gizmo/selection inspector. Next fixes
+will address those observed issues. Whole-program review goal remains active.
+
 ## Verification boundary
 
 Native mouse/keyboard interaction proves only the inspected Windows workflows.

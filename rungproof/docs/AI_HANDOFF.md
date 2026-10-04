@@ -59,6 +59,17 @@ verify original and nonempty saved baselines with Edit/Undo/Redo/Save. Scene,
 workspace Load and close protection is still pending. The current tree's
 `Main.WorkspaceVerification.cs` also tests failed atomic replacement.
 
+Workspace replacement guards are now implemented and tested for scene changes,
+workspace Load, cross-scene ladder Open, and close. Save cancellation/failure
+blocks replacement; Discard does not falsely save; queued ladder opens still
+attach the scene before restoring the project. Rendered workspace/editor tests
+pass. Native launch, pusher/tank File/Open and motion, placement, Undo/Redo,
+close Cancel, scene-change Save and workspace Open were inspected after the
+Windows overlay cleared. Native inspection found clipped operator runtime and
+navigation on the tank, and stale gizmo/selection after Undo to empty; these
+remain to be repaired. Prior pending-overlay statements above describe earlier
+checkpoints, not current availability. No PLC connection was attempted.
+
 RungProof is a Windows PLC visual simulator and training environment. A user
 selects a scenario, sees the 3D machine, edits ladder logic in a TIA Portal or
 Studio 5000 styled workbench, runs a deterministic built-in controller, and

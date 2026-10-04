@@ -8,6 +8,79 @@ namespace RungProof.Next.App;
 
 public partial class Main
 {
+    private void VerifyWorkspaceReplacementGuards()
+    {
+        var original = CreateWorkspaceDocument();
+        var originalBaseline = _workspaceSavedSnapshotJson;
+        var shell = _simulatorShell!;
+        var guard = shell.GetNode<ConfirmationDialog>("UnsavedWorkspaceDialog");
+        var saveDialog = shell.GetNode<FileDialog>("SaveWorkspaceDialog");
+        var path = ProjectSettings.GlobalizePath($"res://.tools/workspace-guard-review-{Guid.NewGuid():N}.json");
+        var actions = 0;
+        try
+        {
+            PlaceAsset(_candidateCatalog!.Assets.First(item => item.Id == "material-handling.belt-conveyor.600x6000.v1"));
+            var edited = CreateWorkspaceDocument();
+            var queued = !GuardWorkspaceReplacement(() => actions++) && guard.Visible && actions == 0;
+            guard.EmitSignal(AcceptDialog.SignalName.Canceled);
+            var cancelled = _pendingWorkspaceAction is null && actions == 0 && shell.IsWorkspaceDirty && _workspaceNodes.Count == 1;
+            GuardWorkspaceReplacement(() => actions++);
+            guard.EmitSignal(AcceptDialog.SignalName.CustomAction, "save");
+            var saveOffered = saveDialog.Visible && !guard.Visible;
+            saveDialog.EmitSignal(AcceptDialog.SignalName.Canceled);
+            var saveCancelled = _pendingWorkspaceAction is null && actions == 0 && shell.IsWorkspaceDirty;
+            GuardWorkspaceReplacement(() => actions++);
+            guard.EmitSignal(AcceptDialog.SignalName.CustomAction, "save");
+            WorkspaceRepository.Save(edited, path);
+            using (var reader = new FileStream(path, FileMode.Open, System.IO.FileAccess.Read, FileShare.Read))
+                SaveWorkspaceToPath(path);
+            var failureBlocked = _pendingWorkspaceAction is not null && actions == 0 && guard.Visible && shell.IsWorkspaceDirty;
+            guard.EmitSignal(AcceptDialog.SignalName.CustomAction, "save");
+            SaveWorkspaceToPath(path);
+            var saveResumed = actions == 1 && _pendingWorkspaceAction is null && !shell.IsWorkspaceDirty;
+
+            PlaceAsset(_candidateCatalog.Assets.First(item => item.Id == "sensing.photoelectric.through-beam.v1"));
+            GuardWorkspaceReplacement(() => actions++);
+            guard.EmitSignal(AcceptDialog.SignalName.Confirmed);
+            var discardDoesNotFakeSave = actions == 2 && shell.IsWorkspaceDirty;
+            shell.RequestSceneChange("scene-2-conveyor-pusher");
+            var sceneWaiting = _currentSceneId == original.SourceSceneId && _workspaceNodes.Count == 2 && guard.Visible;
+            guard.EmitSignal(AcceptDialog.SignalName.Canceled);
+            var sceneCancelled = _currentSceneId == original.SourceSceneId && _workspaceNodes.Count == 2;
+            LoadWorkspaceFromPath(path);
+            var loadWaiting = guard.Visible && _workspaceNodes.Count == 2;
+            guard.EmitSignal(AcceptDialog.SignalName.Canceled);
+            var loadCancelled = _workspaceNodes.Count == 2;
+            shell.RequestWindowClose();
+            var closeWaiting = guard.Visible && _pendingWorkspaceAction is not null;
+            guard.EmitSignal(AcceptDialog.SignalName.Canceled);
+            var closeCancelled = _pendingWorkspaceAction is null && shell.IsWorkspaceDirty;
+            LoadWorkspaceFromPath(path);
+            guard.EmitSignal(AcceptDialog.SignalName.Confirmed);
+            var loadResumed = _workspaceNodes.Count == 1 && !shell.IsWorkspaceDirty;
+            shell.GetNode<AcceptDialog>("WorkspaceFeedbackDialog").Hide();
+
+            var crossScene = shell.VerifyWorkspaceProjectGuard(
+                () => PlaceAsset(_candidateCatalog.Assets.First(item => item.Id == "sensing.photoelectric.through-beam.v1")),
+                () => guard.EmitSignal(AcceptDialog.SignalName.Confirmed), out var projectResult);
+            var passed = queued && cancelled && saveOffered && saveCancelled && failureBlocked && saveResumed
+                && discardDoesNotFakeSave && sceneWaiting && sceneCancelled && loadWaiting && loadCancelled
+                && closeWaiting && closeCancelled && loadResumed && crossScene;
+            GD.Print($"WORKSPACE_REPLACEMENT_VERIFY {(passed ? "PASS" : "FAIL")} queue={queued} cancel={cancelled} saveOffer={saveOffered} saveCancel={saveCancelled} failureBlocks={failureBlocked} saveResume={saveResumed} discardRetainsDirty={discardDoesNotFakeSave} sceneWait={sceneWaiting} sceneCancel={sceneCancelled} loadWait={loadWaiting} loadCancel={loadCancelled} closeWait={closeWaiting} closeCancel={closeCancelled} loadResume={loadResumed} project={crossScene} {projectResult}");
+            if (!passed) throw new InvalidOperationException("Unsaved workspace replacement guard failed.");
+        }
+        finally
+        {
+            CancelPendingWorkspaceAction();
+            ApplyWorkspaceSnapshot(original);
+            _undoHistory.Clear();
+            _redoHistory.Clear();
+            _workspaceSavedSnapshotJson = originalBaseline;
+            RefreshWorkspaceDirty();
+            if (File.Exists(path)) File.Delete(path);
+        }
+    }
+
     private void VerifyWorkspaceDirtyUndo()
     {
         var original = CreateWorkspaceDocument();

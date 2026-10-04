@@ -1,0 +1,38 @@
+using System;
+
+namespace RungProof.Next.App;
+
+public partial class Main
+{
+    private Action? _pendingWorkspaceAction;
+    private bool _workspaceReplacementAuthorized;
+
+    // True lets the caller continue synchronously. False means the complete
+    // replacement operation is waiting for Save, Discard, or Cancel.
+    private bool GuardWorkspaceReplacement(Action action)
+    {
+        if (_workspaceReplacementAuthorized || _simulatorShell?.IsWorkspaceDirty != true) return true;
+        if (_pendingWorkspaceAction is not null) return false;
+        _pendingWorkspaceAction = action;
+        _simulatorShell.ShowUnsavedWorkspaceDialog();
+        return false;
+    }
+
+    private void CancelPendingWorkspaceAction()
+    {
+        _pendingWorkspaceAction = null;
+        _simulatorShell?.HideWorkspaceReplacementDialogs();
+    }
+
+    private void CompletePendingWorkspaceAction()
+    {
+        var action = _pendingWorkspaceAction;
+        CancelPendingWorkspaceAction();
+        if (action is null) return;
+        // Discard authorizes this replacement; it must not label the current
+        // unsaved document as saved if a later ladder guard is cancelled.
+        _workspaceReplacementAuthorized = true;
+        try { action(); }
+        finally { _workspaceReplacementAuthorized = false; }
+    }
+}
