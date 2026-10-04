@@ -31,6 +31,13 @@ No changes have been pushed. No plant connection has been attempted.
 | Narrow editor hides title/status, menus, and instruction access | Responsive toolbar, clipped tab titles, scrollable vendor menus, compact drawers, and an operational instruction browser. Preserve drawer choices after layout updates. | Native title/status/browser and rendered editor/drawer regressions passed. Narrow editor and point lists require scrolling. |
 | Split Save opens the workspace dialog | Treat split as a ladder editing view for Save/Load. | Native Save opens the ladder-project dialog; cancelled without writing. |
 | Point headings and values wrap after maximizing | Theme font changes leave stale BBCode table column measurements. Reparse the table only when its font size changes. | Native 1200x675 to maximized and back inspected: headings, BOOL, and conveyor_run remain on one line. |
+| A missing bridge reply freezes UI/physics indefinitely | Async serialized JSON exchange with deadline/cancellation, continuous bounded stderr drain, and process teardown on a bad reply. Poll completions on the Godot main thread. | 13 process/client/contract tests include hung reads, stderr flooding, malformed/EOF replies, cancellation, fresh-process recovery, and stale session rejection. No PLC transport. |
+| Mismatched profile can still Connect; approval survives a selection change | Enforce declared scene/profile and typed PC/PLC mapping; clear approval on scene/profile/source changes. Revalidate before Connect and bind backend connection to the verified descriptor from the same configuration load. | App-shell guard regression; two new fake Python regressions reject changed IP/slot/cadence before transport creation. |
+| Partial or wrongly typed external image changes some scene points | Require the complete configured PLC point scope and validate all ownership/types/ranges before committing any point. | Pure contract tests and rendered scene-control regression require typed and atomic rejection. |
+| Every physics frame issues PLC I/O and can queue stale work | Use profile cycleMs as the minimum request interval and allow only one pending exchange. Discard late results after source/scene changes. | Source review and single-pending/session cancellation tests. This is frame-limited scheduling, not a measured real-time 20 ms guarantee. |
+| External health placeholders conceal actual readback | Display the guarded result's cycle health, heartbeat reason/echo/age and required readiness status. Reject malformed health metadata. Keep unavailable labels while disconnected. | Fake healthy/fault/status-type regressions; native disconnected health inspected. No live readiness proof. |
+| Read-only test competes with an active session | Require a disconnected session before opening the separate diagnostic transport. | Guarded UI source review. |
+| Settings buttons fall below the native window | Bound the autowrapped explanation width before initial layout and keep profile details at a scrollable fixed height. | Native 1200x675 settings and profile mismatch inspected; rendered bounds verifier passes. |
 
 ## Review matrix
 
@@ -43,17 +50,15 @@ No changes have been pushed. No plant connection has been attempted.
 | Ladder editor | Native add-network, Undo, Redo, and Save verified; rendered interaction verifier passed; cross-scene load regression passed | Native cross-scene load, drag insertion, tags, block interfaces, watch, validation failure, help |
 | Scene/workspace authoring | Rendered workspace verifier passed, including mapping Run and Stop | Native asset placement, mappings, selection, undo, save/load, malformed files |
 | Layout/camera | Split 1200x675 and 1600x900 regressions; native minimum/default/maximized views, points collapse, browser, and resize reflow inspected | Remaining native block/tag/edit flows and runtime summary clipping; broader scene visual acceptance |
-| External execution boundary | Fake Python suites, process descriptor check, exclusive mode and synthetic output ownership regressions | IPC timeout/worker, profile cadence, scene/profile matching, stale authorization, readiness feedback, type validation |
-| Python canonical interface / legacy tools | Earlier 129 root tests and 14 fake live/diagnostic tests passed | Source review for conflicts and rerun after any relevant change |
+| External execution boundary | 13 offline bridge/contract tests; 16 fake Python tests; profile guards, exclusive source, atomic output, and native local-profile UI checks | Full fake app cycle/cadence integration, external playback/readiness semantics, reconnect, configuration editing and mapping UI; authorized live commissioning |
+| Python canonical interface / legacy tools | 129 root tests and 16 fake live/diagnostic tests passed | Continue source review for legacy conflicts |
 | Shutdown/resource lifecycle | RID and ObjectDB leak reports observed | Trace and fix owned UI/resource cleanup; verify process/bridge termination |
 
 ## Specific open issues
 
 - Switching scenes does not yet prove preservation of unsaved user ladder work.
-- External bridge JSON reads block the UI thread indefinitely on a missing
-  response, with redirected stderr not consumed. Profile cadence is ignored.
-- External connect lacks an enforced matching scene/profile boundary; scope
-  approval is not invalidated when selection changes.
+- External playback/readiness semantics still require comparison against the
+  existing native/reference binding. No live communication has been verified.
 - Demo 5 currently commands output indicators; complete palletizing motion and
   reusable FB interface/instance behavior require further verification.
 
@@ -61,7 +66,7 @@ No changes have been pushed. No plant connection has been attempted.
 
 - .NET build: zero warnings and errors.
 - Controller unit/behavior suite: 139 passed, zero failed, no transport created.
-- Canonical Python interface: 129 passed. Fake live/diagnostic suites: 14 passed.
+- Canonical Python interface: 129 passed. Fake live/diagnostic suites: 16 passed.
 - Declared scene contracts: 77 scene files passed their stated cases.
 - Godot app shell, cross-scene persistence, numeric scene I/O, stable operator
   controls, rendered ladder editor, and rendered workspace verifiers passed.
@@ -99,6 +104,29 @@ covers minimum/default/maximized split views, resize reflow in both directions,
 the instruction drawer, and the ladder Save dialog. This completes these layout
 repairs, not whole-program acceptance. External transport and resource leaks
 remain under review; no plant connection was attempted.
+
+## External bridge checkpoint - 2026-10-04
+
+Restore tag `codex/external-review-baseline-20261003` at `22e2dbb` precedes
+these changes. Build is clean, controller tests pass 139/139, connection tests
+pass 13/13, canonical Python tests pass 129/129, and fake live/diagnostic tests
+pass 16/16. App-shell/profile guard, rendered scene-control/atomic image, and
+rendered settings bounds regressions pass. Native inspection proves local
+profile validation, mismatch display and usable controls at 1200x675; Connect
+and the read-only hardware test were not invoked. Runtime scheduling uses a
+minimum profile interval with one outstanding request; real cadence/readiness
+remain unverified. Shutdown rendering/resource leaks remain open.
+
+Run the new offline suites from `rungproof-next/`:
+
+```powershell
+.\.tools\dotnet\dotnet.exe run --project tests/Connections/RungProof.Next.Connections.Tests.csproj -- ..\build\.venv-rungproof\Scripts\python.exe
+# Set DOTNET_ROOT and PATH as documented before launching Godot.
+.\.tools\godot\Godot_v4.7.2-stable_mono_win64\Godot_v4.7.2-stable_mono_win64_console.exe --path . --resolution 1200x675 -- --verify-external-dialog --shell-scene=scene-1-conveyor-stop
+```
+
+Next work remains unsaved project/scene transitions, all demo native workflows,
+external playback/reference semantics, and the rest of the review matrix.
 
 ## Verification boundary
 

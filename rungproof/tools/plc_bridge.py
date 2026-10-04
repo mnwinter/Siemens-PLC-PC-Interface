@@ -33,11 +33,14 @@ def main() -> int:
             if command == "describe":
                 reply({"ok": True, "descriptor": controller.describe_profile(request["profileId"])})
             elif command == "connect":
+                if not isinstance(request.get("expectedDescriptor"), dict):
+                    raise ValueError("Connect requires the verified local profile descriptor.")
                 reply({"ok": True, "result": controller.connect(
                     profile_id=request["profileId"],
                     scene_id=request["sceneId"],
                     execute=request.get("execute") is True,
                     authorized_write_scope=request["authorizedWriteScope"],
+                    expected_descriptor=request["expectedDescriptor"],
                 )})
             elif command == "cycle":
                 reply({"ok": True, "result": controller.cycle(

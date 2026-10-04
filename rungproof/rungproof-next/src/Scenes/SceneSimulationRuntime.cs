@@ -587,6 +587,7 @@ public partial class SceneSimulationRuntime : Node
     /// </summary>
     public void CommitExternalPlcOutputs(IReadOnlyDictionary<string, object?> outputs)
     {
+        var validated = new Dictionary<string, object?>(StringComparer.Ordinal);
         foreach (var (name, value) in outputs)
         {
             if (!_pointOwners.TryGetValue(name, out var owner)
@@ -596,8 +597,10 @@ public partial class SceneSimulationRuntime : Node
                 throw new InvalidOperationException(
                     $"External PLC output '{name}' is not a declared non-null PLC-owned scene point.");
             }
-            _points[name] = value;
+            validated.Add(name, RungProof.Next.Connections.ExternalSceneContract.TypedValue(_pointTypes[name], value, name));
         }
+        // Reject the entire image before mutating anything if one point fails.
+        foreach (var (name, value) in validated) _points[name] = value;
         ApplyBindings();
         StateChanged?.Invoke();
     }

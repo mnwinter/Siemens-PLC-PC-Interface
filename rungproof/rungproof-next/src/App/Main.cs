@@ -23,6 +23,7 @@ public partial class Main : Node3D
     private string? _sceneAction;
     private bool _verifySceneContract;
     private bool _verifyAppShell;
+    private bool _verifyExternalDialog;
     private bool _verifyWorkspace;
     private bool _verifyHud;
     private bool _verifyCameraInput;
@@ -61,6 +62,8 @@ public partial class Main : Node3D
     private Vector3 _sceneCameraDirection;
     private SimulatorShell? _simulatorShell;
     private ExternalPlcRuntimeClient? _externalConnection;
+    private double _externalCycleElapsed;
+    private int _externalCadenceGeneration = -1;
     private int _placedAssetCount;
     private string? _currentSceneId;
     private AssetCatalogDocument? _candidateCatalog;
@@ -128,6 +131,7 @@ public partial class Main : Node3D
             .Substring("--scene-action=".Length);
         _verifySceneContract = userArguments.Contains("--verify-scene-contract", StringComparer.Ordinal);
         _verifyAppShell = userArguments.Contains("--verify-app-shell", StringComparer.Ordinal);
+        _verifyExternalDialog = userArguments.Contains("--verify-external-dialog", StringComparer.Ordinal);
         _verifyWorkspace = userArguments.Contains("--verify-workspace", StringComparer.Ordinal);
         _verifyHud = userArguments.Contains("--verify-hud", StringComparer.Ordinal);
         _verifyCameraInput = userArguments.Contains("--verify-camera-input", StringComparer.Ordinal);
@@ -144,7 +148,7 @@ public partial class Main : Node3D
         _mcpSceneId = userArguments
             .FirstOrDefault(argument => argument.StartsWith("--mcp-scene=", StringComparison.Ordinal))?
             .Substring("--mcp-scene=".Length);
-        _appShellRequested = _verifyAppShell || _verifyWorkspace || _verifyHud || _verifyCameraInput || _verifySceneControls
+        _appShellRequested = _verifyAppShell || _verifyExternalDialog || _verifyWorkspace || _verifyHud || _verifyCameraInput || _verifySceneControls
             || _verifyVirtualController || _verifyNumericSceneIo || _verifyLadderEditor || _verifySplitView || _verifyUiDensity || _virtualControllerDemo
             || userArguments.Contains("--app-shell", StringComparer.Ordinal);
         _shellView = userArguments
@@ -339,7 +343,7 @@ public partial class Main : Node3D
         _mainCamera = camera;
         var scenes = sceneCatalog.Scenes.Select(SceneCatalogLoader.LoadScene).ToArray();
         var diagnostics = ProjectValidator.Validate(candidates, sceneCatalog, scenes);
-        _externalConnection = new ExternalPlcRuntimeClient();
+        _externalConnection = new ExternalPlcRuntimeClient(ProjectSettings.GlobalizePath("res://.."));
         IGuardedRuntimeClient connection = _externalConnection;
         _simulatorShell = new SimulatorShell(candidates, sceneCatalog, diagnostics, connection);
         _simulatorShell.SceneRequested += sceneId =>
@@ -433,6 +437,10 @@ public partial class Main : Node3D
         else if (_verifyAppShell)
         {
             CallDeferred(nameof(VerifyAppShell));
+        }
+        else if (_verifyExternalDialog)
+        {
+            CallDeferred(nameof(VerifyExternalDialog));
         }
         else if (_verifyCameraInput)
         {
@@ -922,6 +930,20 @@ public partial class Main : Node3D
         return root.Id;
     }
 
+    private async void VerifyExternalDialog()
+    {
+        if (_simulatorShell is null || _externalConnection is null) { GetTree().Quit(1); return; }
+        await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+        _simulatorShell.ShowExternalPlcDialog();
+        var deadline = Time.GetTicksMsec() + 5000;
+        do { await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame); }
+        while (_externalConnection.IsBusy && Time.GetTicksMsec() < deadline);
+        await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+        var passed = _simulatorShell.VerifyExternalDialogBounds(out var result);
+        GD.Print($"EXTERNAL_DIALOG_VERIFY {(passed ? "PASS" : "FAIL")} {result}");
+        GetTree().Quit(passed ? 0 : 1);
+    }
+
     private void VerifyAppShell()
     {
         var result = "shell unavailable";
@@ -929,6 +951,7 @@ public partial class Main : Node3D
         var plcResult = "shell unavailable";
         var scenarioResult = "shell unavailable";
         var projectResult = "shell unavailable";
+        var guardResult = "shell unavailable";
         var structurePassed = _simulatorShell is not null
             && _simulatorShell.VerifyStructure(out result);
         var menuPassed = _simulatorShell is not null
@@ -939,7 +962,10 @@ public partial class Main : Node3D
             && _simulatorShell.VerifyScenarioMenuSelection(out scenarioResult);
         var projectPassed = _simulatorShell is not null
             && _simulatorShell.VerifyCrossSceneProjectOpen(out projectResult);
-        if (structurePassed && menuPassed && plcPassed && scenarioPassed && projectPassed)
+        var guardPassed = _simulatorShell is not null
+            && _simulatorShell.VerifyExternalProfileGuards(out guardResult);
+        GD.Print($"EXTERNAL_PROFILE_GUARD_VERIFY {(guardPassed ? "PASS" : "FAIL")} {guardResult}");
+        if (structurePassed && menuPassed && plcPassed && scenarioPassed && projectPassed && guardPassed)
         {
             GD.Print($"APP_SHELL_VERIFY PASS {result} workspaceMenu={menuResult} plcMenu={plcResult} scenarioMenu={scenarioResult} crossSceneProject={projectResult}");
             GetTree().Quit(0);
@@ -953,6 +979,7 @@ public partial class Main : Node3D
             if (!plcPassed) failure += $"; plcMenu={plcResult}";
             if (!scenarioPassed) failure += $"; scenarioMenu={scenarioResult}";
             if (!projectPassed) failure += $"; crossSceneProject={projectResult}";
+            if (!guardPassed) failure += $"; externalProfileGuards={guardResult}";
         }
         GD.PushError($"APP_SHELL_VERIFY FAIL {failure}");
         GetTree().Quit(1);
@@ -1208,6 +1235,12 @@ public partial class Main : Node3D
         var exclusiveExternal = _virtualController is null && _sceneRuntime.UsesExternalClock;
         var externalActionBlocked = !ExecuteSelectedControllerAction("conveyor_run");
         _sceneRuntime.CommitExternalPlcOutputs(new Dictionary<string, object?> { ["conveyor_run"] = true });
+        var invalidOutputRejected = false;
+        try { _sceneRuntime.CommitExternalPlcOutputs(new Dictionary<string, object?> { ["conveyor_run"] = "False" }); }
+        catch (InvalidOperationException) { invalidOutputRejected = OutputOn(); }
+        var atomicImageRejected = false;
+        try { _sceneRuntime.CommitExternalPlcOutputs(new Dictionary<string, object?> { ["conveyor_run"] = false, ["estop_ok"] = true }); }
+        catch (InvalidOperationException) { atomicImageRejected = OutputOn(); }
         StopActiveController();
         ResetActiveController();
         var externalImagePreserved = OutputOn();
@@ -1237,7 +1270,9 @@ public partial class Main : Node3D
         var passed = facesOperator && running && depressed && restored && estopLatched && stopped && restartBlocked
             && resetReleased && restarted && virtualReady && virtualStart && virtualStopCommand && immediateEstop
             && virtualRestartBlocked && resetDoesNotStart && virtualRestarted && exclusiveExternal && externalActionBlocked
-            && externalImagePreserved && fallbackRestored && noFallbackOverwrite && fallbackRulesWork;
+            && externalImagePreserved && fallbackRestored && noFallbackOverwrite && fallbackRulesWork
+            && invalidOutputRejected && atomicImageRejected;
+        GD.Print($"EXTERNAL_IMAGE_VERIFY {(invalidOutputRejected && atomicImageRejected ? "PASS" : "FAIL")} typed={invalidOutputRejected} atomic={atomicImageRejected}");
         GD.Print($"SCENE_CONTROL_VERIFY {(passed ? "PASS" : "FAIL")} facesOperator={facesOperator} start={running} depressed={depressed} restored={restored} estopLatched={estopLatched} stopped={stopped} restartBlocked={restartBlocked} resetReleased={resetReleased} restarted={restarted} virtualReady={virtualReady} virtualStart={virtualStart} virtualStopCommand={virtualStopCommand} immediateEstop={immediateEstop} virtualRestartBlocked={virtualRestartBlocked} resetDoesNotStart={resetDoesNotStart} virtualRestarted={virtualRestarted} exclusiveExternal={exclusiveExternal} externalActionBlocked={externalActionBlocked} externalImagePreserved={externalImagePreserved} fallbackRestored={fallbackRestored} noFallbackOverwrite={noFallbackOverwrite} fallbackRulesWork={fallbackRulesWork}");
         GetTree().Quit(passed ? 0 : 1);
     }
@@ -3087,6 +3122,7 @@ public partial class Main : Node3D
 
     public override void _Process(double delta)
     {
+        _externalConnection?.Poll();
         if (_simulatorShell is not null && _mainCamera is not null && _sceneCompositionRoot is not null)
         {
             var aperture = _simulatorShell.SceneViewportRect();
@@ -3143,7 +3179,7 @@ public partial class Main : Node3D
         {
             if (_externalConnection?.State == ConnectionState.Connected)
             {
-                AdvanceExternalPlc();
+                AdvanceExternalPlc(delta);
                 _sceneRuntime?.AdvanceSimulation(delta);
             }
             return;
@@ -3158,55 +3194,49 @@ public partial class Main : Node3D
             _sceneRuntime.AdvanceSimulation);
     }
 
-    private void AdvanceExternalPlc()
+    private void AdvanceExternalPlc(double delta)
     {
         if (_externalConnection?.ActiveDescriptor is not JsonElement descriptor
             || _sceneRuntime is null
             || _currentSceneId is null)
             return;
+        if (_externalCadenceGeneration != _externalConnection.SessionGeneration)
+        {
+            _externalCadenceGeneration = _externalConnection.SessionGeneration;
+            _externalCycleElapsed = descriptor.GetProperty("cycleMs").GetInt32() / 1000.0;
+        }
+        _externalCycleElapsed += delta;
+        var interval = descriptor.GetProperty("cycleMs").GetInt32() / 1000.0;
+        if (_externalConnection.IsBusy || _externalCycleElapsed < interval) return;
+        // Never queue catch-up writes. Sample the current plant image once when
+        // the bridge is free; the configured cadence is a minimum interval.
+        _externalCycleElapsed = 0;
         try
         {
-            var pcPoints = new Dictionary<string, object?>(StringComparer.Ordinal);
-            if (descriptor.TryGetProperty("pcPointScope", out var scope)
-                && scope.ValueKind == JsonValueKind.Array)
+            var runtime = _sceneRuntime;
+            var sceneId = _currentSceneId;
+            var generation = _externalConnection.SessionGeneration;
+            var pcPoints = ExternalSceneContract.SamplePcPoints(descriptor, runtime.Points);
+            _externalConnection.Cycle(sceneId, pcPoints, result =>
             {
-                foreach (var item in scope.EnumerateArray())
-                {
-                    var name = item.GetProperty("name").GetString() ?? string.Empty;
-                    if (name.Length == 0 || !_sceneRuntime.Points.TryGetValue(name, out var value))
-                        throw new InvalidOperationException($"Scene is missing external PLC input point '{name}'.");
-                    pcPoints[name] = value;
-                }
-            }
-            var result = _externalConnection.Cycle(_currentSceneId, pcPoints);
-            if (result.TryGetProperty("plcPoints", out var outputs)
-                && outputs.ValueKind == JsonValueKind.Object)
-            {
-                var mapped = outputs.EnumerateObject().ToDictionary(
-                    item => item.Name,
-                    item => JsonValue(item.Value),
-                    StringComparer.Ordinal);
-                _sceneRuntime.CommitExternalPlcOutputs(mapped);
-            }
+                if (_simulatorShell?.IsExternalMode != true || !ReferenceEquals(runtime, _sceneRuntime)
+                    || sceneId != _currentSceneId) return;
+                // The guarded Python loop already applies readiness/watchdog
+                // policy to this image. Do not invent another PLC interlock.
+                if (result.GetProperty("connected").GetBoolean() && generation != _externalConnection.SessionGeneration) return;
+                runtime.CommitExternalPlcOutputs(ExternalSceneContract.ReadPlcPoints(descriptor, result.GetProperty("plcPoints")));
+            }, ReportExternalExchangeFailure);
         }
         catch (Exception exception)
         {
-            _simulatorShell?.SetWorkspaceStatus($"External PLC exchange failed · {exception.Message}", isError: true);
-            _externalConnection?.Disconnect();
+            ReportExternalExchangeFailure(exception);
         }
     }
 
-    private static object? JsonValue(JsonElement value)
+    private void ReportExternalExchangeFailure(Exception exception)
     {
-        return value.ValueKind switch
-        {
-            JsonValueKind.True => true,
-            JsonValueKind.False => false,
-            JsonValueKind.Number when value.TryGetInt64(out var integer) => integer,
-            JsonValueKind.Number when value.TryGetDouble(out var number) => number,
-            JsonValueKind.String => value.GetString(),
-            _ => null,
-        };
+        _simulatorShell?.SetWorkspaceStatus($"External PLC exchange failed · {exception.Message}", isError: true);
+        _externalConnection?.Disconnect();
     }
 
     public override void _UnhandledInput(InputEvent inputEvent)

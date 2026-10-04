@@ -89,6 +89,18 @@ PLC settings, and that bridge delegates to the existing `tools/plc_live.py`
 controller. The scene/profile contract is retained in the scene's optional
 `plcTestProfile` field. Built-in Simulator remains the default source.
 
+The 2026-10-04 whole-program review moved JSON bridge exchanges into bounded
+async work through `ProcessBridgeChannel`. `Main._Process` polls completed
+requests so UI, connection events and scene commits stay on Godot's main
+thread. One request may be outstanding. Scene/source changes cancel pending
+work and invalidate approval; a late reply cannot become another scene's
+image. Profile cycleMs is currently a minimum frame-driven interval, not a
+real-time timing guarantee. The bridge passes the verified descriptor into
+`LivePlcController.connect` to reject changed configuration before creating
+transport. Typed symbolic scope validation is in `ExternalSceneContract`.
+Settings details scroll without stretching the dialog beyond the viewport.
+See `WHOLE_PROGRAM_REVIEW.md` for current verified boundaries and open work.
+
 ## External PLC feature requirements
 
 The implemented PLC menu provides the following without changing the existing
@@ -96,8 +108,10 @@ simulator behavior:
 
 1. **Execution source**
    - Built-in Simulator: uses the virtual controller and local symbolic model.
-   - External PLC: uses the existing guarded live session; Run/Stop/Reset and
-     scene exchange use the live session semantics.
+   - External PLC: scene exchange delegates to the existing guarded live
+     session. Next currently blocks local Stop/Reset and unmapped PLC-owned
+     actions. Complete playback/command equivalence with the legacy UI remains
+     under review; it must not be represented as commissioned or complete.
    - The selected source is visible in the toolbar, operator console, and PLC
      inspector.
 

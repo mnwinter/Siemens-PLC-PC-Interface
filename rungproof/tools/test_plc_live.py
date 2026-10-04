@@ -67,6 +67,35 @@ class LivePlcControllerTests(unittest.TestCase):
     def tearDown(self) -> None:
         self.controller.close()
 
+    def test_verified_descriptor_changes_reject_before_transport_creation(self) -> None:
+        profile_id = "scene-1-db14-interface.json"
+        descriptor = self.controller.describe_profile(profile_id)
+        for field, changed in (("ip", "192.0.2.99"), ("slot", 2), ("cycleMs", 40)):
+            with self.subTest(field=field):
+                expected = {**descriptor, field: changed}
+                with self.assertRaisesRegex(LivePlcError, "changed after verification"):
+                    self.controller.connect(
+                        profile_id=profile_id,
+                        scene_id="scene-1-conveyor-stop",
+                        execute=True,
+                        authorized_write_scope=descriptor["writeScope"],
+                        expected_descriptor=expected,
+                    )
+                self.assertEqual(FakeLiveTransport.instances, [])
+
+    def test_verified_descriptor_connects_with_same_loaded_configuration(self) -> None:
+        profile_id = "scene-1-db14-interface.json"
+        descriptor = self.controller.describe_profile(profile_id)
+        result = self.controller.connect(
+            profile_id=profile_id,
+            scene_id="scene-1-conveyor-stop",
+            execute=True,
+            authorized_write_scope=descriptor["writeScope"],
+            expected_descriptor=descriptor,
+        )
+        self.assertTrue(result["connected"])
+        self.assertEqual(len(FakeLiveTransport.instances), 1)
+
     def test_authorized_scene_two_session_exchanges_only_declared_points(
         self,
     ) -> None:

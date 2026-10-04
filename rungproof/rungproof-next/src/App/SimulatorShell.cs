@@ -189,6 +189,8 @@ public partial class SimulatorShell : CanvasLayer
     private AcceptDialog _applicationSettingsDialog = null!;
     private AcceptDialog _externalPlcDialog = null!;
     private OptionButton _externalProfileSelector = null!;
+    private JsonElement? _verifiedExternalDescriptor;
+    private int _externalSelectionGeneration;
     private RichTextLabel _externalProfileDetails = null!;
     private CheckButton _externalAuthorization = null!;
     private bool _externalMode;
@@ -352,6 +354,7 @@ public partial class SimulatorShell : CanvasLayer
         SceneComposition composition
     )
     {
+        InvalidateExternalApproval();
         if (_runtime is not null)
         {
             _runtime.StateChanged -= RefreshRuntimeState;
@@ -2505,10 +2508,23 @@ public partial class SimulatorShell : CanvasLayer
         health.AppendLine($"[b]Health[/b]  {_connection.State.ToString().ToUpperInvariant()}");
         if (external)
         {
-            health.AppendLine(_connection.State == ConnectionState.Connected
-                ? "Heartbeat  see guarded session status" : "Heartbeat  unavailable (disconnected)");
-            health.AppendLine(_connection.State == ConnectionState.Connected
-                ? "Echo  see guarded session status" : "Echo  none (disconnected)");
+            if (_connection is ExternalPlcRuntimeClient { LatestCycle: JsonElement cycle })
+            {
+                health.AppendLine($"Cycle health  {Escape(cycle.GetProperty("health").GetString() ?? "unknown")} · cycle {cycle.GetProperty("cycle")}");
+                var heartbeat = cycle.GetProperty("heartbeat");
+                health.AppendLine($"Heartbeat  {Escape(heartbeat.GetProperty("reason").GetString() ?? "unknown")}");
+                health.AppendLine($"Echo  {heartbeat.GetProperty("last_echo")} · age {heartbeat.GetProperty("age_ms")} ms");
+                var status = cycle.GetProperty("plcStatus");
+                foreach (var name in new[] { "simulation_enable", "simulation_comm_ok", "simulation_timeout" })
+                    health.AppendLine($"{name}  {(status.TryGetProperty(name, out var value) ? Escape(value.ToString()) : "unavailable")}");
+            }
+            else
+            {
+                health.AppendLine(_connection.State == ConnectionState.Connected
+                    ? "Heartbeat  awaiting first readback" : "Heartbeat  unavailable (disconnected)");
+                health.AppendLine("Echo  unavailable");
+                health.AppendLine("Readiness  unavailable");
+            }
             health.AppendLine($"Connection  {_connection.EndpointDescription}");
             health.AppendLine("Timeout  profile watchdog");
         }
@@ -7660,12 +7676,17 @@ public partial class SimulatorShell : CanvasLayer
         };
         _externalProfileSelector.AddItem("scene-1-db14-interface.json");
         _externalProfileSelector.AddItem("scene-2-db14-pusher-interface.json");
-        _externalProfileSelector.ItemSelected += _ => RefreshExternalProfileDetails();
+        _externalProfileSelector.ItemSelected += _ =>
+        {
+            InvalidateExternalApproval();
+            RefreshExternalProfileDetails();
+        };
         _externalProfileDetails = new RichTextLabel
         {
             Name = "ExternalProfileDetails",
             BbcodeEnabled = true,
-            FitContent = true,
+            FitContent = false,
+            SizeFlagsVertical = Control.SizeFlags.Fill,
             CustomMinimumSize = new Vector2(700, 260),
         };
         _externalAuthorization = new CheckButton
@@ -7679,6 +7700,9 @@ public partial class SimulatorShell : CanvasLayer
         {
             Text = "The External PLC mode uses the existing guarded S7 runtime and the selected validated profile. It does not modify the PLC project or safety logic.",
             AutowrapMode = TextServer.AutowrapMode.WordSmart,
+            // Godot 4.7 autowrap needs a bounded width before the first layout.
+            // Otherwise this initially zero-width label inflates the dialog.
+            CustomMaximumSize = new Vector2(1040, -1),
         });
         body.AddChild(ConnectionSettingRow("Profile", _externalProfileSelector));
         body.AddChild(_externalProfileDetails);
@@ -7719,11 +7743,13 @@ public partial class SimulatorShell : CanvasLayer
         return row;
     }
 
-    private void ShowExternalPlcDialog()
+    public void ShowExternalPlcDialog()
     {
         SetExternalMode(true);
         RefreshExternalProfileDetails();
-        _externalPlcDialog.PopupCenteredRatio(0.78f);
+        var viewport = GetViewport().GetVisibleRect().Size;
+        _externalPlcDialog.PopupCentered(new Vector2I(
+            (int)Math.Min(viewport.X - 48, 1040), (int)Math.Min(viewport.Y - 80, 620)));
     }
 
     private void SetExternalMode(bool enabled)
@@ -7734,6 +7760,7 @@ public partial class SimulatorShell : CanvasLayer
             external.Disconnect();
         }
         var modeChanged = _externalMode != enabled;
+        if (modeChanged) InvalidateExternalApproval();
         _externalMode = enabled;
         if (modeChanged) ControllerModeChanged?.Invoke(enabled);
         if (modeChanged) RecordOperatorEvent(enabled ? "External PLC source selected" : "Built-in simulator source selected");
@@ -7769,9 +7796,21 @@ public partial class SimulatorShell : CanvasLayer
             _externalProfileDetails.Text = "[color=#ef7777]External runtime bridge is unavailable in this build.[/color]";
             return;
         }
-        try
+        if (external.IsBusy)
         {
-            var descriptor = external.DescribeProfile(profile);
+            _externalProfileDetails.Text = "Bridge request in progress…";
+            return;
+        }
+        var generation = _externalSelectionGeneration;
+        var scene = _activeScene;
+        _externalProfileDetails.Text = "Validating the local profile…";
+        external.DescribeProfile(profile, descriptor =>
+        {
+            if (generation != _externalSelectionGeneration) return;
+            ExternalSceneContract.Validate(scene.Simulation, descriptor);
+            if (_verifiedExternalDescriptor is JsonElement previous && previous.GetRawText() != descriptor.GetRawText())
+                _externalAuthorization.ButtonPressed = false;
+            _verifiedExternalDescriptor = descriptor;
             var writes = descriptor.GetProperty("writeScope").EnumerateArray().ToArray();
             var reads = descriptor.GetProperty("readScope").EnumerateArray().ToArray();
             _externalProfileDetails.Text =
@@ -7782,11 +7821,25 @@ public partial class SimulatorShell : CanvasLayer
                 string.Join("\n", writes.Select(item => $"{Escape(item.GetProperty("address").GetString() ?? "")} · {Escape(item.GetProperty("symbol").GetString() ?? "")}")) +
                 $"\n\n[b]PLC → scene read scope ({reads.Length})[/b]\n" +
                 string.Join("\n", reads.Select(item => $"{Escape(item.GetProperty("address").GetString() ?? "")} · {Escape(item.GetProperty("symbol").GetString() ?? "")}"));
-        }
-        catch (Exception exception)
+        }, exception =>
         {
+            _verifiedExternalDescriptor = null;
+            _externalAuthorization.ButtonPressed = false;
             _externalProfileDetails.Text = $"[color=#ef7777]PROFILE TEST FAILED[/color]\n{Escape(exception.Message)}";
-        }
+        });
+    }
+
+    public bool VerifyExternalDialogBounds(out string result)
+    {
+        var body = _externalPlcDialog.GetNode<VBoxContainer>("ExternalPlcBody");
+        var viewport = GetViewport().GetVisibleRect().Size;
+        var size = _externalPlcDialog.Size;
+        var actions = (Control)body.GetChild(body.GetChildCount() - 1);
+        var controlsFit = _externalAuthorization.GetGlobalRect().End.Y <= size.Y
+            && actions.GetGlobalRect().End.Y <= size.Y && _externalPlcDialog.GetOkButton().GetGlobalRect().End.Y <= size.Y;
+        var profileValid = _verifiedExternalDescriptor is not null && _externalProfileDetails.Text.Contains("PROFILE VALID", StringComparison.Ordinal);
+        result = $"window={size} viewport={viewport} controlsFit={controlsFit} profileValid={profileValid} connection={_connection.State}";
+        return size.X <= viewport.X && size.Y <= viewport.Y && controlsFit && profileValid && _connection.State == ConnectionState.Disconnected;
     }
 
     private void RunExternalDiagnostic()
@@ -7797,9 +7850,17 @@ public partial class SimulatorShell : CanvasLayer
             return;
         }
         var profile = _externalProfileSelector.GetItemText(_externalProfileSelector.Selected);
-        try
+        if (external.State != ConnectionState.Disconnected)
         {
-            var result = external.RunReadOnlyDiagnostic(profile);
+            _externalProfileDetails.Text = "Disconnect the active session before running a separate read-only PLC test.";
+            return;
+        }
+        if (!CanUseExternalProfile(profile) || external.IsBusy) return;
+        var generation = _externalSelectionGeneration;
+        _externalProfileDetails.Text = "Read-only PLC test in progress…";
+        external.RunReadOnlyDiagnostic(profile, result =>
+        {
+            if (generation != _externalSelectionGeneration) return;
             var lines = result.GetProperty("items").EnumerateArray().Select(item =>
             {
                 var status = item.GetProperty("status").GetString()?.ToUpperInvariant() ?? "INFO";
@@ -7810,42 +7871,80 @@ public partial class SimulatorShell : CanvasLayer
             _externalProfileDetails.Text =
                 $"[b]READ-ONLY PLC TEST[/b]\n{Escape(result.GetProperty("summary").GetString() ?? "No result.")}\n\n" +
                 string.Join("\n", lines);
-        }
-        catch (Exception exception)
+        }, exception =>
         {
             _externalProfileDetails.Text = $"[color=#ef7777]READ-ONLY PLC TEST FAILED[/color]\n{Escape(exception.Message)}";
-        }
+        });
     }
 
     private void ConnectExternalPlc()
     {
-        if (!_externalAuthorization.ButtonPressed)
-        {
-            _externalProfileDetails.Text += "\n\n[color=#f1aa5b]Connection requires exact-scope authorization.[/color]";
-            return;
-        }
         if (_activeScene is null || _connection is not ExternalPlcRuntimeClient external)
         {
             SetWorkspaceStatus("External PLC connection unavailable · no matching scene/runtime", isError: true);
             return;
         }
         var profile = _externalProfileSelector.GetItemText(_externalProfileSelector.Selected);
-        try
+        if (!CanUseExternalProfile(profile) || external.IsBusy) return;
+        if (!_externalAuthorization.ButtonPressed)
         {
-            var descriptor = external.DescribeProfile(profile);
+            _externalProfileDetails.Text = "[color=#f1aa5b]Connection requires exact-scope authorization.[/color]\n\n" + _externalProfileDetails.Text;
+            return;
+        }
+        if (_verifiedExternalDescriptor is not JsonElement verified)
+        {
+            _externalProfileDetails.Text = "Verify the matching local profile before authorizing a connection.";
+            return;
+        }
+        var generation = _externalSelectionGeneration;
+        // Re-read the local profile before connecting. A file edit invalidates
+        // approval just as a scene/profile selection change does.
+        external.DescribeProfile(profile, descriptor =>
+        {
+            if (generation != _externalSelectionGeneration || !_externalAuthorization.ButtonPressed) return;
+            ExternalSceneContract.Validate(_activeScene!.Simulation, descriptor);
+            if (verified.GetRawText() != descriptor.GetRawText())
+            {
+                InvalidateExternalApproval();
+                _externalProfileDetails.Text = "Profile changed after verification. Verify and authorize its new scope.";
+                return;
+            }
             var scope = descriptor.GetProperty("writeScope").EnumerateArray()
                 .Select(item => item.EnumerateObject().ToDictionary(property => property.Name, property => property.Value.GetString() ?? string.Empty, StringComparer.Ordinal))
                 .ToArray();
-            external.Connect(profile, _activeScene.Id, scope);
             SetExternalMode(true);
-            SetWorkspaceStatus("EXTERNAL PLC CONNECTED · cycle exchange active");
-            _externalPlcDialog.Hide();
-        }
-        catch (Exception exception)
+            external.Connect(profile, _activeScene.Id, scope, _ =>
+            {
+                SetWorkspaceStatus("EXTERNAL PLC CONNECTED · waiting for guarded readiness");
+                _externalPlcDialog.Hide();
+            }, ReportExternalConnectionFailure, descriptor.GetProperty("connectTimeoutMs").GetInt32(), descriptor);
+        }, ReportExternalConnectionFailure);
+    }
+
+    private void ReportExternalConnectionFailure(Exception exception)
+    {
+        SetWorkspaceStatus($"External PLC connection failed · {exception.Message}", isError: true);
+        RefreshConnection();
+    }
+
+    private bool CanUseExternalProfile(string profile)
+    {
+        if (_activeScene is null || !string.Equals(_activeScene.PlcTestProfile, profile, StringComparison.OrdinalIgnoreCase))
         {
-            SetWorkspaceStatus($"External PLC connection failed · {exception.Message}", isError: true);
-            RefreshConnection();
+            _externalProfileDetails.Text = "[color=#ef7777]PROFILE MISMATCH · select the profile declared by the active scene.[/color]";
+            _externalAuthorization.ButtonPressed = false;
+            return false;
         }
+        return true;
+    }
+
+    private void InvalidateExternalApproval()
+    {
+        _externalSelectionGeneration++;
+        _verifiedExternalDescriptor = null;
+        if (_externalAuthorization is not null) _externalAuthorization.ButtonPressed = false;
+        if (_connection is ExternalPlcRuntimeClient external && (external.IsBusy || external.State != ConnectionState.Disconnected))
+            external.Disconnect();
     }
 
     private void DisconnectExternalPlc()
@@ -7853,6 +7952,33 @@ public partial class SimulatorShell : CanvasLayer
         if (_connection is ExternalPlcRuntimeClient external) external.Disconnect();
         SetWorkspaceStatus("External PLC disconnected");
         RefreshConnection();
+    }
+
+    public bool VerifyExternalProfileGuards(out string result)
+    {
+        if (_activeScene is null || _connection is not ExternalPlcRuntimeClient external || external.IsBusy)
+        {
+            result = "guard verification requires an idle offline scene";
+            return false;
+        }
+        var selected = _externalProfileSelector.Selected;
+        var details = _externalProfileDetails.Text;
+        var wrong = _activeScene.PlcTestProfile == _externalProfileSelector.GetItemText(0) ? 1 : 0;
+        _externalProfileSelector.Select(wrong);
+        _externalAuthorization.ButtonPressed = true;
+        ConnectExternalPlc();
+        var mismatchBlocked = !external.IsBusy && external.State == ConnectionState.Disconnected
+            && !_externalAuthorization.ButtonPressed && _externalProfileDetails.Text.Contains("PROFILE MISMATCH", StringComparison.Ordinal);
+        _externalAuthorization.ButtonPressed = true;
+        _verifiedExternalDescriptor = JsonSerializer.SerializeToElement(new { verified = true });
+        _externalProfileSelector.EmitSignal(OptionButton.SignalName.ItemSelected, wrong);
+        var selectionClearsApproval = !_externalAuthorization.ButtonPressed && _verifiedExternalDescriptor is null && !external.IsBusy;
+        RunExternalDiagnostic();
+        var diagnosticMismatchBlocked = !external.IsBusy;
+        _externalProfileSelector.Select(selected);
+        _externalProfileDetails.Text = details;
+        result = $"mismatchBlocked={mismatchBlocked} selectionClearsApproval={selectionClearsApproval} diagnosticMismatchBlocked={diagnosticMismatchBlocked} noTransport=True";
+        return mismatchBlocked && selectionClearsApproval && diagnosticMismatchBlocked;
     }
 
     private void SetMcpUiEnabled(bool enabled, bool persist = true)

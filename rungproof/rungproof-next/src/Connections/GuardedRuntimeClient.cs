@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
-using Godot;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace RungProof.Next.Connections;
 
@@ -45,116 +46,193 @@ public sealed class DisconnectedRuntimeClient : IGuardedRuntimeClient
 /// </summary>
 public sealed class ExternalPlcRuntimeClient : IGuardedRuntimeClient, IDisposable
 {
-    private readonly object _gate = new();
-    private Process? _bridge;
+    private readonly Func<ProcessBridgeChannel> _channelFactory;
+    private ProcessBridgeChannel? _channel;
+    private Task<JsonElement>? _pending;
+    private CancellationTokenSource? _requestCancellation;
+    private Action<JsonElement>? _completed;
+    private Action<Exception>? _failed;
     private string? _sessionId;
     private string? _sceneId;
     private string _endpoint = "No external profile selected";
 
     public ConnectionState State { get; private set; } = ConnectionState.Disconnected;
     public JsonElement? ActiveDescriptor { get; private set; }
+    public JsonElement? LatestCycle { get; private set; }
+    public bool IsBusy => _pending is not null;
+    public int SessionGeneration { get; private set; }
     public string EndpointDescription => _endpoint;
     public string StatusDetail { get; private set; } = "External PLC bridge is disconnected.";
     public event Action? StateChanged;
 
-    public JsonElement DescribeProfile(string profileId)
+    public ExternalPlcRuntimeClient(string projectRoot) : this(() => CreateChannel(projectRoot)) { }
+    public ExternalPlcRuntimeClient(Func<ProcessBridgeChannel> channelFactory) => _channelFactory = channelFactory;
+
+    public void DescribeProfile(string profileId, Action<JsonElement> completed, Action<Exception> failed)
     {
-        var response = Send(new { command = "describe", profileId });
-        return response.GetProperty("descriptor").Clone();
+        Request(new { command = "describe", profileId }, response => completed(response.GetProperty("descriptor").Clone()), failed);
     }
 
-    public JsonElement RunReadOnlyDiagnostic(string profileId)
+    public void RunReadOnlyDiagnostic(string profileId, Action<JsonElement> completed, Action<Exception> failed)
     {
-        var response = Send(new { command = "diagnostic", profileId });
-        return response.GetProperty("result").Clone();
+        Request(new { command = "diagnostic", profileId }, response => completed(response.GetProperty("result").Clone()), failed, TimeSpan.FromSeconds(10));
     }
 
-    public JsonElement Connect(
+    public void Connect(
         string profileId,
         string sceneId,
-        IReadOnlyList<Dictionary<string, string>> authorizedWriteScope)
+        IReadOnlyList<Dictionary<string, string>> authorizedWriteScope,
+        Action<JsonElement> completed,
+        Action<Exception> failed,
+        int connectTimeoutMs,
+        JsonElement expectedDescriptor)
     {
+        if (State != ConnectionState.Disconnected || IsBusy)
+            throw new InvalidOperationException("Disconnect or finish the current bridge request before connecting.");
         SetState(ConnectionState.Connecting, "Opening guarded PLC session…");
-        try
+        Request(new
         {
-            var response = Send(new
-            {
-                command = "connect",
-                profileId,
-                sceneId,
-                execute = true,
-                authorizedWriteScope,
-            });
+            command = "connect",
+            profileId,
+            sceneId,
+            execute = true,
+            authorizedWriteScope,
+            expectedDescriptor,
+        }, response =>
+        {
             var result = response.GetProperty("result").Clone();
-            ActiveDescriptor = result.Clone();
-            _sessionId = result.GetProperty("sessionId").GetString();
+            var sessionId = result.GetProperty("sessionId").GetString();
+            if (string.IsNullOrWhiteSpace(sessionId) || result.GetProperty("sceneId").GetString() != sceneId
+                || result.GetProperty("id").GetString() != profileId || !result.GetProperty("connected").GetBoolean())
+                throw new InvalidOperationException("Bridge returned an invalid session identity.");
+            _sessionId = sessionId;
             _sceneId = sceneId;
             _endpoint = $"{result.GetProperty("ip").GetString()} rack {result.GetProperty("rack").GetInt32()} slot {result.GetProperty("slot").GetInt32()}";
+            ActiveDescriptor = result;
+            LatestCycle = null;
+            SessionGeneration++;
             SetState(ConnectionState.Connected, "Guarded PLC session connected; waiting for healthy readiness.");
-            return result;
-        }
-        catch
+            completed(result);
+        }, exception =>
         {
-            SetState(ConnectionState.Disconnected, "External PLC connection failed; no active session.");
-            throw;
-        }
+            ClearSession("External PLC connection failed; no active session.");
+            failed(exception);
+        }, TimeSpan.FromMilliseconds(Math.Clamp(connectTimeoutMs + 2000L, 2000L, 30000L)));
     }
 
-    public JsonElement Cycle(string sceneId, IReadOnlyDictionary<string, object?> pcPoints)
+    public void Cycle(string sceneId, IReadOnlyDictionary<string, object?> pcPoints, Action<JsonElement> completed, Action<Exception> failed)
     {
         if (_sessionId is null || _sceneId != sceneId)
             throw new InvalidOperationException("No active external PLC session for the current scene.");
-        var response = Send(new
+        Request(new
         {
             command = "cycle",
             sessionId = _sessionId,
             sceneId,
             pcPoints,
-        });
-        var result = response.GetProperty("result").Clone();
-        if (!result.GetProperty("connected").GetBoolean())
+        }, response =>
         {
-            _sessionId = null;
-            ActiveDescriptor = null;
-            SetState(ConnectionState.Disconnected, "PLC cycle health fault closed the guarded session.");
-        }
-        return result;
+            var result = response.GetProperty("result").Clone();
+            if (result.GetProperty("sessionId").GetString() != _sessionId || result.GetProperty("sceneId").GetString() != _sceneId)
+                throw new InvalidOperationException("Bridge cycle belongs to another session or scene.");
+            ValidateCycleMetadata(result);
+            LatestCycle = result;
+            if (!result.GetProperty("connected").GetBoolean())
+                ClearSession("PLC cycle health fault closed the guarded session.", clearCycle: false);
+            else
+                StatusDetail = $"Guarded cycle {result.GetProperty("cycle")} · health {result.GetProperty("health").GetString()} · heartbeat {result.GetProperty("heartbeat").GetProperty("reason").GetString()}";
+            completed(result);
+            StateChanged?.Invoke();
+        }, failed, TimeSpan.FromMilliseconds(ActiveDescriptor?.GetProperty("heartbeatTimeoutMs").GetInt32() ?? 2000));
     }
 
     public void Disconnect()
     {
-        if (_sessionId is not null)
+        var sessionId = _sessionId;
+        var wasBusy = IsBusy;
+        if (wasBusy)
         {
-            try { Send(new { command = "disconnect", sessionId = _sessionId }); }
-            finally { _sessionId = null; }
+            // Cancels both a queued connect and a pending cycle. A late response
+            // is discarded; the next scene cannot inherit its output image.
+            _requestCancellation?.Cancel();
+            _channel?.Abort();
+            var abandoned = _pending!;
+            _ = abandoned.ContinueWith(task => { _ = task.Exception; }, TaskContinuationOptions.OnlyOnFaulted);
+            _pending = null;
+            _completed = null;
+            _failed = null;
+            _requestCancellation?.Dispose();
+            _requestCancellation = null;
         }
+        ClearSession("External PLC disconnected.");
+        if (!wasBusy && sessionId is not null)
+            Request(new { command = "disconnect", sessionId }, _ => { }, exception =>
+                SetState(ConnectionState.Disconnected, $"Bridge disconnect failed; process closed: {exception.Message}"));
+    }
+
+    private void Request(object request, Action<JsonElement> completed, Action<Exception> failed, TimeSpan? timeout = null)
+    {
+        if (IsBusy) throw new InvalidOperationException("A PLC bridge request is already in progress.");
+        _completed = completed;
+        _failed = failed;
+        _channel ??= _channelFactory();
+        _requestCancellation = new CancellationTokenSource();
+        var channel = _channel;
+        var cancellation = _requestCancellation.Token;
+        // Even process startup runs outside Godot's UI/physics thread.
+        _pending = Task.Run(() => channel.SendAsync(request, timeout ?? TimeSpan.FromSeconds(3), cancellation));
+    }
+
+    /// <summary>Called on the Godot main thread; workers never touch scene/UI objects.</summary>
+    public void Poll()
+    {
+        if (_pending is not { IsCompleted: true } pending) return;
+        var completed = _completed;
+        var failed = _failed;
+        _pending = null;
+        _completed = null;
+        _failed = null;
+        _requestCancellation?.Dispose();
+        _requestCancellation = null;
+        try { completed?.Invoke(pending.GetAwaiter().GetResult()); }
+        catch (Exception exception)
+        {
+            _channel?.Abort();
+            ClearSession($"External PLC bridge fault: {exception.Message}");
+            failed?.Invoke(exception);
+        }
+    }
+
+    private void ClearSession(string detail, bool clearCycle = true)
+    {
+        _sessionId = null;
+        _sceneId = null;
         ActiveDescriptor = null;
-        SetState(ConnectionState.Disconnected, "External PLC disconnected.");
+        if (clearCycle) LatestCycle = null;
+        SessionGeneration++;
+        SetState(ConnectionState.Disconnected, detail);
     }
 
-    private JsonElement Send(object request)
+    private static void ValidateCycleMetadata(JsonElement result)
     {
-        lock (_gate)
+        if (result.GetProperty("cycle").GetInt64() <= 0
+            || result.GetProperty("health").GetString() is not ("healthy" or "starting" or "degraded" or "fault"))
+            throw new InvalidOperationException("Bridge returned invalid cycle health metadata.");
+        var heartbeat = result.GetProperty("heartbeat");
+        _ = heartbeat.GetProperty("healthy").GetBoolean();
+        _ = heartbeat.GetProperty("reason").GetString();
+        foreach (var field in new[] { "last_echo", "age_ms" })
         {
-            EnsureBridge();
-            var line = JsonSerializer.Serialize(request);
-            _bridge!.StandardInput.WriteLine(line);
-            _bridge.StandardInput.Flush();
-            var output = _bridge.StandardOutput.ReadLine();
-            if (string.IsNullOrWhiteSpace(output))
-                throw new InvalidOperationException("PLC bridge stopped without a response.");
-            using var document = JsonDocument.Parse(output);
-            var root = document.RootElement.Clone();
-            if (!root.GetProperty("ok").GetBoolean())
-                throw new InvalidOperationException(root.GetProperty("error").GetString() ?? "PLC bridge rejected the request.");
-            return root;
+            var value = heartbeat.GetProperty(field);
+            if (value.ValueKind != JsonValueKind.Null) _ = value.GetDouble();
         }
+        var status = result.GetProperty("plcStatus");
+        foreach (var field in new[] { "simulation_enable", "simulation_comm_ok", "simulation_timeout" })
+            _ = status.GetProperty(field).GetBoolean();
     }
 
-    private void EnsureBridge()
+    private static ProcessBridgeChannel CreateChannel(string projectRoot)
     {
-        if (_bridge is { HasExited: false }) return;
-        var projectRoot = ProjectSettings.GlobalizePath("res://..");
         var python = Path.Combine(projectRoot, "build", ".venv-rungproof", "Scripts", "python.exe");
         var bridge = Path.Combine(projectRoot, "tools", "plc_bridge.py");
         var profiles = Path.Combine(projectRoot, "prototype", "plc-profiles");
@@ -170,7 +248,7 @@ public sealed class ExternalPlcRuntimeClient : IGuardedRuntimeClient, IDisposabl
         if (File.Exists(python)) info.ArgumentList.Add(bridge);
         else { info.ArgumentList.Add("-3"); info.ArgumentList.Add(bridge); }
         info.ArgumentList.Add(profiles);
-        _bridge = Process.Start(info) ?? throw new InvalidOperationException("Unable to start the guarded PLC bridge.");
+        return new ProcessBridgeChannel(info);
     }
 
     private void SetState(ConnectionState state, string detail)
@@ -182,12 +260,15 @@ public sealed class ExternalPlcRuntimeClient : IGuardedRuntimeClient, IDisposabl
 
     public void Dispose()
     {
-        try { Disconnect(); } catch { }
-        lock (_gate)
-        {
-            if (_bridge is { HasExited: false }) _bridge.Kill(entireProcessTree: true);
-            _bridge?.Dispose();
-            _bridge = null;
-        }
+        if (_pending is not null)
+            _ = _pending.ContinueWith(task => { _ = task.Exception; }, TaskContinuationOptions.OnlyOnFaulted);
+        _pending = null;
+        _completed = null;
+        _failed = null;
+        _requestCancellation?.Cancel();
+        _requestCancellation?.Dispose();
+        _requestCancellation = null;
+        _channel?.Dispose();
+        ClearSession("External PLC bridge closed.");
     }
 }

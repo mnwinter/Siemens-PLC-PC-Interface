@@ -235,6 +235,7 @@ class LivePlcController:
         scene_id: str,
         execute: bool,
         authorized_write_scope: object,
+        expected_descriptor: Mapping[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Connect only after the caller confirms the exact write scope."""
 
@@ -245,6 +246,10 @@ class LivePlcController:
         if not isinstance(scene_id, str) or not _SCENE_ID.fullmatch(scene_id):
             raise LivePlcError("A valid scene id is required.")
         config, descriptor = self._load_profile(profile_id)
+        if expected_descriptor is not None and expected_descriptor != descriptor:
+            raise LivePlcError(
+                "PLC profile changed after verification; verify and authorize the new endpoint and scope."
+            )
         if authorized_write_scope != descriptor["writeScope"]:
             raise LivePlcError(
                 "Authorized write scope does not exactly match the profile."
