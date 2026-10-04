@@ -1,10 +1,10 @@
 # Multi-angle scene review - 2026-10-04
 
 Status: **active**. The prior software review did not establish multi-angle
-visual acceptance. Twenty-three scenes have five-view native static inspections; 54 remain pending.
+visual acceptance. Twenty-six scenes have five-view native static inspections; 51 remain pending.
 Demo 5, Powder Batch Mixer, Parcel Size Sorter, Conveyor Inspection Cell,
 the Equipment Gallery, Drive Alarm-Code String and Chicken Label Print have repaired static layouts.
-The sorter operator Run still lacks a controller; six simple panels now have corrected function plates and clear spacing. Other scenes
+The sorter operator Run still lacks a controller; eight simple panels now have corrected function plates and clear spacing. Other scenes
 remain pending unless their row explicitly records observation. Inspection coverage
 includes failed scenes; it is not a count of accepted scenes.
 
@@ -28,6 +28,38 @@ Every row requires native inspection.
 
 ## Repairs and open findings
 
+- Inspection Vote, Dust Collector and Inbound Tote Stop have final native
+  FR/FL/RL/RR/T inspections, plus close function-plate and tote-support views.
+  Vote plates now read VOTE A / VOTE B and the collector stop plate reads STOP.
+  Actual 3D inputs and Reset were checked on both panels. Pending scan pulses
+  remain queued until a controller consumes them; that is intentional runtime
+  behavior, not a completed PLC scan. Collector equipment is a fan schematic,
+  without a modeled dust hood/filter process. All three normal Run attempts
+  open the blank exercise editor with NO CONTROLLER LOADED.
+- Inbound Tote Stop exposed three imported-mesh failures: its bottom floated
+  99.5 mm above the 0.9 m belt, photoeye solids intersected the conveyor frame,
+  and its X=4 endpoint left part of the tote outside the belt. Tote origin Y is
+  now 0.8905 (actual bottom 0.900012), photoeye span 3.8 m, and clearing ends
+  at X=3.4. Six focused checks cover actual belt contact/full footprint, sensor
+  solid clearance, grounded feet, mid-cycle Stop/Reset, a 300-sample full cycle,
+  and scan-dwell alignment with the beam envelope. The three failing checks
+  fail before repair and all 75 geometry checks pass after repair. Beam bounds
+  do not prove optical detection through the hollow tote or barcode reading.
+  Seven broad AABB cable/frame candidates remain (previously 15); excluding
+  cable bounds, imported solid OBB checks pass. This is not physical routing proof.
+  Native plant-preview movement and completion were inspected from FL and RR;
+  the completed footprint was inspected overhead, and Reset restores the input
+  position. Native Stop was clicked after completion and holds the endpoint;
+  mid-cycle Stop is covered by the deterministic check, not that UI observation.
+  The preview explicitly has no PLC controller. Fresh build: zero warnings/errors.
+  Three scene contracts (six cases) pass. Evidence under rungproof-next/.tools:
+  inbound-geometry-before.log, inbound-geometry-final.log,
+  inbound-geometry-build.log, catalog-scenes-22-28-native.log,
+  inbound-native-motion-final.log, and the lab-2-08-inspection-vote,
+  lab-2-10-dust-collector-seal-in and lab-2-11-inbound-tote-stop final-contract logs.
+  The catalog log filename does not establish inspection of scenes 26-28.
+  Isolated reviewers closed cleanly; the user's Demo 1 window was preserved.
+  Goal remains active: 51 static inspections and recorded failures remain open.
 - Two Station Call, Bay Light Selector, Ready/Attention, Dual Contact Permissive
   and Maintenance Beacon have final native FR/FL/RL/RR/T inspections. Their
   supports contact the floor and separate equipment remains clear in these views.
@@ -313,10 +345,10 @@ count as this scene's multi-angle or runtime acceptance.
 | 19 | `lab-2-05-bay-light-selector` | 0 | FR/FL/RL/RR/T + close dial | Static clear; 2-position dial/axis repaired; native 0/1/Reset. Post indicators only; Run empty controller. |
 | 20 | `lab-2-06-ready-attention` | 0 | FR/FL/RL/RR/T + close plate | Static clear; ATTENTION repaired; 3D request/Reset checked. Persistent toggle vs spring-return description open; Run empty controller. |
 | 21 | `lab-2-07-dual-contact-permissive` | 0 | FR/FL/RL/RR/T + close plates | Static clear; RESET NO/TEST NC repaired; 3D PC inputs/Reset checked. No physical contact proof; Run empty controller. |
-| 22 | `lab-2-08-inspection-vote` | 0 | Pending | Pending |
+| 22 | `lab-2-08-inspection-vote` | 0 | FR/FL/RL/RR/T + close plates | Static clear; VOTE A/B repaired; 3D PC inputs/Reset checked. No conflict output sequence accepted; Run empty controller. |
 | 23 | `lab-2-09-maintenance-beacon` | 0 | FR/FL/RL/RR/T + close dial | Static clear; 4-position dial/axis repaired; native 0-3/wrap/Reset. No beacon sequence or lockout proof; Run empty controller. |
-| 24 | `lab-2-10-dust-collector-seal-in` | 0 | Pending | Pending |
-| 25 | `lab-2-11-inbound-tote-stop` | 15 | Pending | Pending |
+| 24 | `lab-2-10-dust-collector-seal-in` | 0 | FR/FL/RL/RR/T + close STOP | Static clear; STOP repaired; 3D PC requests/Reset checked. Fan schematic only; Run empty controller. |
+| 25 | `lab-2-11-inbound-tote-stop` | 7 | FR/FL/RL/RR/T + close tote; FL/RR motion endpoints | Tote support, sensor clearance and cycle endpoint repaired; six focused checks pass. Native completion/Reset and endpoint Stop checked; Run empty controller. Cable AABB candidates remain. |
 | 26 | `lab-2-12-assembly-lift` | 0 | Pending | Pending |
 | 27 | `lab-2-13-coolant-jug-fill` | 53 | Pending | Pending |
 | 28 | `lab-2-14-sump-pump` | 41 | Pending | Pending |

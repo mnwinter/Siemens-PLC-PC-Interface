@@ -1,5 +1,26 @@
 # Whole program review - 2026-10-03
 
+Vote, collector and tote follow-up (2026-10-04): coverage is now 26/77 native
+five-view inspections, 51 pending, including recorded failures. Inspection Vote
+and Dust Collector have corrected VOTE A / VOTE B / STOP plates, close views,
+native PC input clicks and Reset. Inbound Tote Stop previously floated 99.5 mm
+above its belt, intersected the conveyor frame with photoeye solids, and finished
+partly beyond the belt end. Three scene values now correct bottom contact,
+photoeye clearance and full endpoint support. Final five views and close tote
+views were inspected; plant-preview movement/completion was observed from FL/RR
+and the finished footprint overhead. Native Stop holds the completed endpoint;
+mid-cycle Stop is verified in the deterministic check only. Reset was checked.
+All three ordinary Run attempts open an empty exercise with NO CONTROLLER LOADED.
+No PLC-controlled lesson sequence, barcode detection or dust process is accepted.
+Fresh build has zero warnings/errors. All 75 geometry checks and three focused
+scene contracts (six cases) pass. Six new geometry checks include three reproduced
+before-fix failures; remaining seven cable/frame AABB candidates are documented.
+See MULTI_ANGLE_SCENE_REVIEW.md for evidence and boundaries. Isolated windows
+closed cleanly; user Demo 1 was preserved. Goal active; 51 scenes plus recorded
+failures remain open. Next full inspection is scene 26, Assembly Lift.
+
+Earlier checkpoint:
+
 Selector and panel follow-up (2026-10-04): coverage is now 23/77 native five-view
 inspections, 54 pending, including previously recorded failures. Two Station
 Call, Bay Light Selector, Ready/Attention, Dual Contact Permissive and Maintenance

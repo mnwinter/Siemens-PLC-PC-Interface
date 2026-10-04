@@ -41,7 +41,7 @@
       "label": "Reusable tote",
       "position": [
         -3.2,
-        0.99,
+        0.8905,
         0
       ],
       "config": {
@@ -63,7 +63,7 @@
         0
       ],
       "config": {
-        "span": 2.05,
+        "span": 3.8,
         "height": 0.7,
         "beamCenterHeightM": 1.35,
         "blocked": false
@@ -218,7 +218,7 @@
               "equipmentId": "inbound_tote",
               "axis": "x",
               "from": 0.8,
-              "to": 4
+              "to": 3.4
             }
           ]
         },

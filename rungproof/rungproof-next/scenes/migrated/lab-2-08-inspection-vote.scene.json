@@ -30,6 +30,7 @@
       "config": {
         "style": "pushbutton",
         "action": "toggle-left",
+        "faceLabel": "VOTE A",
         "color": 2204518
       }
     },
@@ -45,6 +46,7 @@
       "config": {
         "style": "pushbutton",
         "action": "toggle-right",
+        "faceLabel": "VOTE B",
         "color": 15902976
       }
     },

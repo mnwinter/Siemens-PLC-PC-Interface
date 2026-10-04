@@ -45,6 +45,7 @@
       "config": {
         "style": "pushbutton",
         "action": "collector-stop",
+        "faceLabel": "STOP",
         "color": 14695473
       }
     },

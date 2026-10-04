@@ -275,6 +275,7 @@ public partial class Main
             VerifyMotorStateProjection(Check);
             VerifyLabelPrintGeometry(Check);
             VerifySelectorProjection(Check);
+            VerifyInboundToteGeometry(Check);
 
             AddMigratedScene("tank-radar", _candidateCatalog!, _mainCamera!, false, false);
             // Exercise an authored parent scale as well as configured sizing.
@@ -596,6 +597,64 @@ public partial class Main
         runtime.ResetSimulation();
         check(!motion.Running && shaft.Transform == authored && runtime.Points["motor_running"] is false,
             "motor_state_reset_restores_shaft_and_output");
+    }
+
+    private void VerifyInboundToteGeometry(Action<bool, string> check)
+    {
+        AddMigratedScene("lab-2-11-inbound-tote-stop", _candidateCatalog!, _mainCamera!, false, false);
+        var root = _sceneCompositionRoot!;
+        var runtime = _sceneRuntime!;
+        var conveyor = root.GetNode<Node3D>("inbound_conveyor");
+        var tote = root.GetNode<Node3D>("inbound_tote");
+        var sensor = root.GetNode<Node3D>("scan_photoeye");
+        var initial = tote.Transform;
+        var belt = ReviewBounds((MeshInstance3D)conveyor.FindChild("KIN_belt_surface", true, false));
+        bool Supported()
+        {
+            var load = ReviewBounds(tote);
+            return MathF.Abs(load.Position.Y - belt.End.Y) < 0.001f
+                && load.Position.X >= belt.Position.X && load.End.X <= belt.End.X
+                && load.Position.Z >= belt.Position.Z && load.End.Z <= belt.End.Z;
+        }
+        check(Supported(), "inbound_tote_rests_on_actual_belt_with_full_footprint");
+        var sensorSolids = ReviewMeshes(sensor).Where(mesh => !mesh.Name.ToString().Contains("cable", StringComparison.OrdinalIgnoreCase)
+            && !mesh.Name.ToString().StartsWith("KIN_beam", StringComparison.Ordinal)).ToArray();
+        var conveyorSolids = ReviewMeshes(conveyor).Where(mesh => !mesh.Name.ToString().Contains("cable", StringComparison.OrdinalIgnoreCase)).ToArray();
+        check(sensorSolids.All(head => conveyorSolids.All(frame => !OrientedBoxesPenetrate(head, frame))),
+            "inbound_sensor_solids_clear_conveyor_frame");
+        var feet = ReviewMeshes(sensor).Where(mesh => mesh.Name.ToString() is "TX_foot" or "RX_foot").ToArray();
+        check(feet.Length == 2 && feet.All(foot => MathF.Abs(ReviewBounds(foot).Position.Y) < 0.001f),
+            "inbound_photoeye_feet_grounded");
+        runtime.UsesExternalClock = false; // Declared plant preview only, no PLC controller.
+        runtime.ExecuteAction("start-cycle");
+        runtime.AdvanceSimulation(0.7);
+        runtime.StopSimulation();
+        var stopped = tote.Transform;
+        runtime.AdvanceSimulation(0.4);
+        var holds = tote.Transform.IsEqualApprox(stopped);
+        runtime.ResetSimulation();
+        check(holds && tote.Transform.IsEqualApprox(initial), "inbound_stop_holds_and_reset_restores_tote");
+        runtime.ExecuteAction("start-cycle");
+        var support = true;
+        var scanEnvelope = true;
+        var sawScan = false;
+        var beam = (MeshInstance3D)sensor.FindChild("KIN_beam*", true, false);
+        for (var sample = 0; sample < 300; sample++)
+        {
+            runtime.AdvanceSimulation(0.02);
+            support &= Supported();
+            if (runtime.Points["tote_at_scanner"] is true)
+            {
+                sawScan = true;
+                var load = ReviewBounds(tote);
+                var center = ReviewBounds(beam).GetCenter();
+                scanEnvelope &= center.X >= load.Position.X && center.X <= load.End.X
+                    && center.Y > load.Position.Y && center.Y < load.End.Y;
+            }
+        }
+        check(support && runtime.Points["cycle_complete"] is true, "inbound_full_cycle_keeps_tote_on_belt");
+        check(sawScan && scanEnvelope, "inbound_scan_dwell_places_tote_in_optical_envelope");
+        runtime.ResetSimulation();
     }
 
     private void VerifySelectorProjection(Action<bool, string> check)

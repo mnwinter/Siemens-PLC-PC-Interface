@@ -6,7 +6,25 @@ would otherwise be trapped in a local Codex session. It intentionally excludes
 machine-local Codex databases, credentials, screenshots from private chats, and
 temporary runtime state.
 
-Latest follow-up (2026-10-04): native coverage is 23/77 inspected, 54 pending,
+Latest follow-up (2026-10-04): native coverage is 26/77 inspected, 51 pending,
+including failures. Scenes 22, 24 and 25 have final five-view native inspections
+and close plate/tote views. VOTE A / VOTE B / STOP labels repaired; actual 3D
+PC inputs and Reset checked. All three ordinary Run attempts still open a blank
+exercise with NO CONTROLLER LOADED. Inbound tote bottom contact, sensor/frame
+clearance and full endpoint support are repaired with Y=0.8905, span=3.8,
+clear endpoint X=3.4. Six new imported-mesh checks reproduce three failures
+before repair; all 75 geometry checks now pass. Three contracts/six cases and
+zero-warning/error build pass. Native preview movement/completion inspected
+from FL/RR, finished footprint overhead, Reset and completed-endpoint Stop.
+Native mid-cycle Stop was not captured; deterministic check verifies it.
+Seven cable/frame AABB candidates remain; solid OBB checks pass. No optical
+barcode, PLC sequence or dust-process acceptance. Isolated reviewers closed
+cleanly; user Demo 1 preserved. Exact evidence in MULTI_ANGLE_SCENE_REVIEW.md.
+Goal active. Next: full scene 26 Assembly Lift review (only its initial view was
+seen; fixture appears obscured under the platen and needs close/multi-angle
+inspection), then remaining 51 static reviews and recorded failure repairs.
+
+Earlier follow-up (2026-10-04): native coverage was 23/77 inspected, 54 pending,
 including failures. Scenes 18-21 and 23 have final FR/FL/RL/RR/T inspections and
 close plates/dial views. Five plates now use NORTH CALL / SOUTH CALL / ATTENTION /
 RESET NO / TEST NC. Native PC input actions and Reset were checked. All five
@@ -27,7 +45,7 @@ authored cases 71, controller tests 142, shell 77 scenes/294 assets and normal
 rendered controls pass; behavior suites preceded the last tick/legend adjustment.
 Evidence and exact boundaries are recorded in MULTI_ANGLE_SCENE_REVIEW.md and
 the selector asset review. Isolated windows closed cleanly; user Demo 1 preserved.
-Goal active. Next: scene 22 Inspection Vote, then remaining native reviews and
+At that checkpoint, next was scene 22 Inspection Vote, then remaining native reviews and
 repairs of recorded failed packages/layouts/workflows. Do not mark all scenes done.
 
 Earlier follow-up (2026-10-04): native coverage was 18/77 inspected, 59 pending,
