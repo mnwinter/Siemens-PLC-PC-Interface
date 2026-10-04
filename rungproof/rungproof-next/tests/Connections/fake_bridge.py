@@ -3,6 +3,12 @@ import json
 import os
 import sys
 import time
+from pathlib import Path
+
+# Optional file-controlled fixture for the native scene playback verifier.
+# This remains a standalone offline process: no PLC modules or sockets.
+playback_mode_file = Path(sys.argv[1]) if len(sys.argv) > 1 else None
+cycle_number = 0
 
 for line in sys.stdin:
     request = json.loads(line)
@@ -25,11 +31,16 @@ for line in sys.stdin:
 
     result = {"pid": os.getpid(), "value": request.get("value")}
     if command == "connect":
+        if playback_mode_file:
+            result.update(request["expectedDescriptor"])
         result.update({"sessionId": "offline-session", "sceneId": request["sceneId"],
                        "id": request["profileId"], "connected": True,
                        "ip": "offline", "rack": 0, "slot": 1, "cycleMs": 20,
                        "heartbeatTimeoutMs": 120})
+        if playback_mode_file:
+            result["heartbeatTimeoutMs"] = request["expectedDescriptor"]["heartbeatTimeoutMs"]
     elif command == "cycle":
+        cycle_number += 1
         mode = request["pcPoints"].get("mode")
         if mode == "hang":
             time.sleep(60)
@@ -43,4 +54,9 @@ for line in sys.stdin:
             result["sessionId"] = "another-session"
         if mode == "bad_status":
             result["plcStatus"]["simulation_enable"] = "true"
+        if playback_mode_file:
+            playback_mode = playback_mode_file.read_text(encoding="utf-8").strip()
+            result["cycle"] = cycle_number
+            result["plcPoints"] = {"conveyor_running": playback_mode != "disabled"}
+            result["plcStatus"]["simulation_enable"] = playback_mode != "disabled"
     print(json.dumps({"ok": True, "result": result}), flush=True)

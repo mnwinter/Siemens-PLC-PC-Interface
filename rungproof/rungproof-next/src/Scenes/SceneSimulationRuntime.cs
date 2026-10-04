@@ -40,6 +40,43 @@ public partial class SceneSimulationRuntime : Node
     public IReadOnlyDictionary<string, object?> Points => _points;
     public bool IsRunning => _tankSimulationRunning || _activeStepIndex >= 0 || Controllers().Any(IsControllerRunning);
     public bool UsesExternalClock { get; set; }
+    private bool _externalPlaybackSelected;
+    private bool _externalPlaybackRunning;
+
+    public void SetExternalPlayback(bool selected, bool running)
+    {
+        if (_externalPlaybackSelected == selected && _externalPlaybackRunning == running) return;
+        _externalPlaybackSelected = selected;
+        _externalPlaybackRunning = running;
+        // Equipment animations have their own physics callbacks. Freeze those
+        // as well as the plant model, without rewriting the PLC command image.
+        foreach (var controller in Controllers()) controller.SetPhysicsProcess(!selected || running);
+        if (selected && running) ApplyBindings();
+    }
+
+    public void ResetExternalPlant()
+    {
+        var controllerImage = _points.Where(item => IsPlcOwnedPoint(item.Key))
+            .ToDictionary(item => item.Key, item => item.Value, StringComparer.Ordinal);
+        ResetSimulation();
+        foreach (var (name, value) in controllerImage) _points[name] = value;
+        ApplyBindings();
+        StateChanged?.Invoke();
+    }
+
+    public void ConsumeExternalInputPulses(IReadOnlyDictionary<string, object?> sampledPoints)
+    {
+        // Clear only pulses captured by this accepted exchange. Paused playback
+        // must still send momentary PC feedback once; physics timing cannot
+        // clear it before the slower PLC exchange samples it.
+        var consumed = _pulsePoints.Where(name => sampledPoints.TryGetValue(name, out var value) && value is true).ToArray();
+        foreach (var name in consumed)
+        {
+            SetPoint(name, false);
+            _pulsePoints.Remove(name);
+        }
+        if (consumed.Length > 0) { EvaluateRules(); StateChanged?.Invoke(); }
+    }
 
     public bool TryGetAction(string id, out JsonElement action)
     {
@@ -85,7 +122,8 @@ public partial class SceneSimulationRuntime : Node
 
     public void AdvanceSimulation(double delta)
     {
-        if (_pulsePoints.Count > 0)
+        if (_externalPlaybackSelected && !_externalPlaybackRunning) return;
+        if (!_externalPlaybackSelected && _pulsePoints.Count > 0)
         {
             foreach (var point in _pulsePoints)
             {
@@ -95,7 +133,7 @@ public partial class SceneSimulationRuntime : Node
             EvaluateRules();
         }
 
-        if (RuntimeType == "tank" && _tankSimulationRunning)
+        if (RuntimeType == "tank" && (_tankSimulationRunning || (_externalPlaybackSelected && _externalPlaybackRunning)))
         {
             AdvanceTank(delta);
         }
@@ -823,6 +861,7 @@ public partial class SceneSimulationRuntime : Node
                     break;
                 case "position":
                     var position = value is bool boolean ? (boolean ? 1.0f : 0.0f) : Convert.ToSingle(value, CultureInfo.InvariantCulture);
+                    if (_externalPlaybackSelected && !_externalPlaybackRunning && IsPlcOwnedPoint(point)) break;
                     if (position > 1.0f) position /= 100.0f;
                     foreach (var controller in equipment.FindChildren("*", string.Empty, true, false).OfType<EquipmentMotionController>())
                         controller.SetPositionNormalized(position);

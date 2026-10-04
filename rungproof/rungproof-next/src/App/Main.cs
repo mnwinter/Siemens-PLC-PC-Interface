@@ -24,6 +24,8 @@ public partial class Main : Node3D
     private bool _verifySceneContract;
     private bool _verifyAppShell;
     private bool _verifyExternalDialog;
+    private bool _verifyExternalPlayback;
+    private string? _offlinePlaybackModeFile;
     private bool _verifyWorkspace;
     private bool _verifyHud;
     private bool _verifyCameraInput;
@@ -62,6 +64,7 @@ public partial class Main : Node3D
     private Vector3 _sceneCameraDirection;
     private SimulatorShell? _simulatorShell;
     private ExternalPlcRuntimeClient? _externalConnection;
+    private readonly ExternalScenePlayback _externalPlayback = new();
     private double _externalCycleElapsed;
     private int _externalCadenceGeneration = -1;
     private int _placedAssetCount;
@@ -132,6 +135,7 @@ public partial class Main : Node3D
         _verifySceneContract = userArguments.Contains("--verify-scene-contract", StringComparer.Ordinal);
         _verifyAppShell = userArguments.Contains("--verify-app-shell", StringComparer.Ordinal);
         _verifyExternalDialog = userArguments.Contains("--verify-external-dialog", StringComparer.Ordinal);
+        _verifyExternalPlayback = userArguments.Contains("--verify-external-playback", StringComparer.Ordinal);
         _verifyWorkspace = userArguments.Contains("--verify-workspace", StringComparer.Ordinal);
         _verifyHud = userArguments.Contains("--verify-hud", StringComparer.Ordinal);
         _verifyCameraInput = userArguments.Contains("--verify-camera-input", StringComparer.Ordinal);
@@ -148,7 +152,7 @@ public partial class Main : Node3D
         _mcpSceneId = userArguments
             .FirstOrDefault(argument => argument.StartsWith("--mcp-scene=", StringComparison.Ordinal))?
             .Substring("--mcp-scene=".Length);
-        _appShellRequested = _verifyAppShell || _verifyExternalDialog || _verifyWorkspace || _verifyHud || _verifyCameraInput || _verifySceneControls
+        _appShellRequested = _verifyAppShell || _verifyExternalDialog || _verifyExternalPlayback || _verifyWorkspace || _verifyHud || _verifyCameraInput || _verifySceneControls
             || _verifyVirtualController || _verifyNumericSceneIo || _verifyLadderEditor || _verifySplitView || _verifyUiDensity || _virtualControllerDemo
             || userArguments.Contains("--app-shell", StringComparer.Ordinal);
         _shellView = userArguments
@@ -233,6 +237,7 @@ public partial class Main : Node3D
     public override void _ExitTree()
     {
         _externalConnection?.Dispose();
+        if (_offlinePlaybackModeFile is not null) System.IO.File.Delete(_offlinePlaybackModeFile);
     }
 
     public override void _Notification(int what)
@@ -349,9 +354,26 @@ public partial class Main : Node3D
         _mainCamera = camera;
         var scenes = sceneCatalog.Scenes.Select(SceneCatalogLoader.LoadScene).ToArray();
         var diagnostics = ProjectValidator.Validate(candidates, sceneCatalog, scenes);
-        _externalConnection = new ExternalPlcRuntimeClient(ProjectSettings.GlobalizePath("res://.."));
+        if (_verifyExternalPlayback)
+        {
+            _offlinePlaybackModeFile = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"rungproof-playback-{Guid.NewGuid():N}.txt");
+            System.IO.File.WriteAllText(_offlinePlaybackModeFile, "ready");
+            _externalConnection = new ExternalPlcRuntimeClient(() =>
+            {
+                var info = new System.Diagnostics.ProcessStartInfo(ProjectSettings.GlobalizePath("res://../build/.venv-rungproof/Scripts/python.exe"))
+                {
+                    UseShellExecute = false, CreateNoWindow = true,
+                    RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true,
+                };
+                info.ArgumentList.Add(ProjectSettings.GlobalizePath("res://tests/Connections/fake_bridge.py"));
+                info.ArgumentList.Add(_offlinePlaybackModeFile);
+                return new ProcessBridgeChannel(info);
+            });
+        }
+        else _externalConnection = new ExternalPlcRuntimeClient(ProjectSettings.GlobalizePath("res://.."));
         IGuardedRuntimeClient connection = _externalConnection;
         _simulatorShell = new SimulatorShell(candidates, sceneCatalog, diagnostics, connection);
+        _externalConnection.StateChanged += SynchronizeExternalPlayback;
         GetTree().AutoAcceptQuit = false;
         _simulatorShell.SceneRequested += sceneId =>
         {
@@ -401,6 +423,7 @@ public partial class Main : Node3D
         _simulatorShell.SceneActionRequested += action => ExecuteSelectedControllerAction(action);
         _simulatorShell.ControllerModeChanged += external =>
         {
+            _externalPlayback.Pause();
             if (_virtualController is not null) DisableVirtualController();
             if (_sceneRuntime is not null)
             {
@@ -409,6 +432,7 @@ public partial class Main : Node3D
                 _sceneRuntime.UsesExternalClock = true;
                 if (!external) _sceneRuntime.ResetSimulation();
             }
+            SynchronizeExternalPlayback();
         };
         _simulatorShell.VirtualControllerDemoRequested += EnableVirtualControllerDemo;
         _simulatorShell.VirtualControllerProgramRequested += EnableVirtualControllerProgram;
@@ -450,6 +474,10 @@ public partial class Main : Node3D
         else if (_verifyAppShell)
         {
             CallDeferred(nameof(VerifyAppShell));
+        }
+        else if (_verifyExternalPlayback)
+        {
+            CallDeferred(nameof(VerifyExternalPlayback));
         }
         else if (_verifyExternalDialog)
         {
@@ -687,18 +715,129 @@ public partial class Main : Node3D
         CommitVirtualControllerNumericOutputs(snapshot.NumericOutputs);
     }
 
+    private async void VerifyExternalPlayback()
+    {
+        try
+        {
+            if (_externalConnection is null || _simulatorShell is null || _candidateCatalog is null || _mainCamera is null)
+                throw new InvalidOperationException("Offline playback verifier requires the application shell.");
+            AddMigratedScene("scene-1-conveyor-stop", _candidateCatalog, _mainCamera, false, false);
+            var runtime = _sceneRuntime!;
+            var menu = _simulatorShell.GetNode<MenuButton>("Workspace/Toolbar/ToolbarMargin/ToolbarRow/PlcMenu").GetPopup();
+            menu.EmitSignal(PopupMenu.SignalName.IdPressed, 11);
+            var descriptor = JsonSerializer.SerializeToElement(new
+            {
+                id = "offline.json", sceneId = _currentSceneId, cycleMs = 20, heartbeatTimeoutMs = 2000,
+                pcPointScope = new[] { new { name = "simulated_photoeye", dataType = "BOOL" } },
+                plcPointScope = new[] { new { name = "conveyor_running", dataType = "BOOL" } },
+            });
+            ExternalSceneContract.Validate(_activeSceneDefinition!.Simulation, descriptor);
+            _externalConnection.Connect("offline.json", _currentSceneId!, [], _ => { }, ReportExternalExchangeFailure, 100, descriptor);
+            async System.Threading.Tasks.Task WaitFor(Func<bool> condition)
+            {
+                var deadline = System.Diagnostics.Stopwatch.StartNew();
+                while (deadline.Elapsed < TimeSpan.FromSeconds(8))
+                {
+                    if (condition()) return;
+                    await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+                }
+                throw new InvalidOperationException("Offline exchange did not reach its expected state.");
+            }
+            long Cycle() => _externalConnection.LatestCycle?.GetProperty("cycle").GetInt64() ?? 0;
+            double Position() => Convert.ToDouble(runtime.Points["object_position"]);
+            void Check(bool condition, string label)
+            {
+                GD.Print($"EXTERNAL_PLAYBACK_CHECK {label}={condition}");
+                if (!condition) throw new InvalidOperationException(label);
+            }
+            await WaitFor(() => Cycle() >= 4);
+            Check(Position() == 0, "connect_exchanges_without_playback");
+            RunActiveController();
+            await WaitFor(() => Position() > 0.03);
+            StopActiveController();
+            var pausedPosition = Position();
+            var pausedCycle = Cycle();
+            var drum = _sceneCompositionRoot!.FindChildren("KIN_drive_drum*", "Node3D", true, false).OfType<Node3D>().First();
+            var drumPose = drum.Transform;
+            await WaitFor(() => Cycle() >= pausedCycle + 4);
+            Check(Position() == pausedPosition && drum.Transform == drumPose, "stop_freezes_plant_and_equipment_but_keeps_exchange");
+            ResetActiveController();
+            var resetCycle = Cycle();
+            await WaitFor(() => Cycle() >= resetCycle + 3);
+            Check(Position() == 0 && runtime.Points["conveyor_running"] is true, "reset_stays_paused_preserves_controller_image_and_exchange");
+            RunActiveController();
+            await WaitFor(() => Position() > 0.02);
+            System.IO.File.WriteAllText(_offlinePlaybackModeFile!, "disabled");
+            await WaitFor(() => _externalConnection.LatestCycle?.GetProperty("plcStatus").GetProperty("simulation_enable").GetBoolean() == false);
+            var heldPosition = Position();
+            var heldCycle = Cycle();
+            await WaitFor(() => Cycle() >= heldCycle + 3);
+            Check(Position() == heldPosition && runtime.Points["conveyor_running"] is true,
+                "readiness_loss_holds_plant_and_rejects_unready_output_image");
+            ResetActiveController();
+            RunActiveController();
+            var blockedCycle = Cycle();
+            await WaitFor(() => Cycle() >= blockedCycle + 3);
+            Check(Position() == 0, "run_blocked_while_not_ready");
+            System.IO.File.WriteAllText(_offlinePlaybackModeFile!, "ready");
+            await WaitFor(() => _externalConnection.LatestCycle?.GetProperty("plcStatus").GetProperty("simulation_enable").GetBoolean() == true);
+            var recoveredCycle = Cycle();
+            await WaitFor(() => Cycle() >= recoveredCycle + 3);
+            Check(Position() == 0, "readiness_recovery_requires_new_run");
+            RunActiveController();
+            await WaitFor(() => Position() > 0.02);
+            _externalConnection.Disconnect();
+            var disconnectedPosition = Position();
+            await ToSignal(GetTree().CreateTimer(0.1), SceneTreeTimer.SignalName.Timeout);
+            Check(Position() == disconnectedPosition && _externalConnection.State == ConnectionState.Disconnected,
+                "disconnect_holds_playback");
+            using var pulseDefinition = JsonDocument.Parse("""{"type":"fixture","points":[{"name":"feedback","owner":"PC","type":"BOOL","initial":false}],"actions":[{"id":"pulse","type":"pulse","point":"feedback"}]}""");
+            var pulseRoot = new Node3D();
+            var pulseRuntime = new SceneSimulationRuntime(pulseDefinition.RootElement, pulseRoot) { UsesExternalClock = true };
+            AddChild(pulseRoot);
+            AddChild(pulseRuntime);
+            pulseRuntime.SetExternalPlayback(true, false);
+            pulseRuntime.ExecuteAction("pulse");
+            pulseRuntime.AdvanceSimulation(0.1);
+            Check(pulseRuntime.Points["feedback"] is true, "paused_pulse_waits_for_exchange");
+            pulseRuntime.ConsumeExternalInputPulses(new Dictionary<string, object?>());
+            Check(pulseRuntime.Points["feedback"] is true, "unmapped_pulse_not_consumed");
+            pulseRuntime.ConsumeExternalInputPulses(new Dictionary<string, object?> { ["feedback"] = true });
+            Check(pulseRuntime.Points["feedback"] is false, "sampled_pulse_clears_without_playback");
+            pulseRuntime.QueueFree();
+            pulseRoot.QueueFree();
+            GD.Print("EXTERNAL_PLAYBACK_VERIFY PASS offline-only; no PLC adapter or network");
+            if (OS.GetCmdlineUserArgs().Contains("--keep-playback-review-open", StringComparer.Ordinal))
+            {
+                await WaitFor(() => !_externalConnection.IsBusy);
+                _externalConnection.Connect("offline.json", _currentSceneId!, [], _ => { }, ReportExternalExchangeFailure, 100, descriptor);
+                await WaitFor(() => Cycle() >= 3);
+                _simulatorShell.SetWorkspaceStatus("OFFLINE PLAYBACK REVIEW · fake bridge only · paused; use Run, Stop and Reset");
+                return;
+            }
+            GetTree().Quit();
+        }
+        catch (Exception exception)
+        {
+            GD.PushError($"EXTERNAL_PLAYBACK_VERIFY FAIL {exception}");
+            GetTree().Quit(1);
+        }
+    }
+
     private void RunActiveController()
     {
         if (_simulatorShell?.IsExternalMode == true)
         {
-            if (_externalConnection?.State != ConnectionState.Connected)
+            SynchronizeExternalPlayback();
+            if (!_externalPlayback.TryRun())
             {
                 _simulatorShell.SetWorkspaceStatus(
-                    "RUN BLOCKED · connect and verify External PLC first",
+                    $"RUN BLOCKED · External PLC readiness: {_externalPlayback.ReadinessLabel}",
                     isError: true);
                 return;
             }
-            _simulatorShell.SetWorkspaceStatus("External PLC exchange active · machine commands and execution remain PLC-owned");
+            SynchronizeExternalPlayback();
+            _simulatorShell.SetWorkspaceStatus("Scene playback running · PLC exchange continues; PLC commands remain controller-owned");
             return;
         }
         if (_sceneRuntime?.HasLatchedEmergencyStop == true)
@@ -727,7 +866,9 @@ public partial class Main : Node3D
     {
         if (_simulatorShell?.IsExternalMode == true)
         {
-            _simulatorShell.SetWorkspaceStatus("External PLC owns Stop · no scene output or PLC command was changed", isError: true);
+            _externalPlayback.Pause();
+            SynchronizeExternalPlayback();
+            _simulatorShell.SetWorkspaceStatus("Scene playback paused · PLC connection and heartbeat exchange remain active");
             return;
         }
         if (_virtualController is not null && _sceneRuntime is not null)
@@ -743,7 +884,10 @@ public partial class Main : Node3D
     {
         if (_simulatorShell?.IsExternalMode == true)
         {
-            _simulatorShell.SetWorkspaceStatus("External PLC owns Reset · use its declared command interface", isError: true);
+            _externalPlayback.Pause();
+            SynchronizeExternalPlayback();
+            _sceneRuntime?.ResetExternalPlant();
+            _simulatorShell.SetWorkspaceStatus("Scene reset and paused · PLC connection and heartbeat exchange remain active");
             return;
         }
         if (_virtualController is not null && _sceneRuntime is not null)
@@ -3009,7 +3153,7 @@ public partial class Main : Node3D
         bool autoRun = true
     )
     {
-        if (_externalConnection?.State == ConnectionState.Connected)
+        if (_externalConnection is not null && (_externalConnection.State != ConnectionState.Disconnected || _externalConnection.IsBusy))
             _externalConnection.Disconnect();
         if (_virtualController is not null) DisableVirtualController();
         CloseAssetPreview();
@@ -3054,6 +3198,7 @@ public partial class Main : Node3D
         _sceneControlInteractor = new SceneControlInteractor(scene, composition.Root);
         _sceneRuntime.StateChanged += ApplyWorkspaceSignalMappings;
         AddChild(_sceneRuntime);
+        SynchronizeExternalPlayback();
         if (_verifySceneContract)
         {
             var passed = _sceneRuntime.VerifyDeclaredCases(scene.Verification);
@@ -3271,7 +3416,7 @@ public partial class Main : Node3D
             if (_externalConnection?.State == ConnectionState.Connected)
             {
                 AdvanceExternalPlc(delta);
-                _sceneRuntime?.AdvanceSimulation(delta);
+                if (_externalPlayback.IsRunning) _sceneRuntime?.AdvanceSimulation(delta);
             }
             return;
         }
@@ -3312,11 +3457,14 @@ public partial class Main : Node3D
             {
                 if (_simulatorShell?.IsExternalMode != true || !ReferenceEquals(runtime, _sceneRuntime)
                     || sceneId != _currentSceneId) return;
-                // The guarded Python loop already applies readiness/watchdog
-                // policy to this image. Do not invent another PLC interlock.
                 if (result.GetProperty("connected").GetBoolean() && generation != _externalConnection.SessionGeneration) return;
-                runtime.CommitExternalPlcOutputs(ExternalSceneContract.ReadPlcPoints(descriptor, result.GetProperty("plcPoints")));
+                SynchronizeExternalPlayback();
+                // The Python bridge reports readiness but does not gate its
+                // output image. Match the existing browser/native plant policy.
+                if (_externalPlayback.IsReady)
+                    runtime.CommitExternalPlcOutputs(ExternalSceneContract.ReadPlcPoints(descriptor, result.GetProperty("plcPoints")));
             }, ReportExternalExchangeFailure);
+            runtime.ConsumeExternalInputPulses(pcPoints);
         }
         catch (Exception exception)
         {
@@ -3328,6 +3476,15 @@ public partial class Main : Node3D
     {
         _simulatorShell?.SetWorkspaceStatus($"External PLC exchange failed · {exception.Message}", isError: true);
         _externalConnection?.Disconnect();
+    }
+
+    private void SynchronizeExternalPlayback()
+    {
+        if (_externalConnection is null) return;
+        _externalPlayback.Update(_externalConnection.State, _externalConnection.SessionGeneration, _externalConnection.LatestCycle);
+        var external = _simulatorShell?.IsExternalMode == true;
+        _sceneRuntime?.SetExternalPlayback(external, external && _externalPlayback.IsRunning);
+        _simulatorShell?.SetExternalPlaybackState(_externalPlayback.IsRunning, _externalPlayback.ReadinessLabel);
     }
 
     public override void _UnhandledInput(InputEvent inputEvent)

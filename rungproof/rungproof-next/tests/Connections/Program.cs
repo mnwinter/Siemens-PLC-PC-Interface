@@ -141,6 +141,61 @@ internal static class Program
             Require((long)ExternalSceneContract.TypedValue("DINT", int.MaxValue, "x") == int.MaxValue);
             return Task.CompletedTask;
         });
+        await Test("playback requires healthy exchange and every existing PLC readiness bit", () =>
+        {
+            for (var bits = 0; bits < 8; bits++)
+            {
+                var playback = new ExternalScenePlayback();
+                var cycle = JsonSerializer.SerializeToElement(new { health = "healthy", plcStatus = new
+                {
+                    simulation_enable = (bits & 1) != 0, simulation_comm_ok = (bits & 2) != 0,
+                    simulation_timeout = (bits & 4) != 0,
+                } });
+                playback.Update(ConnectionState.Connected, 1, cycle);
+                Require(playback.IsReady == (bits == 3) && playback.TryRun() == (bits == 3));
+                foreach (var health in new[] { "starting", "degraded", "fault" })
+                {
+                    playback.Update(ConnectionState.Connected, 1, JsonSerializer.SerializeToElement(new
+                    { health, plcStatus = new { simulation_enable = true, simulation_comm_ok = true, simulation_timeout = false } }));
+                    Require(!playback.IsReady && !playback.IsRunning && !playback.TryRun());
+                }
+            }
+            return Task.CompletedTask;
+        });
+        await Test("readiness recovery, Stop, and fresh sessions require a new Run", () =>
+        {
+            var playback = new ExternalScenePlayback();
+            var good = JsonSerializer.SerializeToElement(new { health = "healthy", plcStatus = new
+            { simulation_enable = true, simulation_comm_ok = true, simulation_timeout = false } });
+            playback.Update(ConnectionState.Connected, 1, null);
+            Require(!playback.TryRun());
+            playback.Update(ConnectionState.Connected, 1, good);
+            Require(!playback.IsRunning && playback.TryRun());
+            playback.Pause();
+            playback.Update(ConnectionState.Connected, 1, good);
+            Require(!playback.IsRunning && playback.TryRun());
+            playback.Update(ConnectionState.Connected, 1, JsonSerializer.SerializeToElement(new { health = "starting" }));
+            Require(!playback.IsRunning);
+            playback.Update(ConnectionState.Connected, 1, good);
+            Require(!playback.IsRunning && playback.TryRun());
+            playback.Update(ConnectionState.Connected, 2, good);
+            Require(!playback.IsRunning && playback.TryRun());
+            playback.Update(ConnectionState.Disconnected, 3, good);
+            Require(!playback.IsRunning && !playback.IsReady && !playback.TryRun());
+            return Task.CompletedTask;
+        });
+        await Test("incomplete or non-boolean PLC status cannot authorize playback", () =>
+        {
+            foreach (var json in new[] { "null", "1", "{}", "{\"health\":\"healthy\"}",
+                "{\"health\":\"healthy\",\"plcStatus\":{\"simulation_enable\":\"true\",\"simulation_comm_ok\":true,\"simulation_timeout\":false}}" })
+            {
+                var playback = new ExternalScenePlayback();
+                using var cycle = JsonDocument.Parse(json);
+                playback.Update(ConnectionState.Connected, 1, cycle.RootElement);
+                Require(!playback.IsReady && !playback.TryRun());
+            }
+            return Task.CompletedTask;
+        });
         Console.WriteLine($"CONNECTION_TESTS_PASS {_passed}; offline child processes only, no PLC transport or network.");
     }
 

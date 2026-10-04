@@ -94,6 +94,9 @@ public partial class SimulatorShell : CanvasLayer
     private Label _diagnosticSummary = null!;
     private Label _workspaceStatus = null!;
     private Label _transportScene = null!;
+    private Label _transportScope = null!;
+    private Label _operatorInputHeading = null!;
+    private Label _operatorOutputHeading = null!;
     private RichTextLabel _operatorSceneSummary = null!;
     private RichTextLabel _operatorRuntimeSummary = null!;
     private RichTextLabel _operatorEquipment = null!;
@@ -1759,7 +1762,8 @@ public partial class SimulatorShell : CanvasLayer
         inputPanel.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         var inputBody = new VBoxContainer();
         inputPanel.AddChild(inputBody);
-        inputBody.AddChild(SectionLabel("SIMULATOR → PLC · LOCAL MODEL"));
+        _operatorInputHeading = SectionLabel("SIMULATOR → PLC · LOCAL MODEL");
+        inputBody.AddChild(_operatorInputHeading);
         _operatorInputPoints = Inspector("SimulatorToPlcPointTable");
         _operatorInputPoints.CustomMinimumSize = new Vector2(0, 32);
         _operatorInputPoints.FitContent = false;
@@ -1769,7 +1773,8 @@ public partial class SimulatorShell : CanvasLayer
         outputPanel.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         var outputBody = new VBoxContainer();
         outputPanel.AddChild(outputBody);
-        outputBody.AddChild(SectionLabel("PLC → SIMULATOR · LOCAL MODEL"));
+        _operatorOutputHeading = SectionLabel("PLC → SIMULATOR · LOCAL MODEL");
+        outputBody.AddChild(_operatorOutputHeading);
         _operatorOutputPoints = Inspector("PlcToSimulatorPointTable");
         _operatorOutputPoints.CustomMinimumSize = new Vector2(0, 32);
         _operatorOutputPoints.FitContent = false;
@@ -1830,8 +1835,8 @@ public partial class SimulatorShell : CanvasLayer
         _transportScene.Name = "TransportScene";
         _transportScene.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         transportRow.AddChild(_transportScene);
-        var localOnly = SmallStatus("LOCAL ONLY", new Color("f1aa5b"));
-        transportRow.AddChild(localOnly);
+        _transportScope = SmallStatus("LOCAL ONLY", new Color("f1aa5b"));
+        transportRow.AddChild(_transportScope);
 
         _ladderWorkspace = BuildLadderWorkspace();
         workspace.AddChild(_ladderWorkspace);
@@ -2292,7 +2297,7 @@ public partial class SimulatorShell : CanvasLayer
         _operatorPointTables.Visible = (operatorConsole || split || ladder) && !_pointsCollapsed;
         _diagnosticList.Visible = engineering;
         _diagnosticSummary.Text = operatorConsole || split || ladder
-            ? "LOCAL MODEL POINTS"
+            ? "SCENE I/O POINTS"
             : DiagnosticSummaryText();
         foreach (var item in _productViewButtons)
         {
@@ -2525,8 +2530,19 @@ public partial class SimulatorShell : CanvasLayer
             _operatorActions.AddChild(SectionLabel("No scene-specific actions declared."));
     }
 
+    private bool _externalPlaybackRunning;
+    private string _externalReadinessLabel = "DISCONNECTED";
+
+    public void SetExternalPlaybackState(bool running, string readinessLabel)
+    {
+        if (_externalPlaybackRunning == running && _externalReadinessLabel == readinessLabel) return;
+        _externalPlaybackRunning = running;
+        _externalReadinessLabel = readinessLabel;
+        if (IsInsideTree()) RefreshRuntimeState();
+    }
+
     private bool ActiveRuntimeRunning => _externalMode
-        ? _runtime?.IsRunning == true
+        ? _externalPlaybackRunning
         : _virtualSnapshot is not null
             ? _virtualSnapshot.State == VirtualControllerState.Running
             : _runtime?.IsRunning == true;
@@ -2534,7 +2550,7 @@ public partial class SimulatorShell : CanvasLayer
     private void RefreshOperatorPanels()
     {
         if (_runtime is null || _activeScene is null || _operatorActions is null) return;
-        _transportScene.Text = $"{Escape(_activeSceneName)} · {(_externalMode ? "PLC OWNED" : ActiveRuntimeRunning ? "RUNNING" : "STOPPED")}";
+        _transportScene.Text = $"{Escape(_activeSceneName)} · {(ActiveRuntimeRunning ? "RUNNING" : "STOPPED")}";
         _operatorSceneSummary.Text =
             $"[font_size=18][b]{Escape(_activeScene.Name)}[/b][/font_size]\n" +
             $"[color=#9db4c0]{Escape(_activeScene.Description)}[/color]\n\n" +
@@ -2557,6 +2573,7 @@ public partial class SimulatorShell : CanvasLayer
         health.AppendLine($"[b]Health[/b]  {_connection.State.ToString().ToUpperInvariant()}");
         if (external)
         {
+            health.AppendLine($"Readiness  {Escape(_externalReadinessLabel)}");
             if (_connection is ExternalPlcRuntimeClient { LatestCycle: JsonElement cycle })
             {
                 health.AppendLine($"Cycle health  {Escape(cycle.GetProperty("health").GetString() ?? "unknown")} · cycle {cycle.GetProperty("cycle")}");
@@ -2572,7 +2589,6 @@ public partial class SimulatorShell : CanvasLayer
                 health.AppendLine(_connection.State == ConnectionState.Connected
                     ? "Heartbeat  awaiting first readback" : "Heartbeat  unavailable (disconnected)");
                 health.AppendLine("Echo  unavailable");
-                health.AppendLine("Readiness  unavailable");
             }
             health.AppendLine($"Connection  {_connection.EndpointDescription}");
             health.AppendLine("Timeout  profile watchdog");
@@ -2585,7 +2601,7 @@ public partial class SimulatorShell : CanvasLayer
             health.AppendLine("Timeout  —");
         }
         _operatorHealth.Text = health.ToString();
-        if (_productView == "operator") _diagnosticSummary.Text = "LOCAL MODEL POINTS";
+        if (_productView == "operator") _diagnosticSummary.Text = "SCENE I/O POINTS";
         RefreshOperatorPointTables();
     }
 
@@ -2612,7 +2628,7 @@ public partial class SimulatorShell : CanvasLayer
                 if (name.Length == 0) continue;
                 if (watched.Count > 0 && !watched.Contains(name)) continue;
                 _runtime.Points.TryGetValue(name, out var value);
-                var row = (name, type, Convert.ToString(value) ?? "—", owner);
+                var row = (name, type, DisplayPointValue(value), owner);
                 if (owner.Equals("PLC", StringComparison.OrdinalIgnoreCase))
                 {
                     plcRows.Add(row);
@@ -2628,6 +2644,13 @@ public partial class SimulatorShell : CanvasLayer
         _operatorInputPoints.Text = BuildPointTable(simulatorRows, hasSimulatorPoints, "simulator-owned");
         _operatorOutputPoints.Text = BuildPointTable(plcRows, hasPlcPoints, "PLC-owned");
     }
+
+    private static string DisplayPointValue(object? value) => value switch
+    {
+        double number => number.ToString("G6", System.Globalization.CultureInfo.InvariantCulture),
+        float number => number.ToString("G6", System.Globalization.CultureInfo.InvariantCulture),
+        _ => Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture) ?? "—",
+    };
 
     private static string BuildPointTable(
         IReadOnlyList<(string Point, string Type, string Value, string Owner)> rows,
@@ -3726,7 +3749,7 @@ public partial class SimulatorShell : CanvasLayer
         text.AppendLine("[font_size=18][b]SYMBOLIC POINTS[/b][/font_size]");
         text.AppendLine();
         foreach (var point in _runtime.Points.OrderBy(point => point.Key, StringComparer.Ordinal))
-            text.AppendLine($"• {Escape(point.Key)}  [color=#8fc6a5]{Escape(Convert.ToString(point.Value) ?? "null")}[/color]");
+            text.AppendLine($"• {Escape(point.Key)}  [color=#8fc6a5]{Escape(DisplayPointValue(point.Value))}[/color]");
         text.AppendLine();
         text.AppendLine("[font_size=16][b]RENDERER BINDINGS[/b][/font_size]");
         if (_activeScene.Simulation.ValueKind == JsonValueKind.Object
@@ -3744,8 +3767,18 @@ public partial class SimulatorShell : CanvasLayer
     private void RefreshRuntimeState()
     {
         if (_runtime is null) return;
+        _transportScope.Text = _externalMode ? "EXTERNAL PLC SOURCE" : "LOCAL ONLY";
+        _operatorInputHeading.Text = _externalMode ? "SIMULATOR → PLC · GUARDED EXCHANGE" : "SIMULATOR → PLC · LOCAL MODEL";
+        _operatorOutputHeading.Text = _externalMode ? "PLC → SIMULATOR · GUARDED EXCHANGE" : "PLC → SIMULATOR · LOCAL MODEL";
+        if (_externalMode)
+        {
+            _cycleStatus.Text = _connection is ExternalPlcRuntimeClient { LatestCycle: JsonElement cycle }
+                ? $"EXCHANGE  {cycle.GetProperty("cycle")}  ·  {cycle.GetProperty("health").GetString()?.ToUpperInvariant()}"
+                : "EXCHANGE  —  ·  AWAITING READBACK";
+            _cycleStatus.AddThemeColorOverride("font_color", new Color("7fa7ba"));
+        }
         _runtimeStatus.Text = _externalMode
-            ? $"EXTERNAL PLC  •  {_connection.State.ToString().ToUpperInvariant()}"
+            ? $"EXTERNAL PLC  •  {_connection.State.ToString().ToUpperInvariant()}  •  {(ActiveRuntimeRunning ? "PLAYING" : "PAUSED")}"
             : ActiveRuntimeRunning
             ? "LOCAL RUNTIME  •  RUNNING"
             : "LOCAL RUNTIME  •  STOPPED";
@@ -9816,7 +9849,7 @@ public partial class SimulatorShell : CanvasLayer
         }
         var errors = _diagnostics.Count(issue => issue.Severity == DiagnosticSeverity.Error);
         var warnings = _diagnostics.Count(issue => issue.Severity == DiagnosticSeverity.Warning);
-        _diagnosticSummary.Text = _productView == "operator" ? "LOCAL MODEL POINTS" : DiagnosticSummaryText();
+        _diagnosticSummary.Text = _productView == "operator" ? "SCENE I/O POINTS" : DiagnosticSummaryText();
         _diagnosticSummary.AddThemeColorOverride("font_color",
             errors > 0 ? new Color("ef7777") : warnings > 0 ? new Color("f1aa5b") : new Color("65d49a"));
     }

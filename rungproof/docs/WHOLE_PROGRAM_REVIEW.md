@@ -50,7 +50,7 @@ No changes have been pushed. No plant connection has been attempted.
 | Ladder editor | Native add-network/contact, Undo/Redo, Save, cross-scene Open, invalid draft feedback, retained good execution, and multi-scene close Save/Cancel verified; rendered interaction verifier passed | Native drag insertion, tag editing, block interfaces, watch, help; crash recovery |
 | Scene/workspace authoring | Rendered workspace verifier passed, including mapping Run and Stop | Native asset placement, mappings, selection, undo, save/load, malformed files |
 | Layout/camera | Split 1200x675 and 1600x900 regressions; native minimum/default/maximized views, points collapse, browser, and resize reflow inspected | Remaining native block/tag/edit flows and runtime summary clipping; broader scene visual acceptance |
-| External execution boundary | 13 offline bridge/contract tests; 16 fake Python tests; profile guards, exclusive source, atomic output, and native local-profile UI checks | Full fake app cycle/cadence integration, external playback/readiness semantics, reconnect, configuration editing and mapping UI; authorized live commissioning |
+| External execution boundary | 16 offline bridge/contract/playback tests; 16 fake Python tests; fake full-app exchange/playback regression and native Run/Stop/Reset; profile guards, exclusive source, atomic output | Broader profile/cadence integration, reconnect, configuration editing and mapping UI; authorized live commissioning |
 | Python canonical interface / legacy tools | 129 root tests and 16 fake live/diagnostic tests passed | Continue source review for legacy conflicts |
 | Shutdown/resource lifecycle | Orphan Studio block selector repaired; diagnostic/rendered tests exit without resource leak reports; native launch/close completes; 13 offline connection lifecycle tests pass | Repeat resource behavior during longer native authoring sessions |
 
@@ -61,8 +61,9 @@ No changes have been pushed. No plant connection has been attempted.
 - Non-demo labs open as blank exercises with matching typed scene tags. One
   catalog I/O type is unsupported by the offline controller and is reported.
   Complete lab instruction/reference-program coverage remains under review.
-- External playback/readiness semantics still require comparison against the
-  existing native/reference binding. No live communication has been verified.
+- External playback/readiness now follows the existing native/reference
+  binding; offline full-app and native controls verified. Broader profiles and
+  reconnect remain under review. No live communication has been verified.
 - Demo 5 currently commands output indicators; complete palletizing motion and
   reusable FB interface/instance behavior require further verification.
 
@@ -260,6 +261,50 @@ under review. No physical PLC connection was attempted.
 
 For settled orphan diagnostics, append `--trace-orphans` to `--verify-app-shell`.
 Inspect its output for `Stray Node`, `leaked`, or `RID allocations`.
+
+## External playback checkpoint - 2026-10-04
+
+Restore tag `codex/external-playback-baseline-20261004` at `4157d6b`
+precedes this fix. The full-app offline bridge reproduced movement immediately
+after Connect, before Run. Main advanced plant physics on every connected frame,
+the equipment controllers independently animated, and the PLC readiness bits
+were not used to gate the returned output image. Run/Stop/Reset had incorrectly
+been treated as PLC commands rather than plant playback controls.
+
+Readiness now matches `prototype/src/livePlcBinding.js` and the legacy native
+runtime: healthy exchange, simulation enabled, communication OK, and no PLC
+timeout. Connect, Stop, Reset, readiness loss, and disconnect leave playback
+paused; recovery never resumes automatically. Connected exchange continues
+while paused. Reset restores the plant without replacing its last PLC command
+image. Unready output images are not applied. Equipment physics is frozen with
+the plant; no PLC RUN/STOP/reset command or output write was introduced.
+Momentary PC feedback remains set until an accepted exchange samples it, then
+clears independently of plant playback. Scene changes also cancel pending
+connections so a late connect cannot attach to another scene.
+
+The offline full-app regression passes connection without motion, Run motion,
+Stop holding package/equipment while cycles continue, paused Reset, readiness
+loss and output rejection, blocked Run, recovery requiring new Run, disconnect,
+and sampled pulse handling. The connection suite passes 16/16, including all
+eight PLC status-bit combinations, unhealthy/incomplete readback and new-session
+behavior. Controller suite remains 140/140; build has zero warnings/errors.
+Rendered scene-control and app-shell/orphan regressions pass without leaks.
+The headless scene-control ray-pick check requires a rendered viewport and was
+rerun there successfully; headless popup placement is not layout evidence.
+
+Native Windows mouse tests exercised the offline connected scene's Run, Stop,
+and Reset. Screenshots showed motion, frozen playback, advancing exchange
+counts and retained PLC output. External source/playing/paused/readiness/cycle
+labels now report actual state; the footer no longer says LOCAL ONLY during
+external mode. REAL values use six significant figures for display without
+changing the runtime values. Final native error log is empty and the process
+exits on close. No physical PLC adapter or network was used by the fixture.
+
+Run `--verify-external-playback` for the offline regression. Add
+`--keep-playback-review-open` to inspect its fake connected scene with native
+controls; this flag only applies to that verifier and never selects real PLC
+transport. Logs are under `rungproof-next/.tools/external-playback-*` and
+`native-external-playback-*`.
 
 ## Verification boundary
 

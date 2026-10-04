@@ -20,14 +20,19 @@ controller's truthful state and show editor errors without stale monitoring.
 New/Open and window close now guard unsaved current/cached drafts with Save,
 Discard, or Cancel; failed writes cannot authorize continuation. Complete
 lab/reference coverage, crash recovery,
-remaining native workflows, external reference semantics, and longer sessions
+remaining native workflows, broader external profile coverage, and longer sessions
 still require work. The whole-program review is active; no live PLC acceptance
 or complete product acceptance has been established.
 
 The shutdown leak was traced to an unparented hidden Studio block selector.
 Both vendor workbenches now own that control and its popup. Settled orphan,
 rendered editor, and split tests exit without resource leak reports. Current
-controller tests pass 140/140 and offline connection/process tests 13/13.
+controller tests pass 140/140 and offline connection/process/playback tests 16/16.
+External Connect no longer runs plant playback. Run requires the existing
+reference readiness policy; Stop/Reset hold playback while exchange continues.
+Readiness recovery requires a new Run. Full-app fake exchange and native
+Run/Stop/Reset were verified without a PLC adapter or network. External source,
+playback and cycle labels now report actual state; REAL display is bounded.
 
 RungProof is a Windows PLC visual simulator and training environment. A user
 selects a scenario, sees the 3D machine, edits ladder logic in a TIA Portal or
@@ -52,8 +57,9 @@ The user expects the product to feel like an industrial engineering tool:
 
 ### Legacy/native live-PLC path
 
-The existing guarded live path is in the repository root application and is the
-source of truth for real PLC behavior:
+The existing guarded live path is under `rungproof/` in the canonical repository
+and is the source of truth for real PLC behavior. Paths in the list below are
+relative to `rungproof/`:
 
 - `tools/rungproof_native.py` — native Qt application and operator controls;
 - `tools/native_runtime.py` — plant/runtime/session lifecycle;
@@ -71,7 +77,7 @@ for safe output handling when cycles stop. Stop and Reset do not intentionally
 disconnect the session.
 
 The live path is launched by `RUN-3D-PLAYER.cmd`. The normal release/build
-switch that exposes real writes is documented in the root README and build
+switch that exposes real writes is documented in `rungproof/README.md` and build
 scripts. Do not silently enable real writes in an offline test build.
 
 ### RungProof Next
@@ -211,7 +217,7 @@ The exact pinned Godot path can be found with:
 Get-ChildItem .tools/godot -Recurse -File -Filter '*console.exe'
 ```
 
-For the legacy live path, use the root README, `CONTEXT.md`,
+For the legacy live path, use `rungproof/README.md`, `rungproof/CONTEXT.md`,
 `PROJECT_INFORMATION.md`, `tools/test_native_runtime.py`,
 `tools/test_player_live_ui.mjs`, and the PLC profile/transport tests. Live
 commissioning is not proven by the offline checks.
