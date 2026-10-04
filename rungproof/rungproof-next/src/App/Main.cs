@@ -925,7 +925,7 @@ public partial class Main : Node3D
         _virtualController.PulseInput("start_command");
         _virtualController.Run();
         var operatorActions = _simulatorShell.GetNode<VBoxContainer>(
-            "Workspace/LeftDock/LeftTabs/Operator/OperatorActions");
+            "Workspace/LeftDock/LeftTabs/Operator/OperatorContent/OperatorActions");
         var originalButtons = operatorActions.GetChildren().OfType<Button>().ToArray();
         for (var index = 0; index < 90; index++)
         {
@@ -2756,6 +2756,7 @@ public partial class Main : Node3D
         _connectorLinks.AddRange(snapshot.ConnectorLinks ?? []);
         _signalLinks.AddRange(snapshot.SignalLinks ?? []);
         _workspaceGroups.AddRange(snapshot.Groups ?? []);
+        UpdateTransformGizmo();
         RefreshWorkspaceUi();
     }
 

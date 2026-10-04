@@ -92,6 +92,8 @@ public partial class Main
             var editedDirty = _simulatorShell!.IsWorkspaceDirty;
             UndoWorkspace();
             var undoClean = !_simulatorShell.IsWorkspaceDirty;
+            var undoSelectionClear = _transformGizmo?.Visible != true
+                && !_simulatorShell.GetNode<RichTextLabel>("Workspace/RightDock/InspectorTabs/Inspector").Text.Contains("Selected workspace object", StringComparison.Ordinal);
             RedoWorkspace();
             var redoDirty = _simulatorShell.IsWorkspaceDirty;
             SaveWorkspaceToPath(path);
@@ -102,8 +104,8 @@ public partial class Main
             var savedUndoClean = !_simulatorShell.IsWorkspaceDirty;
             RedoWorkspace();
             var savedRedoDirty = _simulatorShell.IsWorkspaceDirty;
-            var passed = editedDirty && undoClean && redoDirty && savedClean && savedEditDirty && savedUndoClean && savedRedoDirty;
-            GD.Print($"WORKSPACE_DIRTY_VERIFY {(passed ? "PASS" : "FAIL")} edited={editedDirty} undoClean={undoClean} redoDirty={redoDirty} savedClean={savedClean} savedEdit={savedEditDirty} savedUndo={savedUndoClean} savedRedo={savedRedoDirty}");
+            var passed = editedDirty && undoClean && undoSelectionClear && redoDirty && savedClean && savedEditDirty && savedUndoClean && savedRedoDirty;
+            GD.Print($"WORKSPACE_DIRTY_VERIFY {(passed ? "PASS" : "FAIL")} edited={editedDirty} undoClean={undoClean} undoSelectionClear={undoSelectionClear} redoDirty={redoDirty} savedClean={savedClean} savedEdit={savedEditDirty} savedUndo={savedUndoClean} savedRedo={savedRedoDirty}");
             if (!passed) throw new InvalidOperationException("Workspace dirty state does not reflect Undo/Redo to its saved baseline.");
         }
         finally

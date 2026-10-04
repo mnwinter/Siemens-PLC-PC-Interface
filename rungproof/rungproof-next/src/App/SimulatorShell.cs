@@ -99,6 +99,7 @@ public partial class SimulatorShell : CanvasLayer
     private Label _operatorOutputHeading = null!;
     private RichTextLabel _operatorSceneSummary = null!;
     private RichTextLabel _operatorRuntimeSummary = null!;
+    private string _sceneInspectorText = string.Empty;
     private RichTextLabel _operatorEquipment = null!;
     private RichTextLabel _operatorInputPoints = null!;
     private RichTextLabel _operatorOutputPoints = null!;
@@ -539,10 +540,10 @@ public partial class SimulatorShell : CanvasLayer
             "Workspace/RightDock/InspectorTabs/Connections/ConnectionEditorBody/SignalMappingSummary",
             "Workspace/RightDock/InspectorTabs/PLC",
             "Workspace/RightDock/InspectorTabs/Virtual Controller",
-            "Workspace/LeftDock/LeftTabs/Operator/OperatorSceneSummary",
-            "Workspace/LeftDock/LeftTabs/Operator/OperatorRuntimeSummary",
-            "Workspace/RightDock/InspectorTabs/Health/OperatorEquipment",
-            "Workspace/RightDock/InspectorTabs/Health/OperatorHealth",
+            "Workspace/LeftDock/LeftTabs/Operator/OperatorContent/OperatorSceneSummary",
+            "Workspace/LeftDock/LeftTabs/Operator/OperatorContent/OperatorRuntimeSummary",
+            "Workspace/RightDock/InspectorTabs/Health/HealthContent/OperatorEquipment",
+            "Workspace/RightDock/InspectorTabs/Health/HealthContent/OperatorHealth",
             "Workspace/DiagnosticsDock/DiagnosticsBody/DiagnosticList",
             "Workspace/DiagnosticsDock/DiagnosticsBody/DiagnosticsHeader/DiagnosticsToggle",
             "Workspace/SelectionMarquee",
@@ -2184,19 +2185,27 @@ public partial class SimulatorShell : CanvasLayer
     /// </summary>
     private Control BuildOperatorConsole()
     {
-        var body = new VBoxContainer { Name = "Operator" };
+        var scroll = new ScrollContainer
+        {
+            Name = "Operator", HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
+            SizeFlagsVertical = Control.SizeFlags.ExpandFill,
+        };
+        var body = new VBoxContainer { Name = "OperatorContent", SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        scroll.AddChild(body);
         body.AddThemeConstantOverride("separation", 8);
         body.AddChild(SectionLabel("SCENARIO"));
         _operatorSceneSummary = Inspector("OperatorSceneSummary");
         _operatorSceneSummary.CustomMinimumSize = new Vector2(0, 118);
         _operatorSceneSummary.FitContent = true;
+        _operatorSceneSummary.ScrollActive = false;
         body.AddChild(_operatorSceneSummary);
         body.AddChild(SectionLabel("DECLARED MACHINE ACTIONS"));
         _operatorActions = new VBoxContainer { Name = "OperatorActions" };
         body.AddChild(_operatorActions);
         body.AddChild(SectionLabel("RUNTIME"));
         _operatorRuntimeSummary = Inspector("OperatorRuntimeSummary");
-        _operatorRuntimeSummary.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
+        _operatorRuntimeSummary.FitContent = true;
+        _operatorRuntimeSummary.ScrollActive = false;
         body.AddChild(_operatorRuntimeSummary);
         var ladder = ToolbarButton("OpenLadderButton", "BASIC LOGIC / LADDER", new Color("276b89"));
         ladder.Pressed += () => SetProductView("ladder");
@@ -2210,7 +2219,7 @@ public partial class SimulatorShell : CanvasLayer
         // current-scene operator rail with a catalog browser.
         _operatorSceneList = new ItemList { Name = "OperatorSceneList", Visible = false };
         body.AddChild(_operatorSceneList);
-        return body;
+        return scroll;
     }
 
     private Control BuildViewerBrowser()
@@ -2245,7 +2254,13 @@ public partial class SimulatorShell : CanvasLayer
 
     private Control BuildOperatorHealth()
     {
-        var body = new VBoxContainer { Name = "Health" };
+        var scroll = new ScrollContainer
+        {
+            Name = "Health", HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
+            SizeFlagsVertical = Control.SizeFlags.ExpandFill,
+        };
+        var body = new VBoxContainer { Name = "HealthContent", SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        scroll.AddChild(body);
         body.AddThemeConstantOverride("separation", 7);
         body.AddChild(SectionLabel("EVENT HISTORY"));
         _operatorEventHistory = Inspector("OperatorEventHistory");
@@ -2255,12 +2270,15 @@ public partial class SimulatorShell : CanvasLayer
         body.AddChild(SectionLabel("SCENE EQUIPMENT"));
         _operatorEquipment = Inspector("OperatorEquipment");
         _operatorEquipment.CustomMinimumSize = new Vector2(0, 136);
+        _operatorEquipment.FitContent = true;
+        _operatorEquipment.ScrollActive = false;
         body.AddChild(_operatorEquipment);
         body.AddChild(SectionLabel("PLC HEALTH"));
         _operatorHealth = Inspector("OperatorHealth");
-        _operatorHealth.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
+        _operatorHealth.FitContent = true;
+        _operatorHealth.ScrollActive = false;
         body.AddChild(_operatorHealth);
-        return body;
+        return scroll;
     }
 
     private void SetProductView(string view)
@@ -3162,6 +3180,7 @@ public partial class SimulatorShell : CanvasLayer
         IReadOnlyList<WorkspaceGroup>? groups = null
     )
     {
+        var hadWorkspaceSelection = _selectedPlacementIds.Count > 0;
         _workspacePlacements = placements;
         _selectedPlacementId = selectedId;
         _workspaceGroups = groups ?? [];
@@ -3230,7 +3249,9 @@ public partial class SimulatorShell : CanvasLayer
         {
             var placement = placements.FirstOrDefault(item => item.InstanceId == selectedId);
             if (placement is not null) RefreshPlacementInspector(placement);
+            else _inspector.Text = _sceneInspectorText;
         }
+        else if (hadWorkspaceSelection) _inspector.Text = _sceneInspectorText;
     }
 
     private string GroupSelectionSummary()
@@ -3793,7 +3814,8 @@ public partial class SimulatorShell : CanvasLayer
             text.AppendLine($"[color=#ef9f55][b]Deferred objects[/b][/color]");
             foreach (var id in composition.DeferredEquipmentIds) text.AppendLine($"  • {Escape(id)}");
         }
-        _inspector.Text = text.ToString();
+        _sceneInspectorText = text.ToString();
+        _inspector.Text = _sceneInspectorText;
     }
 
     private void RefreshIoInspector()

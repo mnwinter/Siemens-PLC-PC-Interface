@@ -70,6 +70,15 @@ navigation on the tank, and stale gizmo/selection after Undo to empty; these
 remain to be repaired. Prior pending-overlay statements above describe earlier
 checkpoints, not current availability. No PLC connection was attempted.
 
+Operator and PLC-health rails now scroll complete content; native 1600x900 and
+1200x675 inspection confirmed readable runtime/health and reachable navigation.
+Undo to empty now removes the gizmo and stale placement inspector. Rendered
+workspace, app-shell/orphan, split and controller UI checks pass; controller
+suite is 140/140. Native windows closed normally without error/leak reports.
+Next review areas are remaining editor workflows, Demo 4/5 presentation and
+complete sequence boundaries, external profiles, install/export and legacy
+conflicts. The goal is active; prior pending-rail statements are historical.
+
 RungProof is a Windows PLC visual simulator and training environment. A user
 selects a scenario, sees the 3D machine, edits ladder logic in a TIA Portal or
 Studio 5000 styled workbench, runs a deterministic built-in controller, and

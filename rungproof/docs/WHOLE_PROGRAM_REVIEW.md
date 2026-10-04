@@ -422,6 +422,34 @@ issues found here: the operator rail clips runtime/navigation on the tank, and
 Undo to an empty workspace leaves a stale gizmo/selection inspector. Next fixes
 will address those observed issues. Whole-program review goal remains active.
 
+## Operator rail and Undo selection checkpoint - 2026-10-04
+
+Restore tag `codex/operator-review-baseline-20261004` at `dc8f54d`
+precedes these fixes. The operator and PLC-health rails now scroll their whole
+content; runtime, equipment and health text fit their content, while the bounded
+event history keeps its own scrolling. This prevents long descriptions/action
+lists from reducing runtime and health text to a few clipped pixels. Native
+1600x900 and 1200x675 inspection confirmed runtime details and both navigation
+buttons can be reached; the narrow window also exposes the complete PLC-health
+summary by scrolling. The Engineering button was exercised from the scrolled
+operator rail.
+
+Undo to an empty workspace now detaches its transform gizmo and replaces stale
+placement inspector text with the current scene summary. The prior failure was
+reproduced in `.tools/workspace-selection-before.log`; the corrected rendered
+workspace test and native place/Undo workflow both confirm it. Scenario list
+selection also tracks the actual loaded scene after file Open or guarded changes.
+
+Build, workspace replacement/dirty/write/transform tests, app-shell/orphan and
+split-view tests pass. Controller suite remains 140/140; the full-app controller
+UI verifier passes its stable actions, stop/reset, monitor and force assertions.
+Native sessions closed normally with no ERROR or leak reports. Logs include
+`.tools/operator-workspace-final.log`, `.tools/operator-shell-final.log`,
+`.tools/operator-split-final.log`, `.tools/operator-native-final.log`, and
+`.tools/operator-native-narrow-final.log`. Whole-program review remains active;
+remaining editor interactions, demo presentation/sequence boundaries, external
+profiles, installation/export and legacy-path conflicts still need review.
+
 ## Verification boundary
 
 Native mouse/keyboard interaction proves only the inspected Windows workflows.
