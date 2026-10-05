@@ -1,5 +1,28 @@
 # Whole program review - 2026-10-03
 
+Demo 5 moving assembly and operator plates follow-up (2026-10-05): the full
+three-second sampled sweep now checks all four moving parts against posts and
+separate equipment, tool height above the empty pallet, rod/carriage/tool seating
+and carriage support inside the bridge span. All four checks pass; total 188
+scene geometry/reference/workflow checks pass after an additional plate check.
+Three misleading START plates are now CARTON / HOME / PALLET. Build clean,
+143 controller tests pass without real transport, initial contract and app shell
+pass with no ERROR lines. Native normal Scenario menu selected Demo 5 and Run
+loaded its authored ladder. Manual permissives start the gantry/vacuum outputs;
+running FR/FL/RL/RR/Top views were inspected. Rear-left rod detail is robot-
+occluded and overhead hides the rod; FR/FL/RR cover those details. Native Stop
+removed commands and held the same pose on a later capture; Reset restored it
+and scan zero. Fresh rendered CARTON/HOME/PALLET plates were each inspected and
+each actual 3D button was clicked: matching PC-owned points became True, outputs
+remained False while stopped. Normal Run then preserved those manual inputs and
+issued matching commands. Editor opens Palletizing_Cell_Main and shows green
+power flow. An open editor readability bug was found: CALL shows stable block-3
+instead of the FB name. No automatic carton transport, optical home feedback,
+physical vacuum pickup or real-PLC acceptance is established. Evidence:
+batch-display-native-final.log (Demo 5 navigation/motion after Demo 4),
+demo5-full-sweep-{build,geometry,final-build,final-geometry,controller,contract,
+shell}.log and demo5-label-native-final.log. Goal remains active.
+
 Pallet count readout workflow repair (2026-10-05): authored Demo 4 now publishes
 PLC-owned DINT pallet_count via MOV batch_count.ACC after the counter call.
 Scene 71 binds that point to a live COUNT readout; the reusable display remains

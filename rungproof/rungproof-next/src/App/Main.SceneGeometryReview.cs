@@ -255,6 +255,9 @@ public partial class Main
                 GD.Print($"SCENE_GEOMETRY_CHECK {label}={condition}");
             }
             Check(staticCandidates == 0, "demo5_static_equipment_clearance_screen");
+            Check(new[] { ("switch_9", "CARTON"), ("switch_10", "HOME"), ("switch_11", "PALLET") }
+                .All(item => root.GetNode<Node3D>(item.Item1).GetNodeOrNull<Label3D>("OperatorFaceLabel")?.Text == item.Item2),
+                "demo5_manual_permissive_button_plates_identify_their_actual_functions");
             var posts = ReviewMeshes(gantry).Where(mesh => mesh.Name.ToString().StartsWith("GANTRY_POST", StringComparison.Ordinal)).ToArray();
             Check(posts.Length == 4 && posts.All(post => !ReviewBounds(post).Intersects(palletBounds)), "pallet_clear_of_all_four_gantry_posts");
             var deck = ReviewMeshes(conveyor).Where(mesh => mesh.Name.ToString().Contains("belt_surface", StringComparison.OrdinalIgnoreCase)).ToArray();
@@ -275,15 +278,46 @@ public partial class Main
             var sweepClear = true;
             var attached = true;
             var toolMoved = false;
+            var moving = ReviewMeshes(gantry).Where(mesh => mesh == rod || mesh == tool
+                || mesh.Name.ToString().StartsWith("KIN_X_BRIDGE", StringComparison.Ordinal)
+                || mesh.Name.ToString().StartsWith("KIN_Y_CARRIAGE", StringComparison.Ordinal)).ToArray();
+            var otherEquipment = root.GetChildren().OfType<Node3D>().Where(node => node != gantry)
+                .SelectMany(ReviewMeshes).ToArray();
+            var allMovingClear = true;
+            var toolAbovePallet = true;
+            var rodSeated = true;
+            var carriageSupported = true;
+            var bridge = moving.Single(mesh => mesh.Name.ToString().StartsWith("KIN_X_BRIDGE", StringComparison.Ordinal));
+            var carriage = moving.Single(mesh => mesh.Name.ToString().StartsWith("KIN_Y_CARRIAGE", StringComparison.Ordinal));
             for (var step = 0; step < 150; step++)
             {
                 motion._PhysicsProcess(0.02);
                 attached &= (tool.GlobalPosition - rod.GlobalPosition).IsEqualApprox(relative);
                 toolMoved |= tool.Transform != authoredTool;
                 sweepClear &= posts.All(post => !ReviewBounds(post).Intersects(ReviewBounds(tool)));
+                allMovingClear &= moving.All(part => otherEquipment.Concat(posts).All(other =>
+                {
+                    var overlap = ReviewBounds(part).Intersection(ReviewBounds(other)).Size;
+                    return overlap.X <= 0.005f || overlap.Y <= 0.005f || overlap.Z <= 0.005f
+                        || !OrientedBoxesPenetrate(part, other);
+                }));
+                toolAbovePallet &= ReviewBounds(tool).Position.Y > palletBounds.End.Y + 0.005f;
+                rodSeated &= ReviewBounds(rod).Intersects(ReviewBounds(carriage))
+                    && ReviewBounds(rod).Intersects(ReviewBounds(tool));
+                var carriageBounds = ReviewBounds(carriage);
+                var bridgeBounds = ReviewBounds(bridge);
+                carriageSupported &= carriageBounds.Position.Z >= bridgeBounds.Position.Z
+                    && carriageBounds.End.Z <= bridgeBounds.End.Z
+                    && carriageBounds.GetCenter().X >= bridgeBounds.Position.X
+                    && carriageBounds.GetCenter().X <= bridgeBounds.End.X
+                    && carriageBounds.Intersects(bridgeBounds);
             }
             Check(attached && toolMoved, "gripper_follows_z_axis_through_complete_sweep");
             Check(sweepClear, "gripper_sweep_clear_of_posts");
+            Check(moving.Length == 4 && allMovingClear, "demo5_all_four_moving_parts_clear_posts_and_separate_equipment_through_sweep");
+            Check(toolAbovePallet, "demo5_sweep_tool_stays_above_empty_pallet_surface");
+            Check(rodSeated, "demo5_sweep_rod_remains_seated_in_carriage_and_tool");
+            Check(carriageSupported, "demo5_sweep_carriage_stays_supported_within_bridge_span");
             motion._PhysicsProcess(0.37);
             motion.Stop();
             var heldTool = tool.Transform;

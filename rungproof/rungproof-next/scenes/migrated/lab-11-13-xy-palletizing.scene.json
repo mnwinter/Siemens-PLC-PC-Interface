@@ -167,7 +167,8 @@
       "config": {
         "style": "pushbutton",
         "action": "toggle-carton_at_pick",
-        "color": 2204518
+        "color": 2204518,
+        "faceLabel": "CARTON"
       }
     },
     {
@@ -182,7 +183,8 @@
       "config": {
         "style": "pushbutton",
         "action": "toggle-gantry_home",
-        "color": 2204518
+        "color": 2204518,
+        "faceLabel": "HOME"
       }
     },
     {
@@ -197,7 +199,8 @@
       "config": {
         "style": "pushbutton",
         "action": "toggle-pallet_position_valid",
-        "color": 2204518
+        "color": 2204518,
+        "faceLabel": "PALLET"
       }
     },
     {
