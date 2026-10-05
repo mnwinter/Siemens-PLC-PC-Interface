@@ -139,7 +139,10 @@ def process_bottle(m):
     box("BOTTLE_LABEL_BAND", (0, -0.255, 0.55), (0.30, 0.006, 0.09), m["blue"], 0.002, False)
     for i in range(8):
         box(f"BOTTLE_BARCODE_{i}",(-.12+i*.034,-.259,.39),(.012,.004,.09),m["black"],.001,False)
-    text_mesh("BOTTLE_PRINT","PROCESS FLUID 1 L",(0,-.261,.59),.045,m["dark"])
+    # Give the product name and capacity separate regions. The old single
+    # line overran the label and intersected its blue band.
+    text_mesh("BOTTLE_PRINT_PROCESS", "PROCESS FLUID", (0, -.261, .635), .025, m["dark"])
+    text_mesh("BOTTLE_PRINT_CAPACITY", "1 L", (0, -.261, .55), .043, m["white"])
     for z in (0.12, 0.72):
         cylinder(f"BOTTLE_MOLDED_RIB_{z}", (0, 0, z), 0.248, 0.018, m["blue"], collision=False, vertices=96)
     target_objects=[item for item in bpy.context.scene.objects if item.type=="MESH" and item.get("rungproof_asset")]

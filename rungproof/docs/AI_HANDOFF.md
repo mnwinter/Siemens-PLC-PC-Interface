@@ -6,7 +6,22 @@ would otherwise be trapped in a local Codex session. It intentionally excludes
 machine-local Codex databases, credentials, screenshots from private chats, and
 temporary runtime state.
 
-Shipping strap checkpoint (2026-10-05, current): Scene 32's six disconnected
+Bottle Shuttle checkpoint (2026-10-05, current): Scene 34's 162.9 mm bottle
+belt gap is repaired by root Y=0.8270833333 m. Both sensor stand spans are
+3.2 m, clear of conveyor/Start/status bounds. Product name and capacity fit
+separate label regions. Base bottle source/delivery/local review previews
+rebuilt with an asset filter; collision unchanged. Eight focused checks pass
+within 442 geometry total; build clean, controller 143, shell 77/294, scene
+contract/help pass. Native home/right endpoint five views, label close views,
+held outward steps, Stop/Run, real-time return and Reset inspected. Start
+clears left feedback while the bottle remains at its beam; Stop holds pose,
+but Run restarts the timed route and its next half-second repeats the old
+pose. Six metres/2.5 s conflicts with configured 0.75 m/s. See
+MULTI_ANGLE_SCENE_REVIEW.md for logs and bounded evidence. Next: continuous
+command/feedback, Stop/resume and normal controller round trip. Goal active;
+preserve the user's open carton window.
+
+Shipping strap checkpoint (2026-10-05, previous checkpoint): Scene 32's six disconnected
 bars are now two closed 35 mm wide, 1.2 mm thick bands based on evaluated
 load sections. Their returns pass beneath stringers inside fork openings,
 128.8 mm above the belt. Convex hulls bridge recessed case faces. Source,

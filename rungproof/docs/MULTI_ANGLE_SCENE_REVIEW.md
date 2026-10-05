@@ -10,7 +10,46 @@ includes failed scenes; it is not a count of accepted scenes.
 
 ## Acceptance method
 
-Shipping strap routing (2026-10-05, current): six disconnected thick bars
+Bottle Shuttle placement (2026-10-05, current): Scene 34's imported body
+bottom was Y=1.0629166 m above the 0.9 m belt, a 162.9 mm gap. Root Y is now
+0.8270833333 m, placing the actual body bottom at 0.9 m. The authored X=-3..3
+route stays inside the flat drum-axis span and belt width in 121 samples.
+Both sensor stand spans increased from 2.05 to 3.2 m, clearing conveyor
+feet, brackets, bracing, connectors and cable bounds at a 5 mm overlap screen.
+Grounded feet and clearance from Start/status equipment pass. A front-left
+occlusion makes the Start station and sensor appear to occupy the same place;
+measured bounds distinguish that occlusion from an intersection. Placement
+was retained. Lens-to-lens rays cross actual body triangles only at the
+corresponding endpoint; this does not prove continuous runtime feedback.
+
+The bottle's long overlapping legend was split into PROCESS FLUID above the
+blue band and white 1 L within it. Imported text bounds fit their regions.
+Source/delivery, four numbered renders, hero/blind/scale/wireframe previews
+and thumbnail were rebuilt using the filter for this asset only. Collision
+export is unchanged. New local renders do not refresh independent recognition.
+Five of the original six placement checks failed before repair; two additional
+checks cover endpoint optics and neighboring controls. All eight now pass
+within 442 total. Build zero warnings/errors, controller 143, shell 77/294,
+scene contract and help pass. Logs `.tools/bottle-shuttle-{red-build,
+red-geometry,model,build,import,geometry,neighbor-red-build,neighbor-red,
+controller,contract,shell,final-native}.log`; neighbor-red is a passing probe,
+not a reproduced failure. These are bounded geometry screens, not mechanical
+contact, bottle stability, capacity or commissioning proof.
+
+Native final home and held right endpoint inspected FR/FL/RL/RR/Top, plus
+home bottle-focused Top/FL/FR for label and seating. Rear views hide the front
+label; Top cannot prove vertical bearing. Held outward half-second steps,
+mid-route Stop/held advance/Run, real-time return and Reset were exercised.
+The timed reference exposes failures: Start clears left feedback while the
+bottle is still at the beam; Stop holds pose but Run restarts the route clock,
+so its first half-second repeats the pre-Stop pose instead of advancing.
+Source StartSequence resets step index/time and translate uses fixed from/to.
+Six metres in 2.5 s also implies 2.4 m/s, conflicting with the 0.75 m/s
+conveyor setting. Normal loaded-controller round trip remains unverified.
+These findings stay FAIL/open; next work is continuous command/feedback and
+Stop/resume integration, not accepting the existing timed preview. Goal active.
+
+Shipping strap routing (2026-10-05, previous checkpoint): six disconnected thick bars
 were replaced by two closed 35 mm wide, 1.2 mm thick bands derived from the
 actual evaluated upper-frame/case section, including labels and barcodes.
 The convex hull bridges recessed faces. Returns pass beneath the upper
@@ -1984,7 +2023,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 31 | `lab-2-17-pallet-robot` | 23 historic; broad home candidates are not solid interference | Final modeled pickup and completed landing FR/FL/RL/RR/T; Stop/Reset/restart guard; earlier staged/bridge/sensor views | Imported robot/tool attachment, grounded installation, routes and roller landing repaired; 29 pallet-cell checks PASS within 406 total. Reference sampled at 10 ms; both totes land before count/release, empty pallet fully outbound. FAIL/open: complete normal controller-driven transfer, continuous intermediate native views and physical/rated handling unproven |
 | 32 | `lab-2-18-pallet-pickup` | 0 at repaired home | Rebuilt load home/pickup focused FR/FL/RL/RR/T; prior 50% views, four jogs/fifth blocked, Stop/resume/mode loss/Reset; unheld auto | Pallet/case bearing planes, closed strap route, belt support, sensor mounting and bounded reference repaired; 434 checks pass. Home/pickup underside views added. FAIL/open: normal controller lesson and complete solid-contact/mechanical acceptance |
 | 33 | `lab-2-19-service-door` | 54 original / 0 repaired | Repaired native FR/FL/RL/RR/T; operator FR close; held opening/Stop/reverse; real-time endpoints; open five views; Reset | Layout/plates and reference reversal/position feedback repaired; raw NC signal displays explicit. Physical limit/cable behavior, compressed slat geometry and loaded-controller operation unaccepted |
-| 34 | `lab-2-20-bottle-shuttle` | 39 | Native FR/FL/RL/RR/T; bottle top/FR close; Start | Open: overlapping bottle label text; contact and sensor mounts need measurement. Normal Start unloaded; round-trip motion unverified |
+| 34 | `lab-2-20-bottle-shuttle` | 39 historic | Repaired home/right endpoint FR/FL/RL/RR/T; home bottle Top/FL/FR close; held outward steps, Stop/Run, real-time return, Reset | Bottle belt seating, text regions and sensor mounting repaired; eight checks pass within 442. FAIL/open: fixed-start restart, timed rather than optical feedback, 2.4 vs 0.75 m/s speed mismatch, normal controller round trip and dynamic stability |
 | 35 | `lab-2-21-tote-finishing` | 29 | Native FR/FL/RL/RR/T; filler top/FR close; Start | FAIL/open: station columns occupy belt corridor; tote support, station alignment and full transfer unverified. Start unloaded |
 | 36 | `lab-2-22-dual-spindle` | 2 | Native FR/FL/RL/RR/T; plate top/FR close; Start | FAIL/open: plate offset below separate drill coupons, fixture/slide mounting unresolved; adapters rotation only. Start unloaded; feeds and transfer unverified |
 | 37 | `lab-2-23-parcel-sorter` | 174 | FR/FL/RL/RR/T | Repaired static/declared plant path; normal Run lacks controller |

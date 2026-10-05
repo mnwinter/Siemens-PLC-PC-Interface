@@ -51,6 +51,19 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 
 ## Stop and safety boundary
 
+The bottle body is seated at belt Y=0.9 m, with root Y=0.8270833333 m.
+Both photoeye pairs have 3.2 m stand spans and grounded feet, clear of the
+conveyor and neighboring control bounds. The PROCESS FLUID name and 1 L
+capacity occupy separate label regions. Eight geometry checks include 121
+route support samples and actual body-triangle endpoint rays; native home
+and right endpoint were inspected from five angles.
+
+The standalone timed preview remains incomplete: Start clears the left
+feedback before the bottle leaves the beam, and Run after Stop restarts the
+fixed route rather than resuming from the held pose. Its 6 m/2.5 s travel
+also differs from the 0.75 m/s conveyor setting. These observations do not
+accept continuous optical feedback or the normal loaded-controller lesson.
+
 A normal Stop removes PLC-owned commands according to the scene runtime. This document does not prove a safety function, a real E-stop circuit, a PLC watchdog, or live-machine commissioning.
 
 Declared simulation safe state:
