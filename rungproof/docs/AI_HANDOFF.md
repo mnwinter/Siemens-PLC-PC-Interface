@@ -6,7 +6,21 @@ would otherwise be trapped in a local Codex session. It intentionally excludes
 machine-local Codex databases, credentials, screenshots from private chats, and
 temporary runtime state.
 
-Shipping pallet reference checkpoint (2026-10-05, current): fixed-start Scene
+Shipping load contact checkpoint (2026-10-05, current): base palletized case
+asset builder now derives connected bearing planes, removing the 40 mm
+stringer/deck gap, 22.5 mm case/deck gap and block/lower-board penetration.
+Runner/deck datums remain unchanged. Thin seated tape supports upper cases.
+Source/delivery/four review renders/thumbnail rebuilt; only Scene 32 directly
+composes this base asset. Five checks failed before repair; geometry 430,
+clean build/controller 143/shell 77/294/contracts/help pass. Native focused
+home/pickup five views and unheld automatic completion inspected; optical
+endpoint stays X=2.5626 m. Logs `.tools/shipping-load-contact-*.log`.
+Next: strap side/underside routing, then normal loaded-controller lesson.
+Historical hero/scale/wireframe/blind evidence is for the earlier model;
+no fresh independent recognition or mechanical acceptance is claimed.
+Whole review goal remains active; preserve the user's open carton window.
+
+Shipping pallet reference checkpoint (2026-10-05, previous checkpoint): fixed-start Scene
 32 sequences were replaced by an opt-in ShippingPallet reference partial.
 AUTO Run/MANUAL jog are guarded, four quarter-route jogs advance from the held
 pose, pickup rejects another start, Stop/resume keeps position and mode loss

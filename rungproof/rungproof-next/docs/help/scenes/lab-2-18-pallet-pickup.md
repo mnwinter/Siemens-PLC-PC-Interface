@@ -74,7 +74,12 @@ Native Windows mid-route and pickup views were inspected from five angles;
 four jogs, blocked fifth, Stop/resume, mode loss, Reset and automatic completion
 were exercised. Geometry samples the route every 10 ms. The preview displays
 six significant digits while retaining full feedback precision. Conveyor
-acceleration/slip equivalence and internal case/deck seating are unaccepted.
+acceleration/slip equivalence and full mechanical acceptance are unaccepted.
+The rebuilt load seats nine blocks on the lower boards, three stringers on
+the blocks, seven deck boards on the stringers and four lower cases on the
+deck; upper cases contact thin seated sealing tape. Five focused imported
+mesh checks cover these bearing planes. Home and pickup were inspected from
+five close native angles. Strap side/underside routing still needs review.
 The reference does not run when a virtual/external controller is selected;
 normal loaded-controller lesson acceptance remains open.
 

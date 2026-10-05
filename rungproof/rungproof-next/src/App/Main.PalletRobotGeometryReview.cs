@@ -20,6 +20,34 @@ public partial class Main
         GD.Print($"SHIPPING_PALLET_DATUM belt={belt} flatX={tailX}..{driveX} pallet={ReviewBounds(pallet)}");
         check(runners.Length == 3 && runners.All(mesh => MathF.Abs(ReviewBounds(mesh).Position.Y - belt.End.Y) < 0.001f),
             "shipping_pallet_all_three_runners_seated_on_belt");
+        // Inspect each bearing interface independently. A supported bottom
+        // runner alone does not prove that the deck or cases are supported.
+        var meshes = ReviewMeshes(pallet);
+        var blocks = meshes.Where(mesh => mesh.Name.ToString().StartsWith("PALLET_BLOCK_", StringComparison.Ordinal)).ToArray();
+        var stringers = meshes.Where(mesh => mesh.Name.ToString().StartsWith("PALLET_STRINGER_", StringComparison.Ordinal)).ToArray();
+        var decks = meshes.Where(mesh => mesh.Name.ToString().StartsWith("PALLET_TOP_DECK_", StringComparison.Ordinal)).ToArray();
+        bool BearsOn(MeshInstance3D upper, MeshInstance3D lower)
+        {
+            var a = ReviewBounds(upper); var b = ReviewBounds(lower);
+            return MathF.Abs(a.Position.Y - b.End.Y) < 0.0001f
+                && MathF.Min(a.End.X, b.End.X) - MathF.Max(a.Position.X, b.Position.X) > 0.02f
+                && MathF.Min(a.End.Z, b.End.Z) - MathF.Max(a.Position.Z, b.Position.Z) > 0.02f;
+        }
+        check(blocks.Length == 9 && blocks.All(block => runners.Any(runner => BearsOn(block, runner))),
+            "shipping_pallet_nine_blocks_bear_on_bottom_boards_without_penetration");
+        check(stringers.Length == 3 && stringers.All(board => blocks.Count(block => BearsOn(board, block)) == 3),
+            "shipping_pallet_stringers_bear_on_all_nine_blocks_without_gap");
+        check(decks.Length == 7 && decks.All(deck => stringers.Count(board => BearsOn(deck, board)) == 3),
+            "shipping_pallet_all_deck_boards_bear_on_three_stringers_without_gap");
+        var lowerCases = meshes.Where(mesh => mesh.Name.ToString().StartsWith("CASE_0_", StringComparison.Ordinal)).ToArray();
+        var upperCases = meshes.Where(mesh => mesh.Name.ToString().StartsWith("CASE_1_", StringComparison.Ordinal)).ToArray();
+        var lowerTape = meshes.Where(mesh => mesh.Name.ToString().StartsWith("CASE_TAPE_0_", StringComparison.Ordinal)).ToArray();
+        check(lowerCases.Length == 4 && lowerCases.All(box => decks.Count(deck => BearsOn(box, deck)) >= 2),
+            "shipping_pallet_four_lower_cases_contact_multiple_deck_boards");
+        check(upperCases.Length == 4 && upperCases.All(box => lowerTape.Any(tape => BearsOn(box, tape)))
+            && lowerTape.Length == 4 && lowerTape.All(tape => lowerCases.Any(box => BearsOn(tape, box))),
+            "shipping_pallet_upper_cases_contact_seated_lower_sealing_tape");
+        GD.Print($"SHIPPING_PALLET_INTERNAL_DATUM bottomTop={ReviewBounds(runners[0]).End.Y} blockTop={ReviewBounds(blocks[0]).End.Y} stringerTop={ReviewBounds(stringers[0]).End.Y} deckTop={ReviewBounds(decks[0]).End.Y} lowerCaseBottom={ReviewBounds(lowerCases[0]).Position.Y}");
         var supported = true;
         // Inspect actual reference transforms, including both endpoints. The
         // flat carrying span ends at the drum axes, not at the curved wraps.

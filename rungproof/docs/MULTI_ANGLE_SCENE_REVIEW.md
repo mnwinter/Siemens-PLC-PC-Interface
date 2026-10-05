@@ -10,7 +10,36 @@ includes failed scenes; it is not a count of accepted scenes.
 
 ## Acceptance method
 
-Shipping pallet reference motion (2026-10-05, current): Scene 32 now uses a
+Shipping load bearing contacts (2026-10-05, current): the actual imported
+Scene 32 load had a 40 mm stringer-to-deck gap, a 22.5 mm lower-case-to-deck
+gap, and blocks penetrating the lower boards. The source builder now derives
+each bearing plane from its neighboring board. Runner and deck datums remain
+unchanged; local bearing heights are bottom-board top 0.0725 m, block top
+0.1675 m, stringer top 0.2125 m and deck top/lower-case bottom 0.2475 m.
+All nine blocks, three stringers, seven deck boards and four lower cases
+have bounded contact checks. Thin 0.2 mm sealing tape is seated on the lower
+cases; upper cases bear on it instead of intersecting the former 12 mm strip.
+Source .blend, delivered .glb, four model renders and thumbnail were rebuilt.
+Only Scene 32 directly composes this base asset; separately copied training
+assets have not been silently replaced or accepted.
+
+All five new checks failed before repair; 430 geometry checks now pass,
+alongside clean build, controller 143, shell 77/294, both scene contracts and
+help validation. Logs `.tools/shipping-load-contact-{red-build,red-geometry,
+model,import,geometry,controller,shell,contract,native}.log`.
+Native home and completed pickup each inspected at shipping_pallet focus
+FR/FL/RL/RR/Top. Unheld automatic travel reached pickup with feedback true
+and conveyor command false; endpoint X=2.5626 m remains unchanged. Rear-right
+pickup obscures the near lower corner behind the stacklight; other angles
+resolve the load. Top confirms footprint but cannot prove vertical contact.
+Reset returned feedback to zero/clear and restored the supported home pose;
+the opt-in focus camera required an angle-button recenter after the reset.
+The standalone preview is not the normal loaded-controller lesson. Strap
+side/underside routing and full solid-contact/mechanical acceptance remain
+open; older hero/scale/wireframe/blind recognition evidence is historical for
+the previous model. Goal active.
+
+Shipping pallet reference motion (2026-10-05, previous checkpoint): Scene 32 now uses a
 bounded opt-in reference instead of fixed-start timed translations. AUTO Run
 and MANUAL Jog require their respective modes; four jogs advance from the
 current pose to 25/50/75/100%, and another start at pickup is rejected. Stop
@@ -1924,7 +1953,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 29 | `lab-2-15-fume-extractor` | 0 | FR/FL/RL/RR/T static and running 35%; close plate; speed states; native preview Stop/Run/Off/Reset | LIGHT REQUEST, speed binding and preview Stop repaired; six-blade transform checks pass. Open: beacon substitutes light, hood/duct absent, normal Run unloaded; reference preview is not controller lesson acceptance |
 | 30 | `lab-2-16-safe-drill` | 24 original / 0 repaired | Native repaired FR/FL/RL/RR/T; stock FR close; normal 3D hand/cycle controls; held feed/bottom four close sides; Stop/Reset/restart; unheld completion | Fixture/feed and honest Stop-hold semantics repaired; normal cycle blocks without controller. Top stock view occluded by head; guard/two-hand safety behavior is not modeled |
 | 31 | `lab-2-17-pallet-robot` | 23 historic; broad home candidates are not solid interference | Final modeled pickup and completed landing FR/FL/RL/RR/T; Stop/Reset/restart guard; earlier staged/bridge/sensor views | Imported robot/tool attachment, grounded installation, routes and roller landing repaired; 29 pallet-cell checks PASS within 406 total. Reference sampled at 10 ms; both totes land before count/release, empty pallet fully outbound. FAIL/open: complete normal controller-driven transfer, continuous intermediate native views and physical/rated handling unproven |
-| 32 | `lab-2-18-pallet-pickup` | 0 at repaired home | Native home/50%/pickup FR/FL/RL/RR/T; four jogs/fifth blocked; Stop/resume/mode loss/Reset and unheld auto | Pallet support/sensor mounting and bounded standalone reference repaired; continuous actual-case optical/position feedback, mode guards and restart continuity pass within 425 checks. FAIL/open: normal controller lesson, internal case/deck seating and complete mechanical acceptance |
+| 32 | `lab-2-18-pallet-pickup` | 0 at repaired home | Rebuilt load home/pickup focused FR/FL/RL/RR/T; prior 50% views, four jogs/fifth blocked, Stop/resume/mode loss/Reset; unheld auto | Pallet/case bearing planes, belt support, sensor mounting and bounded reference repaired; 430 checks pass. FAIL/open: normal controller lesson, strap side/underside routing and complete solid-contact/mechanical acceptance |
 | 33 | `lab-2-19-service-door` | 54 original / 0 repaired | Repaired native FR/FL/RL/RR/T; operator FR close; held opening/Stop/reverse; real-time endpoints; open five views; Reset | Layout/plates and reference reversal/position feedback repaired; raw NC signal displays explicit. Physical limit/cable behavior, compressed slat geometry and loaded-controller operation unaccepted |
 | 34 | `lab-2-20-bottle-shuttle` | 39 | Native FR/FL/RL/RR/T; bottle top/FR close; Start | Open: overlapping bottle label text; contact and sensor mounts need measurement. Normal Start unloaded; round-trip motion unverified |
 | 35 | `lab-2-21-tote-finishing` | 29 | Native FR/FL/RL/RR/T; filler top/FR close; Start | FAIL/open: station columns occupy belt corridor; tote support, station alignment and full transfer unverified. Start unloaded |

@@ -1,6 +1,18 @@
 # Whole program review - 2026-10-03
 
-Shipping pallet reference checkpoint (2026-10-05, current): Scene 32's AUTO
+Shipping load contact checkpoint (2026-10-05, current): Scene 32's base load
+source/export now seats all nine blocks, three stringers, seven deck boards
+and four lower cases at derived bearing planes. This removes the 40 mm
+internal pallet gap, 22.5 mm case gap and block/lower-board penetration.
+Thin seated tape supports the upper cases without the old strip overlap.
+Runner/deck datums and first optical endpoint remain unchanged. Five new
+checks failed before repair and pass within 430 total; build/controller 143/
+shell 77/294/contracts/help pass. Native focused home and pickup each have
+five angles, plus unheld automatic completion. Details and occlusion are in
+[multi-angle evidence](MULTI_ANGLE_SCENE_REVIEW.md). Strap routing, normal
+controller lesson and full mechanical acceptance remain open. Goal active.
+
+Shipping pallet reference checkpoint (2026-10-05, previous checkpoint): Scene 32's AUTO
 Run and MANUAL jog now use bounded travel from the held pose. Four jogs reach
 25/50/75/100%; pickup blocks subsequent starts. Stop/resume retains pose and
 mode loss stops on the next tick. Feedback follows continuous travel and an

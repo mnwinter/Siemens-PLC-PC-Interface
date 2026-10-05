@@ -60,26 +60,41 @@ def main():
 
     # GMA block pallet: top/bottom boards, stringer boards and nine blocks leave
     # visible fork openings instead of reading as a solid wooden slab.
+    # Derive the bearing planes instead of positioning each part separately.
+    # Preserve the installed runner datum and top-deck height. Previously the
+    # blocks penetrated the lower boards and the deck floated 40 mm above the
+    # stringers; cases then floated another 22.5 mm above the deck.
+    bottom_center, board_thickness = 0.055, 0.035
+    bottom_top = bottom_center + board_thickness / 2
+    deck_center = 0.23
+    deck_bottom = deck_center - board_thickness / 2
+    deck_top = deck_center + board_thickness / 2
+    stringer_thickness = 0.045
+    stringer_bottom = deck_bottom - stringer_thickness
+    block_height = stringer_bottom - bottom_top
     for index, x in enumerate((-0.53, -0.35, -0.17, 0.0, 0.17, 0.35, 0.53)):
-        box(f"PALLET_TOP_DECK_{index}", (x, 0, 0.23), (0.13, 1.016, 0.035), wood, 0.004)
+        box(f"PALLET_TOP_DECK_{index}", (x, 0, deck_center), (0.13, 1.016, board_thickness), wood, 0.004)
     for index, y in enumerate((-0.43, 0, 0.43)):
-        box(f"PALLET_STRINGER_{index}", (0, y, 0.15), (1.219, 0.105, 0.045), wood, 0.004)
-        box(f"PALLET_BOTTOM_{index}", (0, y, 0.055), (1.219, 0.105, 0.035), wood, 0.004)
+        box(f"PALLET_STRINGER_{index}", (0, y, (deck_bottom + stringer_bottom) / 2), (1.219, 0.105, stringer_thickness), wood, 0.004)
+        box(f"PALLET_BOTTOM_{index}", (0, y, bottom_center), (1.219, 0.105, board_thickness), wood, 0.004)
         for x in (-0.53, 0, 0.53):
-            box(f"PALLET_BLOCK_{index}_{x}", (x, y, 0.105), (0.14, 0.14, 0.10), wood, 0.005)
+            box(f"PALLET_BLOCK_{index}_{x}", (x, y, (bottom_top + stringer_bottom) / 2), (0.14, 0.14, block_height), wood, 0.005)
 
     case_w, case_d, case_h = 0.52, 0.43, 0.34
+    tape_thickness = 0.0002
     for layer in range(2):
         rotated = layer % 2 == 1
         for row in range(2):
             for column in range(2):
                 x = (column - 0.5) * (case_w + 0.035)
                 y = (row - 0.5) * (case_d + 0.035)
-                z = 0.27 + case_h * (layer + 0.5)
+                z = deck_top + case_h * (layer + 0.5) + tape_thickness * layer
                 dims = (case_d, case_w, case_h) if rotated else (case_w, case_d, case_h)
                 box(f"CASE_{layer}_{row}_{column}", (x, y, z), dims, cardboard, 0.012)
-                box(f"CASE_TAPE_{layer}_{row}_{column}", (x, y, z + case_h * 0.505),
-                    (dims[0] * 1.01, 0.075, 0.012), tape, 0.002, False)
+                # Thin sealing tape sits on the case surface. The upper cases
+                # bear on this modeled strip rather than intersecting it.
+                box(f"CASE_TAPE_{layer}_{row}_{column}", (x, y, z + case_h / 2 + tape_thickness / 2),
+                    (dims[0] - 0.025, 0.075, tape_thickness), tape, 0.00008, False)
                 if row == 0:
                     box(f"CASE_LABEL_{layer}_{row}_{column}", (x, y - dims[1] * 0.506, z),
                         (0.23, 0.012, 0.14), white, 0.002, False)
@@ -89,7 +104,7 @@ def main():
                             (0.010 if line % 2 else 0.015, 0.006, 0.075), black, 0.001, False)
 
     # Two vertical retention straps visibly bind the complete load to the pallet.
-    load_top_z = 0.27 + case_h * 2
+    load_top_z = deck_top + case_h * 2 + tape_thickness * 2
     strap_center_z = (0.055 + load_top_z) / 2
     strap_height = load_top_z - 0.055
     for x in (-0.34, 0.34):
