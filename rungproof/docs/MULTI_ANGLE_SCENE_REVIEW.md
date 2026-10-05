@@ -28,6 +28,21 @@ Every row requires native inspection.
 
 ## Repairs and open findings
 
+Base conveyor carton repair (2026-10-04): scene 73/74 cartons move from
+(-3.3,0.99,0) to (-3.0,0.9,0), eliminating a measured 90 mm carrying-surface
+gap and 219 mm loading-end overhang. Ten checks cover initial contact/full
+footprint, travel through first photoeye detection, optical envelope, stopped
+clock hold and Reset; eight fail before, all pass after. Total 165 geometry/
+reference checks pass; build zero warnings/errors, 142 controller tests pass
+without real transport, app shell passes with its four known headless position
+errors/workspace warning. Each rebuilt normal scene inspected FR/FL/RL/RR/T
+plus carton Top/FL close. Repaired Demo 3 normal Run/rail Start advances carton
+to photoeye, output stops; FR close shows support, Stop holds, Reset restores
+load end/contact and clears feedback/output/scan. Pusher transfer/receiver,
+head/photoeye clearance, full discharge and mid-travel native Stop remain open.
+No controller or native pusher cycle was accepted. Evidence: base-conveyor-
+{red-build,red-geometry,build,geometry,controller,shell,native-final}.log.
+Goal active: finish the recorded identity, interference and workflow repairs.
 Luggage/Pallet carton repair (2026-10-04): scene 64 and 71 box_1 origins
 Y=0 -> 0.9 m match the measured carrying belt. Four delivered-mesh support/
 solid-clearance checks fail before and pass after. Fresh normal native instances
@@ -939,8 +954,8 @@ count as this scene's multi-angle or runtime acceptance.
 | 70 | `lab-9-10-box-volume` | 46 | Native FR/FL/RL/RR/T | Two shutter substitutes, obscured carton; no numeric dimension/volume contract |
 | 71 | `lab-9-11-pallet-counting` | 86 | Native FR/FL/RL/RR/T | Carton support repaired/re-inspected wide and Top/FL close. FAIL/open: white pallet/shutter-post type sensor, shutter display. Demo 4 five detection edges/Stop/Run/Reset checked |
 | 72 | `lab-9-12-ev-charging-manager` | 95 | Native FR/FL/RL/RR/T | FAIL/open: shutters/fluid props instead of EV charging route; energy pulse/accumulation contract absent |
-| 73 | `scene-1-conveyor-stop` | 34 | Native FR/FL/RL/RR/T | Apparent carton support gap; authored Demo 3 start/advance/photoeye stop/Stop/Reset checked; clearance sweep open |
-| 74 | `scene-2-conveyor-pusher` | 88 | Native FR/FL/RL/RR/T | Apparent carton support gap; no receiver support; pusher/photoeye motion clearance unresolved |
+| 73 | `scene-1-conveyor-stop` | 34 | Native FR/FL/RL/RR/T | Carton belt contact/load-end footprint repaired; native five wide/Top/FL close and Demo 3 Run/Start/photoeye/Stop/Reset rechecked; full clearance open |
+| 74 | `scene-2-conveyor-pusher` | 88 | Native FR/FL/RL/RR/T | Carton belt contact/load-end footprint repaired; native five wide/Top/FL close rechecked; no receiver, pusher/photoeye motion clearance unresolved |
 | 75 | `tank-high-low` | 60 | Native FR/FL/RL/RR/T | Disconnected pump/elevated inlet, external probes, opaque tank; fill/drain behavior unverified |
 | 76 | `tank-level` | 52 | Native FR/FL/RL/RR/T | Same disconnected piping/probe mounting; initial 42 percent / 10.72 mA visible, dynamics unverified |
 | 77 | `tank-radar` | 80 | Native FR/FL/RL/RR/T | Instrument/cone not identifiable in wide views; piping unresolved; actions blocked, normal Run empty editor |

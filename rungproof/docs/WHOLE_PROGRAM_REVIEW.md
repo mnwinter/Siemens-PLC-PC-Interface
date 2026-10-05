@@ -1,5 +1,22 @@
 # Whole program review - 2026-10-03
 
+Base conveyor carton repair (2026-10-04): scene 73/74 cartons move from
+(-3.3,0.99,0) to (-3.0,0.9,0), eliminating a measured 90 mm carrying-surface
+gap and 219 mm loading-end overhang. Ten checks cover initial contact/full
+footprint, travel through first photoeye detection, optical envelope, stopped
+clock hold and Reset; eight fail before, all pass after. Total 165 geometry/
+reference checks pass; build zero warnings/errors, 142 controller tests pass
+without real transport, app shell passes with its four known headless position
+errors/workspace warning. Each rebuilt normal scene inspected FR/FL/RL/RR/T
+plus carton Top/FL close. Repaired Demo 3 normal Run/rail Start advances carton
+to photoeye, output stops; FR close shows support, Stop holds, Reset restores
+load end/contact and clears feedback/output/scan. Pusher transfer/receiver,
+head/photoeye clearance, full discharge and mid-travel native Stop remain open.
+No controller or native pusher cycle was accepted. Evidence: base-conveyor-
+{red-build,red-geometry,build,geometry,controller,shell,native-final}.log.
+Goal active: finish the recorded identity, interference and workflow repairs.
+Earlier checkpoint:
+
 Luggage/Pallet carton repair (2026-10-04): scene 64 and 71 box_1 origins
 Y=0 -> 0.9 m match the measured carrying belt. Four delivered-mesh support/
 solid-clearance checks fail before and pass after. Fresh normal native instances
