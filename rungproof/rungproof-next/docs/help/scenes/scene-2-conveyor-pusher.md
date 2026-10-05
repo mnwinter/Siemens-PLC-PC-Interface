@@ -39,6 +39,7 @@ No point-to-equipment bindings are declared.
 | `scene2_product` | `box` | Scene 2 package |
 | `scene2_photoeye` | `photoeye` | Part-at-pusher photoeye |
 | `scene2_pusher` | `pusher` | Single-solenoid spring-return pusher |
+| `scene2_receiver` | `containerReceiver` | Flat carton receiving table |
 | `scene2_station` | `switch` | Scene Start / Stop |
 | `scene2_stacklight` | `indicator` | Scene 2 status light |
 
@@ -49,7 +50,9 @@ outboard guided shafts and moving plate fasteners. The photoeye is offset
 along the conveyor; the optional visual carton-centre datum positions its body
 across the beam at first detection without changing the symbolic plant model.
 
-This scene still lacks a receiving surface. Its canonical plant removes the
+The flat receiving table meets the belt edge at the same 900 mm top height.
+Its supports clear the conveyor bracing, and the receiver-side photoeye stand
+is beyond the table. Its canonical plant still removes the
 carton at the transfer threshold; the rendered path does not establish plate
 contact or a fully supported physical transfer. These remain open review
 findings even when the controller sequence and limit feedback pass.

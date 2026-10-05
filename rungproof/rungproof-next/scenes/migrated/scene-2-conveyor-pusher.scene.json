@@ -64,6 +64,7 @@
       ],
       "config": {
         "span": 2.08,
+        "positiveStandPositionM": 2.9,
         "height": 1.1,
         "beamCenterHeightM": 1.35,
         "blocked": false
@@ -90,6 +91,13 @@
         "installation": "conveyorPusher",
         "initialPosition": 0
       }
+    },
+    {
+      "id": "scene2_receiver",
+      "type": "containerReceiver",
+      "label": "Flat carton receiving table",
+      "position": [-0.2, 0, 1.78],
+      "config": { "installation": "flatCartonReceiver" }
     },
     {
       "id": "scene2_station",
@@ -256,7 +264,7 @@
       "toteLabeler": "process.packaging.labeler.tote-pressure-sensitive.v1",
       "toteVision": "inspection.vision.tote-multicamera.v1",
       "meteringSkid": "process.dosing.skid.liquid-metering.v1",
-      "containerReceiver": "material-handling.receiver.container-two-position.v1",
+      "containerReceiver": "facility.workbench.2400mm.v1",
       "sizeSensorBank": "sensing.dimensioning.parcel-three-height.v1"
     },
     "scenePropTypes": [

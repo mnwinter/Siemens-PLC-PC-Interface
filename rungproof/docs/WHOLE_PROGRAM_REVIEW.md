@@ -1,5 +1,25 @@
 # Whole program review - 2026-10-03
 
+Carton receiving surface (2026-10-05, latest): Scene 74 now includes a
+flat steel table at the 900 mm belt height. Its near edge meets the belt;
+the deck is 1.40 x 1.805 m, with four grounded legs, supporting frame and
+lower shelf. The existing workbench asset is reused without vise/drawer.
+The front supports/shelf were moved beyond the conveyor bracing after the
+first clearance check failed. The positive-side photoeye stand is moved to
+Z=2.90 m beyond the table; the beam remains across the carton path. Other
+receivers and default photoeye installations keep their prior geometry.
+Four new receiver checks pass (314 scene/workflow checks total), including
+101 geometric carton offsets and 101 pusher positions. Cable candidates use
+actual triangle bounds because a routed cable's enclosing box contains empty
+space. This is geometry screening, not physical contact or load-rating proof.
+Native Windows FR/FL/RL/RR/Top plus receiver-focused Top/FR were inspected:
+continuous deck/belt seam, grounded supports and external photoeye stand.
+PLC remained disconnected. Logs: `.tools/carton-receiver-build.log`,
+`carton-receiver-geometry.log`, `carton-receiver-native.log`.
+The missing-surface finding is closed. Plate/carton contact timing and canonical
+carton disappearance remain open; no completed transfer is accepted. The whole
+program review remains incomplete. Earlier absent-receiver notes are historical.
+
 Pusher installation repair (2026-10-05, after the rod-only checkpoint below):
 Scene 74 explicitly opts into a composed conveyor mounting. Its existing
 centerHeight=1.38 m is honored without stretching the cylinder diameter.

@@ -54,8 +54,7 @@ public static partial class SceneComposer
                     "process.dosing.skid.liquid-metering.v1", runCommands,
                     EquipmentMotionController.MotionKind.ContinuousRotation, "KIN_metering_pump_shaft",
                     speedRpm: 1750.0f, rotationAxis: Vector3.Right),
-                "containerReceiver" => CreateMappedAsset(equipment, candidates,
-                    "material-handling.receiver.container-two-position.v1"),
+                "containerReceiver" => CreateContainerReceiver(equipment, candidates),
                 "photoeye" => CreatePhotoeyeAsset(equipment, candidates),
                 "sizeSensorBank" => CreateSizeSensorBank(equipment, candidates),
                 "switch" => CreateSwitchAsset(equipment, candidates),
@@ -375,21 +374,26 @@ public static partial class SceneComposer
         // Span is the distance between stand centerlines. Translate the heads,
         // posts, feet and pigtails together; do not stretch the sensor housings.
         var spanM = (float)Number(equipment.Config, "span", 1.44);
-        if (!float.IsFinite(centerlineM) || centerlineM < 0.3f || !float.IsFinite(spanM) || spanM <= 0.3f)
+        var positiveStandM = (float)Number(equipment.Config, "positiveStandPositionM", spanM / 2);
+        if (!float.IsFinite(centerlineM) || centerlineM < 0.3f || !float.IsFinite(spanM) || spanM <= 0.3f
+            || !float.IsFinite(positiveStandM) || positiveStandM <= 0.15f)
             throw new InvalidOperationException($"Photoeye '{equipment.Id}' requires finite positive stand span and optical height.");
         const float authoredCenterlineM = 0.94f;
         var liftM = centerlineM - authoredCenterlineM;
         var standOffset = (spanM - 1.44f) / 2;
+        var installedSpan = positiveStandM + spanM / 2;
+        var beamMidpoint = (positiveStandM - spanM / 2) / 2;
 
         foreach (var item in model.FindChildren("*", string.Empty, true, false).OfType<Node3D>())
         {
             var name = item.Name.ToString();
             if (name.StartsWith("TX_", StringComparison.Ordinal) || name.StartsWith("RX_", StringComparison.Ordinal))
-                item.Position += new Vector3(0, 0, MathF.Sign(item.Position.Z) * standOffset);
+                item.Position += new Vector3(0, 0, item.Position.Z > 0
+                    ? positiveStandM - 0.72f : -standOffset);
             if (name.StartsWith("KIN_beam", StringComparison.Ordinal))
             {
-                item.Position = new Vector3(item.Position.X, item.Position.Y, item.Position.Z * spanM / 1.44f);
-                item.Scale = new Vector3(item.Scale.X, item.Scale.Y, item.Scale.Z * spanM / 1.44f);
+                item.Position = new Vector3(item.Position.X, item.Position.Y, item.Position.Z * installedSpan / 1.44f + beamMidpoint);
+                item.Scale = new Vector3(item.Scale.X, item.Scale.Y, item.Scale.Z * installedSpan / 1.44f);
             }
             if (name.StartsWith("KIN_beam", StringComparison.Ordinal)
                 || name.Contains("adjust_bracket", StringComparison.OrdinalIgnoreCase)

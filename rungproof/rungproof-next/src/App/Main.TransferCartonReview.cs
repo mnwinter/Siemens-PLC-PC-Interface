@@ -798,6 +798,74 @@ public partial class Main
         GD.Print($"PUSHER_INSTALLATION_BOUNDS plate={ReviewBounds(plate)} supports={string.Join(';', supports.Select(mesh => ParentBounds(mesh).ToString()))}");
     }
 
+    private void VerifyCartonReceiverGeometry(Action<bool, string> check)
+    {
+        AddMigratedScene("scene-2-conveyor-pusher", _candidateCatalog!, _mainCamera!, false, false);
+        var root = _sceneCompositionRoot!;
+        var receiver = root.GetNode<Node3D>("scene2_receiver");
+        var parts = ReviewMeshes(receiver);
+        var deck = ReviewBounds(parts.Single(mesh => mesh.Name == "BENCH_top"));
+        var belt = ReviewBounds((MeshInstance3D)root.GetNode("scene2_conveyor").FindChild("KIN_belt_surface", true, false));
+        check(MathF.Abs(deck.End.Y - belt.End.Y) < 0.001f
+            && MathF.Abs(deck.Position.Z - belt.End.Z) < 0.001f,
+            "scene2_receiver_deck_flush_with_belt_height_and_edge");
+        var legs = parts.Where(mesh => mesh.Name.ToString().StartsWith("BENCH_leg", StringComparison.Ordinal)).ToArray();
+        var beams = parts.Where(mesh => mesh.Name.ToString().StartsWith("RECEIVER_", StringComparison.Ordinal)).ToArray();
+        check(legs.Length == 4 && legs.All(leg => MathF.Abs(ReviewBounds(leg).Position.Y) < 0.001f
+                && beams.Any(beam => ReviewBounds(beam).Grow(0.001f).Intersects(ReviewBounds(leg))))
+            && beams.Length == 4 && beams.All(beam => MathF.Abs(ReviewBounds(beam).End.Y - deck.Position.Y) < 0.001f),
+            "scene2_receiver_four_grounded_legs_and_frame_seated_under_deck");
+        // Geometric footprint witness only: this does not change or accept the
+        // canonical transfer's contact timing or disappearing-carton behavior.
+        var load = ReviewBounds(root.GetNode("scene2_product"));
+        var covered = true;
+        for (var sample = 0; sample <= 100; sample++)
+        {
+            var footprint = new Aabb(new Vector3(-0.2f - load.Size.X / 2, belt.End.Y,
+                load.Position.Z + 1.35f * sample / 100), load.Size);
+            covered &= footprint.Position.X >= deck.Position.X && footprint.End.X <= deck.End.X
+                && footprint.Position.Z >= belt.Position.Z && footprint.End.Z <= deck.End.Z;
+        }
+        check(covered, "scene2_carton_footprint_covered_by_belt_and_receiver_through_101_offsets");
+        bool Clear(MeshInstance3D a, MeshInstance3D b)
+        {
+            var overlap = ReviewBounds(a).Intersection(ReviewBounds(b)).Size;
+            if (overlap.X <= 0.001f || overlap.Y <= 0.001f || overlap.Z <= 0.001f || !OrientedBoxesPenetrate(a, b)) return true;
+            if (!b.Name.ToString().Contains("cable", StringComparison.OrdinalIgnoreCase)) return false;
+            // Routed cables have large empty bounds. Screen actual triangle
+            // bounds against the receiver, rather than treating the whole
+            // route's enclosing box as solid material.
+            var faces = b.Mesh.GetFaces();
+            var receiverBounds = ReviewBounds(a);
+            for (var index = 0; index < faces.Length; index += 3)
+            {
+                var triangle = new Aabb(b.GlobalTransform * faces[index], Vector3.Zero);
+                triangle = triangle.Expand(b.GlobalTransform * faces[index + 1]).Expand(b.GlobalTransform * faces[index + 2]);
+                var intersection = receiverBounds.Intersection(triangle).Size;
+                if (intersection.X > 0.001f && intersection.Y > 0.001f && intersection.Z > 0.001f) return false;
+            }
+            return true;
+        }
+        var others = root.GetChildren().OfType<Node3D>().Where(node => node != receiver && node.Name != "scene2_product")
+            .SelectMany(ReviewMeshes).Where(mesh => !mesh.Name.ToString().StartsWith("KIN_beam", StringComparison.Ordinal)).ToArray();
+        var clear = true;
+        var motion = root.GetNode("scene2_pusher").FindChildren("*", string.Empty, true, false)
+            .OfType<EquipmentMotionController>().Single();
+        for (var sample = 0; sample <= 100; sample++)
+        {
+            motion.SetPositionNormalized(sample / 100f);
+            foreach (var part in parts)
+                foreach (var other in others.Where(other => !Clear(part, other)))
+                {
+                    clear = false;
+                    if (sample == 0) GD.Print($"RECEIVER_COLLISION {part.Name} {ReviewBounds(part)} {other.GetParent().Name}/{other.Name} {ReviewBounds(other)}");
+                }
+        }
+        check(clear, "scene2_receiver_clear_of_other_equipment_through_101_pusher_samples");
+        motion.ResetMotion();
+        GD.Print($"CARTON_RECEIVER_BOUNDS deck={deck} belt={belt}");
+    }
+
     private void VerifyBaseConveyorCartonSupport(Action<bool, string> check)
     {
         foreach (var number in new[] { 1, 2 })

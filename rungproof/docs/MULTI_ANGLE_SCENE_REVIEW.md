@@ -10,6 +10,26 @@ includes failed scenes; it is not a count of accepted scenes.
 
 ## Acceptance method
 
+Carton receiving surface (2026-10-05, latest): Scene 74 now includes a
+flat steel table at the 900 mm belt height. Its near edge meets the belt;
+the deck is 1.40 x 1.805 m, with four grounded legs, supporting frame and
+lower shelf. The existing workbench asset is reused without vise/drawer.
+The front supports/shelf were moved beyond the conveyor bracing after the
+first clearance check failed. The positive-side photoeye stand is moved to
+Z=2.90 m beyond the table; the beam remains across the carton path. Other
+receivers and default photoeye installations keep their prior geometry.
+Four new receiver checks pass (314 scene/workflow checks total), including
+101 geometric carton offsets and 101 pusher positions. Cable candidates use
+actual triangle bounds because a routed cable's enclosing box contains empty
+space. This is geometry screening, not physical contact or load-rating proof.
+Native Windows FR/FL/RL/RR/Top plus receiver-focused Top/FR were inspected:
+continuous deck/belt seam, grounded supports and external photoeye stand.
+PLC remained disconnected. Logs: `.tools/carton-receiver-build.log`,
+`carton-receiver-geometry.log`, `carton-receiver-native.log`.
+The missing-surface finding is closed. Plate/carton contact timing and canonical
+carton disappearance remain open; no completed transfer is accepted. The whole
+program review remains incomplete. Earlier absent-receiver notes are historical.
+
 Pusher installation continuation (2026-10-05, superseding the rod-only layout
 findings below): Scene 74 now honors its 1.38 m center height with grounded
 barrel, guide-bearing and air-manifold supports. Rigid longer guide tails
@@ -1474,7 +1494,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 71 | `lab-9-11-pallet-counting` | 86 | Native FR/FL/RL/RR/T | Carton/fixture/readout geometry repaired and five views/details inspected. Live DINT count/readout FR/FL and invalid/five-edge/held/permissive/Stop/Run/Reset native checks pass. Optical classification/pallet travel/CNC integration open |
 | 72 | `lab-9-12-ev-charging-manager` | 95 | Native FR/FL/RL/RR/T | FAIL/open: shutters/fluid props instead of EV charging route; energy pulse/accumulation contract absent |
 | 73 | `scene-1-conveyor-stop` | 34 | Native FR/FL/RL/RR/T | Carton belt contact/load-end footprint repaired; native five wide/Top/FL close and Demo 3 Run/Start/photoeye/Stop/Reset rechecked; full clearance open |
-| 74 | `scene-2-conveyor-pusher` | 88 initial; 7 residual cable candidates after installation repair | Native home and extended FR/FL/RL/RR/T, close pusher Top/RR at both ends; normal Open/Verify/Run/Stop/Reset | Plate height, grounded mounting, guide engagement/cap clearance, photoeye clearance and following bolts repaired; off-station carton stays seated. FAIL/open: receiver absent, plate/carton contact timing, canonical disappearing transfer and residual cable candidates. No full supported transfer accepted |
+| 74 | `scene-2-conveyor-pusher` | 88 initial; 7 residual cable candidates after installation repair | Native home and extended FR/FL/RL/RR/T, close pusher Top/RR at both ends; normal Open/Verify/Run/Stop/Reset | Plate height, grounded mounting, guide engagement/cap clearance, photoeye clearance and following bolts repaired; off-station carton stays seated. Receiving surface added; native five angles and receiver Top/FR close; 314 checks PASS. FAIL/open: plate/carton contact timing, canonical disappearing transfer and residual cable candidates. No full supported transfer accepted |
 | 75 | `tank-high-low` | 60 | Native FR/FL/RL/RR/T | Disconnected pump/elevated inlet, external probes, opaque tank; fill/drain behavior unverified |
 | 76 | `tank-level` | 52 | Native FR/FL/RL/RR/T | Same disconnected piping/probe mounting; initial 42 percent / 10.72 mA visible, dynamics unverified |
 | 77 | `tank-radar` | 80 | Native FR/FL/RL/RR/T; repaired radar five focus views | Radar flange/head mounting and antenna-to-surface distance/beam repaired (sampled checks); 35% native range 3.10036. FAIL/open: empty ladder Run, disconnected inlet/outlet/drain route, opaque internal beam; rear-left mount partly obscured |
