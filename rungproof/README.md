@@ -80,7 +80,7 @@ build\.venv-rungproof\Scripts\python.exe -m tools.rungproof_native
 ```
 
 The launcher opens one native RungProof window. It does not start Edge, Chrome,
-Electron, WebView, an HTML engine, or a local HTTP server. Python 3.14 and
+Electron, WebView, an HTML engine, or a local HTTP server. Python 3.14.5 x64 and
 Node.js 24 are required only for source development and the full regression
 lane.
 
@@ -102,6 +102,14 @@ build\.venv-rungproof\Scripts\python.exe -m tools.rungproof_native --view B
 ```
 
 ## Standalone Windows VM package
+
+The retained Qt package build uses `tools/build_vm_exe.ps1` and requires exact
+Python 3.14.5 x64 for its wheel hashes and release version checks. The script
+checks the interpreter before modifying an existing build environment. It uses
+`py -3.14`, or accepts an explicit `-PythonExecutable C:\path\to\python.exe`.
+A reused `-SkipBuild` environment must match too. If Qt installation reports a
+path-length error on Windows, use a shorter checkout/build location; an
+incomplete installation is not a verified package.
 
 The VM does not need Python or npm. Copy this ZIP to the VM and extract it:
 

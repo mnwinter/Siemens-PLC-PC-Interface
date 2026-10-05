@@ -6,6 +6,40 @@ would otherwise be trapped in a local Codex session. It intentionally excludes
 machine-local Codex databases, credentials, screenshots from private chats, and
 temporary runtime state.
 
+Normal launch and retained Qt/packaging review (2026-10-05): executed
+RUN-RUNGPROOF-NEXT.cmd without QA flags. Restore/build/import completed and the
+native application opened the default Conveyor Inspection Cell. The ordinary
+Scenario Browser loaded Demo 5; Operator Run started the built-in controller,
+three sidebar manual permissives produced vacuum_pick/gantry_cycle=True, green
+indications and visible XY gantry motion. Stop cleared both commands; Reset
+restored initial geometry, inputs False and scan 0. PLC stayed disconnected.
+This confirms the normal source launcher and that bounded Demo 5 sequence; it
+does not establish automatic carton transport or completed physical picks.
+The retained Qt source startup initially failed for missing PySide6. Installing
+its exact locked Qt wheels in the deep checkout hit the Windows 260-character
+path limit (LongPathsEnabled=0). A shorter isolated Qt environment completed
+hash-checked Qt and Python-3.12-compatible JSON-schema dependencies and pip check;
+no Windows settings were changed. Its native Operator/Immersive/Engineering
+layouts and transition to Conveyor Inspection Cell review were inspected; the
+review correctly shows PLC disabled, no transport and locked playback. This is
+Qt source/disconnected UI evidence only, not packaged EXE, Qt3D or live acceptance.
+The full package lock has a cp314 Windows rpds-py wheel hash (confirmed against
+PyPI metadata); the local cp312 wheel correctly fails it, and Python 3.12 also
+needs an additional typing-extensions dependency. The release script formerly
+used py -3 and deleted its environment before discovering these mismatches.
+It now preflights exact Python 3.14.5 x64 before removing/installing anything,
+uses py -3.14 or an explicit -PythonExecutable, and validates a reused SkipBuild
+environment too. Actual explicit-3.12, reused-3.12 and missing-launcher cases were
+rejected; an existing environment marker was preserved (unchanged hash on the
+missing-launcher case). The project lock is unchanged. Python 3.14.5 is absent
+here, so the full Windows package build/installer remains unverified.
+Evidence: .tools/normal-launch-review.log, legacy-native-{review,short-review}.log,
+legacy-qt-{install,short-install}.log, legacy-jsonschema-install.log,
+legacy-source-runtime-install.log and legacy-package-preflight.log. The deep
+checkout Qt installation was partial; only the short isolated environment passed
+installation/checks. Whole-program review continues; these launch checks do not
+close open scene/runtime findings.
+
 Arithmetic validity layout repair (2026-10-05): scenes 66, 67 and 69
 remove their unused CNC and function-block panel substitutes. Delivered node
 inspection proves the alleged panels were pillow-block bearing/shaft models;

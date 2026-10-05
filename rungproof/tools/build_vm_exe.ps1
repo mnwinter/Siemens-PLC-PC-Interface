@@ -2,7 +2,8 @@
 param(
     [switch]$SkipBuild,
     [string]$PackageVersion = "",
-    [switch]$EnableRealPlc
+    [switch]$EnableRealPlc,
+    [string]$PythonExecutable = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -98,11 +99,39 @@ if (-not (Test-Path -LiteralPath $requirementsLockFile -PathType Leaf)) {
     throw "Hashed build lock is missing: $requirementsLockFile"
 }
 
+# The wheel hashes and release evidence target this exact x64 interpreter.
+# Validate it BEFORE removing an existing environment or installing packages.
+# Otherwise `py -3` can pick a different ABI and fail partway through the build.
+$bootstrapPythonArgs = @()
+if ($SkipBuild -and (Test-Path -LiteralPath $buildPython -PathType Leaf)) {
+    $bootstrapPython = $buildPython
+} elseif ($PythonExecutable) {
+    if (-not (Test-Path -LiteralPath $PythonExecutable -PathType Leaf)) {
+        throw "Python executable not found: $PythonExecutable"
+    }
+    $bootstrapPython = [System.IO.Path]::GetFullPath($PythonExecutable)
+} else {
+    $pythonLauncher = Get-Command py -CommandType Application -ErrorAction SilentlyContinue
+    if ($null -eq $pythonLauncher) {
+        throw "Packaging requires Python 3.14.5 x64. Install it or pass -PythonExecutable with its full path. Existing build files were preserved."
+    }
+    $bootstrapPython = $pythonLauncher.Source
+    $bootstrapPythonArgs = @("-3.14")
+}
+$pythonProbeJson = & $bootstrapPython @bootstrapPythonArgs -c 'import json, struct, sys; print(json.dumps({"version": ".".join(map(str, sys.version_info[:3])), "bits": struct.calcsize("P") * 8}))'
+if ($LASTEXITCODE -ne 0) {
+    throw "Could not inspect Python 3.14.5 x64 for packaging. Existing build files were preserved."
+}
+$pythonProbe = $pythonProbeJson | ConvertFrom-Json
+if ($pythonProbe.version -ne "3.14.5" -or $pythonProbe.bits -ne 64) {
+    throw "Packaging requires Python 3.14.5 x64; selected $($pythonProbe.version) $($pythonProbe.bits)-bit. Existing build files were preserved."
+}
+
 if (-not $SkipBuild -and (Test-Path -LiteralPath $buildEnvDir)) {
     Remove-Item -LiteralPath $buildEnvDir -Recurse -Force
 }
 if (-not (Test-Path -LiteralPath $buildPython -PathType Leaf)) {
-    & py -3 -m venv $buildEnvDir
+    & $bootstrapPython @bootstrapPythonArgs -m venv $buildEnvDir
     if ($LASTEXITCODE -ne 0) {
         throw "Could not create the isolated package build environment."
     }
@@ -194,8 +223,8 @@ foreach ($name in $expectedVersions.Keys) {
     if ($versions.$name -ne $expectedVersions[$name]) {
         throw (
             "$name version $($versions.$name) is installed; expected " +
-            "$($expectedVersions[$name]). Run: py -3 -m pip install " +
-            "-r requirements-build.txt"
+            "$($expectedVersions[$name]). Recreate the package environment " +
+            "with this script and Python 3.14.5 x64; preserve the build lock."
         )
     }
 }
