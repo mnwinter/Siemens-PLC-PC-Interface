@@ -151,6 +151,36 @@ public partial class Main
             "pallet_count_readout_clear_of_separate_equipment");
     }
 
+    private void VerifyCutLengthDisplayGeometry(Action<bool, string> check)
+    {
+        AddMigratedScene("lab-4-12-cable-cut-length", _candidateCatalog!, _mainCamera!, false, false);
+        var root = _sceneCompositionRoot!;
+        var display = root.GetNode<Node3D>("training_accessory_8");
+        check(display.FindChild("LENGTH_DISPLAY_screen", true, false) is not null
+            && display.FindChild("LENGTH_DISPLAY_static_legend", true, false) is not null
+            && display.FindChild("KIN_bottom_bar", true, false) is null,
+            "cut_length_display_is_readout_not_shutter");
+        var baseMesh = (MeshInstance3D)display.FindChild("LENGTH_DISPLAY_base", true, false);
+        var mast = (MeshInstance3D)display.FindChild("LENGTH_DISPLAY_mast", true, false);
+        var housing = (MeshInstance3D)display.FindChild("LENGTH_DISPLAY_housing", true, false);
+        check(MathF.Abs(ReviewBounds(baseMesh).Position.Y) < 0.001f
+            && ReviewBounds(mast).Intersects(ReviewBounds(baseMesh).Grow(0.001f))
+            && ReviewBounds(mast).Intersects(ReviewBounds(housing)),
+            "cut_length_display_grounded_and_housing_supported");
+        var others = root.GetChildren().OfType<Node3D>().Where(node => node != display).SelectMany(ReviewMeshes).ToArray();
+        bool Clear(MeshInstance3D part, MeshInstance3D other)
+        {
+            var overlap = ReviewBounds(part).Intersection(ReviewBounds(other)).Size;
+            return overlap.X <= 0.005f || overlap.Y <= 0.005f || overlap.Z <= 0.005f || !OrientedBoxesPenetrate(part, other);
+        }
+        check(ReviewMeshes(display).All(part => others.All(other => Clear(part, other))),
+            "cut_length_display_clear_of_separate_equipment");
+        var labels = new[] { "CABLE", "LENGTH", "HOME" };
+        check(labels.Select((label, index) => root.GetNode<Node3D>($"switch_{index + 9}")
+                .FindChild("OperatorFaceLabel", true, false) is Label3D plate && plate.Text == label).All(value => value),
+            "cut_length_manual_input_plates_match_their_functions");
+    }
+
     private void VerifyBaseConveyorCartonSupport(Action<bool, string> check)
     {
         foreach (var number in new[] { 1, 2 })

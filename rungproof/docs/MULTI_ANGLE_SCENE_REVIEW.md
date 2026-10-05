@@ -28,6 +28,28 @@ Every row requires native inspection.
 
 ## Repairs and open findings
 
+Cut-length display identity repair (2026-10-05): the delivered asset was a
+roller shutter, while its help described a parking display. It now uses original
+Blender-source stand/readout geometry with LENGTH / NO MEASUREMENT. Catalog
+bounds come from evaluated geometry; shutter kinematics, generic basis and
+unrelated reference evidence were removed. Historical shutter/parking review
+files are preserved as invalid identity history. No numeric point or measurement
+algorithm is bound. Scene 53 describes its manual permissive scope explicitly;
+three START plates are now CABLE / LENGTH / HOME. Four identity, support,
+clearance and plate checks pass; total 192 scene geometry/reference/workflow
+checks pass. Native Windows FR/FL readout text/base/mast and Top footprint were
+inspected. Rear-left is shutter-occluded and rear-right camera is blocked by the
+CNC; those are failed detail views, not acceptance. Each actual 3D button was
+clicked and its corresponding PC-owned input became True; outputs stayed False
+while stopped. Reset cleared all three inputs. Build zero warnings/errors,
+143 controller tests pass without real transport, initial scene contract and
+app-shell pass with no ERROR lines. Expected missing-workspace warning remains.
+Global help now passes this asset and fails at the existing numeric_measurement_
+display KIN_bottom_bar mismatch. Scene 53 remains open: payoff reel is a shutter,
+dancer/cutter are cable trays, encoder is unbound, continuous measurement/cutting
+and the assembled layout are unverified. Evidence: .tools/cut-length-display-
+{build,code-build,import,geometry,controller,contract,shell,help,native}.log.
+Whole-program acceptance remains open; goal active.
 CALL/JSR block-name repair (2026-10-05): instruction boxes now resolve the
 stable call-target ID to the current declared block name. Serialization and
 execution still use the same ID; unresolved targets retain that ID for diagnosis.
@@ -1027,7 +1049,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 50 | `lab-4-09-chain-drive-lift` | 145 | Native FR/FL/RL/RR/T | FAIL/open: conveyor/lifts overlap, floor carton, disconnected pallet load; hoist is scissor table; chain/lift outputs only lamps; motion unverified |
 | 51 | `lab-4-10-cookie-packaging` | 146 | Native FR/FL/RL/RR/T; food top/FR close | FAIL/open: CNC occupies belt, packaged meat below indexing conveyor; lamp-only outputs, cookie count/transfer/packaging unverified |
 | 52 | `lab-4-11-barrel-fill-station` | 143 | Native FR/FL/RL/RR/T; barrel top/FR close | FAIL/open: tank occupies conveyor, barrel is motor starter; disconnected fill route; lamp-only outputs, fill/transfer unverified |
-| 53 | `lab-4-12-cable-cut-length` | 21 | Native FR/FL/RL/RR/T | FAIL/open: two shutters instead of reel/dancer; no continuous cable measurement/cut route; outputs only lamps |
+| 53 | `lab-4-12-cable-cut-length` | 21 (prior inventory) | Native FR/FL/RL/RR/T; repaired readout five focus views; 3D inputs/Reset | Readout now grounded LENGTH / NO MEASUREMENT, front readable/Top clear; rear details blocked. CABLE/LENGTH/HOME plates and matching PC points verified. FAIL/open: payoff shutter, dancer/cutter trays, unbound encoder, no continuous cable measurement/cut route; outputs only lamps |
 | 54 | `lab-5-01-delayed-lamp` | 0 | Native FR/FL/RL/RR/T; normal Run, rail/3D toggles, Stop/Reset | Authored TON initially off then green; 3D clears request, Stop removes output, Reset clears points/scan; exact native interval unmeasured; selector/plate mismatch open |
 | 55 | `lab-5-02-timed-lamp-off` | 0 | Native FR/FL/RL/RR/T | Static spacing clear; persistent start_pulse, precomputed time_active, ambiguous START plates; timer behavior unverified |
 | 56 | `lab-5-03-rotary-flasher` | 0 | Native FR/FL/RL/RR/T | Static spacing clear; pushbutton instead of rotary selector, manual flash_tick; flashing/off behavior unverified |

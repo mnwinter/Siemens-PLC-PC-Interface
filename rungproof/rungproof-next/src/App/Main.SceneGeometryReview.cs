@@ -365,6 +365,7 @@ public partial class Main
             VerifyTransferCartonSupport(Check);
             VerifyBaseConveyorCartonSupport(Check);
             VerifyPalletCountPropGeometry(Check);
+            VerifyCutLengthDisplayGeometry(Check);
             VerifyPalletCountReadoutWorkflow(Check);
             VerifyNumericSceneOutputTypes(Check);
 

@@ -2,11 +2,11 @@
 
 Scene ID: `lab-4-12-cable-cut-length`  
 Migrated source: `prototype/scenes/lab-4-12-cable-cut-length.plcscene`  
-Scene contract: `prototype/scenes/lab-4-12-cable-cut-length.plcscene`
+Scene contract: `res://scenes/migrated/lab-4-12-cable-cut-length.scene.json`
 
 ## Purpose
 
-An encoder-measured cable length drives a cut request and a home-position interlock.
+Manual cable, target-length and cutter-home permissives for a cut-length logic exercise. Continuous cable measurement and cutting motion are not modeled.
 
 ## Expected I/O to operate this scene
 
@@ -62,7 +62,7 @@ A normal Stop removes PLC-owned commands according to the scene runtime. This do
 
 ## Machine guide
 
-An encoder-measured cable length drives a cut request and a home-position interlock.
+Manual cable, target-length and cutter-home permissives for a cut-length logic exercise. Continuous cable measurement and cutting motion are not modeled.
 
 ### Start conditions
 
@@ -77,3 +77,4 @@ An encoder-measured cable length drives a cut request and a home-position interl
 ### Expected observations
 
 - The cutter fires only at the target length and returns to home before the next cycle.
+- The LENGTH / NO MEASUREMENT readout is static. length_reached is manually toggled; no encoder accumulation or physical cut is modeled.

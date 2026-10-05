@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-4-12-cable-cut-length",
   "name": "Lab 4.12 - Cable Cut-Length Cell",
-  "description": "An encoder-measured cable length drives a cut request and a home-position interlock.",
+  "description": "Manual cable, target-length and cutter-home permissives for a cut-length logic exercise. Continuous cable measurement and cutting motion are not modeled.",
   "camera": {
     "position": [
       11,
@@ -166,7 +166,8 @@
       "config": {
         "style": "pushbutton",
         "action": "toggle-cable_present",
-        "color": 2204518
+        "color": 2204518,
+        "faceLabel": "CABLE"
       }
     },
     {
@@ -181,7 +182,8 @@
       "config": {
         "style": "pushbutton",
         "action": "toggle-length_reached",
-        "color": 2204518
+        "color": 2204518,
+        "faceLabel": "LENGTH"
       }
     },
     {
@@ -196,7 +198,8 @@
       "config": {
         "style": "pushbutton",
         "action": "toggle-cutter_home",
-        "color": 2204518
+        "color": 2204518,
+        "faceLabel": "HOME"
       }
     },
     {
@@ -329,7 +332,7 @@
       "cut-length display"
     ],
     "machineGuide": {
-      "purpose": "An encoder-measured cable length drives a cut request and a home-position interlock.",
+      "purpose": "Manual cable, target-length and cutter-home permissives for a cut-length logic exercise. Continuous cable measurement and cutting motion are not modeled.",
       "startConditions": [
         "The common PLC/watchdog foundation is healthy.",
         "All required simulator inputs are at their documented initial state."
@@ -346,7 +349,8 @@
         "A missing or stale input must fail safe and remain diagnosable."
       ],
       "expectedObservations": [
-        "The cutter fires only at the target length and returns to home before the next cycle."
+        "The cutter fires only at the target length and returns to home before the next cycle.",
+        "The LENGTH / NO MEASUREMENT readout is static. length_reached is manually toggled; no encoder accumulation or physical cut is modeled."
       ]
     },
     "sequenceNumber": 39,

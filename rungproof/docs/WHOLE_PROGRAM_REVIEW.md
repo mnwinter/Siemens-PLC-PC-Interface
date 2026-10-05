@@ -1,5 +1,27 @@
 # Whole program review - 2026-10-03
 
+Cut-length display identity repair (2026-10-05): the delivered asset was a
+roller shutter, while its help described a parking display. It now uses original
+Blender-source stand/readout geometry with LENGTH / NO MEASUREMENT. Catalog
+bounds come from evaluated geometry; shutter kinematics, generic basis and
+unrelated reference evidence were removed. Historical shutter/parking review
+files are preserved as invalid identity history. No numeric point or measurement
+algorithm is bound. Scene 53 describes its manual permissive scope explicitly;
+three START plates are now CABLE / LENGTH / HOME. Four identity, support,
+clearance and plate checks pass; total 192 scene geometry/reference/workflow
+checks pass. Native Windows FR/FL readout text/base/mast and Top footprint were
+inspected. Rear-left is shutter-occluded and rear-right camera is blocked by the
+CNC; those are failed detail views, not acceptance. Each actual 3D button was
+clicked and its corresponding PC-owned input became True; outputs stayed False
+while stopped. Reset cleared all three inputs. Build zero warnings/errors,
+143 controller tests pass without real transport, initial scene contract and
+app-shell pass with no ERROR lines. Expected missing-workspace warning remains.
+Global help now passes this asset and fails at the existing numeric_measurement_
+display KIN_bottom_bar mismatch. Scene 53 remains open: payoff reel is a shutter,
+dancer/cutter are cable trays, encoder is unbound, continuous measurement/cutting
+and the assembled layout are unverified. Evidence: .tools/cut-length-display-
+{build,code-build,import,geometry,controller,contract,shell,help,native}.log.
+Whole-program acceptance remains open; goal active.
 CALL/JSR block-name repair (2026-10-05): instruction boxes now resolve the
 stable call-target ID to the current declared block name. Serialization and
 execution still use the same ID; unresolved targets retain that ID for diagnosis.
