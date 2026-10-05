@@ -28,6 +28,31 @@ Every row requires native inspection.
 
 ## Repairs and open findings
 
+Box-volume fixture repair (2026-10-05): the dimension_sensors shutter
+substitute is replaced by an original static bench/portal with three orthogonal
+sensor heads. The unused CNC is removed from scene 70. The carton now sits at
+Y=0.9 on the carrying bench; the earlier floor-contact check was valid for the
+old placement and is superseded by this supported fixture layout. Actual mesh
+checks verify full carton footprint on the bench, seven grounded feet, connected
+legs/posts/heads, correct LENGTH/WIDTH/HEIGHT face plates, and clearance between
+the carton, fixture and separate controls/readout. Seven fixture checks pass
+(227 total geometry/reference/workflow checks). Native Windows full scene plus
+FR/FL/RL/RR/Top focused fixture and readout views were individually inspected:
+carton contact and supports are clear; rear views now reveal the readout mast
+and base that the CNC previously obscured. Head visibility varies by view, with
+all three inspected across those views. Clicking each actual 3D LENGTH, WIDTH,
+HEIGHT button sets its corresponding PC-owned validity input; all three True
+were observed together while the PLC-owned result stayed False with runtime
+stopped. Reset clears all three. This is static geometry/manual-input acceptance;
+numeric acquisition, calibration, dimension values, volume calculation and a live
+MEASUREMENT display remain unimplemented. Catalog quality remains candidate /
+unapproved, prior shutter approval evidence is preserved as historical-invalid,
+and descriptions/help state the limitation. Catalog equipment totals are
+recomputed from actual scene entries (592 across 77 scenes). Build zero
+warnings/errors; 143 controller tests, app-shell and full help audit pass.
+Evidence: .tools/dimension-fixture-{build,final-build,final-geometry,controller,
+shell,help,native}.log. Whole-program review remains open and continues.
+
 Catalog success-message scope repair (2026-10-05): SYS-READY now says
 catalog data checks passed for 294 assets/77 scenes, followed by the requirement
 to verify scene appearance, motion, control logic and PLC operation separately.
@@ -1160,7 +1185,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 67 | `lab-9-02-product-function` | 0 | Native FR/FL/RL/RR/T; replacement readout five focus views | RESULT readout replaced; five focus views (both rear obscured). FAIL/open: wrong calculation props, no numeric factors/product contract |
 | 68 | `lab-9-03-sum-and-counter-function` | 0 | Native FR/FL/RL/RR/T | Static clear spacing; no numeric result/event count contract; CNC unbound |
 | 69 | `lab-9-04-function-selector` | 0 | Native FR/FL/RL/RR/T; replacement readout five focus views | FUNCTION readout replaced; five focus views (RR obscured). FAIL/open: function validity is not a choice value; numeric operands/result and selector binding unresolved |
-| 70 | `lab-9-10-box-volume` | 46 | Native FR/FL/RL/RR/T; replacement readout five focus views | MEASUREMENT readout replaced; five focus views (RR obscured). FAIL/open: dimension sensor remains shutter substitute, carton contacts actual floor (bounds verified), no numeric dimension/volume contract |
+| 70 | `lab-9-10-box-volume` | 46 (historical) | Native FR/FL/RL/RR/T; replacement fixture and readout five focus views each; actual 3D buttons/Reset | Static three-head fixture replaces shutter; carton supported on bench, CNC removed and rear readout view cleared. Seven geometry checks and LENGTH/WIDTH/HEIGHT manual inputs/Reset pass. Open: no numeric dimension acquisition, volume calculation or live MEASUREMENT value; independent asset approval pending |
 | 71 | `lab-9-11-pallet-counting` | 86 | Native FR/FL/RL/RR/T | Carton/fixture/readout geometry repaired and five views/details inspected. Live DINT count/readout FR/FL and invalid/five-edge/held/permissive/Stop/Run/Reset native checks pass. Optical classification/pallet travel/CNC integration open |
 | 72 | `lab-9-12-ev-charging-manager` | 95 | Native FR/FL/RL/RR/T | FAIL/open: shutters/fluid props instead of EV charging route; energy pulse/accumulation contract absent |
 | 73 | `scene-1-conveyor-stop` | 34 | Native FR/FL/RL/RR/T | Carton belt contact/load-end footprint repaired; native five wide/Top/FL close and Demo 3 Run/Start/photoeye/Stop/Reset rechecked; full clearance open |

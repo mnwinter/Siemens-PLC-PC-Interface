@@ -1,0 +1,6 @@
+{
+  "assetId": "training.accessory.dimension_sensors.v1",
+  "status": "candidate-unapproved",
+  "scope": "Original static bench with three orthogonal sensor heads. Manual validity inputs only; no numeric dimension acquisition or calibration.",
+  "historicalEvidence": "historical_invalid_identity_20261005 is invalid for this replacement."
+}

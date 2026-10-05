@@ -6,7 +6,7 @@ Scene contract: `res://scenes/migrated/lab-9-10-box-volume.scene.json`
 
 ## Purpose
 
-Symbolic box-volume logic exercise. The MEASUREMENT readout is static; dimensions and a numeric volume output are not modeled.
+Manual box-dimension validity exercise. A static three-head fixture supports the carton; numeric dimensions and volume are not modeled. The MEASUREMENT readout has no live value.
 
 ## Expected I/O to operate this scene
 
@@ -41,13 +41,12 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | ID | Type | Label |
 | --- | --- | --- |
 | `box_0` | `box` | Box Volume Calculation box |
-| `machine_1` | `machine` | Box Volume Calculation machine |
 | `indicator_2` | `indicator` | Box Volume Calculation indicator |
-| `training_accessory_3` | `trainingAccessory` | Box Volume Calculation - dimension sensors |
+| `training_accessory_3` | `trainingAccessory` | Static dimension fixture with carrying bench |
 | `training_accessory_4` | `trainingAccessory` | Box Volume Calculation - numeric measurement display |
-| `switch_5` | `switch` | Box Volume Calculation operator input |
-| `switch_6` | `switch` | Box Volume Calculation operator input |
-| `switch_7` | `switch` | Box Volume Calculation operator input |
+| `switch_5` | `switch` | Length valid manual input |
+| `switch_6` | `switch` | Width valid manual input |
+| `switch_7` | `switch` | Height valid manual input |
 
 ## Stop and safety boundary
 
@@ -55,7 +54,7 @@ A normal Stop removes PLC-owned commands according to the scene runtime. This do
 
 ## Machine guide
 
-Symbolic box-volume logic exercise. The MEASUREMENT readout is static; dimensions and a numeric volume output are not modeled.
+Manual box-dimension validity exercise. A static three-head fixture supports the carton; numeric dimensions and volume are not modeled. The MEASUREMENT readout has no live value.
 
 ### Start conditions
 
@@ -71,3 +70,4 @@ Symbolic box-volume logic exercise. The MEASUREMENT readout is static; dimension
 
 - Volume result-valid is asserted only when all three dimensions are valid.
 - The readout says NO LIVE VALUE and is not bound to a numeric point.
+- The carton rests on the fixture bench; three sensor heads illustrate mounting only. LENGTH / WIDTH / HEIGHT buttons toggle manual validity inputs.

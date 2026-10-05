@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-9-10-box-volume",
   "name": "Lab 9.10 - Box Volume Calculation",
-  "description": "Symbolic box-volume logic exercise. The MEASUREMENT readout is static; dimensions and a numeric volume output are not modeled.",
+  "description": "Manual box-dimension validity exercise. A static three-head fixture supports the carton; numeric dimensions and volume are not modeled. The MEASUREMENT readout has no live value.",
   "camera": {
     "position": [
       11,
@@ -24,7 +24,7 @@
       "label": "Box Volume Calculation box",
       "position": [
         -3.3000000000000003,
-        0,
+        0.9,
         0
       ],
       "config": {
@@ -34,25 +34,6 @@
           0.72
         ],
         "color": 13142603
-      }
-    },
-    {
-      "id": "machine_1",
-      "type": "machine",
-      "label": "Box Volume Calculation machine",
-      "position": [
-        -1.1,
-        0,
-        0
-      ],
-      "config": {
-        "size": [
-          2.1,
-          2.7,
-          1.7
-        ],
-        "color": 5466227,
-        "running": false
       }
     },
     {
@@ -76,9 +57,9 @@
     {
       "id": "training_accessory_3",
       "type": "trainingAccessory",
-      "label": "Box Volume Calculation - dimension sensors",
+      "label": "Static dimension fixture with carrying bench",
       "position": [
-        3.3000000000000003,
+        -3.3,
         0,
         0
       ],
@@ -104,7 +85,7 @@
     {
       "id": "switch_5",
       "type": "switch",
-      "label": "Box Volume Calculation operator input",
+      "label": "Length valid manual input",
       "position": [
         -0.6500000000000001,
         0,
@@ -113,13 +94,14 @@
       "config": {
         "style": "pushbutton",
         "action": "toggle-length_valid",
-        "color": 2204518
+        "color": 2204518,
+        "faceLabel": "LENGTH"
       }
     },
     {
       "id": "switch_6",
       "type": "switch",
-      "label": "Box Volume Calculation operator input",
+      "label": "Width valid manual input",
       "position": [
         1.55,
         0,
@@ -128,13 +110,14 @@
       "config": {
         "style": "pushbutton",
         "action": "toggle-width_valid",
-        "color": 2204518
+        "color": 2204518,
+        "faceLabel": "WIDTH"
       }
     },
     {
       "id": "switch_7",
       "type": "switch",
-      "label": "Box Volume Calculation operator input",
+      "label": "Height valid manual input",
       "position": [
         3.7500000000000004,
         0,
@@ -143,7 +126,8 @@
       "config": {
         "style": "pushbutton",
         "action": "toggle-height_valid",
-        "color": 2204518
+        "color": 2204518,
+        "faceLabel": "HEIGHT"
       }
     }
   ],
@@ -242,7 +226,7 @@
       "numeric measurement display"
     ],
     "machineGuide": {
-      "purpose": "Symbolic box-volume logic exercise. The MEASUREMENT readout is static; dimensions and a numeric volume output are not modeled.",
+      "purpose": "Manual box-dimension validity exercise. A static three-head fixture supports the carton; numeric dimensions and volume are not modeled. The MEASUREMENT readout has no live value.",
       "startConditions": [
         "The common PLC/watchdog foundation is healthy.",
         "All required simulator inputs are at their documented initial state."
@@ -260,7 +244,8 @@
       ],
       "expectedObservations": [
         "Volume result-valid is asserted only when all three dimensions are valid.",
-        "The readout says NO LIVE VALUE and is not bound to a numeric point."
+        "The readout says NO LIVE VALUE and is not bound to a numeric point.",
+        "The carton rests on the fixture bench; three sensor heads illustrate mounting only. LENGTH / WIDTH / HEIGHT buttons toggle manual validity inputs."
       ]
     },
     "sequenceNumber": 56,

@@ -306,20 +306,41 @@ public partial class Main
             "radar_reset_restores_initial_surface_range_and_beam");
     }
 
-    private void VerifyBoxVolumeFloorContact(Action<bool, string> check)
+    private void VerifyBoxVolumeFixture(Action<bool, string> check)
     {
         AddMigratedScene("lab-9-10-box-volume", _candidateCatalog!, _mainCamera!, false, false);
         var carton = _sceneCompositionRoot!.GetNode<Node3D>("box_0");
-        var floor = GetNode<MeshInstance3D>("Floor");
+        var fixture = _sceneCompositionRoot.GetNode<Node3D>("training_accessory_3");
+        var floor = (MeshInstance3D)fixture.FindChild("DIMENSION_tabletop", true, false);
         var bounds = ReviewBounds(carton);
         var floorBounds = ReviewBounds(floor);
-        GD.Print($"BOX_VOLUME_FLOOR_CONTACT carton={bounds} floor={floorBounds}");
-        // A perspective screenshot suggested suspension. Compare the delivered
-        // mesh with the actual floor before changing otherwise-correct placement.
+        GD.Print($"BOX_VOLUME_BENCH_CONTACT carton={bounds} bench={floorBounds}");
+        // The formerly floor-supported carton now belongs on the carrying bench.
         check(MathF.Abs(bounds.Position.Y - floorBounds.End.Y) < 0.001f
             && bounds.Position.X >= floorBounds.Position.X && bounds.End.X <= floorBounds.End.X
             && bounds.Position.Z >= floorBounds.Position.Z && bounds.End.Z <= floorBounds.End.Z,
-            "box_volume_carton_contacts_actual_floor_with_full_footprint");
+            "box_volume_carton_contacts_bench_with_full_footprint");
+        var heads = ReviewMeshes(fixture).Where(mesh => mesh.Name.ToString().StartsWith("DIMENSION_head_", StringComparison.Ordinal)).ToArray();
+        check(heads.Length == 3 && fixture.FindChild("KIN_bottom_bar", true, false) is null
+            && _sceneCompositionRoot.GetNodeOrNull<Node3D>("machine_1") is null,
+            "box_volume_fixture_has_three_heads_without_shutter_or_cnc");
+        var fixtureParts = ReviewMeshes(fixture);
+        var feet = fixtureParts.Where(mesh => mesh.Name.ToString().Contains("foot", StringComparison.Ordinal)).ToArray();
+        var supports = fixtureParts.Where(mesh => mesh.Name.ToString().Contains("leg", StringComparison.Ordinal)
+            || mesh.Name.ToString().Contains("post", StringComparison.Ordinal)).ToArray();
+        check(feet.Length == 7 && feet.All(foot => MathF.Abs(ReviewBounds(foot).Position.Y) < 0.001f)
+            && supports.All(support => feet.Any(foot => ReviewBounds(support).Intersects(ReviewBounds(foot)))),
+            "box_volume_table_and_sensor_supports_seat_on_grounded_feet");
+        var crossbeam = (MeshInstance3D)fixture.FindChild("DIMENSION_crossbeam", true, false);
+        check(supports.Where(mesh => mesh.Name.ToString().Contains("table_leg", StringComparison.Ordinal))
+                .All(leg => ReviewBounds(leg).Intersects(floorBounds))
+            && supports.Where(mesh => mesh.Name.ToString().Contains("portal_post", StringComparison.Ordinal))
+                .All(post => ReviewBounds(post).Intersects(ReviewBounds(crossbeam)))
+            && heads.All(head => supports.Append(crossbeam).Any(support => ReviewBounds(head).Intersects(ReviewBounds(support)))),
+            "box_volume_bench_portal_and_sensor_heads_have_connected_supports");
+        check(new[] { ("switch_5", "LENGTH"), ("switch_6", "WIDTH"), ("switch_7", "HEIGHT") }
+            .All(item => _sceneCompositionRoot.GetNode<Node3D>(item.Item1).FindChild("OperatorFaceLabel", true, false)
+                is Label3D label && label.Text == item.Item2), "box_volume_manual_input_plates_match_dimensions");
         var others = _sceneCompositionRoot.GetChildren().OfType<Node3D>()
             .Where(node => node != carton).SelectMany(ReviewMeshes).ToArray();
         check(ReviewMeshes(carton).All(part => others.All(other =>
@@ -328,6 +349,14 @@ public partial class Main
             return overlap.X <= 0.005f || overlap.Y <= 0.005f || overlap.Z <= 0.005f
                 || !OrientedBoxesPenetrate(part, other);
         })), "box_volume_carton_clear_of_separate_equipment");
+        var separate = _sceneCompositionRoot.GetChildren().OfType<Node3D>()
+            .Where(node => node != carton && node != fixture).SelectMany(ReviewMeshes).ToArray();
+        check(fixtureParts.All(part => separate.All(other =>
+        {
+            var overlap = ReviewBounds(part).Intersection(ReviewBounds(other)).Size;
+            return overlap.X <= 0.005f || overlap.Y <= 0.005f || overlap.Z <= 0.005f
+                || !OrientedBoxesPenetrate(part, other);
+        })), "box_volume_fixture_clear_of_controls_and_readout");
     }
 
     private void VerifyBaseConveyorCartonSupport(Action<bool, string> check)

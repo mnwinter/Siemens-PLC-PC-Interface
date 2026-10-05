@@ -6,6 +6,31 @@ would otherwise be trapped in a local Codex session. It intentionally excludes
 machine-local Codex databases, credentials, screenshots from private chats, and
 temporary runtime state.
 
+Box-volume fixture repair (2026-10-05): the dimension_sensors shutter
+substitute is replaced by an original static bench/portal with three orthogonal
+sensor heads. The unused CNC is removed from scene 70. The carton now sits at
+Y=0.9 on the carrying bench; the earlier floor-contact check was valid for the
+old placement and is superseded by this supported fixture layout. Actual mesh
+checks verify full carton footprint on the bench, seven grounded feet, connected
+legs/posts/heads, correct LENGTH/WIDTH/HEIGHT face plates, and clearance between
+the carton, fixture and separate controls/readout. Seven fixture checks pass
+(227 total geometry/reference/workflow checks). Native Windows full scene plus
+FR/FL/RL/RR/Top focused fixture and readout views were individually inspected:
+carton contact and supports are clear; rear views now reveal the readout mast
+and base that the CNC previously obscured. Head visibility varies by view, with
+all three inspected across those views. Clicking each actual 3D LENGTH, WIDTH,
+HEIGHT button sets its corresponding PC-owned validity input; all three True
+were observed together while the PLC-owned result stayed False with runtime
+stopped. Reset clears all three. This is static geometry/manual-input acceptance;
+numeric acquisition, calibration, dimension values, volume calculation and a live
+MEASUREMENT display remain unimplemented. Catalog quality remains candidate /
+unapproved, prior shutter approval evidence is preserved as historical-invalid,
+and descriptions/help state the limitation. Catalog equipment totals are
+recomputed from actual scene entries (592 across 77 scenes). Build zero
+warnings/errors; 143 controller tests, app-shell and full help audit pass.
+Evidence: .tools/dimension-fixture-{build,final-build,final-geometry,controller,
+shell,help,native}.log. Whole-program review remains open and continues.
+
 Catalog success-message scope repair (2026-10-05): SYS-READY now says
 catalog data checks passed for 294 assets/77 scenes, followed by the requirement
 to verify scene appearance, motion, control logic and PLC operation separately.

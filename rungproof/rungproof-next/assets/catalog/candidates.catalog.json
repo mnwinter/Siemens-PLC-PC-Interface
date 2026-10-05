@@ -10670,29 +10670,13 @@
         "thumbnailFile": "res://assets/training_accessories/dimension_sensors/thumbnail.png"
       },
       "bounds": {
-        "widthM": 5.3,
-        "heightM": 4.2,
-        "depthM": 0.8
+        "widthM": 2.259999990463257,
+        "heightM": 2.1649999618530273,
+        "depthM": 1.678000032901764
       },
       "connectors": [],
-      "kinematics": [
-        {
-          "id": "door_position",
-          "kind": "linear",
-          "nodePath": "KIN_bottom_bar",
-          "minimum": 0,
-          "maximum": 3.2,
-          "unit": "m",
-          "maximumRate": 1.2
-        }
-      ],
-      "animationTags": [
-        {
-          "id": "door_position",
-          "nodePath": "KIN_bottom_bar",
-          "kind": "linear"
-        }
-      ],
+      "kinematics": [],
+      "animationTags": [],
       "signals": [],
       "quality": {
         "status": "candidate",
@@ -10701,10 +10685,9 @@
         "topologyReviewed": false,
         "materialReviewed": false,
         "scaleReviewed": false,
-        "animationReviewed": true
+        "animationReviewed": false
       },
       "trainingRequirement": "dimension sensors",
-      "genericBasisAssetId": "access-control.door.roller-shutter.v1",
       "copyrightBoundary": "Generic training visual; no logo, trade dress, product number, or exact OEM claim."
     },
     {
