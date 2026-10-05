@@ -664,7 +664,11 @@ public partial class LadderEditorCanvas : Control
             DrawString(ThemeDB.FallbackFont, new Vector2(outputX - 58, y - 10),
                 _style == LadderVendorStyle.SiemensTia ? "CALL" : "JSR",
                 HorizontalAlignment.Left, 116, 14, new Color("17242c"));
-            DrawString(ThemeDB.FallbackFont, new Vector2(outputX - 58, y + 14), rung.CallTarget,
+            // Stable IDs belong to serialization/execution; operators need the
+            // current block name, including after a rename. Keep unresolved IDs
+            // visible so invalid work in progress remains diagnosable.
+            var targetName = _document.Blocks.Find(block => block.Id == rung.CallTarget)?.Name ?? rung.CallTarget;
+            DrawString(ThemeDB.FallbackFont, new Vector2(outputX - 58, y + 14), targetName,
                 HorizontalAlignment.Left, 116, 10, new Color("536771"));
         }
         else if (rung.IsReturn)

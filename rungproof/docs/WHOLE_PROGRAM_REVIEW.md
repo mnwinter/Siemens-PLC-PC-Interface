@@ -1,5 +1,18 @@
 # Whole program review - 2026-10-03
 
+CALL/JSR block-name repair (2026-10-05): instruction boxes now resolve the
+stable call-target ID to the current declared block name. Serialization and
+execution still use the same ID; unresolved targets retain that ID for diagnosis.
+Native Windows Demo 5 normal Run and Logic Editor were inspected in both TIA
+and Studio 5000 styles. FB_SafetyInterlock, FB_PickAndPlace,
+FC_SequenceSupervisor and FC_InspectionMath fit their CALL/JSR boxes without
+clipping. Scan counts advanced and green power flow remained visible. This
+closes the CALL readability finding recorded below. Build has zero warnings/
+errors, all 143 controller tests pass without real transport or connection, and
+app-shell verification passes for 77 scenes/294 assets with no ERROR lines.
+Native rename and unresolved-target workflows were not individually tested.
+Evidence: .tools/call-name-{build,controller,shell,native}.log. Whole-program
+and scene acceptance remain open; the goal remains active.
 Demo 5 moving assembly and operator plates follow-up (2026-10-05): the full
 three-second sampled sweep now checks all four moving parts against posts and
 separate equipment, tool height above the empty pallet, rod/carriage/tool seating
