@@ -28,6 +28,17 @@ Every row requires native inspection.
 
 ## Repairs and open findings
 
+Headless dialog repair (2026-10-04): unsaved ladder PopupCentered was
+spawning at (-293,-128) on the headless display. Headless now uses explicit
+(0,0,650,320) Popup; normal Windows keeps PopupCentered and the same guard
+lifecycle. Build zero warnings/errors; headless and rendered app-shell checks
+pass with zero ERROR lines, including all-scene unsaved detection, Cancel,
+failed-save blocking, wait-for-each-save, successful saves and Discard. The
+expected missing-workspace warning remains. Controller suite 142 pass/0 fail,
+no real transport/connection. Evidence: headless-dialog-{build,shell,
+rendered-shell,controller}.log; prior base-conveyor-shell.log has four errors.
+Rendered verifier is automated UI evidence; its transient dialogs were not
+individually visually inspected. Goal active; catalog defects remain open.
 Base conveyor carton repair (2026-10-04): scene 73/74 cartons move from
 (-3.3,0.99,0) to (-3.0,0.9,0), eliminating a measured 90 mm carrying-surface
 gap and 219 mm loading-end overhang. Ten checks cover initial contact/full

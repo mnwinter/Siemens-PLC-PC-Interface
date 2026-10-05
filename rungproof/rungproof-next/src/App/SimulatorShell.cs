@@ -4051,7 +4051,14 @@ public partial class SimulatorShell : CanvasLayer
             (_pendingDraftSaves.Count > 5 ? $"\n… and {_pendingDraftSaves.Count - 5} more" : string.Empty) +
             "\n\nSave each project before continuing, discard these changes, or cancel.\n" +
             "Saving preserves work in progress even when ladder verification fails.";
-        _unsavedLadderDialog.PopupCentered(new Vector2I(650, 320));
+        // The headless display has no desktop bounds to center against.
+        // Keep the actual dialog visible for guard verification without asking
+        // Godot to spawn it at a negative desktop position. Interactive windows
+        // retain the normal centered dialog and the same Save/Discard/Cancel path.
+        if (DisplayServer.GetName() == "headless")
+            _unsavedLadderDialog.Popup(new Rect2I(0, 0, 650, 320));
+        else
+            _unsavedLadderDialog.PopupCentered(new Vector2I(650, 320));
         _unsavedLadderDialog.GetCancelButton().GrabFocus();
     }
 
