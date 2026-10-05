@@ -248,6 +248,67 @@ public partial class Main
         }
     }
 
+    private void VerifySumCounterWorkflow(Action<bool, string> check)
+    {
+        AddMigratedScene("lab-9-03-sum-and-counter-function", _candidateCatalog!, _mainCamera!, false, false);
+        var root = _sceneCompositionRoot!;
+        var runtime = _sceneRuntime!;
+        Label3D Readout(int index) => root.GetNode<Node3D>($"numeric_display_{index}").GetNode<Label3D>("NumericReadout");
+        check(root.GetNodeOrNull<Node3D>("machine_0") is null
+            && Enumerable.Range(0, 4).All(i => Readout(i).Text.EndsWith("\n0", StringComparison.Ordinal)),
+            "sum_counter_initial_live_readouts_and_no_unbound_cnc");
+        bool Clear(MeshInstance3D a, MeshInstance3D b)
+        {
+            var overlap = ReviewBounds(a).Intersection(ReviewBounds(b)).Size;
+            return overlap.X <= 0.005f || overlap.Y <= 0.005f || overlap.Z <= 0.005f || !OrientedBoxesPenetrate(a, b);
+        }
+        var equipment = root.GetChildren().OfType<Node3D>().ToArray();
+        check(equipment.All(a => equipment.Where(b => b != a)
+            .All(b => ReviewMeshes(a).All(am => ReviewMeshes(b).All(bm => Clear(am, bm))))),
+            "sum_counter_separate_equipment_clearance");
+        var reference = LadderEditorProjectJson.Load(FileAccess.GetFileAsString(
+            "res://programs/examples/09-sum-counter-reference.rpproj.json"));
+        check(reference.IsReadable, "sum_counter_opt_in_reference_project_readable");
+        if (reference.Document is null) throw new InvalidOperationException("Sum/counter reference is unreadable.");
+        EnableVirtualControllerProgram(reference.Document.BuildProgram());
+        try
+        {
+            _virtualController!.Run();
+            void Scan() => _PhysicsProcess(0.04);
+            void Toggle(string point) { runtime.ExecuteAction("toggle-" + point); Scan(); }
+            runtime.ExecuteAction("cycle-operand_a"); runtime.ExecuteAction("cycle-operand_a");
+            for (var i = 0; i < 3; i++) runtime.ExecuteAction("cycle-operand_b");
+            Scan();
+            check(Readout(0).Text == "A NEXT\n2" && Readout(1).Text == "B NEXT\n5",
+                "sum_counter_pc_operand_cycles_update_live_readouts");
+            Toggle("call_complete"); // Invalid event; no permissives yet.
+            Toggle("inputs_valid"); Toggle("calculate_request");
+            check(Equals(runtime.Points["event_count"], 0L),
+                "sum_counter_later_permissive_does_not_count_held_invalid_completion");
+            Toggle("call_complete"); Toggle("call_complete");
+            check(Equals(runtime.Points["sum_result"], 7L) && Readout(2).Text == "SUM\n7"
+                && Equals(runtime.Points["event_count"], 1L) && Readout(3).Text == "COUNT\n1",
+                "sum_counter_valid_edge_publishes_sum_and_same_scan_count");
+            _PhysicsProcess(1.0);
+            check(Equals(runtime.Points["event_count"], 1L), "sum_counter_held_completion_does_not_recount");
+            Toggle("inputs_valid");
+            check(runtime.Points["result_valid"] is false && Equals(runtime.Points["event_count"], 1L),
+                "sum_counter_permissive_loss_clears_validity_preserves_count");
+            CommitVirtualControllerSnapshot(_virtualController.Stop());
+            check(Readout(2).Text == "SUM\n0" && Readout(3).Text == "COUNT\n0"
+                && _virtualController.Snapshot.Counters["completed_calls"].Accumulated == 1,
+                "sum_counter_stop_zeroes_output_image_preserves_counter_memory");
+            _virtualController.Run(); Scan();
+            check(Readout(3).Text == "COUNT\n1", "sum_counter_run_republishes_retained_count");
+            runtime.ResetSimulation(); CommitVirtualControllerSnapshot(_virtualController.Reset());
+            check(Enumerable.Range(0, 4).All(i => Readout(i).Text.EndsWith("\n0", StringComparison.Ordinal))
+                && runtime.Points["call_complete"] is false
+                && _virtualController.Snapshot.Counters["completed_calls"].Accumulated == 0,
+                "sum_counter_reset_clears_operands_inputs_outputs_and_memory");
+        }
+        finally { DisableVirtualController(); }
+    }
+
     private void VerifyRadarMountAndBeam(Action<bool, string> check)
     {
         AddMigratedScene("tank-radar", _candidateCatalog!, _mainCamera!, false, false);

@@ -368,6 +368,7 @@ public partial class Main
             VerifyCutLengthDisplayGeometry(Check);
             VerifyStaticTrainingReadouts(Check);
             VerifyArithmeticValidityLayouts(Check);
+            VerifySumCounterWorkflow(Check);
             VerifyBoxVolumeFixture(Check);
             VerifyPalletCountReadoutWorkflow(Check);
             VerifyNumericSceneOutputTypes(Check);

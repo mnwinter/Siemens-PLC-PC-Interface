@@ -6,6 +6,30 @@ would otherwise be trapped in a local Codex session. It intentionally excludes
 machine-local Codex databases, credentials, screenshots from private chats, and
 temporary runtime state.
 
+Sum and Counter numeric repair (2026-10-05): scene 68 now declares DINT
+operand_a/operand_b (PC), sum_result/event_count (PLC), and four live numeric
+readouts. The unbound CNC was removed; three manual Boolean input plates were
+labeled. Existing Boolean points and ownership remain intact. Clicking the
+A NEXT/B NEXT 3D readouts or sidebar actions cycles 0, 1, 2, 5, 10. The exercise
+still opens with an empty project. An explicit editable reference is supplied
+at programs/examples/09-sum-counter-reference.rpproj.json; its always-scanned FC
+uses ADD and a qualified rising call_complete edge, then Main uses CTU and MOV
+ACC to the count output. Counter state is global memory, not FC-local instance
+storage; call_complete is manual PC feedback, not automatic machine feedback.
+Native full-scene FR/FL/RL/RR/Top and close operand/result views were inspected.
+Both 3D operand readouts accepted clicks and displayed changed input values.
+The normal Project > Open workflow loaded the reference; Online > Verify + load
+offline reported 2 blocks, 1 task, 6 networks and 11 tags. Operator Run, operands
+2 and 5, and the three manual inputs displayed SUM 7 and COUNT 1. The held input
+did not recount across later scans. Stop showed SUM/COUNT 0; Run restored 7/1
+without a new event; Reset showed input/readout zero, BOOL False and scan 0.
+Eleven added integration/clearance checks cover these transitions plus invalid
+completion followed by permissive restoration. Build has zero warnings/errors;
+244 geometry/workflow checks, app-shell 77 scenes/294 assets (one existing
+SYSREADY scope diagnostic), and help 294/77 pass. This is offline/source evidence;
+physical PLC behavior, independent candidate asset approval and full-program
+acceptance remain open. Logs: .tools/sum-counter-{build,geometry,shell,help,native}.log.
+
 Normal launch and retained Qt/packaging review (2026-10-05): executed
 RUN-RUNGPROOF-NEXT.cmd without QA flags. Restore/build/import completed and the
 native application opened the default Conveyor Inspection Cell. The ordinary

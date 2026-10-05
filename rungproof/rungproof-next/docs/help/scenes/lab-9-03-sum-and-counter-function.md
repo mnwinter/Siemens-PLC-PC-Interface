@@ -2,11 +2,11 @@
 
 Scene ID: `lab-9-03-sum-and-counter-function`  
 Migrated source: `prototype/scenes/lab-9-03-sum-and-counter-function.plcscene`  
-Scene contract: `prototype/scenes/lab-9-03-sum-and-counter-function.plcscene`
+Scene contract: `res://scenes/migrated/lab-9-03-sum-and-counter-function.scene.json`
 
 ## Purpose
 
-A function calculates a result and increments an internal event count when the call completes.
+Numeric sum and event-count exercise: manual operands and call-complete input; PLC-authored logic owns the result and count.
 
 ## Expected I/O to operate this scene
 
@@ -19,6 +19,10 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | `call_complete` | `BOOL` | **PC** | `False` |
 | `result_valid` | `BOOL` | **PLC** | `False` |
 | `event_counted` | `BOOL` | **PLC** | `False` |
+| `operand_a` | `DINT` | **PC** | `0` |
+| `operand_b` | `DINT` | **PC** | `0` |
+| `sum_result` | `DINT` | **PLC** | `0` |
+| `event_count` | `DINT` | **PLC** | `0` |
 
 ## Operator actions
 
@@ -27,6 +31,8 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | `Toggle inputs valid` | `toggle` | `inputs_valid` |
 | `Toggle calculate request` | `toggle` | `calculate_request` |
 | `Toggle call complete` | `toggle` | `call_complete` |
+| `Cycle operand_a (0, 1, 2, 5, 10)` | `cycle` | `operand_a` |
+| `Cycle operand_b (0, 1, 2, 5, 10)` | `cycle` | `operand_b` |
 
 ## Equipment bindings
 
@@ -37,17 +43,24 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | `call_complete` | `switch_4` | `switch` |
 | `result_valid` | `indicator_2` | `indicator` |
 | `event_counted` | `indicator_5` | `indicator` |
+| `operand_a` | `numeric_display_0` | `numericDisplay` |
+| `operand_b` | `numeric_display_1` | `numericDisplay` |
+| `sum_result` | `numeric_display_2` | `numericDisplay` |
+| `event_count` | `numeric_display_3` | `numericDisplay` |
 
 ## Expected equipment
 
 | ID | Type | Label |
 | --- | --- | --- |
-| `machine_0` | `machine` | Sum and Counter Function machine |
-| `switch_1` | `switch` | Sum and Counter Function switch |
-| `indicator_2` | `indicator` | Sum and Counter Function indicator |
-| `switch_3` | `switch` | Sum and Counter Function operator input |
-| `switch_4` | `switch` | Sum and Counter Function operator input |
-| `indicator_5` | `indicator` | Sum and Counter Function output indication |
+| `switch_1` | `switch` | Manual inputs valid input |
+| `indicator_2` | `indicator` | PLC result valid indication |
+| `switch_3` | `switch` | Manual calculate input |
+| `switch_4` | `switch` | Manual call complete input |
+| `indicator_5` | `indicator` | PLC event counted indication |
+| `numeric_display_0` | `trainingAccessory` | A NEXT live numeric readout |
+| `numeric_display_1` | `trainingAccessory` | B NEXT live numeric readout |
+| `numeric_display_2` | `trainingAccessory` | SUM live numeric readout |
+| `numeric_display_3` | `trainingAccessory` | COUNT live numeric readout |
 
 ## Stop and safety boundary
 
@@ -55,18 +68,21 @@ A normal Stop removes PLC-owned commands according to the scene runtime. This do
 
 ## Machine guide
 
-A function calculates a result and increments an internal event count when the call completes.
+Numeric sum and event-count exercise: manual operands and call-complete input; PLC-authored logic owns the result and count.
 
 ### Start conditions
 
-- The common PLC/watchdog foundation is healthy.
-- All required simulator inputs are at their documented initial state.
+- Built-in virtual controller selected; no physical PLC is required.
+- Author or explicitly load the reference ladder, then Verify + Load and Run.
 
 ### Normal sequence
 
-- Apply the requested input condition.
-- Verify only the documented PLC outputs respond.
+- Choose A and B with the A NEXT and B NEXT readouts or sidebar actions.
+- Enable INPUTS VALID and CALCULATE; toggle manual CALL COMPLETE off/on for each new completion.
+- With the reference, SUM shows the qualified arithmetic result and COUNT advances once per valid completion edge.
 
 ### Expected observations
 
-- Each completed call produces one valid result and one counter event.
+- A NEXT and B NEXT immediately show their PC input values.
+- SUM and COUNT stay zero with the empty exercise program.
+- With the opt-in reference: A=2, B=5 and one valid completion yield SUM=7, COUNT=1; event_counted is a one-scan pulse, result_valid follows the three Boolean inputs.

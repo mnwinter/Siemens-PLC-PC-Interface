@@ -31,7 +31,7 @@ For native multi-angle inspection, launch Godot with `-- --app-shell
 --visual-scene-review`. The opt-in review bar provides catalog navigation, four
 diagonal camera views, overhead, detail zoom and an equipment-focus selector. Scene navigation uses the
 normal unsaved-work guards. Normal launch has no review bar.
-`-- --verify-scene-geometry` runs 49 focused checks for Demo 5 clearance/attachment,
+`-- --verify-scene-geometry` runs 244 focused geometry/workflow checks for Demo 5 clearance/attachment,
 mixer placement/tank sizing/chute identity/floor support, scaled radar feedback,
 the parcel sorter's supported paths, optical heights and Stop/Reset,
 inspection conveyor support/photoeye clearance/feedback, gallery floor/probe support,
@@ -50,6 +50,27 @@ no supplied reference controller, and its normal shell Run opens the blank edito
 all 77 shell scenes. Overlapping bounds are inspection candidates, not proof of
 solid collision or visual acceptance. Track native observations in
 [`../docs/MULTI_ANGLE_SCENE_REVIEW.md`](../docs/MULTI_ANGLE_SCENE_REVIEW.md).
+
+## Sum and Counter exercise reference
+
+Scene `lab-9-03-sum-and-counter-function` opens with an empty ladder exercise.
+Its A NEXT and B NEXT readouts are clickable numeric inputs; SUM and COUNT are
+PLC-owned live output readouts. To run the supplied offline reference:
+
+1. Select Lab 9.3 and open Logic Editor.
+2. Choose Project > Open project and open
+   `programs/examples/09-sum-counter-reference.rpproj.json`.
+3. Choose Online > Verify + load offline, return to the scene, and press Run.
+4. Cycle A to 2 and B to 5. Enable INPUTS VALID and CALCULATE, then toggle
+   CALL COMPLETE on. Expect SUM 7 and COUNT 1. Toggle completion off/on for
+   another event; leaving it held must not recount.
+5. Stop shows output readouts zero while retaining counter memory. Run restores
+   the count. Reset clears manual inputs, operand values and counter memory.
+
+CALL COMPLETE is manually supplied feedback. The reference stores its counter
+in global memory; it does not model an instance-local FC counter or a physical
+machine call. Losing a permissive clears result_valid while retaining the last
+sum and count; Stop clears their output images.
 
 ## Architecture rule
 

@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-9-03-sum-and-counter-function",
   "name": "Lab 9.3 - Sum and Counter Function",
-  "description": "A function calculates a result and increments an internal event count when the call completes.",
+  "description": "Numeric sum and event-count exercise: manual operands and call-complete input; PLC-authored logic owns the result and count.",
   "camera": {
     "position": [
       11,
@@ -19,45 +19,27 @@
   },
   "equipment": [
     {
-      "id": "machine_0",
-      "type": "machine",
-      "label": "Sum and Counter Function machine",
-      "position": [
-        -3.3000000000000003,
-        0,
-        0
-      ],
-      "config": {
-        "size": [
-          2.1,
-          2.7,
-          1.7
-        ],
-        "color": 5466227,
-        "running": false
-      }
-    },
-    {
       "id": "switch_1",
       "type": "switch",
-      "label": "Sum and Counter Function switch",
+      "label": "Manual inputs valid input",
       "position": [
-        -1.1,
+        -3.3,
         0,
         0
       ],
       "config": {
         "style": "pushbutton",
         "action": "toggle-inputs_valid",
-        "color": 2204518
+        "color": 2204518,
+        "faceLabel": "INPUTS VALID"
       }
     },
     {
       "id": "indicator_2",
       "type": "indicator",
-      "label": "Sum and Counter Function indicator",
+      "label": "PLC result valid indication",
       "position": [
-        1.1,
+        3.3,
         0,
         0
       ],
@@ -73,41 +55,43 @@
     {
       "id": "switch_3",
       "type": "switch",
-      "label": "Sum and Counter Function operator input",
+      "label": "Manual calculate input",
       "position": [
-        3.3000000000000003,
+        -1.1,
         0,
         0
       ],
       "config": {
         "style": "pushbutton",
         "action": "toggle-calculate_request",
-        "color": 2204518
+        "color": 2204518,
+        "faceLabel": "CALCULATE"
       }
     },
     {
       "id": "switch_4",
       "type": "switch",
-      "label": "Sum and Counter Function operator input",
+      "label": "Manual call complete input",
       "position": [
-        -2.85,
+        1.1,
         0,
-        2.35
+        0
       ],
       "config": {
         "style": "pushbutton",
         "action": "toggle-call_complete",
-        "color": 2204518
+        "color": 2204518,
+        "faceLabel": "CALL COMPLETE"
       }
     },
     {
       "id": "indicator_5",
       "type": "indicator",
-      "label": "Sum and Counter Function output indication",
+      "label": "PLC event counted indication",
       "position": [
-        -0.6500000000000001,
+        3.3,
         0,
-        2.35
+        -1.2
       ],
       "config": {
         "colors": [
@@ -116,6 +100,72 @@
           "green"
         ],
         "active": "red"
+      }
+    },
+    {
+      "id": "numeric_display_0",
+      "type": "trainingAccessory",
+      "label": "A NEXT live numeric readout",
+      "position": [
+        -3.3,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "count display",
+        "catalogAssetId": "training.accessory.count_display.v1",
+        "display": "numeric",
+        "displayLabel": "A NEXT",
+        "action": "cycle-operand_a"
+      }
+    },
+    {
+      "id": "numeric_display_1",
+      "type": "trainingAccessory",
+      "label": "B NEXT live numeric readout",
+      "position": [
+        -1.1,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "count display",
+        "catalogAssetId": "training.accessory.count_display.v1",
+        "display": "numeric",
+        "displayLabel": "B NEXT",
+        "action": "cycle-operand_b"
+      }
+    },
+    {
+      "id": "numeric_display_2",
+      "type": "trainingAccessory",
+      "label": "SUM live numeric readout",
+      "position": [
+        1.1,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "count display",
+        "catalogAssetId": "training.accessory.count_display.v1",
+        "display": "numeric",
+        "displayLabel": "SUM"
+      }
+    },
+    {
+      "id": "numeric_display_3",
+      "type": "trainingAccessory",
+      "label": "COUNT live numeric readout",
+      "position": [
+        3.3,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "count display",
+        "catalogAssetId": "training.accessory.count_display.v1",
+        "display": "numeric",
+        "displayLabel": "COUNT"
       }
     }
   ],
@@ -153,6 +203,32 @@
         "owner": "PLC",
         "initial": false,
         "role": "output"
+      },
+      {
+        "name": "operand_a",
+        "type": "DINT",
+        "owner": "PC",
+        "initial": 0
+      },
+      {
+        "name": "operand_b",
+        "type": "DINT",
+        "owner": "PC",
+        "initial": 0
+      },
+      {
+        "name": "sum_result",
+        "type": "DINT",
+        "owner": "PLC",
+        "initial": 0,
+        "role": "output"
+      },
+      {
+        "name": "event_count",
+        "type": "DINT",
+        "owner": "PLC",
+        "initial": 0,
+        "role": "output"
       }
     ],
     "actions": [
@@ -173,6 +249,32 @@
         "label": "Toggle call complete",
         "type": "toggle",
         "point": "call_complete"
+      },
+      {
+        "id": "cycle-operand_a",
+        "label": "Cycle operand_a (0, 1, 2, 5, 10)",
+        "type": "cycle",
+        "point": "operand_a",
+        "values": [
+          0,
+          1,
+          2,
+          5,
+          10
+        ]
+      },
+      {
+        "id": "cycle-operand_b",
+        "label": "Cycle operand_b (0, 1, 2, 5, 10)",
+        "type": "cycle",
+        "point": "operand_b",
+        "values": [
+          0,
+          1,
+          2,
+          5,
+          10
+        ]
       }
     ],
     "rules": [],
@@ -204,44 +306,77 @@
         "equipmentId": "indicator_5",
         "mode": "indicator",
         "activeColor": "green"
+      },
+      {
+        "point": "operand_a",
+        "equipmentId": "numeric_display_0",
+        "mode": "numericDisplay",
+        "label": "A NEXT"
+      },
+      {
+        "point": "operand_b",
+        "equipmentId": "numeric_display_1",
+        "mode": "numericDisplay",
+        "label": "B NEXT"
+      },
+      {
+        "point": "sum_result",
+        "equipmentId": "numeric_display_2",
+        "mode": "numericDisplay",
+        "label": "SUM"
+      },
+      {
+        "point": "event_count",
+        "equipmentId": "numeric_display_3",
+        "mode": "numericDisplay",
+        "label": "COUNT"
       }
     ]
   },
   "training": {
     "hints": [
-      "Translate the lesson into explicit state and permissive logic: Each completed call produces one valid result and one counter event.",
-      "Inputs are simulator feedback (inputs_valid, calculate_request, call_complete); PLC logic owns result_valid, event_counted.",
-      "Test the initial state, the valid condition, and at least one missing permissive."
+      "This exercise opens with an empty ladder project. Run alone does not implement arithmetic.",
+      "Click the A NEXT and B NEXT readouts, or use their sidebar actions, to cycle each DINT operand through 0, 1, 2, 5, 10.",
+      "Use ADD for the sum, a rising call-complete edge qualified by inputs_valid and calculate_request for each counter event, and MOV the counter ACC to event_count after its update.",
+      "The call_complete input is manually supplied PC feedback; the scene does not execute a machine call to generate it."
     ],
     "solution": {
-      "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
+      "summary": "An opt-in editable offline reference is provided in programs/examples/09-sum-counter-reference.rpproj.json. It is not automatically loaded into this exercise.",
       "steps": [
-        "Require the documented inputs: inputs_valid, calculate_request, call_complete.",
-        "Command the documented outputs: result_valid, event_counted.",
-        "Remove PLC commands when the permissive is lost."
+        "Open that project from the Ladder workspace, then Verify + Load and Run.",
+        "The always-scanned FC computes the valid sum and completion event. The global counter retains state; this is not an instance-local FC counter.",
+        "Enable inputs_valid and calculate_request, choose operands, then toggle call_complete off/on for each completion.",
+        "A held completion does not recount, and enabling a permissive after an invalid held completion does not manufacture an event."
       ],
-      "acceptance": "Each completed call produces one valid result and one counter event."
+      "acceptance": "For A=2 and B=5, a valid completion publishes SUM=7 and increments COUNT once; held completion does not recount. Stop zeroes PLC output images, Run republishes retained count, Reset clears inputs and memory."
     },
-    "assetRequirements": [],
+    "assetRequirements": [
+      "three labeled operator stations",
+      "two output lamps",
+      "four live numeric readouts"
+    ],
     "machineGuide": {
-      "purpose": "A function calculates a result and increments an internal event count when the call completes.",
+      "purpose": "Numeric sum and event-count exercise: manual operands and call-complete input; PLC-authored logic owns the result and count.",
       "startConditions": [
-        "The common PLC/watchdog foundation is healthy.",
-        "All required simulator inputs are at their documented initial state."
+        "Built-in virtual controller selected; no physical PLC is required.",
+        "Author or explicitly load the reference ladder, then Verify + Load and Run."
       ],
       "normalSequence": [
-        "Apply the requested input condition.",
-        "Verify only the documented PLC outputs respond."
+        "Choose A and B with the A NEXT and B NEXT readouts or sidebar actions.",
+        "Enable INPUTS VALID and CALCULATE; toggle manual CALL COMPLETE off/on for each new completion.",
+        "With the reference, SUM shows the qualified arithmetic result and COUNT advances once per valid completion edge."
       ],
       "stopBehavior": [
-        "Removing the permissive removes PLC-owned commands.",
-        "Reset returns the module to its initial state."
+        "Stop clears the PLC output image and both output readouts show zero; internal counter memory is retained.",
+        "Run republishes retained count. Reset clears operand values, manual inputs, outputs and counter memory."
       ],
       "faultBehavior": [
-        "A missing or stale input must fail safe and remain diagnosable."
+        "A completion while a permissive is false is not counted. Restoring that permissive while completion remains held must not count it."
       ],
       "expectedObservations": [
-        "Each completed call produces one valid result and one counter event."
+        "A NEXT and B NEXT immediately show their PC input values.",
+        "SUM and COUNT stay zero with the empty exercise program.",
+        "With the opt-in reference: A=2, B=5 and one valid completion yield SUM=7, COUNT=1; event_counted is a one-scan pulse, result_valid follows the three Boolean inputs."
       ]
     },
     "sequenceNumber": 54,
@@ -259,7 +394,11 @@
       "inputs_valid",
       "call_complete",
       "result_valid",
-      "event_counted"
+      "event_counted",
+      "operand_a",
+      "operand_b",
+      "sum_result",
+      "event_count"
     ],
     "changedTags": [],
     "previousAcceptance": [
@@ -272,7 +411,9 @@
         "name": "initial-safe-state",
         "expect": {
           "result_valid": false,
-          "event_counted": false
+          "event_counted": false,
+          "sum_result": 0,
+          "event_count": 0
         }
       }
     ]

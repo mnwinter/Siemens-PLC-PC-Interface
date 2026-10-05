@@ -28,6 +28,30 @@ Every row requires native inspection.
 
 ## Repairs and open findings
 
+Sum and Counter numeric repair (2026-10-05): scene 68 now declares DINT
+operand_a/operand_b (PC), sum_result/event_count (PLC), and four live numeric
+readouts. The unbound CNC was removed; three manual Boolean input plates were
+labeled. Existing Boolean points and ownership remain intact. Clicking the
+A NEXT/B NEXT 3D readouts or sidebar actions cycles 0, 1, 2, 5, 10. The exercise
+still opens with an empty project. An explicit editable reference is supplied
+at programs/examples/09-sum-counter-reference.rpproj.json; its always-scanned FC
+uses ADD and a qualified rising call_complete edge, then Main uses CTU and MOV
+ACC to the count output. Counter state is global memory, not FC-local instance
+storage; call_complete is manual PC feedback, not automatic machine feedback.
+Native full-scene FR/FL/RL/RR/Top and close operand/result views were inspected.
+Both 3D operand readouts accepted clicks and displayed changed input values.
+The normal Project > Open workflow loaded the reference; Online > Verify + load
+offline reported 2 blocks, 1 task, 6 networks and 11 tags. Operator Run, operands
+2 and 5, and the three manual inputs displayed SUM 7 and COUNT 1. The held input
+did not recount across later scans. Stop showed SUM/COUNT 0; Run restored 7/1
+without a new event; Reset showed input/readout zero, BOOL False and scan 0.
+Eleven added integration/clearance checks cover these transitions plus invalid
+completion followed by permissive restoration. Build has zero warnings/errors;
+244 geometry/workflow checks, app-shell 77 scenes/294 assets (one existing
+SYSREADY scope diagnostic), and help 294/77 pass. This is offline/source evidence;
+physical PLC behavior, independent candidate asset approval and full-program
+acceptance remain open. Logs: .tools/sum-counter-{build,geometry,shell,help,native}.log.
+
 Normal launch and retained Qt/packaging review (2026-10-05): executed
 RUN-RUNGPROOF-NEXT.cmd without QA flags. Restore/build/import completed and the
 native application opened the default Conveyor Inspection Cell. The ordinary
@@ -1240,7 +1264,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 65 | `lab-6-08-hand-dryer` | 634 | Native FR/FL/RL/RR/T; replacement readout five focus views | PROGRESS readout replaced/repositioned; five focus views (FL text partly obscured, RL obscured). FAIL/open: substitute heating shutter and disconnected fan/panel/bottle; no remaining-time numeric binding |
 | 66 | `lab-9-01-sum-function` | 0 (historical) | Native FR/FL/RL/RR/T; focused readout Top/RL/RR; manual inputs/Reset | Unbound CNC/bearing props removed; input plates corrected, rear readout supports visible. Layout/plate checks pass. Open: numeric operands/sum unimplemented, readout has NO LIVE VALUE, authored output behavior unaccepted |
 | 67 | `lab-9-02-product-function` | 0 (historical) | Native FR/FL/RL/RR/T; focused readout Top/RL/RR; manual inputs/Reset | Unbound CNC/bearing props removed; input plates corrected, rear readout supports visible. Layout/plate checks pass. Open: numeric factors/product unimplemented, readout has NO LIVE VALUE, authored output behavior unaccepted |
-| 68 | `lab-9-03-sum-and-counter-function` | 0 | Native FR/FL/RL/RR/T | Static clear spacing; no numeric result/event count contract; CNC unbound |
+| 68 | `lab-9-03-sum-and-counter-function` | 0 (historical) | Native FR/FL/RL/RR/T; close operand/result views; actual 3D operand clicks; Project Open/Verify + Load; Run/Stop/Reset | CNC removed; typed DINT operands/sum/count and live readouts added. Opt-in reference displays 2+5=7 and one held completion count, Stop zeros image, Run republishes retained count, Reset clears. Eleven integration/clearance checks pass. Open: independent reusable-asset approval; manual call-complete feedback; exercise requires authored/explicit reference logic |
 | 69 | `lab-9-04-function-selector` | 0 (historical) | Native FR/FL/RL/RR/T; focused readout Top/RL/RR; manual inputs/Reset | Unbound CNC/bearing props removed; input plates corrected, rear readout supports visible. Layout/plate checks pass. Open: numeric operands/result and an actual function choice unimplemented, readout has NO LIVE VALUE, authored output behavior unaccepted |
 | 70 | `lab-9-10-box-volume` | 46 (historical) | Native FR/FL/RL/RR/T; replacement fixture and readout five focus views each; actual 3D buttons/Reset | Static three-head fixture replaces shutter; carton supported on bench, CNC removed and rear readout view cleared. Seven geometry checks and LENGTH/WIDTH/HEIGHT manual inputs/Reset pass. Open: no numeric dimension acquisition, volume calculation or live MEASUREMENT value; independent asset approval pending |
 | 71 | `lab-9-11-pallet-counting` | 86 | Native FR/FL/RL/RR/T | Carton/fixture/readout geometry repaired and five views/details inspected. Live DINT count/readout FR/FL and invalid/five-edge/held/permissive/Stop/Run/Reset native checks pass. Optical classification/pallet travel/CNC integration open |

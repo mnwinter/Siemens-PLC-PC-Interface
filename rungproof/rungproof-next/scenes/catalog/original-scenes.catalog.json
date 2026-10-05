@@ -3,7 +3,7 @@
   "catalogId": "rungproof-original-scenes-migrated",
   "sourceRoot": "prototype/scenes",
   "sceneCount": 77,
-  "equipmentInstanceCount": 586,
+  "equipmentInstanceCount": 589,
   "equipmentTypeCounts": {
     "box": 30,
     "containerReceiver": 1,
@@ -13,7 +13,7 @@
     "indicator": 117,
     "levelSensor": 9,
     "liftTable": 5,
-    "machine": 15,
+    "machine": 14,
     "meteringSkid": 1,
     "motor": 11,
     "palletLoad": 1,
@@ -33,7 +33,7 @@
     "toteFiller": 2,
     "toteLabeler": 1,
     "toteVision": 1,
-    "trainingAccessory": 105,
+    "trainingAccessory": 109,
     "valve": 5
   },
   "scenes": [
@@ -1128,11 +1128,11 @@
       "name": "Lab 9.3 - Sum and Counter Function",
       "path": "res://scenes/migrated/lab-9-03-sum-and-counter-function.scene.json",
       "sourceFile": "prototype/scenes/lab-9-03-sum-and-counter-function.plcscene",
-      "equipmentCount": 6,
+      "equipmentCount": 9,
       "equipmentTypes": [
         "indicator",
-        "machine",
-        "switch"
+        "switch",
+        "trainingAccessory"
       ],
       "unresolvedAssetTypes": [],
       "visualStatus": "mapped"
