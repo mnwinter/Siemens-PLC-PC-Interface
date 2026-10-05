@@ -24,6 +24,7 @@ public partial class EquipmentMotionController : Node
         ScissorLift,
         RollerShutter,
         CartesianGantry,
+        SpindleFeed,
     }
 
     [Export] public MotionKind Kind { get; set; }
@@ -110,6 +111,15 @@ public partial class EquipmentMotionController : Node
                     RotateContinuously(seconds);
                 }
                 break;
+            case MotionKind.SpindleFeed:
+                // Rotation follows the BOOL spindle command; axial feed follows
+                // the declared position motion. Running alone cannot drive down.
+                if (RunCommand)
+                {
+                    _angleRadians += RpmToRadiansPerSecond(SpeedRpm * _speedFraction) * seconds;
+                    ApplySpindleFeed();
+                }
+                break;
             case MotionKind.FanRotor:
                 if (RunCommand)
                 {
@@ -182,6 +192,7 @@ public partial class EquipmentMotionController : Node
         {
             ApplyPosition();
         }
+        else if (Kind == MotionKind.SpindleFeed) ApplySpindleFeed();
     }
 
     public void ResetMotion()
@@ -208,6 +219,17 @@ public partial class EquipmentMotionController : Node
         foreach (var target in _targets)
         {
             target.RotateObjectLocal(axis, radians);
+        }
+    }
+
+    private void ApplySpindleFeed()
+    {
+        foreach (var target in _targets)
+        {
+            var authored = _authoredTransforms[target];
+            target.Transform = new Transform3D(
+                authored.Basis.Rotated(Vector3.Up, _angleRadians),
+                authored.Origin + Vector3.Up * (TravelM * _position));
         }
     }
 

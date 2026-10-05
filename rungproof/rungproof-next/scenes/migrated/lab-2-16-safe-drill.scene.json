@@ -28,7 +28,7 @@
         0
       ],
       "config": {
-        "travel": 1.3,
+        "installation": "fixtureDrill",
         "initialPosition": 0,
         "running": false
       }
@@ -38,17 +38,12 @@
       "type": "box",
       "label": "Clamped workpiece",
       "position": [
-        1,
-        1.16,
-        0
+        1.08,
+        1.64,
+        0.05
       ],
       "config": {
-        "size": [
-          1.3,
-          0.2,
-          0.9
-        ],
-        "color": 6187891
+        "installation": "drillStock"
       }
     },
     {
@@ -191,13 +186,14 @@
         "requires": {
           "left_hand_request": true,
           "right_hand_request": true,
-          "workpiece_present": true
+          "workpiece_present": true,
+          "drill_at_top": true
         },
-        "blockedMessage": "Start blocked - workpiece and both hand requests are required"
+        "blockedMessage": "Start blocked - workpiece, both hand requests and drill at top are required"
       },
       {
         "id": "stop-drill",
-        "label": "Stop and retract",
+        "label": "Stop spindle and hold",
         "type": "stop"
       },
       {
@@ -301,6 +297,7 @@
   },
   "training": {
     "hints": [
+      "The two hand requests are latched demonstration inputs, checked at Start with workpiece presence and drill_at_top. This scene does not model a safety-rated two-hand or guard interlock.",
       "Define the required result before writing logic: Start is blocked without both requests; a valid cycle drills, retracts, and stops at top.",
       "Treat left_hand_request, right_hand_request, workpiece_present, drill_at_top, drill_at_bottom as simulator-to-PLC inputs. The PLC should command only drill_run.",
       "Use a step/state approach and prove the transition order: spindle start \u2192 drilling \u2192 bottom dwell \u2192 retracting \u2192 cycle complete."
@@ -331,8 +328,8 @@
         "cycle complete"
       ],
       "stopBehavior": [
-        "A normal stop removes PLC-owned commands and leaves the equipment in a safe state.",
-        "Reset returns the scene to its documented initial condition."
+        "Stop removes the spindle command and holds the current feed position. It does not retract.",
+        "After a stopped cycle, Reset restores the simulator's top position before another start."
       ],
       "faultBehavior": [
         "A missing, stale, or incorrectly typed input must not be replaced by simulator logic.",
@@ -369,6 +366,40 @@
   },
   "verification": {
     "cases": [
+      {
+        "name": "stop-holds-bottom-and-blocks-restart",
+        "phases": [
+          { "action": "toggle-left-hand" },
+          { "action": "toggle-right-hand" },
+          { "action": "start-drill", "runForS": 1.9 },
+          { "action": "stop-drill", "runForS": 2 },
+          { "action": "start-drill", "runForS": 0.5 }
+        ],
+        "expect": {
+          "drill_run": false,
+          "drill_at_bottom": true,
+          "drill_at_top": false,
+          "cycle_complete": false
+        }
+      },
+      {
+        "name": "reset-after-stop-restores-home",
+        "phases": [
+          { "action": "toggle-left-hand" },
+          { "action": "toggle-right-hand" },
+          { "action": "start-drill", "runForS": 1.9 },
+          { "action": "stop-drill" },
+          { "action": "reset-drill" }
+        ],
+        "expect": {
+          "drill_run": false,
+          "drill_at_bottom": false,
+          "drill_at_top": true,
+          "left_hand_request": false,
+          "right_hand_request": false,
+          "cycle_complete": false
+        }
+      },
       {
         "name": "blocked-without-hands",
         "phases": [

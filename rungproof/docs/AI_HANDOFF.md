@@ -6,6 +6,38 @@ would otherwise be trapped in a local Codex session. It intentionally excludes
 machine-local Codex databases, credentials, screenshots from private chats, and
 temporary runtime state.
 
+Latest fixture/feed checkpoint (2026-10-04): coverage 32/77 native five-view
+inspections, 45 pending including failures. Opt-in fixtureDrill moves the actual
+delivered yellow coupon into the workpiece root at its vise center, removing the
+buried second fixture. Actual original tip Y=1.610 vs stock Y=1.585..1.695;
+235 mm raised home gives 150 mm clearance, 245 mm feed ends at Y=1.600. New
+SpindleFeed adapter separates BOOL rotation from declared position feed and
+keeps quill/chuck/bit together, head/guard/table/vise fixed. Stop's honest label
+now says Stop spindle and hold; guide states no retraction. Start additionally
+requires drill_at_top to prevent false top feedback on a stopped bottom pose.
+Normal native repaired FR/FL/RL/RR/T, stock FR close and both rendered 3D hand
+buttons verified; rendered cycle button blocks no controller and output stays
+false. Standalone held home/downstroke/bottom four close side views, Stop across
+two stepped seconds, blocked restart, visible Reset and intermediate retract
+inspected; resumed real-time and wholly unheld reference cycles reach top/complete.
+Stock top focus is head-occluded. No material removal/safety-rated two-hand/guard
+feedback model established; hints explain latched demonstration inputs. Normal
+controller lesson remains unaccepted. Build zero warnings/errors; 129 geometry/
+reference checks, four drill contracts, 142 controller tests, 19 motion checks,
+rendered controls and shell pass. Shell has four existing headless position
+errors and missing-workspace warning. Evidence rungproof-next/.tools/drill-datum.log,
+drill-feed-native.log, drill-feed-plant-native.log and drill-feed-*.log.
+Both owned reviewers exit 0, user Demo 1 preserved. Scene 31 Twin-Container
+Pallet Cell now has five native views and receiver top/FR close: FAIL, receiver
+backstop crosses conveyor end and pallet appears above belt. 23 bounds candidates
+include 13 conveyor/receiver, six conveyor/photoeye, four pallet/tote pairs;
+contact datums, sensor attachment, robot transfer/reach and empty pallet travel
+still open. Normal Run unloaded. Goal active. Next scene 32 Pallet Pickup, then
+all 45 pending scenes and recorded failures; normal controller lessons, sump/fume/
+coolant identity/service gaps and shared lift follow-ups remain outstanding.
+
+Earlier checkpoint:
+
 Latest drill checkpoint (2026-10-04): coverage 31/77 inspected, 46 pending,
 including failures. Scene 30 has normal native FR/FL/RL/RR/T and workpiece
 top/FR close inspection. FAIL: mapped drill press contains a yellow coupon

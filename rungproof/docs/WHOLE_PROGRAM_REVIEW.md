@@ -1,5 +1,21 @@
 # Whole program review - 2026-10-03
 
+Drill geometry checkpoint (2026-10-04): one delivered stock mesh replaces the
+buried duplicate fixture; measured 150 mm home clearance and 245 mm feed now
+move the quill/chuck/bit while retaining spindle rotation. Stop explicitly holds
+feed; Start requires top, and Reset restores it. Native repaired five views,
+close feed/bottom/retract/Stop/Reset views and unheld reference completion inspected.
+Normal 3D hand buttons work; cycle start blocks without a loaded controller.
+129 geometry/reference checks, four drill contracts, 142 controller tests, 19
+motion checks, rendered controls and shell pass; build has zero warnings/errors.
+Shell retains four existing headless position errors. Guard/two-hand safety
+behavior and normal loaded-controller lesson remain unaccepted. Scene 31 also
+has five native views and receiver top/FR close views: FAIL, receiver intersects
+conveyor, pallet appears above belt, full transfer unverified. Coverage 32/77,
+45 pending including failures. Exact evidence in MULTI_ANGLE_SCENE_REVIEW.md.
+
+Earlier checkpoint:
+
 Drill inspection / Run repair (2026-10-04): coverage now 31/77 native five-view
 inspections, 46 pending including failures. Close inspection finds an extra
 clamped fixture buried below the press table. Native reference bottom feedback

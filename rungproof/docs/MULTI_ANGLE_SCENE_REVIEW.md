@@ -1,7 +1,7 @@
 # Multi-angle scene review - 2026-10-04
 
 Status: **active**. The prior software review did not establish multi-angle
-visual acceptance. Thirty-one scenes have five-view native static inspections; 46 remain pending.
+visual acceptance. Thirty-two scenes have five-view native static inspections; 45 remain pending.
 Demo 5, Powder Batch Mixer, Parcel Size Sorter, Conveyor Inspection Cell,
 the Equipment Gallery, Drive Alarm-Code String and Chicken Label Print have repaired static layouts.
 The sorter operator Run still lacks a controller; eight simple panels now have corrected function plates and clear spacing. Other scenes
@@ -28,6 +28,50 @@ Every row requires native inspection.
 
 ## Repairs and open findings
 
+- Drill fixture/feed follow-up: the opt-in fixtureDrill installation uses the
+  delivery's single yellow stock mesh in the separate workpiece equipment root,
+  at its measured vise center; the second buried fixture is gone. Its bit was
+  originally at Y=1.610 inside stock spanning Y=1.585..1.695. Raising the spindle
+  home 235 mm gives 150 mm clearance; a 245 mm downstroke ends at Y=1.600 inside
+  the coupon with 15 mm remaining above its bottom. SpindleFeed retains axial
+  feed when rotating and retains rotation when a position setpoint changes.
+  Run alone rotates without automatic feed; the head/guard/table/vise stay fixed.
+  Twelve added geometry/reference checks cover single stock ownership, placement,
+  home clearance, 101 rotating feed poses, bit/chuck travel, quill/bearing overlap,
+  fixture clearance, reset, bottom feedback, stopped pose and restart blocking.
+  Generic Stop intentionally holds its current pose; the misleading Stop and
+  retract label now reads Stop spindle and hold, and the guide states that
+  behavior. Start now also requires drill_at_top, preventing bottom restart from
+  asserting top feedback on an unmoved spindle. Simulator Reset restores home.
+  Fresh normal native FR/FL/RL/RR/T and stock FR close views inspected. Actual
+  3D left/right hand buttons change the corresponding PC points; the 3D cycle
+  button reports no ladder controller loaded and leaves drill_run false. Normal
+  controller lesson execution remains unaccepted. Standalone QA shows home,
+  intermediate downstroke and bottom in four close side views; top stock focus
+  is occluded by the head. Stop holds bottom across two stepped reference seconds,
+  Run stays blocked there, and Reset visibly restores home. A subsequent reference
+  cycle retracts through an intermediate pose, then resumes in real time to
+  top/complete; a separate wholly unheld cycle also completes. Held poses do not
+  constitute continuous animation evidence. No material removal, safety-rated
+  two-hand, guard feedback or simultaneous/continuous-hold model is established;
+  the lesson hint explicitly identifies its requests as latched demonstration inputs.
+  Build 0 warnings/errors; 129 geometry/reference checks, four drill contracts,
+  19 plant-motion checks, 142 controller tests, rendered controls and shell pass.
+  Geometry log has no warnings/errors; shell retains four headless position errors
+  and the existing missing-workspace warning. Evidence in rungproof-next/.tools:
+  drill-datum.log (original actual mesh bounds), drill-feed-native.log,
+  drill-feed-plant-native.log and drill-feed-{build,geometry,contract,controller,
+  motion,controls,shell}.log. Both owned reviewers exit 0; user Demo 1 remains open.
+- Twin-Container Pallet Cell (scene 31): fresh normal native five views and
+  receiver-focused top/FR views show the receiver backstop crossing the belt end.
+  The pallet visibly appears raised off its belt; its contact datum needs measurement.
+  Its 23 candidates include 13 conveyor/receiver and six conveyor/photoeye pairs;
+  these remain screening findings, with sensor/brace close inspection outstanding.
+  Normal Run opens NO CONTROLLER LOADED. Full robot/container transfer, receiver
+  seating and outbound pallet travel remain unverified. This scene is FAIL/open.
+  Coverage is now 32/77 inspected, 45 pending including failures.
+
+- Earlier drill inspection and permissive checkpoint:
 - Fixture-Safe Drill Station (scene 30): normal Windows FR/FL/RL/RR/T
   static views and workpiece-focused top/FR close views inspected. **FAIL/open:**
   the mapped press already owns a yellow coupon in its vise; the scene's
@@ -616,8 +660,8 @@ count as this scene's multi-angle or runtime acceptance.
 | 27 | `lab-2-13-coolant-jug-fill` | 13 | Catalog FR/FL/RL/RR/T; QA five held filling views + close FL mouth; real-time indexing/exit, Reset | Lane/support/nozzle repaired; sampled sweep clear. Open: external service pipe absent, Run blank controller editor; native Stop endpoint-only |
 | 28 | `lab-2-14-sump-pump` | 41 (original) | Final repaired FR/FL/RL/RR/T wide + top/FL/RL/FR pump close | Partial piping repair: joined measured ports, aligned valve/spool and grounded supports; still FAIL: buried low probe, float fitting/identity and sump vessel open; normal Run unloaded; full level motion pending |
 | 29 | `lab-2-15-fume-extractor` | 0 | FR/FL/RL/RR/T static and running 35%; close plate; speed states; native preview Stop/Run/Off/Reset | LIGHT REQUEST, speed binding and preview Stop repaired; six-blade transform checks pass. Open: beacon substitutes light, hood/duct absent, normal Run unloaded; reference preview is not controller lesson acceptance |
-| 30 | `lab-2-16-safe-drill` | 24 | Native FR/FL/RL/RR/T + workpiece top/FR close; held bottom/Stop; final QA Run/Reset | FAIL: duplicate buried fixture, axial feed ignored, Stop does not retract; normal Run unloaded. Plates, QA overlap and default Run permissive bypass repaired; continuous two-hand/guard model open |
-| 31 | `lab-2-17-pallet-robot` | 23 | Pending | Pending |
+| 30 | `lab-2-16-safe-drill` | 24 original / 0 repaired | Native repaired FR/FL/RL/RR/T; stock FR close; normal 3D hand/cycle controls; held feed/bottom four close sides; Stop/Reset/restart; unheld completion | Fixture/feed and honest Stop-hold semantics repaired; normal cycle blocks without controller. Top stock view occluded by head; guard/two-hand safety behavior is not modeled |
+| 31 | `lab-2-17-pallet-robot` | 23 | Native FR/FL/RL/RR/T; receiver top/FR close; normal Run | FAIL/open: receiver backstop intersects conveyor; pallet appears raised off belt. Sensor/brace candidates and robot transfer/reach remain unresolved. Run unloaded |
 | 32 | `lab-2-18-pallet-pickup` | 29 | Pending | Pending |
 | 33 | `lab-2-19-service-door` | 54 | Pending | Pending |
 | 34 | `lab-2-20-bottle-shuttle` | 39 | Pending | Pending |

@@ -80,6 +80,10 @@ public static partial class SceneComposer
                 "fan" => CreateControlledAsset(equipment, candidates, "air-handling.fan.axial-1900.v1", runCommands,
                     EquipmentMotionController.MotionKind.FanRotor, "KIN_", speedRpm: 720.0f),
                 "liftTable" => CreateLiftAsset(equipment, candidates, runCommands),
+                "drillPress" when Text(equipment.Config, "installation", string.Empty) == "fixtureDrill" =>
+                    CreateControlledAsset(equipment, candidates, "machining.drill-press.pedestal.v1", runCommands,
+                        EquipmentMotionController.MotionKind.SpindleFeed, "KIN_spindle", speedRpm: 900.0f,
+                        travelM: -0.245f),
                 "drillPress" => CreateControlledAsset(equipment, candidates, "machining.drill-press.pedestal.v1", runCommands,
                     EquipmentMotionController.MotionKind.ContinuousRotation, "KIN_spindle", speedRpm: 900.0f),
                 "robotArm" => CreateControlledAsset(equipment, candidates, "robotics.robot.six-axis-medium.v1", runCommands,
@@ -116,6 +120,8 @@ public static partial class SceneComposer
 
         if (scene.Equipment.Any(equipment => Text(equipment.Config, "installation", string.Empty) == "sumpPiping"))
             ConfigureSumpPiping(root);
+        if (scene.Equipment.Any(equipment => Text(equipment.Config, "installation", string.Empty) == "fixtureDrill"))
+            ConfigureFixtureDrill(root);
         return new SceneComposition(root, rendered, deferred);
     }
 
@@ -543,6 +549,10 @@ public static partial class SceneComposer
 
     private static Node3D CreateSceneLoad(SceneEquipment equipment, AssetCatalogDocument candidates)
     {
+        // The drill delivery already contains its clamped stock. The installation
+        // adapter moves that mesh into this equipment root, preserving point/UI
+        // identity without importing a second complete fixture through the table.
+        if (Text(equipment.Config, "installation", string.Empty) == "drillStock") return new Node3D();
         var size = NumberArray(equipment.Config, "size", new[] { 0.8, 0.7, 0.7 });
         var assetId = equipment.Id switch
         {
