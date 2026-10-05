@@ -106,6 +106,26 @@ public partial class Main
             };
             actionBar.AddChild(hold);
             actionBar.AddChild(step);
+            if (_currentSceneId == "lab-2-18-pallet-pickup")
+            {
+                // The normal elevated views cannot show the strap return
+                // inside the fork opening. This camera-only QA view leaves
+                // the equipment and controller image untouched.
+                var underside = new Godot.Button { Text = "Pallet underside" };
+                underside.Pressed += () =>
+                {
+                    var pallet = composition.GetNode<Node3D>("shipping_pallet");
+                    var bounds = ReviewBounds(pallet);
+                    var target = bounds.GetCenter();
+                    target.Y = ReviewMeshes(pallet).Where(mesh => mesh.Name.ToString().StartsWith("PALLET_STRINGER_", StringComparison.Ordinal))
+                        .Min(mesh => ReviewBounds(mesh).Position.Y) - 0.025f;
+                    _mainCamera!.Position = target + new Vector3(1.6f, 0, 1.6f);
+                    _mainCamera.LookAt(target, Vector3.Up);
+                    _cameraController?.CaptureCurrentView(target);
+                    GD.Print($"VISUAL_REVIEW_ANGLE {_currentSceneId} pallet-underside");
+                };
+                actionBar.AddChild(underside);
+            }
         }
     }
 

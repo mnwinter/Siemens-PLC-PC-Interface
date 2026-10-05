@@ -48,6 +48,7 @@ public partial class Main
             && lowerTape.Length == 4 && lowerTape.All(tape => lowerCases.Any(box => BearsOn(tape, box))),
             "shipping_pallet_upper_cases_contact_seated_lower_sealing_tape");
         GD.Print($"SHIPPING_PALLET_INTERNAL_DATUM bottomTop={ReviewBounds(runners[0]).End.Y} blockTop={ReviewBounds(blocks[0]).End.Y} stringerTop={ReviewBounds(stringers[0]).End.Y} deckTop={ReviewBounds(decks[0]).End.Y} lowerCaseBottom={ReviewBounds(lowerCases[0]).Position.Y}");
+        VerifyShippingLoadStraps(check, pallet, belt, stringers);
         var supported = true;
         // Inspect actual reference transforms, including both endpoints. The
         // flat carrying span ends at the drum axes, not at the curved wraps.
@@ -87,6 +88,66 @@ public partial class Main
         check(new[] { "TX", "RX" }.All(side => MathF.Abs(ReviewBounds((MeshInstance3D)sensor.FindChild($"{side}_foot", true, false)).Position.Y) < 0.001f),
             "shipping_pallet_both_sensor_feet_grounded");
         VerifyShippingPalletReference(check, pallet, sensor, pickupX);
+    }
+
+    private static void VerifyShippingLoadStraps(Action<bool, string> check, Node3D pallet, Aabb belt, MeshInstance3D[] stringers)
+    {
+        var straps = ReviewMeshes(pallet).Where(mesh => mesh.Name.ToString().StartsWith("LOAD_STRAP_LOOP_", StringComparison.Ordinal)).ToArray();
+        check(straps.Length == 2, "shipping_pallet_has_two_routed_strap_loops");
+        string Key(Vector3 point) => $"{MathF.Round(point.X * 1000000)}:{MathF.Round(point.Y * 1000000)}:{MathF.Round(point.Z * 1000000)}";
+        bool ClosedLoop(MeshInstance3D mesh)
+        {
+            var faces = mesh.Mesh.GetFaces();
+            var vertices = new System.Collections.Generic.HashSet<string>();
+            var edges = new System.Collections.Generic.Dictionary<string, int>();
+            for (var index = 0; index < faces.Length; index += 3)
+            for (var edge = 0; edge < 3; edge++)
+            {
+                var a = Key(faces[index + edge]); var b = Key(faces[index + (edge + 1) % 3]);
+                vertices.Add(a); vertices.Add(b);
+                var key = string.CompareOrdinal(a, b) < 0 ? a + "|" + b : b + "|" + a;
+                edges.TryGetValue(key, out var count);
+                edges[key] = count + 1;
+            }
+            // A closed band has a hole (Euler characteristic zero), unlike
+            // the old three separate bars. Every welded edge has two faces.
+            return faces.Length > 0 && edges.Values.All(count => count == 2)
+                && vertices.Count - edges.Count + faces.Length / 3 == 0;
+        }
+        check(straps.Length == 2 && straps.All(ClosedLoop), "shipping_pallet_strap_meshes_are_closed_bands_with_return_path");
+        var underside = stringers.Min(mesh => ReviewBounds(mesh).Position.Y);
+        check(straps.Length == 2 && straps.All(mesh =>
+            MathF.Abs(ReviewBounds(mesh).Position.Y - (underside - 0.0012f)) < 0.0002f
+            && ReviewBounds(mesh).Position.Y > belt.End.Y + 0.1f),
+            "shipping_pallet_strap_returns_pass_under_stringers_clear_of_belt");
+        var solids = ReviewMeshes(pallet).Where(mesh => !mesh.Name.ToString().StartsWith("LOAD_STRAP_", StringComparison.Ordinal)).ToArray();
+        bool InsideConvexSolid(MeshInstance3D mesh, Vector3 worldPoint)
+        {
+            var point = mesh.GlobalTransform.AffineInverse() * worldPoint;
+            if (!mesh.GetAabb().Grow(-0.0002f).HasPoint(point)) return false;
+            var center = mesh.GetAabb().GetCenter(); var faces = mesh.Mesh.GetFaces();
+            for (var index = 0; index < faces.Length; index += 3)
+            {
+                var a = faces[index]; var normal = (faces[index + 1] - a).Cross(faces[index + 2] - a);
+                if (normal.LengthSquared() < 1e-12f) continue;
+                normal = normal.Normalized();
+                if (normal.Dot(center - a) > 0) normal = -normal;
+                if (normal.Dot(point - a) >= -0.0002f) return false;
+            }
+            return true;
+        }
+        var clear = straps.Length == 2;
+        foreach (var strap in straps)
+        {
+            var faces = strap.Mesh.GetFaces();
+            for (var index = 0; index < faces.Length; index += 3)
+            {
+                var a = strap.GlobalTransform * faces[index]; var b = strap.GlobalTransform * faces[index + 1]; var c = strap.GlobalTransform * faces[index + 2];
+                foreach (var point in new[] { a, b, c, (a + b) / 2, (b + c) / 2, (a + c) / 2, (a + b + c) / 3 })
+                    clear &= !solids.Any(mesh => InsideConvexSolid(mesh, point));
+            }
+        }
+        check(clear, "shipping_pallet_strap_triangle_samples_do_not_penetrate_convex_load_parts");
     }
 
     private void VerifyShippingPalletReference(Action<bool, string> check, Node3D pallet, Node3D sensor, float pickupX)

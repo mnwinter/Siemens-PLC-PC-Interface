@@ -79,7 +79,14 @@ The rebuilt load seats nine blocks on the lower boards, three stringers on
 the blocks, seven deck boards on the stringers and four lower cases on the
 deck; upper cases contact thin seated sealing tape. Five focused imported
 mesh checks cover these bearing planes. Home and pickup were inspected from
-five close native angles. Strap side/underside routing still needs review.
+five close native angles. Two closed 35 mm wide, 1.2 mm thick strap bands
+follow the evaluated load cross-section and return beneath the upper stringers
+inside the fork openings. Their lowest point is 128.8 mm above the belt.
+Four added checks cover band closure, return height and sampled nonpenetration
+against convex load parts. Native home/pickup five-view and low underside
+inspection supplement those checks. The opt-in standalone preview's Pallet
+underside button changes only the camera; recessed case faces are bridged by
+the bands. This geometry does not establish restraint strength or dynamics.
 The reference does not run when a virtual/external controller is selected;
 normal loaded-controller lesson acceptance remains open.
 

@@ -48,6 +48,82 @@ def point_at(item, target):
     item.rotation_euler = (Vector(target) - item.location).to_track_quat("-Z", "Y").to_euler()
 
 
+def strap_loop(name, x, objects, mat, width=0.035, thickness=0.0012):
+    """Wrap a closed band around the evaluated upper-frame/load cross-section.
+
+    The convex hull bridges recessed case faces as a taut visual band would.
+    Its underside passes through the fork opening beneath the stringers, not
+    below the bottom runners where it would intersect the installed belt.
+    This is illustrative geometry, not a load-restraint or material rating.
+    """
+    bpy.context.view_layer.update()
+    graph = bpy.context.evaluated_depsgraph_get()
+    points = set()
+    for obj in objects:
+        evaluated = obj.evaluated_get(graph)
+        mesh = evaluated.to_mesh()
+        try:
+            mesh.calc_loop_triangles()
+            for plane_x in (x - width / 2, x, x + width / 2):
+                for triangle in mesh.loop_triangles:
+                    vertices = [evaluated.matrix_world @ mesh.vertices[i].co for i in triangle.vertices]
+                    for a, b in zip(vertices, vertices[1:] + vertices[:1]):
+                        if abs(a.x - plane_x) < 1e-8:
+                            points.add((round(a.y, 8), round(a.z, 8)))
+                        if (a.x < plane_x < b.x) or (b.x < plane_x < a.x):
+                            point = a.lerp(b, (plane_x - a.x) / (b.x - a.x))
+                            points.add((round(point.y, 8), round(point.z, 8)))
+        finally:
+            evaluated.to_mesh_clear()
+
+    def cross(a, b, c):
+        return (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])
+
+    # Monotone-chain hull, counterclockwise in Blender's Y/Z section.
+    ordered = sorted(points)
+    lower, upper = [], []
+    for point in ordered:
+        while len(lower) > 1 and cross(lower[-2], lower[-1], point) <= 1e-9:
+            lower.pop()
+        lower.append(point)
+    for point in reversed(ordered):
+        while len(upper) > 1 and cross(upper[-2], upper[-1], point) <= 1e-9:
+            upper.pop()
+        upper.append(point)
+    inner = [Vector(point) for point in lower[:-1] + upper[:-1]]
+    if len(inner) < 3:
+        raise ValueError(f"{name}: no closed upper-frame/load section")
+    outer = []
+    for index, point in enumerate(inner):
+        before = (point - inner[index - 1]).normalized()
+        after = (inner[(index + 1) % len(inner)] - point).normalized()
+        n1, n2 = Vector((before.y, -before.x)), Vector((after.y, -after.x))
+        bisector = (n1 + n2).normalized()
+        outer.append(point + bisector * thickness / bisector.dot(n1))
+
+    count = len(inner)
+    vertices = [(side_x, point.x, point.y)
+                for side_x in (x - width / 2, x + width / 2)
+                for contour in (inner, outer) for point in contour]
+    faces = []
+    for index in range(count):
+        next_index = (index + 1) % count
+        a, b, c, d = index, next_index, count + next_index, count + index
+        faces.extend(((a, b, c, d), (a + 2 * count, d + 2 * count, c + 2 * count, b + 2 * count),
+                      (a, a + 2 * count, b + 2 * count, b),
+                      (d, c, c + 2 * count, d + 2 * count)))
+    mesh = bpy.data.meshes.new(name)
+    mesh.from_pydata(vertices, [], faces)
+    mesh.update()
+    obj = bpy.data.objects.new(name, mesh)
+    bpy.context.collection.objects.link(obj)
+    obj.data.materials.append(mat)
+    obj["rungproof_asset"] = True
+    obj["rungproof_collision"] = False
+    print(f"STRAP_LOOP {name} section_vertices={count} min_z={min(p.y for p in outer):.6f}")
+    return obj
+
+
 def main():
     bpy.ops.object.select_all(action="SELECT")
     bpy.ops.object.delete(use_global=False)
@@ -103,17 +179,12 @@ def main():
                             (x - 0.075 + line * 0.025, y - dims[1] * 0.514, z - 0.015),
                             (0.010 if line % 2 else 0.015, 0.006, 0.075), black, 0.001, False)
 
-    # Two vertical retention straps visibly bind the complete load to the pallet.
-    load_top_z = deck_top + case_h * 2 + tape_thickness * 2
-    strap_center_z = (0.055 + load_top_z) / 2
-    strap_height = load_top_z - 0.055
-    for x in (-0.34, 0.34):
-        box(f"LOAD_STRAP_FRONT_{x}", (x, -0.526, strap_center_z),
-            (0.035, 0.012, strap_height), strap, 0.002, False)
-        box(f"LOAD_STRAP_BACK_{x}", (x, 0.526, strap_center_z),
-            (0.035, 0.012, strap_height), strap, 0.002, False)
-        box(f"LOAD_STRAP_TOP_{x}", (x, 0, load_top_z + 0.008),
-            (0.035, 1.052, 0.012), strap, 0.002, False)
+    # Use the actual beveled surfaces, including labels crossed by the band.
+    # Exclude the lower boards/blocks so the return stays in the fork opening.
+    wrap_parts = [obj for obj in bpy.context.scene.objects if obj.type == "MESH"
+                  and obj.name.startswith(("PALLET_TOP_DECK_", "PALLET_STRINGER_", "CASE_", "BARCODE_"))]
+    for index, x in enumerate((-0.34, 0.34)):
+        strap_loop(f"LOAD_STRAP_LOOP_{index}", x, wrap_parts, strap)
 
     for folder in ("source", "delivery", "collision", "review"):
         (ASSET / folder).mkdir(parents=True, exist_ok=True)
