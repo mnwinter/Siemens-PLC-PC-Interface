@@ -6,7 +6,7 @@ Scene contract: `res://scenes/migrated/lab-9-02-product-function.scene.json`
 
 ## Purpose
 
-Symbolic product-function logic exercise. The RESULT readout is static; numeric operands and a product output are not modeled.
+Manual product validity exercise. The labeled buttons set Boolean inputs; numeric operands and results are not modeled. The RESULT readout has no live value.
 
 ## Expected I/O to operate this scene
 
@@ -40,13 +40,11 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 
 | ID | Type | Label |
 | --- | --- | --- |
-| `machine_0` | `machine` | Product Function Block machine |
-| `switch_1` | `switch` | Product Function Block switch |
+| `switch_1` | `switch` | A VALID manual input |
 | `indicator_2` | `indicator` | Product Function Block indicator |
-| `training_accessory_3` | `trainingAccessory` | Product Function Block - function-block calculation panel |
 | `training_accessory_4` | `trainingAccessory` | Product Function Block - numeric result display |
-| `switch_5` | `switch` | Product Function Block operator input |
-| `switch_6` | `switch` | Product Function Block operator input |
+| `switch_5` | `switch` | B VALID manual input |
+| `switch_6` | `switch` | CALCULATE manual input |
 
 ## Stop and safety boundary
 
@@ -54,7 +52,7 @@ A normal Stop removes PLC-owned commands according to the scene runtime. This do
 
 ## Machine guide
 
-Symbolic product-function logic exercise. The RESULT readout is static; numeric operands and a product output are not modeled.
+Manual product validity exercise. The labeled buttons set Boolean inputs; numeric operands and results are not modeled. The RESULT readout has no live value.
 
 ### Start conditions
 

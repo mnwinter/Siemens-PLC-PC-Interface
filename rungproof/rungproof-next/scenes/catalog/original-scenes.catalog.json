@@ -3,7 +3,7 @@
   "catalogId": "rungproof-original-scenes-migrated",
   "sourceRoot": "prototype/scenes",
   "sceneCount": 77,
-  "equipmentInstanceCount": 592,
+  "equipmentInstanceCount": 586,
   "equipmentTypeCounts": {
     "box": 30,
     "containerReceiver": 1,
@@ -13,7 +13,7 @@
     "indicator": 117,
     "levelSensor": 9,
     "liftTable": 5,
-    "machine": 18,
+    "machine": 15,
     "meteringSkid": 1,
     "motor": 11,
     "palletLoad": 1,
@@ -33,7 +33,7 @@
     "toteFiller": 2,
     "toteLabeler": 1,
     "toteVision": 1,
-    "trainingAccessory": 108,
+    "trainingAccessory": 105,
     "valve": 5
   },
   "scenes": [
@@ -1096,10 +1096,9 @@
       "name": "Lab 9.1 - Sum Function Block",
       "path": "res://scenes/migrated/lab-9-01-sum-function.scene.json",
       "sourceFile": "prototype/scenes/lab-9-01-sum-function.plcscene",
-      "equipmentCount": 7,
+      "equipmentCount": 5,
       "equipmentTypes": [
         "indicator",
-        "machine",
         "switch",
         "trainingAccessory"
       ],
@@ -1113,10 +1112,9 @@
       "name": "Lab 9.2 - Product Function Block",
       "path": "res://scenes/migrated/lab-9-02-product-function.scene.json",
       "sourceFile": "prototype/scenes/lab-9-02-product-function.plcscene",
-      "equipmentCount": 7,
+      "equipmentCount": 5,
       "equipmentTypes": [
         "indicator",
-        "machine",
         "switch",
         "trainingAccessory"
       ],
@@ -1144,10 +1142,9 @@
       "name": "Lab 9.4 - Function Selector",
       "path": "res://scenes/migrated/lab-9-04-function-selector.scene.json",
       "sourceFile": "prototype/scenes/lab-9-04-function-selector.plcscene",
-      "equipmentCount": 7,
+      "equipmentCount": 5,
       "equipmentTypes": [
         "indicator",
-        "machine",
         "switch",
         "trainingAccessory"
       ],

@@ -28,6 +28,29 @@ Every row requires native inspection.
 
 ## Repairs and open findings
 
+Arithmetic validity layout repair (2026-10-05): scenes 66, 67 and 69
+remove their unused CNC and function-block panel substitutes. Delivered node
+inspection proves the alleged panels were pillow-block bearing/shaft models;
+none of the removed items had point bindings. Three actual input stations now
+carry A VALID / B VALID / CALCULATE plates for Sum and Product, and OPERANDS /
+FUNC VALID / CALCULATE for Function Selector. Descriptions, guides, requirements
+and help consistently describe manual Boolean validity/request exercises, with
+no numeric operand/result or actual function choice modeled. Each scene's five
+full-scene native Windows views were individually inspected after the change,
+plus focused Top/RL/RR readout views. The previously CNC-obscured readout backs,
+masts and floor bases are clear. Sum and Function Selector each received actual
+3D input-button clicks with readable close face plates; Product used its native
+sidebar actions. Each corresponding PC input toggles True, all three together
+were observed, PLC-owned result remains False while stopped, and Reset restores
+all inputs False. Six layout/plate checks pass, alongside existing support and
+readout-clearance checks (233 total). Build zero warnings/errors; app-shell and
+full help audit pass. Controller core unchanged; preceding 143 tests remain the
+latest controller result. Catalog equipment total now 586 across 77 scenes.
+Evidence: .tools/arithmetic-layout-{build,geometry,shell,help,native}.log. Numeric
+sum/product/selector computation, authored-ladder operator output and independent
+asset approval remain open. This supersedes the CNC/bearing-prop and rear-readout
+occlusion findings for these three scenes only. Whole-program review continues.
+
 Box-volume fixture repair (2026-10-05): the dimension_sensors shutter
 substitute is replaced by an original static bench/portal with three orthogonal
 sensor heads. The unused CNC is removed from scene 70. The carton now sits at
@@ -1181,10 +1204,10 @@ count as this scene's multi-angle or runtime acceptance.
 | 63 | `lab-5-10-coating-line` | 97 | Native FR/FL/RL/RR/T | FAIL/open: CNC occupies belt, disconnected coating/spray/ventilation props; only lamp outputs, process unverified |
 | 64 | `lab-6-07-luggage-weight-sort` | 110 | Native FR/FL/RL/RR/T; replacement readout five focus views | Carton support repaired earlier; WEIGHT readout replaced and five focus views inspected (RL obscured, RR partly obscured). FAIL/open: disconnected weighing/rejecting layout; no numeric weight/class |
 | 65 | `lab-6-08-hand-dryer` | 634 | Native FR/FL/RL/RR/T; replacement readout five focus views | PROGRESS readout replaced/repositioned; five focus views (FL text partly obscured, RL obscured). FAIL/open: substitute heating shutter and disconnected fan/panel/bottle; no remaining-time numeric binding |
-| 66 | `lab-9-01-sum-function` | 0 | Native FR/FL/RL/RR/T; replacement readout five focus views | RESULT readout replaced; five focus views (both rear obscured). FAIL/open: wrong calculation props, no numeric operand/result contract |
-| 67 | `lab-9-02-product-function` | 0 | Native FR/FL/RL/RR/T; replacement readout five focus views | RESULT readout replaced; five focus views (both rear obscured). FAIL/open: wrong calculation props, no numeric factors/product contract |
+| 66 | `lab-9-01-sum-function` | 0 (historical) | Native FR/FL/RL/RR/T; focused readout Top/RL/RR; manual inputs/Reset | Unbound CNC/bearing props removed; input plates corrected, rear readout supports visible. Layout/plate checks pass. Open: numeric operands/sum unimplemented, readout has NO LIVE VALUE, authored output behavior unaccepted |
+| 67 | `lab-9-02-product-function` | 0 (historical) | Native FR/FL/RL/RR/T; focused readout Top/RL/RR; manual inputs/Reset | Unbound CNC/bearing props removed; input plates corrected, rear readout supports visible. Layout/plate checks pass. Open: numeric factors/product unimplemented, readout has NO LIVE VALUE, authored output behavior unaccepted |
 | 68 | `lab-9-03-sum-and-counter-function` | 0 | Native FR/FL/RL/RR/T | Static clear spacing; no numeric result/event count contract; CNC unbound |
-| 69 | `lab-9-04-function-selector` | 0 | Native FR/FL/RL/RR/T; replacement readout five focus views | FUNCTION readout replaced; five focus views (RR obscured). FAIL/open: function validity is not a choice value; numeric operands/result and selector binding unresolved |
+| 69 | `lab-9-04-function-selector` | 0 (historical) | Native FR/FL/RL/RR/T; focused readout Top/RL/RR; manual inputs/Reset | Unbound CNC/bearing props removed; input plates corrected, rear readout supports visible. Layout/plate checks pass. Open: numeric operands/result and an actual function choice unimplemented, readout has NO LIVE VALUE, authored output behavior unaccepted |
 | 70 | `lab-9-10-box-volume` | 46 (historical) | Native FR/FL/RL/RR/T; replacement fixture and readout five focus views each; actual 3D buttons/Reset | Static three-head fixture replaces shutter; carton supported on bench, CNC removed and rear readout view cleared. Seven geometry checks and LENGTH/WIDTH/HEIGHT manual inputs/Reset pass. Open: no numeric dimension acquisition, volume calculation or live MEASUREMENT value; independent asset approval pending |
 | 71 | `lab-9-11-pallet-counting` | 86 | Native FR/FL/RL/RR/T | Carton/fixture/readout geometry repaired and five views/details inspected. Live DINT count/readout FR/FL and invalid/five-edge/held/permissive/Stop/Run/Reset native checks pass. Optical classification/pallet travel/CNC integration open |
 | 72 | `lab-9-12-ev-charging-manager` | 95 | Native FR/FL/RL/RR/T | FAIL/open: shutters/fluid props instead of EV charging route; energy pulse/accumulation contract absent |

@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-9-04-function-selector",
   "name": "Lab 9.4 - Function Selector",
-  "description": "Symbolic function-selection logic exercise. The FUNCTION readout is static; numeric function selection and results are not modeled.",
+  "description": "Manual selected function validity exercise. The labeled buttons set Boolean inputs; numeric operands and results are not modeled. The FUNCTION readout has no live value.",
   "camera": {
     "position": [
       11,
@@ -21,7 +21,7 @@
     {
       "id": "switch_0",
       "type": "switch",
-      "label": "Function Selector switch",
+      "label": "OPERANDS manual input",
       "position": [
         -3.3000000000000003,
         0,
@@ -30,26 +30,8 @@
       "config": {
         "style": "pushbutton",
         "action": "toggle-operand_set_valid",
-        "color": 2204518
-      }
-    },
-    {
-      "id": "machine_1",
-      "type": "machine",
-      "label": "Function Selector machine",
-      "position": [
-        -1.1,
-        0,
-        0
-      ],
-      "config": {
-        "size": [
-          2.1,
-          2.7,
-          1.7
-        ],
-        "color": 5466227,
-        "running": false
+        "color": 2204518,
+        "faceLabel": "OPERANDS"
       }
     },
     {
@@ -71,20 +53,6 @@
       }
     },
     {
-      "id": "training_accessory_3",
-      "type": "trainingAccessory",
-      "label": "Function Selector - function-block panel",
-      "position": [
-        3.3000000000000003,
-        0,
-        0
-      ],
-      "config": {
-        "assetName": "function-block panel",
-        "catalogAssetId": "training.accessory.function_block_panel.v1"
-      }
-    },
-    {
       "id": "training_accessory_4",
       "type": "trainingAccessory",
       "label": "Function Selector - numeric selector/display",
@@ -101,7 +69,7 @@
     {
       "id": "switch_5",
       "type": "switch",
-      "label": "Function Selector operator input",
+      "label": "FUNC VALID manual input",
       "position": [
         -0.6500000000000001,
         0,
@@ -110,13 +78,14 @@
       "config": {
         "style": "pushbutton",
         "action": "toggle-function_select_valid",
-        "color": 2204518
+        "color": 2204518,
+        "faceLabel": "FUNC VALID"
       }
     },
     {
       "id": "switch_6",
       "type": "switch",
-      "label": "Function Selector operator input",
+      "label": "CALCULATE manual input",
       "position": [
         1.55,
         0,
@@ -125,7 +94,8 @@
       "config": {
         "style": "pushbutton",
         "action": "toggle-calculate_request",
-        "color": 2204518
+        "color": 2204518,
+        "faceLabel": "CALCULATE"
       }
     }
   ],
@@ -220,11 +190,11 @@
       "acceptance": "Only the selected calculation path may assert selected_result_valid."
     },
     "assetRequirements": [
-      "function-block panel",
-      "numeric selector/display"
+      "Three labeled manual validity/request pushbuttons",
+      "Static FUNCTION readout (no live value)"
     ],
     "machineGuide": {
-      "purpose": "Symbolic function-selection logic exercise. The FUNCTION readout is static; numeric function selection and results are not modeled.",
+      "purpose": "Manual selected function validity exercise. The labeled buttons set Boolean inputs; numeric operands and results are not modeled. The FUNCTION readout has no live value.",
       "startConditions": [
         "The common PLC/watchdog foundation is healthy.",
         "All required simulator inputs are at their documented initial state."

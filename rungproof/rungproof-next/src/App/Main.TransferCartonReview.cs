@@ -224,6 +224,30 @@ public partial class Main
         }
     }
 
+    private void VerifyArithmeticValidityLayouts(Action<bool, string> check)
+    {
+        foreach (var (sceneId, firstId, firstLabel, secondLabel) in new[]
+        {
+            ("lab-9-01-sum-function", "switch_1", "A VALID", "B VALID"),
+            ("lab-9-02-product-function", "switch_1", "A VALID", "B VALID"),
+            ("lab-9-04-function-selector", "switch_0", "OPERANDS", "FUNC VALID")
+        })
+        {
+            AddMigratedScene(sceneId, _candidateCatalog!, _mainCamera!, false, false);
+            var root = _sceneCompositionRoot!;
+            // These scenes expose Boolean validity inputs. Neither a CNC nor
+            // a bearing mislabeled as a calculation panel participates in them.
+            check(root.GetNodeOrNull<Node3D>("machine_0") is null
+                && root.GetNodeOrNull<Node3D>("machine_1") is null
+                && root.GetNodeOrNull<Node3D>("training_accessory_3") is null,
+                $"{sceneId}_unrelated_cnc_and_bearing_props_removed");
+            check(new[] { (firstId, firstLabel), ("switch_5", secondLabel), ("switch_6", "CALCULATE") }
+                .All(item => root.GetNode<Node3D>(item.Item1).FindChild("OperatorFaceLabel", true, false)
+                    is Label3D label && label.Text == item.Item2),
+                $"{sceneId}_manual_input_plates_match_validity_and_request");
+        }
+    }
+
     private void VerifyRadarMountAndBeam(Action<bool, string> check)
     {
         AddMigratedScene("tank-radar", _candidateCatalog!, _mainCamera!, false, false);

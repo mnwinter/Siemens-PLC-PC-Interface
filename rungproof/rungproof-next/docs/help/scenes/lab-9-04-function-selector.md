@@ -6,7 +6,7 @@ Scene contract: `res://scenes/migrated/lab-9-04-function-selector.scene.json`
 
 ## Purpose
 
-Symbolic function-selection logic exercise. The FUNCTION readout is static; numeric function selection and results are not modeled.
+Manual selected function validity exercise. The labeled buttons set Boolean inputs; numeric operands and results are not modeled. The FUNCTION readout has no live value.
 
 ## Expected I/O to operate this scene
 
@@ -40,13 +40,11 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 
 | ID | Type | Label |
 | --- | --- | --- |
-| `switch_0` | `switch` | Function Selector switch |
-| `machine_1` | `machine` | Function Selector machine |
+| `switch_0` | `switch` | OPERANDS manual input |
 | `indicator_2` | `indicator` | Function Selector indicator |
-| `training_accessory_3` | `trainingAccessory` | Function Selector - function-block panel |
 | `training_accessory_4` | `trainingAccessory` | Function Selector - numeric selector/display |
-| `switch_5` | `switch` | Function Selector operator input |
-| `switch_6` | `switch` | Function Selector operator input |
+| `switch_5` | `switch` | FUNC VALID manual input |
+| `switch_6` | `switch` | CALCULATE manual input |
 
 ## Stop and safety boundary
 
@@ -54,7 +52,7 @@ A normal Stop removes PLC-owned commands according to the scene runtime. This do
 
 ## Machine guide
 
-Symbolic function-selection logic exercise. The FUNCTION readout is static; numeric function selection and results are not modeled.
+Manual selected function validity exercise. The labeled buttons set Boolean inputs; numeric operands and results are not modeled. The FUNCTION readout has no live value.
 
 ### Start conditions
 

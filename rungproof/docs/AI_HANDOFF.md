@@ -6,6 +6,29 @@ would otherwise be trapped in a local Codex session. It intentionally excludes
 machine-local Codex databases, credentials, screenshots from private chats, and
 temporary runtime state.
 
+Arithmetic validity layout repair (2026-10-05): scenes 66, 67 and 69
+remove their unused CNC and function-block panel substitutes. Delivered node
+inspection proves the alleged panels were pillow-block bearing/shaft models;
+none of the removed items had point bindings. Three actual input stations now
+carry A VALID / B VALID / CALCULATE plates for Sum and Product, and OPERANDS /
+FUNC VALID / CALCULATE for Function Selector. Descriptions, guides, requirements
+and help consistently describe manual Boolean validity/request exercises, with
+no numeric operand/result or actual function choice modeled. Each scene's five
+full-scene native Windows views were individually inspected after the change,
+plus focused Top/RL/RR readout views. The previously CNC-obscured readout backs,
+masts and floor bases are clear. Sum and Function Selector each received actual
+3D input-button clicks with readable close face plates; Product used its native
+sidebar actions. Each corresponding PC input toggles True, all three together
+were observed, PLC-owned result remains False while stopped, and Reset restores
+all inputs False. Six layout/plate checks pass, alongside existing support and
+readout-clearance checks (233 total). Build zero warnings/errors; app-shell and
+full help audit pass. Controller core unchanged; preceding 143 tests remain the
+latest controller result. Catalog equipment total now 586 across 77 scenes.
+Evidence: .tools/arithmetic-layout-{build,geometry,shell,help,native}.log. Numeric
+sum/product/selector computation, authored-ladder operator output and independent
+asset approval remain open. This supersedes the CNC/bearing-prop and rear-readout
+occlusion findings for these three scenes only. Whole-program review continues.
+
 Box-volume fixture repair (2026-10-05): the dimension_sensors shutter
 substitute is replaced by an original static bench/portal with three orthogonal
 sensor heads. The unused CNC is removed from scene 70. The carton now sits at
