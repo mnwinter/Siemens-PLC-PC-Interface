@@ -6,6 +6,24 @@ would otherwise be trapped in a local Codex session. It intentionally excludes
 machine-local Codex databases, credentials, screenshots from private chats, and
 temporary runtime state.
 
+Carton plate contact (2026-10-05, latest): Scene 74 configures plateExtensionM
+629.73 mm. Composer moves plate/front hardware and adds two rigid yoke arms
+seated in the carriage and plate before controller home capture. Hardware and
+lettering recessed to avoid carton penetration. Fixed cylinder/frame and 1.35 m
+stroke unchanged. Actual-ladder contact red before/green after; five new full
+stroke geometry checks at 151 two-ms samples. Build, geometry 385, motion 24,
+controller 143, shell and help pass. Native existing held-solenoid fixture
+opened/verified/run normally: received endpoint five views, close Top/RL,
+Stop/Reset/home checked; owned reviewer exited zero. Contact bottom is partly
+occluded in rear views; close views crop surrounding equipment. Continuous
+five-angle stroke remains unobserved. Initial direct launch missed DOTNET_ROOT;
+fixed to bundled .NET10, helper reset fixed stale window IDs. Scene still
+FAIL/open: optical feedback geometry (feedback clears while received carton
+can intersect drawn beam), static cable candidates, full physical acceptance.
+Current home broad bounds count ten; moving solids pass targeted sweep. No
+canonical model/ownership/reference program changed. Earlier plate-gap notes
+are historical. Logs: `.tools/carton-contact-*.log`. Goal remains active.
+
 Carton retention (2026-10-05, latest): Scene 74 now retains its released
 visual carton separately from the canonical infeed leading edge. It stays
 visible at 80% release, follows the rest of the stroke, holds during retraction

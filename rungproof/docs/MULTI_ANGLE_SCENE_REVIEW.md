@@ -10,6 +10,36 @@ includes failed scenes; it is not a count of accepted scenes.
 
 ## Acceptance method
 
+Carton plate contact (2026-10-05, latest): the plate trailed the load by
+629.73 mm throughout extension. Scene 74 now configures that much plate
+extension on a rigid two-arm yoke seated in the carriage crossmember and plate.
+The grounded cylinder/frame and 1.35 m stroke are unchanged. Front bolts and
+lettering are recessed to prevent load penetration. No canonical timing,
+feedback, counts, ownership or production reference program changed.
+
+The actual-ladder contact check failed before the fix and now passes throughout
+repeated transfers (24 plant-motion checks total). Five added geometry checks
+pass: real station acquisition, both yoke connections, plate/load contact,
+moving equipment/load solid clearance, and carrying-surface coverage across
+151 samples at 2 ms. All 385 geometry checks, clean build, 143 controller tests,
+77-scene shell and help coverage pass. Cable clearance uses transformed triangle
+bounds rather than empty enclosing space. Logs: `.tools/carton-contact-*.log`.
+
+Native Windows normal Open/Verify + Load/Run used the existing ignored
+held-solenoid QA fixture. Home FR, received/full-extension FR/FL/RL/RR/Top,
+close pusher Top/RL, Stop and Reset (home close Top/RL, scan zero) inspected.
+Top exposes both yoke arms and plate/load contact; rear views partly hide the
+carton/table bottom and close views crop the surrounding installation.
+The full stroke has sampled geometric evidence, not continuous five-angle
+native observation. Reviewer exited zero. Direct launch initially omitted
+bundled DOTNET_ROOT; corrected launch succeeds. A helper reset recovered stale
+window IDs; no model acceptance was based on failed capture.
+Scene 74 remains FAIL/open for optical feedback geometry (received carton can
+still cross the beam after canonical feedback clears) and residual static
+cable candidates. Current home enclosing-bound candidates total ten; moving
+solids pass the new sweep. Earlier plate-gap findings are historical. Full
+physical mechanism, receiver accumulation and live PLC acceptance are unproven.
+
 Carton retention (2026-10-05, latest): Scene 74 keeps its released carton
 visible after the canonical 80% stroke threshold, continues the remaining
 visual stroke, and holds the load on the 900 mm receiving table during
@@ -1720,7 +1750,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 71 | `lab-9-11-pallet-counting` | 86 | Native FR/FL/RL/RR/T | Carton/fixture/readout geometry repaired and five views/details inspected. Live DINT count/readout FR/FL and invalid/five-edge/held/permissive/Stop/Run/Reset native checks pass. Optical classification/pallet travel/CNC integration open |
 | 72 | `lab-9-12-ev-charging-manager` | 95 | Native FR/FL/RL/RR/T | FAIL/open: shutters/fluid props instead of EV charging route; energy pulse/accumulation contract absent |
 | 73 | `scene-1-conveyor-stop` | 34 | Native FR/FL/RL/RR/T | Carton belt contact/load-end footprint repaired; native five wide/Top/FL close and Demo 3 Run/Start/photoeye/Stop/Reset rechecked; full clearance open |
-| 74 | `scene-2-conveyor-pusher` | 88 initial; 7 residual cable candidates after installation repair | Native home/extended FR/FL/RL/RR/T and close pusher Top/RR; receiver Top/FR; latest received/full-extension FR/FL/RL/RR/T; normal Open/Verify/Run/Stop/Reset | Installation and receiving surface repaired. Released carton remains visible, lands on table and holds through retraction until reload; four new actual-ladder checks PASS within 23 plant-motion checks, 380 geometry checks PASS. Native endpoint uses held-solenoid QA fixture. FAIL/open: plate/carton contact, optical feedback geometry and residual cable candidates. No complete physical transfer accepted |
+| 74 | `scene-2-conveyor-pusher` | 88 initial; 10 current home enclosing-bound candidates | Native received/full-extension FR/FL/RL/RR/T; close pusher Top/RL; home FR/Top/RL; normal Open/Verify/Run/Stop/Reset; earlier receiver Top/FR | Installation, receiving surface, retention and plate contact repaired. Connected 629.73 mm yoke extension; full stroke contact/support/solid clearance sampled at 2 ms. Five added checks PASS within 385 geometry checks; actual-ladder contact passes within 24 plant-motion checks. Native endpoint uses held-solenoid QA fixture. FAIL/open: optical feedback geometry and residual static cable candidates. No complete physical transfer accepted |
 | 75 | `tank-high-low` | 60 initial; probe/piping/valve-specific screens pass | Native FR/FL/RL/RR/T; valve Top/FL close; normal offline QA Run/Stop/Reset | Probe/piping/valve installations repaired; 365 checks PASS. QA ladder cycle and pointer commands verified. FAIL/open: opaque vessel and broader operator/process acceptance |
 | 76 | `tank-level` | 52 initial; probe/analog/piping/valve-specific screens pass | Native FR/FL/RL/RR/T; valve Top/FL close; normal offline QA Run/Stop/Reset | Installations repaired; QA drain pointer and reset 42% / 10.72 mA observed. 365 checks PASS. FAIL/open: opaque vessel and broader operator/process acceptance |
 | 77 | `tank-radar` | 80 | Native FR/FL/RL/RR/T; repaired radar five focus views | Radar flange/head mounting and antenna-to-surface distance/beam repaired (sampled checks); 35% native range 3.10036. FAIL/open: empty ladder Run, disconnected inlet/outlet/drain route, opaque internal beam; rear-left mount partly obscured |

@@ -88,6 +88,7 @@
         "stroke": 1.35,
         "travelAxis": "z",
         "centerHeight": 1.38,
+        "plateExtensionM": 0.62973,
         "installation": "conveyorPusher",
         "initialPosition": 0
       }

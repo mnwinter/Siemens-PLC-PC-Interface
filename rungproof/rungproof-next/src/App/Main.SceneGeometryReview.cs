@@ -367,6 +367,7 @@ public partial class Main
             VerifyPusherRodGeometry(Check);
             VerifyPusherInstallationGeometry(Check);
             VerifyCartonReceiverGeometry(Check);
+            VerifyCartonPusherContactGeometry(Check);
             VerifyPalletRobotInstallationGeometry(Check);
             VerifyTankSwitchMountGeometry(Check);
             VerifyTankAnalogMountGeometry(Check);

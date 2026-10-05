@@ -46,7 +46,10 @@ No point-to-equipment bindings are declared.
 ## Stop and safety boundary
 
 The composed pusher uses its configured 1.38 m centre height, grounded mounts,
-outboard guided shafts and moving plate fasteners. The photoeye is offset
+outboard guided shafts and moving plate fasteners. A rigid two-arm yoke extends
+the plate 629.73 mm from the carriage to contact the carton; the cylinder frame
+and 1.35 m stroke stay in place. Front bolts and lettering are recessed to
+avoid penetrating the load. The photoeye is offset
 along the conveyor; the optional visual carton-centre datum positions its body
 across the beam at first detection without changing the symbolic plant model.
 
@@ -58,8 +61,12 @@ full stroke, and holds it during retraction. The same single rendered carton
 returns to the infeed when the plant admits its next load; this does not model
 a queue of received cartons. Reset restores the staged carton.
 
-Plate contact and optical feedback geometry remain open review findings.
-The visible receiver landing does not establish a complete physical transfer
-even when the controller sequence and limit feedback pass.
+Plate contact, connected yoke travel, support and solid clearance have sampled
+geometry checks and actual-ladder contact checks. Native Windows inspection
+covers the received endpoint in five views, close top/rear-left and Stop/Reset.
+Optical feedback geometry remains open: the canonical transfer clears feedback
+while the received carton can still intersect the drawn through-beam. These
+checks do not establish a complete physical transfer, rated mechanism or safety
+function.
 
 A normal Stop removes PLC-owned commands according to the scene runtime. This document does not prove a safety function, a real E-stop circuit, a PLC watchdog, or live-machine commissioning.

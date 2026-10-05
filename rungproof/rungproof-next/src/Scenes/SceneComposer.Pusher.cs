@@ -24,7 +24,10 @@ public static partial class SceneComposer
             var centerHeight = (float)Number(equipment.Config, "centerHeight", 1.38);
             if (!float.IsFinite(centerHeight) || centerHeight < 0.8f)
                 throw new InvalidOperationException($"Pusher '{equipment.Id}' requires centerHeight >= 0.8 m.");
-            ConfigureConveyorPusher(model, centerHeight, stroke);
+            var plateExtension = (float)Number(equipment.Config, "plateExtensionM", 0);
+            if (!float.IsFinite(plateExtension) || plateExtension < 0)
+                throw new InvalidOperationException($"Pusher '{equipment.Id}' requires a finite nonnegative plateExtensionM.");
+            ConfigureConveyorPusher(model, centerHeight, stroke, plateExtension);
         }
         model.AddChild(new EquipmentMotionController
         {
@@ -35,7 +38,7 @@ public static partial class SceneComposer
         return model;
     }
 
-    private static void ConfigureConveyorPusher(Node3D model, float centerHeight, float stroke)
+    private static void ConfigureConveyorPusher(Node3D model, float centerHeight, float stroke, float plateExtension)
     {
         var meshes = model.FindChildren("*", "MeshInstance3D", true, false).OfType<MeshInstance3D>().ToArray();
         MeshInstance3D Part(string name) => meshes.Single(mesh => mesh.Name.ToString() == name);
@@ -93,6 +96,33 @@ public static partial class SceneComposer
         var crossmember = Part("KIN_pusher_crossmember");
         var crossBounds = Bounds(crossmember);
         SizeAndCenter(crossmember, new Vector3(crossBounds.Size.X, crossBounds.Size.Y, 0.94f), crossBounds.GetCenter());
+
+        if (plateExtension > 0)
+        {
+            // Keep the cylinder and grounded frame in their clear installation.
+            // A connected rigid yoke reaches the carton; moving the whole unit
+            // forward would put its fixed support through the conveyor frame.
+            var plate = Part("KIN_pusher_plate");
+            foreach (var mesh in meshes.Where(mesh => mesh.Name.ToString().StartsWith("KIN_pusher_plate", StringComparison.Ordinal)
+                || mesh.Name.ToString().StartsWith("KIN_pusher_PLATE_bolt", StringComparison.Ordinal)))
+                mesh.Position += Vector3.Right * plateExtension;
+            var plateBounds = Bounds(plate);
+            foreach (var label in meshes.Where(mesh => mesh.Name.ToString().StartsWith("KIN_pusher_plate_label", StringComparison.Ordinal)))
+                label.Position += Vector3.Right * (plateBounds.End.X + 0.001f - Bounds(label).End.X);
+            foreach (var bolt in meshes.Where(mesh => mesh.Name.ToString().StartsWith("KIN_pusher_PLATE_bolt", StringComparison.Ordinal)))
+                // Countersink the front hardware so it cannot pierce the load.
+                bolt.Position += Vector3.Right * (plateBounds.End.X - Bounds(bolt).End.X);
+            var start = Bounds(crossmember).End.X - 0.01f;
+            var end = plateBounds.Position.X + 0.01f;
+            for (var side = -1; side <= 1; side += 2)
+                model.AddChild(new MeshInstance3D
+                {
+                    Name = $"KIN_pusher_plate_yoke_{side}",
+                    Mesh = new BoxMesh { Size = new Vector3(end - start, 0.12f, 0.08f) },
+                    Position = new Vector3((start + end) / 2, plateBounds.GetCenter().Y, side * 0.20f),
+                    MaterialOverride = crossmember.GetActiveMaterial(0),
+                });
+        }
 
         // Keep the floor base grounded, terminate it behind the conveyor, and
         // put actual supports beneath the barrel and the fixed guide bearings.

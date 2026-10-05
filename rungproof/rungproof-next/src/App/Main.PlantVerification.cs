@@ -56,6 +56,8 @@ public partial class Main
             var stagedCarton = carton.Transform;
             var receiverDeck = ReviewBounds((MeshInstance3D)_sceneCompositionRoot.GetNode("scene2_receiver").FindChild("BENCH_top", true, false));
             var transferSeen = false; var transferVisible = true; var receivedSeen = false;
+            var plate = (MeshInstance3D)_sceneCompositionRoot.GetNode("scene2_pusher").FindChild("KIN_pusher_plate", true, false);
+            var contactSeen = false; var plateContact = true;
             var receivedHeld = true; var reloadSeen = false; var lastCompleted = 0L;
             Vector3? releasedPosition = null;
             for (var scan = 0; scan < 650; scan++)
@@ -95,7 +97,17 @@ public partial class Main
                     }
                 }
                 lastCompleted = completed;
+                if (_sceneRuntime.Points["pusher_extend"] is true
+                    && (_sceneRuntime.Points["part_at_pusher"] is true || releasedPosition.HasValue))
+                {
+                    var face = ReviewBounds(plate); var load = ReviewBounds(carton);
+                    contactSeen = true;
+                    plateContact &= MathF.Abs(face.End.Z - load.Position.Z) < 0.002f
+                        && face.Position.X < load.End.X && face.End.X > load.Position.X
+                        && face.Position.Y < load.End.Y && face.End.Y > load.Position.Y;
+                }
             }
+            Check(contactSeen && plateContact, "scene2_plate_contacts_carton_through_actual_ladder_extension");
             Check(transferSeen && transferVisible, "scene2_carton_remains_visible_at_canonical_transfer_threshold");
             Check(receivedSeen && receivedHeld, "scene2_full_stroke_carton_seated_on_receiver_and_not_dragged_back");
             Check(reloadSeen, "scene2_visual_carton_recycled_only_when_plant_reloads");

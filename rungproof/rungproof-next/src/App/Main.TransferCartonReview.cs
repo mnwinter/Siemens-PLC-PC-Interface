@@ -833,8 +833,8 @@ public partial class Main
                 && beams.Any(beam => ReviewBounds(beam).Grow(0.001f).Intersects(ReviewBounds(leg))))
             && beams.Length == 4 && beams.All(beam => MathF.Abs(ReviewBounds(beam).End.Y - deck.Position.Y) < 0.001f),
             "scene2_receiver_four_grounded_legs_and_frame_seated_under_deck");
-        // Geometric footprint witness only: this does not change or accept the
-        // canonical transfer's contact timing or disappearing-carton behavior.
+        // Geometric footprint witness only; actual contact and visibility
+        // have separate runtime and actual-ladder checks.
         var load = ReviewBounds(root.GetNode("scene2_product"));
         var covered = true;
         for (var sample = 0; sample <= 100; sample++)
@@ -882,6 +882,73 @@ public partial class Main
         check(clear, "scene2_receiver_clear_of_other_equipment_through_101_pusher_samples");
         motion.ResetMotion();
         GD.Print($"CARTON_RECEIVER_BOUNDS deck={deck} belt={belt}");
+    }
+
+    private void VerifyCartonPusherContactGeometry(Action<bool, string> check)
+    {
+        AddMigratedScene("scene-2-conveyor-pusher", _candidateCatalog!, _mainCamera!, false, false);
+        var root = _sceneCompositionRoot!;
+        var pusher = root.GetNode<Node3D>("scene2_pusher");
+        var carton = root.GetNode<Node3D>("scene2_product");
+        var runtime = _sceneRuntime!;
+        var plate = (MeshInstance3D)pusher.FindChild("KIN_pusher_plate", true, false);
+        var crossmember = (MeshInstance3D)pusher.FindChild("KIN_pusher_crossmember", true, false);
+        var moving = ReviewMeshes(pusher).Where(mesh => mesh.Name.ToString().StartsWith("KIN_pusher_", StringComparison.Ordinal)).ToArray();
+        var yokes = moving.Where(mesh => mesh.Name.ToString().StartsWith("KIN_pusher_plate_yoke", StringComparison.Ordinal)).ToArray();
+        var belt = ReviewBounds((MeshInstance3D)root.GetNode("scene2_conveyor").FindChild("KIN_belt_surface", true, false));
+        var deck = ReviewBounds((MeshInstance3D)root.GetNode("scene2_receiver").FindChild("BENCH_top", true, false));
+        var otherSolids = root.GetChildren().OfType<Node3D>().Where(node => node != pusher && node != carton)
+            .SelectMany(ReviewMeshes).Where(mesh => !mesh.Name.ToString().StartsWith("KIN_beam", StringComparison.Ordinal)).ToArray();
+        bool Clear(MeshInstance3D part, MeshInstance3D other)
+        {
+            var overlap = ReviewBounds(part).Intersection(ReviewBounds(other)).Size;
+            if (overlap.X <= 0.002f || overlap.Y <= 0.002f || overlap.Z <= 0.002f || !OrientedBoxesPenetrate(part, other)) return true;
+            if (!other.Name.ToString().Contains("cable", StringComparison.OrdinalIgnoreCase)) return false;
+            var bounds = ReviewBounds(part); var faces = other.Mesh.GetFaces();
+            for (var index = 0; index < faces.Length; index += 3)
+            {
+                var triangle = new Aabb(other.GlobalTransform * faces[index], Vector3.Zero)
+                    .Expand(other.GlobalTransform * faces[index + 1]).Expand(other.GlobalTransform * faces[index + 2]);
+                var size = bounds.Intersection(triangle).Size;
+                if (size.X > 0.002f && size.Y > 0.002f && size.Z > 0.002f) return false;
+            }
+            return true;
+        }
+        runtime.UsesExternalClock = true;
+        runtime.SetControllerPlaybackRunning(true);
+        runtime.CommitVirtualControllerOutputs(new Dictionary<string, bool> { ["conveyor_running"] = true });
+        for (var sample = 0; sample < 200 && runtime.Points["part_at_pusher"] is not true; sample++)
+            runtime.AdvanceSimulation(0.01);
+        check(runtime.Points["part_at_pusher"] is true, "scene2_contact_sweep_reaches_actual_station");
+        runtime.CommitVirtualControllerOutputs(new Dictionary<string, bool> { ["conveyor_running"] = false, ["pusher_extend"] = true });
+        var connected = yokes.Length == 2; var contact = true; var clear = true; var supported = true;
+        for (var sample = 0; sample <= 150; sample++)
+        {
+            if (sample > 0) runtime.AdvanceSimulation(0.002);
+            var face = ReviewBounds(plate); var load = ReviewBounds(carton);
+            connected &= yokes.All(yoke => ReviewBounds(yoke).Intersects(ReviewBounds(crossmember))
+                && ReviewBounds(yoke).Intersects(face));
+            contact &= carton.Visible && MathF.Abs(face.End.Z - load.Position.Z) < 0.002f
+                && face.Position.X < load.End.X && face.End.X > load.Position.X;
+            supported &= MathF.Abs(load.Position.Y - belt.End.Y) < 0.001f
+                && load.Position.X >= deck.Position.X && load.End.X <= deck.End.X
+                && load.Position.Z >= belt.Position.Z && load.End.Z <= deck.End.Z;
+            foreach (var part in moving.Concat(ReviewMeshes(carton)))
+                foreach (var other in otherSolids.Where(other => !Clear(part, other)))
+                {
+                    clear = false;
+                    if (sample == 0 || sample == 150) GD.Print($"CARTON_CONTACT_CONFLICT sample={sample} {part.Name}/{other.Name}");
+                }
+            // Contact may touch; the plate, hardware and yoke must not
+            // penetrate the carton beyond the 2 mm visual tolerance.
+            clear &= ReviewMeshes(carton).All(part => moving.All(other => Clear(part, other)));
+        }
+        check(connected, "scene2_plate_yoke_connected_to_carriage_and_plate_through_151_samples");
+        check(contact, "scene2_plate_and_visible_carton_contact_through_151_two_ms_samples");
+        check(clear, "scene2_carton_and_moving_pusher_clear_solids_through_full_transfer");
+        check(supported && runtime.Points["pusher_extended"] is true, "scene2_carton_supported_across_contiguous_belt_and_table_through_transfer");
+        GD.Print($"CARTON_CONTACT_LANDING plate={ReviewBounds(plate)} load={ReviewBounds(carton)}");
+        runtime.ResetSimulation();
     }
 
     private void VerifyBaseConveyorCartonSupport(Action<bool, string> check)

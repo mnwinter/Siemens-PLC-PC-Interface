@@ -1,5 +1,19 @@
 # Whole program review - 2026-10-03
 
+Carton plate contact (2026-10-05, latest): a 629.73 mm rigid two-arm yoke now
+connects Scene 74's plate to its carriage and closes the measured load gap.
+Cylinder frame and 1.35 m stroke remain unchanged; front hardware/lettering is
+recessed. Actual-ladder contact failed before repair and now passes through
+repeated transfers. Five new geometry checks cover station acquisition,
+connections, contact, solid clearance and support at 151 two-ms samples.
+Build, 385 geometry checks, 24 plant-motion checks, controller 143, shell and
+help pass. Native normal Open/Verify/Run with the held-solenoid QA fixture:
+received endpoint five views, close Top/RL, Stop and Reset/home inspected;
+reviewer exited zero. Continuous five-angle stroke observation is unproven.
+Scene remains FAIL/open for optical feedback geometry and static cable
+candidates; earlier plate-gap findings are historical. No rated mechanism,
+accumulation or live PLC proof. Evidence: `.tools/carton-contact-*.log`.
+
 Carton retention (2026-10-05, latest): Scene 74's receiver is present and its
 carton now remains visible after canonical transfer. The renderer follows the
 remaining stroke and holds the load on the table through retraction, recycling
