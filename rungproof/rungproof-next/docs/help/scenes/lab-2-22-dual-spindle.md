@@ -8,6 +8,22 @@ Scene contract: `res://scenes/migrated/lab-2-22-dual-spindle.scene.json`
 
 Two drill heads process a clamped plate in parallel, retract independently, and release a transfer slide only after both are home.
 
+## Current implementation limits
+
+The purpose above describes the intended cell. The delivered scene does not
+yet perform that process. Both drill axes miss the shared steel workpiece;
+each vise retains its own separate coupon. The shared fixture has no bearing
+surface at its 1.16 m underside. The drill adapters rotate without axial feed,
+despite the preview's declared position motions and timed home flags.
+
+The timed preview moves the whole fixture 3.2 m while the transfer slide moves
+2.2 m, without contact between them or support under the transferred fixture.
+Its `cycle_complete=True` is a timed reference result, not proof of drilling,
+retraction, supported transfer, or controller-driven operation.
+
+The offline `--audit-dual-spindle` diagnostic reproduces seven failed geometry/
+motion requirements and exits with code 1. This scene remains under repair.
+
 ## Expected I/O to operate this scene
 
 All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or hardware addresses. PC-owned points are simulator feedback; PLC-owned points are commands supplied by the controller; SIM points are internal and should not be wired as external I/O.

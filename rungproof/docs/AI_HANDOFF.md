@@ -1,6 +1,38 @@
 # RungProof / PLC Visual Simulator AI handoff
 
-Tote Finishing installation checkpoint (2026-10-05, current): Scene 35 now
+Dual Spindle failure reproduction (2026-10-05, current): Scene 36 now has an
+explicit offline `--audit-dual-spindle` diagnostic in Main.DualSpindleAudit.cs.
+It is deliberately separate from the accepted geometry regression suite.
+Clean build and app-shell pass; help validates 77 scenes/294 assets. The audit
+exits 1 with seven failures and two passes, with no exception. It checks the
+actual delivered meshes and 3000 preview/adapter ticks at 2 ms; no PLC transport.
+
+Measured home: shared subplate bottom Y=1.16, steel stock Y=1.205..1.265,
+X=-2.38243..0.38243, Z=-0.05652..0.85652. Drill axes are approximately
+(-1.22,-1.35) and (1.78,-1.35) in X/Z, with home tips Y=1.61. Both retain
+their separate yellow coupons at Y=1.585..1.695. Neither axis lies over
+the shared steel workpiece, and its subplate has no bearing contact. The
+declared position motions produce zero axial travel for both rotation-only
+adapters. The fixture translates 3.2 m while the actual slide plate moves
+2.2000003 m; no slide/fixture contact or bearing surface is found throughout.
+Timed completion and Reset pass, which does not accept the process.
+
+Native Windows baseline: home FR/FL/RL/RR/Top; held 0.5 s drilling Top/FR;
+released preview to completion; endpoint FR/FL/RL/RR/Top; Reset to home.
+The endpoint is visibly unsupported and detached from the slide. Intermediate
+transfer was not captured as a held native frame or continuous video. Existing
+two drill-base/slide-base bounds candidates remain unresolved. Logs:
+`.tools/dual-spindle-{audit-red,audit-shell,native-baseline}.log`.
+No geometry/controller repair is claimed for Scene 36. Next action: build a
+supported shared fixture, align both heads with its actual stock, remove
+duplicate coupons, provide axial feed with matching home feedback, and couple
+fixture transfer to a mounted slide with a supported receiving route. Do not
+merely change the timed completion expectation. Goal remains active; the user
+carton window is preserved. The previous goal turn verified the receiving
+surface; this continuation commits the prior tote repair and reproduces these
+next failures. Do not restart or repeat this audit instead of repairing them.
+
+Tote Finishing installation checkpoint (2026-10-05, previous): Scene 35 now
 opts into `toteFinishingLine` mounting variants in SceneComposer.ToteFinishing.cs.
 Filler/capper columns, labeler pedestal and vision arch posts are clear of
 the belt and conveyor solids/cables. Grounded feet and connected overhead

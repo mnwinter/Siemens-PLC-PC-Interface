@@ -1,6 +1,18 @@
 # Whole program review - 2026-10-03
 
-Tote Finishing installation checkpoint (2026-10-05, current): repaired Scene 35's
+Dual Spindle failure reproduction (2026-10-05, current): Scene 36's native home
+and timed-complete endpoint received five-angle inspection, with held drilling
+Top/FR and Reset also exercised. The endpoint fixture is unsupported and
+detached from the slide. New offline `--audit-dual-spindle` exits 1 with seven
+failed requirements through 3000 two-ms preview/adapter ticks: shared-stock
+alignment, duplicate stock, home/route bearing contact, axial feed, transfer
+contact and matching travel. Fixture travel=3.2 m, slide=2.2 m, both feeds=0.
+Timed completion and Reset pass; these do not prove the intended process.
+Clean build, shell and help pass. No Scene 36 geometry/controller fix claimed;
+repair the mounted shared fixture and coupled process next. Evidence:
+`.tools/dual-spindle-{audit-red,audit-shell,native-baseline}.log`. Goal active.
+
+Tote Finishing installation checkpoint (2026-10-05, previous): repaired Scene 35's
 station columns inside the belt corridor, unsupported tote and short discharge
 belt. The opt-in mounting variant keeps reusable masters unchanged, supports
 the load on a 14 m / 0.9 m belt, clears station/conveyor solids and routes,

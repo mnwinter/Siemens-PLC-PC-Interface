@@ -1,6 +1,23 @@
 # Multi-angle scene review - 2026-10-04
 
-Tote Finishing installation checkpoint (2026-10-05, current): Scene 35's
+Dual Spindle failure reproduction (2026-10-05, current): Scene 36 home and
+reported-complete endpoint were inspected in Windows FR/FL/RL/RR/Top. Held
+0.5 s drilling was inspected Top/FR; released preview and Reset were exercised.
+Endpoint fixture remains visibly unsupported and detached from the slide;
+rear views occlude parts of the stock and are supplemental to front/Top.
+No held intermediate transfer or continuous-video proof is claimed.
+
+New `--audit-dual-spindle` measures the actual delivered stock, bit axes,
+bearing-contact candidates and 3000 two-ms preview/adapter ticks. Seven failures:
+both axes miss shared stock, duplicate coupons remain, fixture lacks home and
+route bearing contact, both axial feeds remain zero, slide does not contact
+fixture, and 3.2 m fixture travel differs from 2.2 m actual slide travel.
+Timed completion/Reset pass; the cell remains FAIL/open. Audit exits 1 without
+exception. Clean build, shell and help pass. Logs `.tools/dual-spindle-*.log`.
+Next repair must supply a mounted shared fixture/feed/transfer path; no geometry
+or controller repair is claimed. Goal active.
+
+Tote Finishing installation checkpoint (2026-10-05, previous): Scene 35's
 station supports are clear of the belt/conveyor, the tote contacts the belt,
 and the full footprint remains supported at discharge. Grounded columns and
 connected overhead heads are checked; moving nozzle tip/chuck/optic are attached.
@@ -2126,7 +2143,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 33 | `lab-2-19-service-door` | 54 original / 0 repaired | Repaired native FR/FL/RL/RR/T; operator FR close; held opening/Stop/reverse; real-time endpoints; open five views; Reset | Layout/plates and reference reversal/position feedback repaired; raw NC signal displays explicit. Physical limit/cable behavior, compressed slat geometry and loaded-controller operation unaccepted |
 | 34 | `lab-2-20-bottle-shuttle` | 39 historic | Repaired home/right endpoint five views; reference completed left and held post-reversal right FR/FL/RL/RR/T; normal controller held outward/completed-left five views, operator project load/Start/Stop/Run/Reset; rebuilt pause amber and return Run=-1 | INT direction contract and editable reference repair normal offline round trip. Eight placement, thirteen reference and twenty controller integration/contract checks pass within 475. Open: first contact not captured as held native frame, continuous native motion coverage, dynamic stability, external profile/live acceptance |
 | 35 | `lab-2-21-tote-finishing` | 0 after cable-surface screen | Initial/discharge native FR/FL/RL/RR/T; held fill four sides and filler Top/RR close; released preview/Reset; normal Run/Start | Placement/reference repaired: grounded outside-belt stations, seated tote, supported discharge and attached tools; 12 checks. FAIL/open: controller transport/Start binding, capped fill/volume, cap stroke, label application, scripted inspection, restart/resume/dynamics; normal controller unloaded |
-| 36 | `lab-2-22-dual-spindle` | 2 | Native FR/FL/RL/RR/T; plate top/FR close; Start | FAIL/open: plate offset below separate drill coupons, fixture/slide mounting unresolved; adapters rotation only. Start unloaded; feeds and transfer unverified |
+| 36 | `lab-2-22-dual-spindle` | 2 unresolved | Native home/completed endpoint FR/FL/RL/RR/T; held drilling Top/FR; released preview/Reset; prior unloaded normal Start | FAIL/open: seven audit requirements fail; axes miss shared stock, duplicate coupons, no fixture bearing support, zero axial feed, detached transfer with 3.2 m fixture vs 2.2 m slide travel. Timed completion/Reset pass only; controller operation unverified |
 | 37 | `lab-2-23-parcel-sorter` | 174 | FR/FL/RL/RR/T | Repaired static/declared plant path; normal Run lacks controller |
 | 38 | `lab-2-24-robot-cnc` | 29 | Native FR/FL/RL/RR/T; Start | Open: robot behind closed CNC back; workpiece support, reach, door/chuck transfer unverified; Start unloaded |
 | 39 | `lab-2-25-inspection-toggle` | 0 | Native FR/FL/RL/RR/T; repaired plate FR close; real editor create/load/Run/pulse/Stop/Reset | TOGGLE plate repaired, clear stands. Loaded one-network SET test lights beacon; discarded test is not odd/even lesson acceptance |

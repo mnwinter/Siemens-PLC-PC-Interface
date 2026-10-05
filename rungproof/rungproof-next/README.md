@@ -31,6 +31,10 @@ For native multi-angle inspection, launch Godot with `-- --app-shell
 --visual-scene-review`. The opt-in review bar provides catalog navigation, four
 diagonal camera views, overhead, detail zoom and an equipment-focus selector. Scene navigation uses the
 normal unsaved-work guards. Normal launch has no review bar.
+`-- --audit-dual-spindle` reproduces unresolved shared-stock alignment, fixture
+bearing, axial feed and slide-contact/travel requirements for Scene 36. It
+currently exits 1 with seven failed requirements; it is separate from the
+accepted geometry regressions and does not imply controller or mechanical acceptance.
 For Demo 5's offline operator view, Hold offline gantry clock freezes scans and
 equipment motion. Step 0.5 s executes 25 existing 20 ms scan/gantry ticks;
 normal Run and manual permissives are still required. Editor, scene and source
