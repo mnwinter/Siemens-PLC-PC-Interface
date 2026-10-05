@@ -2,11 +2,11 @@
 
 Scene ID: `lab-9-10-box-volume`  
 Migrated source: `prototype/scenes/lab-9-10-box-volume.plcscene`  
-Scene contract: `prototype/scenes/lab-9-10-box-volume.plcscene`
+Scene contract: `res://scenes/migrated/lab-9-10-box-volume.scene.json`
 
 ## Purpose
 
-Three measured dimensions are accepted before a box-volume result is released to the next step.
+Symbolic box-volume logic exercise. The MEASUREMENT readout is static; dimensions and a numeric volume output are not modeled.
 
 ## Expected I/O to operate this scene
 
@@ -55,7 +55,7 @@ A normal Stop removes PLC-owned commands according to the scene runtime. This do
 
 ## Machine guide
 
-Three measured dimensions are accepted before a box-volume result is released to the next step.
+Symbolic box-volume logic exercise. The MEASUREMENT readout is static; dimensions and a numeric volume output are not modeled.
 
 ### Start conditions
 
@@ -70,3 +70,4 @@ Three measured dimensions are accepted before a box-volume result is released to
 ### Expected observations
 
 - Volume result-valid is asserted only when all three dimensions are valid.
+- The readout says NO LIVE VALUE and is not bound to a numeric point.

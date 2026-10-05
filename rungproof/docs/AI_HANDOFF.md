@@ -6,6 +6,35 @@ would otherwise be trapped in a local Codex session. It intentionally excludes
 machine-local Codex databases, credentials, screenshots from private chats, and
 temporary runtime state.
 
+Static readout and diagnostics follow-up (2026-10-05): six mislabeled shutter/
+selector substitutes were replaced with original stand/readout assets. They
+display MEASUREMENT, RESULT, FUNCTION, COUNT, PROGRESS or WEIGHT plus NO LIVE
+VALUE; they have no numeric binding. Catalog bounds, help and candidate status
+now describe the delivered geometry. Invalid former recognition/reference
+evidence is archived as historical, not reused as approval. The shared builder
+preserves the cut-length entry point. Parking and hand-dryer readouts moved
+from Z=1.8 to 3.1 after imported-mesh checks reproduced their wall/shutter
+intersections. Twenty-one identity/support/clearance checks were added; all 213
+geometry/reference/workflow checks pass. These checks do not accept the scenes.
+All seven affected scenes were individually inspected in native Windows at
+FR/FL/RL/RR/Top with the readout focused. Parking RL is shutter-obscured; hand
+FL text is partly lamp-obscured and RL shutter/CNC-obscured; sum/product both
+rear views are CNC-obscured; selector and box-volume RR are CNC-obscured;
+weight RL is CNC-obscured and RR partly lamp/CNC-obscured. Those remain failed
+detail views. Front readout labels and separate Top footprints were observed;
+box-volume also still has an unsupported carton. Scene descriptions/guide/help
+now state the manual or symbolic scope and missing numeric behavior explicitly.
+The full help audit now passes 294 assets/77 scenes normally and with Python -O,
+superseding the six failures in the previous checkpoint below.
+The diagnostic whitelist omitted the renderer's implemented speedPercent and
+numericDisplay modes. Both now validate; an isolated unknown-mode fixture still
+fails as expected. Native scenario browser shows 0 errors, 0 warnings, 1 SYS-READY
+info. Build has zero warnings/errors, 143 controller tests pass, app-shell passes;
+no real PLC transport was constructed. Evidence: .tools/static-readouts-{build,
+final-geometry,final-help,native,native-final}.log and render-binding-{final-build,
+controller,shell}.log. Whole-program acceptance remains open. Saved goal status
+is blocked from the earlier run; review work is continuing without a status change.
+
 Whole-catalog help-audit repair (2026-10-05): the validator now reports every
 missing contract entry before returning exit 1, instead of stopping at the
 first assertion. Missing documents are reported once and repeated runs clear

@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-6-08-hand-dryer",
   "name": "Lab 6.8 - Timed Hand-Dryer",
-  "description": "Hand presence starts a blower and heater cycle with a visible remaining-time indication.",
+  "description": "Manual hand-presence and timer-active inputs form a blower/heater logic exercise. The progress readout is static; a remaining-time value is not modeled.",
   "camera": {
     "position": [
       11,
@@ -117,7 +117,7 @@
       "position": [
         1.1,
         0,
-        1.8
+        3.1
       ],
       "config": {
         "assetName": "progress display",
@@ -266,7 +266,7 @@
       "progress display"
     ],
     "machineGuide": {
-      "purpose": "Hand presence starts a blower and heater cycle with a visible remaining-time indication.",
+      "purpose": "Manual hand-presence and timer-active inputs form a blower/heater logic exercise. The progress readout is static; a remaining-time value is not modeled.",
       "startConditions": [
         "The common PLC/watchdog foundation is healthy.",
         "All required simulator inputs are at their documented initial state."
@@ -283,7 +283,8 @@
         "A missing or stale input must fail safe and remain diagnosable."
       ],
       "expectedObservations": [
-        "The blower and heater run only during a valid hand-drying interval."
+        "The blower and heater run only during a valid hand-drying interval.",
+        "The readout says NO LIVE VALUE and is not bound to a numeric point."
       ]
     },
     "sequenceNumber": 51,

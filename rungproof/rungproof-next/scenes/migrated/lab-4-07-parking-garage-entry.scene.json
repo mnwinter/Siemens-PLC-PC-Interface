@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-4-07-parking-garage-entry",
   "name": "Lab 4.7 - Parking Garage Entry",
-  "description": "Entry and exit sensors control a barrier and occupancy indication for a small garage.",
+  "description": "Manual entry, space-available and exit-clear inputs form a parking barrier logic exercise. The occupancy readout is static; vehicle tracking and an occupancy count are not modeled.",
   "camera": {
     "position": [
       11,
@@ -118,7 +118,7 @@
       "position": [
         1.1,
         0,
-        1.8
+        3.1
       ],
       "config": {
         "assetName": "occupancy counter display",
@@ -298,7 +298,7 @@
       "occupancy counter display"
     ],
     "machineGuide": {
-      "purpose": "Entry and exit sensors control a barrier and occupancy indication for a small garage.",
+      "purpose": "Manual entry, space-available and exit-clear inputs form a parking barrier logic exercise. The occupancy readout is static; vehicle tracking and an occupancy count are not modeled.",
       "startConditions": [
         "The common PLC/watchdog foundation is healthy.",
         "All required simulator inputs are at their documented initial state."
@@ -315,7 +315,8 @@
         "A missing or stale input must fail safe and remain diagnosable."
       ],
       "expectedObservations": [
-        "The barrier opens only when a vehicle is detected, a space is available, and the exit path is clear."
+        "The barrier opens only when a vehicle is detected, a space is available, and the exit path is clear.",
+        "The readout says NO LIVE VALUE and is not bound to a numeric point."
       ]
     },
     "sequenceNumber": 34,

@@ -28,6 +28,35 @@ Every row requires native inspection.
 
 ## Repairs and open findings
 
+Static readout and diagnostics follow-up (2026-10-05): six mislabeled shutter/
+selector substitutes were replaced with original stand/readout assets. They
+display MEASUREMENT, RESULT, FUNCTION, COUNT, PROGRESS or WEIGHT plus NO LIVE
+VALUE; they have no numeric binding. Catalog bounds, help and candidate status
+now describe the delivered geometry. Invalid former recognition/reference
+evidence is archived as historical, not reused as approval. The shared builder
+preserves the cut-length entry point. Parking and hand-dryer readouts moved
+from Z=1.8 to 3.1 after imported-mesh checks reproduced their wall/shutter
+intersections. Twenty-one identity/support/clearance checks were added; all 213
+geometry/reference/workflow checks pass. These checks do not accept the scenes.
+All seven affected scenes were individually inspected in native Windows at
+FR/FL/RL/RR/Top with the readout focused. Parking RL is shutter-obscured; hand
+FL text is partly lamp-obscured and RL shutter/CNC-obscured; sum/product both
+rear views are CNC-obscured; selector and box-volume RR are CNC-obscured;
+weight RL is CNC-obscured and RR partly lamp/CNC-obscured. Those remain failed
+detail views. Front readout labels and separate Top footprints were observed;
+box-volume also still has an unsupported carton. Scene descriptions/guide/help
+now state the manual or symbolic scope and missing numeric behavior explicitly.
+The full help audit now passes 294 assets/77 scenes normally and with Python -O,
+superseding the six failures in the previous checkpoint below.
+The diagnostic whitelist omitted the renderer's implemented speedPercent and
+numericDisplay modes. Both now validate; an isolated unknown-mode fixture still
+fails as expected. Native scenario browser shows 0 errors, 0 warnings, 1 SYS-READY
+info. Build has zero warnings/errors, 143 controller tests pass, app-shell passes;
+no real PLC transport was constructed. Evidence: .tools/static-readouts-{build,
+final-geometry,final-help,native,native-final}.log and render-binding-{final-build,
+controller,shell}.log. Whole-program acceptance remains open. Saved goal status
+is blocked from the earlier run; review work is continuing without a status change.
+
 Whole-catalog help-audit repair (2026-10-05): the validator now reports every
 missing contract entry before returning exit 1, instead of stopping at the
 first assertion. Missing documents are reported once and repeated runs clear
@@ -1060,7 +1089,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 45 | `lab-4-04-sequence-light-tower` | 0 | Native FR/FL/RL/RR/T | FAIL/open: promised four-color sequence has three-tier beacons and two green-only bindings; behavior unverified |
 | 46 | `lab-4-05-dual-input-count-window` | 0 | Native FR/FL/RL/RR/T | Static stands clear. Precomputed channel-ready toggles; raw counting/window workflow unverified |
 | 47 | `lab-4-06-multi-press-confirmation` | 0 | Native FR/FL/RL/RR/T | Static stands clear. Precomputed pattern-ok toggles; raw press order/timing workflow unverified |
-| 48 | `lab-4-07-parking-garage-entry` | 20 | Native FR/FL/RL/RR/T; vehicle FR close | FAIL/open: vehicle is motor starter, two shutters/wall panel; barrier output only lamp; occupancy/barrier motion unverified |
+| 48 | `lab-4-07-parking-garage-entry` | 20 | Native FR/FL/RL/RR/T; replacement readout five focus views | Readout replaced/repositioned; five native focus views (RL obscured). FAIL/open: motor-starter vehicle, substitute barrier/wall, no occupancy numeric binding or barrier motion acceptance |
 | 49 | `lab-4-08-package-grouping` | 118 (historic) | Native FR/FL/RL/RR/T; final carton top/FR close | Carton support repaired and re-inspected. FAIL/open: grouping/release outputs only lamps; separated receiver/stop/sensors and transfer behavior unverified |
 | 50 | `lab-4-09-chain-drive-lift` | 145 | Native FR/FL/RL/RR/T | FAIL/open: conveyor/lifts overlap, floor carton, disconnected pallet load; hoist is scissor table; chain/lift outputs only lamps; motion unverified |
 | 51 | `lab-4-10-cookie-packaging` | 146 | Native FR/FL/RL/RR/T; food top/FR close | FAIL/open: CNC occupies belt, packaged meat below indexing conveyor; lamp-only outputs, cookie count/transfer/packaging unverified |
@@ -1076,13 +1105,13 @@ count as this scene's multi-angle or runtime acceptance.
 | 61 | `lab-5-08-drawbridge-control` | 43 | Native FR/FL/RL/RR/T | FAIL/open: scissor table, guard and shutter instead of bridge route; only lamp outputs, no bridge motion |
 | 62 | `lab-5-09-bag-indexing-conveyor` | 37 (historic) | Repaired native FR/FL/RL/RR/T; carton top/FR close | Carton belt support repaired. FAIL/open: carton/bag identity, outside sensors, only lamp outputs; indexing/reversal unverified |
 | 63 | `lab-5-10-coating-line` | 97 | Native FR/FL/RL/RR/T | FAIL/open: CNC occupies belt, disconnected coating/spray/ventilation props; only lamp outputs, process unverified |
-| 64 | `lab-6-07-luggage-weight-sort` | 110 | Native FR/FL/RL/RR/T | Carton support repaired/re-inspected wide and Top/FL close. FAIL/open: shutter display, disconnected weighing/rejecting layout; no numeric weight/class, only lamps |
-| 65 | `lab-6-08-hand-dryer` | 634 | Native FR/FL/RL/RR/T | FAIL/open: overlapping shutters and disconnected fan/panel/bottle props; no remaining-time point/display binding, only lamp outputs |
-| 66 | `lab-9-01-sum-function` | 0 | Native FR/FL/RL/RR/T | Static clear spacing; wrong calculation/display props, no numeric operand/result contract |
-| 67 | `lab-9-02-product-function` | 0 | Native FR/FL/RL/RR/T | Static clear spacing; wrong calculation/display props, no numeric factors/product contract |
+| 64 | `lab-6-07-luggage-weight-sort` | 110 | Native FR/FL/RL/RR/T; replacement readout five focus views | Carton support repaired earlier; WEIGHT readout replaced and five focus views inspected (RL obscured, RR partly obscured). FAIL/open: disconnected weighing/rejecting layout; no numeric weight/class |
+| 65 | `lab-6-08-hand-dryer` | 634 | Native FR/FL/RL/RR/T; replacement readout five focus views | PROGRESS readout replaced/repositioned; five focus views (FL text partly obscured, RL obscured). FAIL/open: substitute heating shutter and disconnected fan/panel/bottle; no remaining-time numeric binding |
+| 66 | `lab-9-01-sum-function` | 0 | Native FR/FL/RL/RR/T; replacement readout five focus views | RESULT readout replaced; five focus views (both rear obscured). FAIL/open: wrong calculation props, no numeric operand/result contract |
+| 67 | `lab-9-02-product-function` | 0 | Native FR/FL/RL/RR/T; replacement readout five focus views | RESULT readout replaced; five focus views (both rear obscured). FAIL/open: wrong calculation props, no numeric factors/product contract |
 | 68 | `lab-9-03-sum-and-counter-function` | 0 | Native FR/FL/RL/RR/T | Static clear spacing; no numeric result/event count contract; CNC unbound |
-| 69 | `lab-9-04-function-selector` | 0 | Native FR/FL/RL/RR/T | Function validity is not a choice value; numeric operands/result and selector binding unresolved |
-| 70 | `lab-9-10-box-volume` | 46 | Native FR/FL/RL/RR/T | Two shutter substitutes, obscured carton; no numeric dimension/volume contract |
+| 69 | `lab-9-04-function-selector` | 0 | Native FR/FL/RL/RR/T; replacement readout five focus views | FUNCTION readout replaced; five focus views (RR obscured). FAIL/open: function validity is not a choice value; numeric operands/result and selector binding unresolved |
+| 70 | `lab-9-10-box-volume` | 46 | Native FR/FL/RL/RR/T; replacement readout five focus views | MEASUREMENT readout replaced; five focus views (RR obscured). FAIL/open: dimension sensor remains shutter substitute, carton unsupported, no numeric dimension/volume contract |
 | 71 | `lab-9-11-pallet-counting` | 86 | Native FR/FL/RL/RR/T | Carton/fixture/readout geometry repaired and five views/details inspected. Live DINT count/readout FR/FL and invalid/five-edge/held/permissive/Stop/Run/Reset native checks pass. Optical classification/pallet travel/CNC integration open |
 | 72 | `lab-9-12-ev-charging-manager` | 95 | Native FR/FL/RL/RR/T | FAIL/open: shutters/fluid props instead of EV charging route; energy pulse/accumulation contract absent |
 | 73 | `scene-1-conveyor-stop` | 34 | Native FR/FL/RL/RR/T | Carton belt contact/load-end footprint repaired; native five wide/Top/FL close and Demo 3 Run/Start/photoeye/Stop/Reset rechecked; full clearance open |

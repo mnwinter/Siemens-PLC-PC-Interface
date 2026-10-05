@@ -1,0 +1,6 @@
+{
+  "assetId": "training.accessory.occupancy_counter_display.v1",
+  "status": "candidate-unapproved",
+  "scope": "Original static readout displaying COUNT / NO LIVE VALUE; no numeric point or measurement behavior is bound.",
+  "historicalEvidence": "historical_invalid_identity_20261005 is invalid for this replacement."
+}

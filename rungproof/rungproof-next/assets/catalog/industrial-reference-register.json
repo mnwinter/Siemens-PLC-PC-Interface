@@ -6588,113 +6588,6 @@
       ]
     },
     {
-      "assetId": "training.accessory.numeric_measurement_display.v1",
-      "status": "referenced",
-      "comparisonStatus": "reference-identified",
-      "comparisonNotes": "Generic family reference inherited for candidate package review; the training accessory must be independently compared before promotion.",
-      "referenceFamily": "industrial coiling steel service door",
-      "sources": [
-        {
-          "publisher": "Clopay",
-          "title": "Roll-Up Sheet Doors product page",
-          "url": "https://www.clopaydoor.com/coiling-sheet-doors",
-          "sourceType": "oem-product-page",
-          "accessed": "2026-09-22"
-        }
-      ],
-      "modeledFeatures": [
-        "interlocking horizontal curtain slats",
-        "vertical guide tracks",
-        "header coil/shaft zone",
-        "bottom bar",
-        "side-mounted operator context"
-      ],
-      "intentionallyGeneric": [
-        "No Clopay mark, slat gauge, curtain material, door size, drive voltage, cycle count, weather sealing, or safety edge is reproduced.",
-        "Simulator travel is not a real door safety or commissioning claim."
-      ]
-    },
-    {
-      "assetId": "training.accessory.numeric_result_display.v1",
-      "status": "referenced",
-      "comparisonStatus": "reference-identified",
-      "comparisonNotes": "Generic family reference inherited for candidate package review; the training accessory must be independently compared before promotion.",
-      "referenceFamily": "industrial coiling steel service door",
-      "sources": [
-        {
-          "publisher": "Clopay",
-          "title": "Roll-Up Sheet Doors product page",
-          "url": "https://www.clopaydoor.com/coiling-sheet-doors",
-          "sourceType": "oem-product-page",
-          "accessed": "2026-09-22"
-        }
-      ],
-      "modeledFeatures": [
-        "interlocking horizontal curtain slats",
-        "vertical guide tracks",
-        "header coil/shaft zone",
-        "bottom bar",
-        "side-mounted operator context"
-      ],
-      "intentionallyGeneric": [
-        "No Clopay mark, slat gauge, curtain material, door size, drive voltage, cycle count, weather sealing, or safety edge is reproduced.",
-        "Simulator travel is not a real door safety or commissioning claim."
-      ]
-    },
-    {
-      "assetId": "training.accessory.numeric_selector_display.v1",
-      "status": "referenced",
-      "comparisonStatus": "reference-identified",
-      "comparisonNotes": "Generic family reference inherited for candidate package review; the training accessory must be independently compared before promotion.",
-      "referenceFamily": "22 mm maintained industrial selector switch on an operator station",
-      "sources": [
-        {
-          "publisher": "Schneider Electric",
-          "title": "Harmony XB4 metal selector switch product data",
-          "url": "https://shop.se.com/pro/us/en/product/head-for-selector-switch-harmony-xb4-metal-black-22mm-long-handle-3-positions-stay-put/",
-          "sourceType": "oem-product-page",
-          "accessed": "2026-09-22"
-        }
-      ],
-      "modeledFeatures": [
-        "round 22 mm panel-mounted operator",
-        "metal mounting bezel",
-        "black handle with defined positions",
-        "enclosure/pedestal mounting context"
-      ],
-      "intentionallyGeneric": [
-        "No Schneider mark, exact number of positions, contact blocks, wiring, protection rating, or operating-mode logic is reproduced.",
-        "The scene selector points remain symbolic simulator I/O only."
-      ]
-    },
-    {
-      "assetId": "training.accessory.occupancy_counter_display.v1",
-      "status": "referenced",
-      "comparisonStatus": "reference-identified",
-      "comparisonNotes": "Generic family reference inherited for candidate package review; the training accessory must be independently compared before promotion.",
-      "referenceFamily": "industrial coiling steel service door",
-      "sources": [
-        {
-          "publisher": "Clopay",
-          "title": "Roll-Up Sheet Doors product page",
-          "url": "https://www.clopaydoor.com/coiling-sheet-doors",
-          "sourceType": "oem-product-page",
-          "accessed": "2026-09-22"
-        }
-      ],
-      "modeledFeatures": [
-        "interlocking horizontal curtain slats",
-        "vertical guide tracks",
-        "header coil/shaft zone",
-        "bottom bar",
-        "side-mounted operator context"
-      ],
-      "intentionallyGeneric": [
-        "No Clopay mark, slat gauge, curtain material, door size, drive voltage, cycle count, weather sealing, or safety edge is reproduced.",
-        "Simulator travel is not a real door safety or commissioning claim."
-      ]
-    },
-    {
       "assetId": "training.accessory.package_spacing_sensor.v1",
       "status": "referenced",
       "comparisonStatus": "reference-identified",
@@ -7041,33 +6934,6 @@
       "intentionallyGeneric": [
         "No SMC mark, bore, stroke rating, pressure, cushioning, switch type, port thread, mounting load, or pneumatic circuit is reproduced.",
         "Pusher motion remains symbolic simulator kinematics."
-      ]
-    },
-    {
-      "assetId": "training.accessory.progress_display.v1",
-      "status": "referenced",
-      "comparisonStatus": "reference-identified",
-      "comparisonNotes": "Generic family reference inherited for candidate package review; the training accessory must be independently compared before promotion.",
-      "referenceFamily": "industrial coiling steel service door",
-      "sources": [
-        {
-          "publisher": "Clopay",
-          "title": "Roll-Up Sheet Doors product page",
-          "url": "https://www.clopaydoor.com/coiling-sheet-doors",
-          "sourceType": "oem-product-page",
-          "accessed": "2026-09-22"
-        }
-      ],
-      "modeledFeatures": [
-        "interlocking horizontal curtain slats",
-        "vertical guide tracks",
-        "header coil/shaft zone",
-        "bottom bar",
-        "side-mounted operator context"
-      ],
-      "intentionallyGeneric": [
-        "No Clopay mark, slat gauge, curtain material, door size, drive voltage, cycle count, weather sealing, or safety edge is reproduced.",
-        "Simulator travel is not a real door safety or commissioning claim."
       ]
     },
     {
@@ -7615,33 +7481,6 @@
     },
     {
       "assetId": "training.accessory.ventilation_damper.v1",
-      "status": "referenced",
-      "comparisonStatus": "reference-identified",
-      "comparisonNotes": "Generic family reference inherited for candidate package review; the training accessory must be independently compared before promotion.",
-      "referenceFamily": "industrial coiling steel service door",
-      "sources": [
-        {
-          "publisher": "Clopay",
-          "title": "Roll-Up Sheet Doors product page",
-          "url": "https://www.clopaydoor.com/coiling-sheet-doors",
-          "sourceType": "oem-product-page",
-          "accessed": "2026-09-22"
-        }
-      ],
-      "modeledFeatures": [
-        "interlocking horizontal curtain slats",
-        "vertical guide tracks",
-        "header coil/shaft zone",
-        "bottom bar",
-        "side-mounted operator context"
-      ],
-      "intentionallyGeneric": [
-        "No Clopay mark, slat gauge, curtain material, door size, drive voltage, cycle count, weather sealing, or safety edge is reproduced.",
-        "Simulator travel is not a real door safety or commissioning claim."
-      ]
-    },
-    {
-      "assetId": "training.accessory.weight_display.v1",
       "status": "referenced",
       "comparisonStatus": "reference-identified",
       "comparisonNotes": "Generic family reference inherited for candidate package review; the training accessory must be independently compared before promotion.",

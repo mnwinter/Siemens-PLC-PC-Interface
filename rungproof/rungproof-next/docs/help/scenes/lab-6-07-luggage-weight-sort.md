@@ -2,11 +2,11 @@
 
 Scene ID: `lab-6-07-luggage-weight-sort`  
 Migrated source: `prototype/scenes/lab-6-07-luggage-weight-sort.plcscene`  
-Scene contract: `prototype/scenes/lab-6-07-luggage-weight-sort.plcscene`
+Scene contract: `res://scenes/migrated/lab-6-07-luggage-weight-sort.scene.json`
 
 ## Purpose
 
-A scale classifies incoming luggage and updates the appropriate category indication.
+Symbolic luggage routing logic exercise. The WEIGHT readout is static; numeric weight measurement is not modeled.
 
 ## Expected I/O to operate this scene
 
@@ -61,7 +61,7 @@ A normal Stop removes PLC-owned commands according to the scene runtime. This do
 
 ## Machine guide
 
-A scale classifies incoming luggage and updates the appropriate category indication.
+Symbolic luggage routing logic exercise. The WEIGHT readout is static; numeric weight measurement is not modeled.
 
 ### Start conditions
 
@@ -76,3 +76,4 @@ A scale classifies incoming luggage and updates the appropriate category indicat
 ### Expected observations
 
 - A valid bag produces one category result and increments only its class counter.
+- The readout says NO LIVE VALUE and is not bound to a numeric point.

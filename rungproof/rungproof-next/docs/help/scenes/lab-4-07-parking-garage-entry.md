@@ -2,11 +2,11 @@
 
 Scene ID: `lab-4-07-parking-garage-entry`  
 Migrated source: `prototype/scenes/lab-4-07-parking-garage-entry.plcscene`  
-Scene contract: `prototype/scenes/lab-4-07-parking-garage-entry.plcscene`
+Scene contract: `res://scenes/migrated/lab-4-07-parking-garage-entry.scene.json`
 
 ## Purpose
 
-Entry and exit sensors control a barrier and occupancy indication for a small garage.
+Manual entry, space-available and exit-clear inputs form a parking barrier logic exercise. The occupancy readout is static; vehicle tracking and an occupancy count are not modeled.
 
 ## Expected I/O to operate this scene
 
@@ -60,7 +60,7 @@ A normal Stop removes PLC-owned commands according to the scene runtime. This do
 
 ## Machine guide
 
-Entry and exit sensors control a barrier and occupancy indication for a small garage.
+Manual entry, space-available and exit-clear inputs form a parking barrier logic exercise. The occupancy readout is static; vehicle tracking and an occupancy count are not modeled.
 
 ### Start conditions
 
@@ -75,3 +75,4 @@ Entry and exit sensors control a barrier and occupancy indication for a small ga
 ### Expected observations
 
 - The barrier opens only when a vehicle is detected, a space is available, and the exit path is clear.
+- The readout says NO LIVE VALUE and is not bound to a numeric point.

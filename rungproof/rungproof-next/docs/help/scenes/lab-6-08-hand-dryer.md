@@ -2,11 +2,11 @@
 
 Scene ID: `lab-6-08-hand-dryer`  
 Migrated source: `prototype/scenes/lab-6-08-hand-dryer.plcscene`  
-Scene contract: `prototype/scenes/lab-6-08-hand-dryer.plcscene`
+Scene contract: `res://scenes/migrated/lab-6-08-hand-dryer.scene.json`
 
 ## Purpose
 
-Hand presence starts a blower and heater cycle with a visible remaining-time indication.
+Manual hand-presence and timer-active inputs form a blower/heater logic exercise. The progress readout is static; a remaining-time value is not modeled.
 
 ## Expected I/O to operate this scene
 
@@ -56,7 +56,7 @@ A normal Stop removes PLC-owned commands according to the scene runtime. This do
 
 ## Machine guide
 
-Hand presence starts a blower and heater cycle with a visible remaining-time indication.
+Manual hand-presence and timer-active inputs form a blower/heater logic exercise. The progress readout is static; a remaining-time value is not modeled.
 
 ### Start conditions
 
@@ -71,3 +71,4 @@ Hand presence starts a blower and heater cycle with a visible remaining-time ind
 ### Expected observations
 
 - The blower and heater run only during a valid hand-drying interval.
+- The readout says NO LIVE VALUE and is not bound to a numeric point.

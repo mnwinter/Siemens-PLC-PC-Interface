@@ -2,11 +2,11 @@
 
 Scene ID: `lab-9-04-function-selector`  
 Migrated source: `prototype/scenes/lab-9-04-function-selector.plcscene`  
-Scene contract: `prototype/scenes/lab-9-04-function-selector.plcscene`
+Scene contract: `res://scenes/migrated/lab-9-04-function-selector.scene.json`
 
 ## Purpose
 
-A selector chooses between two calculation paths and reports the selected result.
+Symbolic function-selection logic exercise. The FUNCTION readout is static; numeric function selection and results are not modeled.
 
 ## Expected I/O to operate this scene
 
@@ -54,7 +54,7 @@ A normal Stop removes PLC-owned commands according to the scene runtime. This do
 
 ## Machine guide
 
-A selector chooses between two calculation paths and reports the selected result.
+Symbolic function-selection logic exercise. The FUNCTION readout is static; numeric function selection and results are not modeled.
 
 ### Start conditions
 
@@ -69,3 +69,4 @@ A selector chooses between two calculation paths and reports the selected result
 ### Expected observations
 
 - Only the selected calculation path may assert selected_result_valid.
+- The readout says NO LIVE VALUE and is not bound to a numeric point.

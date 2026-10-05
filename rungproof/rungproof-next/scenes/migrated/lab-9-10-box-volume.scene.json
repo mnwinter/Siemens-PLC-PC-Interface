@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-9-10-box-volume",
   "name": "Lab 9.10 - Box Volume Calculation",
-  "description": "Three measured dimensions are accepted before a box-volume result is released to the next step.",
+  "description": "Symbolic box-volume logic exercise. The MEASUREMENT readout is static; dimensions and a numeric volume output are not modeled.",
   "camera": {
     "position": [
       11,
@@ -242,7 +242,7 @@
       "numeric measurement display"
     ],
     "machineGuide": {
-      "purpose": "Three measured dimensions are accepted before a box-volume result is released to the next step.",
+      "purpose": "Symbolic box-volume logic exercise. The MEASUREMENT readout is static; dimensions and a numeric volume output are not modeled.",
       "startConditions": [
         "The common PLC/watchdog foundation is healthy.",
         "All required simulator inputs are at their documented initial state."
@@ -259,7 +259,8 @@
         "A missing or stale input must fail safe and remain diagnosable."
       ],
       "expectedObservations": [
-        "Volume result-valid is asserted only when all three dimensions are valid."
+        "Volume result-valid is asserted only when all three dimensions are valid.",
+        "The readout says NO LIVE VALUE and is not bound to a numeric point."
       ]
     },
     "sequenceNumber": 56,

@@ -2,11 +2,11 @@
 
 Scene ID: `lab-9-01-sum-function`  
 Migrated source: `prototype/scenes/lab-9-01-sum-function.plcscene`  
-Scene contract: `prototype/scenes/lab-9-01-sum-function.plcscene`
+Scene contract: `res://scenes/migrated/lab-9-01-sum-function.scene.json`
 
 ## Purpose
 
-A reusable calculation block accepts two numeric operands and exposes a result-ready handshake.
+Symbolic sum-function logic exercise. The RESULT readout is static; numeric operands and a sum output are not modeled.
 
 ## Expected I/O to operate this scene
 
@@ -54,7 +54,7 @@ A normal Stop removes PLC-owned commands according to the scene runtime. This do
 
 ## Machine guide
 
-A reusable calculation block accepts two numeric operands and exposes a result-ready handshake.
+Symbolic sum-function logic exercise. The RESULT readout is static; numeric operands and a sum output are not modeled.
 
 ### Start conditions
 
@@ -69,3 +69,4 @@ A reusable calculation block accepts two numeric operands and exposes a result-r
 ### Expected observations
 
 - The result-valid indication occurs only when both operands are valid and a calculation is requested.
+- The readout says NO LIVE VALUE and is not bound to a numeric point.

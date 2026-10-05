@@ -2,11 +2,11 @@
 
 Scene ID: `lab-9-02-product-function`  
 Migrated source: `prototype/scenes/lab-9-02-product-function.plcscene`  
-Scene contract: `prototype/scenes/lab-9-02-product-function.plcscene`
+Scene contract: `res://scenes/migrated/lab-9-02-product-function.scene.json`
 
 ## Purpose
 
-A reusable calculation block multiplies two numeric operands after both inputs pass validation.
+Symbolic product-function logic exercise. The RESULT readout is static; numeric operands and a product output are not modeled.
 
 ## Expected I/O to operate this scene
 
@@ -54,7 +54,7 @@ A normal Stop removes PLC-owned commands according to the scene runtime. This do
 
 ## Machine guide
 
-A reusable calculation block multiplies two numeric operands after both inputs pass validation.
+Symbolic product-function logic exercise. The RESULT readout is static; numeric operands and a product output are not modeled.
 
 ### Start conditions
 
@@ -69,3 +69,4 @@ A reusable calculation block multiplies two numeric operands after both inputs p
 ### Expected observations
 
 - The product result becomes valid only after both factors and the request are valid.
+- The readout says NO LIVE VALUE and is not bound to a numeric point.

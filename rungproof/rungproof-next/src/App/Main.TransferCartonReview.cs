@@ -181,6 +181,49 @@ public partial class Main
             "cut_length_manual_input_plates_match_their_functions");
     }
 
+    private void VerifyStaticTrainingReadouts(Action<bool, string> check)
+    {
+        foreach (var (sceneId, displayId) in new[]
+        {
+            ("lab-4-07-parking-garage-entry", "training_accessory_6"),
+            ("lab-6-08-hand-dryer", "training_accessory_6"),
+            ("lab-6-07-luggage-weight-sort", "training_accessory_6"),
+            ("lab-9-01-sum-function", "training_accessory_4"),
+            ("lab-9-02-product-function", "training_accessory_4"),
+            ("lab-9-04-function-selector", "training_accessory_4"),
+            ("lab-9-10-box-volume", "training_accessory_4")
+        })
+        {
+            AddMigratedScene(sceneId, _candidateCatalog!, _mainCamera!, false, false);
+            var root = _sceneCompositionRoot!;
+            var display = root.GetNode<Node3D>(displayId);
+            var parts = ReviewMeshes(display);
+            check(display.FindChild("STATIC_READOUT_screen", true, false) is not null
+                && display.FindChild("STATIC_READOUT_static_legend", true, false) is not null
+                && display.FindChild("KIN_bottom_bar", true, false) is null
+                && display.FindChild("KIN_selector_handle", true, false) is null,
+                $"{sceneId}_static_readout_identity_without_shutter_or_selector");
+            var baseMesh = (MeshInstance3D)display.FindChild("STATIC_READOUT_base", true, false);
+            var mast = (MeshInstance3D)display.FindChild("STATIC_READOUT_mast", true, false);
+            var housing = (MeshInstance3D)display.FindChild("STATIC_READOUT_housing", true, false);
+            check(MathF.Abs(ReviewBounds(baseMesh).Position.Y) < 0.001f
+                && ReviewBounds(mast).Intersects(ReviewBounds(baseMesh).Grow(0.001f))
+                && ReviewBounds(mast).Intersects(ReviewBounds(housing)),
+                $"{sceneId}_static_readout_grounded_and_supported");
+            var others = root.GetChildren().OfType<Node3D>().Where(node => node != display).SelectMany(ReviewMeshes).ToArray();
+            bool Clear(MeshInstance3D part, MeshInstance3D other)
+            {
+                var overlap = ReviewBounds(part).Intersection(ReviewBounds(other)).Size;
+                return overlap.X <= 0.005f || overlap.Y <= 0.005f || overlap.Z <= 0.005f || !OrientedBoxesPenetrate(part, other);
+            }
+            foreach (var part in parts)
+                foreach (var other in others.Where(other => !Clear(part, other)))
+                    GD.Print($"STATIC_READOUT_COLLISION {sceneId} {part.Name} {other.GetParent().Name}/{other.Name} {ReviewBounds(part)} {ReviewBounds(other)}");
+            check(parts.All(part => others.All(other => Clear(part, other))),
+                $"{sceneId}_static_readout_clear_of_separate_equipment");
+        }
+    }
+
     private void VerifyBaseConveyorCartonSupport(Action<bool, string> check)
     {
         foreach (var number in new[] { 1, 2 })

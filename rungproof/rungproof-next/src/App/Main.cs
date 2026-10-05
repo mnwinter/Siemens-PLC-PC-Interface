@@ -1153,8 +1153,31 @@ public partial class Main : Node3D
         GetTree().Quit(passed ? 0 : 1);
     }
 
+    private bool VerifyRendererBindingModes()
+    {
+        var scenes = _sceneCatalog!.Scenes.Select(SceneCatalogLoader.LoadScene).ToArray();
+        var actualSupported = !ProjectValidator.Validate(_candidateCatalog!, _sceneCatalog, scenes)
+            .Any(issue => issue.Code == "SCN-BINDING-MODE");
+        // Keep unknown modes rejected while exercising the actual catalog modes.
+        // This fixture changes no loaded scene and constructs no PLC transport.
+        using var fixture = JsonDocument.Parse(JsonSerializer.Serialize(new
+        {
+            points = new[] { new { name = "probe", type = "REAL", owner = "PLC", initial = 0.0 } },
+            pointBindings = new[]
+            {
+                new { point = "probe", equipmentId = scenes[0].Equipment[0].Id, mode = "unsupported-review-probe" }
+            }
+        }));
+        var unknownScene = scenes[0] with { Simulation = fixture.RootElement };
+        var unknownRejected = ProjectValidator.Validate(_candidateCatalog!, _sceneCatalog, new[] { unknownScene })
+            .Count(issue => issue.Code == "SCN-BINDING-MODE") == 1;
+        GD.Print($"RENDER_BINDING_VALIDATION_VERIFY {(actualSupported && unknownRejected ? "PASS" : "FAIL")} actualSupported={actualSupported} unknownRejected={unknownRejected}");
+        return actualSupported && unknownRejected;
+    }
+
     private void VerifyAppShell()
     {
+        var rendererModesPassed = VerifyRendererBindingModes();
         var result = "shell unavailable";
         var menuResult = "shell unavailable";
         var plcResult = "shell unavailable";
@@ -1181,7 +1204,7 @@ public partial class Main : Node3D
         var unsavedPassed = _simulatorShell is not null && _simulatorShell.VerifyUnsavedWorkGuard(out unsavedResult);
         GD.Print($"UNSAVED_WORK_VERIFY {(unsavedPassed ? "PASS" : "FAIL")} {unsavedResult}");
         GD.Print($"EXTERNAL_PROFILE_GUARD_VERIFY {(guardPassed ? "PASS" : "FAIL")} {guardResult}");
-        if (structurePassed && menuPassed && plcPassed && scenarioPassed && projectPassed && guardPassed && draftPassed && unsavedPassed)
+        if (rendererModesPassed && structurePassed && menuPassed && plcPassed && scenarioPassed && projectPassed && guardPassed && draftPassed && unsavedPassed)
         {
             GD.Print($"APP_SHELL_VERIFY PASS {result} workspaceMenu={menuResult} plcMenu={plcResult} scenarioMenu={scenarioResult} crossSceneProject={projectResult}");
             if (OS.GetCmdlineUserArgs().Contains("--trace-orphans", StringComparer.Ordinal))
@@ -1202,6 +1225,7 @@ public partial class Main : Node3D
             if (!projectPassed) failure += $"; crossSceneProject={projectResult}";
             if (!guardPassed) failure += $"; externalProfileGuards={guardResult}";
             if (!draftPassed) failure += $"; sceneDraft={draftResult}";
+            if (!rendererModesPassed) failure += "; renderer binding validation failed";
         }
         GD.PushError($"APP_SHELL_VERIFY FAIL {failure}");
         GetTree().Quit(1);
