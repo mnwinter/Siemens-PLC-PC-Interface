@@ -6,6 +6,27 @@ would otherwise be trapped in a local Codex session. It intentionally excludes
 machine-local Codex databases, credentials, screenshots from private chats, and
 temporary runtime state.
 
+Latest sump piping checkpoint (2026-10-04): coverage remains 30/77 inspected,
+47 pending including failures. Opt-in installation=sumpPiping uses actual mesh
+datums before tree entry to connect tank/pump, rotate/align valve/spool and
+ground five pipe shoes/posts without modifying other scene assets. Suction
+uses two 45-degree bends (350 mm centerline radius, 180 mm tube radius),
+discharge a 350 mm elbow; local curvature guard catches undersized bends.
+Final normal Windows five wide views plus top/FL/RL/FR pump-focused close
+views were inspected. Normal Run opens NO CONTROLLER LOADED. Six new
+actual-mesh checks all fail with original scene JSON and pass repaired.
+Build 0 warnings/errors; 111 geometry checks, one sump reference contract,
+19 motion checks, 142 controller tests, rendered controls and shell pass.
+Shell retains four existing headless position errors. Evidence under
+rungproof-next/.tools: sump-piping-before.log, sump-piping-geometry.log,
+sump-piping-final-native.log and sump-piping-*.log. Reviewer exits 0 and
+user Demo 1 stays open. Sump still FAIL: closed vessel rather than established
+sump, named floats are tuning-fork assets, low probe Y=-0.175 below floor,
+process fittings/threshold alignment and full native level motion unverified.
+Annular visible connectors do not prove internal flow or hydraulic design.
+Goal active. Next: finish sump vessel/sensor/motion review and scene 30 Safe
+Drill, then all 47 pending scenes and previously recorded open failures.
+
 Latest fume speed/Stop checkpoint (2026-10-04): coverage remains 30/77 inspected,
 47 pending, including failures. Numeric speedPercent binding scales the existing
 720 rpm fan animation while keeping BOOL run separate and unbound asset defaults.

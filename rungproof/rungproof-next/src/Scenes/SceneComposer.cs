@@ -114,6 +114,8 @@ public static partial class SceneComposer
             rendered.Add(equipment.Id);
         }
 
+        if (scene.Equipment.Any(equipment => Text(equipment.Config, "installation", string.Empty) == "sumpPiping"))
+            ConfigureSumpPiping(root);
         return new SceneComposition(root, rendered, deferred);
     }
 

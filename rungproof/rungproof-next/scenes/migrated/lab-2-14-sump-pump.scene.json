@@ -6,7 +6,7 @@
   "description": "A simulated sump rises to the high float, starts a dewatering pump, and pumps down until the low float resets the run latch.",
   "camera": {
     "position": [
-      10.6,
+      -10.6,
       7.8,
       10.6
     ],
@@ -28,18 +28,20 @@
         0
       ],
       "config": {
+        "installation": "sumpPiping",
         "height": 4.2,
         "diameter": 3.2,
         "initialLevel": 0.22,
         "fluidColor": 1415124
-      }
+      },
+      "rotation": [0, -90, 0]
     },
     {
       "id": "sump_pump",
       "type": "pump",
       "label": "Dewatering pump",
       "position": [
-        -4,
+        -5,
         0,
         0
       ],
@@ -82,10 +84,11 @@
       "type": "pipe",
       "label": "Sump discharge",
       "position": [
-        -2.4,
-        3.4,
-        0
+        -4.34,
+        1.32,
+        -4.7
       ],
+      "rotation": [0, 90, 0],
       "config": {
         "length": 3.5,
         "diameter": 0.3,
@@ -98,14 +101,14 @@
       "type": "valve",
       "label": "Discharge isolation valve",
       "position": [
-        -1.6,
-        3.4,
-        0
+        -4.34,
+        1.48,
+        -1.8
       ],
       "rotation": [
         0,
-        0,
-        90
+        90,
+        0
       ],
       "config": {
         "initialPosition": 1

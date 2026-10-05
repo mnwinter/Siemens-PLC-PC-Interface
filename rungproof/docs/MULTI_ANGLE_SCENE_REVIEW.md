@@ -28,6 +28,30 @@ Every row requires native inspection.
 
 ## Repairs and open findings
 
+- Sump piping follow-up: the opt-in scene installation now connects actual
+  tank/pump flange faces with a suction offset and an upward discharge elbow,
+  aligns the valve and instrumented spool horizontally, and grounds five pipe
+  shoes with attached posts. The valve/spool clear the tank shell and ladder.
+  Two broader 45-degree suction bends replaced an initially folded connector;
+  a local curvature guard rejects tube radius exceeding the bend radius.
+  The startup camera exposes the piping. Fresh normal Windows FR/FL/RL/RR/T
+  wide views and pump-focused top/FL/RL/FR close views were inspected after
+  the final bend correction. Joins and support contact are visible in the
+  close views; occluded surfaces are not accepted from a single angle.
+  Normal Run again opens NO CONTROLLER LOADED. Six new actual-mesh checks
+  fail on the original scene placement and pass after repair. Build has
+  zero warnings/errors; all 111 geometry checks, one sump reference contract,
+  19 motion checks, 142 controller tests and rendered controls pass. Shell
+  passes with four existing headless position errors. The isolated native
+  reviewer exits 0 and user Demo 1 stays open. Evidence under
+  rungproof-next/.tools: sump-piping-before.log, sump-piping-geometry.log,
+  sump-piping-final-native.log and sump-piping-{build,controller,contract,
+  motion,controls,shell}.log. **Still FAIL/open:** the closed vessel does not
+  establish a sump, the named floats are tuning-fork switches with no proven
+  process fittings, the low probe extends below the floor, and full native
+  level motion/controller execution remains unverified. Annular visual joins
+  do not establish an internal fluid passage, pressure rating or discharge
+  destination. Coverage remains 30/77 inspected, 47 pending including failures.
 - Fume speed / Stop follow-up: `fan_speed_percent` now binds to the rotor
   through opt-in `speedPercent`, clamped to 0..100% of the existing 720 rpm
   nominal animation. Unbound rotating assets keep their authored speed. The
@@ -56,7 +80,7 @@ Every row requires native inspection.
   fume-speed-native.log, fume-speed-stop-native.log and fume-speed-*.log.
   Both isolated native previews exited 0; user Demo 1 stays open. Coverage
   remains 30/77 inspected, 47 pending, including failures. Sump remains FAIL.
-- Sump Dewatering Pump (scene 28): native FR initial / FL / RL / RR / T views
+- Original Sump Dewatering Pump finding (scene 28, piping follow-up above): native FR initial / FL / RL / RR / T views
   and close overhead/FL discharge views inspected. **FAIL/open:** the pump has
   no connected suction/discharge route; the elevated spool/valve assembly
   interferes with the tank ladder/cage and lacks grounded pipe support. The
@@ -549,7 +573,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 25 | `lab-2-11-inbound-tote-stop` | 7 | FR/FL/RL/RR/T + close tote; FL/RR motion endpoints | Tote support, sensor clearance and cycle endpoint repaired; six focused checks pass. Native completion/Reset and endpoint Stop checked; Run empty controller. Cable AABB candidates remain. |
 | 26 | `lab-2-12-assembly-lift` | 0 | FR/FL/RL/RR/T + close plates/lift + FL/RR motion | Fixture support, rollers/washers, travel framing and hydraulic attachment repaired; historical bellows approval stale; blank editor on normal Run; shared scenes need follow-up |
 | 27 | `lab-2-13-coolant-jug-fill` | 13 | Catalog FR/FL/RL/RR/T; QA five held filling views + close FL mouth; real-time indexing/exit, Reset | Lane/support/nozzle repaired; sampled sweep clear. Open: external service pipe absent, Run blank controller editor; native Stop endpoint-only |
-| 28 | `lab-2-14-sump-pump` | 41 | FR initial/FL/RL/RR/T + close overhead/FL discharge | FAIL: disconnected pump, elevated unsupported/intersecting piping, buried low probe; float fitting/identity open; normal Run unloaded |
+| 28 | `lab-2-14-sump-pump` | 41 (original) | Final repaired FR/FL/RL/RR/T wide + top/FL/RL/FR pump close | Partial piping repair: joined measured ports, aligned valve/spool and grounded supports; still FAIL: buried low probe, float fitting/identity and sump vessel open; normal Run unloaded; full level motion pending |
 | 29 | `lab-2-15-fume-extractor` | 0 | FR/FL/RL/RR/T static and running 35%; close plate; speed states; native preview Stop/Run/Off/Reset | LIGHT REQUEST, speed binding and preview Stop repaired; six-blade transform checks pass. Open: beacon substitutes light, hood/duct absent, normal Run unloaded; reference preview is not controller lesson acceptance |
 | 30 | `lab-2-16-safe-drill` | 24 | Pending | Pending |
 | 31 | `lab-2-17-pallet-robot` | 23 | Pending | Pending |

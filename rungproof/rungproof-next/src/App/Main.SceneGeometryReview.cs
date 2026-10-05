@@ -316,6 +316,7 @@ public partial class Main
             VerifyAssemblyLiftGeometry(Check);
             VerifyCoolantJugGeometry(Check);
             VerifyFumeSpeedProjection(Check);
+            VerifySumpInstallation(Check);
 
             AddMigratedScene("tank-radar", _candidateCatalog!, _mainCamera!, false, false);
             // Exercise an authored parent scale as well as configured sizing.
@@ -637,6 +638,60 @@ public partial class Main
         runtime.ResetSimulation();
         check(!motion.Running && shaft.Transform == authored && runtime.Points["motor_running"] is false,
             "motor_state_reset_restores_shaft_and_output");
+    }
+
+    private void VerifySumpInstallation(Action<bool, string> check)
+    {
+        AddMigratedScene("lab-2-14-sump-pump", _candidateCatalog!, _mainCamera!, false, false);
+        var root = _sceneCompositionRoot!;
+        foreach (var id in new[] { "sump_tank", "sump_pump", "discharge_isolation", "discharge_pipe", "low_float", "high_float" })
+        foreach (var mesh in ReviewMeshes(root.GetNode<Node3D>(id)))
+        {
+            var name = mesh.Name.ToString();
+            if (name.Contains("outlet", StringComparison.OrdinalIgnoreCase) || name.Contains("suction", StringComparison.OrdinalIgnoreCase)
+                || name.Contains("discharge", StringComparison.OrdinalIgnoreCase) || name.Contains("PIPE", StringComparison.Ordinal)
+                || name.StartsWith("SUPPORT", StringComparison.Ordinal) || name.StartsWith("FORK", StringComparison.Ordinal)
+                || name.StartsWith("PROCESS", StringComparison.Ordinal) || name.StartsWith("FLANGE", StringComparison.Ordinal))
+                GD.Print($"SUMP_DATUM {id}/{name} bounds={ReviewBounds(mesh)} center={mesh.GlobalPosition}");
+        }
+        var tank = root.GetNode<Node3D>("sump_tank"); var pump = root.GetNode<Node3D>("sump_pump");
+        var valve = root.GetNode<Node3D>("discharge_isolation"); var spool = root.GetNode<Node3D>("discharge_pipe");
+        MeshInstance3D Part(Node3D equipment, string name) => (MeshInstance3D)equipment.FindChild(name, true, false);
+        Vector3? CapCenter(string name)
+        {
+            if (pump.FindChild(name, true, false) is not MeshInstance3D cap) return null;
+            var vertices = cap.Mesh.SurfaceGetArrays(0)[(int)Mesh.ArrayType.Vertex].AsVector3Array();
+            return vertices.Length == 0 ? null : cap.GlobalTransform * (vertices.Aggregate(Vector3.Zero, (sum, vertex) => sum + vertex) / vertices.Length);
+        }
+        bool Near(Vector3? actual, Vector3 expected) => actual is { } point && point.DistanceTo(expected) < 0.001f;
+        var tankFace = ReviewBounds(Part(tank, "NOZZLE_outlet_flange"));
+        var inlet = ReviewBounds(Part(pump, "PUMP_suction_flange"));
+        var outlet = ReviewBounds(Part(pump, "PUMP_discharge_flange"));
+        var liner = ReviewBounds(Part(valve, "PROCESS_bore_liner"));
+        check(Near(CapCenter("SUMP_suction_start_ring"), tankFace.GetCenter() with { X = tankFace.Position.X })
+            && Near(CapCenter("SUMP_suction_end_ring"), inlet.GetCenter() with { X = inlet.End.X }),
+            "sump_suction_actual_end_rings_meet_tank_and_pump_flange_faces");
+        check(Near(CapCenter("SUMP_discharge_start_ring"), outlet.GetCenter() with { Y = outlet.End.Y })
+            && Near(CapCenter("SUMP_discharge_end_ring"), liner.GetCenter() with { Z = liner.End.Z }),
+            "sump_riser_elbow_actual_end_rings_meet_upward_pump_and_valve_bore");
+        var nearSpool = ReviewBounds(Part(spool, "FLANGE_-1_72"));
+        check(MathF.Abs(valve.GlobalBasis.X.Dot(Vector3.Forward)) > 0.999f
+            && MathF.Abs(spool.GlobalBasis.X.Dot(Vector3.Forward)) > 0.999f
+            && MathF.Abs(nearSpool.GetCenter().X - liner.GetCenter().X) < 0.001f
+            && MathF.Abs(nearSpool.GetCenter().Y - liner.GetCenter().Y) < 0.001f
+            && MathF.Abs(nearSpool.End.Z - liner.Position.Z) < 0.001f,
+            "sump_valve_and_instrumented_spool_have_aligned_horizontal_bores");
+        var feet = ReviewMeshes(root).Where(mesh => mesh.Name.ToString().StartsWith("SUPPORT_foot", StringComparison.Ordinal)
+            || mesh.Name.ToString().StartsWith("PIPE_foot", StringComparison.Ordinal) || mesh.Name == "SUMP_suction_support_foot").ToArray();
+        check(feet.Length == 5 && feet.All(mesh => MathF.Abs(ReviewBounds(mesh).Position.Y) < 0.001f),
+            "sump_all_five_installed_pipe_shoes_contact_floor");
+        var posts = ReviewMeshes(root).Where(mesh => mesh.Name.ToString().StartsWith("SUPPORT_post", StringComparison.Ordinal)
+            || mesh.Name.ToString().StartsWith("PIPE_shoe_post", StringComparison.Ordinal) || mesh.Name == "SUMP_suction_support_post").ToArray();
+        check(posts.Length == 5 && posts.All(post => feet.Any(foot => ReviewBounds(post).Intersects(ReviewBounds(foot).Grow(0.001f)))),
+            "sump_pipe_support_posts_attach_to_grounded_shoes");
+        check(ReviewMeshes(valve).Concat(ReviewMeshes(spool)).All(part => ReviewMeshes(tank).All(tankPart =>
+            !ReviewBounds(part).Intersects(ReviewBounds(tankPart)) || !OrientedBoxesPenetrate(part, tankPart))),
+            "sump_installed_valve_and_spool_clear_actual_tank_ladder_and_shell");
     }
 
     private void VerifyFumeSpeedProjection(Action<bool, string> check)

@@ -1,5 +1,20 @@
 # Whole program review - 2026-10-03
 
+Sump piping repair (2026-10-04): actual tank/pump flange connections, suction
+offset/discharge elbow, horizontal valve/spool alignment and five grounded
+pipe supports replace the disconnected/interfering installation. Final native
+five wide views and four pump-focused close views were inspected. Six new
+mesh checks fail on original placement and pass after repair. Build has zero
+warnings/errors; 111 geometry checks, one sump contract, 19 motion checks,
+142 controller tests, rendered controls and shell pass. Shell retains four
+headless position errors. Normal Run still opens NO CONTROLLER LOADED.
+This is a partial repair: closed-vessel sump identity, tuning-fork float assets,
+buried low probe/process fittings and full native level motion remain open.
+Coverage stays 30/77 inspected, 47 pending including failures. Isolated reviewer
+exits 0; user Demo 1 preserved. Exact evidence in MULTI_ANGLE_SCENE_REVIEW.md.
+
+Earlier checkpoint:
+
 Fume speed / Stop repair (2026-10-04): coverage remains 30/77 native five-view
 inspections, 47 pending including failures. The missing speed-percent binding
 now projects 0/35/65/100% onto the imported rotor hierarchy without bypassing
