@@ -1,0 +1,172 @@
+using System;
+using System.Linq;
+using System.Collections.Generic;
+using Godot;
+
+namespace RungProof.Next.App;
+
+public partial class Main
+{
+    private bool _auditRobotCnc;
+
+    // Diagnose delivered installation and actual reference travel separately
+    // from the accepted regression suite. Red process checks must stay visible
+    // until the robot, load and enclosure satisfy them together.
+    private void AuditRobotCnc()
+    {
+        var failures = 0;
+        void Check(bool condition, string name)
+        {
+            if (!condition) failures++;
+            GD.Print($"ROBOT_CNC_AUDIT {name}={condition}");
+        }
+        try
+        {
+            AddMigratedScene("lab-2-24-robot-cnc", _candidateCatalog!, _mainCamera!, false, false);
+            var root = _sceneCompositionRoot!;
+            var runtime = _sceneRuntime!;
+            runtime.UsesExternalClock = false;
+            var load = root.GetNode<Node3D>("cnc_workpiece");
+            var robot = root.GetNode<Node3D>("cnc_robot");
+            var machine = root.GetNode<Node3D>("cnc_machine");
+            var infeed = root.GetNode<Node3D>("cnc_infeed");
+            var outfeed = root.GetNode<Node3D>("cnc_outfeed");
+            var sensor = root.GetNode<Node3D>("cnc_infeed_sensor");
+            var home = load.Transform;
+            MeshInstance3D Part(Node node, string name) => (MeshInstance3D)node.FindChild(name, true, false);
+            foreach (var equipment in root.GetChildren().OfType<Node3D>())
+            foreach (var part in ReviewMeshes(equipment)) GD.Print($"ROBOT_CNC_MESH {equipment.Name}/{part.Name} {ReviewBounds(part)}");
+            bool OnBelt(Node3D belt)
+            {
+                var item = ReviewBounds(load);
+                return ReviewMeshes(belt).Where(mesh => mesh.Name.ToString().Contains("belt_surface", StringComparison.OrdinalIgnoreCase))
+                    .Any(mesh =>
+                    {
+                        var deck = ReviewBounds(mesh);
+                        return MathF.Abs(item.Position.Y - deck.End.Y) < 0.002f
+                            && item.Position.X >= deck.Position.X - 0.001f && item.End.X <= deck.End.X + 0.001f
+                            && item.Position.Z >= deck.Position.Z - 0.001f && item.End.Z <= deck.End.Z + 0.001f;
+                    });
+            }
+            Check(OnBelt(infeed), "initial_blank_bears_on_infeed_belt");
+            Check(ReviewMeshes(load).All(mesh => !mesh.Name.ToString().Contains("VISE", StringComparison.OrdinalIgnoreCase)),
+                "moving_blank_does_not_include_the_machine_vise");
+            Check(machine.FindChild("WORK_stock", true, false) is not MeshInstance3D coupon || !coupon.IsVisibleInTree(),
+                "machine_has_no_duplicate_stock");
+            var door = Part(machine, "DOOR_glazing_left");
+            var localRobot = machine.GlobalTransform.AffineInverse() * robot.GlobalPosition;
+            var localDoor = machine.GlobalTransform.AffineInverse() * door.GlobalPosition;
+            Check(localRobot.Z > localDoor.Z, "robot_base_is_on_machine_front_access_side");
+            Check(MathF.Abs(ReviewBounds(Part(robot, "ROBOT_base")).Position.Y) < 0.002f
+                && MathF.Abs(ReviewBounds(Part(machine, "MACHINE_base")).Position.Y) < 0.002f,
+                "robot_and_machine_bases_are_grounded");
+            // Optical contact is intended; opaque beam geometry is excluded.
+            var cache = new Dictionary<MeshInstance3D, Aabb>();
+            Aabb Bounds(MeshInstance3D part)
+            {
+                if (!cache.TryGetValue(part, out var value)) cache[part] = value = ReviewBounds(part);
+                return value;
+            }
+            bool Solid(MeshInstance3D part) => !part.Name.ToString().StartsWith("KIN_beam", StringComparison.Ordinal);
+            bool Clear(MeshInstance3D a, MeshInstance3D b)
+            {
+                var overlap = Bounds(a).Intersection(Bounds(b)).Size;
+                if (overlap.X <= 0.002f || overlap.Y <= 0.002f || overlap.Z <= 0.002f || !OrientedBoxesPenetrate(a, b)) return true;
+                bool Cable(MeshInstance3D part) => part.Name.ToString().Contains("cable", StringComparison.OrdinalIgnoreCase)
+                    || part.Name.ToString().Contains("dresspack", StringComparison.OrdinalIgnoreCase);
+                var cable = Cable(a) ? a : Cable(b) ? b : null;
+                if (cable is not null)
+                {
+                    var other = cable == a ? b : a;
+                    var transform = other.GlobalTransform.AffineInverse() * cable.GlobalTransform;
+                    var faces = cable.Mesh.GetFaces();
+                    var candidate = false;
+                    for (var i = 0; i < faces.Length && !candidate; i += 3)
+                        candidate = new Aabb(transform * faces[i], Vector3.Zero).Expand(transform * faces[i + 1])
+                            .Expand(transform * faces[i + 2]).Grow(0.0001f).Intersects(other.GetAabb());
+                    if (!candidate) return true;
+                }
+                return false;
+            }
+            var groups = root.GetChildren().OfType<Node3D>().ToArray();
+            var staticClear = true;
+            for (var a = 0; a < groups.Length; a++)
+            for (var b = a + 1; b < groups.Length; b++)
+            foreach (var left in ReviewMeshes(groups[a]).Where(Solid))
+            foreach (var right in ReviewMeshes(groups[b]).Where(Solid))
+                if (!Clear(left, right)) { staticClear = false; GD.Print($"ROBOT_CNC_STATIC {groups[a].Name}/{left.Name} {groups[b].Name}/{right.Name}"); }
+            Check(staticClear, "separate_equipment_clear_at_home");
+            var beamBounds = ReviewBounds(ReviewMeshes(sensor).First(part => part.Name.ToString().StartsWith("KIN_beam", StringComparison.Ordinal)));
+            var pickup = ReviewBounds(load);
+            Check(beamBounds.Position.Y > 0.9f && beamBounds.End.Y < 0.9f + pickup.Size.Y,
+                "pickup_beam_height_intersects_seated_blank");
+            var infeedSupported = true;
+            var outfeedSupported = true;
+            var stationSupported = true;
+            var loadClear = true;
+            var gripped = true;
+            var sawTransfer = false;
+            var doorsClear = true;
+            var reportedContacts = new HashSet<string>(StringComparer.Ordinal);
+            var surrounding = groups.Where(group => group != load).SelectMany(ReviewMeshes).Where(Solid).ToArray();
+            var fingers = ReviewMeshes(robot).Where(part => part.Name.ToString().StartsWith("ROBOT_gripper_finger", StringComparison.Ordinal)
+                && !part.Name.ToString().Contains("bolt", StringComparison.Ordinal)).ToArray();
+            var doors = ReviewMeshes(machine).Where(part => part.Name.ToString().StartsWith("DOOR_", StringComparison.Ordinal)).ToArray();
+            var controllers = root.FindChildren("*", "", true, false).OfType<EquipmentMotionController>().ToArray();
+            runtime.ExecuteAction("start-cnc");
+            for (var tick = 0; tick < 4000; tick++)
+            {
+                runtime.AdvanceSimulation(0.002);
+                foreach (var controller in controllers) controller._PhysicsProcess(0.002);
+                if (runtime.Points["infeed_run"] is true) infeedSupported &= OnBelt(infeed);
+                if (runtime.Points["outfeed_run"] is true) outfeedSupported &= OnBelt(outfeed);
+                if (runtime.Points["cnc_run"] is true)
+                {
+                    var item = ReviewBounds(load);
+                    stationSupported &= ReviewMeshes(machine).Any(part =>
+                    {
+                        var bearing = ReviewBounds(part);
+                        return MathF.Abs(bearing.End.Y - item.Position.Y) < 0.002f
+                            && bearing.Position.X <= item.Position.X + 0.001f && bearing.End.X >= item.End.X - 0.001f
+                            && bearing.Position.Z <= item.Position.Z + 0.001f && bearing.End.Z >= item.End.Z - 0.001f;
+                    });
+                }
+                if (runtime.Points["robot_run"] is true)
+                {
+                    sawTransfer = true;
+                    var item = ReviewBounds(load);
+                    gripped &= fingers.Length == 2 && fingers.All(part => ReviewBounds(part).Grow(0.003f).Intersects(item));
+                    doorsClear &= doors.All(part => !OrientedBoxesPenetrate(ReviewMeshes(load).First(), part));
+                }
+                if (tick % 5 != 0) continue;
+                cache.Clear();
+                foreach (var part in ReviewMeshes(load))
+                foreach (var other in surrounding)
+                {
+                    if (Clear(part, other)) continue;
+                    loadClear = false;
+                    // Retain concrete failing pairs for the next transfer repair,
+                    // without flooding the diagnostic with every sampled tick.
+                    var pair = $"{part.Name}/{other.Name}";
+                    if (reportedContacts.Count < 12 && reportedContacts.Add(pair))
+                        GD.Print($"ROBOT_CNC_MOTION_CONTACT {pair} tick={tick}");
+                }
+            }
+            Check(infeedSupported && outfeedSupported && OnBelt(outfeed), "blank_supported_through_infeed_and_outfeed_routes");
+            Check(stationSupported, "machining_blank_has_full_bearing_surface");
+            Check(loadClear, "moving_blank_clears_separate_equipment_through_800_samples");
+            Check(sawTransfer && gripped, "both_robot_fingers_contact_blank_through_transfers");
+            Check(sawTransfer && doorsClear, "transferred_blank_clears_enclosure_doors");
+            Check(runtime.Points["cycle_complete"] is true, "timed_reference_reports_completion");
+            runtime.ResetSimulation();
+            Check(load.Transform.IsEqualApprox(home), "reset_restores_blank_home");
+        }
+        catch (Exception error)
+        {
+            failures++;
+            GD.PushError($"ROBOT_CNC_AUDIT_EXCEPTION {error}");
+        }
+        GD.Print($"ROBOT_CNC_AUDIT_RESULT failures={failures}; sampled geometric/reference diagnostic only");
+        GetTree().Quit(failures == 0 ? 0 : 1);
+    }
+}

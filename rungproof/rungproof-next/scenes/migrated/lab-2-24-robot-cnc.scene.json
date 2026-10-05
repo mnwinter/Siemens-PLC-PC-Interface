@@ -58,16 +58,17 @@
       "label": "Machining blank",
       "position": [
         -6.1,
-        0.99,
+        0.9,
         0
       ],
       "config": {
         "size": [
-          0.75,
-          0.38,
-          0.75
+          0.4,
+          0.14,
+          0.252
         ],
-        "color": 6187891
+        "color": 6187891,
+        "installation": "cncTendingStock"
       }
     },
     {
@@ -77,7 +78,7 @@
       "position": [
         0,
         0,
-        -2.5
+        0.6
       ],
       "config": {
         "initialPosition": 0,
@@ -89,9 +90,9 @@
       "type": "machine",
       "label": "CNC machining center",
       "position": [
-        0.8,
         0,
-        2.2
+        0,
+        -2.6
       ],
       "config": {
         "size": [
@@ -113,9 +114,9 @@
         0
       ],
       "config": {
-        "span": 2.05,
+        "span": 2.8,
         "height": 0.7,
-        "beamCenterHeightM": 1.18,
+        "beamCenterHeightM": 0.97,
         "blocked": false
       }
     },
@@ -307,14 +308,21 @@
               "equipmentId": "cnc_workpiece",
               "axis": "x",
               "from": -1.8,
-              "to": 0.8
+              "to": 0
             },
             {
               "type": "translate",
               "equipmentId": "cnc_workpiece",
               "axis": "z",
               "from": 0,
-              "to": 2.2
+              "to": -1.985
+            },
+            {
+              "type": "translate",
+              "equipmentId": "cnc_workpiece",
+              "axis": "y",
+              "from": 0.9,
+              "to": 1.66
             }
           ]
         },
@@ -356,15 +364,22 @@
               "type": "translate",
               "equipmentId": "cnc_workpiece",
               "axis": "x",
-              "from": 0.8,
+              "from": 0,
               "to": 1.8
             },
             {
               "type": "translate",
               "equipmentId": "cnc_workpiece",
               "axis": "z",
-              "from": 2.2,
+              "from": -1.985,
               "to": 0
+            },
+            {
+              "type": "translate",
+              "equipmentId": "cnc_workpiece",
+              "axis": "y",
+              "from": 1.66,
+              "to": 0.9
             }
           ]
         },

@@ -1,6 +1,42 @@
 # RungProof / PLC Visual Simulator AI handoff
 
-Dual Spindle installation repair (2026-10-05, current): Scene 36 now uses
+Robot CNC installation checkpoint (2026-10-05, current): Scene 38 now carries
+one 400 x 140 x 252 mm billet on the 0.9 m belt instead of transporting an entire
+vise. The robot is on the front access side (Z=.6) of the grounded CNC
+(Z=-2.6). Moving the enclosure back clears conveyor drives. The wider pickup
+sensor stands clear of conveyor structure and its beam is at Y=.97. A bearing
+shoe connects the existing vise base to the billet's machining bottom Y=1.66;
+the delivered jaw-face span is filled. The stock target is X=0, Z=-1.985.
+The opt-in composer moves the actual delivered stock mesh into the addressable
+load root, leaving the vise fixed and removing the duplicate coupon.
+
+The separate `--audit-robot-cnc` remains RED: 11/14 checks pass, exit 1 without
+exception. Home installation, infeed/outfeed footprint support, station bearing,
+timed completion and load Reset pass. Detached gripper contact, moving clearance
+and closed-door transfer fail. It advances 4000 two-ms runtime/adapter ticks and
+screens 800 load-clearance samples. Concrete pairs include door glazing/stiles,
+vise jaws/bolts, bearing shoe and coolant nozzle. Bounds/contact screens are
+diagnostics, not full swept-volume or mechanical acceptance.
+
+Native Windows: repaired home and outfeed inspected FR/FL/RL/RR/Top; stock-focused
+home Top/FR; held pickup FR/FL; machining FL and machine-focused FL/FR. The roof,
+doors and robot occlude parts of the vise. Released remaining preview completed;
+Reset restored the billet to infeed. No held unload, continuous-video/all-frame
+robot sweep or normal selected-controller proof claimed. Held generic preview
+Step advances only the sequence; autonomous robot/spindle adapters remain
+frozen. Phase-boundary time remainder is also discarded. Do not treat held
+screenshots as a complete robot motion test.
+
+Build clean; geometry 487, controller 144, scene contract and app shell
+(77 scenes/294 assets) PASS. Help validation PASS. Logs:
+`rungproof-next/.tools/robot-cnc-{layout-audit,layout-build-final,layout-geometry,
+layout-controller,layout-contract,layout-shell,native-layout}.log`.
+Own QA exited 0 and closed; user's Conveyor Pusher window restored/preserved.
+Goal active. Next: attach the billet to actual robot joints, open the enclosure
+for transfer and route above the vise before seating. Door/robot/clamp
+interlocks, feedback-driven process, controller flow and cutting remain open.
+
+Dual Spindle installation repair (2026-10-05, previous): Scene 36 now uses
 opt-in head, bed and slide installations. Both axes lie over one shared steel
 plate; duplicate drill coupons/tables are removed. The fixture sits at Y=1.45
 on a grounded four-leg bed covering its full 2.2 m transfer. Both spindles feed

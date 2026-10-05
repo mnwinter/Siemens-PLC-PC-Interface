@@ -137,6 +137,8 @@ public static partial class SceneComposer
         if (scene.Equipment.Any(equipment => Text(equipment.Config, "installation", string.Empty) == "dualSpindleSlide"))
             root.GetNode<Node3D>("plate_transfer").FindChildren("*", "", true, false)
                 .OfType<EquipmentMotionController>().Single().PositionFollower = root.GetNode<Node3D>("metal_plate");
+        if (scene.Equipment.Any(equipment => Text(equipment.Config, "installation", string.Empty) == "cncTendingStock"))
+            ConfigureCncTendingStock(root, scene);
         return new SceneComposition(root, rendered, deferred);
     }
 
@@ -610,6 +612,7 @@ public static partial class SceneComposer
         // adapter moves that mesh into this equipment root, preserving point/UI
         // identity without importing a second complete fixture through the table.
         if (Text(equipment.Config, "installation", string.Empty) == "drillStock") return new Node3D();
+        if (Text(equipment.Config, "installation", string.Empty) == "cncTendingStock") return new Node3D();
         var size = NumberArray(equipment.Config, "size", new[] { 0.8, 0.7, 0.7 });
         var assetId = equipment.Id switch
         {
