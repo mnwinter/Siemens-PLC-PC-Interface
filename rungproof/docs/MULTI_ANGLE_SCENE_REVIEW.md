@@ -1,5 +1,47 @@
 # Multi-angle scene review - 2026-10-04
 
+Bottle Shuttle motion checkpoint (2026-10-05, current): Scene 34 now uses
+one prescribed 0.75 m/s travel clock for the bottle, belt UV and drums. The
+fixed-duration route and timed PC sensor writes are removed. Actual body
+triangles and lens-to-lens segments determine feedback and first-contact
+reference transitions (right X=2.7688888321 m, left X=-2.7688888321 m).
+Stop retains pose and travel leg; Run resumes either leg, rejects repeated
+active starts and can start a fresh cycle at the completed left pose. Large
+steps consume both transitions without endpoint overshoot. Reset restores
+the supported X=-3 m home and actual feedback.
+
+Thirteen motion/ownership checks were added to the eight placement checks;
+455 geometry/workflow checks, clean build, 143 controller tests, 77-scene /
+294-asset shell and the 16-second declared contract pass. Before repair,
+checks reproduced early feedback clearing, speed mismatch, active-start
+replacement and both-leg restart failures. The original red run also exposed
+unsupported STRING output at the external seam; no transport was constructed.
+Logs: `.tools/bottle-motion-{red-build,red,build,geometry,controller,contract,
+shell,native}.log`; final strengthened checks are in
+`.tools/bottle-motion-geometry-final.log`.
+
+Native Windows: Start while held retained left=True, first half-second cleared
+the beam, Stop/held step kept pose, Run/step advanced further. A released
+real-time cycle returned with left=True, motor=False, complete=True. Completed
+left pose and held right-side return pose were inspected FR/FL/RL/RR/Top.
+A second cycle started at the completed pose; fifteen individual half-second
+steps inspected outward travel and reversal. At 7.5 s it had already reversed
+and moved clear of the right beam; this screenshot is not a captured contact
+instant. The log records right=True at reversal. Return-leg Stop/Run/step and
+Reset were also inspected. Top distinguishes apparent diagonal-view beam
+occlusion from intersection. This is sampled native motion evidence, not
+continuous video or dynamics proof.
+
+FAIL/open: normal controller round trip. The legacy motor_direction is STRING;
+virtual/external seams currently accept BOOL/numeric only. The reference is
+blocked under selected-controller/external playback ownership and does not
+manufacture direction. No PLC profile, address or transport changed. Reference
+reversal is instantaneous; acceleration, slip, bottle stability and real-machine
+sensor response remain unverified. Whole review goal stays active. Preserve
+the user's open carton window. Next: resolve the scene/controller direction
+contract and test normal operator playback, then remaining catalog failures.
+
+
 Status: **active**. The prior software review did not establish multi-angle
 visual acceptance. All 77 scenes have initial five-view native static inspections.
 Demo 5, Powder Batch Mixer, Parcel Size Sorter, Conveyor Inspection Cell,
@@ -10,7 +52,7 @@ includes failed scenes; it is not a count of accepted scenes.
 
 ## Acceptance method
 
-Bottle Shuttle placement (2026-10-05, current): Scene 34's imported body
+Bottle Shuttle placement (2026-10-05, previous): Scene 34's imported body
 bottom was Y=1.0629166 m above the 0.9 m belt, a 162.9 mm gap. Root Y is now
 0.8270833333 m, placing the actual body bottom at 0.9 m. The authored X=-3..3
 route stays inside the flat drum-axis span and belt width in 121 samples.
@@ -2023,7 +2065,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 31 | `lab-2-17-pallet-robot` | 23 historic; broad home candidates are not solid interference | Final modeled pickup and completed landing FR/FL/RL/RR/T; Stop/Reset/restart guard; earlier staged/bridge/sensor views | Imported robot/tool attachment, grounded installation, routes and roller landing repaired; 29 pallet-cell checks PASS within 406 total. Reference sampled at 10 ms; both totes land before count/release, empty pallet fully outbound. FAIL/open: complete normal controller-driven transfer, continuous intermediate native views and physical/rated handling unproven |
 | 32 | `lab-2-18-pallet-pickup` | 0 at repaired home | Rebuilt load home/pickup focused FR/FL/RL/RR/T; prior 50% views, four jogs/fifth blocked, Stop/resume/mode loss/Reset; unheld auto | Pallet/case bearing planes, closed strap route, belt support, sensor mounting and bounded reference repaired; 434 checks pass. Home/pickup underside views added. FAIL/open: normal controller lesson and complete solid-contact/mechanical acceptance |
 | 33 | `lab-2-19-service-door` | 54 original / 0 repaired | Repaired native FR/FL/RL/RR/T; operator FR close; held opening/Stop/reverse; real-time endpoints; open five views; Reset | Layout/plates and reference reversal/position feedback repaired; raw NC signal displays explicit. Physical limit/cable behavior, compressed slat geometry and loaded-controller operation unaccepted |
-| 34 | `lab-2-20-bottle-shuttle` | 39 historic | Repaired home/right endpoint FR/FL/RL/RR/T; home bottle Top/FL/FR close; held outward steps, Stop/Run, real-time return, Reset | Bottle belt seating, text regions and sensor mounting repaired; eight checks pass within 442. FAIL/open: fixed-start restart, timed rather than optical feedback, 2.4 vs 0.75 m/s speed mismatch, normal controller round trip and dynamic stability |
+| 34 | `lab-2-20-bottle-shuttle` | 39 historic | Repaired home/right endpoint five views; latest completed left and held post-reversal right pose FR/FL/RL/RR/T; outward held sweep, both-leg Stop/Run, real-time completion and Reset | Static placement plus thirteen motion/ownership checks pass within 455. Reference speed/feedback/resume repaired. FAIL/open: normal controller STRING direction compatibility, instantaneous contact not captured as a held native frame, dynamic stability |
 | 35 | `lab-2-21-tote-finishing` | 29 | Native FR/FL/RL/RR/T; filler top/FR close; Start | FAIL/open: station columns occupy belt corridor; tote support, station alignment and full transfer unverified. Start unloaded |
 | 36 | `lab-2-22-dual-spindle` | 2 | Native FR/FL/RL/RR/T; plate top/FR close; Start | FAIL/open: plate offset below separate drill coupons, fixture/slide mounting unresolved; adapters rotation only. Start unloaded; feeds and transfer unverified |
 | 37 | `lab-2-23-parcel-sorter` | 174 | FR/FL/RL/RR/T | Repaired static/declared plant path; normal Run lacks controller |

@@ -43,11 +43,22 @@ public partial class ConveyorController : Node
             target,
             AccelerationMps2 * (float)delta
         );
-        _beltTravelM += ActualSpeedMps * (float)delta;
+        ApplyPlantTravel(ActualSpeedMps * (float)delta, ActualSpeedMps);
+    }
+
+    /// <summary>
+    /// Projects travel already integrated by a scene plant. That caller must
+    /// disable this controller's physics callback to avoid a second clock.
+    /// No acceleration/slip model is implied by prescribed scene travel.
+    /// </summary>
+    public void ApplyPlantTravel(float distanceM, float speedMps)
+    {
+        ActualSpeedMps = speedMps;
+        _beltTravelM += distanceM;
 
         foreach (var (node, radiusM) in _rotatingParts)
         {
-            var radians = ActualSpeedMps / radiusM * (float)delta;
+            var radians = distanceM / radiusM;
             node.RotateObjectLocal(Vector3.Up, radians);
         }
 

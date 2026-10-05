@@ -58,11 +58,28 @@ capacity occupy separate label regions. Eight geometry checks include 121
 route support samples and actual body-triangle endpoint rays; native home
 and right endpoint were inspected from five angles.
 
-The standalone timed preview remains incomplete: Start clears the left
-feedback before the bottle leaves the beam, and Run after Stop restarts the
-fixed route rather than resuming from the held pose. Its 6 m/2.5 s travel
-also differs from the 0.75 m/s conveyor setting. These observations do not
-accept continuous optical feedback or the normal loaded-controller lesson.
+The standalone preview now moves at the configured 0.75 m/s and drives
+belt/drum animation from the same travel. Start preserves actual left feedback;
+both sensors follow lens-to-lens intersections with the bottle body triangles.
+The reference reverses at the right first-contact X=2.7688888321 m and stops
+at the left first-contact X=-2.7688888321 m. Stop holds pose and leg; Run
+resumes that leg. Reset returns X=-3 m. A fresh round trip takes about
+15.08 simulated seconds. Reversal is instantaneous; no acceleration, slip
+or bottle stability model is proven.
+
+To inspect this reference, launch Godot with `-- --scene-id=lab-2-20-bottle-shuttle
+--visual-plant-review`. It starts stopped and explicitly has no PLC controller.
+Run, Stop and Reset work in that preview; Hold preview clock and Step 0.5 s
+allow pose inspection. Expect 0.375 m travel per outward held half-second,
+except a step containing a reversal or completion. Native Windows testing
+covered both-leg Stop/resume, outward stepping, real-time completion and
+five views of completed left and held right-side return poses.
+
+Normal loaded-controller operation remains unresolved: `motor_direction` is
+a legacy STRING command, while the current virtual and external controller
+interfaces support BOOL/numeric outputs. Selecting a controller blocks the
+standalone reference; it does not fabricate direction or overwrite commands.
+Do not treat preview completion as normal controller or live-PLC acceptance.
 
 A normal Stop removes PLC-owned commands according to the scene runtime. This document does not prove a safety function, a real E-stop circuit, a PLC watchdog, or live-machine commissioning.
 

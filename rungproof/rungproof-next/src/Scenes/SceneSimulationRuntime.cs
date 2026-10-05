@@ -51,7 +51,7 @@ public partial class SceneSimulationRuntime : Node
 
     public string RuntimeType => Text(_definition, "type", "none");
     public IReadOnlyDictionary<string, object?> Points => _points;
-    public bool IsRunning => _shippingPalletReferenceActive || _tankSimulationRunning || _activeStepIndex >= 0 || Controllers().Any(IsControllerRunning);
+    public bool IsRunning => _bottleShuttleReferenceActive || _shippingPalletReferenceActive || _tankSimulationRunning || _activeStepIndex >= 0 || Controllers().Any(IsControllerRunning);
     public bool UsesExternalClock { get; set; }
     private bool _externalPlaybackSelected;
     private bool _externalPlaybackRunning;
@@ -93,6 +93,9 @@ public partial class SceneSimulationRuntime : Node
     {
         foreach (var controller in Controllers())
             controller.SetPhysicsProcess(!UsesExternalClock || (_externalPlaybackSelected ? _externalPlaybackRunning : _controllerPlaybackRunning));
+        // Bottle travel and belt animation share the same prescribed clock.
+        // The general conveyor callback must not integrate a second motion.
+        _bottleShuttleConveyor?.SetPhysicsProcess(false);
     }
 
     public void ConsumeExternalInputPulses(IReadOnlyDictionary<string, object?> sampledPoints)
@@ -171,6 +174,12 @@ public partial class SceneSimulationRuntime : Node
         }
 
         if (UsesExternalClock && !PlantPlaybackRunning) return;
+
+        if (HasBottleShuttleReference)
+        {
+            AdvanceBottleShuttleReference(delta);
+            return;
+        }
 
         if (HasShippingPalletReference && !UsesExternalClock && !_externalPlaybackSelected)
         {
@@ -335,6 +344,8 @@ public partial class SceneSimulationRuntime : Node
 
     public void StopSimulation()
     {
+        _bottleShuttleReferenceActive = false;
+        _bottleShuttleConveyor?.ApplyPlantTravel(0, 0);
         _shippingPalletReferenceActive = false;
         if (!UsesExternalClock && RuntimeType == "booleanPanel") _booleanPreviewStopped = true;
         _activeStepIndex = -1;
@@ -409,6 +420,7 @@ public partial class SceneSimulationRuntime : Node
         }
         ApplyInitialTankLevels();
         ResetShippingPalletReference();
+        ResetBottleShuttleReference();
         EvaluateRules();
         ApplyBindings();
         if (RuntimeType == "tank") ProjectTankState();
@@ -553,6 +565,7 @@ public partial class SceneSimulationRuntime : Node
 
     private bool StartSequence(string name)
     {
+        if (HasBottleShuttleReference) return StartBottleShuttleReference(name);
         if (HasShippingPalletReference) return StartShippingPalletReference(name);
         if (Controllers().OfType<PalletRobotMotion>().Any(robot => robot.ReferenceNeedsReset))
         {

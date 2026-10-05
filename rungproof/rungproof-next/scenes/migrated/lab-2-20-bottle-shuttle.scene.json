@@ -199,68 +199,6 @@
         "mode": "indicator"
       }
     ],
-    "sequences": {
-      "round-trip": [
-        {
-          "name": "travel right",
-          "durationS": 2.5,
-          "set": {
-            "motor_run": true,
-            "motor_direction": "right",
-            "left_sensor_active": false,
-            "right_sensor_active": false,
-            "cycle_complete": false,
-            "status_color": "green"
-          },
-          "motions": [
-            {
-              "type": "translate",
-              "equipmentId": "shuttle_bottle",
-              "axis": "x",
-              "from": -3,
-              "to": 3
-            }
-          ]
-        },
-        {
-          "name": "right detected",
-          "durationS": 0.2,
-          "set": {
-            "right_sensor_active": true,
-            "motor_direction": "left",
-            "status_color": "amber"
-          }
-        },
-        {
-          "name": "travel left",
-          "durationS": 2.5,
-          "set": {
-            "right_sensor_active": false,
-            "status_color": "green"
-          },
-          "motions": [
-            {
-              "type": "translate",
-              "equipmentId": "shuttle_bottle",
-              "axis": "x",
-              "from": 3,
-              "to": -3
-            }
-          ]
-        },
-        {
-          "name": "left detected",
-          "durationS": 0.1,
-          "set": {
-            "left_sensor_active": true,
-            "motor_run": false,
-            "motor_direction": "stopped",
-            "cycle_complete": true,
-            "status_color": "amber"
-          }
-        }
-      ]
-    },
     "defaultSequence": "round-trip",
     "safeState": {
       "motor_run": false,
@@ -268,7 +206,15 @@
       "status_color": "red"
     },
     "completionState": {},
-    "conveyorSpeedMps": 0.75
+    "conveyorSpeedMps": 0.75,
+    "bottleShuttleReference": {
+      "productId": "shuttle_bottle",
+      "conveyorId": "shuttle_conveyor",
+      "leftPhotoeyeId": "left_sensor",
+      "rightPhotoeyeId": "right_sensor",
+      "minimumX": -3,
+      "maximumX": 3
+    }
   },
   "training": {
     "hints": [
@@ -341,7 +287,7 @@
         "phases": [
           {
             "action": "start-shuttle",
-            "runForS": 5.6
+            "runForS": 16
           }
         ],
         "expect": {

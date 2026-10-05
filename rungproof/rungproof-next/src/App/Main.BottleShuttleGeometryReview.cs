@@ -93,5 +93,99 @@ public partial class Main
         }
         bottle.Position = start;
         check(optical, "bottle_shuttle_endpoint_rays_cross_only_the_corresponding_body_mesh");
+        VerifyBottleShuttleMotion(check, bottle, body, sensors);
+    }
+
+    private void VerifyBottleShuttleMotion(Action<bool, string> check, Node3D bottle, MeshInstance3D body, Node3D[] sensors)
+    {
+        var runtime = _sceneRuntime!;
+        runtime.UsesExternalClock = false;
+        runtime.ResetSimulation();
+        var home = bottle.Position;
+        var beltController = _sceneCompositionRoot!.GetNode<Node3D>("shuttle_conveyor")
+            .FindChildren("*", string.Empty, true, false).OfType<ConveyorController>().Single();
+        bool OpticalMatch() => sensors.Select((sensor, index) =>
+        {
+            var tx = ReviewBounds((MeshInstance3D)sensor.FindChild("TX_lens", true, false)).GetCenter();
+            var rx = ReviewBounds((MeshInstance3D)sensor.FindChild("RX_lens", true, false)).GetCenter();
+            return LineHitsCableSurface(tx, rx, body) == (runtime.Points[index == 0 ? "left_sensor_active" : "right_sensor_active"] is true);
+        }).All(value => value);
+        runtime.RunDefault();
+        check(OpticalMatch() && runtime.Points["left_sensor_active"] is true,
+            "bottle_shuttle_start_keeps_actual_left_feedback");
+        runtime.AdvanceSimulation(0.5);
+        check(MathF.Abs(bottle.Position.X - home.X - 0.375f) < 0.001f && OpticalMatch()
+            && MathF.Abs(beltController.ActualSpeedMps - 0.75f) < 0.001f && !beltController.IsPhysicsProcessing(),
+            "bottle_shuttle_half_second_uses_configured_speed");
+        check(!runtime.RunDefault(), "bottle_shuttle_active_start_rejected");
+        runtime.StopSimulation(); var held = bottle.Position;
+        runtime.AdvanceSimulation(0.5);
+        check(bottle.Position.IsEqualApprox(held) && runtime.Points["motor_run"] is false && OpticalMatch()
+            && beltController.ActualSpeedMps == 0,
+            "bottle_shuttle_stop_holds_pose_and_actual_feedback");
+        check(runtime.RunDefault() && bottle.Position.IsEqualApprox(held), "bottle_shuttle_resume_does_not_teleport");
+        runtime.AdvanceSimulation(0.5);
+        check(MathF.Abs(bottle.Position.X - held.X - 0.375f) < 0.001f,
+            "bottle_shuttle_resume_advances_from_held_pose_at_configured_speed");
+        var allOptical = true; var reversed = false; var firstContact = false; var reversalX = 0f;
+        for (var tick = 0; tick < 2400 && runtime.IsRunning; tick++)
+        {
+            var direction = runtime.Points["motor_direction"];
+            var beforeX = bottle.Position.X;
+            runtime.AdvanceSimulation(1.0 / 120);
+            allOptical &= OpticalMatch();
+            if (Equals(direction, "right") && Equals(runtime.Points["motor_direction"], "left"))
+            {
+                // A tick may contain the first contact and a little return
+                // travel. Final feedback must match that final pose, not latch
+                // a contact that has already cleared during the same tick.
+                reversed = true;
+                reversalX = bottle.Position.X;
+                // Infer the reversal position from outward + return travel in
+                // this tick, then independently probe either side with the
+                // review's segment/triangle helper. A near-endpoint reversal
+                // alone would not prove first contact.
+                var inferredTrip = (beforeX + 0.75f / 120 + reversalX) / 2;
+                var returnPose = bottle.Position;
+                var tx = ReviewBounds((MeshInstance3D)sensors[1].FindChild("TX_lens", true, false)).GetCenter();
+                var rx = ReviewBounds((MeshInstance3D)sensors[1].FindChild("RX_lens", true, false)).GetCenter();
+                bottle.Position = new Vector3(inferredTrip - 0.0001f, returnPose.Y, returnPose.Z);
+                var outside = !LineHitsCableSurface(tx, rx, body);
+                bottle.Position = new Vector3(inferredTrip + 0.0001f, returnPose.Y, returnPose.Z);
+                firstContact = outside && LineHitsCableSurface(tx, rx, body);
+                bottle.Position = returnPose;
+                runtime.StopSimulation(); var returnHeld = bottle.Position;
+                runtime.AdvanceSimulation(0.5);
+                var stationary = bottle.Position.IsEqualApprox(returnHeld);
+                runtime.RunDefault(); runtime.AdvanceSimulation(0.1);
+                check(stationary && MathF.Abs(bottle.Position.X - returnHeld.X + 0.075f) < 0.001f
+                    && MathF.Abs(beltController.ActualSpeedMps + 0.75f) < 0.001f,
+                    "bottle_shuttle_return_leg_stop_resumes_left");
+            }
+        }
+        check(reversed && firstContact && reversalX > 2.7f && reversalX < 3 && allOptical,
+            "bottle_shuttle_reverses_at_actual_right_body_crossing_and_feedback_matches_every_tick");
+        check(!runtime.IsRunning && runtime.Points["motor_run"] is false && runtime.Points["cycle_complete"] is true
+            && runtime.Points["left_sensor_active"] is true && OpticalMatch(), "bottle_shuttle_completes_on_actual_left_crossing");
+        runtime.ResetSimulation(); runtime.RunDefault(); runtime.AdvanceSimulation(30);
+        check(!runtime.IsRunning && runtime.Points["cycle_complete"] is true && OpticalMatch()
+            && bottle.Position.X > -3 && bottle.Position.X < -2.7,
+            "bottle_shuttle_large_step_consumes_both_sensor_transitions_without_overshoot");
+        runtime.ResetSimulation();
+        check(bottle.Position.IsEqualApprox(home) && runtime.Points["cycle_complete"] is false && OpticalMatch(),
+            "bottle_shuttle_reset_restores_supported_home_and_actual_feedback");
+        // The current virtual/external seams do not support STRING outputs.
+        // Do not fabricate motor_direction or pretend this is a controller
+        // round trip. Prove that preview commands cannot steal its output image.
+        runtime.UsesExternalClock = true;
+        runtime.SetControllerPlaybackRunning(true);
+        runtime.CommitVirtualControllerOutputs(new System.Collections.Generic.Dictionary<string, bool> { ["motor_run"] = true });
+        var startBlocked = !runtime.RunDefault(); runtime.AdvanceSimulation(1);
+        check(startBlocked && bottle.Position.IsEqualApprox(home) && runtime.Points["motor_run"] is true
+            && Equals(runtime.Points["motor_direction"], "stopped") && OpticalMatch(),
+            "bottle_shuttle_reference_does_not_replace_selected_controller_commands_or_pose");
+        runtime.UsesExternalClock = false; runtime.SetExternalPlayback(true, true);
+        check(!runtime.RunDefault(), "bottle_shuttle_reference_blocked_when_external_playback_selected");
+        runtime.SetExternalPlayback(false, false); runtime.ResetSimulation();
     }
 }

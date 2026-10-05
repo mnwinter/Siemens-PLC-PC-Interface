@@ -1,6 +1,48 @@
 # Whole program review - 2026-10-03
 
-Bottle Shuttle checkpoint (2026-10-05, current): Scene 34's 162.9 mm bottle
+Bottle Shuttle motion checkpoint (2026-10-05, current): Scene 34 now uses
+one prescribed 0.75 m/s travel clock for the bottle, belt UV and drums. The
+fixed-duration route and timed PC sensor writes are removed. Actual body
+triangles and lens-to-lens segments determine feedback and first-contact
+reference transitions (right X=2.7688888321 m, left X=-2.7688888321 m).
+Stop retains pose and travel leg; Run resumes either leg, rejects repeated
+active starts and can start a fresh cycle at the completed left pose. Large
+steps consume both transitions without endpoint overshoot. Reset restores
+the supported X=-3 m home and actual feedback.
+
+Thirteen motion/ownership checks were added to the eight placement checks;
+455 geometry/workflow checks, clean build, 143 controller tests, 77-scene /
+294-asset shell and the 16-second declared contract pass. Before repair,
+checks reproduced early feedback clearing, speed mismatch, active-start
+replacement and both-leg restart failures. The original red run also exposed
+unsupported STRING output at the external seam; no transport was constructed.
+Logs: `.tools/bottle-motion-{red-build,red,build,geometry,controller,contract,
+shell,native}.log`; final strengthened checks are in
+`.tools/bottle-motion-geometry-final.log`.
+
+Native Windows: Start while held retained left=True, first half-second cleared
+the beam, Stop/held step kept pose, Run/step advanced further. A released
+real-time cycle returned with left=True, motor=False, complete=True. Completed
+left pose and held right-side return pose were inspected FR/FL/RL/RR/Top.
+A second cycle started at the completed pose; fifteen individual half-second
+steps inspected outward travel and reversal. At 7.5 s it had already reversed
+and moved clear of the right beam; this screenshot is not a captured contact
+instant. The log records right=True at reversal. Return-leg Stop/Run/step and
+Reset were also inspected. Top distinguishes apparent diagonal-view beam
+occlusion from intersection. This is sampled native motion evidence, not
+continuous video or dynamics proof.
+
+FAIL/open: normal controller round trip. The legacy motor_direction is STRING;
+virtual/external seams currently accept BOOL/numeric only. The reference is
+blocked under selected-controller/external playback ownership and does not
+manufacture direction. No PLC profile, address or transport changed. Reference
+reversal is instantaneous; acceleration, slip, bottle stability and real-machine
+sensor response remain unverified. Whole review goal stays active. Preserve
+the user's open carton window. Next: resolve the scene/controller direction
+contract and test normal operator playback, then remaining catalog failures.
+
+
+Bottle Shuttle placement checkpoint (2026-10-05, previous): Scene 34's 162.9 mm bottle
 belt gap is repaired by root Y=0.8270833333 m. Both sensor stand spans are
 3.2 m, clear of conveyor/Start/status bounds. Product name and capacity fit
 separate label regions. Base bottle source/delivery/local review previews
