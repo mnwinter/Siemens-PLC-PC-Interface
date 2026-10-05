@@ -6,6 +6,32 @@ would otherwise be trapped in a local Codex session. It intentionally excludes
 machine-local Codex databases, credentials, screenshots from private chats, and
 temporary runtime state.
 
+Shared 3D control picking repair (2026-10-05): the previous picker merged
+all meshes of a control into one world-axis bounding box. Empty space between
+readout head, mast and foot could intercept another control's click; rotations
+also enlarged the target and hidden meshes were included. The picker now tests
+each visible mesh in its own local coordinates and preserves world ray distance
+under nonuniform scale. Explicit scene-action routing and point ownership stay
+unchanged. Eight fixture checks cover assembly gaps, empty space, head selection,
+hidden meshes, rotated targets, scale and nearest-hit ordering. The old picker
+failed six of these eight checks; the repaired picker passes all eight.
+The rendered --verify-scene-controls run passes the existing Start/mechanical
+pulse/E-stop/Reset/controller/external-image/review-overlay checks and exits 0.
+A headless run of the old picker also failed existing injected-UI checks; use
+the rendered verifier for that UI evidence. Build has zero warnings/errors;
+app-shell passes 77 scenes, 294 assets and the existing SYSREADY diagnostic.
+Native Windows close front-left clicks individually exercised all five actual
+3D inputs in Sum, Product and Sum/Counter, and all six in Function Selector.
+Correct action names were observed after every click; A/B displayed 1 after
+single cycles, Function Selector choice advanced to 1, and Calculate did not
+change B. Reset cleared the readouts and shown Boolean inputs in all four.
+These picking checks used stopped empty exercises; prior reference-project
+calculation evidence is separate. PLC remained disconnected. Owned window
+closed with exit 0. Logs: .tools/control-picking-{build,red,rendered,shell,native}.log.
+Bounds remain mesh boxes, not exact triangle hits, and do not establish occlusion
+by non-control equipment. Remaining scene/runtime and packaging findings stay
+open; whole-program acceptance is not complete.
+
 Function Selector numeric repair (2026-10-05): scene 69 preserves its four
 Boolean point names/owners and adds PC-owned DINT operand_a, operand_b and
 function_choice plus PLC-owned selected_result. Four live readouts replace

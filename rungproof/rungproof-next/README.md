@@ -220,6 +220,10 @@ harness. The current vertical slice includes:
 In-scene controls invoke the scene action declared in that scene's JSON
 contract. They do not write a PLC, resolve a physical address, or bypass a
 declared interlock. A blocked action is reported in the workspace status line.
+Click selection tests each visible mesh's local bounds, preserving rotation
+and scale. Empty space between a readout head, mast and foot no longer captures
+clicks meant for another control. These are mesh-box tests, not triangle-level
+selection or occlusion checks against non-control equipment.
 
 The guarded PLC client starts disconnected. External PLC Settings loads the
 parent repository's configured profiles through the Python bridge; approval,

@@ -114,12 +114,24 @@ public sealed class SceneControlInteractor
         var nearestDistance = float.PositiveInfinity;
         foreach (var candidate in _bindings)
         {
-            if (!candidate.Node.IsVisibleInTree() || !TryWorldBounds(candidate.Node, out var bounds))
+            if (!candidate.Node.IsVisibleInTree())
                 continue;
-            if (!TryRayAabb(origin, direction, bounds, out var distance) || distance >= nearestDistance)
-                continue;
-            closest = candidate;
-            nearestDistance = distance;
+            foreach (var mesh in VisibleMeshes(candidate.Node))
+            {
+                // A union of head, mast and base bounds also includes the air
+                // between them. Test each part instead, in its own coordinates,
+                // so rotations do not inflate the clickable region either.
+                if (MathF.Abs(mesh.GlobalBasis.Determinant()) < 0.0000001f) continue;
+                var inverse = mesh.GlobalTransform.AffineInverse();
+                var localOrigin = inverse * origin;
+                // Do not normalize after transforming: t must stay in world
+                // ray units so differently scaled controls sort correctly.
+                var localDirection = inverse.Basis * direction;
+                if (!TryRayAabb(localOrigin, localDirection, mesh.GetAabb(), out var distance)
+                    || distance >= nearestDistance) continue;
+                closest = candidate;
+                nearestDistance = distance;
+            }
         }
         binding = closest;
         return binding is not null;
@@ -155,39 +167,12 @@ public sealed class SceneControlInteractor
         }
     }
 
-    private static bool TryWorldBounds(Node3D root, out Aabb bounds)
+    private static IEnumerable<MeshInstance3D> VisibleMeshes(Node3D root)
     {
-        var hasBounds = false;
-        var minimum = Vector3.Zero;
-        var maximum = Vector3.Zero;
         var meshes = root is MeshInstance3D self ? new[] { self }
             .Concat(root.FindChildren("*", "MeshInstance3D", true, false).OfType<MeshInstance3D>())
             : root.FindChildren("*", "MeshInstance3D", true, false).OfType<MeshInstance3D>();
-        foreach (var mesh in meshes)
-        {
-            var authored = mesh.GetAabb();
-            for (var mask = 0; mask < 8; mask++)
-            {
-                var local = authored.Position + new Vector3(
-                    (mask & 1) == 0 ? 0 : authored.Size.X,
-                    (mask & 2) == 0 ? 0 : authored.Size.Y,
-                    (mask & 4) == 0 ? 0 : authored.Size.Z);
-                var point = mesh.GlobalTransform * local;
-                if (!hasBounds)
-                {
-                    minimum = point;
-                    maximum = point;
-                    hasBounds = true;
-                }
-                else
-                {
-                    minimum = minimum.Min(point);
-                    maximum = maximum.Max(point);
-                }
-            }
-        }
-        bounds = hasBounds ? new Aabb(minimum, maximum - minimum) : default;
-        return hasBounds;
+        return meshes.Where(mesh => mesh.Mesh is not null && mesh.IsVisibleInTree());
     }
 
     private static bool TryRayAabb(Vector3 origin, Vector3 direction, Aabb bounds, out float distance)

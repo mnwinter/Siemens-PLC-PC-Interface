@@ -1603,7 +1603,8 @@ public partial class Main : Node3D
         var fallbackRulesWork = fixtureRuntime.Points.GetValueOrDefault("motor") is true;
         fixtureRuntime.Free();
         fixtureRoot.Free();
-        var passed = facesOperator && running && depressed && restored && estopLatched && stopped && restartBlocked
+        var pickingPassed = VerifySceneControlPicking();
+        var passed = pickingPassed && facesOperator && running && depressed && restored && estopLatched && stopped && restartBlocked
             && resetReleased && restarted && virtualReady && virtualStart && virtualStopCommand && immediateEstop
             && virtualRestartBlocked && resetDoesNotStart && virtualRestarted && exclusiveExternal && externalActionBlocked
             && externalImagePreserved && awaitingController && noFallbackOverwrite && fallbackRulesWork
@@ -1612,6 +1613,67 @@ public partial class Main : Node3D
         GD.Print($"EXTERNAL_IMAGE_VERIFY {(invalidOutputRejected && atomicImageRejected ? "PASS" : "FAIL")} typed={invalidOutputRejected} atomic={atomicImageRejected}");
         GD.Print($"SCENE_CONTROL_VERIFY {(passed ? "PASS" : "FAIL")} facesOperator={facesOperator} start={running} depressed={depressed} restored={restored} estopLatched={estopLatched} stopped={stopped} restartBlocked={restartBlocked} resetReleased={resetReleased} restarted={restarted} virtualReady={virtualReady} virtualStart={virtualStart} virtualStopCommand={virtualStopCommand} immediateEstop={immediateEstop} virtualRestartBlocked={virtualRestartBlocked} resetDoesNotStart={resetDoesNotStart} virtualRestarted={virtualRestarted} exclusiveExternal={exclusiveExternal} externalActionBlocked={externalActionBlocked} externalImagePreserved={externalImagePreserved} awaitingController={awaitingController} noFallbackOverwrite={noFallbackOverwrite} fallbackRulesWork={fallbackRulesWork}");
         GetTree().Quit(passed ? 0 : 1);
+    }
+
+    private bool VerifySceneControlPicking()
+    {
+        // A supported display leaves air between its head and foot. That air
+        // must not steal a click from a visible button behind the assembly.
+        using var config = System.Text.Json.JsonDocument.Parse("""{"action":"fixture-action"}""");
+        var fixture = new Node3D { Name = "ControlPickingFixture" };
+        AddChild(fixture);
+        var camera = new Camera3D { Projection = Camera3D.ProjectionType.Orthogonal, Size = 10 };
+        fixture.AddChild(camera);
+        camera.Position = new Vector3(0, 1.5f, 10);
+        camera.LookAt(new Vector3(0, 1.5f, 0));
+        var display = new Node3D { Name = "fixture_display" };
+        var button = new Node3D { Name = "fixture_button" };
+        var rotated = new Node3D { Name = "fixture_rotated", Position = new Vector3(3, 1.5f, 0),
+            RotationDegrees = new Vector3(0, 0, 45), Scale = new Vector3(1, 2, 3) };
+        fixture.AddChild(display); fixture.AddChild(button); fixture.AddChild(rotated);
+        MeshInstance3D Box(Node3D parent, Vector3 position, Vector3 size)
+        {
+            var mesh = new MeshInstance3D { Mesh = new BoxMesh { Size = size }, Position = position };
+            parent.AddChild(mesh);
+            return mesh;
+        }
+        Box(display, new Vector3(0, 3, 0), new Vector3(2, 0.4f, 0.2f));
+        Box(display, new Vector3(0, 0, 0), new Vector3(2, 0.2f, 1));
+        Box(display, new Vector3(-0.9f, 1.5f, 0), new Vector3(0.1f, 3, 0.1f));
+        Box(button, new Vector3(0.5f, 1.5f, -1), new Vector3(0.3f, 0.3f, 0.3f));
+        Box(rotated, Vector3.Zero, new Vector3(2, 0.1f, 0.1f));
+        var definition = _activeSceneDefinition! with
+        {
+            Equipment = new[] { display, button, rotated }.Select(node => new SceneEquipment(
+                node.Name.ToString(), "fixture", node.Name.ToString(), new double[3], null, null, config.RootElement)).ToArray()
+        };
+        var picker = new SceneControlInteractor(definition, fixture);
+        string? Pick(Vector3 point) => picker.TryPick(camera, camera.UnprojectPosition(point), out var hit)
+            ? hit?.EquipmentId : null;
+        try
+        {
+            var gap = new Vector3(0.5f, 1.5f, 0);
+            var empty = new Vector3(0.5f, 2.1f, 0);
+            var gapButton = Pick(gap) == "fixture_button";
+            var emptySpace = Pick(empty) is null;
+            var head = Pick(new Vector3(0, 3, 0)) == "fixture_display";
+            var hidden = Box(display, empty, new Vector3(0.3f, 0.3f, 0.3f));
+            hidden.Visible = false;
+            var hiddenIgnored = Pick(empty) is null;
+            var rotatedGap = Pick(new Vector3(3.55f, 0.95f, 0)) is null;
+            var rotatedFace = Pick(rotated.GlobalPosition) == "fixture_rotated";
+            // The same ray now hits an actual foreground part, not an empty
+            // aggregate box. Nonuniform scale must preserve world hit ordering.
+            var front = Box(display, gap + Vector3.Back, new Vector3(0.3f, 0.3f, 0.3f));
+            front.Scale = new Vector3(2, 0.5f, 3);
+            var nearest = Pick(gap) == "fixture_display";
+            front.Visible = false;
+            var behind = Pick(gap) == "fixture_button";
+            var passed = gapButton && emptySpace && head && hiddenIgnored && rotatedGap && rotatedFace && nearest && behind;
+            GD.Print($"CONTROL_PICKING_VERIFY {(passed ? "PASS" : "FAIL")} gapButton={gapButton} emptySpace={emptySpace} head={head} hiddenIgnored={hiddenIgnored} rotatedGap={rotatedGap} rotatedFace={rotatedFace} nearest={nearest} behind={behind}");
+            return passed;
+        }
+        finally { fixture.Free(); }
     }
 
     private void VerifyWorkspace()

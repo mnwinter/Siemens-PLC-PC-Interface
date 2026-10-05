@@ -28,6 +28,32 @@ Every row requires native inspection.
 
 ## Repairs and open findings
 
+Shared 3D control picking repair (2026-10-05): the previous picker merged
+all meshes of a control into one world-axis bounding box. Empty space between
+readout head, mast and foot could intercept another control's click; rotations
+also enlarged the target and hidden meshes were included. The picker now tests
+each visible mesh in its own local coordinates and preserves world ray distance
+under nonuniform scale. Explicit scene-action routing and point ownership stay
+unchanged. Eight fixture checks cover assembly gaps, empty space, head selection,
+hidden meshes, rotated targets, scale and nearest-hit ordering. The old picker
+failed six of these eight checks; the repaired picker passes all eight.
+The rendered --verify-scene-controls run passes the existing Start/mechanical
+pulse/E-stop/Reset/controller/external-image/review-overlay checks and exits 0.
+A headless run of the old picker also failed existing injected-UI checks; use
+the rendered verifier for that UI evidence. Build has zero warnings/errors;
+app-shell passes 77 scenes, 294 assets and the existing SYSREADY diagnostic.
+Native Windows close front-left clicks individually exercised all five actual
+3D inputs in Sum, Product and Sum/Counter, and all six in Function Selector.
+Correct action names were observed after every click; A/B displayed 1 after
+single cycles, Function Selector choice advanced to 1, and Calculate did not
+change B. Reset cleared the readouts and shown Boolean inputs in all four.
+These picking checks used stopped empty exercises; prior reference-project
+calculation evidence is separate. PLC remained disconnected. Owned window
+closed with exit 0. Logs: .tools/control-picking-{build,red,rendered,shell,native}.log.
+Bounds remain mesh boxes, not exact triangle hits, and do not establish occlusion
+by non-control equipment. Remaining scene/runtime and packaging findings stay
+open; whole-program acceptance is not complete.
+
 Function Selector numeric repair (2026-10-05): scene 69 preserves its four
 Boolean point names/owners and adds PC-owned DINT operand_a, operand_b and
 function_choice plus PLC-owned selected_result. Four live readouts replace
@@ -1361,7 +1387,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 64 | `lab-6-07-luggage-weight-sort` | 110 | Native FR/FL/RL/RR/T; replacement readout five focus views | Carton support repaired earlier; WEIGHT readout replaced and five focus views inspected (RL obscured, RR partly obscured). FAIL/open: disconnected weighing/rejecting layout; no numeric weight/class |
 | 65 | `lab-6-08-hand-dryer` | 634 | Native FR/FL/RL/RR/T; replacement readout five focus views | PROGRESS readout replaced/repositioned; five focus views (FL text partly obscured, RL obscured). FAIL/open: substitute heating shutter and disconnected fan/panel/bottle; no remaining-time numeric binding |
 | 66 | `lab-9-01-sum-function` | 0 | Native FR/FL/RL/RR/T; close front; 3D A/B clicks; actual reference Open/Run/Stop/Reset | Two PC DINT inputs and live SUM result; 2+5=7 observed. Seven grounded, clear props. Global-tag reference FB supplied; exercise remains opt-in; FB parameter/instance semantics and independent asset approval open |
-| 67 | `lab-9-02-product-function` | 0 | Native FR/FL/RL/RR/T; close front; actual reference Open/Run/Stop/Reset; validity loss | Two PC DINT factors and live PRODUCT; 2*5=10 observed. Seven grounded, clear props. Sidebar input proof; individual 3D clicks unverified here. Global-tag FB reference opt-in; FB parameter/instance semantics and independent asset approval open |
+| 67 | `lab-9-02-product-function` | 0 | Native FR/FL/RL/RR/T; close front; actual reference Open/Run/Stop/Reset; validity loss; all five 3D inputs after shared-picker repair | Two PC DINT factors and live PRODUCT; 2*5=10 observed. Seven grounded, clear props. Shared-picker follow-up correctly targets all five controls and Reset clears them. Global-tag FB reference opt-in; FB parameter/instance semantics and independent asset approval open |
 | 68 | `lab-9-03-sum-and-counter-function` | 0 (historical) | Native FR/FL/RL/RR/T; close operand/result views; actual 3D operand clicks; Project Open/Verify + Load; Run/Stop/Reset | CNC removed; typed DINT operands/sum/count and live readouts added. Opt-in reference displays 2+5=7 and one held completion count, Stop zeros image, Run republishes retained count, Reset clears. Eleven integration/clearance checks pass. Open: independent reusable-asset approval; manual call-complete feedback; exercise requires authored/explicit reference logic |
 | 69 | `lab-9-04-function-selector` | 0 (historical) | Final native FR/FL/RL/RR/Top, close FL; actual six 3D inputs; Project Open, Run, invalid choice, Stop/Reset | Live DINT A/B/choice/RESULT and opt-in FB routing to SUM/PRODUCT; observed 7/10 and invalid 99 clears validity. Native picking conflict repaired by moving readouts behind buttons; supports and separate-equipment clearance pass. Open: source-selector parity and FB instance/parameter semantics unverified; QA close/top cropping documented |
 | 70 | `lab-9-10-box-volume` | 46 (historical) | Native FR/FL/RL/RR/T; replacement fixture and readout five focus views each; actual 3D buttons/Reset | Static three-head fixture replaces shutter; carton supported on bench, CNC removed and rear readout view cleared. Seven geometry checks and LENGTH/WIDTH/HEIGHT manual inputs/Reset pass. Open: no numeric dimension acquisition, volume calculation or live MEASUREMENT value; independent asset approval pending |
