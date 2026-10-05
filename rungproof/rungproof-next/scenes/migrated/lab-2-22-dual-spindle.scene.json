@@ -23,14 +23,15 @@
       "type": "drillPress",
       "label": "Pilot drill spindle",
       "position": [
-        -1.6,
+        -1,
         0,
-        -1.4
+        -0.38
       ],
       "config": {
-        "travel": 1.25,
+        "travel": 0.33,
         "initialPosition": 0,
-        "running": false
+        "running": false,
+        "installation": "dualSpindleHead"
       }
     },
     {
@@ -38,15 +39,16 @@
       "type": "drillPress",
       "label": "Countersink spindle",
       "position": [
-        1.4,
+        1,
         0,
-        -1.4
+        -0.38
       ],
       "config": {
-        "travel": 1.05,
+        "travel": 0.33,
         "initialPosition": 0,
         "running": false,
-        "color": 5466227
+        "color": 5466227,
+        "installation": "dualSpindleHead"
       }
     },
     {
@@ -54,9 +56,9 @@
       "type": "box",
       "label": "Clamped metal plate",
       "position": [
-        -1,
-        1.16,
-        0.4
+        0,
+        1.45,
+        0
       ],
       "config": {
         "size": [
@@ -72,9 +74,9 @@
       "type": "pusher",
       "label": "Plate transfer slide",
       "position": [
-        -3.6,
+        -2.92,
         0,
-        -0.9
+        0
       ],
       "rotation": [
         0,
@@ -84,8 +86,10 @@
       "config": {
         "stroke": 2.2,
         "travelAxis": "x",
-        "centerHeight": 1.15,
-        "initialPosition": 0
+        "centerHeight": 1.65,
+        "initialPosition": 0,
+        "installation": "dualSpindleSlide",
+        "plateExtensionM": 0.1
       }
     },
     {
@@ -119,6 +123,19 @@
           "green"
         ],
         "active": "amber"
+      }
+    },
+    {
+      "id": "plate_bed",
+      "type": "containerReceiver",
+      "label": "Supported plate fixture and receiving bed",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "config": {
+        "installation": "dualSpindleBed"
       }
     }
   ],
@@ -166,6 +183,22 @@
         "type": "BOOL",
         "owner": "SIM",
         "initial": false
+      },
+      {
+        "name": "drill_a_position",
+        "type": "REAL",
+        "owner": "SIM",
+        "initial": 0,
+        "unit": "%",
+        "purpose": "Reference spindle axial position, not a PLC command."
+      },
+      {
+        "name": "drill_b_position",
+        "type": "REAL",
+        "owner": "SIM",
+        "initial": 0,
+        "unit": "%",
+        "purpose": "Reference spindle axial position, not a PLC command."
       }
     ],
     "actions": [
@@ -200,7 +233,7 @@
       {
         "point": "transfer_extend",
         "equipmentId": "plate_transfer",
-        "mode": "position"
+        "mode": "running"
       },
       {
         "point": "status_color",
@@ -216,8 +249,6 @@
           "set": {
             "drill_a_run": true,
             "drill_b_run": true,
-            "drill_a_home": false,
-            "drill_b_home": false,
             "transfer_extend": false,
             "cycle_complete": false,
             "status_color": "amber"
@@ -227,13 +258,23 @@
               "type": "position",
               "equipmentId": "drill_a",
               "from": 0,
-              "to": 1
+              "to": 1,
+              "positionFeedback": {
+                "point": "drill_a_position",
+                "scale": 100,
+                "homePoint": "drill_a_home"
+              }
             },
             {
               "type": "position",
               "equipmentId": "drill_b",
               "from": 0,
-              "to": 1
+              "to": 1,
+              "positionFeedback": {
+                "point": "drill_b_position",
+                "scale": 100,
+                "homePoint": "drill_b_home"
+              }
             }
           ]
         },
@@ -249,13 +290,23 @@
               "type": "position",
               "equipmentId": "drill_a",
               "from": 1,
-              "to": 0
+              "to": 0,
+              "positionFeedback": {
+                "point": "drill_a_position",
+                "scale": 100,
+                "homePoint": "drill_a_home"
+              }
             },
             {
               "type": "position",
               "equipmentId": "drill_b",
               "from": 1,
-              "to": 0
+              "to": 0,
+              "positionFeedback": {
+                "point": "drill_b_position",
+                "scale": 100,
+                "homePoint": "drill_b_home"
+              }
             }
           ]
         },
@@ -265,8 +316,6 @@
           "set": {
             "drill_a_run": false,
             "drill_b_run": false,
-            "drill_a_home": true,
-            "drill_b_home": true,
             "status_color": "green"
           }
         },
@@ -278,11 +327,10 @@
           },
           "motions": [
             {
-              "type": "translate",
-              "equipmentId": "metal_plate",
-              "axis": "x",
-              "from": -1,
-              "to": 2.2
+              "type": "position",
+              "equipmentId": "plate_transfer",
+              "from": 0,
+              "to": 1
             }
           ]
         },
@@ -305,7 +353,9 @@
       "status_color": "red"
     },
     "completionState": {},
-    "conveyorSpeedMps": 0.75
+    "conveyorSpeedMps": 0.75,
+    "pusherStrokeTimeS": 1.2,
+    "requireHomeForReferenceStart": true
   },
   "training": {
     "hints": [
@@ -427,7 +477,7 @@
       "toteLabeler": "process.packaging.labeler.tote-pressure-sensitive.v1",
       "toteVision": "inspection.vision.tote-multicamera.v1",
       "meteringSkid": "process.dosing.skid.liquid-metering.v1",
-      "containerReceiver": "material-handling.receiver.container-two-position.v1",
+      "containerReceiver": "facility.workbench.2400mm.v1",
       "sizeSensorBank": "sensing.dimensioning.parcel-three-height.v1"
     },
     "scenePropTypes": [

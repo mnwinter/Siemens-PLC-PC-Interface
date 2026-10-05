@@ -84,6 +84,8 @@ public static partial class SceneComposer
                     CreateControlledAsset(equipment, candidates, "machining.drill-press.pedestal.v1", runCommands,
                         EquipmentMotionController.MotionKind.SpindleFeed, "KIN_spindle", speedRpm: 900.0f,
                         travelM: -0.245f),
+                "drillPress" when Text(equipment.Config, "installation", string.Empty) == "dualSpindleHead" =>
+                    CreateDualSpindleHead(equipment, candidates, runCommands),
                 "drillPress" => CreateControlledAsset(equipment, candidates, "machining.drill-press.pedestal.v1", runCommands,
                     EquipmentMotionController.MotionKind.ContinuousRotation, "KIN_spindle", speedRpm: 900.0f),
                 "robotArm" when Text(equipment.Config, "installation", string.Empty) == "palletHandlingRobot" =>
@@ -132,6 +134,9 @@ public static partial class SceneComposer
             ConfigureTankPiping(root, scene);
         if (scene.Equipment.Any(equipment => Text(equipment.Config, "installation", string.Empty) == "palletOutbound"))
             ConfigurePalletOutbound(root);
+        if (scene.Equipment.Any(equipment => Text(equipment.Config, "installation", string.Empty) == "dualSpindleSlide"))
+            root.GetNode<Node3D>("plate_transfer").FindChildren("*", "", true, false)
+                .OfType<EquipmentMotionController>().Single().PositionFollower = root.GetNode<Node3D>("metal_plate");
         return new SceneComposition(root, rendered, deferred);
     }
 

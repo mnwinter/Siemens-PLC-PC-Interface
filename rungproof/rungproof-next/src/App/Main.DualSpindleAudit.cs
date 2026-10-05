@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Collections.Generic;
 using Godot;
 
 namespace RungProof.Next.App;
@@ -9,8 +10,8 @@ public partial class Main
     private bool _auditDualSpindle;
 
     // Deliberately separate from the accepted geometry regression suite:
-    // this audit reproduces unresolved cell requirements and exits nonzero
-    // until the delivered cell actually satisfies them. No PLC is contacted.
+    // this audit checks the delivered shared-stock/feed/transfer installation
+    // and exits nonzero on a regression. No PLC is contacted.
     private void AuditDualSpindle()
     {
         var failures = 0;
@@ -27,6 +28,7 @@ public partial class Main
             runtime.UsesExternalClock = false; // Explicit reference preview only.
             var fixture = root.GetNode<Node3D>("metal_plate");
             var slide = root.GetNode<Node3D>("plate_transfer");
+            var bed = root.GetNode<Node3D>("plate_bed");
             var drills = new[] { root.GetNode<Node3D>("drill_a"), root.GetNode<Node3D>("drill_b") };
             MeshInstance3D Part(Node node, string name) => (MeshInstance3D)node.FindChild(name, true, false);
             var stock = Part(fixture, "STEEL_WORKPIECE");
@@ -35,6 +37,8 @@ public partial class Main
             var spindles = drills.Select(drill => (Node3D)drill.FindChild("KIN_spindle", true, false)).ToArray();
             var home = spindles.Select(spindle => spindle.GlobalPosition).ToArray();
             var fixtureHome = fixture.Transform;
+            var bedTop = Part(bed, "BENCH_top");
+            var bedBounds = ReviewBounds(bedTop);
             foreach (var equipment in root.GetChildren().OfType<Node3D>())
             foreach (var mesh in ReviewMeshes(equipment))
                 GD.Print($"DUAL_SPINDLE_MESH {equipment.Name}/{mesh.Name} {ReviewBounds(mesh)}");
@@ -63,6 +67,44 @@ public partial class Main
                     });
             }
             Check(HasBearingContact(), "fixture_has_actual_bearing_surface_at_home");
+            var feet = ReviewMeshes(bed).Where(mesh => mesh.Name.ToString().StartsWith("BENCH_leg", StringComparison.Ordinal)).ToArray();
+            Check(feet.Length == 4 && feet.All(foot => MathF.Abs(ReviewBounds(foot).Position.Y) < 0.001f
+                && ReviewMeshes(bed).Where(other => other != foot).Any(other => ReviewBounds(foot).Grow(0.002f).Intersects(ReviewBounds(other)))),
+                "bed_has_four_grounded_connected_legs");
+            var cache = new Dictionary<MeshInstance3D, Aabb>();
+            Aabb Bounds(MeshInstance3D mesh)
+            {
+                if (!cache.TryGetValue(mesh, out var bounds)) cache[mesh] = bounds = ReviewBounds(mesh);
+                return bounds;
+            }
+            bool Clear(MeshInstance3D a, MeshInstance3D b)
+            {
+                var overlap = Bounds(a).Intersection(Bounds(b)).Size;
+                if (overlap.X <= 0.002f || overlap.Y <= 0.002f || overlap.Z <= 0.002f || !OrientedBoxesPenetrate(a, b)) return true;
+                var cable = a.Name.ToString().Contains("cable", StringComparison.OrdinalIgnoreCase) ? a
+                    : b.Name.ToString().Contains("cable", StringComparison.OrdinalIgnoreCase) ? b : null;
+                if (cable is not null)
+                {
+                    var other = cable == a ? b : a;
+                    var transform = other.GlobalTransform.AffineInverse() * cable.GlobalTransform;
+                    var faces = cable.Mesh.GetFaces();
+                    var otherBounds = other.GetAabb();
+                    var candidate = false;
+                    for (var i = 0; i < faces.Length && !candidate; i += 3)
+                        candidate = new Aabb(transform * faces[i], Vector3.Zero).Expand(transform * faces[i + 1])
+                            .Expand(transform * faces[i + 2]).Grow(0.0001f).Intersects(otherBounds);
+                    if (!candidate) return true;
+                }
+                GD.Print($"DUAL_SPINDLE_CLEARANCE {a.Name}/{b.Name} {Bounds(a)} {Bounds(b)}");
+                return false;
+            }
+            var stationaryClear = true;
+            var groups = root.GetChildren().OfType<Node3D>().Where(node => node != fixture).ToArray();
+            for (var a = 0; a < groups.Length; a++)
+            for (var b = a + 1; b < groups.Length; b++)
+            foreach (var left in ReviewMeshes(groups[a]))
+            foreach (var right in ReviewMeshes(groups[b])) stationaryClear &= Clear(left, right);
+            Check(stationaryClear, "all_separate_equipment_clear_at_home");
             var controllers = root.FindChildren("*", "", true, false).OfType<EquipmentMotionController>().ToArray();
             var slidePlate = Part(slide, "KIN_pusher_plate");
             var plateHome = slidePlate.GlobalPosition;
@@ -71,7 +113,15 @@ public partial class Main
             var supported = true;
             var contactAtTransfer = true;
             var transferObserved = false;
-            runtime.ExecuteAction("start-dual-drill");
+            var fullFootprint = true;
+            var cutObserved = new bool[2];
+            var toolBearings = true;
+            var feedbackMatches = true;
+            var motionClear = true;
+            var movingParts = ReviewMeshes(fixture);
+            var surrounding = groups.SelectMany(ReviewMeshes).ToArray();
+            Check(runtime.ExecuteAction("start-dual-drill") && !runtime.ExecuteAction("start-dual-drill"),
+                "active_preview_cannot_restart_from_authored_coordinates");
             for (var tick = 0; tick < 3000; tick++)
             {
                 runtime.AdvanceSimulation(0.002);
@@ -80,6 +130,30 @@ public partial class Main
                     maximumFeed[index] = MathF.Max(maximumFeed[index], home[index].Y - spindles[index].GlobalPosition.Y);
                 maximumSlide = MathF.Max(maximumSlide, slidePlate.GlobalPosition.DistanceTo(plateHome));
                 supported &= HasBearingContact();
+                var loadBounds = ReviewBounds(fixture);
+                fullFootprint &= loadBounds.Position.X >= bedBounds.Position.X - 0.002f && loadBounds.End.X <= bedBounds.End.X + 0.002f
+                    && loadBounds.Position.Z >= bedBounds.Position.Z - 0.002f && loadBounds.End.Z <= bedBounds.End.Z + 0.002f;
+                for (var index = 0; index < drills.Length; index++)
+                {
+                    var tip = ReviewBounds(bits[index]);
+                    cutObserved[index] |= tip.Position.Y > stockBounds.Position.Y && tip.Position.Y < stockBounds.End.Y;
+                    toolBearings &= ReviewBounds(Part(drills[index], "DRILL_quill"))
+                        .Intersects(ReviewBounds(Part(drills[index], "DRILL_spindle_bearing_housing")));
+                    feedbackMatches &= (runtime.Points[$"drill_{(index == 0 ? "a" : "b")}_home"] is true)
+                        == (MathF.Abs(spindles[index].GlobalPosition.Y - home[index].Y) < 0.00001f);
+                }
+                // Ten-ms clearance samples supplement the two-ms support/
+                // feed/contact checks. Cutting the intended stock is allowed;
+                // hitting clamps, supports or another machine is not.
+                if (tick % 5 == 0)
+                {
+                    cache.Clear();
+                    foreach (var part in movingParts)
+                    foreach (var other in surrounding)
+                        if (!(part == stock && other.Name == "DRILL_bit")) motionClear &= Clear(part, other);
+                    foreach (var part in ReviewMeshes(slide).Where(mesh => mesh.Name.ToString().StartsWith("KIN_pusher_", StringComparison.Ordinal)))
+                    foreach (var other in groups.Where(node => node != slide).SelectMany(ReviewMeshes)) motionClear &= Clear(part, other);
+                }
                 if (runtime.Points["transfer_extend"] is true)
                 {
                     transferObserved = true;
@@ -90,11 +164,31 @@ public partial class Main
             GD.Print($"DUAL_SPINDLE_TRAVEL fixtureX={travel} slide={maximumSlide} feedA={maximumFeed[0]} feedB={maximumFeed[1]}");
             Check(maximumFeed.All(feed => feed > 0.001f), "both_declared_position_motions_produce_axial_feed");
             Check(supported, "fixture_has_bearing_contact_through_entire_preview");
+            Check(fullFootprint, "entire_fixture_footprint_supported_through_transfer");
+            Check(cutObserved.All(value => value) && toolBearings, "bits_enter_shared_stock_with_quills_retained_in_bearings");
+            Check(feedbackMatches, "reference_home_feedback_matches_actual_axial_position");
+            Check(motionClear, "moving_fixture_and_slide_clear_clamps_heads_and_bed_through_600_samples");
             Check(transferObserved && contactAtTransfer, "slide_contacts_fixture_through_transfer");
             Check(MathF.Abs(travel - maximumSlide) <= 0.002f, "fixture_transfer_matches_actual_slide_stroke");
             Check(runtime.Points["cycle_complete"] is true, "timed_reference_reports_completion");
+            Check(!runtime.ExecuteAction("start-dual-drill"), "transferred_fixture_requires_reset_before_repeat");
             runtime.ResetSimulation();
-            Check(fixture.Transform.IsEqualApprox(fixtureHome), "reset_restores_fixture_home");
+            Check(fixture.Transform.IsEqualApprox(fixtureHome) && spindles.Select((spindle, i) => spindle.GlobalPosition.IsEqualApprox(home[i])).All(value => value),
+                "reset_restores_fixture_and_both_spindle_homes");
+            runtime.ExecuteAction("start-dual-drill");
+            for (var tick = 0; tick < 250; tick++) runtime.AdvanceSimulation(0.002);
+            runtime.StopSimulation();
+            var stopped = spindles.Select(spindle => spindle.Transform).ToArray();
+            var stoppedFixture = fixture.Transform;
+            for (var tick = 0; tick < 250; tick++)
+            {
+                runtime.AdvanceSimulation(0.002);
+                foreach (var controller in controllers) controller._PhysicsProcess(0.002);
+            }
+            Check(spindles.Select((spindle, i) => spindle.Transform.IsEqualApprox(stopped[i])).All(value => value)
+                && fixture.Transform.IsEqualApprox(stoppedFixture) && !runtime.ExecuteAction("start-dual-drill"),
+                "stop_holds_partial_feed_and_blocks_unsafe_restart");
+            runtime.ResetSimulation();
         }
         catch (Exception error)
         {

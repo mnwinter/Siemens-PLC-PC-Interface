@@ -10,19 +10,21 @@ Two drill heads process a clamped plate in parallel, retract independently, and 
 
 ## Current implementation limits
 
-The purpose above describes the intended cell. The delivered scene does not
-yet perform that process. Both drill axes miss the shared steel workpiece;
-each vise retains its own separate coupon. The shared fixture has no bearing
-surface at its 1.16 m underside. The drill adapters rotate without axial feed,
-despite the preview's declared position motions and timed home flags.
+The reference preview now places both drill axes over one shared steel plate.
+The fixture rests on a steel bed throughout its 2.2 m transfer. Both spindle
+assemblies feed 330 mm and retract; home feedback follows their actual reference
+positions. The slide carries the fixture with matching travel and retained
+contact, rather than moving the fixture with an independent animation.
 
-The timed preview moves the whole fixture 3.2 m while the transfer slide moves
-2.2 m, without contact between them or support under the transferred fixture.
-Its `cycle_complete=True` is a timed reference result, not proof of drilling,
-retraction, supported transfer, or controller-driven operation.
+Start requires the initial pose. Stop holds partial travel and removes commands;
+use Reset before restarting an interrupted or completed reference cycle. Reset
+restores the fixture, carriage and both spindle homes.
 
-The offline `--audit-dual-spindle` diagnostic reproduces seven failed geometry/
-motion requirements and exits with code 1. This scene remains under repair.
+The offline `--audit-dual-spindle` diagnostic passes 18 installation/reference
+checks. Native Windows inspection covers home, full feed, intermediate transfer
+and endpoint from five angles. This is sampled visual/reference evidence;
+selected-controller axial feed/transfer and independent retraction logic remain
+unverified. `cycle_complete=True` still belongs to the timed reference sequence.
 
 ## Expected I/O to operate this scene
 
@@ -37,6 +39,8 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | `transfer_extend` | `BOOL` | **PLC** | `False` |
 | `status_color` | `STRING` | **SIM** | `amber` |
 | `cycle_complete` | `BOOL` | **SIM** | `False` |
+| `drill_a_position` | `REAL` | **SIM** | `0` |
+| `drill_b_position` | `REAL` | **SIM** | `0` |
 
 ## Operator actions
 
@@ -52,7 +56,7 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | --- | --- | --- |
 | `drill_a_run` | `drill_a` | `running` |
 | `drill_b_run` | `drill_b` | `running` |
-| `transfer_extend` | `plate_transfer` | `position` |
+| `transfer_extend` | `plate_transfer` | `running` |
 | `status_color` | `dual_drill_status` | `indicator` |
 
 ## Expected equipment
@@ -65,6 +69,7 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | `plate_transfer` | `pusher` | Plate transfer slide |
 | `dual_drill_start` | `switch` | Start dual-spindle cycle |
 | `dual_drill_status` | `indicator` | Dual-spindle status |
+| `plate_bed` | `containerReceiver` | Supported plate fixture and receiving bed |
 
 ## Stop and safety boundary
 

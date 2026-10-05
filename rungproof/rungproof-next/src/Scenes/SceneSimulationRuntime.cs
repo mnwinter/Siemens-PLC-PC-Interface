@@ -569,6 +569,14 @@ public partial class SceneSimulationRuntime : Node
     {
         if (HasBottleShuttleReference) return StartBottleShuttleReference(name);
         if (HasShippingPalletReference) return StartShippingPalletReference(name);
+        if (_definition.TryGetProperty("requireHomeForReferenceStart", out var requireHome)
+            && requireHome.ValueKind == JsonValueKind.True
+            && ((_activeSteps.ValueKind == JsonValueKind.Array && _activeStepIndex >= 0 && _activeStepIndex < _activeSteps.GetArrayLength())
+                || Controllers().OfType<EquipmentMotionController>().Any(motion => motion.PositionPercent > 0.001f)))
+        {
+            GD.Print("SCENE_REFERENCE_START_REJECT homeOrResetRequired=true");
+            return false;
+        }
         if (Controllers().OfType<PalletRobotMotion>().Any(robot => robot.ReferenceNeedsReset))
         {
             // Restarting authored pickup coordinates with a held or deposited

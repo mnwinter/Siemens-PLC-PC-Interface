@@ -18,6 +18,13 @@ public partial class SceneSimulationRuntime
         _points[point] = position * Number(feedback, "scale", 1);
         SetNc(Text(feedback, "lowNcPoint", string.Empty), position > 0.0001f);
         SetNc(Text(feedback, "highNcPoint", string.Empty), position < 0.9999f);
+        var homePoint = Text(feedback, "homePoint", string.Empty);
+        if (homePoint.Length > 0)
+        {
+            if (_pointOwners.GetValueOrDefault(homePoint) != "PC" || _pointTypes.GetValueOrDefault(homePoint) != "BOOL")
+                throw new InvalidOperationException("Reference home feedback requires a declared PC-owned BOOL point.");
+            _points[homePoint] = position <= 0.0001f;
+        }
         ApplyBindings();
         StateChanged?.Invoke();
 

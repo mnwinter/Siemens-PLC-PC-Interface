@@ -49,6 +49,10 @@ public partial class EquipmentMotionController : Node
     [Export] public float PositionInputSlewSeconds { get; set; }
     // Optional visual stream follows valve position; no fabricated PLC feedback.
     [Export] public string PositionVisibilityChildName { get; set; } = string.Empty;
+    // Opt-in mounted fixture follows this carriage's actual position. Its
+    // scene root stays addressable by the UI/runtime, without a second clock.
+    public Node3D? PositionFollower { get; set; }
+    private Transform3D _positionFollowerHome;
 
     public bool Running => RunCommand;
     public float PositionPercent => _position * 100.0f;
@@ -75,6 +79,7 @@ public partial class EquipmentMotionController : Node
     public override void _Ready()
     {
         BindTargets(GetParent());
+        if (PositionFollower is not null) _positionFollowerHome = PositionFollower.Transform;
         if (Kind == MotionKind.ScissorLift)
         {
             // The delivered rollers and retaining washers are siblings of
@@ -212,6 +217,7 @@ public partial class EquipmentMotionController : Node
             node.Scale = _authoredScales[node];
         }
         ApplyPositionVisibility();
+        if (PositionFollower is not null) PositionFollower.Transform = _positionFollowerHome;
     }
 
     private void RotateContinuously(float delta)
@@ -540,6 +546,12 @@ public partial class EquipmentMotionController : Node
     private void ApplyPneumaticPusher()
     {
         var extension = TravelM * _position;
+        if (PositionFollower is not null)
+        {
+            var axis = ((Node3D)GetParent()).Basis.X.Normalized();
+            PositionFollower.Transform = new Transform3D(_positionFollowerHome.Basis,
+                _positionFollowerHome.Origin + axis * extension);
+        }
         foreach (var target in _targets)
         {
             var authored = _authoredTransforms[target];

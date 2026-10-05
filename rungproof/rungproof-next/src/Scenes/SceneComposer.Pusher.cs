@@ -19,7 +19,8 @@ public static partial class SceneComposer
         // Installation changes are explicit and happen before the motion
         // controller captures its home transforms. Other catalog uses retain
         // the delivered geometry. This is visual mounting, not cylinder sizing.
-        if (Text(equipment.Config, "installation", string.Empty) == "conveyorPusher")
+        var installation = Text(equipment.Config, "installation", string.Empty);
+        if (installation is "conveyorPusher" or "dualSpindleSlide")
         {
             var centerHeight = (float)Number(equipment.Config, "centerHeight", 1.38);
             if (!float.IsFinite(centerHeight) || centerHeight < 0.8f)
@@ -28,12 +29,14 @@ public static partial class SceneComposer
             if (!float.IsFinite(plateExtension) || plateExtension < 0)
                 throw new InvalidOperationException($"Pusher '{equipment.Id}' requires a finite nonnegative plateExtensionM.");
             ConfigureConveyorPusher(model, centerHeight, stroke, plateExtension);
+            if (installation == "dualSpindleSlide") ConfigureDualSpindleSlide(model);
         }
         model.AddChild(new EquipmentMotionController
         {
             Name = "PneumaticPusherController", Kind = EquipmentMotionController.MotionKind.PneumaticPusher,
             TargetPrefix = "KIN_pusher_", RunCommand = runCommand,
             TravelM = stroke, TravelTimeSeconds = travelTimeSeconds,
+            AutonomousPositionTravel = installation != "dualSpindleSlide",
         });
         return model;
     }

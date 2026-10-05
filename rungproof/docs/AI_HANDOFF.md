@@ -1,6 +1,41 @@
 # RungProof / PLC Visual Simulator AI handoff
 
-Dual Spindle failure reproduction (2026-10-05, current): Scene 36 now has an
+Dual Spindle installation repair (2026-10-05, current): Scene 36 now uses
+opt-in head, bed and slide installations. Both axes lie over one shared steel
+plate; duplicate drill coupons/tables are removed. The fixture sits at Y=1.45
+on a grounded four-leg bed covering its full 2.2 m transfer. Both spindles feed
+330 mm, entering stock by 25 mm while retaining quill/bearing overlap; their
+retracted tips clear the slide plate. The fixture follows actual carriage
+position, maintaining contact and matching travel without a second clock.
+
+The focused `--audit-dual-spindle` now passes 18 checks: shared stock, grounded
+connected supports, separate-equipment clearance, 3000 two-ms support/feed/
+feedback/contact ticks and 600 ten-ms moving-clearance samples, completion,
+Stop/Reset and rejected active/completed/interrupted restart. Fixture and slide
+travel both measure 2.2 m. Build clean; geometry 487, controller tests 144 and
+scene contract PASS. The focused diagnostic remains separate from the broader
+geometry suite. Bounds/contact screens do not establish mechanical ratings.
+Final app-shell and help validation PASS (77 scenes, 294 assets). The own QA
+process exited 0; its window is closed and the user's carton window restored.
+
+Native Windows: home, full feed, held intermediate transfer (~41.7%) and full
+endpoint each inspected FR/FL/RL/RR/Top. Near-end transfer (~83.3%) inspected Top;
+stepped retraction restored both home flags before transfer. Completed Start
+was rejected without pose change. Stop at 29.4118% feed removed both run commands;
+a further held 0.5 s step retained pose/feedback, and Start was rejected until
+Reset. Reset restored all homes. Rear columns and overhead heads occlude some
+stock; front views supplement them. No continuous-video/all-frame proof claimed.
+Logs: `.tools/dual-spindle-repair-{audit-final,geometry,controller,contract}.log`
+and `.tools/dual-spindle-native-repaired.log`.
+
+Still open: normal selected-controller feed/transfer/Start binding, independent
+retraction behavior, cutting/material removal and dynamics; reference completion
+is timed. Generic preview step-boundary delta remainder is not conserved, so held
+step counts are not elapsed-time acceptance. Whole goal stays active; preserve
+the user's Conveyor Pusher window. Next: repair the remaining catalog placement
+failures, including Scene 38 robot/CNC access/support, or normal controller flow.
+
+Dual Spindle failure reproduction (2026-10-05, previous): Scene 36 now has an
 explicit offline `--audit-dual-spindle` diagnostic in Main.DualSpindleAudit.cs.
 It is deliberately separate from the accepted geometry regression suite.
 Clean build and app-shell pass; help validates 77 scenes/294 assets. The audit
