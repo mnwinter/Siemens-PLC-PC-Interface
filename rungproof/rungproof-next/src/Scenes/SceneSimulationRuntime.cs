@@ -850,21 +850,42 @@ public partial class SceneSimulationRuntime : Node
                 ? Convert.ToDouble(existing, CultureInfo.InvariantCulture)
                 : 0.08;
         }
-        var liquidSurfaceY = liquid.GlobalPosition.Y;
-        if (liquid is MeshInstance3D mesh)
+        // Both datums include configured sizing and authored parent transforms.
+        var liquidSurfaceY = liquid is MeshInstance3D mesh ? WorldVerticalRange(mesh).Top : liquid.GlobalPosition.Y;
+        // Range starts at the delivered antenna lens, not the equipment origin
+        // (which is an installation datum above the horn).
+        var antennaY = transmitter.FindChild("ANTENNA_dielectric_lens", true, false) is MeshInstance3D lens
+            ? WorldVerticalRange(lens).Bottom : transmitter.GlobalPosition.Y;
+        if (transmitter.FindChild("KIN_radar_beam", true, false) is MeshInstance3D beam)
         {
-            // A configured tank size or authored parent scale must also scale
-            // the measured surface. Local scale alone ignored those parents.
-            var bounds = mesh.GetAabb();
-            liquidSurfaceY = float.NegativeInfinity;
-            for (var corner = 0; corner < 8; corner++)
-            {
-                var local = bounds.Position + bounds.Size * new Vector3(
-                    (corner & 1) == 0 ? 0 : 1, (corner & 2) == 0 ? 0 : 1, (corner & 4) == 0 ? 0 : 1);
-                liquidSurfaceY = MathF.Max(liquidSurfaceY, (liquid.GlobalTransform * local).Y);
-            }
+            var parent = beam.GetParent<Node3D>();
+            var localTop = parent.ToLocal(new Vector3(transmitter.GlobalPosition.X, antennaY, transmitter.GlobalPosition.Z));
+            var localBottom = parent.ToLocal(new Vector3(transmitter.GlobalPosition.X, liquidSurfaceY, transmitter.GlobalPosition.Z));
+            var bounds = beam.GetAabb();
+            var scale = beam.Scale;
+            scale.Y = MathF.Max(0.001f, localTop.Y - localBottom.Y) / bounds.Size.Y;
+            beam.Scale = scale;
+            var position = beam.Position;
+            position.Y = localTop.Y - bounds.End.Y * scale.Y;
+            beam.Position = position;
         }
-        return Math.Max(0.08, transmitter.GlobalPosition.Y - liquidSurfaceY);
+        return Math.Max(0.08, antennaY - liquidSurfaceY);
+    }
+
+    private static (float Bottom, float Top) WorldVerticalRange(MeshInstance3D mesh)
+    {
+        var bounds = mesh.GetAabb();
+        var bottom = float.PositiveInfinity;
+        var top = float.NegativeInfinity;
+        for (var corner = 0; corner < 8; corner++)
+        {
+            var local = bounds.Position + bounds.Size * new Vector3(
+                (corner & 1) == 0 ? 0 : 1, (corner & 2) == 0 ? 0 : 1, (corner & 4) == 0 ? 0 : 1);
+            var y = (mesh.GlobalTransform * local).Y;
+            bottom = MathF.Min(bottom, y);
+            top = MathF.Max(top, y);
+        }
+        return (bottom, top);
     }
 
     private void EvaluateRules()

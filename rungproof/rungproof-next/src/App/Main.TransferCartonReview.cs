@@ -224,6 +224,88 @@ public partial class Main
         }
     }
 
+    private void VerifyRadarMountAndBeam(Action<bool, string> check)
+    {
+        AddMigratedScene("tank-radar", _candidateCatalog!, _mainCamera!, false, false);
+        var root = _sceneCompositionRoot!;
+        var tank = root.GetNode<Node3D>("water_tank_radar");
+        var transmitter = root.GetNode<Node3D>("radar_transmitter");
+        var roof = (MeshInstance3D)tank.FindChild("TANK_roof", true, false);
+        var flange = (MeshInstance3D)transmitter.FindChild("PROCESS_flange", true, false);
+        var lens = (MeshInstance3D)transmitter.FindChild("ANTENNA_dielectric_lens", true, false);
+        var head = (MeshInstance3D)transmitter.FindChild("RADAR_head", true, false);
+        var beam = (MeshInstance3D)transmitter.FindChild("KIN_radar_beam", true, false);
+        var liquid = (MeshInstance3D)tank.FindChild("KIN_liquid", true, false);
+        var shell = (MeshInstance3D)tank.FindChild("TANK_shell", true, false);
+        GD.Print($"RADAR_MOUNT roof={ReviewBounds(roof)} flange={ReviewBounds(flange)} head={ReviewBounds(head)}");
+        check(MathF.Abs(ReviewBounds(flange).Position.Y - ReviewBounds(roof).End.Y) < 0.001f,
+            "radar_process_flange_seats_on_delivered_roof");
+        var electronics = ReviewMeshes(transmitter).Where(mesh => !mesh.Name.ToString().StartsWith("PROCESS_", StringComparison.Ordinal)
+            && !mesh.Name.ToString().StartsWith("ANTENNA_", StringComparison.Ordinal)
+            && mesh != beam).ToArray();
+        bool Clear(MeshInstance3D part, MeshInstance3D other)
+        {
+            if (!OrientedBoxesPenetrate(part, other)) return true;
+            if (other.Name != "RAIL_top") return false;
+            // The circular rail's bounding box fills its empty center. Check
+            // the imported ring's inner radius instead of treating it as a disk.
+            var center = ReviewBounds(other).GetCenter();
+            float Radius(Vector3 point) => new Vector2(point.X - center.X, point.Z - center.Z).Length();
+            var innerRadius = Enumerable.Range(0, other.Mesh.GetSurfaceCount())
+                .SelectMany(surface => other.Mesh.SurfaceGetArrays(surface)[(int)Mesh.ArrayType.Vertex].AsVector3Array())
+                .Select(vertex => Radius(other.GlobalTransform * vertex)).Min();
+            var bounds = ReviewBounds(part);
+            var maxRadius = Enumerable.Range(0, 8).Select(corner => Radius(bounds.Position + bounds.Size * new Vector3(
+                (corner & 1) == 0 ? 0 : 1, (corner & 2) == 0 ? 0 : 1, (corner & 4) == 0 ? 0 : 1))).Max();
+            GD.Print($"RADAR_RAIL_CLEARANCE {part.Name} innerRadius={innerRadius} outerPartRadius={maxRadius}");
+            return maxRadius + 0.005f < innerRadius;
+        }
+        foreach (var part in electronics)
+            foreach (var other in ReviewMeshes(tank).Where(other => !Clear(part, other)))
+                GD.Print($"RADAR_MOUNT_CANDIDATE {part.Name}/{other.Name}");
+        check(ReviewBounds(head).Position.Y > ReviewBounds(roof).End.Y
+            && electronics.All(part => ReviewMeshes(tank).All(other => Clear(part, other))),
+            "radar_electronics_above_roof_and_clear_of_manway_and_guard");
+        bool BeamMatches()
+        {
+            var actual = Convert.ToDouble(_sceneRuntime!.Points["radar_distance"]);
+            var expected = ReviewBounds(lens).Position.Y - ReviewBounds(liquid).End.Y;
+            var shellBounds = ReviewBounds(shell);
+            var center = shellBounds.GetCenter();
+            var shellRadius = shellBounds.Size.X * 0.5f;
+            var beamInside = Enumerable.Range(0, beam.Mesh.GetSurfaceCount())
+                .SelectMany(surface => beam.Mesh.SurfaceGetArrays(surface)[(int)Mesh.ArrayType.Vertex].AsVector3Array())
+                .Select(vertex => beam.GlobalTransform * vertex)
+                .All(point => new Vector2(point.X - center.X, point.Z - center.Z).Length() < shellRadius - 0.005f);
+            return Math.Abs(actual - expected) < 0.001
+                && beamInside
+                && MathF.Abs(ReviewBounds(beam).End.Y - ReviewBounds(lens).Position.Y) < 0.001f
+                && MathF.Abs(ReviewBounds(beam).Position.Y - ReviewBounds(liquid).End.Y) < 0.001f;
+        }
+        var runtime = _sceneRuntime!;
+        GD.Print($"RADAR_INITIAL_DISTANCE {runtime.Points["radar_distance"]}");
+        check(BeamMatches(), "radar_initial_beam_and_distance_share_lens_and_surface_datums");
+        runtime.UsesExternalClock = true;
+        runtime.SetControllerPlaybackRunning(true);
+        runtime.CommitVirtualControllerOutputs(new Dictionary<string, bool> { ["inlet_pump_run"] = true, ["drain_valve_open"] = false });
+        var initialDistance = Convert.ToDouble(runtime.Points["radar_distance"]);
+        var consistent = true;
+        for (var sample = 0; sample < 200; sample++) { runtime.AdvanceSimulation(0.02); consistent &= BeamMatches(); }
+        var filledDistance = Convert.ToDouble(runtime.Points["radar_distance"]);
+        check(consistent && filledDistance < initialDistance, "radar_sampled_fill_shortens_beam_and_distance_together");
+        runtime.CommitVirtualControllerOutputs(new Dictionary<string, bool> { ["inlet_pump_run"] = false, ["drain_valve_open"] = true });
+        for (var sample = 0; sample < 200; sample++) { runtime.AdvanceSimulation(0.02); consistent &= BeamMatches(); }
+        var drainedDistance = Convert.ToDouble(runtime.Points["radar_distance"]);
+        check(consistent && drainedDistance > filledDistance, "radar_sampled_drain_lengthens_beam_and_distance_together");
+        runtime.SetControllerPlaybackRunning(false);
+        runtime.AdvanceSimulation(1);
+        check(BeamMatches() && Math.Abs(Convert.ToDouble(runtime.Points["radar_distance"]) - drainedDistance) < 0.001,
+            "radar_stopped_clock_holds_surface_range_and_beam");
+        runtime.ResetSimulation();
+        check(BeamMatches() && Math.Abs(Convert.ToDouble(runtime.Points["radar_distance"]) - initialDistance) < 0.001,
+            "radar_reset_restores_initial_surface_range_and_beam");
+    }
+
     private void VerifyBoxVolumeFloorContact(Action<bool, string> check)
     {
         AddMigratedScene("lab-9-10-box-volume", _candidateCatalog!, _mainCamera!, false, false);

@@ -6,7 +6,7 @@ Scene contract: `res://scenes/migrated/tank-radar.scene.json`
 
 ## Purpose
 
-A non-contact radar level example. The top-mounted transmitter shows its measurement cone while distance, percent level, echo status, and idealized 4–20 mA feedback follow the water surface.
+Symbolic non-contact radar example. The roof-mounted transmitter reports distance from its antenna lens to the simulated surface, level and idealized 4-20 mA feedback. The opaque tank hides the internal beam; echo health is idealized.
 
 ## Expected I/O to operate this scene
 
@@ -18,7 +18,7 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | `drain_valve_open` | `BOOL` | **PLC** | `False` |
 | `tank_level` | `REAL` | **SIM** | `35` |
 | `radar_level` | `REAL` | **PC** | `35` |
-| `radar_distance` | `REAL` | **PC** | `2.754` |
+| `radar_distance` | `REAL` | **PC** | `3.1003565788269043` |
 | `radar_signal` | `REAL` | **PC** | `9.6` |
 | `radar_echo_ok` | `BOOL` | **PC** | `True` |
 

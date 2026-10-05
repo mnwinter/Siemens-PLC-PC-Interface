@@ -6,6 +6,34 @@ would otherwise be trapped in a local Codex session. It intentionally excludes
 machine-local Codex databases, credentials, screenshots from private chats, and
 temporary runtime state.
 
+Radar installation and range repair (2026-10-05): five native focused views
+reproduced electronics buried in the roof/manway. The transmitter now mounts
+at X=0.7, Y=6.213333, Z=0.5: its process flange bottom contacts the delivered
+roof at Y=6.083333, clear of the manway. Actual ring vertices distinguish the
+hollow guard from its misleading solid bounding box; electronics remain inside
+the ring with clearance. The horn enters the opaque roof intentionally as a
+symbolic process penetration; no fabricated opening or mechanical approval is
+claimed. Radar distance now starts at the antenna lens lower face and ends at
+the world-transformed liquid surface. The beam shares these datums and stretches
+to the surface instead of retaining its fixed imported length. An initial
+placement protruded the widened beam through the wall; the inward adjustment
+and imported-vertex radial check now keep the beam inside the shell. Seven
+mount/range/fill/drain/stop/reset checks pass (222 total). Fill and drain are
+sampled for 200 steps each at 0.02 s through the typed symbolic output boundary;
+this is plant geometry/runtime evidence, not an authored-ladder operator pass.
+Native final FR/FL/RL/RR/Top views show the head above the roof, the flange
+separate from the manway in Top, and no wall protrusion; rear-left flange detail
+is partly manway/rail-obscured. The normal I/O panel shows radar_distance
+3.10036 at 35%. Normal Run still opens the empty ladder editor with NO CONTROLLER
+LOADED, so interactive fill/drain acceptance remains open. Description/help
+explicitly state the opaque beam occlusion and idealized echo-health behavior.
+Disconnected inlet pump/high pipe route and outlet/drain assembly remain open.
+Build zero warnings/errors; 143 controller tests, app-shell and full help audit
+pass, without real PLC transport. Evidence: .tools/radar-mount-{verified-build,
+verified-geometry,controller,shell,verified-help,native-final}.log. Initial
+failed mount/rail-hull checks are preserved in radar-mount-{geometry,collision}.log.
+Whole-program review continues; no goal status change or completion claim.
+
 Box-volume floor-contact correction (2026-10-05): a focused perspective view
 looked like the carton was suspended. Current delivered mesh bounds instead
 confirm carton bottom Y=0 on the actual 40 x 40 floor at Y=0, with its full

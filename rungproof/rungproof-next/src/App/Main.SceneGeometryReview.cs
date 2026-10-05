@@ -370,6 +370,7 @@ public partial class Main
             VerifyBoxVolumeFloorContact(Check);
             VerifyPalletCountReadoutWorkflow(Check);
             VerifyNumericSceneOutputTypes(Check);
+            VerifyRadarMountAndBeam(Check);
 
             AddMigratedScene("tank-radar", _candidateCatalog!, _mainCamera!, false, false);
             // Exercise an authored parent scale as well as configured sizing.
@@ -378,7 +379,8 @@ public partial class Main
             _sceneRuntime!.ResetSimulation();
             var liquid = radarTank.FindChild("KIN_liquid", true, false) as MeshInstance3D;
             var transmitter = _sceneCompositionRoot.GetNode<Node3D>("radar_transmitter");
-            var expectedDistance = Math.Max(0.08, transmitter.GlobalPosition.Y - ReviewBounds(liquid!).End.Y);
+            var lens = (MeshInstance3D)transmitter.FindChild("ANTENNA_dielectric_lens", true, false);
+            var expectedDistance = Math.Max(0.08, ReviewBounds(lens).Position.Y - ReviewBounds(liquid!).End.Y);
             var actualDistance = Convert.ToDouble(_sceneRuntime.Points["radar_distance"]);
             GD.Print($"RADAR_GEOMETRY expected={expectedDistance} actual={actualDistance}");
             Check(Math.Abs(actualDistance - expectedDistance) < 0.001, "radar_distance_uses_world_scaled_liquid_surface");

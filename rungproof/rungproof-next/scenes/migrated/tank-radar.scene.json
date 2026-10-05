@@ -15,16 +15,18 @@
       "Removing both commands stops level movement while feedback holds the measured state."
     ],
     "faultBehavior": [
-      "A missing or stale radar feedback value is not replaced by the simulator.",
-      "The echo state remains the actual configured feedback."
+      "No echo-loss or signal-noise process is modeled; radar_echo_ok is idealized true.",
+      "External PLC transport remains separate from this symbolic model."
     ],
     "expectedObservations": [
-      "The measurement cone terminates at the same liquid surface shown by the tank."
+      "The transmitter electronics sit above the roof, away from the manway.",
+      "The internal beam ends at the simulated liquid surface; the opaque shell/roof hide it in normal views.",
+      "Distance uses the antenna lens datum; echo health remains an idealized true feedback, without an echo-loss model."
     ]
   },
   "id": "tank-radar",
   "name": "Water Tank \u2014 Radar Level",
-  "description": "A non-contact radar level example. The top-mounted transmitter shows its measurement cone while distance, percent level, echo status, and idealized 4\u201320 mA feedback follow the water surface.",
+  "description": "Symbolic non-contact radar example. The roof-mounted transmitter reports distance from its antenna lens to the simulated surface, level and idealized 4-20 mA feedback. The opaque tank hides the internal beam; echo health is idealized.",
   "camera": {
     "position": [
       10.5,
@@ -106,9 +108,9 @@
       "type": "radarLevelSensor",
       "label": "Radar level transmitter LT-301",
       "position": [
-        0,
-        5.6,
-        0
+        0.7,
+        6.213333333333333,
+        0.5
       ],
       "config": {
         "initialLevel": 0.35,
@@ -240,7 +242,7 @@
         "name": "radar_distance",
         "type": "REAL",
         "owner": "PC",
-        "initial": 2.754,
+        "initial": 3.1003565788269043,
         "unit": "m",
         "purpose": "Simulator radar distance from the antenna to the liquid surface."
       },

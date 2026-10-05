@@ -28,6 +28,34 @@ Every row requires native inspection.
 
 ## Repairs and open findings
 
+Radar installation and range repair (2026-10-05): five native focused views
+reproduced electronics buried in the roof/manway. The transmitter now mounts
+at X=0.7, Y=6.213333, Z=0.5: its process flange bottom contacts the delivered
+roof at Y=6.083333, clear of the manway. Actual ring vertices distinguish the
+hollow guard from its misleading solid bounding box; electronics remain inside
+the ring with clearance. The horn enters the opaque roof intentionally as a
+symbolic process penetration; no fabricated opening or mechanical approval is
+claimed. Radar distance now starts at the antenna lens lower face and ends at
+the world-transformed liquid surface. The beam shares these datums and stretches
+to the surface instead of retaining its fixed imported length. An initial
+placement protruded the widened beam through the wall; the inward adjustment
+and imported-vertex radial check now keep the beam inside the shell. Seven
+mount/range/fill/drain/stop/reset checks pass (222 total). Fill and drain are
+sampled for 200 steps each at 0.02 s through the typed symbolic output boundary;
+this is plant geometry/runtime evidence, not an authored-ladder operator pass.
+Native final FR/FL/RL/RR/Top views show the head above the roof, the flange
+separate from the manway in Top, and no wall protrusion; rear-left flange detail
+is partly manway/rail-obscured. The normal I/O panel shows radar_distance
+3.10036 at 35%. Normal Run still opens the empty ladder editor with NO CONTROLLER
+LOADED, so interactive fill/drain acceptance remains open. Description/help
+explicitly state the opaque beam occlusion and idealized echo-health behavior.
+Disconnected inlet pump/high pipe route and outlet/drain assembly remain open.
+Build zero warnings/errors; 143 controller tests, app-shell and full help audit
+pass, without real PLC transport. Evidence: .tools/radar-mount-{verified-build,
+verified-geometry,controller,shell,verified-help,native-final}.log. Initial
+failed mount/rail-hull checks are preserved in radar-mount-{geometry,collision}.log.
+Whole-program review continues; no goal status change or completion claim.
+
 Box-volume floor-contact correction (2026-10-05): a focused perspective view
 looked like the carton was suspended. Current delivered mesh bounds instead
 confirm carton bottom Y=0 on the actual 40 x 40 floor at Y=0, with its full
@@ -1129,7 +1157,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 74 | `scene-2-conveyor-pusher` | 88 | Native FR/FL/RL/RR/T | Carton belt contact/load-end footprint repaired; native five wide/Top/FL close rechecked; no receiver, pusher/photoeye motion clearance unresolved |
 | 75 | `tank-high-low` | 60 | Native FR/FL/RL/RR/T | Disconnected pump/elevated inlet, external probes, opaque tank; fill/drain behavior unverified |
 | 76 | `tank-level` | 52 | Native FR/FL/RL/RR/T | Same disconnected piping/probe mounting; initial 42 percent / 10.72 mA visible, dynamics unverified |
-| 77 | `tank-radar` | 80 | Native FR/FL/RL/RR/T | Instrument/cone not identifiable in wide views; piping unresolved; actions blocked, normal Run empty editor |
+| 77 | `tank-radar` | 80 | Native FR/FL/RL/RR/T; repaired radar five focus views | Radar flange/head mounting and antenna-to-surface distance/beam repaired (sampled checks); 35% native range 3.10036. FAIL/open: empty ladder Run, disconnected inlet/outlet/drain route, opaque internal beam; rear-left mount partly obscured |
 
 Drive-alarm follow-up evidence: `.tools/drive-alarm-{props-build,build,import,geometry,inventory,scene-contracts,rendered-controls,plant-regression}.log`, `catalog-next-shell-native.log` (baseline), `drive-alarm-native-supported.log` (support and plates), and `drive-alarm-native-final-complete.log` (final five views, keypad detail, failed normal Run). Build zero warnings/errors; 38 focused geometry, 19 plant, rendered scene controls and 71 authored cases pass. These do not approve uninspected scenes, missing controllers, string functionality or hardware.
 
