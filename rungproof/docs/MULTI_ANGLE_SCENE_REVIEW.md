@@ -28,6 +28,30 @@ Every row requires native inspection.
 
 ## Repairs and open findings
 
+- Assembly Lift hydraulic follow-up: the stationary rod/clevis failure recorded
+  below is repaired. The driven lower-front arm now carries its clevis, pin and
+  drive lug. The fixed-length barrel pivots at its base pin; only the rod's
+  longitudinal mesh axis extends between the gland and moving clevis. Imported
+  mesh dimensions determine lengths, retaining rod/barrel diameters. Binding
+  checks require the delivered nodes and common parent coordinate system; an
+  incompatible asset logs a warning instead of applying the wrong transform.
+  Four additional checks use actual mesh-cap centres and the authored arm mount
+  through 240 raise/lower samples, plus hydraulic Stop/Reset transforms. Two
+  attachment/contact checks reproduce failures before repair; all 85 geometry
+  checks now pass. Fresh build has zero warnings/errors, both Assembly Lift
+  contract cases and all 19 plant-motion checks pass. Current native Windows
+  inspection covers all five angles, a closer lift view, FL/RR raising/lowering
+  and endpoints, FR raised attachment and Reset. The FL raised view exposes
+  the connected cylinder/rod/clevis chain; rear views occlude parts of it and
+  are not independent acceptance of those hidden details. Native Stop was
+  clicked after the top endpoint; mid-cycle hold remains deterministic evidence.
+  Evidence: hydraulic-before.log, hydraulic-final.log, hydraulic-final-build.log,
+  hydraulic-contract.log, hydraulic-plant-motion.log and hydraulic-native.log in
+  rungproof-next/.tools. The current master still has exposed arms; historical
+  bellows recognition is not current guarding or independent approval. Normal
+  controller-owned lesson execution and the four other shared lift scenes still
+  need their documented follow-up. Coverage stays 27/77, with 50 pending scenes.
+  Isolated reviewer closed cleanly; user Demo 1 preserved. Goal remains active.
 - Assembly Lift (scene 26) has native FR/FL/RL/RR/T inspections, close RAISE /
   LOWER plate views, and raise/lower movement and endpoints inspected from FL
   and RR. The fixture previously started at Y=0.82 beneath the actual imported
@@ -53,7 +77,7 @@ Every row requires native inspection.
   opens a blank exercise with EDIT INVALID / NO CONTROLLER LOADED. Native Stop
   was observed at the completed lower endpoint; only the deterministic check
   verifies mid-cycle Stop. Reset restores bottom_limit=true / top_limit=false.
-  **Full mechanism motion remains FAIL/open:** the hydraulic rod is still
+  At this earlier checkpoint, full mechanism motion was **FAIL/open**: the hydraulic rod was still
   restored to its authored transform rather than following the driven arm.
   The old asset review describes an enclosed bellows skirt, whereas the current
   master/source and native scene expose the arms. That historical recognition
@@ -396,7 +420,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 23 | `lab-2-09-maintenance-beacon` | 0 | FR/FL/RL/RR/T + close dial | Static clear; 4-position dial/axis repaired; native 0-3/wrap/Reset. No beacon sequence or lockout proof; Run empty controller. |
 | 24 | `lab-2-10-dust-collector-seal-in` | 0 | FR/FL/RL/RR/T + close STOP | Static clear; STOP repaired; 3D PC requests/Reset checked. Fan schematic only; Run empty controller. |
 | 25 | `lab-2-11-inbound-tote-stop` | 7 | FR/FL/RL/RR/T + close tote; FL/RR motion endpoints | Tote support, sensor clearance and cycle endpoint repaired; six focused checks pass. Native completion/Reset and endpoint Stop checked; Run empty controller. Cable AABB candidates remain. |
-| 26 | `lab-2-12-assembly-lift` | 0 | FR/FL/RL/RR/T + close plates + FL/RR motion | Fixture support, rollers/washers and travel framing repaired; FAIL/open hydraulic rod attachment; historical bellows approval stale; blank editor on normal Run |
+| 26 | `lab-2-12-assembly-lift` | 0 | FR/FL/RL/RR/T + close plates/lift + FL/RR motion | Fixture support, rollers/washers, travel framing and hydraulic attachment repaired; historical bellows approval stale; blank editor on normal Run; shared scenes need follow-up |
 | 27 | `lab-2-13-coolant-jug-fill` | 53 | Pending | Pending |
 | 28 | `lab-2-14-sump-pump` | 41 | Pending | Pending |
 | 29 | `lab-2-15-fume-extractor` | 0 | Pending | Pending |

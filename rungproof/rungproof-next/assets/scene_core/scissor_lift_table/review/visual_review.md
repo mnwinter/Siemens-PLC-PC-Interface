@@ -1,13 +1,19 @@
 # Guarded hydraulic scissor-lift table visual review
 
-Current revision follow-up (2026-10-04): **motion acceptance failed/open**.
+Current revision follow-up (2026-10-04): **local attachment motion repaired;
+current independent recognition/guarding acceptance remains open**.
 Native Assembly Lift inspection shows exposed arms; the current delivered master
 and builder source have no enclosing bellows. The historical review below
 describes a different guarded revision and does not establish recognition or
 guarding acceptance of this revision. Platform support and roller/washer
-following have been repaired, but `KIN_lift_rod` still remains authored while
-its driven arm moves. Current hydraulic attachment and independent asset
-acceptance remain open. See `docs/MULTI_ANGLE_SCENE_REVIEW.md` in rungproof.
+following have been repaired. A subsequent hydraulic repair carries the
+clevis/pin/lug with the driven arm, pivots the fixed-length barrel at its base
+pin, and extends only the rod's longitudinal mesh axis to the moving clevis.
+Actual mesh-cap contact and attachment checks pass throughout both directions;
+native Assembly Lift five-view and FL/RR motion inspection confirms the local
+visual repair. This is not physical hydraulic or guarding proof. Other scenes
+sharing this asset still need native follow-up. See
+`docs/MULTI_ANGLE_SCENE_REVIEW.md` in rungproof for exact evidence and limits.
 
 Historical review follows:
 

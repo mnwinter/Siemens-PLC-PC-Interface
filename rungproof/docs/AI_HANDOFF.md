@@ -6,7 +6,27 @@ would otherwise be trapped in a local Codex session. It intentionally excludes
 machine-local Codex databases, credentials, screenshots from private chats, and
 temporary runtime state.
 
-Latest follow-up (2026-10-04): native coverage is 27/77 inspected, 50 pending,
+Latest hydraulic follow-up (2026-10-04): the fixed rod/clevis failure is repaired.
+EquipmentMotionController binds the delivered lower-front arm, base/tip pins,
+barrel, rod and clevis/lug siblings. The clevis/pin/lug follow the driven arm,
+the fixed-length barrel pivots at its base, and only the rod's longitudinal mesh
+axis extends to the moving tip. Missing nodes/mixed parents warn and skip this
+attachment motion. Four new actual-mesh/Stop/Reset checks reproduce two failures
+before repair; all 85 geometry checks, two lift contract cases, 19 plant-motion
+checks and a zero-warning/error build pass. Native five angles, closer lift view,
+FL/RR raising/lowering and endpoints, FR raised attachment and Reset inspected.
+Stop was endpoint-only; deterministic check covers mid-cycle hold. Logs:
+hydraulic-before.log, hydraulic-final.log, hydraulic-final-build.log,
+hydraulic-contract.log, hydraulic-plant-motion.log, hydraulic-native.log under
+rungproof-next/.tools. Current asset has exposed arms; stale bellows recognition
+is historical and does not prove current guarding/independent approval. Normal
+Run still needs a lesson controller. Coverage unchanged: 27/77, 50 pending.
+Shared asset motion/framing needs native follow-up in Gallery, Service Elevator,
+Chain Drive Lift and Drawbridge. User Demo 1 preserved; isolated preview closed.
+Goal active. Next: shared lift-scene follow-up and scene 27 Coolant Jug, then the
+remaining 50 static inspections plus previously recorded failure repairs.
+
+Earlier follow-up (2026-10-04): native coverage is 27/77 inspected, 50 pending,
 including failures. Assembly Lift has five native angles, close RAISE/LOWER
 plates and FL/RR raise/lower movement/endpoints. Fixture support now matches
 the actual deck at Y=1.64 (raised Y=3.84); 16 rollers/washers follow their pins.

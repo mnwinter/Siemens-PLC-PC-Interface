@@ -51,6 +51,12 @@ public partial class EquipmentMotionController : Node
     private readonly Dictionary<Node3D, Transform3D> _authoredTransforms = [];
     private readonly Dictionary<Node3D, Vector3> _authoredScales = [];
     private readonly Dictionary<Node3D, Node3D> _liftPinFollowers = [];
+    private readonly List<Node3D> _liftTipAttachments = [];
+    private Node3D? _liftDriveArm;
+    private Node3D? _liftBasePin;
+    private Node3D? _liftTipPin;
+    private MeshInstance3D? _liftCylinder;
+    private MeshInstance3D? _liftRod;
     private Vector3 _fanCenter;
     private float _position;
     private float _targetPosition;
@@ -78,6 +84,7 @@ public partial class EquipmentMotionController : Node
                 }
                 if (nearest is not null) _liftPinFollowers[follower] = nearest;
             }
+            BindLiftHydraulics();
         }
         if (Kind == MotionKind.FanRotor)
         {
@@ -291,6 +298,9 @@ public partial class EquipmentMotionController : Node
                 || name.StartsWith("LIFT_top_pivot_", StringComparison.Ordinal)
                 || name.StartsWith("LIFT_bottom_pivot_", StringComparison.Ordinal)
                 || name.StartsWith("LIFT_upper_track_", StringComparison.Ordinal)
+                || name.StartsWith("LIFT_cylinder", StringComparison.Ordinal)
+                || name.StartsWith("LIFT_rod_end_clevis", StringComparison.Ordinal)
+                || name == "LIFT_drive_lug"
                 || IsLiftPinFollower(name);
         }
         if (Kind == MotionKind.RollerShutter)
@@ -355,10 +365,6 @@ public partial class EquipmentMotionController : Node
                 origin.X = MathF.CopySign(targetHalfRun, authored.Origin.X);
                 target.Transform = new Transform3D(authored.Basis, origin);
             }
-            else if (name.StartsWith("KIN_lift_rod", StringComparison.Ordinal))
-            {
-                target.Transform = authored;
-            }
             else if (name.StartsWith("KIN_lift_bellows_", StringComparison.Ordinal))
             {
                 // The bellows spans from the fixed base envelope to the
@@ -378,6 +384,66 @@ public partial class EquipmentMotionController : Node
             var authored = _authoredTransforms[follower];
             follower.Transform = new Transform3D(authored.Basis,
                 authored.Origin + pin.Position - _authoredTransforms[pin].Origin);
+        }
+        ApplyLiftHydraulics();
+    }
+
+    private void BindLiftHydraulics()
+    {
+        // These names belong to the delivered two-stage lift master. Bind the
+        // entire chain; a lone translating rod leaves its clevis/lug behind.
+        _liftDriveArm = _targets.Find(node => node.Name == "KIN_scissor_0_-0_65_-1");
+        _liftBasePin = _targets.Find(node => node.Name == "LIFT_cylinder_base_clevis_pin");
+        _liftTipPin = _targets.Find(node => node.Name == "LIFT_rod_end_clevis_pin");
+        _liftCylinder = _targets.Find(node => node.Name == "LIFT_cylinder") as MeshInstance3D;
+        _liftRod = _targets.Find(node => node.Name == "KIN_lift_rod") as MeshInstance3D;
+        _liftTipAttachments.AddRange(_targets.FindAll(node =>
+            node.Name.ToString().StartsWith("LIFT_rod_end_clevis", StringComparison.Ordinal)
+            || node.Name == "LIFT_drive_lug"));
+        if (_liftDriveArm is null || _liftBasePin is null || _liftTipPin is null
+            || _liftCylinder is null || _liftRod is null)
+        {
+            GD.PushWarning("Lift hydraulic chain is incomplete; attachment motion is unavailable.");
+            return;
+        }
+        // All delivered parts are siblings in the imported asset coordinate
+        // system. Refuse mixed parents rather than applying a wrong local pose.
+        var parent = _liftDriveArm.GetParent();
+        if (_liftBasePin.GetParent() != parent || _liftTipPin.GetParent() != parent
+            || _liftCylinder.GetParent() != parent || _liftRod.GetParent() != parent
+            || _liftTipAttachments.Exists(node => node.GetParent() != parent))
+        {
+            GD.PushWarning("Lift hydraulic chain has mixed parents; attachment motion is unavailable.");
+            _liftDriveArm = null;
+        }
+    }
+
+    private void ApplyLiftHydraulics()
+    {
+        if (_liftDriveArm is null || _liftBasePin is null || _liftTipPin is null
+            || _liftCylinder is null || _liftRod is null) return;
+        var armDelta = _liftDriveArm.Transform * _authoredTransforms[_liftDriveArm].AffineInverse();
+        foreach (var attachment in _liftTipAttachments)
+            attachment.Transform = armDelta * _authoredTransforms[attachment];
+        var tail = _liftBasePin.Position;
+        var tip = _liftTipPin.Position;
+        // Keep the barrel length fixed; only the exposed rod extends. The
+        // imported cylinder meshes run along local Y, in the asset's XY plane.
+        var barrelRest = _authoredTransforms[_liftCylinder];
+        var barrelLength = _liftCylinder.GetAabb().Size.Y * barrelRest.Basis.Y.Length();
+        var gland = tail + (tip - tail).Normalized() * barrelLength;
+        PoseMember(_liftCylinder, tail, gland);
+        PoseMember(_liftRod, gland, tip);
+
+        void PoseMember(MeshInstance3D member, Vector3 start, Vector3 end)
+        {
+            var authored = _authoredTransforms[member];
+            var delta = end - start;
+            var authoredAxis = authored.Basis.Y;
+            var angle = MathF.Atan2(delta.Y, delta.X) - MathF.Atan2(authoredAxis.Y, authoredAxis.X);
+            var ratio = delta.Length() / (member.GetAabb().Size.Y * authoredAxis.Length());
+            var basis = authored.Basis * Basis.FromScale(new Vector3(1, ratio, 1));
+            member.Transform = new Transform3D(basis.Rotated(Vector3.Back, angle), (start + end) * 0.5f);
         }
     }
 

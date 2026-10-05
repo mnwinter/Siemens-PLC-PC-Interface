@@ -1,5 +1,21 @@
 # Whole program review - 2026-10-03
 
+Hydraulic attachment follow-up (2026-10-04): Assembly Lift's fixed rod/clevis
+failure is repaired with a connected arm/clevis/rod/barrel chain. Actual imported
+mesh-cap checks reproduce two failures before repair and pass through both
+directions after repair. All 85 geometry checks, both lift contract cases,
+19 plant-motion checks and a zero-warning/error build pass. Native Windows
+reinspection covers all five angles, closer lift view, FL/RR raising/lowering
+and endpoints, FR raised attachment and Reset. Stop was clicked at the completed
+top endpoint; mid-cycle hold is deterministic evidence only. This does not
+establish physical hydraulics, PLC-controlled lesson execution, independent
+asset recognition or guarding. Historical bellows evidence remains stale, and
+the four other scenes sharing this lift need native follow-up. Coverage remains
+27/77 inspected, 50 pending, including failures. User Demo 1 preserved and the
+isolated preview closed. Exact evidence in MULTI_ANGLE_SCENE_REVIEW.md.
+
+Earlier checkpoint:
+
 Assembly Lift follow-up (2026-10-04): coverage is now 27/77 native five-view
 inspections, 50 pending, including failures. Imported deck contact corrected
 from fixture Y=0.82 to 1.64, with matching raise/lower endpoints. Six new checks

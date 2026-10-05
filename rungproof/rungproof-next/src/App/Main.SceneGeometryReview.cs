@@ -624,6 +624,31 @@ public partial class Main
         var fixture = root.GetNode<Node3D>("lift_fixture");
         var deck = (MeshInstance3D)lift.FindChild("KIN_platform", true, false);
         var meshes = ReviewMeshes(lift);
+        var driveArm = meshes.Single(mesh => mesh.Name == "KIN_scissor_0_-0_65_-1");
+        var basePin = meshes.Single(mesh => mesh.Name == "LIFT_cylinder_base_clevis_pin");
+        var tipPin = meshes.Single(mesh => mesh.Name == "LIFT_rod_end_clevis_pin");
+        var cylinder = meshes.Single(mesh => mesh.Name == "LIFT_cylinder");
+        var rod = meshes.Single(mesh => mesh.Name == "KIN_lift_rod");
+        var hydraulicParts = meshes.Where(mesh => mesh == cylinder || mesh == rod
+            || mesh.Name.ToString().StartsWith("LIFT_rod_end_clevis", StringComparison.Ordinal)
+            || mesh.Name == "LIFT_drive_lug").ToArray();
+        var hydraulicRest = hydraulicParts.Select(mesh => mesh.Transform).ToArray();
+        var tipOnArm = driveArm.ToLocal(tipPin.GlobalPosition);
+        // Check the delivered mesh caps, not a controller-owned state variable.
+        // The imported cylinders' longest mesh axis defines their centreline.
+        (Vector3 A, Vector3 B) Caps(MeshInstance3D member)
+        {
+            var bounds = member.GetAabb();
+            var axis = (int)bounds.Size.MaxAxisIndex();
+            var half = Vector3.Zero;
+            half[axis] = bounds.Size[axis] * 0.5f;
+            return (member.ToGlobal(bounds.GetCenter() - half), member.ToGlobal(bounds.GetCenter() + half));
+        }
+        var cylinderCaps = Caps(cylinder);
+        var cylinderLength = cylinderCaps.A.DistanceTo(cylinderCaps.B);
+        var glandRest = cylinderCaps.A.DistanceTo(basePin.GlobalPosition) > cylinderCaps.B.DistanceTo(basePin.GlobalPosition)
+            ? cylinderCaps.A : cylinderCaps.B;
+        GD.Print($"LIFT_HYDRAULIC_IMPORT arm={driveArm.Transform} body={cylinder.Transform} bodyBounds={cylinder.GetAabb()} rod={rod.Transform} rodBounds={rod.GetAabb()} base={basePin.GlobalPosition} tip={tipPin.GlobalPosition} gland={glandRest}");
         var pivots = meshes.Where(mesh => mesh.Name.ToString().StartsWith("LIFT_top_pivot_", StringComparison.Ordinal)
             || mesh.Name.ToString().StartsWith("LIFT_bottom_pivot_", StringComparison.Ordinal)
             || mesh.Name.ToString().StartsWith("KIN_mid_pivot_", StringComparison.Ordinal)
@@ -648,6 +673,8 @@ public partial class Main
         var framed = true;
         var support = true;
         var attachments = followers.Length == 16;
+        var hydraulicAttachment = true;
+        var hydraulicCaps = true;
         foreach (var action in new[] { "raise-lift", "lower-lift" })
         {
             runtime.ExecuteAction(action);
@@ -655,6 +682,21 @@ public partial class Main
             {
                 runtime.AdvanceSimulation(0.02);
                 support &= Supported();
+                var expectedTip = driveArm.ToGlobal(tipOnArm);
+                hydraulicAttachment &= hydraulicParts.Where(mesh => mesh != cylinder && mesh != rod)
+                    .All(mesh => mesh.GlobalPosition.DistanceTo(expectedTip) < 0.001f);
+                var expectedGland = basePin.GlobalPosition
+                    + (expectedTip - basePin.GlobalPosition).Normalized() * cylinderLength;
+                bool MatchesCaps(MeshInstance3D member, Vector3 a, Vector3 b)
+                {
+                    var caps = Caps(member);
+                    return (caps.A.DistanceTo(a) < 0.001f && caps.B.DistanceTo(b) < 0.001f)
+                        || (caps.B.DistanceTo(a) < 0.001f && caps.A.DistanceTo(b) < 0.001f);
+                }
+                // Require actual barrel/rod cap contact at both named pins and
+                // the gland throughout motion, rather than accepting loose rods.
+                hydraulicCaps &= MatchesCaps(cylinder, basePin.GlobalPosition, expectedGland)
+                    && MatchesCaps(rod, expectedGland, expectedTip);
                 foreach (var mesh in ReviewMeshes(root))
                 {
                     var bounds = ReviewBounds(mesh);
@@ -669,18 +711,25 @@ public partial class Main
         check(support, "assembly_fixture_supported_through_raise_and_lower");
         check(attachments, "assembly_guide_rollers_and_washers_follow_pins");
         check(framed, "assembly_full_travel_fits_initial_camera_frustum");
+        check(hydraulicAttachment, "assembly_hydraulic_clevis_and_lug_follow_driven_arm");
+        check(hydraulicCaps, "assembly_hydraulic_mesh_caps_stay_seated_through_travel");
         runtime.ResetSimulation();
         runtime.ExecuteAction("raise-lift");
         runtime.AdvanceSimulation(0.7);
         runtime.StopSimulation();
         var stoppedDeck = deck.Transform;
         var stoppedFixture = fixture.Transform;
+        var stoppedHydraulics = hydraulicParts.Select(mesh => mesh.Transform).ToArray();
         runtime.AdvanceSimulation(0.5);
         check(deck.Transform.IsEqualApprox(stoppedDeck) && fixture.Transform.IsEqualApprox(stoppedFixture),
             "assembly_stop_holds_deck_and_fixture");
+        check(hydraulicParts.Select((mesh, index) => mesh.Transform.IsEqualApprox(stoppedHydraulics[index])).All(held => held),
+            "assembly_stop_holds_hydraulic_chain");
         runtime.ResetSimulation();
         check(Supported() && runtime.Points["bottom_limit"] is true && runtime.Points["top_limit"] is false,
             "assembly_reset_restores_supported_bottom_state");
+        check(hydraulicParts.Select((mesh, index) => mesh.Transform.IsEqualApprox(hydraulicRest[index])).All(restored => restored),
+            "assembly_reset_restores_hydraulic_authored_pose");
     }
 
     private void VerifyInboundToteGeometry(Action<bool, string> check)
