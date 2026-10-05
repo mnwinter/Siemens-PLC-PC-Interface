@@ -10,6 +10,38 @@ includes failed scenes; it is not a count of accepted scenes.
 
 ## Acceptance method
 
+Pallet-cell installation (2026-10-05, latest): Scene 31's pallet and both
+containers were lowered together by 80 mm. All three bottom runners now meet
+the measured 900 mm belt surface, and both containers retain their deck contact.
+The receiver moved laterally from Z=1.2 to Z=2.4 m, clearing its backstop and
+base from the conveyor. Sensor spacing increased from 2.05 to 2.50 m to clear
+the conveyor braces. A composer bug was also repaired: imported cables have
+zero object origins, so TX/RX names now determine stand-side translation;
+pigtails stretch vertically from their fixed M12 endpoints to raised heads.
+Five new installation checks pass, with 370 geometry/workflow checks total.
+The carton pusher's cable clearance uses actual transformed triangle bounds
+because the curved tail's enclosing box overlaps empty space by a bracket.
+Native Windows FR/FL/RL/RR/Top and focused sensor Top/FL/RR were inspected;
+normal Reset retained the corrected seating. Build has zero warnings/errors;
+the scene's existing reference contract and 77-scene shell verifier pass.
+This closes the measured static pallet, receiver and sensor installation
+findings, not the complete robot-transfer finding. The authored container
+targets still miss the receiver bays, there is no proven robot attachment,
+and the empty-pallet release extends beyond the current belt support. Scene
+31 remains FAIL/open. Logs: `.tools/pallet-robot-{red,pigtail-red,geometry,
+build,contract,shell,native}.log`. PLC remained disconnected.
+The affected carton scene also received a fresh Windows regression: normal
+File Open of `.tools/pusher-rod-review.rpproj.json`, Verify + Load offline,
+focused home FR/Top, Run to full extension (feedback TRUE at scan 22), extended
+Top/FR, Stop (command FALSE, pose held), and Reset (home, feedback FALSE, scan
+zero). This deliberately commands an empty pusher stroke; it is not a carton
+transfer test. Evidence: `.tools/pallet-robot-pusher-native.log`. Both owned
+review windows exited zero, with no native errors; the shell verifier retains
+its existing missing-workspace warning.
+The final offline rerun also passes all 143 controller tests and 19 plant-motion
+checks; no real PLC transport was constructed or contacted. Help coverage
+validation passes for 294 assets and 77 scenes.
+
 Tank drain-valve installation (2026-10-05, latest): Scenes 75/76 now declare
 one full-size actuated ball valve each, appended to the outlet spool. The
 continuous bore's measured near face meets the spool flange at approximately
@@ -1579,7 +1611,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 28 | `lab-2-14-sump-pump` | 41 (original) | Final repaired FR/FL/RL/RR/T wide + top/FL/RL/FR pump close | Partial piping repair: joined measured ports, aligned valve/spool and grounded supports; still FAIL: buried low probe, float fitting/identity and sump vessel open; normal Run unloaded; full level motion pending |
 | 29 | `lab-2-15-fume-extractor` | 0 | FR/FL/RL/RR/T static and running 35%; close plate; speed states; native preview Stop/Run/Off/Reset | LIGHT REQUEST, speed binding and preview Stop repaired; six-blade transform checks pass. Open: beacon substitutes light, hood/duct absent, normal Run unloaded; reference preview is not controller lesson acceptance |
 | 30 | `lab-2-16-safe-drill` | 24 original / 0 repaired | Native repaired FR/FL/RL/RR/T; stock FR close; normal 3D hand/cycle controls; held feed/bottom four close sides; Stop/Reset/restart; unheld completion | Fixture/feed and honest Stop-hold semantics repaired; normal cycle blocks without controller. Top stock view occluded by head; guard/two-hand safety behavior is not modeled |
-| 31 | `lab-2-17-pallet-robot` | 23 | Native FR/FL/RL/RR/T; receiver top/FR close; normal Run | FAIL/open: receiver backstop intersects conveyor; pallet appears raised off belt. Sensor/brace candidates and robot transfer/reach remain unresolved. Run unloaded |
+| 31 | `lab-2-17-pallet-robot` | 23 historic | Native repaired FR/FL/RL/RR/T; sensor Top/FL/RR close; normal Reset | Static pallet support, receiver/backstop clearance and sensor placement/pigtails repaired; five new checks PASS. FAIL/open: container paths miss receiver, robot attachment/reach and supported outbound pallet travel unresolved. Reference point contract passes only |
 | 32 | `lab-2-18-pallet-pickup` | 29 | Native FR/FL/RL/RR/T; sensor top/FR/RL close; auto toggle and jog | Open: pallet support and sensor/conveyor mounting need measurement; Jog blocks unloaded; full motion unverified |
 | 33 | `lab-2-19-service-door` | 54 original / 0 repaired | Repaired native FR/FL/RL/RR/T; operator FR close; held opening/Stop/reverse; real-time endpoints; open five views; Reset | Layout/plates and reference reversal/position feedback repaired; raw NC signal displays explicit. Physical limit/cable behavior, compressed slat geometry and loaded-controller operation unaccepted |
 | 34 | `lab-2-20-bottle-shuttle` | 39 | Native FR/FL/RL/RR/T; bottle top/FR close; Start | Open: overlapping bottle label text; contact and sensor mounts need measurement. Normal Start unloaded; round-trip motion unverified |

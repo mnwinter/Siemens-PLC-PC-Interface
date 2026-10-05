@@ -54,6 +54,14 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 
 ## Stop and safety boundary
 
+The staging pallet's bottom runners meet the 900 mm belt surface. Both
+containers are seated on its deck, the receiver is clear of the conveyor,
+and the photoeye stands and connected pigtails clear the conveyor braces.
+These static installation repairs do not establish a complete robot transfer:
+the reference container paths still miss the receiver bays, robot/load
+attachment is unproven, and outbound pallet support remains unresolved.
+The reference contract verifies sequence point values, not physical handling.
+
 A normal Stop removes PLC-owned commands according to the scene runtime. This document does not prove a safety function, a real E-stop circuit, a PLC watchdog, or live-machine commissioning.
 
 Declared simulation safe state:

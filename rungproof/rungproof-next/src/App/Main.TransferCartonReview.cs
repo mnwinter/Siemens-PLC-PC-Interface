@@ -785,7 +785,25 @@ public partial class Main
                 .All(mesh => sensorSolids.All(solid =>
                 {
                     var overlap = ReviewBounds(mesh).Intersection(ReviewBounds(solid)).Size;
-                    return overlap.X <= 0.005f || overlap.Y <= 0.005f || overlap.Z <= 0.005f;
+                    if (overlap.X <= 0.005f || overlap.Y <= 0.005f || overlap.Z <= 0.005f) return true;
+                    if (solid.Name.ToString().EndsWith("_cable", StringComparison.Ordinal))
+                    {
+                        // A raised curved pigtail's enclosing box includes
+                        // empty space beside the guide bracket. Screen its
+                        // actual transformed triangles, as for the receiver.
+                        var faces = solid.Mesh.GetFaces();
+                        var movingBounds = ReviewBounds(mesh);
+                        for (var index = 0; index < faces.Length; index += 3)
+                        {
+                            var triangle = new Aabb(solid.GlobalTransform * faces[index], Vector3.Zero)
+                                .Expand(solid.GlobalTransform * faces[index + 1]).Expand(solid.GlobalTransform * faces[index + 2]);
+                            var intersection = movingBounds.Intersection(triangle).Size;
+                            if (intersection.X > 0.005f && intersection.Y > 0.005f && intersection.Z > 0.005f) return false;
+                        }
+                        return true;
+                    }
+                    GD.Print($"PUSHER_SENSOR_CONFLICT sample={sample} {mesh.Name}/{solid.Name}");
+                    return false;
                 }));
             fastenersFollow &= fasteners.All(mesh => (mesh.Position - plate.Position).IsEqualApprox(fastenerOffsets[mesh]));
         }

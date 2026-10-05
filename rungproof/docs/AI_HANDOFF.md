@@ -6,6 +6,23 @@ would otherwise be trapped in a local Codex session. It intentionally excludes
 machine-local Codex databases, credentials, screenshots from private chats, and
 temporary runtime state.
 
+Pallet-cell installation (2026-10-05): Scene 31's pallet/container roots are
+80 mm lower, receiver Z=2.4 m and photoeye span=2.5 m. Five new checks prove
+static support/clearance/pigtail seating. Shared photoeye cables now translate
+by TX/RX side rather than zero imported object origin, and grow from fixed M12
+connections for optical-height changes. Pusher clearance screens curved cable
+triangle bounds, avoiding an empty-space AABB false positive. 370 geometry
+checks pass; build, shell and the scene reference contract pass. Native five
+angles, focused sensor Top/FL/RR and normal Reset were inspected. Full robot
+transfer is still FAIL/open: container endpoints miss receiver bays, attachment
+is unproven and empty-pallet release goes beyond belt support. Do not accept
+the symbolic reference contract as physical transfer proof. Evidence is in
+`.tools/pallet-robot-*.log`; full details are in `MULTI_ANGLE_SCENE_REVIEW.md`.
+Native pusher regression used the existing ignored endpoint QA project through
+normal Open/Verify/Run/Stop/Reset: home/full-extension focused FR/Top inspected,
+Stop command FALSE/pose held, Reset home/scan zero. No carton was transferred.
+Both owned reviewers exited zero; PLC stayed disconnected.
+
 Tank drain-valve installation (2026-10-05, latest): Scenes 75/76 now declare
 one full-size actuated ball valve each, appended to the outlet spool. The
 continuous bore's measured near face meets the spool flange at approximately

@@ -394,7 +394,9 @@ public static partial class SceneComposer
         {
             var name = item.Name.ToString();
             if (name.StartsWith("TX_", StringComparison.Ordinal) || name.StartsWith("RX_", StringComparison.Ordinal))
-                item.Position += new Vector3(0, 0, item.Position.Z > 0
+                // Cable vertices are baked around a zero object origin. The
+                // named stand, rather than origin sign, owns every part's side.
+                item.Position += new Vector3(0, 0, name.StartsWith("TX_", StringComparison.Ordinal)
                     ? positiveStandM - 0.72f : -standOffset);
             if (name.StartsWith("KIN_beam", StringComparison.Ordinal))
             {
@@ -416,6 +418,17 @@ public static partial class SceneComposer
                 // translating the entire sensor stand into the air.
                 item.Position += Vector3.Up * (liftM * 0.5f);
                 item.Scale = new Vector3(item.Scale.X, item.Scale.Y * (0.92f + liftM) / 0.92f, item.Scale.Z);
+            }
+            else if (name.EndsWith("_cable", StringComparison.OrdinalIgnoreCase) && item is MeshInstance3D cable)
+            {
+                // Stretch the head's tail in model vertical coordinates while
+                // keeping its lower M12 connection fixed. Multiplying the basis
+                // also works for imported meshes with an authored rotation.
+                var bounds = cable.Transform * cable.GetAabb();
+                var stretchY = (bounds.Size.Y + liftM) / bounds.Size.Y;
+                var stretch = Basis.FromScale(new Vector3(1, stretchY, 1));
+                cable.Transform = new Transform3D(stretch * cable.Basis,
+                    stretch * cable.Position + Vector3.Up * bounds.Position.Y * (1 - stretchY));
             }
         }
         return model;

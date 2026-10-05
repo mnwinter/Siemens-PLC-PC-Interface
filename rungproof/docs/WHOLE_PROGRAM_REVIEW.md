@@ -1,5 +1,21 @@
 # Whole program review - 2026-10-03
 
+Pallet-cell installation (2026-10-05): Scene 31's 80 mm pallet/belt gap,
+receiver/conveyor intersection and sensor/brace placement are repaired.
+Both containers moved down with the pallet. The shared photoeye composer now
+uses TX/RX ownership for cable translation and stretches raised-head pigtails
+from their fixed M12 connections. Five new checks pass (370 geometry/workflow
+checks total); build is clean, the existing reference contract and 77-scene
+shell verifier pass. Native Windows five-angle static inspection, sensor close
+Top/FL/RR and normal Reset confirm the repaired installation. Robot attachment,
+container paths/receiver seating and supported outbound pallet travel remain
+open; the reference contract only checks symbolic sequence results. See the
+latest note and scene 31 row in `MULTI_ANGLE_SCENE_REVIEW.md` for evidence.
+The affected carton pusher was also checked in Windows at home/full extension
+from focused FR/Top, using normal Open/Verify/Run/Stop/Reset with the existing
+offline endpoint QA program. Stop clears its command while holding the pose;
+Reset restores home. This empty stroke does not verify carton transfer.
+
 Tank drain-valve installation (2026-10-05, latest): Scenes 75/76 now declare
 one full-size actuated ball valve each, appended to the outlet spool. The
 continuous bore's measured near face meets the spool flange at approximately
