@@ -1,7 +1,7 @@
 # Multi-angle scene review - 2026-10-04
 
 Status: **active**. The prior software review did not establish multi-angle
-visual acceptance. Sixty-five scenes have five-view native static inspections; 12 remain pending.
+visual acceptance. All 77 scenes have initial five-view native static inspections.
 Demo 5, Powder Batch Mixer, Parcel Size Sorter, Conveyor Inspection Cell,
 the Equipment Gallery, Drive Alarm-Code String and Chicken Label Print have repaired static layouts.
 The sorter operator Run still lacks a controller; eight simple panels now have corrected function plates and clear spacing. Other scenes
@@ -27,6 +27,44 @@ also does not prove proper support, equipment identity, or moving clearance.
 Every row requires native inspection.
 
 ## Repairs and open findings
+
+- Catalog completion checkpoint (2026-10-04): scenes 66-77 each inspected in
+  native FR/FL/RL/RR/T. This completes initial static coverage, including failures;
+  it does not complete repairs, motion sweeps or whole-program acceptance.
+  Sum/Product/Function Selector show CNC, shaft-support and shutter substitutes;
+  their Boolean-only contracts have no numeric operands/results or function-choice
+  value. Sum/Counter has no numeric result/count contract. Box Volume has two
+  shutters and no numeric dimensions/volume binding. EV Charging has disconnected
+  fluid props/shutters, no vehicle/charging route or energy-pulse/accumulation
+  contract. These outputs bind to lamps rather than the claimed process.
+  Pallet Counting's carton is buried; the declared type sensor appears as a
+  white pallet beneath a shutter post, and its count display is a shutter.
+  Conveyor Stop/Pusher have apparent carton support gaps; measurement/runtime
+  projection still needs repair. Pusher has no receiving support, and sensor/head
+  clearance requires a full motion check. Tank scenes share disconnected pump
+  and elevated inlet piping, external long probes and opaque vessels. Radar's
+  promised instrument/cone is not identifiable in the five wide views; focused
+  geometry inspection is required. No tank fill/drain motion is accepted.
+  Evidence: bag-carton-native-final.log and scene JSON; navigation logs do not
+  replace the individually inspected screenshots.
+- Pallet Counting (71 / authored Demo 4): normal Run loads the batch-counter
+  program. Native rail type-valid/count-request permissives plus five separate
+  detection rising edges leave the lamp off for edges 1-4 and light it at 5.
+  Clearing type-valid removes the output; restoring it restores the output.
+  Stop removes output with visible inputs retained; Run restores output from
+  the retained batch; Reset returns stopped scan zero and visible inputs/output
+  false. Source preset is five. Internal numeric watch, 3D button operation,
+  pallet motion and displayed numeric count were not accepted.
+- Conveyor Stop (73 / authored Demo 3): normal Run loads the authored program.
+  Rail Start sets conveyor-running; carton advances to the photoeye, feedback
+  becomes true and conveyor output becomes false. Subsequent native FR view
+  confirms the held carton. Stop preserves the held feedback; Reset clears
+  feedback/output, returns position zero and restores the carton to the load
+  end. No mid-travel Stop, full clearance sweep or physical PLC proof.
+- Radar Tank (77): declared Run and inlet actions both report that no ladder
+  controller is loaded. Normal Run opens the empty editor, NO CONTROLLER LOADED.
+  The scene description's immediate run/fill instructions do not match startup.
+  Other scenes 66-70, 72, 74-76 had no action/Run/Stop/Reset acceptance added.
 
 - Scenes 60-65 (2026-10-04): each inspected in native FR/FL/RL/RR/T.
   Pedestrian Crossing has a vertical window/guard panel instead of a road,
@@ -881,18 +919,18 @@ count as this scene's multi-angle or runtime acceptance.
 | 63 | `lab-5-10-coating-line` | 97 | Native FR/FL/RL/RR/T | FAIL/open: CNC occupies belt, disconnected coating/spray/ventilation props; only lamp outputs, process unverified |
 | 64 | `lab-6-07-luggage-weight-sort` | 110 | Native FR/FL/RL/RR/T | FAIL/open: buried carton, shutter display, disconnected weighing/rejecting layout; no measured weight/numeric class, only lamps |
 | 65 | `lab-6-08-hand-dryer` | 634 | Native FR/FL/RL/RR/T | FAIL/open: overlapping shutters and disconnected fan/panel/bottle props; no remaining-time point/display binding, only lamp outputs |
-| 66 | `lab-9-01-sum-function` | 0 | Pending | Pending |
-| 67 | `lab-9-02-product-function` | 0 | Pending | Pending |
-| 68 | `lab-9-03-sum-and-counter-function` | 0 | Pending | Pending |
-| 69 | `lab-9-04-function-selector` | 0 | Pending | Pending |
-| 70 | `lab-9-10-box-volume` | 46 | Pending | Pending |
-| 71 | `lab-9-11-pallet-counting` | 86 | Pending | Pending |
-| 72 | `lab-9-12-ev-charging-manager` | 95 | Pending | Pending |
-| 73 | `scene-1-conveyor-stop` | 34 | Pending | Pending |
-| 74 | `scene-2-conveyor-pusher` | 88 | Pending | Pending |
-| 75 | `tank-high-low` | 60 | Pending | Pending |
-| 76 | `tank-level` | 52 | Pending | Pending |
-| 77 | `tank-radar` | 80 | Pending | Pending |
+| 66 | `lab-9-01-sum-function` | 0 | Native FR/FL/RL/RR/T | Static clear spacing; wrong calculation/display props, no numeric operand/result contract |
+| 67 | `lab-9-02-product-function` | 0 | Native FR/FL/RL/RR/T | Static clear spacing; wrong calculation/display props, no numeric factors/product contract |
+| 68 | `lab-9-03-sum-and-counter-function` | 0 | Native FR/FL/RL/RR/T | Static clear spacing; no numeric result/event count contract; CNC unbound |
+| 69 | `lab-9-04-function-selector` | 0 | Native FR/FL/RL/RR/T | Function validity is not a choice value; numeric operands/result and selector binding unresolved |
+| 70 | `lab-9-10-box-volume` | 46 | Native FR/FL/RL/RR/T | Two shutter substitutes, obscured carton; no numeric dimension/volume contract |
+| 71 | `lab-9-11-pallet-counting` | 86 | Native FR/FL/RL/RR/T | FAIL/open: buried carton, white pallet/shutter-post type sensor, shutter display. Authored Demo 4 five detection edges/Stop/Run/Reset checked |
+| 72 | `lab-9-12-ev-charging-manager` | 95 | Native FR/FL/RL/RR/T | FAIL/open: shutters/fluid props instead of EV charging route; energy pulse/accumulation contract absent |
+| 73 | `scene-1-conveyor-stop` | 34 | Native FR/FL/RL/RR/T | Apparent carton support gap; authored Demo 3 start/advance/photoeye stop/Stop/Reset checked; clearance sweep open |
+| 74 | `scene-2-conveyor-pusher` | 88 | Native FR/FL/RL/RR/T | Apparent carton support gap; no receiver support; pusher/photoeye motion clearance unresolved |
+| 75 | `tank-high-low` | 60 | Native FR/FL/RL/RR/T | Disconnected pump/elevated inlet, external probes, opaque tank; fill/drain behavior unverified |
+| 76 | `tank-level` | 52 | Native FR/FL/RL/RR/T | Same disconnected piping/probe mounting; initial 42 percent / 10.72 mA visible, dynamics unverified |
+| 77 | `tank-radar` | 80 | Native FR/FL/RL/RR/T | Instrument/cone not identifiable in wide views; piping unresolved; actions blocked, normal Run empty editor |
 
 Drive-alarm follow-up evidence: `.tools/drive-alarm-{props-build,build,import,geometry,inventory,scene-contracts,rendered-controls,plant-regression}.log`, `catalog-next-shell-native.log` (baseline), `drive-alarm-native-supported.log` (support and plates), and `drive-alarm-native-final-complete.log` (final five views, keypad detail, failed normal Run). Build zero warnings/errors; 38 focused geometry, 19 plant, rendered scene controls and 71 authored cases pass. These do not approve uninspected scenes, missing controllers, string functionality or hardware.
 

@@ -1,5 +1,22 @@
 # Whole program review - 2026-10-03
 
+Catalog completion checkpoint (2026-10-04): all 77 scenes now have initial
+native FR/FL/RL/RR/T inspections, including failed scenes. No pending initial
+static rows; repairs and motion/controller acceptance remain open. Scenes
+66-72 expose wrong numeric/function/display/EV props and missing numeric
+contracts. Pallet Counting's carton/type-sensor/post layout still fails;
+normal authored Demo 4 five detection rising edges, permissive removal,
+Stop/Run retention and Reset were observed. Conveyor Stop's authored Demo 3
+Start advances carton to photoeye and stops, with Stop hold and Reset checked;
+its carton support and full clearance remain open. Conveyor Pusher lacks
+receiver support and needs motion clearance. Tanks show disconnected piping,
+external probe mounting and opaque vessels; radar instrument/cone needs
+focused inspection. Radar declared Run/inlet blocked unloaded; normal Run
+opens empty editor. Evidence: bag-carton-native-final.log, scene JSON,
+AuthoredDemoLadderPrograms.cs. No production changes or additional automated
+acceptance since the 151-check carton checkpoint. Goal active: continue repairs.
+
+Earlier checkpoint:
 Crossing/process checkpoint (2026-10-04): coverage 65/77 native five-view static
 inspections; 12 pending, including failures. Scenes 60-65 expose wrong traffic,
 bridge, coating, weighing and dryer equipment identities, disconnected routes,
