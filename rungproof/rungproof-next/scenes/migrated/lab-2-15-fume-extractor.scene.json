@@ -29,6 +29,7 @@
       ],
       "config": {
         "style": "pushbutton",
+        "faceLabel": "LIGHT REQUEST",
         "action": "toggle-light",
         "color": 15332085
       }
@@ -352,7 +353,10 @@
         "expect": {
           "fan_run": false,
           "fan_speed_percent": 0,
-          "hood_light_on": false
+          "hood_light_on": false,
+          "low_speed": false,
+          "medium_speed": false,
+          "high_speed": false
         }
       },
       {
@@ -364,7 +368,10 @@
         "expect": {
           "fan_run": true,
           "fan_speed_percent": 35,
-          "hood_light_on": true
+          "hood_light_on": true,
+          "low_speed": true,
+          "medium_speed": false,
+          "high_speed": false
         }
       },
       {
@@ -377,7 +384,33 @@
         "expect": {
           "fan_run": true,
           "fan_speed_percent": 100,
+          "low_speed": false,
+          "medium_speed": false,
           "high_speed": true
+        }
+      },
+      {
+        "name": "medium-light-independent",
+        "actions": ["toggle-light", "next-speed", "next-speed", "toggle-light"],
+        "expect": {
+          "fan_run": true,
+          "fan_speed_percent": 65,
+          "hood_light_on": false,
+          "low_speed": false,
+          "medium_speed": true,
+          "high_speed": false
+        }
+      },
+      {
+        "name": "off-after-all-speeds",
+        "actions": ["next-speed", "next-speed", "next-speed", "next-speed"],
+        "expect": {
+          "fan_selector_position": 0,
+          "fan_run": false,
+          "fan_speed_percent": 0,
+          "low_speed": false,
+          "medium_speed": false,
+          "high_speed": false
         }
       }
     ]

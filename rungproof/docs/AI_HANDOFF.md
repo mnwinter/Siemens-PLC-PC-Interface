@@ -6,7 +6,30 @@ would otherwise be trapped in a local Codex session. It intentionally excludes
 machine-local Codex databases, credentials, screenshots from private chats, and
 temporary runtime state.
 
-Latest coolant repair (2026-10-04): coverage stays 28/77, 49 pending, including
+Latest sump/fume checkpoint (2026-10-04): coverage 30/77 inspected, 47 pending,
+including failures. Scene 28 Sump has native five angles and close overhead/FL
+discharge inspection. FAIL: disconnected pump, elevated pipe/valve/support
+assembly interferes with ladder/cage, low tuning-fork probe at Y=-0.175 below
+floor, actual process fittings/float identity unestablished. Its reference
+pump-hysteresis contract passes but is not geometry or normal-run acceptance.
+Scene 29 Fume has five native views with clear spacing. LIGHT REQUEST replaces
+the wrong START plate and fresh native FR/FL close views verify it. Native
+selector pointer/input follows 0-1-2-3-0; PC light request toggles while unloaded
+PLC outputs remain false. Five expanded reference contract cases pass for four
+speeds, one indication, light independence and return to off. No runtime rule
+rewrite: boolean-panel outputs already reset each scan. Open: fan speed percent
+unbound to renderer, beacon used as inspection light, hood/duct absent, normal
+Run unloaded editor. All 95 geometry checks, 142 controller tests, shell and a
+zero-warning/error build pass; shell retains four headless position errors.
+Logs sump-native.log, fume-label-native.log, fume-contract.log and
+sump-fume-*.log under rungproof-next/.tools. Both isolated reviewers exit 0;
+user Demo 1 remains open. Goal active. Next: repair measured sump ports/probe
+mounts/routing/support and fume speed/identity gaps, then scene 30 Safe Drill
+and remaining 47 inspections; coolant service pipe, shared lift follow-ups
+and previously recorded failures remain required. Do not merely shift parts
+to hide intersections without establishing a connected supported installation.
+
+Historical coolant repair (2026-10-04): coverage stays 28/77, 49 pending, including
 failures. Opt-in SceneComposer.CoolantJug adapts the standalone imported filler
 to a grounded portal outside the conveyor, opens only this jug's neck/removes
 its cap, supports its actual bottom on the belt and keeps the full exit footprint

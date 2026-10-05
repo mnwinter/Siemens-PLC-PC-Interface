@@ -1,5 +1,21 @@
 # Whole program review - 2026-10-03
 
+Sump / fume follow-up (2026-10-04): coverage now 30/77 native five-view
+inspections, 47 pending including failures. Sump fails installation review:
+disconnected pump, elevated unsupported/interfering pipe/valve assembly and
+low probe below floor. Its passing reference contract does not accept that
+geometry. Fume extractor equipment spacing is clear in five views; its START
+plate is repaired to LIGHT REQUEST and checked in fresh native close views.
+Native selector pointer/input cycles through all four positions. Five reference
+contract cases pass, including one speed indication, independent light and
+return to off. Normal Run opens an unloaded editor; rendered fan speed percent
+is unbound, and hood/duct/inspection-light identity remain open. Build has zero
+warnings/errors; 95 geometry checks and 142 controller tests pass. Shell passes
+with four existing headless position errors. Isolated windows closed; user
+Demo 1 preserved. Exact evidence in MULTI_ANGLE_SCENE_REVIEW.md.
+
+Earlier checkpoint:
+
 Coolant installation repair (2026-10-04): the jug now contacts the actual belt,
 has an open annular mouth and clears the fill structure/photoeyes throughout
 sampled travel. Grounded portal supports and an attached nozzle tip/valve-driven

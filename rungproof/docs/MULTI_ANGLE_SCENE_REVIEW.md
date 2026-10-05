@@ -1,7 +1,7 @@
 # Multi-angle scene review - 2026-10-04
 
 Status: **active**. The prior software review did not establish multi-angle
-visual acceptance. Twenty-eight scenes have five-view native static inspections; 49 remain pending.
+visual acceptance. Thirty scenes have five-view native static inspections; 47 remain pending.
 Demo 5, Powder Batch Mixer, Parcel Size Sorter, Conveyor Inspection Cell,
 the Equipment Gallery, Drive Alarm-Code String and Chicken Label Print have repaired static layouts.
 The sorter operator Run still lacks a controller; eight simple panels now have corrected function plates and clear spacing. Other scenes
@@ -28,7 +28,48 @@ Every row requires native inspection.
 
 ## Repairs and open findings
 
-- Coolant Jug installation follow-up: the capped jug, unsupported belt height
+- Sump Dewatering Pump (scene 28): native FR initial / FL / RL / RR / T views
+  and close overhead/FL discharge views inspected. **FAIL/open:** the pump has
+  no connected suction/discharge route; the elevated spool/valve assembly
+  interferes with the tank ladder/cage and lacks grounded pipe support. The
+  valve runs vertically beneath a horizontal spool rather than an established
+  inline discharge connection. The actual low sensor bounds extend to Y=-0.175;
+  its probe is below the floor. Source maps the two named floats to tuning-fork
+  switches, and their tank process fittings are not established. The closed
+  vertical vessel also does not establish the described sump installation.
+  The 41 AABB candidates are a screening count, not 41 proven solid collisions.
+  Normal Run opens the unloaded editor. The pump-hysteresis contract passes in
+  the standalone reference runtime; that does not prove installed flow, real
+  sensor behavior, native level extremes or controller execution. Keep this
+  failed until actual ports, probe elevations, routing/support and full level
+  motion are repaired and inspected. Evidence: sump-native.log and
+  sump-fume-sump-contract.log under rungproof-next/.tools, current native
+  screenshot observations and the imported bounds inventory.
+- Weld Fume Extractor (scene 29): native FR/FL/RL/RR/T views show separated,
+  grounded equipment without an observed cross-equipment solid intersection.
+  Initial AABB inventory is zero, which alone is not acceptance. The light
+  request station incorrectly read START; config faceLabel now reads LIGHT
+  REQUEST. Fresh native FR/FL close views show the text on its plate without
+  overlap. Native Advance Fan Speed moves the pointer and input value through
+  0 -> 1 -> 2 -> 3 -> 0; fan_run remains false with no controller loaded. A
+  native light request toggles the PC input while the PLC output stays false.
+  Normal Run still opens EDIT INVALID / NO CONTROLLER LOADED. Five standalone
+  contract cases cover all four speeds, exactly one speed flag, independent
+  light toggling and return to off. Existing boolean-panel output reset prevents
+  accumulated flags; no runtime rule rewrite was needed. The speed percent has
+  no rendered point binding, so actual variable fan animation remains open.
+  Inspection light is a single-tier beacon; extraction hood/duct and actual
+  illumination are not modeled. Guard recognition is not physical safety proof.
+  Thus spacing/label/input-pointer observations are bounded; complete extractor
+  identity, speed response, controller outputs and Stop/Reset motion remain open.
+  Evidence: sump-native.log, fume-label-native.log and fume-contract.log under
+  rungproof-next/.tools, plus inspected native screenshots. Both isolated review
+  windows exited cleanly; user Demo 1 remains open. Fresh build has zero warnings/
+  errors; all 95 existing geometry checks and 142 controller tests pass. Shell
+  verifies 77 scenes/294 assets with the same four headless invalid-position
+  errors and no-saved-workspace warning. These checks do not cover sump piping
+  acceptance. Coverage is now 30/77 inspected, 47 pending, including failures.
+- Coolant Jug installation follow-up (earlier checkpoint): the capped jug, unsupported belt height
   and fixed fill solids in its lane are repaired with an opt-in scene adapter.
   The actual imported jug bottom was 129.3 mm above the belt; its new origin
   puts the bottom at Y=0.9000003. The exit origin is X=3.5, keeping its full
@@ -479,8 +520,8 @@ count as this scene's multi-angle or runtime acceptance.
 | 25 | `lab-2-11-inbound-tote-stop` | 7 | FR/FL/RL/RR/T + close tote; FL/RR motion endpoints | Tote support, sensor clearance and cycle endpoint repaired; six focused checks pass. Native completion/Reset and endpoint Stop checked; Run empty controller. Cable AABB candidates remain. |
 | 26 | `lab-2-12-assembly-lift` | 0 | FR/FL/RL/RR/T + close plates/lift + FL/RR motion | Fixture support, rollers/washers, travel framing and hydraulic attachment repaired; historical bellows approval stale; blank editor on normal Run; shared scenes need follow-up |
 | 27 | `lab-2-13-coolant-jug-fill` | 13 | Catalog FR/FL/RL/RR/T; QA five held filling views + close FL mouth; real-time indexing/exit, Reset | Lane/support/nozzle repaired; sampled sweep clear. Open: external service pipe absent, Run blank controller editor; native Stop endpoint-only |
-| 28 | `lab-2-14-sump-pump` | 41 | Pending | Pending |
-| 29 | `lab-2-15-fume-extractor` | 0 | Pending | Pending |
+| 28 | `lab-2-14-sump-pump` | 41 | FR initial/FL/RL/RR/T + close overhead/FL discharge | FAIL: disconnected pump, elevated unsupported/intersecting piping, buried low probe; float fitting/identity open; normal Run unloaded |
+| 29 | `lab-2-15-fume-extractor` | 0 | FR/FL/RL/RR/T; repaired close plate; native selector 0-1-2-3-0 | Spacing/input pointer checked, LIGHT REQUEST repaired. Open: beacon substitutes light, hood/duct absent, speed animation unbound, Run unloaded; five reference contract cases pass |
 | 30 | `lab-2-16-safe-drill` | 24 | Pending | Pending |
 | 31 | `lab-2-17-pallet-robot` | 23 | Pending | Pending |
 | 32 | `lab-2-18-pallet-pickup` | 29 | Pending | Pending |
