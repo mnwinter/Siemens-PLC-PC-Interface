@@ -6,6 +6,23 @@ would otherwise be trapped in a local Codex session. It intentionally excludes
 machine-local Codex databases, credentials, screenshots from private chats, and
 temporary runtime state.
 
+Latest timer/packaging checkpoint (2026-10-04): coverage 59/77 five-view native
+static inspections; 18 pending including failures. All 51-59 FR/FL/RL/RR/T
+screenshots inspected. Cookie product is meat tray below indexing belt (close),
+barrel load motor starter (close), cable reel/dancer are shutters. Machine
+outputs only lamps. Timer panels clear spacing, but persistent pulse/tick,
+pushbutton/selector identities and missing tower-level outputs remain open.
+Demo 2 normal native Run, rail request -> initially off then green, actual 3D
+button -> false request/output, reapplied request -> green, Stop -> off with
+request true, Reset -> false points/stopped scan zero. Authored preset 2 s;
+native screenshots prove before/after, not exact elapsed timing. Other eight
+scenes had no loaded controller/actions tested. Evidence: catalog-51-native.log,
+scene JSON and AuthoredDemoLadderPrograms.cs. No production changes since
+carton repair. Continue at 60 and remaining catalog, then open repairs.
+Goal active. See MULTI_ANGLE_SCENE_REVIEW.md for bounded acceptance.
+
+Earlier checkpoint:
+
 Latest catalog/carton checkpoint (2026-10-04): coverage 50/77 native five-view
 static inspections; 27 pending including failures. Scenes 43-50 inspected;
 clear counter/pattern panels do not prove actual counting/press workflows.

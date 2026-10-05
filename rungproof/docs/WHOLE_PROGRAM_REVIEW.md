@@ -1,5 +1,18 @@
 # Whole program review - 2026-10-03
 
+Timer/packaging checkpoint (2026-10-04): coverage 59/77 native five-view static
+inspections; 18 pending including failures. Scenes 51-59 inspected. Cookie
+product is packaged meat below the conveyor, barrel is a motor starter, cable
+reel/dancer are shutters; machine outputs only lamps. Timer panels have clear
+stands but input semantics/control identities and tower-level output gaps.
+Demo 2 normal Run loads authored TON: request initially off then green, 3D
+button clears request/output, Stop removes output, Reset clears both points
+and scan. Source preset two seconds; precise native timing not measured.
+Other eight scenes have no loaded controller behavior acceptance. Details in
+MULTI_ANGLE_SCENE_REVIEW.md. No code changes since carton repair. Goal active.
+
+Earlier checkpoint:
+
 Catalog/carton checkpoint (2026-10-04): coverage 50/77 native five-view static
 inspections; 27 pending, and inspection includes failures. Scenes 43-50 expose
 count/pattern and machine-behavior gaps. Four-color lesson binds only green

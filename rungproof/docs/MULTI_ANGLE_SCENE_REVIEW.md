@@ -1,7 +1,7 @@
 # Multi-angle scene review - 2026-10-04
 
 Status: **active**. The prior software review did not establish multi-angle
-visual acceptance. Fifty scenes have five-view native static inspections; 27 remain pending.
+visual acceptance. Fifty-nine scenes have five-view native static inspections; 18 remain pending.
 Demo 5, Powder Batch Mixer, Parcel Size Sorter, Conveyor Inspection Cell,
 the Equipment Gallery, Drive Alarm-Code String and Chicken Label Print have repaired static layouts.
 The sorter operator Run still lacks a controller; eight simple panels now have corrected function plates and clear spacing. Other scenes
@@ -28,6 +28,36 @@ Every row requires native inspection.
 
 ## Repairs and open findings
 
+- Scenes 51-59 (2026-10-04): each inspected in native FR/FL/RL/RR/T.
+  Cookie Packaging's CNC occupies the belt, and its food product is a packaged
+  meat tray below the indexing conveyor (top/FR close), with no cookie stream.
+  Barrel Fill's tank occupies the conveyor; its declared barrel is visibly a
+  MOTOR STARTER (top/FR close). Valve/flow-meter/nozzle assemblies do not form
+  a connected barrel-filling route. Cable Cut has two roller shutters instead
+  of reel/dancer equipment and no continuous cable/encoder/cutter arrangement.
+  These three scenes' outputs bind only to green beacons; actual machine,
+  measured count/length, transfer and filling behavior remains unaccepted.
+  Timed/flash panels have clear grounded stands in five views, but START plates
+  are ambiguous. Timed Lamp-Off's start_pulse is a persistent toggle and
+  time_active is precomputed PC input. Rotary Flasher has pushbuttons instead
+  of the promised rotary selector, and manually toggled flash_tick. Alternating
+  Lamps uses a PC alternate_phase toggle; timer alternation/exclusivity was not
+  exercised. Variable Flash Rate's fast/slow inputs can both be selected by
+  separate toggles; precedence/timing remains unverified. Running-Light Tower
+  has one green-only output, unable to walk independent tower levels; its
+  step_pulse is persistent. No loaded controller/actions were tested for
+  51-53 or 55-59. Evidence: catalog-51-native.log and scene source bindings.
+- Delayed Lamp (54 / authored Demo 2): five native wide views show clear stands.
+  Normal Run starts the authored two-network 2-second TON document. Rail
+  request toggle gives PC=true/output=false initially; subsequent native view
+  shows output=true and green beacon. Actual 3D button clears request/output.
+  Reapplied request yields green; normal Stop removes output while request
+  remains true, Reset clears both points and returns stopped scan zero.
+  Source confirms the preset; screenshots establish before/after behavior,
+  not a precisely measured two-second interval. Its selector description
+  mismatches the pushbutton model/START plate. Evidence: catalog-51-native.log,
+  AuthoredDemoLadderPrograms.cs and individually inspected native screenshots.
+  Full catalog and repairs remain; goal active.
 - Scenes 43-50 (2026-10-04): each has inspected native FR/FL/RL/RR/T views.
   Counter/reset and pattern panels have clear static stand spacing, but their
   persistent toggles expose precomputed count/pattern conditions rather than
@@ -807,15 +837,15 @@ count as this scene's multi-angle or runtime acceptance.
 | 48 | `lab-4-07-parking-garage-entry` | 20 | Native FR/FL/RL/RR/T; vehicle FR close | FAIL/open: vehicle is motor starter, two shutters/wall panel; barrier output only lamp; occupancy/barrier motion unverified |
 | 49 | `lab-4-08-package-grouping` | 118 (historic) | Native FR/FL/RL/RR/T; final carton top/FR close | Carton support repaired and re-inspected. FAIL/open: grouping/release outputs only lamps; separated receiver/stop/sensors and transfer behavior unverified |
 | 50 | `lab-4-09-chain-drive-lift` | 145 | Native FR/FL/RL/RR/T | FAIL/open: conveyor/lifts overlap, floor carton, disconnected pallet load; hoist is scissor table; chain/lift outputs only lamps; motion unverified |
-| 51 | `lab-4-10-cookie-packaging` | 146 | Pending | Pending |
-| 52 | `lab-4-11-barrel-fill-station` | 143 | Pending | Pending |
-| 53 | `lab-4-12-cable-cut-length` | 21 | Pending | Pending |
-| 54 | `lab-5-01-delayed-lamp` | 0 | Pending | Pending |
-| 55 | `lab-5-02-timed-lamp-off` | 0 | Pending | Pending |
-| 56 | `lab-5-03-rotary-flasher` | 0 | Pending | Pending |
-| 57 | `lab-5-04-alternating-lamps` | 0 | Pending | Pending |
-| 58 | `lab-5-05-variable-flash-rate` | 0 | Pending | Pending |
-| 59 | `lab-5-06-running-light-tower` | 0 | Pending | Pending |
+| 51 | `lab-4-10-cookie-packaging` | 146 | Native FR/FL/RL/RR/T; food top/FR close | FAIL/open: CNC occupies belt, packaged meat below indexing conveyor; lamp-only outputs, cookie count/transfer/packaging unverified |
+| 52 | `lab-4-11-barrel-fill-station` | 143 | Native FR/FL/RL/RR/T; barrel top/FR close | FAIL/open: tank occupies conveyor, barrel is motor starter; disconnected fill route; lamp-only outputs, fill/transfer unverified |
+| 53 | `lab-4-12-cable-cut-length` | 21 | Native FR/FL/RL/RR/T | FAIL/open: two shutters instead of reel/dancer; no continuous cable measurement/cut route; outputs only lamps |
+| 54 | `lab-5-01-delayed-lamp` | 0 | Native FR/FL/RL/RR/T; normal Run, rail/3D toggles, Stop/Reset | Authored TON initially off then green; 3D clears request, Stop removes output, Reset clears points/scan; exact native interval unmeasured; selector/plate mismatch open |
+| 55 | `lab-5-02-timed-lamp-off` | 0 | Native FR/FL/RL/RR/T | Static spacing clear; persistent start_pulse, precomputed time_active, ambiguous START plates; timer behavior unverified |
+| 56 | `lab-5-03-rotary-flasher` | 0 | Native FR/FL/RL/RR/T | Static spacing clear; pushbutton instead of rotary selector, manual flash_tick; flashing/off behavior unverified |
+| 57 | `lab-5-04-alternating-lamps` | 0 | Native FR/FL/RL/RR/T | Static spacing clear; PC phase toggle; timer alternation/exclusivity unverified |
+| 58 | `lab-5-05-variable-flash-rate` | 0 | Native FR/FL/RL/RR/T | Static spacing clear; independent fast/slow toggles, simultaneous selection/timing unverified |
+| 59 | `lab-5-06-running-light-tower` | 0 | Native FR/FL/RL/RR/T | FAIL/open: single green-only output cannot walk tower levels; persistent step_pulse; behavior unverified |
 | 60 | `lab-5-07-pedestrian-crossing` | 26 | Pending | Pending |
 | 61 | `lab-5-08-drawbridge-control` | 43 | Pending | Pending |
 | 62 | `lab-5-09-bag-indexing-conveyor` | 37 | Pending | Pending |
