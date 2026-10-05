@@ -8,7 +8,12 @@ public partial class Main
 {
     private void VerifyTransferCartonSupport(Action<bool, string> check)
     {
-        foreach (var sceneId in new[] { "lab-3-01-guarded-pallet-transfer", "lab-4-08-package-grouping" })
+        foreach (var sceneId in new[]
+        {
+            "lab-3-01-guarded-pallet-transfer",
+            "lab-4-08-package-grouping",
+            "lab-5-09-bag-indexing-conveyor"
+        })
         {
             AddMigratedScene(sceneId, _candidateCatalog!, _mainCamera!, false, false);
             var root = _sceneCompositionRoot!;

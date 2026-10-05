@@ -1,5 +1,18 @@
 # Whole program review - 2026-10-03
 
+Crossing/process checkpoint (2026-10-04): coverage 65/77 native five-view static
+inspections; 12 pending, including failures. Scenes 60-65 expose wrong traffic,
+bridge, coating, weighing and dryer equipment identities, disconnected routes,
+lamp-only machine outputs and missing measured weight/remaining-time contracts.
+Bag Indexing's buried carton now rests on its measured 0.9 m belt. Two focused
+checks fail before/pass after; rebuilt native five wide and top/FR close views
+confirm static contact. Build zero warnings/errors; all 151 geometry/reference
+checks and initial-state contract pass. These six lessons have no loaded-ladder
+or machine-motion acceptance. Luggage's buried carton still needs repair.
+See MULTI_ANGLE_SCENE_REVIEW.md for exact findings/evidence. Goal active.
+
+Earlier checkpoint:
+
 Timer/packaging checkpoint (2026-10-04): coverage 59/77 native five-view static
 inspections; 18 pending including failures. Scenes 51-59 inspected. Cookie
 product is packaged meat below the conveyor, barrel is a motor starter, cable

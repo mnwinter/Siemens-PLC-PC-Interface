@@ -6,6 +6,22 @@ would otherwise be trapped in a local Codex session. It intentionally excludes
 machine-local Codex databases, credentials, screenshots from private chats, and
 temporary runtime state.
 
+Latest crossing/process checkpoint (2026-10-04): coverage 65/77 five-view native
+static inspections; 12 pending including failures. Scenes 60-65 FR/FL/RL/RR/T
+screenshots inspected. Crossing is a vertical wall/amber heads with green stop
+binding; drawbridge scissor table/guard/shutter, outputs only lamps. Bag Indexing
+box_1 Y=0 -> 0.9 repairs buried carton: both delivered-mesh checks red before,
+green after, native rebuilt five wide/top/FR close contact inspected. All 151
+geometry/reference checks and initial-state contract pass; clean build. Coating
+CNC occupies belt; luggage carton still buried with shutter display/no measured
+weight contract; dryer overlapping shutters/no remaining-time contract. No
+loaded-ladder/actions/Run/Stop/Reset or complete machine motion accepted for these
+six. Evidence: catalog-51-native.log and bag-carton-{red-build,red-geometry,build,
+geometry,contract,native-final}.log. Continue at 66 then all open repairs.
+Goal active. MULTI_ANGLE_SCENE_REVIEW.md records exact bounded acceptance.
+
+Earlier checkpoint:
+
 Latest timer/packaging checkpoint (2026-10-04): coverage 59/77 five-view native
 static inspections; 18 pending including failures. All 51-59 FR/FL/RL/RR/T
 screenshots inspected. Cookie product is meat tray below indexing belt (close),

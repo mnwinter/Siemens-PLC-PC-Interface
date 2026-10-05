@@ -1,7 +1,7 @@
 # Multi-angle scene review - 2026-10-04
 
 Status: **active**. The prior software review did not establish multi-angle
-visual acceptance. Fifty-nine scenes have five-view native static inspections; 18 remain pending.
+visual acceptance. Sixty-five scenes have five-view native static inspections; 12 remain pending.
 Demo 5, Powder Batch Mixer, Parcel Size Sorter, Conveyor Inspection Cell,
 the Equipment Gallery, Drive Alarm-Code String and Chicken Label Print have repaired static layouts.
 The sorter operator Run still lacks a controller; eight simple panels now have corrected function plates and clear spacing. Other scenes
@@ -27,6 +27,35 @@ also does not prove proper support, equipment identity, or moving clearance.
 Every row requires native inspection.
 
 ## Repairs and open findings
+
+- Scenes 60-65 (2026-10-04): each inspected in native FR/FL/RL/RR/T.
+  Pedestrian Crossing has a vertical window/guard panel instead of a road,
+  amber beacons instead of traffic/pedestrian heads, and vehicle_stop binds to
+  a green indicator. Drawbridge has a scissor table, vertical guard and shutter;
+  bridge_raise/traffic_release bind only to lamps, with no bridge-deck motion.
+  Bag Indexing's carton was below the belt (top/FR close). Its origin is now
+  Y=0.9 m, matching the measured carrying surface; both support/solid-clearance
+  checks fail before and pass after. Rebuilt normal native startup, five wide
+  views and top/FR close views confirm the repair. The product is still a carton
+  rather than a bag; sensors are outside the belt and conveyor outputs only
+  lamps. Coating Line's CNC occupies the conveyor, with a shutter and disconnected
+  fan/spray props rather than a continuous coating/ventilation route. Luggage
+  Sort's carton is buried, with a shutter display and disconnected weighing/
+  rejecting layout; its Boolean-only contract has no measured weight or numeric
+  class. Hand-Dryer shows multiple overlapping shutters and disconnected fan,
+  panel and bottle props rather than a dryer; no remaining-time point or display
+  binding exists. All six use manually toggled PC feedback and lamp-only PLC
+  output bindings. No actions, loaded ladder, Run/Stop/Reset, machine motion or
+  complete lesson behavior was accepted for these six scenes.
+  Evidence: catalog-51-native.log (60-62 baseline), bag-carton-native-final.log
+  (62 repaired and 63-65), scene JSON, bag-carton-{red-build,red-geometry,build,
+  geometry,contract}.log. Build zero warnings/errors; all 151 geometry/reference
+  checks and Bag Indexing's initial-state contract pass. This is static support
+  acceptance only. Required controller suite: 142 pass, zero fail, no real PLC
+  transport/connection. App shell passes for 77 scenes/294 assets but retains
+  four known headless invalid-window-position errors and missing-workspace
+  warning (bag-carton-{controller,shell}.log); stderr is not clean.
+  Goal active; 12 static inspections and recorded repairs remain.
 
 - Scenes 51-59 (2026-10-04): each inspected in native FR/FL/RL/RR/T.
   Cookie Packaging's CNC occupies the belt, and its food product is a packaged
@@ -846,12 +875,12 @@ count as this scene's multi-angle or runtime acceptance.
 | 57 | `lab-5-04-alternating-lamps` | 0 | Native FR/FL/RL/RR/T | Static spacing clear; PC phase toggle; timer alternation/exclusivity unverified |
 | 58 | `lab-5-05-variable-flash-rate` | 0 | Native FR/FL/RL/RR/T | Static spacing clear; independent fast/slow toggles, simultaneous selection/timing unverified |
 | 59 | `lab-5-06-running-light-tower` | 0 | Native FR/FL/RL/RR/T | FAIL/open: single green-only output cannot walk tower levels; persistent step_pulse; behavior unverified |
-| 60 | `lab-5-07-pedestrian-crossing` | 26 | Pending | Pending |
-| 61 | `lab-5-08-drawbridge-control` | 43 | Pending | Pending |
-| 62 | `lab-5-09-bag-indexing-conveyor` | 37 | Pending | Pending |
-| 63 | `lab-5-10-coating-line` | 97 | Pending | Pending |
-| 64 | `lab-6-07-luggage-weight-sort` | 110 | Pending | Pending |
-| 65 | `lab-6-08-hand-dryer` | 634 | Pending | Pending |
+| 60 | `lab-5-07-pedestrian-crossing` | 26 | Native FR/FL/RL/RR/T | FAIL/open: vertical wall instead of road, amber beacons instead of signal heads; vehicle_stop green binding; timed crossing unverified |
+| 61 | `lab-5-08-drawbridge-control` | 43 | Native FR/FL/RL/RR/T | FAIL/open: scissor table, guard and shutter instead of bridge route; only lamp outputs, no bridge motion |
+| 62 | `lab-5-09-bag-indexing-conveyor` | 37 (historic) | Repaired native FR/FL/RL/RR/T; carton top/FR close | Carton belt support repaired. FAIL/open: carton/bag identity, outside sensors, only lamp outputs; indexing/reversal unverified |
+| 63 | `lab-5-10-coating-line` | 97 | Native FR/FL/RL/RR/T | FAIL/open: CNC occupies belt, disconnected coating/spray/ventilation props; only lamp outputs, process unverified |
+| 64 | `lab-6-07-luggage-weight-sort` | 110 | Native FR/FL/RL/RR/T | FAIL/open: buried carton, shutter display, disconnected weighing/rejecting layout; no measured weight/numeric class, only lamps |
+| 65 | `lab-6-08-hand-dryer` | 634 | Native FR/FL/RL/RR/T | FAIL/open: overlapping shutters and disconnected fan/panel/bottle props; no remaining-time point/display binding, only lamp outputs |
 | 66 | `lab-9-01-sum-function` | 0 | Pending | Pending |
 | 67 | `lab-9-02-product-function` | 0 | Pending | Pending |
 | 68 | `lab-9-03-sum-and-counter-function` | 0 | Pending | Pending |
