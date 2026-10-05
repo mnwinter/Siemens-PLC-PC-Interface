@@ -3,7 +3,7 @@
   "catalogId": "rungproof-original-scenes-migrated",
   "sourceRoot": "prototype/scenes",
   "sceneCount": 77,
-  "equipmentInstanceCount": 589,
+  "equipmentInstanceCount": 593,
   "equipmentTypeCounts": {
     "box": 30,
     "containerReceiver": 1,
@@ -33,7 +33,7 @@
     "toteFiller": 2,
     "toteLabeler": 1,
     "toteVision": 1,
-    "trainingAccessory": 109,
+    "trainingAccessory": 113,
     "valve": 5
   },
   "scenes": [
@@ -1096,7 +1096,7 @@
       "name": "Lab 9.1 - Sum Function Block",
       "path": "res://scenes/migrated/lab-9-01-sum-function.scene.json",
       "sourceFile": "prototype/scenes/lab-9-01-sum-function.plcscene",
-      "equipmentCount": 5,
+      "equipmentCount": 7,
       "equipmentTypes": [
         "indicator",
         "switch",
@@ -1112,7 +1112,7 @@
       "name": "Lab 9.2 - Product Function Block",
       "path": "res://scenes/migrated/lab-9-02-product-function.scene.json",
       "sourceFile": "prototype/scenes/lab-9-02-product-function.plcscene",
-      "equipmentCount": 5,
+      "equipmentCount": 7,
       "equipmentTypes": [
         "indicator",
         "switch",
@@ -1241,7 +1241,7 @@
     },
     {
       "id": "tank-high-low",
-      "name": "Water Tank \u2014 High/Low Switches",
+      "name": "Water Tank — High/Low Switches",
       "path": "res://scenes/migrated/tank-high-low.scene.json",
       "sourceFile": "prototype/scenes/tank-high-low.json",
       "equipmentCount": 9,
@@ -1258,7 +1258,7 @@
     },
     {
       "id": "tank-level",
-      "name": "Tank Level / 4\u201320 mA",
+      "name": "Tank Level / 4–20 mA",
       "path": "res://scenes/migrated/tank-level.scene.json",
       "sourceFile": "prototype/scenes/tank-level.json",
       "equipmentCount": 10,
@@ -1275,7 +1275,7 @@
     },
     {
       "id": "tank-radar",
-      "name": "Water Tank \u2014 Radar Level",
+      "name": "Water Tank — Radar Level",
       "path": "res://scenes/migrated/tank-radar.scene.json",
       "sourceFile": "prototype/scenes/tank-radar.json",
       "equipmentCount": 8,

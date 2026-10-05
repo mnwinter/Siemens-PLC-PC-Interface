@@ -188,8 +188,6 @@ public partial class Main
             ("lab-4-07-parking-garage-entry", "training_accessory_6"),
             ("lab-6-08-hand-dryer", "training_accessory_6"),
             ("lab-6-07-luggage-weight-sort", "training_accessory_6"),
-            ("lab-9-01-sum-function", "training_accessory_4"),
-            ("lab-9-02-product-function", "training_accessory_4"),
             ("lab-9-04-function-selector", "training_accessory_4"),
             ("lab-9-10-box-volume", "training_accessory_4")
         })
@@ -235,7 +233,7 @@ public partial class Main
         {
             AddMigratedScene(sceneId, _candidateCatalog!, _mainCamera!, false, false);
             var root = _sceneCompositionRoot!;
-            // These scenes expose Boolean validity inputs. Neither a CNC nor
+            // These scenes retain Boolean validity inputs. Neither a CNC nor
             // a bearing mislabeled as a calculation panel participates in them.
             check(root.GetNodeOrNull<Node3D>("machine_0") is null
                 && root.GetNodeOrNull<Node3D>("machine_1") is null
@@ -245,6 +243,80 @@ public partial class Main
                 .All(item => root.GetNode<Node3D>(item.Item1).FindChild("OperatorFaceLabel", true, false)
                     is Label3D label && label.Text == item.Item2),
                 $"{sceneId}_manual_input_plates_match_validity_and_request");
+        }
+    }
+
+    private void VerifyArithmeticNumericWorkflows(Action<bool, string> check)
+    {
+        foreach (var (sceneId, referenceName, inputPrefix, result, label, expected) in new[]
+        {
+            ("lab-9-01-sum-function", "sum", "operand", "sum_result", "SUM", 7L),
+            ("lab-9-02-product-function", "product", "factor", "product_result", "PRODUCT", 10L)
+        })
+        {
+            AddMigratedScene(sceneId, _candidateCatalog!, _mainCamera!, false, false);
+            var root = _sceneCompositionRoot!;
+            var runtime = _sceneRuntime!;
+            Label3D Readout(string id) => root.GetNode<Node3D>(id).GetNode<Label3D>("NumericReadout");
+            var displays = new[] { "numeric_display_0", "numeric_display_1", "training_accessory_4" };
+            check(displays.All(id => Readout(id).Text.EndsWith("\n0", StringComparison.Ordinal))
+                && root.GetNode<Node3D>("training_accessory_4").FindChild("STATIC_READOUT_static_legend", true, false) is null,
+                $"{sceneId}_initial_live_numeric_readouts");
+            bool Clear(MeshInstance3D a, MeshInstance3D b)
+            {
+                var overlap = ReviewBounds(a).Intersection(ReviewBounds(b)).Size;
+                return overlap.X <= 0.005f || overlap.Y <= 0.005f || overlap.Z <= 0.005f || !OrientedBoxesPenetrate(a, b);
+            }
+            var equipment = root.GetChildren().OfType<Node3D>().ToArray();
+            check(equipment.All(a => equipment.Where(b => b != a)
+                .All(b => ReviewMeshes(a).All(am => ReviewMeshes(b).All(bm => Clear(am, bm))))),
+                $"{sceneId}_separate_equipment_clearance");
+            var reference = LadderEditorProjectJson.Load(FileAccess.GetFileAsString(
+                $"res://programs/examples/09-{referenceName}-function-reference.rpproj.json"));
+            check(reference.IsReadable, $"{sceneId}_reference_readable");
+            if (reference.Document is null) throw new InvalidOperationException($"Unreadable arithmetic reference: {sceneId}");
+            EnableVirtualControllerProgram(reference.Document.BuildProgram());
+            try
+            {
+                _virtualController!.Run();
+                void Scan() => _PhysicsProcess(0.04);
+                void Toggle(string point) { runtime.ExecuteAction("toggle-" + point); Scan(); }
+                var a = inputPrefix + "_a";
+                var b = inputPrefix + "_b";
+                runtime.ExecuteAction("cycle-" + a); runtime.ExecuteAction("cycle-" + a);
+                for (var i = 0; i < 3; i++) runtime.ExecuteAction("cycle-" + b);
+                Scan();
+                check(Readout(displays[0]).Text == "A NEXT\n2" && Readout(displays[1]).Text == "B NEXT\n5",
+                    $"{sceneId}_pc_numeric_cycles_update_readouts");
+                Toggle("calculate_request"); Toggle(a + "_valid");
+                check(runtime.Points[result + "_valid"] is false && Equals(runtime.Points[result], 0L),
+                    $"{sceneId}_missing_b_valid_blocks_calculation");
+                Toggle(b + "_valid");
+                check(runtime.Points[result + "_valid"] is true && Equals(runtime.Points[result], expected)
+                    && Readout(displays[2]).Text == $"{label}\n{expected}",
+                    $"{sceneId}_valid_calculation_publishes_same_scan_result");
+                runtime.ExecuteAction("cycle-" + a); Scan(); // A: 2 -> 5
+                var updated = referenceName == "sum" ? 10L : 25L;
+                check(Equals(runtime.Points[result], updated) && Readout(displays[2]).Text == $"{label}\n{updated}",
+                    $"{sceneId}_changed_operand_recalculates_live_result");
+                Toggle(a + "_valid");
+                check(runtime.Points[result + "_valid"] is false && Equals(runtime.Points[result], updated),
+                    $"{sceneId}_permissive_loss_clears_validity_retains_result");
+                CommitVirtualControllerSnapshot(_virtualController.Stop());
+                check(Readout(displays[2]).Text == $"{label}\n0" && runtime.Points[result + "_valid"] is false,
+                    $"{sceneId}_stop_clears_output_image");
+                _virtualController.Run(); Scan();
+                check(Equals(runtime.Points[result], 0L) && runtime.Points[result + "_valid"] is false,
+                    $"{sceneId}_restart_with_missing_permissive_keeps_result_zero");
+                Toggle(a + "_valid");
+                check(Equals(runtime.Points[result], updated) && runtime.Points[result + "_valid"] is true,
+                    $"{sceneId}_restored_permissive_recalculates");
+                runtime.ResetSimulation(); CommitVirtualControllerSnapshot(_virtualController.Reset());
+                check(displays.All(id => Readout(id).Text.EndsWith("\n0", StringComparison.Ordinal))
+                    && runtime.Points["calculate_request"] is false && runtime.Points[result + "_valid"] is false,
+                    $"{sceneId}_reset_clears_manual_inputs_and_numeric_values");
+            }
+            finally { DisableVirtualController(); }
         }
     }
 

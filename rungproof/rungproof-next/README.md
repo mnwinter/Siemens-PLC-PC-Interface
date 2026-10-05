@@ -31,7 +31,7 @@ For native multi-angle inspection, launch Godot with `-- --app-shell
 --visual-scene-review`. The opt-in review bar provides catalog navigation, four
 diagonal camera views, overhead, detail zoom and an equipment-focus selector. Scene navigation uses the
 normal unsaved-work guards. Normal launch has no review bar.
-`-- --verify-scene-geometry` runs 244 focused geometry/workflow checks for Demo 5 clearance/attachment,
+`-- --verify-scene-geometry` runs 262 focused geometry/workflow checks for Demo 5 clearance/attachment,
 mixer placement/tank sizing/chute identity/floor support, scaled radar feedback,
 the parcel sorter's supported paths, optical heights and Stop/Reset,
 inspection conveyor support/photoeye clearance/feedback, gallery floor/probe support,
@@ -69,6 +69,24 @@ from this directory:
 The tool defaults to read-only checking. App-shell verification also rejects
 saved projects that differ from their Demo-menu document. These are offline
 references; machine feedback remains manual where the scene declares it.
+
+## Sum and Product exercise references
+
+Lab 9.1 and Lab 9.2 retain their empty ladder exercise. Their A NEXT/B NEXT
+readouts and sidebar actions cycle manual DINT values through 0, 1, 2, 5, 10.
+To run the supplied references, open Logic Editor > Project > Open project:
+
+- Sum: `programs/examples/09-sum-function-reference.rpproj.json`
+- Product: `programs/examples/09-product-function-reference.rpproj.json`
+
+Return to the scene, press Run, set A=2 and B=5, and enable A VALID, B VALID
+and CALCULATE. Expect SUM 7 or PRODUCT 10 and a green validity lamp. Losing
+any permissive clears validity while retaining the last result. Stop clears
+the numeric output image; Reset clears all inputs and values.
+
+Each reference always scans its calculation FB and uses global symbolic tags.
+It does not model FB parameter transfer or instance-local storage. The scenes
+remain offline and require a loaded program before calculating.
 
 ## Sum and Counter exercise reference
 

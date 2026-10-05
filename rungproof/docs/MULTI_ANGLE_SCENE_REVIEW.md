@@ -28,6 +28,37 @@ Every row requires native inspection.
 
 ## Repairs and open findings
 
+Sum/Product numeric repair (2026-10-05): scenes 66/67 preserve their existing
+Boolean validity/request point names and ownership, and now add two PC-owned
+DINT inputs plus a PLC-owned DINT result. Three live numeric readouts replace
+the static RESULT legend and add clickable A NEXT/B NEXT inputs (0,1,2,5,10);
+layout spacing keeps all seven equipment items grounded and mutually clear.
+Both remain empty exercises until the student loads/authors a controller.
+Opt-in projects: programs/examples/09-sum-function-reference.rpproj.json and
+09-product-function-reference.rpproj.json. Each Main always calls its FB, which
+uses ADD or MUL and publishes validity from all three manual permissives.
+They use global symbolic tags; FB parameter transfer/instance-local storage
+are not modeled. Permissive loss clears validity but retains the last result;
+Stop zeroes the output image; Reset clears manual inputs and numeric values.
+Native Windows FR/FL/RL/RR/Top and close front readout views were individually
+inspected for both. Normal Project > Open loaded each actual reference; Run,
+A=2/B=5 and all permissives displayed SUM 7 or PRODUCT 10 and a green lamp.
+Both Stop/Reset transitions were inspected. Product A-valid loss showed
+validity False/lamp off while the result remained 10. Sum received actual 3D
+A/B readout clicks; Product used sidebar cycles. Individual Product 3D inputs
+were not clicked in this pass. Final shorter scene descriptions were reloaded
+and inspected; all five actions fit in each native sidebar at 1602x936.
+24 added integration/clearance checks cover initial readouts, qualified and
+changed calculations, permissive loss, Stop, restart and Reset; six former
+static-readout checks removed because these are now live displays. All 262
+geometry/workflow checks pass; build zero warnings/errors; app-shell 77 scenes,
+294 assets and one existing SYSREADY scope diagnostic PASS; help 294/77 PASS.
+An initial run caught missing numeric-binding labels; corrected bindings pass.
+Controller core unchanged; the preceding 143 PASS/0 FAIL run remains current.
+Catalog now has 593 equipment instances, including 113 training accessories.
+Logs: .tools/arithmetic-numeric-{build,red-geometry,geometry,shell,help,native}.log.
+This is offline/source/native evidence only. Candidate asset approval,
+physical PLC parity and the remaining scene/runtime findings stay open.
 Saved demo file parity repair (2026-10-05): all five programs/demos files
 were stale relative to the actual Demo-menu documents. Demo 5 incorrectly
 selected conveyor-cell; Demo 4 used unbound recipe/transfer tags instead of
@@ -1287,8 +1318,8 @@ count as this scene's multi-angle or runtime acceptance.
 | 63 | `lab-5-10-coating-line` | 97 | Native FR/FL/RL/RR/T | FAIL/open: CNC occupies belt, disconnected coating/spray/ventilation props; only lamp outputs, process unverified |
 | 64 | `lab-6-07-luggage-weight-sort` | 110 | Native FR/FL/RL/RR/T; replacement readout five focus views | Carton support repaired earlier; WEIGHT readout replaced and five focus views inspected (RL obscured, RR partly obscured). FAIL/open: disconnected weighing/rejecting layout; no numeric weight/class |
 | 65 | `lab-6-08-hand-dryer` | 634 | Native FR/FL/RL/RR/T; replacement readout five focus views | PROGRESS readout replaced/repositioned; five focus views (FL text partly obscured, RL obscured). FAIL/open: substitute heating shutter and disconnected fan/panel/bottle; no remaining-time numeric binding |
-| 66 | `lab-9-01-sum-function` | 0 (historical) | Native FR/FL/RL/RR/T; focused readout Top/RL/RR; manual inputs/Reset | Unbound CNC/bearing props removed; input plates corrected, rear readout supports visible. Layout/plate checks pass. Open: numeric operands/sum unimplemented, readout has NO LIVE VALUE, authored output behavior unaccepted |
-| 67 | `lab-9-02-product-function` | 0 (historical) | Native FR/FL/RL/RR/T; focused readout Top/RL/RR; manual inputs/Reset | Unbound CNC/bearing props removed; input plates corrected, rear readout supports visible. Layout/plate checks pass. Open: numeric factors/product unimplemented, readout has NO LIVE VALUE, authored output behavior unaccepted |
+| 66 | `lab-9-01-sum-function` | 0 | Native FR/FL/RL/RR/T; close front; 3D A/B clicks; actual reference Open/Run/Stop/Reset | Two PC DINT inputs and live SUM result; 2+5=7 observed. Seven grounded, clear props. Global-tag reference FB supplied; exercise remains opt-in; FB parameter/instance semantics and independent asset approval open |
+| 67 | `lab-9-02-product-function` | 0 | Native FR/FL/RL/RR/T; close front; actual reference Open/Run/Stop/Reset; validity loss | Two PC DINT factors and live PRODUCT; 2*5=10 observed. Seven grounded, clear props. Sidebar input proof; individual 3D clicks unverified here. Global-tag FB reference opt-in; FB parameter/instance semantics and independent asset approval open |
 | 68 | `lab-9-03-sum-and-counter-function` | 0 (historical) | Native FR/FL/RL/RR/T; close operand/result views; actual 3D operand clicks; Project Open/Verify + Load; Run/Stop/Reset | CNC removed; typed DINT operands/sum/count and live readouts added. Opt-in reference displays 2+5=7 and one held completion count, Stop zeros image, Run republishes retained count, Reset clears. Eleven integration/clearance checks pass. Open: independent reusable-asset approval; manual call-complete feedback; exercise requires authored/explicit reference logic |
 | 69 | `lab-9-04-function-selector` | 0 (historical) | Native FR/FL/RL/RR/T; focused readout Top/RL/RR; manual inputs/Reset | Unbound CNC/bearing props removed; input plates corrected, rear readout supports visible. Layout/plate checks pass. Open: numeric operands/result and an actual function choice unimplemented, readout has NO LIVE VALUE, authored output behavior unaccepted |
 | 70 | `lab-9-10-box-volume` | 46 (historical) | Native FR/FL/RL/RR/T; replacement fixture and readout five focus views each; actual 3D buttons/Reset | Static three-head fixture replaces shutter; carton supported on bench, CNC removed and rear readout view cleared. Seven geometry checks and LENGTH/WIDTH/HEIGHT manual inputs/Reset pass. Open: no numeric dimension acquisition, volume calculation or live MEASUREMENT value; independent asset approval pending |

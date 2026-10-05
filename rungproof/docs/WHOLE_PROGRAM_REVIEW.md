@@ -1,5 +1,36 @@
 # Whole program review - 2026-10-03
 
+Sum/Product numeric repair (2026-10-05): scenes 66/67 preserve their existing
+Boolean validity/request point names and ownership, and now add two PC-owned
+DINT inputs plus a PLC-owned DINT result. Three live numeric readouts replace
+the static RESULT legend and add clickable A NEXT/B NEXT inputs (0,1,2,5,10);
+layout spacing keeps all seven equipment items grounded and mutually clear.
+Both remain empty exercises until the student loads/authors a controller.
+Opt-in projects: programs/examples/09-sum-function-reference.rpproj.json and
+09-product-function-reference.rpproj.json. Each Main always calls its FB, which
+uses ADD or MUL and publishes validity from all three manual permissives.
+They use global symbolic tags; FB parameter transfer/instance-local storage
+are not modeled. Permissive loss clears validity but retains the last result;
+Stop zeroes the output image; Reset clears manual inputs and numeric values.
+Native Windows FR/FL/RL/RR/Top and close front readout views were individually
+inspected for both. Normal Project > Open loaded each actual reference; Run,
+A=2/B=5 and all permissives displayed SUM 7 or PRODUCT 10 and a green lamp.
+Both Stop/Reset transitions were inspected. Product A-valid loss showed
+validity False/lamp off while the result remained 10. Sum received actual 3D
+A/B readout clicks; Product used sidebar cycles. Individual Product 3D inputs
+were not clicked in this pass. Final shorter scene descriptions were reloaded
+and inspected; all five actions fit in each native sidebar at 1602x936.
+24 added integration/clearance checks cover initial readouts, qualified and
+changed calculations, permissive loss, Stop, restart and Reset; six former
+static-readout checks removed because these are now live displays. All 262
+geometry/workflow checks pass; build zero warnings/errors; app-shell 77 scenes,
+294 assets and one existing SYSREADY scope diagnostic PASS; help 294/77 PASS.
+An initial run caught missing numeric-binding labels; corrected bindings pass.
+Controller core unchanged; the preceding 143 PASS/0 FAIL run remains current.
+Catalog now has 593 equipment instances, including 113 training accessories.
+Logs: .tools/arithmetic-numeric-{build,red-geometry,geometry,shell,help,native}.log.
+This is offline/source/native evidence only. Candidate asset approval,
+physical PLC parity and the remaining scene/runtime findings stay open.
 Saved demo file parity repair (2026-10-05): all five programs/demos files
 were stale relative to the actual Demo-menu documents. Demo 5 incorrectly
 selected conveyor-cell; Demo 4 used unbound recipe/transfer tags instead of

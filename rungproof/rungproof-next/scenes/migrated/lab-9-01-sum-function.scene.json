@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-9-01-sum-function",
   "name": "Lab 9.1 - Sum Function Block",
-  "description": "Manual sum validity exercise. The labeled buttons set Boolean inputs; numeric operands and results are not modeled. The RESULT readout has no live value.",
+  "description": "Select A and B, confirm both input-valid flags, and request a sum. The numeric readouts show the manual inputs and the result from your loaded ladder program.",
   "camera": {
     "position": [
       11,
@@ -23,7 +23,7 @@
       "type": "switch",
       "label": "A VALID manual input",
       "position": [
-        -1.1,
+        -2.2,
         0,
         0
       ],
@@ -39,7 +39,7 @@
       "type": "indicator",
       "label": "Sum Function Block indicator",
       "position": [
-        1.1,
+        3.8,
         0,
         0
       ],
@@ -55,15 +55,17 @@
     {
       "id": "training_accessory_4",
       "type": "trainingAccessory",
-      "label": "Sum Function Block - numeric result display",
+      "label": "SUM live numeric result",
       "position": [
-        -3.3000000000000003,
+        2.2,
         0,
         1.8
       ],
       "config": {
-        "assetName": "numeric result display",
-        "catalogAssetId": "training.accessory.numeric_result_display.v1"
+        "assetName": "count display",
+        "catalogAssetId": "training.accessory.count_display.v1",
+        "display": "numeric",
+        "displayLabel": "SUM"
       }
     },
     {
@@ -71,9 +73,9 @@
       "type": "switch",
       "label": "B VALID manual input",
       "position": [
-        -0.6500000000000001,
         0,
-        2.35
+        0,
+        0
       ],
       "config": {
         "style": "pushbutton",
@@ -87,15 +89,49 @@
       "type": "switch",
       "label": "CALCULATE manual input",
       "position": [
-        1.55,
+        2.2,
         0,
-        2.35
+        0
       ],
       "config": {
         "style": "pushbutton",
         "action": "toggle-calculate_request",
         "color": 2204518,
         "faceLabel": "CALCULATE"
+      }
+    },
+    {
+      "id": "numeric_display_0",
+      "type": "trainingAccessory",
+      "label": "A NEXT live numeric readout",
+      "position": [
+        -2.2,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "count display",
+        "catalogAssetId": "training.accessory.count_display.v1",
+        "display": "numeric",
+        "displayLabel": "A NEXT",
+        "action": "cycle-operand_a"
+      }
+    },
+    {
+      "id": "numeric_display_1",
+      "type": "trainingAccessory",
+      "label": "B NEXT live numeric readout",
+      "position": [
+        0,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "count display",
+        "catalogAssetId": "training.accessory.count_display.v1",
+        "display": "numeric",
+        "displayLabel": "B NEXT",
+        "action": "cycle-operand_b"
       }
     }
   ],
@@ -126,6 +162,25 @@
         "owner": "PLC",
         "initial": false,
         "role": "output"
+      },
+      {
+        "name": "operand_a",
+        "type": "DINT",
+        "owner": "PC",
+        "initial": 0
+      },
+      {
+        "name": "operand_b",
+        "type": "DINT",
+        "owner": "PC",
+        "initial": 0
+      },
+      {
+        "name": "sum_result",
+        "type": "DINT",
+        "owner": "PLC",
+        "initial": 0,
+        "role": "output"
       }
     ],
     "actions": [
@@ -146,6 +201,32 @@
         "label": "Toggle calculate request",
         "type": "toggle",
         "point": "calculate_request"
+      },
+      {
+        "id": "cycle-operand_a",
+        "label": "Cycle operand_a (0, 1, 2, 5, 10)",
+        "type": "cycle",
+        "point": "operand_a",
+        "values": [
+          0,
+          1,
+          2,
+          5,
+          10
+        ]
+      },
+      {
+        "id": "cycle-operand_b",
+        "label": "Cycle operand_b (0, 1, 2, 5, 10)",
+        "type": "cycle",
+        "point": "operand_b",
+        "values": [
+          0,
+          1,
+          2,
+          5,
+          10
+        ]
       }
     ],
     "rules": [],
@@ -171,48 +252,65 @@
         "equipmentId": "indicator_2",
         "mode": "indicator",
         "activeColor": "green"
+      },
+      {
+        "point": "operand_a",
+        "equipmentId": "numeric_display_0",
+        "mode": "numericDisplay",
+        "label": "A NEXT"
+      },
+      {
+        "point": "operand_b",
+        "equipmentId": "numeric_display_1",
+        "mode": "numericDisplay",
+        "label": "B NEXT"
+      },
+      {
+        "point": "sum_result",
+        "equipmentId": "training_accessory_4",
+        "mode": "numericDisplay",
+        "label": "SUM"
       }
     ]
   },
   "training": {
     "hints": [
-      "Translate the lesson into explicit state and permissive logic: The result-valid indication occurs only when both operands are valid and a calculation is requested.",
-      "Inputs are simulator feedback (operand_a_valid, operand_b_valid, calculate_request); PLC logic owns sum_result_valid.",
-      "Test the initial state, the valid condition, and at least one missing permissive."
+      "Cycle A NEXT and B NEXT through 0, 1, 2, 5, 10. These are manual PC-owned DINT inputs.",
+      "Require operand_a_valid, operand_b_valid and calculate_request before ADD writes sum_result.",
+      "Always scan the calculation block so sum_result_valid clears on permissive loss."
     ],
     "solution": {
-      "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
+      "summary": "Original offline reference using global symbolic tags; FB interfaces and instance-local storage are not modeled.",
       "steps": [
-        "Require the documented inputs: operand_a_valid, operand_b_valid, calculate_request.",
-        "Command the documented outputs: sum_result_valid.",
-        "Remove PLC commands when the permissive is lost."
+        "Open programs/examples/09-sum-function-reference.rpproj.json in Project > Open, verify and load offline, then Run.",
+        "Set A=2 and B=5, then enable both valid inputs and CALCULATE. Expect SUM 7.",
+        "A lost permissive clears validity while the result retains its last value. Stop clears the output image; Reset clears all manual inputs and values."
       ],
-      "acceptance": "The result-valid indication occurs only when both operands are valid and a calculation is requested."
+      "acceptance": "A=2 and B=5 produce SUM 7 only with all three permissives; sum_result_valid clears when any permissive is lost."
     },
     "assetRequirements": [
       "Three labeled manual validity/request pushbuttons",
-      "Static RESULT readout (no live value)"
+      "Two clickable, live DINT input readouts",
+      "Live PLC-owned SUM DINT result readout and validity indicator"
     ],
     "machineGuide": {
-      "purpose": "Manual sum validity exercise. The labeled buttons set Boolean inputs; numeric operands and results are not modeled. The RESULT readout has no live value.",
+      "purpose": "Offline sum calculation exercise with two manually selected DINT values and a live SUM result. Validity requires both manual input-valid flags and CALCULATE. Open programs/examples/09-sum-function-reference.rpproj.json to run the supplied reference.",
       "startConditions": [
-        "The common PLC/watchdog foundation is healthy.",
-        "All required simulator inputs are at their documented initial state."
+        "Local offline runtime selected; a reference or student program must be loaded."
       ],
       "normalSequence": [
-        "Apply the requested input condition.",
-        "Verify only the documented PLC outputs respond."
+        "Open programs/examples/09-sum-function-reference.rpproj.json in Project > Open, verify and load offline, then Run.",
+        "Set A=2 and B=5, then enable both valid inputs and CALCULATE. Expect SUM 7."
       ],
       "stopBehavior": [
-        "Removing the permissive removes PLC-owned commands.",
-        "Reset returns the module to its initial state."
+        "A lost permissive clears validity while the result retains its last value. Stop clears the output image; Reset clears all manual inputs and values."
       ],
       "faultBehavior": [
-        "A missing or stale input must fail safe and remain diagnosable."
+        "Do not treat a retained result as valid after permissive loss."
       ],
       "expectedObservations": [
-        "The result-valid indication occurs only when both operands are valid and a calculation is requested.",
-        "The readout says NO LIVE VALUE and is not bound to a numeric point."
+        "A=2 and B=5 produce SUM 7 only with all three permissives; sum_result_valid clears when any permissive is lost.",
+        "An empty exercise has no calculation controller until a program is loaded."
       ]
     },
     "sequenceNumber": 52,
@@ -229,7 +327,10 @@
       "operand_a_valid",
       "operand_b_valid",
       "calculate_request",
-      "sum_result_valid"
+      "sum_result_valid",
+      "operand_a",
+      "operand_b",
+      "sum_result"
     ],
     "changedTags": [],
     "previousAcceptance": [
@@ -241,7 +342,8 @@
       {
         "name": "initial-safe-state",
         "expect": {
-          "sum_result_valid": false
+          "sum_result_valid": false,
+          "sum_result": 0
         }
       }
     ]
