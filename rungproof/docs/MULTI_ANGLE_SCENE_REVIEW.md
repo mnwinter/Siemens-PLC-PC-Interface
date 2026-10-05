@@ -28,6 +28,22 @@ Every row requires native inspection.
 
 ## Repairs and open findings
 
+Whole-catalog help-audit repair (2026-10-05): the validator now reports every
+missing contract entry before returning exit 1, instead of stopping at the
+first assertion. Missing documents are reported once and repeated runs clear
+old findings. Explicit checks also preserve failure under Python -O, where the
+previous assertions could be disabled. Two regression tests pass normally and
+with -O: multiple conflicts remain failures, repaired fixtures become valid,
+and a missing file does not prevent other assets from being checked.
+The actual full audit returns exit 1 in both modes, covering 294 assets and 77
+scenes. Six conflicts remain: numeric_measurement_display, numeric_result_display,
+numeric_selector_display, occupancy_counter_display, progress_display and
+weight_display (all training.accessory.*.v1). Their help omits catalog-declared
+shutter/selector motion paths. This is a documentation failure, not acceptance
+of those questionable geometry identities. Evidence: .tools/help-full-audit.log,
+help-full-audit-optimized.log and help-audit-unit{-optimized}.log. The review is
+ongoing and acceptance remains open. The saved goal tool currently reports
+blocked; no completion or status change was issued in this work session.
 Cut-length display identity repair (2026-10-05): the delivered asset was a
 roller shutter, while its help described a parking display. It now uses original
 Blender-source stand/readout geometry with LENGTH / NO MEASUREMENT. Catalog

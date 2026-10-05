@@ -7,6 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 HELP = ROOT / "docs" / "help"
+ISSUES: list[str] = []
 
 
 def load(path: Path) -> dict:
@@ -14,11 +15,20 @@ def load(path: Path) -> dict:
 
 
 def require(path: Path, needle: str) -> None:
-    assert path.is_file(), f"missing help document: {path.relative_to(ROOT)}"
-    assert needle in path.read_text(encoding="utf-8"), f"{path.relative_to(ROOT)} missing {needle!r}"
+    if not path.is_file():
+        issue = f"missing help document: {path.relative_to(ROOT)}"
+    elif needle not in path.read_text(encoding="utf-8"):
+        issue = f"{path.relative_to(ROOT)} missing {needle!r}"
+    else:
+        return
+    # Report the whole catalog in one run; never turn missing documentation
+    # into a pass. Deduplicate a missing file's repeated contract checks.
+    if issue not in ISSUES:
+        ISSUES.append(issue)
 
 
 def main() -> int:
+    ISSUES.clear()
     asset_count = 0
     for catalog_name in ("production.catalog.json", "candidates.catalog.json"):
         for asset in load(ROOT / "assets" / "catalog" / catalog_name)["assets"]:
@@ -60,6 +70,11 @@ def main() -> int:
             require(path, "This migrated scene declares no symbolic I/O points.")
         scene_count += 1
     require(HELP / "README.md", "# RungProof Next help index")
+    if ISSUES:
+        for issue in ISSUES:
+            print(f"HELP_DOCUMENTS_ISSUE {issue}")
+        print(f"HELP_DOCUMENTS_INVALID issues={len(ISSUES)} assets={asset_count} scenes={scene_count}")
+        return 1
     print(f"HELP_DOCUMENTS_VALID assets={asset_count} scenes={scene_count}")
     return 0
 
