@@ -722,6 +722,82 @@ public partial class Main
         check(rod.Transform.IsEqualApprox(authored), "pusher_rod_reset_restores_exact_authored_mesh_transform");
     }
 
+    private void VerifyPusherInstallationGeometry(Action<bool, string> check)
+    {
+        AddMigratedScene("scene-2-conveyor-pusher", _candidateCatalog!, _mainCamera!, false, false);
+        var pusher = _sceneCompositionRoot!.GetNode<Node3D>("scene2_pusher");
+        var meshes = ReviewMeshes(pusher);
+        MeshInstance3D Part(string name) => meshes.Single(mesh => mesh.Name.ToString() == name);
+        Aabb ParentBounds(MeshInstance3D mesh) => mesh.Transform * mesh.GetAabb();
+        var plate = Part("KIN_pusher_plate");
+        check(MathF.Abs(ReviewBounds(plate).GetCenter().Y - 1.38f) < 0.001f,
+            "scene2_pusher_honors_configured_plate_center_height");
+        var baseBounds = ParentBounds(Part("FRAME_base"));
+        var supports = meshes.Where(mesh => mesh.Name.ToString().StartsWith("FRAME_pedestal", StringComparison.Ordinal)).ToArray();
+        var barrel = ParentBounds(Part("CYLINDER_barrel"));
+        var bearingMeshes = meshes.Where(mesh => mesh.Name.ToString().StartsWith("GUIDE_bearing", StringComparison.Ordinal)).ToArray();
+        check(MathF.Abs(ReviewBounds(Part("FRAME_base")).Position.Y) < 0.001f
+            && supports.All(mesh => MathF.Abs(ParentBounds(mesh).Position.Y - baseBounds.End.Y) < 0.001f),
+            "scene2_pusher_floor_base_and_column_bottoms_grounded");
+        check(bearingMeshes.All(bearing => supports.Any(support =>
+        {
+            var seat = ParentBounds(support); var mounted = ParentBounds(bearing);
+            return MathF.Abs(seat.End.Y - mounted.Position.Y) < 0.001f
+                && seat.Position.X <= mounted.Position.X && seat.End.X >= mounted.End.X
+                && seat.Position.Z <= mounted.Position.Z && seat.End.Z >= mounted.End.Z;
+        })), "scene2_pusher_fixed_guide_bearings_have_supported_bottoms");
+        check(supports.Count(support => MathF.Abs(ParentBounds(support).End.Y - barrel.Position.Y) < 0.001f
+            && ParentBounds(support).Position.X >= barrel.Position.X && ParentBounds(support).End.X <= barrel.End.X) == 2,
+            "scene2_pusher_barrel_has_two_floor_supported_seats");
+        var manifoldPost = meshes.FirstOrDefault(mesh => mesh.Name.ToString() == "FRAME_manifold_post");
+        var manifold = ParentBounds(Part("VALVE_manifold"));
+        check(manifoldPost is not null && MathF.Abs(ParentBounds(manifoldPost).Position.Y - baseBounds.End.Y) < 0.001f
+            && MathF.Abs(ParentBounds(manifoldPost).End.Y - manifold.Position.Y) < 0.001f,
+            "scene2_pusher_raised_air_manifold_has_floor_supported_mount");
+        var motion = pusher.FindChildren("*", string.Empty, true, false).OfType<EquipmentMotionController>().Single();
+        var shafts = meshes.Where(mesh => mesh.Name.ToString().StartsWith("KIN_pusher_guide_shaft", StringComparison.Ordinal)).ToArray();
+        var caps = meshes.Where(mesh => mesh.Name.ToString().StartsWith("CYLINDER_", StringComparison.Ordinal)).ToArray();
+        var engagement = true; var capClearance = true; var bracketSeat = true;
+        var sensor = _sceneCompositionRoot!.GetNode<Node3D>("scene2_photoeye");
+        var sensorSolids = ReviewMeshes(sensor).Where(mesh => !mesh.Name.ToString().StartsWith("KIN_beam", StringComparison.Ordinal)).ToArray();
+        var sensorClearance = true;
+        var fasteners = meshes.Where(mesh => mesh.Name.ToString().StartsWith("KIN_pusher_PLATE_bolt", StringComparison.Ordinal)).ToArray();
+        var fastenerOffsets = fasteners.ToDictionary(mesh => mesh, mesh => mesh.Position - plate.Position);
+        var fastenersFollow = fasteners.Length == 4;
+        var initialShaftSizes = shafts.ToDictionary(mesh => mesh, mesh => ParentBounds(mesh).Size);
+        for (var sample = 0; sample <= 100; sample++)
+        {
+            motion.SetPositionNormalized(sample / 100f);
+            foreach (var shaft in shafts)
+            {
+                var rod = ParentBounds(shaft);
+                var bearing = bearingMeshes.Single(mesh => MathF.Sign(ParentBounds(mesh).GetCenter().Z) == MathF.Sign(rod.GetCenter().Z));
+                var seat = ParentBounds(bearing);
+                engagement &= rod.Position.X < seat.Position.X && rod.End.X > seat.End.X
+                    && rod.Size.IsEqualApprox(initialShaftSizes[shaft]);
+                capClearance &= caps.All(cap => !rod.Intersects(ParentBounds(cap)));
+                var bracket = meshes.Single(mesh => mesh.Name.ToString().StartsWith("KIN_pusher_bracket", StringComparison.Ordinal)
+                    && MathF.Sign(ParentBounds(mesh).GetCenter().Z) == MathF.Sign(rod.GetCenter().Z));
+                bracketSeat &= rod.Intersects(ParentBounds(bracket))
+                    && ParentBounds(bracket).Intersects(ParentBounds(Part("KIN_pusher_crossmember")));
+            }
+            sensorClearance &= meshes.Where(mesh => mesh.Name.ToString().StartsWith("KIN_pusher_", StringComparison.Ordinal))
+                .All(mesh => sensorSolids.All(solid =>
+                {
+                    var overlap = ReviewBounds(mesh).Intersection(ReviewBounds(solid)).Size;
+                    return overlap.X <= 0.005f || overlap.Y <= 0.005f || overlap.Z <= 0.005f;
+                }));
+            fastenersFollow &= fasteners.All(mesh => (mesh.Position - plate.Position).IsEqualApprox(fastenerOffsets[mesh]));
+        }
+        check(engagement, "scene2_pusher_rigid_guide_shafts_engaged_through_101_stroke_samples");
+        check(capClearance, "scene2_pusher_guide_shafts_clear_round_cylinder_through_stroke");
+        check(bracketSeat, "scene2_pusher_both_guides_remain_seated_in_attached_carriage_brackets");
+        check(sensorClearance, "scene2_pusher_moving_members_clear_photoeye_solids_through_101_samples");
+        check(fastenersFollow, "scene2_pusher_all_four_plate_fasteners_follow_plate_through_stroke");
+        motion.ResetMotion();
+        GD.Print($"PUSHER_INSTALLATION_BOUNDS plate={ReviewBounds(plate)} supports={string.Join(';', supports.Select(mesh => ParentBounds(mesh).ToString()))}");
+    }
+
     private void VerifyBaseConveyorCartonSupport(Action<bool, string> check)
     {
         foreach (var number in new[] { 1, 2 })

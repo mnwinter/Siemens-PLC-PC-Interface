@@ -1,5 +1,46 @@
 # Whole program review - 2026-10-03
 
+Pusher installation repair (2026-10-05, after the rod-only checkpoint below):
+Scene 74 explicitly opts into a composed conveyor mounting. Its existing
+centerHeight=1.38 m is honored without stretching the cylinder diameter.
+The floor base remains grounded; two columns contact the barrel bottom, a
+wider third column supports both fixed guide bearings, and a new base-mounted
+post supports the raised air manifold. The low unconnected wear rails are
+hidden in this installation. Reusable source/delivery assets are unchanged.
+Guide shafts have rigid rear tails extended by the stroke, with their front
+seats preserved; guides/bearings/brackets/locknuts are moved outboard to clear
+the cylinder caps, and the crossmember is widened to retain bracket contact.
+All four formerly fixed plate bolts now follow the moving plate.
+Photoeye X=-0.55 m clears the full moving assembly. Optional visual
+stationCenterXM=-0.20 m puts the carton body across that beam when canonical
+photoeye feedback first becomes True; it does not alter the pure plant model,
+point owners or DB14. Default scene projections retain their previous datum.
+
+The first eight installation checks exposed seven failures before opt-in.
+All ten added checks now pass, including 101 samples for rigid guide bearing
+engagement, cap clearance, attached brackets, sensor-solid clearance and
+following fasteners. Total scene/workflow checks: 310 PASS. Final build has
+zero warnings/errors; app-shell 77 scenes/294 assets/one existing diagnostic,
+19 plant execution checks and eight Python traces/83 snapshots pass. Logs:
+`.tools/pusher-installation-red.log`, `pusher-installation-final-build.log`,
+`pusher-installation-final-geometry.log`, `pusher-installation-shell.log`,
+`pusher-installation-plant-motion.log`, `pusher-installation-plant-reference.log`.
+
+Native Windows final home and full extension were each inspected in FR/FL/RL/
+RR/Top, with pusher-focused Top/RR at both ends. Unlike the lower prior mount,
+the extended clevis is now visible above the belt and both guides are visibly
+engaged. Normal Project > Open and Verify + load used the ignored endpoint
+review file (one block/task/network, six tags). Run held full extension with
+conveyor OFF/photoeye FALSE and the infeed carton seated. Stop held pose/scan
+4688 across fresh captures; Reset restored home/output FALSE/scan zero.
+PLC remained DISCONNECTED; owned window exit zero. Native log:
+`.tools/pusher-installation-final-native.log`.
+Scene 74 remains FAIL/open for absent receiver, plate-to-carton contact timing
+and disappearance at canonical transfer. Seven residual broad-phase cable
+candidates (two photoeye/conveyor, five pusher/conveyor) are not cleared by
+these moving-member checks. No complete supported transfer or mechanical
+design approval is established.
+
 Control feedback repair (2026-10-05): clickable numeric displays previously
 depressed their entire fixed stand; repeated clicks during a press captured
 the depressed pose as a new home and accumulated permanent drift. Mechanical
@@ -51,7 +92,7 @@ the conveyor hides the extended clevis. Stop held pose/scan 4466 across fresh
 captures; Reset restored home, output FALSE and scan zero. PLC remained
 DISCONNECTED; the owned review window closed with exit zero.
 
-Scene 74 remains FAIL/open: plate too low, home intersects rear photoeye support,
+At that earlier rod-only checkpoint, Scene 74 remained FAIL/open: plate too low, home intersects rear photoeye support,
 guide-shaft engagement at full stroke unresolved, and no receiving surface.
 Canonical transfer still hides the carton at its configured threshold. This
 endpoint fixture is not acceptance of a complete supported carton transfer.

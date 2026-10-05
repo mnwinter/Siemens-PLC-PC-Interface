@@ -702,7 +702,14 @@ public partial class SceneSimulationRuntime : Node
                 if (_sceneRoot.GetNodeOrNull<Node3D>(photoeyeId) is { } photoeye)
                 {
                     var sensorPosition = Number(_definition, "photoeyePositionM", 0.5);
-                    var scale = sensorPosition > 1e-9 ? (photoeye.Position.X - initial.X) / sensorPosition : 1;
+                    // A through-beam can detect the trailing portion of a
+                    // carton while its centre is aligned with the pusher.
+                    // Keep this optional visual station datum separate from
+                    // the canonical plant's symbolic sensor position.
+                    var stationX = Number(_definition, "stationCenterXM", photoeye.Position.X);
+                    if (!double.IsFinite(stationX))
+                        throw new InvalidOperationException("Conveyor visual stationCenterXM must be finite.");
+                    var scale = sensorPosition > 1e-9 ? (stationX - initial.X) / sensorPosition : 1;
                     target.X += (float)((_conveyorPlant.LeadingEdge ?? 0) * scale);
                     foreach (var beam in photoeye.FindChildren("KIN_beam*", string.Empty, true, false).OfType<Node3D>())
                         beam.Visible = !_conveyorPlant.PhotoeyeBlocked;

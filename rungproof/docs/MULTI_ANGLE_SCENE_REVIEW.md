@@ -10,6 +10,23 @@ includes failed scenes; it is not a count of accepted scenes.
 
 ## Acceptance method
 
+Pusher installation continuation (2026-10-05, superseding the rod-only layout
+findings below): Scene 74 now honors its 1.38 m center height with grounded
+barrel, guide-bearing and air-manifold supports. Rigid longer guide tails
+stay engaged throughout 101 samples; outboard guides clear the cylinder caps,
+their brackets retain the wider crossmember, and four plate bolts follow
+motion. Relocated photoeye and optional carton-centre projection datum preserve
+beam/body overlap while clearing moving members. Ten added checks pass (310
+total), build is clean, app-shell and plant execution/reference checks pass.
+Native home and full extension each received FR/FL/RL/RR/Top inspection, plus
+close pusher Top/RR. Extended clevis and both guide engagements are visible.
+Normal Open/Verify/Run used the endpoint fixture: conveyor OFF, photoeye FALSE,
+carton seated at infeed. Stop held pose/scan 4688; Reset restored home/False/0.
+PLC disconnected, owned window exit zero. Scene remains FAIL/open: no receiver,
+unverified plate/carton contact timing, disappearing transferred carton and
+seven residual cable broad-phase candidates. See WHOLE_PROGRAM_REVIEW.md for
+exact source/runtime scope and logs; no full supported transfer accepted.
+
 Control feedback continuation (2026-10-05): numeric readout clicks no longer
 translate fixed stands. Repeated modeled-button presses retain their original
 home instead of accumulating travel. The seven-check composed Box Volume suite
@@ -33,7 +50,7 @@ showed the rod at the gland, while the conveyor obscures the clevis. Stop held
 pose/scan 4466 and Reset restored home/output FALSE/scan zero. PLC disconnected,
 owned review window exit zero. Build and 300 scene/workflow checks pass, as do
 19 plant execution checks, eight Python traces / 83 snapshots and app-shell.
-Scene still FAIL/open: low plate, photoeye support interference, unresolved
+At that earlier rod-only checkpoint the scene was FAIL/open: low plate, photoeye support interference, unresolved
 guide-shaft engagement, absent receiver and disappearing transferred carton.
 The endpoint review does not prove a supported transfer or mechanical approval.
 
@@ -1457,7 +1474,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 71 | `lab-9-11-pallet-counting` | 86 | Native FR/FL/RL/RR/T | Carton/fixture/readout geometry repaired and five views/details inspected. Live DINT count/readout FR/FL and invalid/five-edge/held/permissive/Stop/Run/Reset native checks pass. Optical classification/pallet travel/CNC integration open |
 | 72 | `lab-9-12-ev-charging-manager` | 95 | Native FR/FL/RL/RR/T | FAIL/open: shutters/fluid props instead of EV charging route; energy pulse/accumulation contract absent |
 | 73 | `scene-1-conveyor-stop` | 34 | Native FR/FL/RL/RR/T | Carton belt contact/load-end footprint repaired; native five wide/Top/FL close and Demo 3 Run/Start/photoeye/Stop/Reset rechecked; full clearance open |
-| 74 | `scene-2-conveyor-pusher` | 88 | Native FR/FL/RL/RR/T; final extended five views and pusher Top/RR focus; normal Open/Verify/Run/Stop/Reset | Rod axis/length repaired; off-station carton stays seated. FAIL/open: low plate, home/photoeye support interference, guide-shaft engagement, no receiver; canonical transfer hides carton. No full supported transfer accepted |
+| 74 | `scene-2-conveyor-pusher` | 88 initial; 7 residual cable candidates after installation repair | Native home and extended FR/FL/RL/RR/T, close pusher Top/RR at both ends; normal Open/Verify/Run/Stop/Reset | Plate height, grounded mounting, guide engagement/cap clearance, photoeye clearance and following bolts repaired; off-station carton stays seated. FAIL/open: receiver absent, plate/carton contact timing, canonical disappearing transfer and residual cable candidates. No full supported transfer accepted |
 | 75 | `tank-high-low` | 60 | Native FR/FL/RL/RR/T | Disconnected pump/elevated inlet, external probes, opaque tank; fill/drain behavior unverified |
 | 76 | `tank-level` | 52 | Native FR/FL/RL/RR/T | Same disconnected piping/probe mounting; initial 42 percent / 10.72 mA visible, dynamics unverified |
 | 77 | `tank-radar` | 80 | Native FR/FL/RL/RR/T; repaired radar five focus views | Radar flange/head mounting and antenna-to-surface distance/beam repaired (sampled checks); 35% native range 3.10036. FAIL/open: empty ladder Run, disconnected inlet/outlet/drain route, opaque internal beam; rear-left mount partly obscured |

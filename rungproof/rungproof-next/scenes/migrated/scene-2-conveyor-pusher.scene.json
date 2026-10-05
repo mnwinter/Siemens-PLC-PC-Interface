@@ -58,7 +58,7 @@
       "type": "photoeye",
       "label": "Part-at-pusher photoeye",
       "position": [
-        0,
+        -0.55,
         0,
         0
       ],
@@ -87,6 +87,7 @@
         "stroke": 1.35,
         "travelAxis": "z",
         "centerHeight": 1.38,
+        "installation": "conveyorPusher",
         "initialPosition": 0
       }
     },
@@ -219,6 +220,7 @@
     "speedMps": 0.5,
     "objectLengthM": 0.2,
     "photoeyePositionM": 0.5,
+    "stationCenterXM": -0.2,
     "minimumPhotoeyeOnS": 0.1,
     "pusherStrokeTimeS": 0.3,
     "transferPositionFraction": 0.8,

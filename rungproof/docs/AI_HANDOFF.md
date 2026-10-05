@@ -6,6 +6,23 @@ would otherwise be trapped in a local Codex session. It intentionally excludes
 machine-local Codex databases, credentials, screenshots from private chats, and
 temporary runtime state.
 
+Pusher installation continuation (2026-10-05, latest): SceneComposer.Pusher
+adds explicit conveyorPusher mounting only for Scene 74. It honors 1.38 m
+centre height with grounded barrel/guide-bearing/manifold supports; rigid guide
+tails remain in their bearings at full stroke, outboard guides clear caps and
+attach to the widened crossmember, and four plate bolts now move. Photoeye
+X=-0.55 and optional visual stationCenterXM=-0.20 preserve detected beam/body
+overlap while clearing moving members. Pure plant/DB14/owners/reusable delivery
+assets unchanged. Ten new geometry checks pass, 310 total; clean build,
+app-shell, 19 plant checks and eight Python traces/83 frames pass. Native home
+and extended five views plus pusher Top/RR at both ends inspected; extended
+clevis now visible. Normal Open/Verify/Run endpoint fixture, Stop held scan
+4688/pose, Reset home/False/0; PLC disconnected, owned window exit zero. Scene
+still FAIL/open: receiver absent, plate/carton contact timing, disappearing
+transfer and seven cable broad-phase candidates. No full transfer acceptance.
+Details and logs in WHOLE_PROGRAM_REVIEW.md. Older checkpoint findings below
+are historical and superseded only where this note explicitly records repair.
+
 Control feedback continuation (2026-10-05): fixed numeric stands must never
 depress on input clicks. SceneControlInteractor now limits press travel to
 modeled button members or explicitly bound meshes, preserves original home

@@ -44,4 +44,14 @@ No point-to-equipment bindings are declared.
 
 ## Stop and safety boundary
 
+The composed pusher uses its configured 1.38 m centre height, grounded mounts,
+outboard guided shafts and moving plate fasteners. The photoeye is offset
+along the conveyor; the optional visual carton-centre datum positions its body
+across the beam at first detection without changing the symbolic plant model.
+
+This scene still lacks a receiving surface. Its canonical plant removes the
+carton at the transfer threshold; the rendered path does not establish plate
+contact or a fully supported physical transfer. These remain open review
+findings even when the controller sequence and limit feedback pass.
+
 A normal Stop removes PLC-owned commands according to the scene runtime. This document does not prove a safety function, a real E-stop circuit, a PLC watchdog, or live-machine commissioning.
