@@ -151,6 +151,7 @@ internal static class Program
         Test("authored palletizer removes commands on every lost permissive", TestPalletizerPermissives);
         Test("authored palletizer counts one layer per completion edge", TestPalletizerLayerCount);
         Test("authored demos 1 through 4 execute their documented behavior", TestOtherAuthoredDemos);
+        Test("authored batch publishes count through numeric scene I/O and lifecycle", TestBatchCountNumericOutput);
         Test("scene exercise projects bind declared I/O across the catalog", TestSceneExerciseProjects);
         Test("ladder dirty state ignores block browsing but retains project edits", TestBlockBrowsingDirtyState);
         Test("authored block demos include their promised executable instruction mix", TestAuthoredDemoStructure);
@@ -309,6 +310,36 @@ internal static class Program
             Equal(count == 5, batch.Snapshot.Outputs["pallet_count_valid"]);
         }
         False(batch.Scan(Inputs(("pallet_type_valid", false), ("count_request", true))).Outputs["pallet_count_valid"]);
+    }
+
+    private static void TestBatchCountNumericOutput()
+    {
+        True(AuthoredDemoLadderPrograms.TryCreate("lab-9-11-pallet-counting", out var document));
+        var program = document.BuildProgram();
+        var output = program.Variables.Single(item => item.Name == "pallet_count");
+        Equal(PlcVariableType.DInt, output.Type);
+        Equal(PlcVariableRole.Output, output.Role);
+        Equal("pallet_count", output.Binding);
+        var runtime = AuthoredRuntime("lab-9-11-pallet-counting");
+        var invalid = Inputs(("pallet_detected", false), ("pallet_type_valid", false), ("count_request", true));
+        runtime.Scan(invalid);
+        invalid["pallet_detected"] = true;
+        Equal(0.0, runtime.Scan(invalid).NumericOutputs["pallet_count"]);
+        for (var count = 1; count <= 5; count++)
+        {
+            runtime.Scan(Inputs(("pallet_detected", false), ("pallet_type_valid", true), ("count_request", true)));
+            var snapshot = runtime.Scan(Inputs(("pallet_detected", true), ("pallet_type_valid", true), ("count_request", true)));
+            Equal((double)count, SceneIoImageMapper.CommitNumericOutputs(program, snapshot.NumericOutputs)["pallet_count"]);
+            Equal(count == 5, snapshot.Outputs["pallet_count_valid"]);
+        }
+        // Preserve the existing controller policy: Stop clears numeric output
+        // images, while the counter memory remains available when Run resumes.
+        Equal(0.0, runtime.Stop().NumericOutputs["pallet_count"]);
+        Equal(5L, runtime.Snapshot.Counters["batch_count"].Accumulated);
+        runtime.Run();
+        Equal(5.0, runtime.Scan(Inputs(("pallet_detected", true), ("pallet_type_valid", true), ("count_request", true))).NumericOutputs["pallet_count"]);
+        Equal(0.0, runtime.Reset().NumericOutputs["pallet_count"]);
+        Equal(0L, runtime.Snapshot.Counters["batch_count"].Accumulated);
     }
 
     private static void TestPalletizerPermissives()

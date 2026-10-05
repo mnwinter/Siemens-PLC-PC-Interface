@@ -2,11 +2,11 @@
 
 Scene ID: `lab-9-11-pallet-counting`  
 Migrated source: `prototype/scenes/lab-9-11-pallet-counting.plcscene`  
-Scene contract: `prototype/scenes/lab-9-11-pallet-counting.plcscene`
+Scene contract: `res://scenes/migrated/lab-9-11-pallet-counting.scene.json`
 
 ## Purpose
 
-A reusable block counts pallets by type and publishes the current pallet-count result.
+A reusable block counts manually validated pallet detection edges and publishes the current count and batch validity.
 
 ## Expected I/O to operate this scene
 
@@ -18,6 +18,7 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | `pallet_type_valid` | `BOOL` | **PC** | `False` |
 | `count_request` | `BOOL` | **PC** | `False` |
 | `pallet_count_valid` | `BOOL` | **PLC** | `False` |
+| `pallet_count` | `DINT` | **PLC** | `0` |
 
 ## Operator actions
 
@@ -35,6 +36,7 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | `pallet_type_valid` | `switch_8` | `switch` |
 | `count_request` | `switch_9` | `switch` |
 | `pallet_count_valid` | `indicator_3` | `indicator` |
+| `pallet_count` | `training_accessory_6` | `numericDisplay` |
 
 ## Expected equipment
 
@@ -45,8 +47,8 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | `machine_2` | `machine` | Pallet Count Function machine |
 | `indicator_3` | `indicator` | Pallet Count Function indicator |
 | `training_accessory_4` | `trainingAccessory` | Pallet Count Function - pallet load |
-| `training_accessory_5` | `trainingAccessory` | Pallet Count Function - pallet-type sensor |
-| `training_accessory_6` | `trainingAccessory` | Pallet Count Function - count display |
+| `training_accessory_5` | `trainingAccessory` | Pallet Count Function - optical profile fixture (static) |
+| `training_accessory_6` | `trainingAccessory` | Pallet Count Function - current count display |
 | `switch_7` | `switch` | Pallet Count Function operator input |
 | `switch_8` | `switch` | Pallet Count Function operator input |
 | `switch_9` | `switch` | Pallet Count Function operator input |
@@ -57,7 +59,7 @@ A normal Stop removes PLC-owned commands according to the scene runtime. This do
 
 ## Machine guide
 
-A reusable block counts pallets by type and publishes the current pallet-count result.
+A reusable block counts manually validated pallet detection edges and publishes the current count and batch validity.
 
 ### Start conditions
 
@@ -66,9 +68,12 @@ A reusable block counts pallets by type and publishes the current pallet-count r
 
 ### Normal sequence
 
-- Apply the requested input condition.
-- Verify only the documented PLC outputs respond.
+- Enable pallet type valid and count request.
+- Toggle pallet detected off and on for each new valid event. The DINT count and 3D display advance once per rising detection edge.
+- The batch-valid lamp turns on at five valid events. Invalid events are not counted; held detection does not recount.
 
 ### Expected observations
 
-- Each valid pallet event contributes to the selected count and produces a valid count result.
+- The 3D readout and DINT pallet_count match the accumulated valid detection events. The batch-valid bit requires at least five events and both permissives.
+- Stop clears the numeric output image to zero while retaining internal counter memory. Run republishes the retained count on its next scan. Reset clears inputs, memory and outputs.
+- Pallet type is a manually supplied validity bit; the optical fixture does not classify pallets or generate detection events.

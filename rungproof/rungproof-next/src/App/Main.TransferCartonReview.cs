@@ -1,12 +1,111 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using Godot;
+using RungProof.Next.Scenes;
+using RungProof.Next.VirtualController;
 
 namespace RungProof.Next.App;
 
 public partial class Main
 {
+    private void VerifyNumericSceneOutputTypes(Action<bool, string> check)
+    {
+        using var definition = JsonDocument.Parse("""
+            {"type":"booleanPanel","points":[
+              {"name":"integer","type":"INT","owner":"PLC","initial":0,"role":"output"},
+              {"name":"double_integer","type":"DINT","owner":"PLC","initial":0,"role":"output"},
+              {"name":"real","type":"REAL","owner":"PLC","initial":0.0,"role":"output"}]}
+            """);
+        var root = new Node3D();
+        var runtime = new SceneSimulationRuntime(definition.RootElement, root);
+        try
+        {
+            runtime.ResetSimulation();
+            runtime.CommitVirtualControllerNumericOutputs(new Dictionary<string, double>
+            { ["integer"] = double.MaxValue, ["double_integer"] = double.MinValue, ["real"] = 1.25 });
+            var upperInt = Equals(runtime.Points["integer"], (long)short.MaxValue);
+            var lowerDInt = Equals(runtime.Points["double_integer"], (long)int.MinValue);
+            check(runtime.Points["real"] is double number && number == 1.25,
+                "scene_real_output_remains_double_without_integer_truncation");
+            runtime.CommitVirtualControllerNumericOutputs(new Dictionary<string, double>
+            { ["integer"] = double.MinValue, ["double_integer"] = double.MaxValue });
+            var lowerInt = Equals(runtime.Points["integer"], (long)short.MinValue);
+            var upperDInt = Equals(runtime.Points["double_integer"], (long)int.MaxValue);
+            runtime.CommitVirtualControllerNumericOutputs(new Dictionary<string, double>
+            { ["integer"] = 1.9, ["double_integer"] = -1.9 });
+            check(upperInt && lowerInt && Equals(runtime.Points["integer"], 1L),
+                "scene_int_output_is_boxed_integer_truncated_and_range_clamped");
+            check(lowerDInt && upperDInt && Equals(runtime.Points["double_integer"], -1L),
+                "scene_dint_output_is_boxed_integer_truncated_and_range_clamped");
+        }
+        finally { runtime.Free(); root.Free(); }
+    }
+
+    private void VerifyPalletCountReadoutWorkflow(Action<bool, string> check)
+    {
+        AddMigratedScene("lab-9-11-pallet-counting", _candidateCatalog!, _mainCamera!, false, false);
+        var display = _sceneCompositionRoot!.GetNode<Node3D>("training_accessory_6");
+        var readout = display.GetNodeOrNull<Label3D>("NumericReadout");
+        check(readout?.Text == "COUNT\n0"
+            && display.FindChild("COUNT_DISPLAY_static_legend", true, false) is MeshInstance3D { Visible: false },
+            "pallet_count_live_readout_replaces_static_legend_at_initial_zero");
+        AuthoredDemoLadderPrograms.TryCreate("lab-9-11-pallet-counting", out var document);
+        EnableVirtualControllerProgram(document.BuildProgram());
+        try
+        {
+            var runtime = _sceneRuntime!;
+            _virtualController!.Run();
+            runtime.ExecuteAction("toggle-count_request");
+            _PhysicsProcess(0.04);
+            runtime.ExecuteAction("toggle-pallet_detected");
+            _PhysicsProcess(0.04);
+            GD.Print($"PALLET_COUNT_READOUT_PROBE type={runtime.Points["pallet_count"]?.GetType().Name} value={runtime.Points["pallet_count"]} text={readout?.Text.Replace('\n', '|')}");
+            check(Equals(runtime.Points["pallet_count"], 0L) && readout?.Text == "COUNT\n0",
+                "pallet_count_invalid_type_event_is_not_published_as_a_count");
+            runtime.ExecuteAction("toggle-pallet_type_valid");
+            _PhysicsProcess(0.04);
+            check(Equals(runtime.Points["pallet_count"], 0L) && readout?.Text == "COUNT\n0",
+                "pallet_count_later_permissive_does_not_recount_held_detection");
+            var correct = true;
+            for (var count = 1; count <= 5; count++)
+            {
+                runtime.ExecuteAction("toggle-pallet_detected"); // release old detection
+                _PhysicsProcess(0.04);
+                runtime.ExecuteAction("toggle-pallet_detected"); // next detection edge
+                _PhysicsProcess(0.04);
+                correct &= Equals(runtime.Points["pallet_count"], (long)count)
+                    && readout?.Text == $"COUNT\n{count}"
+                    && Equals(runtime.Points["pallet_count_valid"], count == 5);
+            }
+            check(correct, "pallet_count_five_valid_scene_edges_publish_same_scan_count_and_readout");
+            _PhysicsProcess(1.0);
+            check(Equals(runtime.Points["pallet_count"], 5L) && readout?.Text == "COUNT\n5",
+                "pallet_count_held_detection_keeps_five_on_display");
+            runtime.ExecuteAction("toggle-pallet_type_valid");
+            _PhysicsProcess(0.04);
+            check(runtime.Points["pallet_count_valid"] is false
+                && Equals(runtime.Points["pallet_count"], 5L) && readout?.Text == "COUNT\n5",
+                "pallet_count_permissive_loss_clears_validity_without_erasing_count");
+            CommitVirtualControllerSnapshot(_virtualController.Stop());
+            check(Equals(runtime.Points["pallet_count"], 0L) && readout?.Text == "COUNT\n0"
+                && _virtualController.Snapshot.Counters["batch_count"].Accumulated == 5,
+                "pallet_count_stop_clears_numeric_output_image_and_retains_counter_memory");
+            _virtualController.Run();
+            _PhysicsProcess(0.04);
+            check(Equals(runtime.Points["pallet_count"], 5L) && readout?.Text == "COUNT\n5",
+                "pallet_count_run_republishes_retained_counter_without_new_event");
+            runtime.ResetSimulation();
+            CommitVirtualControllerSnapshot(_virtualController.Reset());
+            check(Equals(runtime.Points["pallet_count"], 0L) && readout?.Text == "COUNT\n0"
+                && runtime.Points["pallet_detected"] is false && runtime.Points["pallet_count_valid"] is false
+                && _virtualController.Snapshot.Counters["batch_count"].Accumulated == 0,
+                "pallet_count_reset_clears_readout_inputs_outputs_and_memory");
+        }
+        finally { DisableVirtualController(); }
+    }
+
     private void VerifyPalletCountPropGeometry(Action<bool, string> check)
     {
         AddMigratedScene("lab-9-11-pallet-counting", _candidateCatalog!, _mainCamera!, false, false);

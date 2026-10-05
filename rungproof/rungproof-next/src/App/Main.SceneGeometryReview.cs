@@ -331,6 +331,8 @@ public partial class Main
             VerifyTransferCartonSupport(Check);
             VerifyBaseConveyorCartonSupport(Check);
             VerifyPalletCountPropGeometry(Check);
+            VerifyPalletCountReadoutWorkflow(Check);
+            VerifyNumericSceneOutputTypes(Check);
 
             AddMigratedScene("tank-radar", _candidateCatalog!, _mainCamera!, false, false);
             // Exercise an authored parent scale as well as configured sizing.

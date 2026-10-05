@@ -249,6 +249,20 @@ public static partial class SceneComposer
     private static Node3D? CreateTrainingAccessory(SceneEquipment equipment, AssetCatalogDocument candidates)
     {
         var model = CreateOptionalMappedAsset(equipment, candidates, Text(equipment.Config, "catalogAssetId", string.Empty));
+        if (model is not null && Text(equipment.Config, "display", string.Empty) == "palletCount")
+        {
+            // Only this composed scene opts into a live readout. The reusable
+            // asset retains its honest NO LIVE VALUE legend when used alone.
+            var legend = model.FindChild("COUNT_DISPLAY_static_legend", true, false) as MeshInstance3D
+                ?? throw new InvalidOperationException($"Count display '{equipment.Id}' is missing its authored legend.");
+            legend.Visible = false;
+            model.AddChild(new Label3D
+            {
+                Name = "NumericReadout", Text = "COUNT\n0",
+                Position = new Vector3(0, 1.51f, 0.09f),
+                FontSize = 48, PixelSize = 0.0014f, OutlineSize = 0, Modulate = Colors.White,
+            });
+        }
         if (model is not null && Text(equipment.Config, "motion", string.Empty) == "gantryCommandSweep")
             model.AddChild(new EquipmentMotionController
             {

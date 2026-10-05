@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-9-11-pallet-counting",
   "name": "Lab 9.11 - Pallet Count Function",
-  "description": "A reusable block counts pallets by type and publishes the current pallet-count result.",
+  "description": "A reusable block counts manually validated pallet detection edges and publishes the current count and batch validity.",
   "camera": {
     "position": [
       11,
@@ -121,7 +121,7 @@
     {
       "id": "training_accessory_6",
       "type": "trainingAccessory",
-      "label": "Pallet Count Function - count display (unbound)",
+      "label": "Pallet Count Function - current count display",
       "position": [
         1.1,
         0,
@@ -129,7 +129,8 @@
       ],
       "config": {
         "assetName": "count display",
-        "catalogAssetId": "training.accessory.count_display.v1"
+        "catalogAssetId": "training.accessory.count_display.v1",
+        "display": "palletCount"
       }
     },
     {
@@ -205,6 +206,13 @@
         "owner": "PLC",
         "initial": false,
         "role": "output"
+      },
+      {
+        "name": "pallet_count",
+        "role": "output",
+        "type": "DINT",
+        "initial": 0,
+        "owner": "PLC"
       }
     ],
     "actions": [
@@ -250,20 +258,27 @@
         "equipmentId": "indicator_3",
         "mode": "indicator",
         "activeColor": "green"
+      },
+      {
+        "equipmentId": "training_accessory_6",
+        "point": "pallet_count",
+        "label": "COUNT",
+        "mode": "numericDisplay"
       }
     ]
   },
   "training": {
     "hints": [
       "Translate the lesson into explicit state and permissive logic: Each valid pallet event contributes to the selected count and produces a valid count result.",
-      "Inputs are simulator feedback (pallet_detected, pallet_type_valid, count_request); PLC logic owns pallet_count_valid.",
-      "Test the initial state, the valid condition, and at least one missing permissive."
+      "Inputs are simulator feedback (pallet_detected, pallet_type_valid, count_request); PLC logic owns pallet_count_valid and the DINT pallet_count.",
+      "Test the initial state, the valid condition, and at least one missing permissive.",
+      "The DINT pallet_count is published after each counter scan. Stop clears the output image to zero while batch_count memory is retained; Run republishes that count, and Reset clears both."
     ],
     "solution": {
       "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
       "steps": [
         "Require the documented inputs: pallet_detected, pallet_type_valid, count_request.",
-        "Command the documented outputs: pallet_count_valid.",
+        "Publish the DINT pallet_count and command pallet_count_valid after five valid events.",
         "Remove PLC commands when the permissive is lost."
       ],
       "acceptance": "Each valid pallet event contributes to the selected count and produces a valid count result."
@@ -274,24 +289,28 @@
       "count display"
     ],
     "machineGuide": {
-      "purpose": "A reusable block counts pallets by type and publishes the current pallet-count result.",
+      "purpose": "A reusable block counts manually validated pallet detection edges and publishes the current count and batch validity.",
       "startConditions": [
         "The common PLC/watchdog foundation is healthy.",
         "All required simulator inputs are at their documented initial state."
       ],
       "normalSequence": [
-        "Apply the requested input condition.",
-        "Verify only the documented PLC outputs respond."
+        "Enable pallet type valid and count request.",
+        "Toggle pallet detected off and on for each new valid event. The DINT count and 3D display advance once per rising detection edge.",
+        "The batch-valid lamp turns on at five valid events. Invalid events are not counted; held detection does not recount."
       ],
       "stopBehavior": [
-        "Removing the permissive removes PLC-owned commands.",
-        "Reset returns the module to its initial state."
+        "Stop clears PLC-owned BOOL and numeric outputs; the visible count becomes zero while internal counter memory is retained.",
+        "Run republishes the retained counter on its next scan; a held detector does not add an event.",
+        "Reset clears inputs, counter memory and outputs."
       ],
       "faultBehavior": [
         "A missing or stale input must fail safe and remain diagnosable."
       ],
       "expectedObservations": [
-        "Each valid pallet event contributes to the selected count and produces a valid count result."
+        "The 3D readout and DINT pallet_count match the accumulated valid detection events. The batch-valid bit requires at least five events and both permissives.",
+        "Stop clears the numeric output image to zero while retaining internal counter memory. Run republishes the retained count on its next scan. Reset clears inputs, memory and outputs.",
+        "Pallet type is a manually supplied validity bit; the optical fixture does not classify pallets or generate detection events."
       ]
     },
     "sequenceNumber": 57,
@@ -308,7 +327,8 @@
       "pallet_detected",
       "pallet_type_valid",
       "count_request",
-      "pallet_count_valid"
+      "pallet_count_valid",
+      "pallet_count"
     ],
     "changedTags": [],
     "previousAcceptance": [
@@ -320,7 +340,8 @@
       {
         "name": "initial-safe-state",
         "expect": {
-          "pallet_count_valid": false
+          "pallet_count_valid": false,
+          "pallet_count": 0
         }
       }
     ]

@@ -6,6 +6,31 @@ would otherwise be trapped in a local Codex session. It intentionally excludes
 machine-local Codex databases, credentials, screenshots from private chats, and
 temporary runtime state.
 
+Pallet count readout workflow repair (2026-10-05): authored Demo 4 now publishes
+PLC-owned DINT pallet_count via MOV batch_count.ACC after the counter call.
+Scene 71 binds that point to a live COUNT readout; the reusable display remains
+static when used without this scene configuration. A regression first failed
+because the output did not exist. The composed-scene check then exposed INT/
+DINT commits being promoted to Double by the REAL switch arm. Integer branches
+now box Int64 before that promotion; INT/DINT limits and truncation and REAL
+fraction preservation pass. Nine count workflow checks cover invalid events,
+later permissives, five edges, held detection, validity loss, Stop/Run/Reset.
+All 183 geometry/reference/workflow checks pass; build zero warnings/errors,
+143 controller tests pass without real transport, initial contract and app-shell
+checks pass with zero ERROR lines. The expected missing-workspace warning remains.
+Native Windows normal Run, action rail, Stop, Run and Reset were individually
+observed: COUNT 0 rejects an invalid event and later validity; valid detection
+edges show 1/2/3/4/5 matching the DINT point, validity is false before five and
+true at five, loss of type validity clears validity but retains count five.
+Stop shows zero; Run republishes five without a new edge; Reset shows zero,
+cleared visible inputs/outputs and scan zero. Live text was inspected FR and FL
+close. This does not establish optical classification, pallet travel, CNC
+integration or physical PLC behavior. Scene help was regenerated from the new
+contract; global asset-help validation still has the cut_length_display mismatch.
+Evidence: batch-display-{red-controller,final-build,controller,geometry,
+probe-build,probe,typed-build,typed-geometry,final-controller,final-contract,
+final-shell,native-final}.log. Goal remains active; catalog acceptance is open.
+
 Pallet Counting prop repair (2026-10-05): the type sensor was a pallet and the
 count display was a roller shutter, with unrelated recognition records. Both
 now use original Blender-source geometry: an optical-profile fixture and a

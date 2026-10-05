@@ -524,8 +524,10 @@ public partial class SceneSimulationRuntime : Node
             }
             _points[name] = type.ToUpperInvariant() switch
             {
-                "INT" => (long)Math.Clamp(Math.Truncate(value), short.MinValue, short.MaxValue),
-                "DINT" => (long)Math.Clamp(Math.Truncate(value), int.MinValue, int.MaxValue),
+                // Box integer branches before the REAL branch can promote the
+                // whole switch expression to double and erase the scene type.
+                "INT" => (object)(long)Math.Clamp(Math.Truncate(value), short.MinValue, short.MaxValue),
+                "DINT" => (object)(long)Math.Clamp(Math.Truncate(value), int.MinValue, int.MaxValue),
                 _ => value,
             };
         }
@@ -954,6 +956,12 @@ public partial class SceneSimulationRuntime : Node
                 case "selector":
                     if (equipment.FindChild("SelectorSwitchController", true, false) is SelectorSwitchController selector)
                         selector.SetPosition(Convert.ToSingle(value, CultureInfo.InvariantCulture));
+                    break;
+                case "numericDisplay":
+                    if (equipment.GetNodeOrNull<Label3D>("NumericReadout") is { } readout
+                        && IsNumericPointType(_pointTypes.GetValueOrDefault(point) ?? string.Empty))
+                        readout.Text = Text(binding, "label", string.Empty) + "\n"
+                            + Convert.ToDouble(value, CultureInfo.InvariantCulture).ToString("G", CultureInfo.InvariantCulture);
                     break;
                 case "indicator":
                     var color = value is string text ? text : Text(binding, "activeColor", "green");

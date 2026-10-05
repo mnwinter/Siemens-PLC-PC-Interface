@@ -85,10 +85,11 @@ public static class AuthoredDemoLadderPrograms
         document.AddTag("pallet_type_valid", PlcVariableRole.Input, "pallet_type_valid");
         document.AddTag("count_request", PlcVariableRole.Input, "count_request");
         document.AddTag("pallet_count_valid", PlcVariableRole.Output, "pallet_count_valid");
+        document.AddTag("pallet_count", PlcVariableRole.Output, "pallet_count", type: PlcVariableType.DInt);
         document.AddTag("batch_count", PlcVariableRole.Memory, type: PlcVariableType.Counter);
         document.AddTag("batch_ready", PlcVariableRole.Memory);
         document.AddTag("always_scan", PlcVariableRole.Memory, initialValue: true);
-        document.WatchVariables.AddRange(["pallet_detected", "pallet_type_valid", "count_request", "batch_count", "pallet_count_valid"]);
+        document.WatchVariables.AddRange(["pallet_detected", "pallet_type_valid", "count_request", "batch_count", "pallet_count", "pallet_count_valid"]);
 
         var counter = document.AddBlock("FB_ValidPalletCounter", LadderBlockType.FunctionBlock);
         var validation = document.AddBlock("FC_BatchValidation", LadderBlockType.Function);
@@ -110,6 +111,11 @@ public static class AuthoredDemoLadderPrograms
         document.SelectBlock(0);
         AddAlwaysScannedCall(document, "Count valid pallet events", counter.Id);
         AddAlwaysScannedCall(document, "Validate batch completion", validation.Id);
+        // Publish after the counter call so the scene sees this scan's count.
+        // Keep the standard Stop policy: output image zero, counter retained.
+        document.AddNumericOperationRung("Publish current pallet count", LadderNumericOperationKind.Move,
+            "batch_count.ACC", string.Empty, "pallet_count");
+        document.AddContact(2, 0, "always_scan", false);
         return document;
     }
 
