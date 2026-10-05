@@ -19,7 +19,8 @@ public partial class Main
     private HBoxContainer? _visualReviewBar;
 
     // This opt-in inspection bar uses the real shell, scene composer, meshes
-    // and camera. It does not execute scene actions or open a PLC connection.
+    // and camera. Only standalone plant QA exposes explicit scene actions;
+    // the controller-owned shell keeps its normal action ownership.
     private void AddVisualSceneReviewControls()
     {
         var layer = new CanvasLayer { Name = "VisualSceneReview", Layer = 20 };
@@ -76,6 +77,27 @@ public partial class Main
             var execute = new Godot.Button { Text = "Preview action", Disabled = actions.Count == 0 };
             execute.Pressed += () => runtime.ExecuteAction(actions[choice.Selected].Id);
             actionBar.AddChild(execute);
+            var composition = _sceneCompositionRoot!;
+            var runtimeMode = runtime.ProcessMode;
+            var compositionMode = composition.ProcessMode;
+            var hold = new CheckButton { Text = "Hold preview clock" };
+            var step = new Godot.Button { Text = "Step 0.5 s", Disabled = true };
+            hold.Toggled += held =>
+            {
+                // Hold the actual runtime and equipment processing, while the
+                // QA camera/UI remain usable. Output ownership is unchanged.
+                runtime.ProcessMode = held ? ProcessModeEnum.Disabled : runtimeMode;
+                composition.ProcessMode = held ? ProcessModeEnum.Disabled : compositionMode;
+                step.Disabled = !held;
+                GD.Print($"VISUAL_REVIEW_CLOCK held={held}");
+            };
+            step.Pressed += () =>
+            {
+                runtime.AdvanceSimulation(0.5);
+                GD.Print("VISUAL_REVIEW_STEP seconds=0.5");
+            };
+            actionBar.AddChild(hold);
+            actionBar.AddChild(step);
         }
     }
 
@@ -292,6 +314,7 @@ public partial class Main
             VerifySelectorProjection(Check);
             VerifyInboundToteGeometry(Check);
             VerifyAssemblyLiftGeometry(Check);
+            VerifyCoolantJugGeometry(Check);
 
             AddMigratedScene("tank-radar", _candidateCatalog!, _mainCamera!, false, false);
             // Exercise an authored parent scale as well as configured sizing.
@@ -613,6 +636,108 @@ public partial class Main
         runtime.ResetSimulation();
         check(!motion.Running && shaft.Transform == authored && runtime.Points["motor_running"] is false,
             "motor_state_reset_restores_shaft_and_output");
+    }
+
+    private void VerifyCoolantJugGeometry(Action<bool, string> check)
+    {
+        AddMigratedScene("lab-2-13-coolant-jug-fill", _candidateCatalog!, _mainCamera!, false, false);
+        var root = _sceneCompositionRoot!;
+        var runtime = _sceneRuntime!;
+        var jug = root.GetNode<Node3D>("coolant_jug");
+        var conveyor = root.GetNode<Node3D>("fill_conveyor");
+        var filler = root.GetNode<Node3D>("fill_valve");
+        var sensor = root.GetNode<Node3D>("jug_present_sensor");
+        var belt = ReviewBounds((MeshInstance3D)conveyor.FindChild("KIN_belt_surface", true, false));
+        bool Supported()
+        {
+            var load = ReviewBounds(jug);
+            return MathF.Abs(load.Position.Y - belt.End.Y) < 0.001f
+                && load.Position.X >= belt.Position.X && load.End.X <= belt.End.X
+                && load.Position.Z >= belt.Position.Z && load.End.Z <= belt.End.Z;
+        }
+        check(Supported(),
+            "coolant_jug_bottom_contacts_actual_belt");
+        var neck = (MeshInstance3D)jug.FindChild("JUG_NECK", true, false);
+        var caps = jug.FindChildren("JUG_CAP*", "", true, false).OfType<Node3D>().ToArray();
+        var vertices = neck.Mesh.SurfaceGetArrays(0)[(int)Mesh.ArrayType.Vertex].AsVector3Array();
+        var openMouth = caps.Length == 0 && vertices.Length > 0
+            && vertices.All(vertex => new Vector2(vertex.X, vertex.Z).Length() >= 0.074f);
+        check(openMouth, "coolant_jug_has_uncapped_annular_mouth");
+        bool Solid(MeshInstance3D mesh) => !mesh.Name.ToString().Contains("cable", StringComparison.OrdinalIgnoreCase)
+            && !mesh.Name.ToString().StartsWith("KIN_beam", StringComparison.Ordinal)
+            && mesh.Name != "JUG_FILL_stream" && mesh.Name != "VISIBLE_LIQUID_STREAM";
+        bool Clear(MeshInstance3D a, MeshInstance3D b) => !ReviewBounds(a).Intersects(ReviewBounds(b))
+            || !OrientedBoxesPenetrate(a, b);
+        var sensorSolids = ReviewMeshes(sensor).Where(Solid).ToArray();
+        var conveyorSolids = ReviewMeshes(conveyor).Where(Solid).ToArray();
+        var fillerSolids = ReviewMeshes(filler).Where(Solid).ToArray();
+        check(sensorSolids.All(a => conveyorSolids.All(b => Clear(a, b))),
+            "coolant_sensor_solids_clear_conveyor");
+        check(fillerSolids.All(a => conveyorSolids.Concat(sensorSolids).All(b => Clear(a, b))),
+            "coolant_fill_structure_clear_conveyor_and_sensor");
+        var baseMesh = (MeshInstance3D)filler.FindChild("FILLER_BASE", true, false);
+        var frontFoot = filler.FindChild("JUG_FILL_front_foot", true, false) as MeshInstance3D;
+        var column = (MeshInstance3D)filler.FindChild("FILLER_COLUMN", true, false);
+        var frontColumn = filler.FindChild("JUG_FILL_front_column", true, false) as MeshInstance3D;
+        var portal = filler.FindChild("JUG_FILL_portal_beam", true, false) as MeshInstance3D;
+        check(frontFoot is not null && frontColumn is not null && portal is not null
+            && MathF.Abs(ReviewBounds(baseMesh).Position.Y) < 0.001f
+            && MathF.Abs(ReviewBounds(frontFoot).Position.Y) < 0.001f
+            && ReviewBounds(column).Position.Y <= ReviewBounds(baseMesh).End.Y
+            && ReviewBounds(frontColumn).Position.Y <= ReviewBounds(frontFoot).End.Y
+            && OrientedBoxesPenetrate(column, portal) && OrientedBoxesPenetrate(frontColumn, portal),
+            "coolant_fill_portal_has_grounded_connected_supports");
+        var tip = (MeshInstance3D)filler.FindChild("NOZZLE_TIP", true, false);
+        var nozzle = (MeshInstance3D)filler.FindChild("KIN_fill_nozzle", true, false);
+        var tipOffset = tip.GlobalPosition - nozzle.GlobalPosition;
+        var stream = filler.FindChild("JUG_FILL_stream", true, false) as Node3D;
+        var beam = (MeshInstance3D)sensor.FindChild("KIN_beam*", true, false);
+        var initial = jug.Transform;
+        runtime.UsesExternalClock = false;
+        runtime.ExecuteAction("start-fill");
+        var support = true; var clear = true; var aligned = true; var attachments = true;
+        var sawFill = false; var streamState = stream is not null;
+        var collisions = new HashSet<string>();
+        for (var sample = 0; sample < 320; sample++)
+        {
+            runtime.AdvanceSimulation(0.02);
+            support &= Supported();
+            foreach (var loadMesh in ReviewMeshes(jug))
+            foreach (var solid in fillerSolids.Concat(sensorSolids))
+            {
+                if (Clear(loadMesh, solid)) continue;
+                clear = false;
+                collisions.Add($"{loadMesh.Name}/{solid.Name}");
+            }
+            var filling = runtime.Points["fill_valve_open"] is true;
+            streamState &= stream is not null && stream.Visible == filling;
+            attachments &= (tip.GlobalPosition - nozzle.GlobalPosition).DistanceTo(tipOffset) < 0.001f;
+            if (!filling) continue;
+            sawFill = true;
+            var mouth = ReviewBounds(neck); var tipBounds = ReviewBounds(tip);
+            var gap = tipBounds.Position.Y - mouth.End.Y;
+            var scan = ReviewBounds(beam).GetCenter(); var body = ReviewBounds(jug);
+            aligned &= MathF.Abs(tipBounds.GetCenter().X - mouth.GetCenter().X) < 0.001f
+                && MathF.Abs(tipBounds.GetCenter().Z - mouth.GetCenter().Z) < 0.001f
+                && gap >= 0.02f && gap <= 0.08f
+                && scan.X >= body.Position.X && scan.X <= body.End.X
+                && scan.Y > body.Position.Y && scan.Y < body.End.Y;
+        }
+        GD.Print($"COOLANT_GEOMETRY collisions={string.Join(",", collisions)} endpoint={ReviewBounds(jug)} mouth={ReviewBounds(neck)}");
+        check(support && runtime.Points["cycle_complete"] is true, "coolant_full_cycle_keeps_jug_supported");
+        check(clear, "coolant_jug_sweep_clears_fill_solids_and_sensor");
+        check(sawFill && aligned, "coolant_fill_dwell_aligns_nozzle_and_optical_envelope");
+        check(attachments && streamState, "coolant_nozzle_tip_follows_and_stream_tracks_valve");
+        runtime.ResetSimulation();
+        runtime.ExecuteAction("start-fill");
+        runtime.AdvanceSimulation(0.7);
+        runtime.StopSimulation();
+        var held = jug.Transform;
+        runtime.AdvanceSimulation(0.4);
+        var holds = jug.Transform.IsEqualApprox(held) && (stream is null || !stream.Visible);
+        runtime.ResetSimulation();
+        check(holds && jug.Transform.IsEqualApprox(initial) && Supported() && stream?.Visible == false,
+            "coolant_stop_holds_and_reset_restores_supported_jug");
     }
 
     private void VerifyAssemblyLiftGeometry(Action<bool, string> check)

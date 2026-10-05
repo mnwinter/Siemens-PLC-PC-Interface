@@ -6,7 +6,30 @@ would otherwise be trapped in a local Codex session. It intentionally excludes
 machine-local Codex databases, credentials, screenshots from private chats, and
 temporary runtime state.
 
-Latest inspection (2026-10-04): coverage 28/77, 49 pending, including failures.
+Latest coolant repair (2026-10-04): coverage stays 28/77, 49 pending, including
+failures. Opt-in SceneComposer.CoolantJug adapts the standalone imported filler
+to a grounded portal outside the conveyor, opens only this jug's neck/removes
+its cap, supports its actual bottom on the belt and keeps the full exit footprint
+on it. Tip and valve-driven stream follow the moving nozzle. Ten added actual
+geometry checks reproduce failures with original scene config; all 95 now pass.
+Native normal catalog five initial angles, QA five held filling angles and close
+FL open-mouth/stream inspected. Held steps advance runtime sequence bindings;
+independent equipment physics stays held. Resume reaches complete discharge;
+real-time Run indexing/exit and Reset inspected. Stop was endpoint-only.
+Build has zero warnings/errors. One fill contract case, 19 plant motion checks,
+142 controller tests, rendered overlay/control checks and shell pass; shell has
+four existing headless window-position errors. Attachment ownership is cleared
+before reparenting, removing new warnings. AABB candidates now 13, solid OBB
+checks exclude cables/optical beam; no physical clearance/strength claim.
+Open: external metering skid service pipe is absent, normal catalog Run still
+opens EDIT INVALID / NO CONTROLLER LOADED, real probe/fluid physics unverified.
+Logs coolant-install-*-final.log, coolant-install-native-held.log and
+coolant-install-shell-native.log under rungproof-next/.tools. Both isolated
+reviewers exited cleanly; user Demo 1 window preserved. Goal active. Next: finish
+coolant service integration/workflow findings, shared lift-scene follow-up, scene
+28 Sump Pump and remaining 49 inspections plus recorded failure repairs.
+
+Historical pre-repair inspection (2026-10-04): coverage 28/77, 49 pending, including failures.
 Scene 27 Coolant Jug has native FR/FL/RL/RR/T and close overhead/FL fill-unit
 inspection. FAIL/open: red cap still on jug and fixed fill solids in its indexing
 lane. Source uses the jerry-can and standalone volumetric tote filling assets.

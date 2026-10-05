@@ -1,5 +1,21 @@
 # Whole program review - 2026-10-03
 
+Coolant installation repair (2026-10-04): the jug now contacts the actual belt,
+has an open annular mouth and clears the fill structure/photoeyes throughout
+sampled travel. Grounded portal supports and an attached nozzle tip/valve-driven
+visual stream replace the obstructed standalone installation. Native catalog
+five views and five held QA filling views, close FL mouth/stream, real-time
+indexing/exit and Reset were inspected. Native Stop was endpoint-only. All 95
+geometry checks, one fill contract case, 19 motion checks, 142 controller tests,
+rendered control checks and a zero-warning/error build pass. Shell passes with
+four existing headless window-position errors. Normal Run still opens an unloaded
+controller editor; external skid service piping is missing. This is a bounded
+geometry repair, not full process/lesson acceptance. Coverage remains 28/77,
+49 pending including failures. Isolated reviewers closed; user Demo 1 preserved.
+See MULTI_ANGLE_SCENE_REVIEW.md for exact evidence and remaining limitations.
+
+Earlier checkpoint:
+
 Coolant Jug inspection (2026-10-04): coverage is now 28/77 native five-view
 inspections, 49 pending, including failures. Five angles and close fill-unit
 views expose a capped jug and fixed fill-assembly solids in its indexing lane.

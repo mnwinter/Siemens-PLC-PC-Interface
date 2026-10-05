@@ -28,7 +28,49 @@ Every row requires native inspection.
 
 ## Repairs and open findings
 
-- Coolant Jug Filling Cell (scene 27) has native FR/FL/RL/RR/T inspections and
+- Coolant Jug installation follow-up: the capped jug, unsupported belt height
+  and fixed fill solids in its lane are repaired with an opt-in scene adapter.
+  The actual imported jug bottom was 129.3 mm above the belt; its new origin
+  puts the bottom at Y=0.9000003. The exit origin is X=3.5, keeping its full
+  footprint on the eight-metre belt. The photoeye stands straddle the conveyor.
+  Both filler posts are grounded outside the belt and joined to a portal beam;
+  the nozzle sits over the uncapped annular mouth. Its tip and visual stream
+  follow the nozzle, and the stream is visible only when the valve is open.
+  The reusable standalone asset and other jug instances retain their defaults.
+  Native catalog FR/FL/RL/RR/T initial views were inspected, plus all five held
+  filling views in explicit no-controller plant QA. A close FL view shows the
+  open neck and centered stream. Close overhead is occluded by the dosing head
+  and is not acceptance of the hidden mouth. Four separate 0.5-second runtime
+  steps reach filling; hold keeps that pose stable through camera changes.
+  Holding disables runtime/equipment processing; stepping advances sequence
+  bindings, not independent pump rotation or conveyor texture animation.
+  Resuming real-time processing reaches the supported exit with fill_percent=100,
+  valve/skid off and cycle_complete=true. Reset restores the initial supported
+  jug. A fresh real-time Run was inspected during indexing and at completion;
+  Stop was clicked after completion, so mid-cycle Stop remains deterministic
+  evidence only. Normal catalog Run still opens EDIT INVALID / NO CONTROLLER
+  LOADED. The introduction's claim that Run controls the scene is misleading
+  for this unloaded controller state and remains a workflow finding.
+  Ten new checks cover actual support, annular mouth, solid clearances, grounded
+  frame connections, 320 travel samples, fill alignment, attached tip/stream and
+  Stop/Reset. Original scene configuration reproduces failed checks; all 95
+  geometry checks now pass. Build: zero warnings/errors; one fill contract case,
+  19 plant-motion checks, 142 controller tests and rendered overlay/control checks
+  pass. Shell verifies 77 scenes/294 assets but retains four headless invalid
+  window-position errors and the expected no-saved-workspace warning. Clearing
+  imported ownership before reparenting removes new attachment-owner warnings.
+  Current initial AABB inventory is 13 candidates (formerly 53), in the conveyor /
+  sensor pair; solid OBB checks exclude optical beam/cables. This is screening,
+  not physical collision proof. The external skid-to-reservoir service pipe is
+  still absent; the internal reservoir-to-valve path was repositioned. Structural
+  ratings, hollow body/fluid volume, real optical sensing and PLC-controlled
+  execution are unverified. Scene acceptance remains open on those documented
+  visual/workflow omissions. Logs coolant-install-*-final.log,
+  coolant-install-native-held.log and coolant-install-shell-native.log under
+  rungproof-next/.tools record this checkpoint; screenshots were inspected in
+  the native review session. Both isolated reviewers exited cleanly; user Demo 1
+  remains open. Coverage stays 28/77 inspected, 49 pending, including failures.
+- Historical pre-repair Coolant Jug inspection (scene 27): native FR/FL/RL/RR/T and
   close overhead/FL fill-unit views. **Visual acceptance FAIL/open:** the jug
   retains its red cap, while fixed fill-assembly solids occupy its indexing
   lane on the belt. A usable nozzle-to-open-jug fill path and supported clear
@@ -436,7 +478,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 24 | `lab-2-10-dust-collector-seal-in` | 0 | FR/FL/RL/RR/T + close STOP | Static clear; STOP repaired; 3D PC requests/Reset checked. Fan schematic only; Run empty controller. |
 | 25 | `lab-2-11-inbound-tote-stop` | 7 | FR/FL/RL/RR/T + close tote; FL/RR motion endpoints | Tote support, sensor clearance and cycle endpoint repaired; six focused checks pass. Native completion/Reset and endpoint Stop checked; Run empty controller. Cable AABB candidates remain. |
 | 26 | `lab-2-12-assembly-lift` | 0 | FR/FL/RL/RR/T + close plates/lift + FL/RR motion | Fixture support, rollers/washers, travel framing and hydraulic attachment repaired; historical bellows approval stale; blank editor on normal Run; shared scenes need follow-up |
-| 27 | `lab-2-13-coolant-jug-fill` | 53 | FR/FL/RL/RR/T + close fill unit | FAIL/open: capped jug, fixed fill solids in indexing lane; fill-path/support/motion clearance unverified; Run blank controller editor |
+| 27 | `lab-2-13-coolant-jug-fill` | 13 | Catalog FR/FL/RL/RR/T; QA five held filling views + close FL mouth; real-time indexing/exit, Reset | Lane/support/nozzle repaired; sampled sweep clear. Open: external service pipe absent, Run blank controller editor; native Stop endpoint-only |
 | 28 | `lab-2-14-sump-pump` | 41 | Pending | Pending |
 | 29 | `lab-2-15-fume-extractor` | 0 | Pending | Pending |
 | 30 | `lab-2-16-safe-drill` | 24 | Pending | Pending |

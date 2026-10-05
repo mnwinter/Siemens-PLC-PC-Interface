@@ -43,6 +43,8 @@ public partial class EquipmentMotionController : Node
     // Opt-in setpoint slew for indexed parcel tables. Other assets retain
     // their existing immediate position contract when this value is zero.
     [Export] public float PositionInputSlewSeconds { get; set; }
+    // Optional visual stream follows valve position; no fabricated PLC feedback.
+    [Export] public string PositionVisibilityChildName { get; set; } = string.Empty;
 
     public bool Running => RunCommand;
     public float PositionPercent => _position * 100.0f;
@@ -185,6 +187,7 @@ public partial class EquipmentMotionController : Node
             node.Transform = transform;
             node.Scale = _authoredScales[node];
         }
+        ApplyPositionVisibility();
     }
 
     private void RotateContinuously(float delta)
@@ -201,6 +204,7 @@ public partial class EquipmentMotionController : Node
 
     private void ApplyPosition()
     {
+        ApplyPositionVisibility();
         if (Kind == MotionKind.PositionRotation)
         {
             ApplyRotation(Mathf.DegToRad(TravelDegrees) * _position);
@@ -230,6 +234,14 @@ public partial class EquipmentMotionController : Node
         {
             target.Transform = _authoredTransforms[target].TranslatedLocal(offset);
         }
+    }
+
+    private void ApplyPositionVisibility()
+    {
+        if (PositionVisibilityChildName.Length == 0) return;
+        foreach (var target in _targets)
+            if (target.FindChild(PositionVisibilityChildName, true, false) is Node3D child)
+                child.Visible = _position > 0.5f;
     }
 
     private void ApplyGantryPosition()

@@ -41,10 +41,11 @@
       "label": "Coolant jug",
       "position": [
         -3.2,
-        0.99,
+        0.860656,
         0
       ],
       "config": {
+        "openForFill": true,
         "size": [
           0.8,
           1.2,
@@ -63,7 +64,7 @@
         0
       ],
       "config": {
-        "span": 2.05,
+        "span": 3.8,
         "height": 0.7,
         "beamCenterHeightM": 1.45,
         "blocked": false
@@ -76,9 +77,10 @@
       "position": [
         0,
         0,
-        0
+        -3.2
       ],
       "config": {
+        "installation": "conveyorJug",
         "initialPosition": 0
       }
     },
@@ -87,9 +89,9 @@
       "type": "meteringSkid",
       "label": "Metered coolant skid",
       "position": [
+        -2.6,
         0,
-        0,
-        -2
+        -3.3
       ],
       "config": {
         "size": [
@@ -291,7 +293,7 @@
               "equipmentId": "coolant_jug",
               "axis": "x",
               "from": 0,
-              "to": 3.8
+              "to": 3.5
             }
           ]
         },

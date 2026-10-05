@@ -15,7 +15,7 @@ public sealed record SceneComposition(
     IReadOnlyList<string> DeferredEquipmentIds
 );
 
-public static class SceneComposer
+public static partial class SceneComposer
 {
     public static SceneComposition Compose(
         SceneDefinition scene,
@@ -35,6 +35,8 @@ public static class SceneComposer
                 "box" => CreateSceneLoad(equipment, candidates),
                 "palletLoad" => CreateMappedAsset(equipment, candidates,
                     "loads.palletized-cases.gma-48x40.v1"),
+                "toteFiller" when Text(equipment.Config, "installation", string.Empty) == "conveyorJug" =>
+                    CreateConveyorJugFiller(equipment, candidates, runCommands),
                 "toteFiller" => CreateControlledAsset(equipment, candidates,
                     "process.packaging.filler.tote-volumetric.v1", runCommands,
                     EquipmentMotionController.MotionKind.LinearY, "KIN_fill_nozzle",
@@ -557,6 +559,9 @@ public static class SceneComposer
         var asset = candidates.Assets.FirstOrDefault(item => item.Id == assetId)
             ?? throw new InvalidOperationException($"Required scene asset is missing: {assetId}");
         var model = CreateMappedAsset(equipment, candidates, assetId);
+        if (equipment.Id == "coolant_jug" && equipment.Config.TryGetProperty("openForFill", out var open)
+            && open.ValueKind == JsonValueKind.True)
+            OpenJugForFilling(model);
         model.Scale = new Vector3(
             (float)(size[0] / asset.Bounds.WidthM),
             (float)(size[1] / asset.Bounds.HeightM),
