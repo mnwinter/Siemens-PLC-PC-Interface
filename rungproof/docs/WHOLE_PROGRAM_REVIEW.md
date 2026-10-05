@@ -1,6 +1,22 @@
 # Whole program review - 2026-10-03
 
-Pallet receiver checkpoint (2026-10-05, current): Scene 31's timed reference
+Pallet robot handling checkpoint (2026-10-05, current): Scene 31's imported
+joints now drive the gripper and held tote. A grounded pedestal and raised,
+reoriented receiver bring both bays within the modeled reach. The reference
+approaches, grips, lifts, carries, lowers, releases and withdraws before
+counting two placements and releasing the empty pallet. Corrected routes,
+forearm cable mounting and backstop nameplate placement remove measured
+cross-equipment clashes. Full reference geometry at 10 ms samples passes
+406 checks (29 pallet-cell checks); build, controller 143, shell 77/294,
+plant motion 32, reference contract and help validation pass. Stop freezes
+the held pose; Reset is required before reference restart. Unreachable or
+malformed robot motions stop before completion. Final Windows pose review
+is recorded in [multi-angle evidence](MULTI_ANGLE_SCENE_REVIEW.md).
+Scene 31 remains open for complete normal controller-driven robot operation,
+continuous native intermediate-frame inspection and physical/rated handling.
+The broad review goal remains active.
+
+Pallet receiver checkpoint (2026-10-05, previous checkpoint): Scene 31's timed reference
 now lands both containers in their actual roller bays before counting them and
 releasing the empty pallet. Flush nail heads and accurate deck seating remove
 staged-load interference; the lift/carry/lower path clears both totes and other

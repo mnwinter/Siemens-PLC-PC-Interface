@@ -206,13 +206,13 @@ public partial class SceneSimulationRuntime : Node
         var duration = Math.Max(Number(step, "durationS", 0.0), 0.0001);
         _stepElapsed += delta;
         var progress = (float)Math.Clamp(_stepElapsed / duration, 0.0, 1.0);
-        ApplyMotions(step, progress);
+        if (!ApplyMotions(step, progress)) { StopSimulation(); return; }
         if (_stepElapsed + 1e-9 < duration)
         {
             return;
         }
 
-        ApplyMotions(step, 1.0f);
+        if (!ApplyMotions(step, 1.0f)) { StopSimulation(); return; }
         _activeStepIndex++;
         _stepElapsed = 0.0;
         if (_activeStepIndex < steps.Length)
@@ -389,6 +389,9 @@ public partial class SceneSimulationRuntime : Node
                 case EquipmentMotionController motion:
                     motion.ResetMotion();
                     break;
+                case PalletRobotMotion robot:
+                    robot.ResetMotion();
+                    break;
                 case ConveyorController conveyor:
                     conveyor.RunCommand = false;
                     break;
@@ -542,6 +545,14 @@ public partial class SceneSimulationRuntime : Node
 
     private bool StartSequence(string name)
     {
+        if (Controllers().OfType<PalletRobotMotion>().Any(robot => robot.ReferenceNeedsReset))
+        {
+            // Restarting authored pickup coordinates with a held or deposited
+            // tote would teleport it. A stopped/completed robot reference
+            // requires the operator's existing Reset action before Run.
+            GD.Print("SCENE_ROBOT_START_REJECT resetRequired=true");
+            return false;
+        }
         if (name.Length == 0
             || !_definition.TryGetProperty("sequences", out var sequences)
             || sequences.ValueKind != JsonValueKind.Object
@@ -584,17 +595,20 @@ public partial class SceneSimulationRuntime : Node
         GD.Print($"SCENE_SEQUENCE_STEP {Text(step, "name", _activeStepIndex.ToString(CultureInfo.InvariantCulture))}");
     }
 
-    private void ApplyMotions(JsonElement step, float progress)
+    private bool ApplyMotions(JsonElement step, float progress)
     {
         if (!step.TryGetProperty("motions", out var motions) || motions.ValueKind != JsonValueKind.Array)
         {
-            return;
+            return true;
         }
         foreach (var motion in motions.EnumerateArray())
         {
+            var kind = Text(motion, "type", string.Empty);
+            var robotMotion = kind is "robotApproach" or "robotGrip" or "robotTransfer" or "robotRelease" or "robotWithdraw";
             var equipmentId = SafeNodeName(Text(motion, "equipmentId", string.Empty));
             if (_sceneRoot.GetNodeOrNull<Node3D>(equipmentId) is not { } equipment)
             {
+                if (robotMotion) { GD.Print($"SCENE_ROBOT_MOTION_REJECT missingEquipment={equipmentId}"); return false; }
                 continue;
             }
             var from = (float)Number(motion, "from", 0.0);
@@ -604,6 +618,40 @@ public partial class SceneSimulationRuntime : Node
             var value = Mathf.Lerp(from, to, progress);
             switch (Text(motion, "type", string.Empty))
             {
+                case "robotApproach":
+                case "robotGrip":
+                case "robotTransfer":
+                case "robotRelease":
+                case "robotWithdraw":
+                    var robot = equipment.FindChild("PalletRobotMotion", true, false) as PalletRobotMotion;
+                    var loadId = Text(motion, "loadId", string.Empty);
+                    var load = loadId.Length > 0 ? _sceneRoot.GetNodeOrNull<Node3D>(SafeNodeName(loadId)) : null;
+                    bool Position(string property, bool required, out Vector3 position)
+                    {
+                        position = Vector3.Zero;
+                        if (!motion.TryGetProperty(property, out var value)) return !required;
+                        if (value.ValueKind != JsonValueKind.Array || value.GetArrayLength() != 3) return false;
+                        for (var axis = 0; axis < 3; axis++)
+                        {
+                            if (value[axis].ValueKind != JsonValueKind.Number || !value[axis].TryGetSingle(out var coordinate)
+                                || !float.IsFinite(coordinate)) return false;
+                            position[axis] = coordinate;
+                        }
+                        return true;
+                    }
+                    var needsRoute = kind is "robotTransfer" or "robotWithdraw";
+                    // Only an approach without a load is an intentional park.
+                    // A misspelled load or malformed vector must stop before
+                    // the timed sequence can increment its placement count.
+                    if (robot is null || (loadId.Length > 0 && load is null) || (kind != "robotApproach" && load is null)
+                        || !Position("fromPosition", needsRoute, out var routeFrom)
+                        || !Position("toPosition", needsRoute, out var routeTo)
+                        || !robot.ApplyReference(Text(step, "name", string.Empty), kind, load, routeFrom, routeTo, progress))
+                    {
+                        GD.Print($"SCENE_ROBOT_MOTION_REJECT step={Text(step, "name", string.Empty)} load={loadId}");
+                        return false;
+                    }
+                    break;
                 case "translate":
                     var position = equipment.Position;
                     position[AxisIndex(Text(motion, "axis", "x"))] = value;
@@ -627,6 +675,7 @@ public partial class SceneSimulationRuntime : Node
                     break;
             }
         }
+        return true;
     }
 
     private void ApplyTankLevel(Node3D equipment, float normalized)
@@ -1217,12 +1266,13 @@ public partial class SceneSimulationRuntime : Node
     {
         root ??= _sceneRoot;
         return root.FindChildren("*", string.Empty, true, false).Where(node =>
-            node is EquipmentMotionController or ConveyorController or RollerConveyorController);
+            node is EquipmentMotionController or ConveyorController or RollerConveyorController or PalletRobotMotion);
     }
 
     private static bool IsControllerRunning(Node controller) => controller switch
     {
         EquipmentMotionController motion => motion.Running,
+        PalletRobotMotion robot => robot.RunCommand,
         ConveyorController conveyor => conveyor.RunCommand,
         RollerConveyorController rollers => rollers.RunCommand,
         _ => false,
@@ -1233,6 +1283,7 @@ public partial class SceneSimulationRuntime : Node
         switch (controller)
         {
             case EquipmentMotionController motion: if (running) motion.Run(); else motion.Stop(); break;
+            case PalletRobotMotion robot: robot.RunCommand = running; break;
             case ConveyorController conveyor: conveyor.RunCommand = running; break;
             case RollerConveyorController rollers: rollers.RunCommand = running; break;
         }

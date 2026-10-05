@@ -3552,6 +3552,12 @@ public partial class Main : Node3D
         controls.AddChild(stop);
         controls.AddChild(reset);
         content.AddChild(controls);
+        if (scene.Id == "lab-2-17-pallet-robot")
+            content.AddChild(new Label
+            {
+                Text = "Reset before repeating or restarting a stopped cycle.",
+                AutowrapMode = TextServer.AutowrapMode.WordSmart,
+            });
         panel.AddChild(content);
         layer.AddChild(panel);
         AddChild(layer);

@@ -9,6 +9,8 @@ public static partial class SceneComposer
 {
     private static Node3D CreateContainerReceiver(SceneEquipment equipment, AssetCatalogDocument candidates)
     {
+        if (Text(equipment.Config, "installation", string.Empty) == "palletHandlingReceiver")
+            return CreateRaisedPalletReceiver(equipment, candidates);
         if (Text(equipment.Config, "installation", string.Empty) != "flatCartonReceiver")
             return CreateMappedAsset(equipment, candidates, "material-handling.receiver.container-two-position.v1");
 

@@ -10,7 +10,55 @@ includes failed scenes; it is not a count of accepted scenes.
 
 ## Acceptance method
 
-Pallet receiver landing (2026-10-05, current): reproduced the old Scene 31
+Pallet robot handling (2026-10-05, current): Scene 31 now uses the imported
+six-joint hierarchy and tool attachment rather than an independent base
+oscillator plus disconnected tote translations. The grounded pedestal and
+raised receiver keep the installation within reach. Both face 180 degrees;
+the receiver backstop faces away from the approaching wrist. Bay centers are
+X=2.07/0.93 m, Z=2.15 m, with roller tops at 1.195 m. The first carry passes
+in front of the cell before crossing right; approach/return routes use the
+staging side to stay inside the catalog base-axis +/-170 degree range.
+Both carry bottoms remain at 2.1 m. The route stays in front of the 2.48 m
+backstop; that carrying height does not clear the whole backstop.
+
+The wrist-mounted jaws/fasteners and connected guide rods follow the tool.
+Forearm cable strain reliefs follow the forearm before wrist roll, with short
+brackets on the opposite face. The receiver nameplate is mounted on the
+backstop instead of projecting into the wrist descent. Earlier iterations
+failed on tote/cable, tote/elbow and wrist/nameplate intersections or base-axis
+reach. These were repaired; no joint limit was relaxed to force completion.
+The checker also needed nonrecursive operand normalization and actual
+triangle/box plus capped-cylinder refinement for curved mesh candidates.
+Moving bounds are refreshed once per 10 ms sample, preserving all candidate
+checks without repeating transform calls for every equipment pair.
+
+Final geometry v24: 406 checks PASS, including 29 pallet-cell checks. The same
+41.446-second reference is sampled at 10 ms for actual joint/load sweeps,
+tool attachment, roller landing before count, supported empty-pallet release,
+Stop/Reset and rejection of an unreachable target. Restart after a stopped or
+completed reference requires Reset, preventing reuse of authored pickup
+coordinates against an already moved tote. Malformed robot payloads stop the
+reference. Build zero warnings/errors, controller 143, shell 77/294, plant
+motion 32, scene reference contract and help validation pass.
+
+Final native Windows PLANT PREVIEW: first lifted tote and completed two-bay
+landing each inspected in FR/FL/RL/RR/Top (10 pose/view observations). FR/FL
+and RL expose the opposed jaw contact; RR hides part of the grip behind the
+arm. Front views hide the landed tote bottoms behind the backstop; rear views
+and Top expose both separate bays and the backstop nameplate. Stop held the
+lifted tote after releasing the review clock; Run before Reset remained
+blocked without moving it. Reset restored both staged totes, pallet, count
+zero and parked joints. An unheld reference completed with two placed totes,
+empty pallet fully outbound, commands off and cycle_complete true. A visible
+Reset instruction was added to the preview controls and inspected separately.
+Complete controller-driven robot operation, continuous native
+inspection of every intermediate frame, manufacturer limits other than the
+catalog base range, robot self-collision, cable bend radius and physical
+gripping/load capacity remain unproven. Scene 31 remains FAIL/open overall;
+this is an offline reference repair. Logs: .tools/pallet-robot-handling-*.log.
+Goal remains active.
+
+Pallet receiver landing (2026-10-05, previous checkpoint): reproduced the old Scene 31
 reference reporting two placements with both totes outside the receiver. New
 actual-reference checks failed landing, count/landing agreement and path
 clearance. Measured bay centers are X=3.03/4.17 m, Z=2.4 m; roller tops are
@@ -1815,7 +1863,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 28 | `lab-2-14-sump-pump` | 41 (original) | Final repaired FR/FL/RL/RR/T wide + top/FL/RL/FR pump close | Partial piping repair: joined measured ports, aligned valve/spool and grounded supports; still FAIL: buried low probe, float fitting/identity and sump vessel open; normal Run unloaded; full level motion pending |
 | 29 | `lab-2-15-fume-extractor` | 0 | FR/FL/RL/RR/T static and running 35%; close plate; speed states; native preview Stop/Run/Off/Reset | LIGHT REQUEST, speed binding and preview Stop repaired; six-blade transform checks pass. Open: beacon substitutes light, hood/duct absent, normal Run unloaded; reference preview is not controller lesson acceptance |
 | 30 | `lab-2-16-safe-drill` | 24 original / 0 repaired | Native repaired FR/FL/RL/RR/T; stock FR close; normal 3D hand/cycle controls; held feed/bottom four close sides; Stop/Reset/restart; unheld completion | Fixture/feed and honest Stop-hold semantics repaired; normal cycle blocks without controller. Top stock view occluded by head; guard/two-hand safety behavior is not modeled |
-| 31 | `lab-2-17-pallet-robot` | 23 historic; 4 previous home candidates | Final second-carry and completed landing FR/FL/RL/RR/T; Stop/Reset; earlier staged/bridge/sensor views | Pallet seating, outbound support and receiver landing repaired; 19 installation/transfer checks PASS within 396 total. Actual reference sampled at 10 ms; both totes land on receiver rollers before count/release, pallet fully on outbound belt. FAIL/open: robot does not grip/reach moving tote; complete controller-driven transfer and continuous intermediate native views unproven |
+| 31 | `lab-2-17-pallet-robot` | 23 historic; broad home candidates are not solid interference | Final modeled pickup and completed landing FR/FL/RL/RR/T; Stop/Reset/restart guard; earlier staged/bridge/sensor views | Imported robot/tool attachment, grounded installation, routes and roller landing repaired; 29 pallet-cell checks PASS within 406 total. Reference sampled at 10 ms; both totes land before count/release, empty pallet fully outbound. FAIL/open: complete normal controller-driven transfer, continuous intermediate native views and physical/rated handling unproven |
 | 32 | `lab-2-18-pallet-pickup` | 29 | Native FR/FL/RL/RR/T; sensor top/FR/RL close; auto toggle and jog | Open: pallet support and sensor/conveyor mounting need measurement; Jog blocks unloaded; full motion unverified |
 | 33 | `lab-2-19-service-door` | 54 original / 0 repaired | Repaired native FR/FL/RL/RR/T; operator FR close; held opening/Stop/reverse; real-time endpoints; open five views; Reset | Layout/plates and reference reversal/position feedback repaired; raw NC signal displays explicit. Physical limit/cable behavior, compressed slat geometry and loaded-controller operation unaccepted |
 | 34 | `lab-2-20-bottle-shuttle` | 39 | Native FR/FL/RL/RR/T; bottle top/FR close; Start | Open: overlapping bottle label text; contact and sensor mounts need measurement. Normal Start unloaded; round-trip motion unverified |

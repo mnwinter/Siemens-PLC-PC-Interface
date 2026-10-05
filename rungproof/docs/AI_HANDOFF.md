@@ -6,7 +6,23 @@ would otherwise be trapped in a local Codex session. It intentionally excludes
 machine-local Codex databases, credentials, screenshots from private chats, and
 temporary runtime state.
 
-Pallet receiver checkpoint (2026-10-05, current): Scene 31's stale transfer
+Pallet robot handling checkpoint (2026-10-05, current): the offline Scene 31
+reference now uses PalletRobotMotion on the imported six joints, with held
+load/tool attachment, wrist-mounted jaws and following forearm cable. Robot
+and receiver have grounded supports and face 180 degrees. Rollers are at
+1.195 m; final load bays are X=2.07/0.93, Z=2.15 m. The first carry goes in
+front of the cell; approach/park routes use the staging side to avoid the
+catalog base-axis limit. Nameplate is on the backstop. Duration 41.446 s;
+contract waits 44 s. Stop freezes the pose; Reset is required before restarting
+an interrupted/completed reference. Unreachable/malformed motion rejects
+before placement/completion. Build, controller 143, shell 77/294, motion 32,
+geometry 406, contract/help pass. Native final-model evidence is recorded in
+[multi-angle evidence](MULTI_ANGLE_SCENE_REVIEW.md). Scene 31 remains FAIL/open
+for normal controller-driven robot operation and unproven physical limits,
+self-collision and handling. No live PLC action/transport was used. Continue
+those catalog failures; the broad goal remains active.
+
+Pallet receiver checkpoint (2026-10-05, previous checkpoint): Scene 31's stale transfer
 targets and height are repaired. The timed reference uses lift/carry/lower
 phases to seat both tote bottoms on the 395 mm receiver rollers at
 X=3.03/4.17, Z=2.4 m, then counts placements and releases the empty pallet.

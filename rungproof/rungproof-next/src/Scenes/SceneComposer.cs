@@ -83,6 +83,8 @@ public static partial class SceneComposer
                         travelM: -0.245f),
                 "drillPress" => CreateControlledAsset(equipment, candidates, "machining.drill-press.pedestal.v1", runCommands,
                     EquipmentMotionController.MotionKind.ContinuousRotation, "KIN_spindle", speedRpm: 900.0f),
+                "robotArm" when Text(equipment.Config, "installation", string.Empty) == "palletHandlingRobot" =>
+                    CreatePalletHandlingRobot(equipment, candidates),
                 "robotArm" => CreateControlledAsset(equipment, candidates, "robotics.robot.six-axis-medium.v1", runCommands,
                     EquipmentMotionController.MotionKind.OscillatingRotation, "KIN_axis_1", travelDegrees: 55.0f),
                 "rotaryTable" => CreateRotaryTable(equipment, candidates, runCommands),

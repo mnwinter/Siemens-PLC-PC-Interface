@@ -53,7 +53,7 @@ public partial class Main
                 }
                 return true;
             }
-            GD.Print($"PALLET_ROBOT_INSTALLATION_CONFLICT {a.Name}/{b.Name}");
+            GD.Print($"PALLET_ROBOT_INSTALLATION_CONFLICT {a.Name}/{b.Name} a={ReviewBounds(a)} b={ReviewBounds(b)}");
             return false;
         }
         var others = root.GetChildren().OfType<Node3D>().Where(node => node != receiver)
@@ -129,8 +129,44 @@ public partial class Main
         var supported = true; var moved = false; var commandsTogether = true; var sweepClear = true;
         var receiver = root.GetNode<Node3D>("process_receiver");
         var loads = new[] { root.GetNode<Node3D>("container_a"), root.GetNode<Node3D>("container_b") };
+        var robotRoot = root.GetNode<Node3D>("pallet_robot");
+        var robot = robotRoot.FindChild("PalletRobotMotion", true, false) as Scenes.PalletRobotMotion;
+        check(robot is not null && !robotRoot.FindChildren("*", string.Empty, true, false).OfType<EquipmentMotionController>().Any(),
+            "pallet_robot_uses_imported_joint_handler_without_generic_base_oscillator");
+        var robotFoot = ReviewBounds((MeshInstance3D)robotRoot.FindChild("ROBOT_installation_foot", true, false));
+        var robotPost = ReviewBounds((MeshInstance3D)robotRoot.FindChild("ROBOT_installation_pedestal", true, false));
+        check(MathF.Abs(robotFoot.Position.Y) < 0.001f && MathF.Abs(robotFoot.End.Y - robotPost.Position.Y) < 0.001f
+            && MathF.Abs(robotPost.End.Y - ReviewBounds((MeshInstance3D)robotRoot.FindChild("ROBOT_base", true, false)).Position.Y) < 0.001f,
+            "pallet_robot_pedestal_connects_grounded_foot_to_imported_base");
+        var receiverFeet = ReviewMeshes(receiver).Where(mesh => mesh.Name.ToString().StartsWith("RECEIVER_grounded_foot", StringComparison.Ordinal)).ToArray();
+        var receiverPosts = ReviewMeshes(receiver).Where(mesh => mesh.Name.ToString().StartsWith("RECEIVER_support_post", StringComparison.Ordinal)).ToArray();
+        check(receiverFeet.Length == 4 && receiverPosts.Length == 4 && receiverFeet.All(foot => MathF.Abs(ReviewBounds(foot).Position.Y) < 0.001f)
+            && receiverPosts.All(post => receiverFeet.Any(foot => ReviewBounds(foot).Grow(0.001f).Intersects(ReviewBounds(post))
+                && MathF.Abs(ReviewBounds(foot).End.Y - ReviewBounds(post).Position.Y) < 0.001f)
+                && MathF.Abs(ReviewBounds(post).End.Y - ReviewBounds((MeshInstance3D)receiver.FindChild("RECEIVER_BASE", true, false)).Position.Y) < 0.001f),
+            "pallet_robot_raised_receiver_has_four_grounded_connected_supports");
+        check(ReviewMeshes(robotRoot).Where(mesh => mesh.Name.ToString().StartsWith("ROBOT_gripper_finger", StringComparison.Ordinal))
+            .All(mesh => mesh.GetParent().Name == "KIN_axis_6"), "pallet_robot_fingers_and_fasteners_follow_imported_wrist_joint");
+        var homeAngles = robot?.JointAngles;
+        var attached = true; var hadAttachment = false; var jointsInRange = true; var robotSweepClear = true;
+        var robotObstacles = root.GetChildren().OfType<Node3D>().Where(node => node != robotRoot && !loads.Contains(node))
+            .SelectMany(ReviewMeshes).Where(mesh => !mesh.Name.ToString().StartsWith("KIN_beam", StringComparison.Ordinal)).ToArray();
         var loadObstacles = root.GetChildren().OfType<Node3D>().Where(node => !loads.Contains(node))
             .SelectMany(ReviewMeshes).Where(mesh => !mesh.Name.ToString().StartsWith("KIN_beam", StringComparison.Ordinal)).ToArray();
+        var robotParts = ReviewMeshes(robotRoot);
+        var loadParts = loads.Select(ReviewMeshes).ToArray();
+        var palletParts = ReviewMeshes(pallet);
+        var movingParts = robotParts.Concat(loadParts.SelectMany(parts => parts)).Concat(palletParts).ToArray();
+        // Refresh moving bounds once per sample; repeated cross-equipment
+        // pairs must not repeat thousands of Godot transform calls. The same
+        // narrow-phase test still runs for every broad-phase candidate.
+        var sampledBounds = ReviewMeshes(root).ToDictionary(part => part, ReviewBounds);
+        bool SampledClear(MeshInstance3D a, MeshInstance3D b)
+        {
+            var overlap = sampledBounds[a].Intersection(sampledBounds[b]).Size;
+            return overlap.X <= 0.001f || overlap.Y <= 0.001f || overlap.Z <= 0.001f
+                || PalletTransferPartsClear(a, b);
+        }
         var loadSweepClear = true; var countRequiresLanding = true;
         bool Landed(int index)
         {
@@ -153,15 +189,34 @@ public partial class Main
             runtime.UsesExternalClock = false;
             runtime.ResetSimulation();
             runtime.RunDefault();
-            for (var tick = 0; tick < 4000; tick++)
+            for (var tick = 0; tick < 5000; tick++)
             {
                 runtime.AdvanceSimulation(0.01);
+                foreach (var part in movingParts) sampledBounds[part] = ReviewBounds(part);
+                if (robot is not null)
+                {
+                    jointsInRange &= MathF.Abs(robot.JointAngles[0]) <= Mathf.DegToRad(170) + 0.0001f;
+                    if (robot.GrippedLoad is { } held)
+                    {
+                        hadAttachment = true;
+                        var bounds = ReviewBounds(held);
+                        var expected = held.GlobalPosition with { Y = bounds.Position.Y + 0.53f };
+                        attached &= robot.ToolTransform.Origin.DistanceTo(expected) < 0.0003f
+                            && robot.ToolTransform.Basis.X.DistanceTo(Vector3.Back) < 0.003f
+                            && robot.ToolTransform.Basis.Y.DistanceTo(Vector3.Up) < 0.003f;
+                    }
+                    if (robotSweepClear)
+                        robotSweepClear = robotParts.All(part => robotObstacles.All(other => SampledClear(part, other)));
+                }
                 // Test the actual timed reference, including the transfer path,
                 // rather than accepting placed_count as evidence of placement.
                 if (loadSweepClear)
-                    loadSweepClear = loads.All(load => ReviewMeshes(load).All(part =>
-                        loadObstacles.All(other => PalletTransferPartsClear(part, other))))
-                        && ReviewMeshes(loads[0]).All(part => ReviewMeshes(loads[1]).All(other => PalletTransferPartsClear(part, other)));
+                {
+                    loadSweepClear = loadParts.All(parts => parts.All(part =>
+                        loadObstacles.All(other => SampledClear(part, other))))
+                        && loadParts[0].All(part => loadParts[1].All(other => SampledClear(part, other)));
+                    if (!loadSweepClear) GD.Print($"PALLET_LOAD_SWEEP_SAMPLE timeS={(tick + 1) * 0.01} tool={robot?.ToolTransform.Origin}");
+                }
                 var placed = Convert.ToInt32(runtime.Points["placed_count"]);
                 if (placed >= 1) countRequiresLanding &= Landed(0);
                 if (placed >= 2) countRequiresLanding &= Landed(1);
@@ -175,7 +230,7 @@ public partial class Main
                         .Sum(surface => MathF.Max(0, MathF.Min(bounds.End.X, surface.End.X) - MathF.Max(bounds.Position.X, surface.Position.X)));
                     supported &= contactLength >= 0.10f;
                 }
-                if (moved) sweepClear &= ReviewMeshes(pallet).All(part => obstacles.All(other => PalletTransferPartsClear(part, other)));
+                if (moved) sweepClear &= palletParts.All(part => obstacles.All(other => SampledClear(part, other)));
                 if (runtime.Points["cycle_complete"] is true) break;
             }
             var final = ReviewBounds(pallet);
@@ -188,6 +243,9 @@ public partial class Main
             check(Landed(0) && Landed(1), "pallet_robot_both_transferred_containers_land_within_actual_receiver_rollers");
             check(countRequiresLanding, "pallet_robot_placed_count_requires_each_container_already_seated");
             check(loadSweepClear, "pallet_robot_container_meshes_clear_separate_equipment_through_reference_transfer");
+            check(hadAttachment && attached, "pallet_robot_gripped_load_follows_actual_tool_position_and_orientation");
+            check(jointsInRange, "pallet_robot_base_joint_remains_inside_catalog_170_degree_range");
+            check(robotSweepClear, "pallet_robot_actual_joint_sweep_clears_separate_equipment");
             GD.Print($"PALLET_RECEIVER_LANDING left={ReviewBounds(loads[0])} right={ReviewBounds(loads[1])}");
             GD.Print($"PALLET_OUTBOUND_DATUM staging={staging} bridge={deck} receiving={receiving} final={final}");
         }
@@ -198,33 +256,137 @@ public partial class Main
         }
         check(MathF.Abs(pallet.Position.X - startX) < 0.001f && drives.All(drive => !drive.RunCommand),
             "pallet_robot_reset_restores_staged_pallet_and_stops_both_conveyors");
+        check(robot is not null && robot.GrippedLoad is null && !robot.RunCommand
+            && robot.JointAngles.Zip(homeAngles!).All(pair => MathF.Abs(pair.First - pair.Second) < 0.0001f),
+            "pallet_robot_reset_releases_load_and_restores_every_joint");
+        if (robot is null) return;
+        try
+        {
+            runtime.UsesExternalClock = false;
+            runtime.RunDefault();
+            for (var tick = 0; tick < 402; tick++) runtime.AdvanceSimulation(0.01);
+            var held = robot.GrippedLoad;
+            var heldPosition = held?.GlobalPosition;
+            var stoppedAngles = robot.JointAngles;
+            runtime.StopSimulation();
+            runtime.AdvanceSimulation(2.0);
+            var restarted = runtime.RunDefault();
+            check(held is not null && held.GlobalPosition == heldPosition && !robot.RunCommand
+                && !restarted
+                && robot.JointAngles.Zip(stoppedAngles).All(pair => pair.First == pair.Second),
+                "pallet_robot_stop_holds_gripped_load_and_all_joint_poses_and_requires_reset_before_restart");
+            runtime.ResetSimulation();
+            var installed = robotRoot.GlobalPosition;
+            try
+            {
+                robotRoot.GlobalPosition += Vector3.Right * 100;
+                runtime.RunDefault();
+                runtime.AdvanceSimulation(2.5);
+                check(!robot.RunCommand && runtime.Points["robot_run"] is false
+                    && Convert.ToInt32(runtime.Points["placed_count"]) == 0 && runtime.Points["cycle_complete"] is false,
+                    "pallet_robot_unreachable_motion_stops_before_placement_or_completion");
+            }
+            finally { robotRoot.GlobalPosition = installed; }
+        }
+        finally
+        {
+            runtime.ResetSimulation();
+            runtime.UsesExternalClock = originalClock;
+        }
     }
 
     private static bool PalletTransferPartsClear(MeshInstance3D a, MeshInstance3D b)
     {
         var overlap = ReviewBounds(a).Intersection(ReviewBounds(b)).Size;
         if (overlap.X <= 0.001f || overlap.Y <= 0.001f || overlap.Z <= 0.001f || !OrientedBoxesPenetrate(a, b)) return true;
+        // Normalize once. Recursive swaps can bounce forever when the curved
+        // member is also the cylinder selected as the solid test volume.
+        if (b.Mesh is CylinderMesh && a.Mesh is not CylinderMesh) (a, b) = (b, a);
         bool Curved(MeshInstance3D mesh) => mesh.Name.ToString().Contains("cable", StringComparison.OrdinalIgnoreCase)
             || mesh.Name.ToString().StartsWith("KIN_belt_surface", StringComparison.Ordinal)
             || mesh.Name.ToString().StartsWith("KIN_drive_drum", StringComparison.Ordinal)
-            || mesh.Name.ToString().StartsWith("KIN_tail_drum", StringComparison.Ordinal);
-        if (!Curved(b) && Curved(a)) return PalletTransferPartsClear(b, a);
-        if (Curved(b))
+            || mesh.Name.ToString().StartsWith("KIN_tail_drum", StringComparison.Ordinal)
+            || mesh.Name.ToString().StartsWith("ROBOT_axis", StringComparison.Ordinal)
+            || mesh.Name.ToString() is "ROBOT_base" or "ROBOT_axis1_turntable" or "ROBOT_installation_top_plate" or "ROBOT_installation_foot" or "ROBOT_installation_pedestal";
+        if (a.Mesh is not CylinderMesh && !Curved(b) && Curved(a)) (a, b) = (b, a);
+        if (Curved(b) || a.Mesh is CylinderMesh)
         {
             // Curved belt wraps, round drums and cable routes enclose empty space. Test
             // actual transformed triangles against the other part's bounds.
-            var faces = b.Mesh.GetFaces(); var bounds = ReviewBounds(a);
+            var faces = b.Mesh.GetFaces();
+            // Screen in the other part's own frame: a rotated pedestal's
+            // world box includes empty corners that are not solid material.
+            var transform = a.GlobalTransform.AffineInverse() * b.GlobalTransform;
+            var bounds = a.GetAabb();
+            var basis = a.GlobalBasis;
+            var tolerance = new Vector3(0.001f / basis.X.Length(), 0.001f / basis.Y.Length(), 0.001f / basis.Z.Length());
             for (var index = 0; index < faces.Length; index += 3)
             {
-                var triangle = new Aabb(b.GlobalTransform * faces[index], Vector3.Zero)
-                    .Expand(b.GlobalTransform * faces[index + 1]).Expand(b.GlobalTransform * faces[index + 2]);
+                var triangle = new Aabb(transform * faces[index], Vector3.Zero)
+                    .Expand(transform * faces[index + 1]).Expand(transform * faces[index + 2]);
                 var size = bounds.Intersection(triangle).Size;
-                if (size.X > 0.001f && size.Y > 0.001f && size.Z > 0.001f)
-                { GD.Print($"PALLET_TRANSFER_CONFLICT {a.Name}/{b.Name}"); return false; }
+                if (size.X > tolerance.X && size.Y > tolerance.Y && size.Z > tolerance.Z)
+                {
+                    var vertices = new[] { transform * faces[index], transform * faces[index + 1], transform * faces[index + 2] };
+                    // Triangle bounds still contain empty corners. Test the
+                    // actual face against the shrunken local box using its
+                    // face normal and edge/box separating axes.
+                    var centered = vertices.Select(point => point - bounds.GetCenter()).ToArray();
+                    var half = bounds.Size / 2 - tolerance;
+                    var axes = new System.Collections.Generic.List<Vector3> { Vector3.Right, Vector3.Up, Vector3.Back,
+                        (centered[1] - centered[0]).Cross(centered[2] - centered[0]) };
+                    for (var edge = 0; edge < 3; edge++)
+                    foreach (var boxAxis in new[] { Vector3.Right, Vector3.Up, Vector3.Back })
+                        axes.Add((centered[(edge + 1) % 3] - centered[edge]).Cross(boxAxis));
+                    if (axes.Where(axis => axis.LengthSquared() > 1e-16f).Any(axis =>
+                    {
+                        var radius = half.X * MathF.Abs(axis.X) + half.Y * MathF.Abs(axis.Y) + half.Z * MathF.Abs(axis.Z);
+                        var projections = centered.Select(point => point.Dot(axis)).ToArray();
+                        return projections.Min() >= radius || projections.Max() <= -radius;
+                    })) continue;
+                    if (a.Mesh is CylinderMesh cylinder && Mathf.IsEqualApprox(cylinder.TopRadius, cylinder.BottomRadius))
+                    {
+                        // A round installation column is not its square local
+                        // box. Reject cable triangles outside its actual radius.
+                        // Clip the triangle to the cylinder's end planes before
+                        // projecting. Otherwise a long slanted triangle can
+                        // cross the radius outside the cylinder's actual length.
+                        var clipped = new System.Collections.Generic.List<Vector3>
+                            { transform * faces[index], transform * faces[index + 1], transform * faces[index + 2] };
+                        foreach (var upper in new[] { false, true })
+                        {
+                            var plane = (upper ? 1 : -1) * (cylinder.Height / 2 - tolerance.Y);
+                            var output = new System.Collections.Generic.List<Vector3>();
+                            for (var edge = 0; edge < clipped.Count; edge++)
+                            {
+                                var start = clipped[edge]; var end = clipped[(edge + 1) % clipped.Count];
+                                var startIn = upper ? start.Y <= plane : start.Y >= plane;
+                                var endIn = upper ? end.Y <= plane : end.Y >= plane;
+                                if (startIn) output.Add(start);
+                                if (startIn != endIn) output.Add(start.Lerp(end, (plane - start.Y) / (end.Y - start.Y)));
+                            }
+                            clipped = output;
+                        }
+                        if (clipped.Count < 3) continue;
+                        var points = clipped.Select(point => new Vector2(point.X, point.Z)).ToArray();
+                        float EdgeDistance(Vector2 start, Vector2 end)
+                        {
+                            var direction = end - start;
+                            var t = direction.LengthSquared() < 1e-12f ? 0 : Mathf.Clamp(-start.Dot(direction) / direction.LengthSquared(), 0, 1);
+                            return (start + direction * t).Length();
+                        }
+                        var crosses = Enumerable.Range(0, points.Length).Select(edge => points[edge].Cross(points[(edge + 1) % points.Length])).ToArray();
+                        var area = crosses.Sum();
+                        var inside = MathF.Abs(area) > 1e-8f && (crosses.All(value => value >= 0) || crosses.All(value => value <= 0));
+                        var radialDistance = inside ? 0 : Enumerable.Range(0, points.Length).Min(edge => EdgeDistance(points[edge], points[(edge + 1) % points.Length]));
+                        if (radialDistance >= cylinder.TopRadius - MathF.Min(tolerance.X, tolerance.Z)) continue;
+                    }
+                    GD.Print($"PALLET_TRANSFER_CONFLICT {a.Name}/{b.Name} part={bounds} triangle={triangle}"); return false;
+                }
             }
             return true;
         }
-        GD.Print($"PALLET_TRANSFER_CONFLICT {a.Name}/{b.Name}");
+        GD.Print($"PALLET_TRANSFER_CONFLICT {a.Name}/{b.Name} a={ReviewBounds(a)} b={ReviewBounds(b)}");
         return false;
     }
 }
