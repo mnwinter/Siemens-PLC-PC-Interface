@@ -49,6 +49,15 @@ No point-to-equipment bindings are declared.
 | `drain_station` | `switch` | Drain valve local station |
 | `tank_stacklight` | `indicator` | Tank status light |
 
+The low/high probes are mounted horizontally through sockets on the tank wall.
+Their tips sit inside the vessel at the runtime's threshold elevations, measured
+from the authored liquid/sight-glass range. This placement was checked in the
+native Windows scene. Pipe connections/supports and full operator dynamics
+remain open review findings. These visual sockets do not establish a rated
+pressure-vessel nozzle design.
+
+The separate analog transmitter still has an unverified external mounting.
+
 ## Stop and safety boundary
 
 A normal Stop removes PLC-owned commands according to the scene runtime. This document does not prove a safety function, a real E-stop circuit, a PLC watchdog, or live-machine commissioning.

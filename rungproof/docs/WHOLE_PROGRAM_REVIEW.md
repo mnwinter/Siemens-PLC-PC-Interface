@@ -1,5 +1,40 @@
 # Whole program review - 2026-10-03
 
+Tank point-level switch mounting (2026-10-05, latest): Scenes 75/76 explicitly
+opt into tankSwitchMounts. Four formerly external/downward probes now enter
+the positive-Z vessel wall horizontally through short hollow mounting sockets.
+Their tip centres use the full authored sight-glass liquid range, after tank
+sizing, and the same low/high thresholds as the runtime. Actual elevations:
+High/Low tank 2.196429 and 4.041667 m; Analog tank 2.011905 and 4.226191 m.
+Process seals meet the socket ends. Source assets and symbolic point contracts
+are unchanged; other tank installations retain their prior geometry.
+Eight initial mounting checks failed before the fix. They pass afterward,
+plus four checks for clearance from separate equipment: 326 total geometry/
+workflow checks PASS. Build has zero warnings/errors; app-shell 77 scenes /
+294 assets / one existing diagnostic and 19 plant-motion checks PASS. Logs:
+`.tools/tank-switch-red.log`, `tank-switch-build.log`,
+`tank-switch-geometry.log`, `tank-switch-shell.log`, `tank-switch-plant-motion.log`.
+Both scenes received final native Windows FR/FL/RL/RR/Top inspection, with
+mounting-side close views. Exterior socket/head joints are visible; interior
+probe placement is proven only by transformed mesh measurements because the
+vessel is opaque. PLC stayed disconnected and owned window exit was zero.
+Native log: `.tools/tank-switch-native.log`.
+This closes only the low/high probe placement finding. Pump/inlet/outlet
+connections, elevated pipe supports, analog-transmitter mounting and complete
+operator process behavior remain open. The whole-program goal remains active.
+
+Carton transfer investigation: two actual ladder-driven deterministic runs
+reproduced four disappearing transfers each. The first scan publishing each
+new count had visible=False, position=(-3,0.9,0), stroke=86.666667%, photoeye=False.
+ConveyorPlantModel clears LeadingEdge at its 80% transfer crossing; the
+renderer copies ObjectPresent to visibility and resets its target without
+LeadingEdge/photoeye. This is the cause, not camera clipping. Canonical plant,
+DB14 and controller behavior were not changed. Temporary tagged probes were
+removed. Evidence: `.tools/carton-transfer-probe-a.log` and `-b.log`.
+Receiving lifecycle clarification was requested: manual table clearing or an
+automatic takeaway conveyor. It remains unanswered; do not invent accumulation
+or remove cartons invisibly as a purported completed-transfer repair.
+
 Carton receiving surface (2026-10-05, latest): Scene 74 now includes a
 flat steel table at the 900 mm belt height. Its near edge meets the belt;
 the deck is 1.40 x 1.805 m, with four grounded legs, supporting frame and

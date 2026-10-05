@@ -52,7 +52,8 @@
         "height": 5,
         "diameter": 3,
         "initialLevel": 0.42,
-        "fluidColor": 1415124
+        "fluidColor": 1415124,
+        "installation": "tankSwitchMounts"
       }
     },
     {

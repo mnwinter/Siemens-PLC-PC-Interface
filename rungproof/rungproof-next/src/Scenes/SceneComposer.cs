@@ -119,6 +119,8 @@ public static partial class SceneComposer
             ConfigureSumpPiping(root);
         if (scene.Equipment.Any(equipment => Text(equipment.Config, "installation", string.Empty) == "fixtureDrill"))
             ConfigureFixtureDrill(root);
+        if (scene.Equipment.Any(equipment => Text(equipment.Config, "installation", string.Empty) == "tankSwitchMounts"))
+            ConfigureTankSwitchMounts(root, scene);
         return new SceneComposition(root, rendered, deferred);
     }
 

@@ -10,6 +10,41 @@ includes failed scenes; it is not a count of accepted scenes.
 
 ## Acceptance method
 
+Tank point-level switch mounting (2026-10-05, latest): Scenes 75/76 explicitly
+opt into tankSwitchMounts. Four formerly external/downward probes now enter
+the positive-Z vessel wall horizontally through short hollow mounting sockets.
+Their tip centres use the full authored sight-glass liquid range, after tank
+sizing, and the same low/high thresholds as the runtime. Actual elevations:
+High/Low tank 2.196429 and 4.041667 m; Analog tank 2.011905 and 4.226191 m.
+Process seals meet the socket ends. Source assets and symbolic point contracts
+are unchanged; other tank installations retain their prior geometry.
+Eight initial mounting checks failed before the fix. They pass afterward,
+plus four checks for clearance from separate equipment: 326 total geometry/
+workflow checks PASS. Build has zero warnings/errors; app-shell 77 scenes /
+294 assets / one existing diagnostic and 19 plant-motion checks PASS. Logs:
+`.tools/tank-switch-red.log`, `tank-switch-build.log`,
+`tank-switch-geometry.log`, `tank-switch-shell.log`, `tank-switch-plant-motion.log`.
+Both scenes received final native Windows FR/FL/RL/RR/Top inspection, with
+mounting-side close views. Exterior socket/head joints are visible; interior
+probe placement is proven only by transformed mesh measurements because the
+vessel is opaque. PLC stayed disconnected and owned window exit was zero.
+Native log: `.tools/tank-switch-native.log`.
+This closes only the low/high probe placement finding. Pump/inlet/outlet
+connections, elevated pipe supports, analog-transmitter mounting and complete
+operator process behavior remain open. The whole-program goal remains active.
+
+Carton transfer investigation: two actual ladder-driven deterministic runs
+reproduced four disappearing transfers each. The first scan publishing each
+new count had visible=False, position=(-3,0.9,0), stroke=86.666667%, photoeye=False.
+ConveyorPlantModel clears LeadingEdge at its 80% transfer crossing; the
+renderer copies ObjectPresent to visibility and resets its target without
+LeadingEdge/photoeye. This is the cause, not camera clipping. Canonical plant,
+DB14 and controller behavior were not changed. Temporary tagged probes were
+removed. Evidence: `.tools/carton-transfer-probe-a.log` and `-b.log`.
+Receiving lifecycle clarification was requested: manual table clearing or an
+automatic takeaway conveyor. It remains unanswered; do not invent accumulation
+or remove cartons invisibly as a purported completed-transfer repair.
+
 Carton receiving surface (2026-10-05, latest): Scene 74 now includes a
 flat steel table at the 900 mm belt height. Its near edge meets the belt;
 the deck is 1.40 x 1.805 m, with four grounded legs, supporting frame and
@@ -1495,8 +1530,8 @@ count as this scene's multi-angle or runtime acceptance.
 | 72 | `lab-9-12-ev-charging-manager` | 95 | Native FR/FL/RL/RR/T | FAIL/open: shutters/fluid props instead of EV charging route; energy pulse/accumulation contract absent |
 | 73 | `scene-1-conveyor-stop` | 34 | Native FR/FL/RL/RR/T | Carton belt contact/load-end footprint repaired; native five wide/Top/FL close and Demo 3 Run/Start/photoeye/Stop/Reset rechecked; full clearance open |
 | 74 | `scene-2-conveyor-pusher` | 88 initial; 7 residual cable candidates after installation repair | Native home and extended FR/FL/RL/RR/T, close pusher Top/RR at both ends; normal Open/Verify/Run/Stop/Reset | Plate height, grounded mounting, guide engagement/cap clearance, photoeye clearance and following bolts repaired; off-station carton stays seated. Receiving surface added; native five angles and receiver Top/FR close; 314 checks PASS. FAIL/open: plate/carton contact timing, canonical disappearing transfer and residual cable candidates. No full supported transfer accepted |
-| 75 | `tank-high-low` | 60 | Native FR/FL/RL/RR/T | Disconnected pump/elevated inlet, external probes, opaque tank; fill/drain behavior unverified |
-| 76 | `tank-level` | 52 | Native FR/FL/RL/RR/T | Same disconnected piping/probe mounting; initial 42 percent / 10.72 mA visible, dynamics unverified |
+| 75 | `tank-high-low` | 60 initial; switch-specific clearance passes | Final native FR/FL/RL/RR/T and mounting-side close | Low/high probes and socket mounts repaired at actual thresholds; 326 checks PASS. FAIL/open: disconnected pump/piping, elevated pipe supports, opaque tank; full operator dynamics unverified |
+| 76 | `tank-level` | 52 initial; switch-specific clearance passes | Final native FR/FL/RL/RR/T and mounting-side close | Low/high probe mounts repaired; initial 42 percent / 10.72 mA visible. FAIL/open: piping/supports, external analog transmitter and full operator process behavior |
 | 77 | `tank-radar` | 80 | Native FR/FL/RL/RR/T; repaired radar five focus views | Radar flange/head mounting and antenna-to-surface distance/beam repaired (sampled checks); 35% native range 3.10036. FAIL/open: empty ladder Run, disconnected inlet/outlet/drain route, opaque internal beam; rear-left mount partly obscured |
 
 Drive-alarm follow-up evidence: `.tools/drive-alarm-{props-build,build,import,geometry,inventory,scene-contracts,rendered-controls,plant-regression}.log`, `catalog-next-shell-native.log` (baseline), `drive-alarm-native-supported.log` (support and plates), and `drive-alarm-native-final-complete.log` (final five views, keypad detail, failed normal Run). Build zero warnings/errors; 38 focused geometry, 19 plant, rendered scene controls and 71 authored cases pass. These do not approve uninspected scenes, missing controllers, string functionality or hardware.
