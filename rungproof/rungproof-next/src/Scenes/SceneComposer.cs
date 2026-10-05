@@ -434,6 +434,11 @@ public static partial class SceneComposer
                     stretch * cable.Position + Vector3.Up * bounds.Position.Y * (1 - stretchY));
             }
         }
+        var positiveHeightM = (float)Number(equipment.Config, "positiveBeamCenterHeightM", centerlineM);
+        if (!float.IsFinite(positiveHeightM) || positiveHeightM < 0.3f)
+            throw new InvalidOperationException($"Photoeye '{equipment.Id}' requires a finite optical height >= 0.3 m.");
+        if (MathF.Abs(positiveHeightM - centerlineM) > 1e-6f)
+            ConfigureInclinedPhotoeye(model, centerlineM, positiveHeightM, -spanM / 2, positiveStandM);
         return model;
     }
 

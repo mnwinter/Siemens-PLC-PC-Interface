@@ -987,12 +987,11 @@ public partial class Main
             check(support && runtime.Points[feedback] is true,
                 $"{sceneId}_carton_supported_through_first_photoeye_detection");
             var sensor = root.GetNode<Node3D>($"scene{number}_photoeye");
-            var beam = (MeshInstance3D)sensor.FindChild("KIN_beam*", true, false);
-            var beamCenter = ReviewBounds(beam).GetCenter();
+            var txLens = (MeshInstance3D)sensor.FindChild("TX_lens", true, false);
+            var rxLens = (MeshInstance3D)sensor.FindChild("RX_lens", true, false);
             var detectedLoad = ReviewBounds(carton);
             check(runtime.Points[feedback] is true
-                && beamCenter.X >= detectedLoad.Position.X && beamCenter.X <= detectedLoad.End.X
-                && beamCenter.Y > detectedLoad.Position.Y && beamCenter.Y < detectedLoad.End.Y,
+                && LineHitsBounds(ReviewBounds(txLens).GetCenter(), ReviewBounds(rxLens).GetCenter(), detectedLoad.Grow(0.001f)),
                 $"{sceneId}_first_detection_has_carton_in_optical_envelope");
             runtime.CommitVirtualControllerOutputs(new Dictionary<string, bool> { ["conveyor_running"] = false });
             runtime.SetControllerPlaybackRunning(false);

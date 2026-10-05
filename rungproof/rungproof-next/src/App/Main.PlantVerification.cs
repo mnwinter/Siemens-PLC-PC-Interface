@@ -59,6 +59,10 @@ public partial class Main
             var plate = (MeshInstance3D)_sceneCompositionRoot.GetNode("scene2_pusher").FindChild("KIN_pusher_plate", true, false);
             var contactSeen = false; var plateContact = true;
             var receivedHeld = true; var reloadSeen = false; var lastCompleted = 0L;
+            var sensor = _sceneCompositionRoot.GetNode<Node3D>("scene2_photoeye");
+            var txLens = (MeshInstance3D)sensor.FindChild("TX_lens", true, false);
+            var rxLens = (MeshInstance3D)sensor.FindChild("RX_lens", true, false);
+            var opticalMatches = true;
             Vector3? releasedPosition = null;
             for (var scan = 0; scan < 650; scan++)
             {
@@ -66,6 +70,9 @@ public partial class Main
                 photoeyeSeen |= _sceneRuntime!.Points["part_at_pusher"] is true;
                 extensionSeen |= Convert.ToDouble(_sceneRuntime.Points["pusher_position"]) > 0;
                 extendedSeen |= _sceneRuntime.Points["pusher_extended"] is true;
+                var opticalHit = LineHitsBounds(ReviewBounds(txLens).GetCenter(), ReviewBounds(rxLens).GetCenter(), ReviewBounds(carton).Grow(0.001f));
+                var opticalMatch = opticalHit == (_sceneRuntime.Points["part_at_pusher"] is true);
+                opticalMatches &= opticalMatch;
                 var completed = Convert.ToInt64(_sceneRuntime.Points["parts_completed"]);
                 if (completed > lastCompleted)
                 {
@@ -108,6 +115,7 @@ public partial class Main
                 }
             }
             Check(contactSeen && plateContact, "scene2_plate_contacts_carton_through_actual_ladder_extension");
+            Check(opticalMatches, "scene2_actual_ladder_photoeye_matches_carton_optical_path_through_repeat_cycles");
             Check(transferSeen && transferVisible, "scene2_carton_remains_visible_at_canonical_transfer_threshold");
             Check(receivedSeen && receivedHeld, "scene2_full_stroke_carton_seated_on_receiver_and_not_dragged_back");
             Check(reloadSeen, "scene2_visual_carton_recycled_only_when_plant_reloads");

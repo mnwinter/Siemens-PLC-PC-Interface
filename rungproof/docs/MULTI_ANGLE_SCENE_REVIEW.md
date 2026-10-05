@@ -10,6 +10,34 @@ includes failed scenes; it is not a count of accepted scenes.
 
 ## Acceptance method
 
+Carton transfer photoeye (2026-10-05, current): the receiving table and retained
+carton are confirmed. The former horizontal beam still crossed the received
+load after feedback cleared. Scene 74 now inclines the heads from 1.047 m to
+2.405 m, with beam X=0.225 m and pusher X=-0.3 m to clear moving members.
+Heads aim at each other; posts remain grounded and cloned cable meshes bend
+with the heads while keeping their lower M12 endpoints. Other installations
+retain their previous geometry. Canonical timing, feedback and ownership are
+unchanged. Continuous lens-to-lens tests replace the horizontal-dash assumption.
+
+Six added geometry checks prove aim, support, cable connections, collinear
+beam dashes, sampled transfer clearance (2 mm grazing tolerance at 80%), and
+absence of other solids in the cleared ray. Repeated real 20 ms ladder scans
+also agree with the carton optical path. Build clean; geometry 391, motion 25,
+controller 143, 77-scene shell, Python reference 8 cases/83 snapshots and help
+pass. Native Windows normal Open/Verify + Load/Run with the existing held
+solenoid fixture: staged and received endpoint FR/FL/RL/RR/Top, photoeye-focused
+Top/FR/RL, Stop hold and Reset to scan zero inspected; reviewer exit zero.
+Rear views hide the lower head; close views crop surrounding equipment. Full
+stroke is sampled, not continuously observed from all five native angles.
+
+This closes the horizontal optical-path discrepancy for the reference cycles.
+Scene 74 remains FAIL/open for residual static cable candidates and complete
+physical acceptance. Current home enclosing-bound candidates total 18 (9
+sensor/conveyor, 5 pusher/conveyor, 4 receiver/conveyor), not established solid
+collisions. Earlier optical-open and ten-candidate notes are historical.
+No sensor vendor performance, rated mechanism, carton accumulation or live PLC
+acceptance is claimed. Evidence: `.tools/photoeye-incline-*.log`. Goal active.
+
 Carton plate contact (2026-10-05, latest): the plate trailed the load by
 629.73 mm throughout extension. Scene 74 now configures that much plate
 extension on a rigid two-arm yoke seated in the carriage crossmember and plate.
@@ -1750,7 +1778,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 71 | `lab-9-11-pallet-counting` | 86 | Native FR/FL/RL/RR/T | Carton/fixture/readout geometry repaired and five views/details inspected. Live DINT count/readout FR/FL and invalid/five-edge/held/permissive/Stop/Run/Reset native checks pass. Optical classification/pallet travel/CNC integration open |
 | 72 | `lab-9-12-ev-charging-manager` | 95 | Native FR/FL/RL/RR/T | FAIL/open: shutters/fluid props instead of EV charging route; energy pulse/accumulation contract absent |
 | 73 | `scene-1-conveyor-stop` | 34 | Native FR/FL/RL/RR/T | Carton belt contact/load-end footprint repaired; native five wide/Top/FL close and Demo 3 Run/Start/photoeye/Stop/Reset rechecked; full clearance open |
-| 74 | `scene-2-conveyor-pusher` | 88 initial; 10 current home enclosing-bound candidates | Native received/full-extension FR/FL/RL/RR/T; close pusher Top/RL; home FR/Top/RL; normal Open/Verify/Run/Stop/Reset; earlier receiver Top/FR | Installation, receiving surface, retention and plate contact repaired. Connected 629.73 mm yoke extension; full stroke contact/support/solid clearance sampled at 2 ms. Five added checks PASS within 385 geometry checks; actual-ladder contact passes within 24 plant-motion checks. Native endpoint uses held-solenoid QA fixture. FAIL/open: optical feedback geometry and residual static cable candidates. No complete physical transfer accepted |
+| 74 | `scene-2-conveyor-pusher` | 88 initial; 18 current home enclosing-bound candidates | Native staged/received FR/FL/RL/RR/T; photoeye-focused Top/FR/RL; normal Open/Verify/Run/Stop/Reset; earlier receiver Top/FR and pusher Top/RL | Receiving surface, retention, plate contact and reference-cycle optical path repaired. Inclined lens path clears carton after transfer; grounded/aimed heads and cable connections checked. Geometry 391 and motion 25 PASS; stroke ray allows 2 mm grazing boundary at 80%. Native held-solenoid endpoint fixture; lower head occluded in rear views. FAIL/open: residual static cable candidates and complete physical acceptance |
 | 75 | `tank-high-low` | 60 initial; probe/piping/valve-specific screens pass | Native FR/FL/RL/RR/T; valve Top/FL close; normal offline QA Run/Stop/Reset | Probe/piping/valve installations repaired; 365 checks PASS. QA ladder cycle and pointer commands verified. FAIL/open: opaque vessel and broader operator/process acceptance |
 | 76 | `tank-level` | 52 initial; probe/analog/piping/valve-specific screens pass | Native FR/FL/RL/RR/T; valve Top/FL close; normal offline QA Run/Stop/Reset | Installations repaired; QA drain pointer and reset 42% / 10.72 mA observed. 365 checks PASS. FAIL/open: opaque vessel and broader operator/process acceptance |
 | 77 | `tank-radar` | 80 | Native FR/FL/RL/RR/T; repaired radar five focus views | Radar flange/head mounting and antenna-to-surface distance/beam repaired (sampled checks); 35% native range 3.10036. FAIL/open: empty ladder Run, disconnected inlet/outlet/drain route, opaque internal beam; rear-left mount partly obscured |

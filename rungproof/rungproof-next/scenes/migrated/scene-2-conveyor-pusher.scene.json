@@ -58,15 +58,16 @@
       "type": "photoeye",
       "label": "Part-at-pusher photoeye",
       "position": [
-        -0.55,
+        0.225,
         0,
         0
       ],
       "config": {
-        "span": 2.08,
+        "span": 1.96,
         "positiveStandPositionM": 2.9,
         "height": 1.1,
-        "beamCenterHeightM": 1.35,
+        "beamCenterHeightM": 1.0465945,
+        "positiveBeamCenterHeightM": 2.4045945,
         "blocked": false
       }
     },
@@ -75,7 +76,7 @@
       "type": "pusher",
       "label": "Single-solenoid spring-return pusher",
       "position": [
-        0,
+        -0.3,
         0,
         -2.15
       ],

@@ -1,5 +1,33 @@
 # Whole program review - 2026-10-03
 
+Carton transfer photoeye (2026-10-05, current): the receiving table and retained
+carton are confirmed. The former horizontal beam still crossed the received
+load after feedback cleared. Scene 74 now inclines the heads from 1.047 m to
+2.405 m, with beam X=0.225 m and pusher X=-0.3 m to clear moving members.
+Heads aim at each other; posts remain grounded and cloned cable meshes bend
+with the heads while keeping their lower M12 endpoints. Other installations
+retain their previous geometry. Canonical timing, feedback and ownership are
+unchanged. Continuous lens-to-lens tests replace the horizontal-dash assumption.
+
+Six added geometry checks prove aim, support, cable connections, collinear
+beam dashes, sampled transfer clearance (2 mm grazing tolerance at 80%), and
+absence of other solids in the cleared ray. Repeated real 20 ms ladder scans
+also agree with the carton optical path. Build clean; geometry 391, motion 25,
+controller 143, 77-scene shell, Python reference 8 cases/83 snapshots and help
+pass. Native Windows normal Open/Verify + Load/Run with the existing held
+solenoid fixture: staged and received endpoint FR/FL/RL/RR/Top, photoeye-focused
+Top/FR/RL, Stop hold and Reset to scan zero inspected; reviewer exit zero.
+Rear views hide the lower head; close views crop surrounding equipment. Full
+stroke is sampled, not continuously observed from all five native angles.
+
+This closes the horizontal optical-path discrepancy for the reference cycles.
+Scene 74 remains FAIL/open for residual static cable candidates and complete
+physical acceptance. Current home enclosing-bound candidates total 18 (9
+sensor/conveyor, 5 pusher/conveyor, 4 receiver/conveyor), not established solid
+collisions. Earlier optical-open and ten-candidate notes are historical.
+No sensor vendor performance, rated mechanism, carton accumulation or live PLC
+acceptance is claimed. Evidence: `.tools/photoeye-incline-*.log`. Goal active.
+
 Carton plate contact (2026-10-05, latest): a 629.73 mm rigid two-arm yoke now
 connects Scene 74's plate to its carriage and closes the measured load gap.
 Cylinder frame and 1.35 m stroke remain unchanged; front hardware/lettering is
