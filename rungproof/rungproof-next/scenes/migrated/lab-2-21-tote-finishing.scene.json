@@ -28,7 +28,7 @@
         0
       ],
       "config": {
-        "length": 13,
+        "length": 14,
         "width": 1.5,
         "deckHeight": 0.9,
         "beltColor": 2568760,
@@ -41,7 +41,7 @@
       "label": "Chemical tote",
       "position": [
         -5.8,
-        0.99,
+        0.9,
         0
       ],
       "config": {
@@ -63,7 +63,8 @@
         0
       ],
       "config": {
-        "initialPosition": 0
+        "initialPosition": 0,
+        "installation": "toteFinishingLine"
       }
     },
     {
@@ -82,7 +83,8 @@
           1.4
         ],
         "color": 7307144,
-        "running": false
+        "running": false,
+        "installation": "toteFinishingLine"
       }
     },
     {
@@ -101,7 +103,8 @@
           1.4
         ],
         "color": 1534855,
-        "running": false
+        "running": false,
+        "installation": "toteFinishingLine"
       }
     },
     {
@@ -120,7 +123,8 @@
           1.4
         ],
         "color": 5466227,
-        "running": false
+        "running": false,
+        "installation": "toteFinishingLine"
       }
     },
     {

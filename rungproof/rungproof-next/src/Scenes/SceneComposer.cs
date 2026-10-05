@@ -37,6 +37,9 @@ public static partial class SceneComposer
                     "loads.palletized-cases.gma-48x40.v1"),
                 "toteFiller" when Text(equipment.Config, "installation", string.Empty) == "conveyorJug" =>
                     CreateConveyorJugFiller(equipment, candidates, runCommands),
+                "toteFiller" or "toteCapper" or "toteLabeler" or "toteVision"
+                    when Text(equipment.Config, "installation", string.Empty) == "toteFinishingLine" =>
+                    CreateToteFinishingStation(equipment, candidates, runCommands),
                 "toteFiller" => CreateControlledAsset(equipment, candidates,
                     "process.packaging.filler.tote-volumetric.v1", runCommands,
                     EquipmentMotionController.MotionKind.LinearY, "KIN_fill_nozzle",

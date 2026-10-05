@@ -1,6 +1,27 @@
 # Multi-angle scene review - 2026-10-04
 
-Bottle Shuttle controller checkpoint (2026-10-05, current): Scene 34's
+Tote Finishing installation checkpoint (2026-10-05, current): Scene 35's
+station supports are clear of the belt/conveyor, the tote contacts the belt,
+and the full footprint remains supported at discharge. Grounded columns and
+connected overhead heads are checked; moving nozzle tip/chuck/optic are attached.
+The opt-in composer uses existing delivered station meshes; masters remain unchanged.
+
+Windows observations: initial FR/FL/RL/RR/Top; two intermediate approach Top
+views; held fill FR/FL/RL/RR plus filler-focused RR and Top; released remaining
+preview; discharge Top/FR/FL/RL/RR; Reset back to infeed. Close focus crops some
+separate equipment and is supplemental. No held cap/label/inspection pose or
+continuous video was captured. Native normal Run opened the empty editor and
+Start reported no controller loaded; the preview did not replace that controller.
+
+Twelve new geometry/reference checks cover station/conveyor clearance, 245
+route positions, bearing/mount connections and 5000 two-ms preview ticks.
+487 geometry/workflow checks and 144 controller tests pass; build, scene
+contract and 77-scene/294-asset shell pass. Logs `.tools/tote-finishing-*.log`.
+Functional acceptance remains FAIL/open: capped fill/volume, cap stroke,
+label application, scripted inspection feedback, controller-driven transport/
+Start binding, preview restart/resume, dynamics and live PLC. Goal remains active.
+
+Bottle Shuttle controller checkpoint (2026-10-05, previous): Scene 34's
 motor_direction is now PLC-owned INT (-1 left, 0 stopped, +1 right), replacing
 the incompatible legacy STRING. Scene/help/verification/migration notes agree.
 No repository external profile mapping was supplied or changed. DB14 and PLC
@@ -2104,7 +2125,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 32 | `lab-2-18-pallet-pickup` | 0 at repaired home | Rebuilt load home/pickup focused FR/FL/RL/RR/T; prior 50% views, four jogs/fifth blocked, Stop/resume/mode loss/Reset; unheld auto | Pallet/case bearing planes, closed strap route, belt support, sensor mounting and bounded reference repaired; 434 checks pass. Home/pickup underside views added. FAIL/open: normal controller lesson and complete solid-contact/mechanical acceptance |
 | 33 | `lab-2-19-service-door` | 54 original / 0 repaired | Repaired native FR/FL/RL/RR/T; operator FR close; held opening/Stop/reverse; real-time endpoints; open five views; Reset | Layout/plates and reference reversal/position feedback repaired; raw NC signal displays explicit. Physical limit/cable behavior, compressed slat geometry and loaded-controller operation unaccepted |
 | 34 | `lab-2-20-bottle-shuttle` | 39 historic | Repaired home/right endpoint five views; reference completed left and held post-reversal right FR/FL/RL/RR/T; normal controller held outward/completed-left five views, operator project load/Start/Stop/Run/Reset; rebuilt pause amber and return Run=-1 | INT direction contract and editable reference repair normal offline round trip. Eight placement, thirteen reference and twenty controller integration/contract checks pass within 475. Open: first contact not captured as held native frame, continuous native motion coverage, dynamic stability, external profile/live acceptance |
-| 35 | `lab-2-21-tote-finishing` | 29 | Native FR/FL/RL/RR/T; filler top/FR close; Start | FAIL/open: station columns occupy belt corridor; tote support, station alignment and full transfer unverified. Start unloaded |
+| 35 | `lab-2-21-tote-finishing` | 0 after cable-surface screen | Initial/discharge native FR/FL/RL/RR/T; held fill four sides and filler Top/RR close; released preview/Reset; normal Run/Start | Placement/reference repaired: grounded outside-belt stations, seated tote, supported discharge and attached tools; 12 checks. FAIL/open: controller transport/Start binding, capped fill/volume, cap stroke, label application, scripted inspection, restart/resume/dynamics; normal controller unloaded |
 | 36 | `lab-2-22-dual-spindle` | 2 | Native FR/FL/RL/RR/T; plate top/FR close; Start | FAIL/open: plate offset below separate drill coupons, fixture/slide mounting unresolved; adapters rotation only. Start unloaded; feeds and transfer unverified |
 | 37 | `lab-2-23-parcel-sorter` | 174 | FR/FL/RL/RR/T | Repaired static/declared plant path; normal Run lacks controller |
 | 38 | `lab-2-24-robot-cnc` | 29 | Native FR/FL/RL/RR/T; Start | Open: robot behind closed CNC back; workpiece support, reach, door/chuck transfer unverified; Start unloaded |

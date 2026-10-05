@@ -395,6 +395,7 @@ public partial class Main
             VerifyPalletRobotInstallationGeometry(Check);
             VerifyShippingPalletGeometry(Check);
             VerifyBottleShuttlePlacement(Check);
+            VerifyToteFinishingPlacement(Check);
             VerifyTankSwitchMountGeometry(Check);
             VerifyTankAnalogMountGeometry(Check);
             VerifyTankPipingGeometry(Check);

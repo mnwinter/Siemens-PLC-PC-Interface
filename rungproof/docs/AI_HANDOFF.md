@@ -1,6 +1,47 @@
 # RungProof / PLC Visual Simulator AI handoff
 
-Bottle Shuttle controller checkpoint (2026-10-05, current): Scene 34's
+Tote Finishing installation checkpoint (2026-10-05, current): Scene 35 now
+opts into `toteFinishingLine` mounting variants in SceneComposer.ToteFinishing.cs.
+Filler/capper columns, labeler pedestal and vision arch posts are clear of
+the belt and conveyor solids/cables. Grounded feet and connected overhead
+mounts are checked. Catalog masters and all other installations remain unchanged.
+The tote origin moves Y=0.99 -> 0.9 to contact the belt; length 13 -> 14 m
+keeps the full delivered footprint supported at the existing X=6.4 discharge.
+Nozzle tip/stream, spindle chuck and main camera optic now follow their parent
+actuators. The label roll rotates about its actual cross-belt axle.
+
+Twelve focused checks (`--verify-tote-finishing`) cover static station/conveyor
+clearance, 245 route samples, five column/foot bearings, overhead connections,
+and 5000 actual preview ticks at 2 ms, including all actuator commands, visible
+supported discharge, attached moving tools, commands-off completion and Reset.
+The red checks reproduced missing contact/support and station/tote collisions;
+a later clearance screen found the capper foot intersecting a conveyor anchor.
+The verifier caches bounds within a frame; its initial uncached run was
+intentionally terminated to improve review speed, not accepted as completed.
+Final build is clean. Geometry/workflow checks: 487, zero failures. Controller
+tests: 144, zero failures. Scene contract and 77-scene/294-asset shell pass.
+Logs: `.tools/tote-finishing-{red-build,red-geometry,clearance-red,build-final,
+motion-final,geometry-final,controller-tests,contract,shell-check,native,
+native-fixed,native-final,native-shell}.log`.
+
+Native Windows: initial and discharge poses inspected FR/FL/RL/RR/Top. Held
+fill pose inspected FR/FL/RL/RR, plus filler-focused RR/Top close views. Released
+preview clock traversed the remaining steps to the visible supported endpoint;
+Reset restored infeed. No continuous video or held intermediate cap/label/
+inspection frames were captured. The normal shell opened this exact repaired
+scene; Run opened an empty editor with NO CONTROLLER LOADED, and Start produced
+the corresponding blocked-action message. Both own QA windows were closed;
+the user's Conveyor Pusher window is preserved.
+
+Still FAIL/open for functional acceptance: selected-controller tote transport,
+Start binding, actual uncapped fill/volume, axial cap application, label transfer,
+measured inspection feedback, preview restart/resume and dynamics. The preview
+still scripts inspection_ok=True and the IBC fill cap remains present; never
+call its green contract a proven process. No PLC transport/live test occurred.
+Whole-program goal remains active. Continue controller/process work here or
+the next placement failure (Scene 36 dual spindle); no new automation/delegation.
+
+Bottle Shuttle controller checkpoint (2026-10-05, previous): Scene 34's
 motor_direction is now PLC-owned INT (-1 left, 0 stopped, +1 right), replacing
 the incompatible legacy STRING. Scene/help/verification/migration notes agree.
 No repository external profile mapping was supplied or changed. DB14 and PLC

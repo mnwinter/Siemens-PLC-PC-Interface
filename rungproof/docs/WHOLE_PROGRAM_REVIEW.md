@@ -1,6 +1,24 @@
 # Whole program review - 2026-10-03
 
-Bottle Shuttle controller checkpoint (2026-10-05, current): Scene 34's
+Tote Finishing installation checkpoint (2026-10-05, current): repaired Scene 35's
+station columns inside the belt corridor, unsupported tote and short discharge
+belt. The opt-in mounting variant keeps reusable masters unchanged, supports
+the load on a 14 m / 0.9 m belt, clears station/conveyor solids and routes,
+and attaches nozzle tip, chuck and camera optic to their moving parents.
+Twelve new checks include 245 route samples and 5000 two-ms actual preview ticks.
+Clean build, 487 geometry/workflow checks, 144 controller tests, scene contract
+and 77-scene/294-asset shell pass. Initial and discharge poses were inspected
+in Windows FR/FL/RL/RR/Top; held fill was inspected from four sides and focused
+Top, then the released preview completed and Reset restored infeed.
+
+Normal Run still opens an empty editor with NO CONTROLLER LOADED; scene Start
+is blocked. The preview is not full process acceptance: the tote remains capped,
+fill volume is absent, the capper has no axial application stroke, the labeler
+only rotates its roll, and inspection_ok is scripted. Controller-driven tote
+transport/Start binding, process feedback, restart/resume and live PLC remain
+open. Whole review remains active. Evidence: `.tools/tote-finishing-*.log`.
+
+Bottle Shuttle controller checkpoint (2026-10-05, previous): Scene 34's
 motor_direction is now PLC-owned INT (-1 left, 0 stopped, +1 right), replacing
 the incompatible legacy STRING. Scene/help/verification/migration notes agree.
 No repository external profile mapping was supplied or changed. DB14 and PLC
