@@ -125,6 +125,8 @@ public static partial class SceneComposer
             ConfigureTankAnalogMount(root, scene);
         if (scene.Equipment.Any(equipment => Text(equipment.Config, "installation", string.Empty) == "tankPiping"))
             ConfigureTankPiping(root, scene);
+        if (scene.Equipment.Any(equipment => Text(equipment.Config, "installation", string.Empty) == "palletOutbound"))
+            ConfigurePalletOutbound(root);
         return new SceneComposition(root, rendered, deferred);
     }
 
@@ -251,6 +253,7 @@ public static partial class SceneComposer
 
     private static Node3D? CreateTrainingAccessory(SceneEquipment equipment, AssetCatalogDocument candidates)
     {
+        if (Text(equipment.Config, "installation", string.Empty) == "palletTransferBridge") return new Node3D();
         var model = CreateOptionalMappedAsset(equipment, candidates, Text(equipment.Config, "catalogAssetId", string.Empty));
         var display = Text(equipment.Config, "display", string.Empty);
         if (model is not null && display is "palletCount" or "numeric")

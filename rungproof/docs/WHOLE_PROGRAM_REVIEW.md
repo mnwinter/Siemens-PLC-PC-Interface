@@ -1,5 +1,20 @@
 # Whole program review - 2026-10-03
 
+Pallet outbound support (2026-10-05, latest): Scene 31 has a second conveyor
+and grounded bridge at the same 900 mm carrying height. Its full 8 m timed
+reference release ends with the pallet entirely on the outbound flat belt.
+Both conveyors use the existing command. Ten new checks prove bounded
+geometric support/clearance throughout that reference, final landing and Reset
+(380 total); build, 143 virtual-controller tests, shell, plant motion, scene
+contract and help validation pass. Native staged/final five views, unheld
+completion, held post-bridge Top/RR and bridge-focused Top/RL/RR inspected;
+close-view occlusions/cropping are recorded in MULTI_ANGLE_SCENE_REVIEW.md.
+Crossing geometry has 10 ms sampled proof, not continuous five-angle native
+observation. Container paths still miss receiver bays and robot attachment is
+unproven; scene 31 remains FAIL/open. No full physical handling, controller
+sequence or live PLC acceptance is claimed. Earlier outbound-support notes
+below are historical. Evidence: `.tools/pallet-outbound-*.log`.
+
 Pallet-cell installation (2026-10-05): Scene 31's 80 mm pallet/belt gap,
 receiver/conveyor intersection and sensor/brace placement are repaired.
 Both containers moved down with the pallet. The shared photoeye composer now

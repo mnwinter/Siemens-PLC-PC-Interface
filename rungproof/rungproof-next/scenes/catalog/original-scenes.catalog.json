@@ -3,11 +3,11 @@
   "catalogId": "rungproof-original-scenes-migrated",
   "sourceRoot": "prototype/scenes",
   "sceneCount": 77,
-  "equipmentInstanceCount": 602,
+  "equipmentInstanceCount": 604,
   "equipmentTypeCounts": {
     "box": 30,
     "containerReceiver": 2,
-    "conveyor": 32,
+    "conveyor": 33,
     "drillPress": 4,
     "fan": 5,
     "indicator": 117,
@@ -33,7 +33,7 @@
     "toteFiller": 2,
     "toteLabeler": 1,
     "toteVision": 1,
-    "trainingAccessory": 119,
+    "trainingAccessory": 120,
     "valve": 7
   },
   "scenes": [
@@ -530,7 +530,7 @@
       "name": "Lab 2.17 - Twin-Container Pallet Cell",
       "path": "res://scenes/migrated/lab-2-17-pallet-robot.scene.json",
       "sourceFile": "prototype/scenes/lab-2-17-pallet-robot.plcscene",
-      "equipmentCount": 9,
+      "equipmentCount": 11,
       "equipmentTypes": [
         "box",
         "containerReceiver",
@@ -538,7 +538,8 @@
         "indicator",
         "photoeye",
         "robotArm",
-        "switch"
+        "switch",
+        "trainingAccessory"
       ],
       "unresolvedAssetTypes": [],
       "visualStatus": "mapped"
@@ -630,7 +631,7 @@
       "name": "Lab 2.23 - Parcel Size Sorter",
       "path": "res://scenes/migrated/lab-2-23-parcel-sorter.scene.json",
       "sourceFile": "prototype/scenes/lab-2-23-parcel-sorter.plcscene",
-      "equipmentCount": 12,
+      "equipmentCount": 13,
       "equipmentTypes": [
         "box",
         "conveyor",
@@ -1227,9 +1228,10 @@
       "name": "Conveyor Pusher",
       "path": "res://scenes/migrated/scene-2-conveyor-pusher.scene.json",
       "sourceFile": "prototype/scenes/scene-2-conveyor-pusher.plcscene",
-      "equipmentCount": 6,
+      "equipmentCount": 7,
       "equipmentTypes": [
         "box",
+        "containerReceiver",
         "conveyor",
         "indicator",
         "photoeye",

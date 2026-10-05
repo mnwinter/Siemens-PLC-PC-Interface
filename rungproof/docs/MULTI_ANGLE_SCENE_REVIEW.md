@@ -10,6 +10,46 @@ includes failed scenes; it is not a count of accepted scenes.
 
 ## Acceptance method
 
+Pallet outbound support (2026-10-05, latest): Scene 31 now has a 4 m outbound
+conveyor at X=5.4 m, sharing the staging belt's 900 mm carrying height. A
+425 mm steel deck on a centered 200 mm bearer, two posts and grounded feet
+bridges the belts. The deck leaves 70/35 mm gaps from the flat tangent points;
+the deeper bearer stays outside the curved wraps. Raised visual splice
+witnesses are flush on both belts. The existing conveyor_run command drives
+both conveyors; no PLC points or transport were added. The standalone
+reference release now travels 8 m to X=5.2 over 12.307692 s, finishing fully
+within the outbound flat carrying surface. Catalog equipment totals and help
+were updated (604 instances, 11 in this scene).
+An all-catalog metadata audit also repaired stale per-scene counts for the
+parcel sorter and carton pusher, plus the pusher's missing receiver type.
+All 77 scene counts/type lists and aggregate totals now match their JSON.
+
+Ten new checks pass (380 geometry/workflow checks total): shared deck height,
+connected grounded supports, equipment clearance, flush splice witnesses,
+all three runner contacts and complete pallet clearance throughout the actual
+reference at 10 ms samples, final landing, shared command/completion stop and
+Reset. Runner support is a geometric witness requiring at least 100 mm of
+longitudinal contact per runner across the three carrying surfaces; this is
+not a zero-gap deck, load rating, slip or acceleration proof. Belt/drum/cable
+clearance screens transformed triangle bounds where enclosing boxes contain
+empty space. Build has zero warnings/errors; 143 virtual-controller tests,
+77-scene shell, offline plant motion, scene contract and 294-asset/77-scene
+help validation pass. Evidence: `.tools/pallet-outbound-*.log`.
+
+Native Windows standalone PLANT PREVIEW (no PLC controller): staged and final
+poses inspected in FR/FL/RL/RR/Top; running reference completed with the
+empty pallet on the receiving belt and both conveyor commands off. A held
+post-bridge release pose was inspected in Top/RR and bridge-focused Top/RL/RR;
+bridge-focused FR is blocked by the receiver backstop, RR partly by the status
+light, RL partly by the robot base, and surrounding geometry is cropped.
+Reset restored the staged pallet/containers and initial point values. Exact
+crossing poses were sampled by the verifier; they were not continuously
+observed from five native angles. Scene 31 remains FAIL/open: container paths
+miss receiver bays, robot attachment/reach and complete physical transfer are
+unproven. The normal controller-owned shell does not execute this standalone
+timed reference automatically. Earlier outbound-support findings below are
+historical; their remaining robot-transfer findings still apply.
+
 Pallet-cell installation (2026-10-05, latest): Scene 31's pallet and both
 containers were lowered together by 80 mm. All three bottom runners now meet
 the measured 900 mm belt surface, and both containers retain their deck contact.
@@ -1611,7 +1651,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 28 | `lab-2-14-sump-pump` | 41 (original) | Final repaired FR/FL/RL/RR/T wide + top/FL/RL/FR pump close | Partial piping repair: joined measured ports, aligned valve/spool and grounded supports; still FAIL: buried low probe, float fitting/identity and sump vessel open; normal Run unloaded; full level motion pending |
 | 29 | `lab-2-15-fume-extractor` | 0 | FR/FL/RL/RR/T static and running 35%; close plate; speed states; native preview Stop/Run/Off/Reset | LIGHT REQUEST, speed binding and preview Stop repaired; six-blade transform checks pass. Open: beacon substitutes light, hood/duct absent, normal Run unloaded; reference preview is not controller lesson acceptance |
 | 30 | `lab-2-16-safe-drill` | 24 original / 0 repaired | Native repaired FR/FL/RL/RR/T; stock FR close; normal 3D hand/cycle controls; held feed/bottom four close sides; Stop/Reset/restart; unheld completion | Fixture/feed and honest Stop-hold semantics repaired; normal cycle blocks without controller. Top stock view occluded by head; guard/two-hand safety behavior is not modeled |
-| 31 | `lab-2-17-pallet-robot` | 23 historic | Native repaired FR/FL/RL/RR/T; sensor Top/FL/RR close; normal Reset | Static pallet support, receiver/backstop clearance and sensor placement/pigtails repaired; five new checks PASS. FAIL/open: container paths miss receiver, robot attachment/reach and supported outbound pallet travel unresolved. Reference point contract passes only |
+| 31 | `lab-2-17-pallet-robot` | 23 historic; 4 current home bounds candidates | Native staged/final FR/FL/RL/RR/T; held post-bridge Top/RR; bridge Top/RL/RR (occlusions recorded); sensor earlier Top/FL/RR; Reset | Static installation and outbound support repaired; 15 installation/release checks PASS within 380 total. Actual reference sampled at 10 ms, final pallet fully on outbound belt. FAIL/open: container paths miss receiver, robot attachment/reach and complete physical transfer unproven; crossing not continuously observed in five native angles. Normal shell remains controller owned |
 | 32 | `lab-2-18-pallet-pickup` | 29 | Native FR/FL/RL/RR/T; sensor top/FR/RL close; auto toggle and jog | Open: pallet support and sensor/conveyor mounting need measurement; Jog blocks unloaded; full motion unverified |
 | 33 | `lab-2-19-service-door` | 54 original / 0 repaired | Repaired native FR/FL/RL/RR/T; operator FR close; held opening/Stop/reverse; real-time endpoints; open five views; Reset | Layout/plates and reference reversal/position feedback repaired; raw NC signal displays explicit. Physical limit/cable behavior, compressed slat geometry and loaded-controller operation unaccepted |
 | 34 | `lab-2-20-bottle-shuttle` | 39 | Native FR/FL/RL/RR/T; bottle top/FR close; Start | Open: overlapping bottle label text; contact and sensor mounts need measurement. Normal Start unloaded; round-trip motion unverified |

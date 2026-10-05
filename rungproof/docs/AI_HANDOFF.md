@@ -6,6 +6,27 @@ would otherwise be trapped in a local Codex session. It intentionally excludes
 machine-local Codex databases, credentials, screenshots from private chats, and
 temporary runtime state.
 
+Pallet outbound support (2026-10-05, latest): Scene 31 adds a 4 m outbound
+conveyor at X=5.4 m and a 425 mm bridge deck on a centered 200 mm bearer,
+connected posts/feet. All surfaces carry at 900 mm. Tangent gaps are 70/35 mm;
+the deeper bearer clears the curved wraps. Flush splice witnesses avoid
+runner interference. Same existing conveyor_run drives both belts. Reference
+release extends to X=5.2 over 12.307692 s (8 m at 0.65 m/s); contract runs 16 s.
+Catalog totals are 604 instances/11 in scene 31. Ten added checks (380 total)
+sample actual reference support and complete pallet clearance at 10 ms,
+require >=100 mm longitudinal contact per runner, check landing/shared
+command/Reset. Round belt/drum and cable conflicts use transformed triangle
+bounds after enclosing-box screening. Build, controller 143, shell, plant
+motion, scene contract and help 294/77 pass. Native initial/final five views,
+unheld completion, held post-bridge Top/RR and bridge Top/RL/RR inspected;
+occlusions/cropping are documented. Exact crossing poses have sampled geometry
+proof, not continuous native five-angle proof. Full robot transfer remains
+FAIL/open: detached loads, miss receiver bays, reach/attachment unproven.
+Normal shell remains controller-owned; reference QA does not prove controller
+handling, slip/acceleration or loads. Earlier outbound-support notes below are
+historical. Logs: `.tools/pallet-outbound-*.log`. Continue with robot/container
+path and receiving-bay geometry, then remaining catalog failures.
+
 Pallet-cell installation (2026-10-05): Scene 31's pallet/container roots are
 80 mm lower, receiver Z=2.4 m and photoeye span=2.5 m. Five new checks prove
 static support/clearance/pigtail seating. Shared photoeye cables now translate

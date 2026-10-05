@@ -36,6 +36,7 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | `pallet_ready` | `pallet_ready_sensor` | `photoeye` |
 | `robot_run` | `pallet_robot` | `running` |
 | `conveyor_run` | `robot_pallet_conveyor` | `running` |
+| `conveyor_run` | `robot_pallet_outbound` | `running` |
 | `cell_color` | `robot_cell_status` | `indicator` |
 
 ## Expected equipment
@@ -43,6 +44,8 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | ID | Type | Label |
 | --- | --- | --- |
 | `robot_pallet_conveyor` | `conveyor` | Pallet staging conveyor |
+| `robot_pallet_outbound` | `conveyor` | Empty pallet outbound conveyor |
+| `robot_pallet_transfer_bridge` | `trainingAccessory` | Grounded pallet transfer bridge |
 | `robot_pallet` | `box` | Staging pallet |
 | `container_a` | `box` | Process container A |
 | `container_b` | `box` | Process container B |
@@ -57,9 +60,15 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 The staging pallet's bottom runners meet the 900 mm belt surface. Both
 containers are seated on its deck, the receiver is clear of the conveyor,
 and the photoeye stands and connected pigtails clear the conveyor braces.
-These static installation repairs do not establish a complete robot transfer:
-the reference container paths still miss the receiver bays, robot/load
-attachment is unproven, and outbound pallet support remains unresolved.
+The outbound conveyor shares the 900 mm carrying height, with a grounded
+425 mm bridge deck between the belts. The 70/35 mm gaps at the flat belt
+tangent points are narrower than each pallet runner. The standalone reference
+release covers 8 m at 0.65 m/s and finishes with the whole pallet on the
+outbound flat belt. Both conveyors use the existing `conveyor_run` command.
+This geometric installation does not establish a complete robot transfer:
+the reference container paths still miss the receiver bays and robot/load
+attachment is unproven. Timed reference motion is separate from the normal
+controller-owned shell and does not prove acceleration, slip or load capacity.
 The reference contract verifies sequence point values, not physical handling.
 
 A normal Stop removes PLC-owned commands according to the scene runtime. This document does not prove a safety function, a real E-stop circuit, a PLC watchdog, or live-machine commissioning.

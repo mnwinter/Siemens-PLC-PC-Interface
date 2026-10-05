@@ -36,6 +36,20 @@
       }
     },
     {
+      "id": "robot_pallet_outbound",
+      "type": "conveyor",
+      "label": "Empty pallet outbound conveyor",
+      "position": [5.4, 0, 0],
+      "config": { "length": 4, "width": 1.5, "deckHeight": 0.9, "running": false, "installation": "palletOutbound" }
+    },
+    {
+      "id": "robot_pallet_transfer_bridge",
+      "type": "trainingAccessory",
+      "label": "Grounded pallet transfer bridge",
+      "position": [0, 0, 0],
+      "config": { "installation": "palletTransferBridge" }
+    },
+    {
       "id": "robot_pallet",
       "type": "box",
       "label": "Staging pallet",
@@ -250,6 +264,11 @@
         "mode": "running"
       },
       {
+        "point": "conveyor_run",
+        "equipmentId": "robot_pallet_outbound",
+        "mode": "running"
+      },
+      {
         "point": "cell_color",
         "equipmentId": "robot_cell_status",
         "mode": "indicator"
@@ -333,7 +352,7 @@
         },
         {
           "name": "release pallet",
-          "durationS": 1.5,
+          "durationS": 12.307692,
           "set": {
             "pallet_ready": false,
             "conveyor_run": true,
@@ -345,7 +364,7 @@
               "equipmentId": "robot_pallet",
               "axis": "x",
               "from": -2.8,
-              "to": 2.8
+              "to": 5.2
             }
           ]
         },
@@ -367,7 +386,7 @@
       "cell_color": "red"
     },
     "completionState": {},
-    "conveyorSpeedMps": 0.75
+    "conveyorSpeedMps": 0.65
   },
   "training": {
     "hints": [
@@ -444,7 +463,7 @@
         "phases": [
           {
             "action": "start-robot",
-            "runForS": 5.4
+            "runForS": 16.0
           }
         ],
         "expect": {
