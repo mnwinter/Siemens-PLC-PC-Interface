@@ -6,6 +6,36 @@ would otherwise be trapped in a local Codex session. It intentionally excludes
 machine-local Codex databases, credentials, screenshots from private chats, and
 temporary runtime state.
 
+Latest drill checkpoint (2026-10-04): coverage 31/77 inspected, 46 pending,
+including failures. Scene 30 has normal native FR/FL/RL/RR/T and workpiece
+top/FR close inspection. FAIL: mapped drill press contains a yellow coupon
+already; separate drill_workpiece maps to another clamped-plate fixture under
+the table. Native held bottom feedback changes without axial spindle travel:
+ContinuousRotation ignores SetPositionNormalized. Stop and retract has only
+type=stop, retaining bottom=true/top=false after two stepped seconds. Normal
+Run unloaded. Three faceLabel plates now LEFT HAND/RIGHT HAND/DRILL CYCLE,
+all checked in native close views. QA action bar bottom anchor fixes overlap
+with wrapped status/Run/Stop/Reset; popup opens upward and remains visible.
+Uncovered RunDefault bypass: default sequence skipped Start requirements.
+It now dispatches the unique matching declared Start action. Four negative
+checks reproduce before-fix failures and all pass repaired; valid completion
+and unconditional sump start remain available. Native final Run blocked with
+both requests false and left only; both true start completes in real time,
+Reset restores inputs. These QA checks do not accept normal controller lesson
+execution, feed geometry or safety-rated two-hand operation. One 3D button
+click in QA did not change its point; normal rendered-button interaction is
+still unverified. Build 0 warnings/errors; 117 geometry/reference checks,
+two drill contracts, 19 motion checks, 142 controller tests, rendered controls
+and shell pass (four existing headless position errors). Evidence under
+rungproof-next/.tools: safe-drill-native.log, safe-drill-plant-native.log,
+safe-drill-label-native.log, safe-drill-layout-native.log,
+drill-permissive-before.log, drill-permissive-final-native.log and
+drill-permissive-*.log. All isolated reviewers exit 0; user Demo 1 stays open.
+Goal active. Next: measure/reconcile the drill's actual coupon/fixture and
+spindle feed/stop/guard behavior, then scene 31 Twin-Container Pallet Cell and
+all 46 pending scenes. Sump vessel/probes/level motion, fume identity gaps,
+coolant service piping, shared lift follow-ups and earlier failures remain open.
+
 Latest sump piping checkpoint (2026-10-04): coverage remains 30/77 inspected,
 47 pending including failures. Opt-in installation=sumpPiping uses actual mesh
 datums before tree entry to connect tank/pump, rotate/align valve/spool and

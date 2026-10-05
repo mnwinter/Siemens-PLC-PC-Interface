@@ -1,5 +1,23 @@
 # Whole program review - 2026-10-03
 
+Drill inspection / Run repair (2026-10-04): coverage now 31/77 native five-view
+inspections, 46 pending including failures. Close inspection finds an extra
+clamped fixture buried below the press table. Native reference bottom feedback
+changes without axial feed; the rotation-only adapter ignores feed commands.
+Stop and retract stops but does not retract. Three operator plates and the QA
+HUD/action overlap are repaired and native checked. Exposing Run also reproduced
+a default-sequence permissive bypass; Run now uses the declared Start action.
+Four negative cases fail before repair and pass afterward; positive completion
+and unconditional sump start remain available. Native blocked Run, valid
+real-time reference completion and Reset verified. Build 0 warnings/errors;
+117 geometry/reference checks, two drill contracts, 19 motion checks, 142
+controller tests, rendered controls and shell pass. Shell retains four existing
+headless position errors. Reviewer windows exit 0; user Demo 1 preserved.
+Drill feed/fixture/stop and guard/two-hand model remain open, along with prior
+failures. Exact evidence in MULTI_ANGLE_SCENE_REVIEW.md.
+
+Earlier checkpoint:
+
 Sump piping repair (2026-10-04): actual tank/pump flange connections, suction
 offset/discharge elbow, horizontal valve/spool alignment and five grounded
 pipe supports replace the disconnected/interfering installation. Final native

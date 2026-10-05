@@ -285,7 +285,14 @@ public partial class SceneSimulationRuntime : Node
             && _definition.TryGetProperty("defaultSequence", out var sequence)
             && sequence.ValueKind == JsonValueKind.String)
         {
-            return StartSequence(sequence.GetString() ?? string.Empty);
+            var sequenceName = sequence.GetString() ?? string.Empty;
+            // Run and the named Start action must enter the same contract.
+            // Starting the sequence directly bypassed its declared permissives.
+            var startAction = Actions().FirstOrDefault(action => Text(action, "type", string.Empty) == "start"
+                && Text(action, "sequence", string.Empty) == sequenceName);
+            return startAction.ValueKind == JsonValueKind.Object
+                ? ExecuteAction(Text(startAction, "id", string.Empty))
+                : StartSequence(sequenceName);
         }
 
         if (RuntimeType == "booleanPanel")

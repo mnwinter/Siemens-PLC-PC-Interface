@@ -69,7 +69,14 @@ public partial class Main
             // default sequence. Keep this out of the controller-owned shell.
             var runtime = _sceneRuntime;
             var actions = runtime.GetActions();
-            var actionBar = new HBoxContainer { Position = new Vector2(18, 240) };
+            // Point values can wrap beyond the original 230 px HUD. Anchor QA
+            // actions to the viewport bottom so they never cover Run/Stop/Reset.
+            var actionBar = new HBoxContainer
+            {
+                AnchorTop = 1, AnchorBottom = 1,
+                OffsetLeft = 18, OffsetTop = -50, OffsetBottom = -18,
+                GrowVertical = Control.GrowDirection.Begin,
+            };
             layer.AddChild(actionBar);
             var choice = new OptionButton { CustomMinimumSize = new Vector2(280, 0) };
             foreach (var action in actions) choice.AddItem(action.Label);
@@ -317,6 +324,7 @@ public partial class Main
             VerifyCoolantJugGeometry(Check);
             VerifyFumeSpeedProjection(Check);
             VerifySumpInstallation(Check);
+            VerifyDrillStartPermissives(Check);
 
             AddMigratedScene("tank-radar", _candidateCatalog!, _mainCamera!, false, false);
             // Exercise an authored parent scale as well as configured sizing.
@@ -638,6 +646,48 @@ public partial class Main
         runtime.ResetSimulation();
         check(!motion.Running && shaft.Transform == authored && runtime.Points["motor_running"] is false,
             "motor_state_reset_restores_shaft_and_output");
+    }
+
+    private void VerifyDrillStartPermissives(Action<bool, string> check)
+    {
+        AddMigratedScene("lab-2-16-safe-drill", _candidateCatalog!, _mainCamera!, false, false);
+        var runtime = _sceneRuntime!;
+        // This checks the standalone reference Run button, not shell playback
+        // under a selected controller's scan clock and output ownership.
+        runtime.UsesExternalClock = false;
+        bool Blocked(SceneSimulationRuntime preview) => !preview.RunDefault()
+            && preview.Points["drill_run"] is false && preview.Points["cycle_complete"] is false;
+        check(Blocked(runtime), "drill_default_run_rejects_both_hand_requests_missing");
+        runtime.ExecuteAction("toggle-left-hand");
+        check(Blocked(runtime), "drill_default_run_rejects_left_hand_only");
+        runtime.ResetSimulation();
+        runtime.ExecuteAction("toggle-right-hand");
+        check(Blocked(runtime), "drill_default_run_rejects_right_hand_only");
+        runtime.ExecuteAction("toggle-left-hand");
+        var started = runtime.RunDefault();
+        for (var tick = 0; tick < 480; tick++) runtime.AdvanceSimulation(1.0 / 120.0);
+        check(started && runtime.Points["drill_run"] is false && runtime.Points["drill_at_top"] is true
+            && runtime.Points["cycle_complete"] is true, "drill_default_run_completes_reference_cycle_with_all_permissives");
+
+        // Use the actual lesson contract with an absent initial workpiece,
+        // without mutating its file or fabricating an action to set PC inputs.
+        var scene = SceneCatalogLoader.LoadScene(_sceneCatalog!.Scenes.First(item => item.Id == "lab-2-16-safe-drill"));
+        var definition = System.Text.Json.Nodes.JsonNode.Parse(scene.Simulation.GetRawText())!;
+        foreach (var point in definition["points"]!.AsArray())
+            if (point!["name"]!.GetValue<string>() == "workpiece_present") point["initial"] = false;
+        using var json = System.Text.Json.JsonDocument.Parse(definition.ToJsonString());
+        var noStock = new SceneSimulationRuntime(json.RootElement, _sceneCompositionRoot!);
+        try
+        {
+            noStock.ResetSimulation();
+            noStock.ExecuteAction("toggle-left-hand");
+            noStock.ExecuteAction("toggle-right-hand");
+            check(Blocked(noStock), "drill_default_run_rejects_absent_workpiece_with_both_requests");
+        }
+        finally { noStock.Free(); }
+        AddMigratedScene("lab-2-14-sump-pump", _candidateCatalog!, _mainCamera!, false, false);
+        check(_sceneRuntime!.RunDefault(), "sump_unconditional_default_start_remains_available");
+        _sceneRuntime.StopSimulation();
     }
 
     private void VerifySumpInstallation(Action<bool, string> check)

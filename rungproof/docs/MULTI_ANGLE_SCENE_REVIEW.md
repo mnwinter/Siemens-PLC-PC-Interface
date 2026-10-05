@@ -1,7 +1,7 @@
 # Multi-angle scene review - 2026-10-04
 
 Status: **active**. The prior software review did not establish multi-angle
-visual acceptance. Thirty scenes have five-view native static inspections; 47 remain pending.
+visual acceptance. Thirty-one scenes have five-view native static inspections; 46 remain pending.
 Demo 5, Powder Batch Mixer, Parcel Size Sorter, Conveyor Inspection Cell,
 the Equipment Gallery, Drive Alarm-Code String and Chicken Label Print have repaired static layouts.
 The sorter operator Run still lacks a controller; eight simple panels now have corrected function plates and clear spacing. Other scenes
@@ -28,6 +28,47 @@ Every row requires native inspection.
 
 ## Repairs and open findings
 
+- Fixture-Safe Drill Station (scene 30): normal Windows FR/FL/RL/RR/T
+  static views and workpiece-focused top/FR close views inspected. **FAIL/open:**
+  the mapped press already owns a yellow coupon in its vise; the scene's
+  separate `drill_workpiece` is another scaled clamped-plate fixture underneath
+  the table, with 24 original AABB candidates (screening, not solid proof).
+  Native held preview reaches `drill_at_bottom=true` without visible axial
+  spindle travel. The adapter is ContinuousRotation, so SetPositionNormalized
+  ignores the declared feed motion. Stop and retract removes `drill_run` and
+  turns the light red but remains `drill_at_bottom=true`, `drill_at_top=false`
+  after another two seconds of stepped reference time; no retraction exists
+  in that action. Normal Run opens NO CONTROLLER LOADED. Both declared reference
+  contract cases pass despite these visual/stop failures.
+  Three generic START plates now read LEFT HAND, RIGHT HAND and DRILL CYCLE;
+  fresh normal native close views verify all three fit their plates. The QA
+  action bar now anchors at the viewport bottom because wrapped point values
+  overlapped Run/Stop/Reset; native controls and upward-opening action popup
+  are visible without that overlap.
+  Exposing Run reproduced an additional bypass: RunDefault entered the default
+  sequence directly with both hand requests false. It now dispatches the
+  matching declared Start action, preserving its permissives and blocked
+  message. An inventory of all 77 catalog entries finds 13 default sequences,
+  each with exactly one matching Start action.
+  Four new negative cases fail before the fix (both missing, either hand only,
+  missing stock with both requests); all now pass. Valid reference completion
+  and unconditional sump start also pass. Fresh native Run blocks with both
+  missing and with left only, then starts with both set, reaches real-time
+  reference completion and resets. These are standalone QA observations;
+  they do not establish controller lesson execution or safety-rated two-hand
+  behavior. Requests remain toggles, with no simultaneous/continuous-hold
+  model established. One attempted rendered-button click in standalone QA
+  did not change the input; normal rendered-button interaction remains open.
+  Build 0 warnings/errors; 117 geometry/reference checks, two drill contracts,
+  19 plant-motion checks, 142 controller tests and rendered controls pass.
+  Shell passes with four existing headless position errors. Evidence under
+  rungproof-next/.tools: safe-drill-native.log, safe-drill-plant-native.log,
+  safe-drill-label-native.log, safe-drill-layout-native.log,
+  drill-permissive-before.log, drill-permissive-final-native.log and
+  drill-permissive-{build,geometry,controller,contract,motion,controls,shell}.log.
+  All isolated drill reviewers exit 0; user Demo 1 preserved. Coverage now
+  31/77 inspected, 46 pending including failures. Axial feed, single supported
+  workpiece, stop semantics and guard/permissive feedback remain required.
 - Sump piping follow-up: the opt-in scene installation now connects actual
   tank/pump flange faces with a suction offset and an upward discharge elbow,
   aligns the valve and instrumented spool horizontally, and grounds five pipe
@@ -575,7 +616,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 27 | `lab-2-13-coolant-jug-fill` | 13 | Catalog FR/FL/RL/RR/T; QA five held filling views + close FL mouth; real-time indexing/exit, Reset | Lane/support/nozzle repaired; sampled sweep clear. Open: external service pipe absent, Run blank controller editor; native Stop endpoint-only |
 | 28 | `lab-2-14-sump-pump` | 41 (original) | Final repaired FR/FL/RL/RR/T wide + top/FL/RL/FR pump close | Partial piping repair: joined measured ports, aligned valve/spool and grounded supports; still FAIL: buried low probe, float fitting/identity and sump vessel open; normal Run unloaded; full level motion pending |
 | 29 | `lab-2-15-fume-extractor` | 0 | FR/FL/RL/RR/T static and running 35%; close plate; speed states; native preview Stop/Run/Off/Reset | LIGHT REQUEST, speed binding and preview Stop repaired; six-blade transform checks pass. Open: beacon substitutes light, hood/duct absent, normal Run unloaded; reference preview is not controller lesson acceptance |
-| 30 | `lab-2-16-safe-drill` | 24 | Pending | Pending |
+| 30 | `lab-2-16-safe-drill` | 24 | Native FR/FL/RL/RR/T + workpiece top/FR close; held bottom/Stop; final QA Run/Reset | FAIL: duplicate buried fixture, axial feed ignored, Stop does not retract; normal Run unloaded. Plates, QA overlap and default Run permissive bypass repaired; continuous two-hand/guard model open |
 | 31 | `lab-2-17-pallet-robot` | 23 | Pending | Pending |
 | 32 | `lab-2-18-pallet-pickup` | 29 | Pending | Pending |
 | 33 | `lab-2-19-service-door` | 54 | Pending | Pending |

@@ -63,6 +63,7 @@
       "config": {
         "style": "pushbutton",
         "action": "toggle-left-hand",
+        "faceLabel": "LEFT HAND",
         "color": 2204518
       }
     },
@@ -78,6 +79,7 @@
       "config": {
         "style": "pushbutton",
         "action": "toggle-right-hand",
+        "faceLabel": "RIGHT HAND",
         "color": 2204518
       }
     },
@@ -93,6 +95,7 @@
       "config": {
         "style": "pushbutton",
         "action": "start-drill",
+        "faceLabel": "DRILL CYCLE",
         "color": 3050449
       }
     },
