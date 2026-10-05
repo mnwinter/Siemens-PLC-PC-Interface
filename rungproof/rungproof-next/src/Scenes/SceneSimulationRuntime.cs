@@ -707,7 +707,12 @@ public partial class SceneSimulationRuntime : Node
                     foreach (var beam in photoeye.FindChildren("KIN_beam*", string.Empty, true, false).OfType<Node3D>())
                         beam.Visible = !_conveyorPlant.PhotoeyeBlocked;
                 }
-                target.Z += (float)_conveyorPlant.PusherPosition * stroke;
+                // Only the package at the transfer station can follow the
+                // pusher. Previously an off-station stroke also dragged the
+                // infeed package sideways, although the plant correctly
+                // withheld transfer feedback/counting for that package.
+                if (RuntimeType == "conveyorPusher" && _conveyorPlant.PhotoeyeBlocked)
+                    target.Z += (float)_conveyorPlant.PusherPosition * stroke;
                 product.Position = target;
             }
         }

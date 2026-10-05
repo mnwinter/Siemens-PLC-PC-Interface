@@ -674,6 +674,54 @@ public partial class Main
         finally { DisableVirtualController(); }
     }
 
+    private void VerifyPusherRodGeometry(Action<bool, string> check)
+    {
+        AddMigratedScene("scene-2-conveyor-pusher", _candidateCatalog!, _mainCamera!, false, false);
+        var pusher = _sceneCompositionRoot!.GetNode<Node3D>("scene2_pusher");
+        var rod = (MeshInstance3D)pusher.FindChild("KIN_pusher_rod", true, false);
+        var clevis = (MeshInstance3D)pusher.FindChild("KIN_pusher_clevis", true, false);
+        var motion = pusher.FindChildren("*", string.Empty, true, false)
+            .OfType<EquipmentMotionController>().Single();
+        var authored = rod.Transform;
+        // Measure the delivered mesh in its controller's parent coordinates.
+        // The imported cylinder's local axes differ from its travel direction.
+        Aabb ParentBounds(MeshInstance3D mesh) => mesh.Transform * mesh.GetAabb();
+        var initialClevis = ParentBounds(clevis);
+        GD.Print($"PUSHER_ROD_INITIAL bounds={ParentBounds(rod)} basis={rod.Basis} clevis={initialClevis}");
+        foreach (var rootRotation in new[] { -90.0f, 0.0f })
+        {
+            pusher.RotationDegrees = new Vector3(0, rootRotation, 0);
+            motion.SetPositionNormalized(0);
+            var initial = ReviewBounds(rod);
+            var travelAxis = rootRotation == -90.0f ? 2 : 0;
+            var seated = true;
+            var follows = true;
+            var diameter = true;
+            for (var sample = 0; sample <= 100; sample++)
+            {
+                var extension = motion.TravelM * sample / 100;
+                motion.SetPositionNormalized(sample / 100.0f);
+                var bounds = ReviewBounds(rod);
+                var carriage = ReviewBounds(clevis);
+                seated &= MathF.Abs(bounds.Position[travelAxis] - initial.Position[travelAxis]) < 0.001f;
+                follows &= MathF.Abs(bounds.End[travelAxis] - initial.End[travelAxis] - extension) < 0.001f
+                    && bounds.Intersects(carriage);
+                diameter &= MathF.Abs(bounds.Size.Y - initial.Size.Y) < 0.001f
+                    && MathF.Abs(bounds.Size[travelAxis == 2 ? 0 : 2] - initial.Size[travelAxis == 2 ? 0 : 2]) < 0.001f;
+            }
+            GD.Print($"PUSHER_ROD_ENDPOINT bounds={ParentBounds(rod)} clevis={ParentBounds(clevis)}");
+            check(seated, $"pusher_rod_gland_end_fixed_through_101_samples_rotation_{rootRotation}");
+            check(follows, $"pusher_rod_free_end_follows_seated_clevis_rotation_{rootRotation}");
+            check(diameter, $"pusher_rod_diameter_preserved_rotation_{rootRotation}");
+        }
+        motion.Stop();
+        var held = rod.Transform;
+        motion._PhysicsProcess(0.4);
+        check(rod.Transform.IsEqualApprox(held), "pusher_rod_stop_holds_pose");
+        motion.ResetMotion();
+        check(rod.Transform.IsEqualApprox(authored), "pusher_rod_reset_restores_exact_authored_mesh_transform");
+    }
+
     private void VerifyBaseConveyorCartonSupport(Action<bool, string> check)
     {
         foreach (var number in new[] { 1, 2 })
@@ -725,6 +773,30 @@ public partial class Main
             runtime.ResetSimulation();
             check(carton.Transform.IsEqualApprox(initial) && Supported() && runtime.Points[feedback] is false,
                 $"{sceneId}_reset_restores_supported_load_end");
+            if (number == 2)
+            {
+                runtime.SetControllerPlaybackRunning(true);
+                runtime.CommitVirtualControllerOutputs(new Dictionary<string, bool>
+                    { ["conveyor_running"] = false, ["pusher_extend"] = true });
+                var offStationHeld = true;
+                for (var sample = 0; sample < 30; sample++)
+                {
+                    runtime.AdvanceSimulation(0.01);
+                    offStationHeld &= carton.Transform.IsEqualApprox(initial) && carton.Visible && Supported();
+                }
+                check(offStationHeld && runtime.Points[feedback] is false
+                    && runtime.Points["pusher_extended"] is true && Convert.ToInt64(runtime.Points["parts_completed"]) == 0,
+                    "scene2_off_station_extension_does_not_drag_or_transfer_infeed_carton");
+                runtime.CommitVirtualControllerOutputs(new Dictionary<string, bool> { ["pusher_extend"] = false });
+                for (var sample = 0; sample < 30; sample++)
+                {
+                    runtime.AdvanceSimulation(0.01);
+                    offStationHeld &= carton.Transform.IsEqualApprox(initial) && carton.Visible && Supported();
+                }
+                check(offStationHeld && runtime.Points["pusher_retracted"] is true,
+                    "scene2_off_station_retraction_keeps_infeed_carton_supported");
+                runtime.ResetSimulation();
+            }
         }
     }
 

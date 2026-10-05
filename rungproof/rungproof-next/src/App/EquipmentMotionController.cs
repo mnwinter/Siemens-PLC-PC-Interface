@@ -543,21 +543,22 @@ public partial class EquipmentMotionController : Node
         foreach (var target in _targets)
         {
             var authored = _authoredTransforms[target];
-            if (target.Name.ToString().StartsWith("KIN_pusher_rod", StringComparison.Ordinal))
+            if (target.Name.ToString().StartsWith("KIN_pusher_rod", StringComparison.Ordinal)
+                && target is MeshInstance3D rod)
             {
                 // The rod remains seated in the front cap while its free end
                 // follows the carriage. Scaling and shifting half the added
                 // length models extension instead of translating a loose rod.
-                // Use the authored parent-space travel axis. TranslatedLocal
-                // would apply the rod's own imported basis; this asset's rod
-                // basis rotates its local X into vertical Y, which makes the
-                // pusher appear to move up/down instead of in/out.
+                // The imported rod's local X points vertically. Stretch in
+                // parent X instead, using the delivered rod length (not the
+                // commanded stroke) to keep its gland end fixed and its free
+                // end seated in the travelling clevis. Premultiplication
+                // preserves both transverse dimensions and the imported basis.
+                var length = MathF.Max((authored * rod.GetAabb()).Size.X, 0.00001f);
+                var axialScale = Basis.FromScale(new Vector3((length + extension) / length, 1, 1));
                 target.Transform = new Transform3D(
-                    authored.Basis,
+                    axialScale * authored.Basis,
                     authored.Origin + Vector3.Right * (extension * 0.5f));
-                var scale = _authoredScales[target];
-                scale.X *= 1.0f + extension / MathF.Max(TravelM, 0.01f);
-                target.Scale = scale;
             }
             else
             {

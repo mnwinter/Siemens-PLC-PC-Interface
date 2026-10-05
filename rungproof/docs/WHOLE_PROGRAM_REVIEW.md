@@ -1,5 +1,44 @@
 # Whole program review - 2026-10-03
 
+Pusher rod and off-station projection repair (2026-10-05): native Scene 74
+dragged its infeed carton sideways when the pusher extended with the conveyor
+OFF and photoeye FALSE. The plant correctly withheld transfer/counting; the
+renderer applied the stroke to every carton. Lateral projection now requires
+the carton to be detected at the transfer station. This symbolic qualification
+does not establish physical plate contact or a supported transfer.
+
+The rod adapter stretched the imported cylinder's local X (vertical), using
+stroke as the scale divisor. Full-extension parent bounds were X=0.745..1.705 m
+and vertical diameter doubled to 180 mm. The correction stretches parent X by
+the delivered 960 mm rod length and shifts its centre by half the extension:
+the gland stays at X=0.070 m, the free end reaches X=2.380 m and remains seated
+in the moving clevis, and both transverse dimensions stay 90 mm. No mesh,
+scene placement, point owner, DB14 contract or canonical plant logic changed.
+
+Red checks failed six rod assertions and both off-station carton assertions.
+Final build: zero warnings/errors; all 300 scene/workflow checks pass, including
+101 stroke samples in each of two world orientations and rod Stop/Reset.
+Plant execution passes 19 checks; the pure plant retains eight Python traces /
+83 matching snapshots. App-shell passes 77 scenes / 294 assets with its
+existing single diagnostic. Logs are `.tools/pusher-rod-red.log`,
+`pusher-offstation-red.log`, `pusher-geometry-final.log`,
+`pusher-final-plant-motion.log`, `pusher-rod-plant-reference.log`, and
+`pusher-final-shell.log`.
+
+Final native Windows Project > Open loaded the ignored endpoint review file
+`.tools/pusher-rod-review.rpproj.json`; Online > Verify + load reported one
+block/task/network and six tags. Actual Run held full extension with conveyor
+OFF and photoeye FALSE. FR/FL/RL/RR/Top were individually inspected: carton
+stayed seated at infeed. Pusher-focused Top/RR showed the rod at the gland;
+the conveyor hides the extended clevis. Stop held pose/scan 4466 across fresh
+captures; Reset restored home, output FALSE and scan zero. PLC remained
+DISCONNECTED; the owned review window closed with exit zero.
+
+Scene 74 remains FAIL/open: plate too low, home intersects rear photoeye support,
+guide-shaft engagement at full stroke unresolved, and no receiving surface.
+Canonical transfer still hides the carton at its configured threshold. This
+endpoint fixture is not acceptance of a complete supported carton transfer.
+
 Box Volume numeric repair (2026-10-05): scene 70 preserves its four Boolean
 point names/owners and adds PC-owned DINT length_mm/width_mm/height_mm plus
 PLC-owned volume_mm3. Four live readouts replace the static MEASUREMENT legend;

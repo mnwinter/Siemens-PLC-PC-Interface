@@ -6,6 +6,22 @@ would otherwise be trapped in a local Codex session. It intentionally excludes
 machine-local Codex databases, credentials, screenshots from private chats, and
 temporary runtime state.
 
+Pusher continuation (2026-10-05): EquipmentMotionController now stretches the
+960 mm delivered rod in parent X (imported local X is vertical), preventing
+detached ends and diameter changes. SceneSimulationRuntime now applies
+lateral pusher offset only to the detected station carton; off-station strokes
+no longer drag the infeed load off its belt. Plant model/DB14/owners/assets and
+scene placement unchanged. Red rod/off-station regressions fail before fixes;
+final clean build and 300 scene/workflow, 19 plant execution, eight canonical
+Python trace / 83 snapshot and app-shell checks pass. Native endpoint fixture
+opened via normal Project/Open and Verify + load (one block/task/network,
+six tags); Run, five extended views, pusher Top/RR focus, Stop hold and Reset
+inspected. Carton stayed seated at infeed; rod gland visible, clevis obscured
+by conveyor. PLC disconnected, owned review window exit zero. Scene 74 remains
+FAIL/open for low plate/photoeye interference/guide shafts/missing receiver/
+disappearing transferred carton. No full transfer or mechanical acceptance.
+See WHOLE_PROGRAM_REVIEW.md for logs and exact verification boundaries.
+
 Box Volume numeric repair (2026-10-05): scene 70 preserves its four Boolean
 point names/owners and adds PC-owned DINT length_mm/width_mm/height_mm plus
 PLC-owned volume_mm3. Four live readouts replace the static MEASUREMENT legend;

@@ -364,6 +364,7 @@ public partial class Main
             VerifyPressCountWorkflow(Check);
             VerifyTransferCartonSupport(Check);
             VerifyBaseConveyorCartonSupport(Check);
+            VerifyPusherRodGeometry(Check);
             VerifyPalletCountPropGeometry(Check);
             VerifyCutLengthDisplayGeometry(Check);
             VerifyStaticTrainingReadouts(Check);

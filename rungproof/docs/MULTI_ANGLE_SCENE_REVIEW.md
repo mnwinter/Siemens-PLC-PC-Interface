@@ -10,6 +10,22 @@ includes failed scenes; it is not a count of accepted scenes.
 
 ## Acceptance method
 
+Pusher continuation (2026-10-05): Scene 74 rod motion now stretches along the
+imported asset's parent X, using its delivered 960 mm length. The gland end
+stays fixed, the free end follows the clevis and transverse diameter stays
+90 mm throughout 101 samples at each of two world orientations. Off-station
+extension/retraction no longer drags the infeed carton sideways. Native normal
+Project > Open / Verify + load / Run used an ignored one-network endpoint
+fixture (conveyor OFF, pusher held extended, photoeye FALSE). Final FR/FL/RL/RR/
+Top individually confirmed the carton stays seated; pusher-focused Top/RR
+showed the rod at the gland, while the conveyor obscures the clevis. Stop held
+pose/scan 4466 and Reset restored home/output FALSE/scan zero. PLC disconnected,
+owned review window exit zero. Build and 300 scene/workflow checks pass, as do
+19 plant execution checks, eight Python traces / 83 snapshots and app-shell.
+Scene still FAIL/open: low plate, photoeye support interference, unresolved
+guide-shaft engagement, absent receiver and disappearing transferred carton.
+The endpoint review does not prove a supported transfer or mechanical approval.
+
 Use the native Windows Godot application and the opt-in `--visual-scene-review`
 bar. Inspect front-right, front-left, rear-left, rear-right and overhead views.
 Use close views where occlusion hides a support, workpiece or moving attachment.
@@ -1430,7 +1446,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 71 | `lab-9-11-pallet-counting` | 86 | Native FR/FL/RL/RR/T | Carton/fixture/readout geometry repaired and five views/details inspected. Live DINT count/readout FR/FL and invalid/five-edge/held/permissive/Stop/Run/Reset native checks pass. Optical classification/pallet travel/CNC integration open |
 | 72 | `lab-9-12-ev-charging-manager` | 95 | Native FR/FL/RL/RR/T | FAIL/open: shutters/fluid props instead of EV charging route; energy pulse/accumulation contract absent |
 | 73 | `scene-1-conveyor-stop` | 34 | Native FR/FL/RL/RR/T | Carton belt contact/load-end footprint repaired; native five wide/Top/FL close and Demo 3 Run/Start/photoeye/Stop/Reset rechecked; full clearance open |
-| 74 | `scene-2-conveyor-pusher` | 88 | Native FR/FL/RL/RR/T | Carton belt contact/load-end footprint repaired; native five wide/Top/FL close rechecked; no receiver, pusher/photoeye motion clearance unresolved |
+| 74 | `scene-2-conveyor-pusher` | 88 | Native FR/FL/RL/RR/T; final extended five views and pusher Top/RR focus; normal Open/Verify/Run/Stop/Reset | Rod axis/length repaired; off-station carton stays seated. FAIL/open: low plate, home/photoeye support interference, guide-shaft engagement, no receiver; canonical transfer hides carton. No full supported transfer accepted |
 | 75 | `tank-high-low` | 60 | Native FR/FL/RL/RR/T | Disconnected pump/elevated inlet, external probes, opaque tank; fill/drain behavior unverified |
 | 76 | `tank-level` | 52 | Native FR/FL/RL/RR/T | Same disconnected piping/probe mounting; initial 42 percent / 10.72 mA visible, dynamics unverified |
 | 77 | `tank-radar` | 80 | Native FR/FL/RL/RR/T; repaired radar five focus views | Radar flange/head mounting and antenna-to-surface distance/beam repaired (sampled checks); 35% native range 3.10036. FAIL/open: empty ladder Run, disconnected inlet/outlet/drain route, opaque internal beam; rear-left mount partly obscured |
