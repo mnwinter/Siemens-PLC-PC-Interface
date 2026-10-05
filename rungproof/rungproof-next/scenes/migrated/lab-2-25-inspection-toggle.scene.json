@@ -30,6 +30,7 @@
       "config": {
         "style": "pushbutton",
         "action": "toggle-inspection-light",
+        "faceLabel": "TOGGLE",
         "color": 3050449
       }
     },

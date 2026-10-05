@@ -1982,8 +1982,9 @@ public partial class SimulatorShell : CanvasLayer
         {
             Name = "SimulatorModeDialog",
             Title = "Simulator mode",
-            DialogText = "RungProof Next is running a local visual simulation.\n\n" +
-                         "Run, Stop, and Reset control this scene. PLC status remains visible in the toolbar and is disconnected until you deliberately configure a connection.",
+            DialogText = "RungProof Next starts in local simulation mode.\n\n" +
+                         "Run requires a loaded ladder program. Exercises may start with an empty project: open Logic Editor, add networks, then use Online > Verify + load offline before Run.\n\n" +
+                         "Stop removes output commands; Reset restores the scene. The physical PLC stays disconnected until you configure a connection.",
             Exclusive = true,
             MinSize = new Vector2I(500, 210),
         };

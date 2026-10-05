@@ -1,7 +1,7 @@
 # Multi-angle scene review - 2026-10-04
 
 Status: **active**. The prior software review did not establish multi-angle
-visual acceptance. Thirty-seven scenes have five-view native static inspections; 40 remain pending.
+visual acceptance. Forty-two scenes have five-view native static inspections; 35 remain pending.
 Demo 5, Powder Batch Mixer, Parcel Size Sorter, Conveyor Inspection Cell,
 the Equipment Gallery, Drive Alarm-Code String and Chicken Label Print have repaired static layouts.
 The sorter operator Run still lacks a controller; eight simple panels now have corrected function plates and clear spacing. Other scenes
@@ -28,6 +28,52 @@ Every row requires native inspection.
 
 ## Repairs and open findings
 
+- Press-Count Lamp / Demo 1 (scene 42): native five static views show clear,
+  grounded stands. Normal Run starts the authored two-network CTU program.
+  Original control toggles rather than pulses: three native clicks leave the
+  input true and threshold_lamp false (two rising edges). The existing action
+  ID/binding is retained, but type is pulse, label is Pulse count button and
+  plate PULSE. Guide now states the three-count starter preset and distinguishes
+  Stop retaining count from Reset clearing it. Five new integration checks use
+  the scene action, actual authored ladder, mapper and scan session together;
+  four fail before repair, all pass after. Fresh native Run, two rail pulses
+  (lamp off), third 3D press (lamp green, input released), Stop (off), Run (green
+  from retained count), Reset (both points false, scan zero) and FR close plate
+  inspected. Stands' geometry is unchanged; five views are from the original
+  layout, with a fresh final close view after label repair. All 145 geometry/
+  reference checks and 142 controller tests pass, no live transport constructed;
+  build zero warnings/errors. Press-count initial-state contract and inspection
+  toggle's two reference contracts pass. Shell verifies 77 scenes/294 assets but
+  retains four headless position errors and missing-workspace warning. The new
+  startup guidance is readable in the actual native window. Evidence:
+  catalog-42-native.log (original), press-count-fixed-native.log (final),
+  press-count-{red-build,red-geometry,build,geometry,controller,contract}.log,
+  inspection-toggle-{build,contract,shell}.log. Goal active.
+- Scenes 38-41 and native editor workflow (2026-10-04): all four have native
+  FR/FL/RL/RR/T inspections. Robot CNC Tending's robot approaches the closed rear
+  of the enclosure; loading reach, workpiece attachment and door/chuck transfer
+  remain unverified. Normal Start blocks without a controller. Inspection Light
+  Toggle's separated stands are clear; its START plate is now TOGGLE, confirmed
+  in a fresh native FR close view. Basic Logic opens an empty exercise. Through
+  the real editor UI, added one NO toggle_button_pressed contact and a SET coil
+  for inspection_light_on, verified/loaded offline, returned to scene, ran and
+  pulsed the input: the rendered beacon lit. Normal Stop extinguished it; Reset
+  restored all three false points and scan zero. This temporary network was
+  discarded through the unsaved-work prompt; it does not implement or validate
+  the odd/even toggle lesson. A stopped pulse remains queued until an accepted
+  scan; that alone is not a stuck-button defect. Startup guidance now explicitly
+  explains empty exercises and Online > Verify + load offline before Run.
+  Guarded Pallet Transfer's carton is buried beneath the belt (native top/FR
+  close); its sensors and light-curtain/gate props sit outside the conveyor route.
+  Guard input toggle and Reset worked; full transfer and protective behavior are
+  unverified. Robot Cell Safe Restart's robot occupies the CNC envelope; its wall
+  prop does not form a cell perimeter. Persistent reset_complete toggle is not a
+  spring-return reset request, and outputs bind only to beacons, not robot motion.
+  Native toggle persistence/Reset checked; edge/restart/motion behavior remains
+  unaccepted. Historical bounds counts are screening evidence, not solid proof.
+  Evidence: catalog-34-native.log (38/39 and temporary editor test),
+  catalog-39-final-native.log (fresh label and 40/41). Screenshots individually
+  inspected; logs alone do not establish acceptance. Goal active.
 - Service Door Shutter (scene 33): original five views and close button views
   confirm the close enclosure overlaps its guide, the green beacon occupies
   the curtain, and all three plates read START. Controls now stand 1 m forward
@@ -719,11 +765,11 @@ count as this scene's multi-angle or runtime acceptance.
 | 35 | `lab-2-21-tote-finishing` | 29 | Native FR/FL/RL/RR/T; filler top/FR close; Start | FAIL/open: station columns occupy belt corridor; tote support, station alignment and full transfer unverified. Start unloaded |
 | 36 | `lab-2-22-dual-spindle` | 2 | Native FR/FL/RL/RR/T; plate top/FR close; Start | FAIL/open: plate offset below separate drill coupons, fixture/slide mounting unresolved; adapters rotation only. Start unloaded; feeds and transfer unverified |
 | 37 | `lab-2-23-parcel-sorter` | 174 | FR/FL/RL/RR/T | Repaired static/declared plant path; normal Run lacks controller |
-| 38 | `lab-2-24-robot-cnc` | 29 | Pending | Pending |
-| 39 | `lab-2-25-inspection-toggle` | 0 | Pending | Pending |
-| 40 | `lab-3-01-guarded-pallet-transfer` | 20 | Pending | Pending |
-| 41 | `lab-3-02-robot-cell-safe-restart` | 42 | Pending | Pending |
-| 42 | `lab-4-01-press-count-lamp` | 0 | Pending | Pending |
+| 38 | `lab-2-24-robot-cnc` | 29 | Native FR/FL/RL/RR/T; Start | Open: robot behind closed CNC back; workpiece support, reach, door/chuck transfer unverified; Start unloaded |
+| 39 | `lab-2-25-inspection-toggle` | 0 | Native FR/FL/RL/RR/T; repaired plate FR close; real editor create/load/Run/pulse/Stop/Reset | TOGGLE plate repaired, clear stands. Loaded one-network SET test lights beacon; discarded test is not odd/even lesson acceptance |
+| 40 | `lab-3-01-guarded-pallet-transfer` | 20 | Native FR/FL/RL/RR/T; carton top/FR close; guard toggle/Reset | FAIL/open: carton buried under belt; sensors/curtain/gate outside conveyor route. Transfer/protective behavior unverified |
+| 41 | `lab-3-02-robot-cell-safe-restart` | 42 | Native FR/FL/RL/RR/T; persistent reset toggle/Reset | FAIL/open: robot occupies CNC; no cell perimeter; reset toggle vs edge request mismatch; only lamp output bindings, no robot-motion binding |
+| 42 | `lab-4-01-press-count-lamp` | 0 | Native FR/FL/RL/RR/T; final FR close PULSE; normal Run, rail/3D pulses, Stop/Run/Reset | Pulse/plate repaired. Three presses light authored CTU lamp, Stop removes output, Run retains count, Reset clears; five integration checks pass |
 | 43 | `lab-4-02-counter-reset-lamp` | 0 | Pending | Pending |
 | 44 | `lab-4-03-repeat-cycle-counter` | 0 | Pending | Pending |
 | 45 | `lab-4-04-sequence-light-tower` | 0 | Pending | Pending |

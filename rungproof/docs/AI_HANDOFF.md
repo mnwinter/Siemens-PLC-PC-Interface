@@ -6,6 +6,47 @@ would otherwise be trapped in a local Codex session. It intentionally excludes
 machine-local Codex databases, credentials, screenshots from private chats, and
 temporary runtime state.
 
+Latest press-count checkpoint (2026-10-04): coverage 42/77 native five-view
+inspections, 35 pending including failures. Demo 1 aliases scene 42, not a
+separate catalog scene. Native baseline three action clicks left input true and
+lamp false because the scene action was toggle. Action ID/binding retained for
+compatibility; type now pulse, label Pulse count button and plate PULSE. Guide
+states starter preset three and Stop-retain/Reset-clear semantics. New
+Main.PressCountWorkflowReview.cs integrates actual scene action, authored
+ladder, mapper, fixed scan session and projection; four checks failed before
+repair, all five pass after. Total 145 geometry/reference checks, 142 controller
+tests and initial-state contract pass, build zero warnings/errors. No transport.
+Fresh native Run, two rail pulses off, third 3D press green/released input,
+Stop off, Run green from retained count, Reset false/scan zero and FR close
+plate observed. Earlier baseline has five wide views; geometry unchanged.
+Revised startup guidance readable in native window. Evidence: catalog-42-native.log,
+press-count-fixed-native.log and press-count-{red-build,red-geometry,build,
+geometry,controller,contract}.log. Inspection-toggle-{build,contract,shell}.log
+also pass with shell's four known headless position errors/workspace warning.
+Continue at scene 43, then all remaining scenes and open repairs. Goal active.
+
+Earlier checkpoint:
+
+Latest native catalog/editor checkpoint (2026-10-04): coverage 41/77 five-view
+inspections, 36 pending including failures. Scene 38 robot behind CNC closed
+back, transfer/reach unverified. Scene 39 TOGGLE plate repaired and freshly
+inspected close. Real native editor test: added one NO toggle_button_pressed
+contact and SET inspection_light_on coil, Online > Verify + load offline, Return
+to scene, Run, pulse -> beacon lit; Stop -> dark; Reset -> all false, scan zero.
+Temporary draft discarded via unsaved prompt; this is not the toggle lesson's
+odd/even logic. Stopped pulses queue until accepted scan, not a proven stuck-input
+bug. Startup guidance now explains blank exercises and verify/load prerequisite.
+Scene 40 five views + carton top/FR close: buried carton; sensors/curtain/gate
+outside conveyor route; native guard toggle/Reset checked. Scene 41 five views:
+arm occupies CNC, wall is not a perimeter; persistent reset_complete toggle
+confirmed and Reset checked; only beacon output bindings, no robot-motion
+binding. Full protective/restart/transfer behavior unverified. Local evidence:
+catalog-34-native.log (38/39/editor), catalog-39-final-native.log (label/40/41).
+Continue at scene 42, then remaining catalog and open repairs. No live PLC.
+Goal active. Exact observations in MULTI_ANGLE_SCENE_REVIEW.md.
+
+Earlier checkpoint:
+
 Latest service-door/catalog checkpoint (2026-10-04): coverage 37/77 native
 five-view inspections, 40 pending including failures. Scene 33 door button/guide
 and beacon/curtain overlaps repaired; controls 1 m forward, signal stands beyond

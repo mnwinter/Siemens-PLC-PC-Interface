@@ -1,5 +1,35 @@
 # Whole program review - 2026-10-03
 
+Press-count checkpoint (2026-10-04): coverage 42/77 native five-view inspections,
+35 pending including failures. Demo 1's input was a persistent toggle: three
+clicks created only two rising edges. It now pulses and its plate reads PULSE.
+Native authored Run, two rail presses (off), third 3D press (green), Stop (off),
+Run (green from retained count), Reset (false points/scan zero), and final close
+plate inspected. Guide distinguishes Stop from counter Reset. Five integration
+checks exercise the actual scene action through authored ladder and scan session;
+four failed before repair, all pass afterward. All 145 geometry/reference checks,
+142 controller tests and initial-state contract pass; build zero warnings/errors.
+Inspection-toggle reference contracts and shell pass; shell retains four existing
+headless position errors/missing-workspace warning. Revised startup guidance was
+visually inspected. Full catalog and open repairs remain; goal active.
+
+Earlier checkpoint:
+
+Native catalog/editor checkpoint (2026-10-04): coverage 41/77 five-view
+inspections, 36 pending including failures. Scenes 38-41 inspected. Guarded
+transfer's carton is buried under its belt; protective props are outside the
+route. Robot restart's arm occupies the CNC and outputs bind only to lamps.
+Its persistent reset toggle does not provide a spring-return reset request.
+Inspection Toggle now has a TOGGLE plate, freshly inspected close. Through the
+normal native editor, a temporary NO contact / SET lamp network was created,
+verified/loaded offline, run and pulsed; beacon lit, Stop extinguished it, Reset
+restored false values and scan zero. Draft discarded via native unsaved guard.
+This bounded editor test does not validate odd/even toggle logic or other scenes.
+Startup message now explains the empty-exercise and Verify + load prerequisite.
+Exact observations/evidence in MULTI_ANGLE_SCENE_REVIEW.md. Goal remains active.
+
+Earlier checkpoint:
+
 Service-door and catalog checkpoint (2026-10-04): coverage 37/77 native
 five-view inspections, 40 pending including failures. Door controls no longer
 intersect the shutter; their plates read OPEN/STOP/CLOSE. Its raw NC signal
