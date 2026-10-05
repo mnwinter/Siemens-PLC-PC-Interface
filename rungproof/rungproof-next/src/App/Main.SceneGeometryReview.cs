@@ -368,6 +368,7 @@ public partial class Main
             VerifyPusherInstallationGeometry(Check);
             VerifyCartonReceiverGeometry(Check);
             VerifyTankSwitchMountGeometry(Check);
+            VerifyTankAnalogMountGeometry(Check);
             VerifyPalletCountPropGeometry(Check);
             VerifyCutLengthDisplayGeometry(Check);
             VerifyStaticTrainingReadouts(Check);

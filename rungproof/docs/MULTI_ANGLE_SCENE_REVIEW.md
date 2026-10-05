@@ -10,7 +10,30 @@ includes failed scenes; it is not a count of accepted scenes.
 
 ## Acceptance method
 
-Tank point-level switch mounting (2026-10-05, latest): Scenes 75/76 explicitly
+Tank analog transmitter mounting (2026-10-05, latest): Scene 76 now explicitly
+opts into roofAnalogProbe. The transmitter is installed at (0.35, 6.233334,
+-0.85) m above a short hollow roof socket. Its flange seats on the socket;
+the head clears delivered manway/guardrail geometry. Native close top review
+showed a tight cable-gland margin in the first candidate, so the final mount
+was moved inward and all five full-scene angles were inspected again.
+The scene-specific sensing rod is extended to 4.844525 m with its 50 mm
+diameter retained; the 120 mm tip weight reaches the modeled zero-level
+Y=1.2738094 m. It spans the full authored sight-glass/liquid range. Reusable
+GLB assets, symbolic points, DB14 and runtime level behavior are unchanged.
+This is a custom virtual installation, not purchased hardware compatibility,
+calibration, service-clearance or pressure-vessel design proof.
+Five new checks pass: 331 geometry/workflow checks total. Build zero warnings/
+errors; app-shell 77 scenes / 294 assets / one existing diagnostic and
+19 plant-motion checks PASS. Logs: `.tools/tank-analog-build.log`,
+`tank-analog-geometry.log`, `tank-analog-shell.log`, `tank-analog-plant-motion.log`.
+Final native Windows FR/FL/RL/RR/Top, transmitter-focused top close and side
+views were inspected. The exterior socket/head mounting is visible; internal
+rod/tip placement is measured only because the vessel is opaque. Runtime
+stayed STOPPED, PLC disconnected, owned review window exit zero. Final native
+log: `.tools/tank-analog-final-native.log`. Pipe connections/supports and full
+operator process behavior remain open. Whole-program goal stays active.
+
+Tank point-level switch mounting (2026-10-05, earlier checkpoint): Scenes 75/76 explicitly
 opt into tankSwitchMounts. Four formerly external/downward probes now enter
 the positive-Z vessel wall horizontally through short hollow mounting sockets.
 Their tip centres use the full authored sight-glass liquid range, after tank
@@ -1531,7 +1554,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 73 | `scene-1-conveyor-stop` | 34 | Native FR/FL/RL/RR/T | Carton belt contact/load-end footprint repaired; native five wide/Top/FL close and Demo 3 Run/Start/photoeye/Stop/Reset rechecked; full clearance open |
 | 74 | `scene-2-conveyor-pusher` | 88 initial; 7 residual cable candidates after installation repair | Native home and extended FR/FL/RL/RR/T, close pusher Top/RR at both ends; normal Open/Verify/Run/Stop/Reset | Plate height, grounded mounting, guide engagement/cap clearance, photoeye clearance and following bolts repaired; off-station carton stays seated. Receiving surface added; native five angles and receiver Top/FR close; 314 checks PASS. FAIL/open: plate/carton contact timing, canonical disappearing transfer and residual cable candidates. No full supported transfer accepted |
 | 75 | `tank-high-low` | 60 initial; switch-specific clearance passes | Final native FR/FL/RL/RR/T and mounting-side close | Low/high probes and socket mounts repaired at actual thresholds; 326 checks PASS. FAIL/open: disconnected pump/piping, elevated pipe supports, opaque tank; full operator dynamics unverified |
-| 76 | `tank-level` | 52 initial; switch-specific clearance passes | Final native FR/FL/RL/RR/T and mounting-side close | Low/high probe mounts repaired; initial 42 percent / 10.72 mA visible. FAIL/open: piping/supports, external analog transmitter and full operator process behavior |
+| 76 | `tank-level` | 52 initial; switch and analog mount checks pass | Final native FR/FL/RL/RR/T, transmitter top close and side views | Low/high and roof analog probe mounts repaired; initial 42 percent / 10.72 mA visible. 331 geometry checks pass. FAIL/open: piping/supports and full operator process behavior |
 | 77 | `tank-radar` | 80 | Native FR/FL/RL/RR/T; repaired radar five focus views | Radar flange/head mounting and antenna-to-surface distance/beam repaired (sampled checks); 35% native range 3.10036. FAIL/open: empty ladder Run, disconnected inlet/outlet/drain route, opaque internal beam; rear-left mount partly obscured |
 
 Drive-alarm follow-up evidence: `.tools/drive-alarm-{props-build,build,import,geometry,inventory,scene-contracts,rendered-controls,plant-regression}.log`, `catalog-next-shell-native.log` (baseline), `drive-alarm-native-supported.log` (support and plates), and `drive-alarm-native-final-complete.log` (final five views, keypad detail, failed normal Run). Build zero warnings/errors; 38 focused geometry, 19 plant, rendered scene controls and 71 authored cases pass. These do not approve uninspected scenes, missing controllers, string functionality or hardware.

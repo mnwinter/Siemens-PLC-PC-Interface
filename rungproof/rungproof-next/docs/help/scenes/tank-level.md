@@ -56,7 +56,13 @@ native Windows scene. Pipe connections/supports and full operator dynamics
 remain open review findings. These visual sockets do not establish a rated
 pressure-vessel nozzle design.
 
-The separate analog transmitter still has an unverified external mounting.
+The analog transmitter is mounted through a short roof socket, clear of the
+central manway and guardrail. Its scene-specific sensing rod reaches the
+modeled zero-level datum and covers the full liquid/sight-glass range. The
+reusable asset is unchanged. Exterior placement was inspected in native
+Windows views; internal placement was checked by transformed mesh bounds.
+This custom virtual probe does not establish purchased-probe compatibility,
+hardware calibration, or a rated pressure-vessel penetration.
 
 ## Stop and safety boundary
 

@@ -167,7 +167,8 @@
         "sensorType": "analog",
         "range": "4-20 mA",
         "engineeringRange": "0-100 %",
-        "active": true
+        "active": true,
+        "installation": "roofAnalogProbe"
       }
     },
     {

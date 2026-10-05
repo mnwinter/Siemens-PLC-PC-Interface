@@ -6,7 +6,30 @@ would otherwise be trapped in a local Codex session. It intentionally excludes
 machine-local Codex databases, credentials, screenshots from private chats, and
 temporary runtime state.
 
-Tank point-level switch mounting (2026-10-05, latest): Scenes 75/76 explicitly
+Tank analog transmitter mounting (2026-10-05, latest): Scene 76 now explicitly
+opts into roofAnalogProbe. The transmitter is installed at (0.35, 6.233334,
+-0.85) m above a short hollow roof socket. Its flange seats on the socket;
+the head clears delivered manway/guardrail geometry. Native close top review
+showed a tight cable-gland margin in the first candidate, so the final mount
+was moved inward and all five full-scene angles were inspected again.
+The scene-specific sensing rod is extended to 4.844525 m with its 50 mm
+diameter retained; the 120 mm tip weight reaches the modeled zero-level
+Y=1.2738094 m. It spans the full authored sight-glass/liquid range. Reusable
+GLB assets, symbolic points, DB14 and runtime level behavior are unchanged.
+This is a custom virtual installation, not purchased hardware compatibility,
+calibration, service-clearance or pressure-vessel design proof.
+Five new checks pass: 331 geometry/workflow checks total. Build zero warnings/
+errors; app-shell 77 scenes / 294 assets / one existing diagnostic and
+19 plant-motion checks PASS. Logs: `.tools/tank-analog-build.log`,
+`tank-analog-geometry.log`, `tank-analog-shell.log`, `tank-analog-plant-motion.log`.
+Final native Windows FR/FL/RL/RR/Top, transmitter-focused top close and side
+views were inspected. The exterior socket/head mounting is visible; internal
+rod/tip placement is measured only because the vessel is opaque. Runtime
+stayed STOPPED, PLC disconnected, owned review window exit zero. Final native
+log: `.tools/tank-analog-final-native.log`. Pipe connections/supports and full
+operator process behavior remain open. Whole-program goal stays active.
+
+Tank point-level switch mounting (2026-10-05, earlier checkpoint): Scenes 75/76 explicitly
 opt into tankSwitchMounts. Four formerly external/downward probes now enter
 the positive-Z vessel wall horizontally through short hollow mounting sockets.
 Their tip centres use the full authored sight-glass liquid range, after tank
