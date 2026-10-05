@@ -1,6 +1,44 @@
 # RungProof / PLC Visual Simulator AI handoff
 
-Bottle Shuttle motion checkpoint (2026-10-05, current): Scene 34 now uses
+Bottle Shuttle controller checkpoint (2026-10-05, current): Scene 34's
+motor_direction is now PLC-owned INT (-1 left, 0 stopped, +1 right), replacing
+the incompatible legacy STRING. Scene/help/verification/migration notes agree.
+No repository external profile mapping was supplied or changed. DB14 and PLC
+ownership remain unchanged. The editable eight-network example is
+rungproof-next/programs/examples/02-bottle-shuttle-reference.rpproj.json:
+Open Logic Editor > Project > Open project, return to scene, Run, then Start.
+
+Selected-controller plant travel now uses the accepted run/direction image
+at 0.75 m/s; it never reverses/stops commands on behalf of the program. Actual
+body-triangle optical feedback reaches the next 20 ms scan (15 mm travel per
+scan). Both-leg playback Stop/Run retains the ladder step; Reset clears plant
+and controller memory. SIM completion observes the stopped return after right
+detection. The bounded X=-3..3 model holds a missed-sensor/invalid-direction
+image without rewriting PLC commands or claiming completion. Belt/drum travel
+shares the plant clock. Native pause exposed a green stacklight after Stop;
+the SIM indicator now changes to amber immediately.
+
+Twenty added integration/contract checks pass within 475 geometry/workflow
+checks; 144 controller tests, clean build, 77-scene/294-asset shell, editable
+project/scene contracts and help validation pass. Red project validation
+reproduced IO002 (INT tag vs STRING point) before migration. Logs:
+.tools/bottle-controller-{red-contract,build-final,geometry-final,tests-final,
+contract,scene-contract,shell,native,native-final}.log.
+
+Windows project opening selected the scene and loaded a stopped controller.
+Start while stopped was blocked; Run alone held home. Scene Start produced
+right travel, outward Stop/Run resumed, reversal produced -1, and left feedback
+ended the trip with run=False/direction=0. Held outward and completed-left
+poses were inspected FR/FL/RL/RR/Top. Final rebuilt window verified amber Stop
+at a right-side return pose, Run restored -1 without machine Start, and Reset
+restored home/scan 0. The first right contact itself was not captured as a
+held native frame. Five-view poses and scan-sampled optics/support do not
+establish continuous video, acceleration/slip/stability or full mechanical
+acceptance. No external transport/live PLC was tested. Whole review remains
+active; preserve the user's carton window and continue remaining catalog
+motion/placement findings.
+
+Bottle Shuttle motion checkpoint (2026-10-05, previous): Scene 34 now uses
 one prescribed 0.75 m/s travel clock for the bottle, belt UV and drums. The
 fixed-duration route and timed PC sensor writes are removed. Actual body
 triangles and lens-to-lens segments determine feedback and first-contact

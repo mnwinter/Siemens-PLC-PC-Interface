@@ -8,9 +8,9 @@ namespace RungProof.Next.Scenes;
 
 public partial class SceneSimulationRuntime
 {
-    // Standalone functional reference only. The current controller seams do
-    // not support this legacy scene's STRING motor_direction output. Never
-    // manufacture that command when a controller is selected.
+    // A selected controller owns direction and transitions. The opt-in
+    // standalone reference alone may manufacture its right/left commands.
+    // Direction is INT: -1 left, 0 stopped, +1 right.
     private bool HasBottleShuttleReference => _definition.TryGetProperty("bottleShuttleReference", out _);
     private bool _bottleShuttleReferenceActive;
     private int _bottleShuttleLeg = 1;
@@ -20,11 +20,14 @@ public partial class SceneSimulationRuntime
     private Vector3[] _bottleShuttleFaces = [];
     private ConveyorController? _bottleShuttleConveyor;
     private double _bottleShuttleX, _bottleShuttleLeftTripX, _bottleShuttleRightTripX, _bottleShuttleSpeed;
+    private double _bottleShuttleMinimumX, _bottleShuttleMaximumX;
+    private bool _bottleShuttleRightObserved;
 
     private void ResetBottleShuttleReference()
     {
         _bottleShuttleReferenceActive = false;
         _bottleShuttleLeg = 1;
+        _bottleShuttleRightObserved = false;
         if (!HasBottleShuttleReference) return;
         var config = _definition.GetProperty("bottleShuttleReference");
         _bottleShuttle = _sceneRoot.GetNode<Node3D>(SafeNodeName(Text(config, "productId", "")));
@@ -44,7 +47,7 @@ public partial class SceneSimulationRuntime
             || _bottleShuttleFaces.Length == 0)
             throw new InvalidOperationException("Bottle shuttle requires finite ordered bounds, a body mesh and a positive speed up to 2 m/s.");
         foreach (var (point, owner, type) in new[] { ("left_sensor_active", "PC", "BOOL"), ("right_sensor_active", "PC", "BOOL"),
-            ("motor_run", "PLC", "BOOL"), ("motor_direction", "PLC", "STRING"), ("cycle_complete", "SIM", "BOOL") })
+            ("motor_run", "PLC", "BOOL"), ("motor_direction", "PLC", "INT"), ("cycle_complete", "SIM", "BOOL") })
             if (_pointOwners.GetValueOrDefault(point) != owner || _pointTypes.GetValueOrDefault(point) != type)
                 throw new InvalidOperationException($"Bottle shuttle has an invalid {point} ownership/type contract.");
 
@@ -77,6 +80,8 @@ public partial class SceneSimulationRuntime
         if (home.X < minimum || home.X > _bottleShuttleLeftTripX || _bottleShuttleLeftTripX >= _bottleShuttleRightTripX)
             throw new InvalidOperationException("Bottle shuttle home must be supported inside its left sensor region.");
         _bottleShuttleX = home.X;
+        _bottleShuttleMinimumX = minimum;
+        _bottleShuttleMaximumX = maximum;
         _bottleShuttleConveyor.SetPhysicsProcess(false);
         _bottleShuttleConveyor.ApplyPlantTravel(0, 0);
         ProjectBottleShuttleFeedback();
@@ -93,7 +98,7 @@ public partial class SceneSimulationRuntime
         if (Math.Abs(_bottleShuttle.Position.X - _bottleShuttleX) > 0.001) return false;
         _bottleShuttleReferenceActive = true;
         SetPoint("motor_run", true);
-        SetPoint("motor_direction", _bottleShuttleLeg > 0 ? "right" : "left");
+        SetPoint("motor_direction", (long)_bottleShuttleLeg);
         SetPoint("cycle_complete", false); SetPoint("status_color", "green");
         ProjectBottleShuttleFeedback(); ApplyBindings(); StateChanged?.Invoke();
         GD.Print($"BOTTLE_SHUTTLE_REFERENCE_START x={_bottleShuttleX} leg={_bottleShuttleLeg}");
@@ -106,8 +111,7 @@ public partial class SceneSimulationRuntime
         if (UsesExternalClock || _externalPlaybackSelected)
         {
             _bottleShuttleReferenceActive = false;
-            _bottleShuttleConveyor?.ApplyPlantTravel(0, 0);
-            ProjectBottleShuttleFeedback(); ApplyBindings(); StateChanged?.Invoke();
+            AdvanceBottleShuttleFromController(seconds);
             return;
         }
         var remaining = seconds;
@@ -128,7 +132,7 @@ public partial class SceneSimulationRuntime
             if (_bottleShuttleLeg > 0)
             {
                 _bottleShuttleLeg = -1;
-                SetPoint("motor_direction", "left");
+                SetPoint("motor_direction", -1L);
                 // Reverse the displayed belt velocity at this event; no extra
                 // displacement is added until simulation time advances again.
                 _bottleShuttleConveyor.ApplyPlantTravel(0, (float)-_bottleShuttleSpeed);
@@ -137,13 +141,56 @@ public partial class SceneSimulationRuntime
             else
             {
                 _bottleShuttleReferenceActive = false;
-                SetPoint("motor_run", false); SetPoint("motor_direction", "stopped");
+                SetPoint("motor_run", false); SetPoint("motor_direction", 0L);
                 SetPoint("cycle_complete", true); SetPoint("status_color", "amber");
                 _bottleShuttleConveyor.ApplyPlantTravel(0, 0);
                 GD.Print($"BOTTLE_SHUTTLE_REFERENCE_COMPLETE x={_bottleShuttleX} left={_points["left_sensor_active"]}");
             }
         }
         ProjectBottleShuttleFeedback(); ApplyBindings(); StateChanged?.Invoke();
+    }
+
+    private void AdvanceBottleShuttleFromController(double seconds)
+    {
+        // Accepted scan output -> plant travel -> actual PC optical feedback.
+        // Contact with a beam does not reverse or stop this branch: the next
+        // controller scan must do that. Even invalid commands retain PLC ownership.
+        if (_bottleShuttle is null) return;
+        var run = AsBool(_points.GetValueOrDefault("motor_run"));
+        var validDirection = TryAsDouble(_points.GetValueOrDefault("motor_direction"), out var direction)
+            && direction is -1 or 0 or 1;
+        var moving = run && validDirection && direction != 0;
+        if (moving)
+        {
+            if (direction > 0 && AsBool(_points["left_sensor_active"])) _bottleShuttleRightObserved = false;
+            SetPoint("cycle_complete", false);
+        }
+        var previous = _bottleShuttleX;
+        var commanded = moving ? _bottleShuttleSpeed * direction * seconds : 0;
+        // The bounded scene keeps the bottle on its receiving belt if a user
+        // program misses a sensor. This clamp cannot manufacture a direction,
+        // PLC stop command, or successful cycle completion.
+        _bottleShuttleX = Math.Clamp(previous + commanded, _bottleShuttleMinimumX, _bottleShuttleMaximumX);
+        var limited = Math.Abs(_bottleShuttleX - previous - commanded) > 1e-9;
+        MoveBottleShuttle(_bottleShuttleX);
+        _bottleShuttleConveyor!.ApplyPlantTravel((float)(_bottleShuttleX - previous),
+            moving && !limited && seconds > 0 ? (float)(_bottleShuttleSpeed * direction) : 0);
+        ProjectBottleShuttleFeedback();
+        _bottleShuttleRightObserved |= AsBool(_points["right_sensor_active"]);
+        if (!run && validDirection && direction == 0 && _bottleShuttleRightObserved && AsBool(_points["left_sensor_active"]))
+            SetPoint("cycle_complete", true);
+        SetPoint("status_color", !validDirection || limited ? "red" : moving ? "green" : "amber");
+        ApplyBindings(); StateChanged?.Invoke();
+    }
+
+    private void PauseBottleShuttleClock()
+    {
+        if (_bottleShuttleConveyor is null) return;
+        _bottleShuttleConveyor.ApplyPlantTravel(0, 0);
+        // SIM display follows actual playback; pausing an external image does
+        // not erase its PLC-owned run or direction command.
+        SetPoint("status_color", "amber");
+        ApplyBindings(); StateChanged?.Invoke();
     }
 
     private void MoveBottleShuttle(double x)

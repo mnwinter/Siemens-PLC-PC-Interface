@@ -153,6 +153,7 @@ internal static class Program
         Test("authored demos 1 through 4 execute their documented behavior", TestOtherAuthoredDemos);
         Test("authored batch publishes count through numeric scene I/O and lifecycle", TestBatchCountNumericOutput);
         Test("scene exercise projects bind declared I/O across the catalog", TestSceneExerciseProjects);
+        Test("bottle shuttle reference owns reversal and retains its step across playback Stop", TestBottleShuttleReference);
         Test("ladder dirty state ignores block browsing but retains project edits", TestBlockBrowsingDirtyState);
         Test("authored block demos include their promised executable instruction mix", TestAuthoredDemoStructure);
 
@@ -179,6 +180,45 @@ internal static class Program
         document.Rungs[0].Label += " edited";
         True(LadderEditorProjectJson.HasUnsavedChanges(document, baseline));
         True(LadderEditorProjectJson.HasUnsavedChanges(document, null));
+    }
+
+    private static void TestBottleShuttleReference()
+    {
+        var root = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".."));
+        var loaded = LadderEditorProjectJson.Load(File.ReadAllText(Path.Combine(root,
+            "programs", "examples", "02-bottle-shuttle-reference.rpproj.json")));
+        True(loaded.IsReadable);
+        var program = loaded.Document!.BuildProgram();
+        var compiled = LadderCompiler.Compile(program);
+        True(compiled.IsValid);
+        var runtime = new VirtualControllerRuntime(compiled.Program!);
+        runtime.Run();
+        VirtualControllerSnapshot Scan(bool start = false, bool left = false, bool right = false, bool stop = false)
+            => runtime.Scan(Inputs(("start_command", start), ("left_sensor_active", left),
+                ("right_sensor_active", right), ("stop_command", stop)));
+        void Output(VirtualControllerSnapshot snapshot, bool run, double direction)
+        {
+            Equal(run, snapshot.Outputs["motor_run"]);
+            Equal(direction, snapshot.NumericOutputs["motor_direction"]);
+        }
+        Output(Scan(left: true), false, 0); // Run alone is not machine Start.
+        Output(Scan(start: true), false, 0); // Start away from home is rejected.
+        Output(Scan(start: true, left: true), true, 1);
+        Output(Scan(left: true), true, 1); // Initial left beam must not stop the outward step.
+        Output(Scan(start: true), true, 1); // Repeated Start cannot reset a running cycle.
+        Output(runtime.Stop(), false, 0);
+        runtime.Run(); Output(Scan(), true, 1);
+        Output(Scan(right: true), true, -1);
+        Output(runtime.Stop(), false, 0);
+        runtime.Run(); Output(Scan(), true, -1);
+        Output(Scan(left: true), false, 0);
+        Output(Scan(left: true), false, 0); // No automatic second cycle.
+        Output(Scan(start: true, left: true), true, 1);
+        Output(Scan(stop: true), false, 0); // Machine Stop cancels, distinct from playback pause.
+        Output(Scan(), false, 0);
+        runtime.Reset(); runtime.Run(); Output(Scan(left: true), false, 0);
+        var restored = LadderEditorProjectJson.Load(LadderEditorProjectJson.Save(loaded.Document));
+        True(restored.IsReadable && LadderCompiler.Compile(restored.Document!.BuildProgram()).IsValid);
     }
 
     private static void TestAuthoredDemoStructure()

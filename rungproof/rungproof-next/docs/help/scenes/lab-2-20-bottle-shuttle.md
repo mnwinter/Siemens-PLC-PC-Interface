@@ -15,7 +15,7 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | Point | Type | Owner | Initial value |
 | --- | --- | --- | --- |
 | `motor_run` | `BOOL` | **PLC** | `False` |
-| `motor_direction` | `STRING` | **PLC** | `stopped` |
+| `motor_direction` | `INT` | **PLC** | `0` |
 | `left_sensor_active` | `BOOL` | **PC** | `True` |
 | `right_sensor_active` | `BOOL` | **PC** | `False` |
 | `status_color` | `STRING` | **SIM** | `amber` |
@@ -75,11 +75,41 @@ except a step containing a reversal or completion. Native Windows testing
 covered both-leg Stop/resume, outward stepping, real-time completion and
 five views of completed left and held right-side return poses.
 
-Normal loaded-controller operation remains unresolved: `motor_direction` is
-a legacy STRING command, while the current virtual and external controller
-interfaces support BOOL/numeric outputs. Selecting a controller blocks the
-standalone reference; it does not fabricate direction or overwrite commands.
-Do not treat preview completion as normal controller or live-PLC acceptance.
+Normal Built-in Simulator operation uses an editable reference project:
+`programs/examples/02-bottle-shuttle-reference.rpproj.json`. Open Logic Editor,
+choose Project → Open project and select that file. Opening it selects this
+scene, verifies its I/O, and loads a stopped controller. Return to Scene, press
+Run, then Start bottle shuttle. Run alone does not start a new machine cycle.
+Stop shuttle (or bottom Stop) pauses playback and clears output commands;
+Run resumes the retained outward/return step. Reset bottle resets both the
+plant and controller memory, stops playback, and requires Run followed by Start.
+After completion the controller continues scanning but the motor is stopped;
+another Start begins at the completed pose without teleporting to home.
+
+`motor_direction` changed from the legacy STRING to INT: **-1 = left,
+0 = stopped, +1 = right**. Update previously authored symbolic bindings to
+that type/encoding. No PLC profile or physical address mapping is supplied.
+The controller owns reversal and stopping; the plant publishes actual optical
+feedback each accepted scan and waits for the next scan's commands. At a
+20 ms scan and 0.75 m/s, up to 15 mm travel separates first contact from the
+next command. The eight-network reference stores a numeric travel step, not
+fixed timers for the sensors. Its separate `operator.stop` input cancels the
+cycle; playback Stop retains it. That input is available to authored logic,
+and is not the same command as the scene's Stop shuttle action.
+
+The plant is bounded to X=-3..3 m. A missed sensor cannot move the bottle off
+the carrying belt: it holds at the route limit and reports red SIM status,
+without changing the PLC-owned commands or claiming completion. Invalid
+direction codes hold motion and also report red; 0 holds motion. Actual belt
+travel and bottle travel use the same clock. Playback pause shows amber.
+`cycle_complete` is a SIM observation of a right detection followed by a
+stopped return at the left sensor; it is not a PLC acknowledgment or output.
+
+The normal offline controller-to-plant round trip, both-leg Stop/Run, Reset,
+repeat Start, sensor scan ordering and command ownership have deterministic
+checks. Windows project opening and operator playback were also exercised.
+Selecting a controller still blocks the standalone reference. These checks
+do not establish external PLC profile compatibility or live commissioning.
 
 A normal Stop removes PLC-owned commands according to the scene runtime. This document does not prove a safety function, a real E-stop circuit, a PLC watchdog, or live-machine commissioning.
 
@@ -88,7 +118,7 @@ Declared simulation safe state:
 | Point | Value |
 | --- | --- |
 | `motor_run` | `False` |
-| `motor_direction` | `stopped` |
+| `motor_direction` | `0` |
 | `status_color` | `red` |
 
 ## Machine guide

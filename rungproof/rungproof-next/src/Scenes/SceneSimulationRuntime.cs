@@ -64,6 +64,7 @@ public partial class SceneSimulationRuntime : Node
         // Equipment animations have their own physics callbacks. Freeze those
         // as well as the plant model, without rewriting the PLC command image.
         RefreshEquipmentClock();
+        if (selected && !running) PauseBottleShuttleClock();
         if (selected && running) ApplyBindings();
     }
 
@@ -83,6 +84,7 @@ public partial class SceneSimulationRuntime : Node
         _controllerClockInitialized = true;
         _controllerPlaybackRunning = running;
         RefreshEquipmentClock();
+        if (!running) PauseBottleShuttleClock();
         if (RuntimeType == "tank") ProjectTankState();
     }
 

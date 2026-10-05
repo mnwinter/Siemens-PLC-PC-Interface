@@ -130,9 +130,10 @@
       },
       {
         "name": "motor_direction",
-        "type": "STRING",
+        "type": "INT",
         "owner": "PLC",
-        "initial": "stopped"
+        "initial": 0,
+        "purpose": "Direction command: -1 = left, 0 = stopped, +1 = right."
       },
       {
         "name": "left_sensor_active",
@@ -164,7 +165,8 @@
         "id": "start-shuttle",
         "label": "Start bottle shuttle",
         "type": "start",
-        "sequence": "round-trip"
+        "sequence": "round-trip",
+        "controllerStartBinding": "operator.start"
       },
       {
         "id": "stop-shuttle",
@@ -202,7 +204,7 @@
     "defaultSequence": "round-trip",
     "safeState": {
       "motor_run": false,
-      "motor_direction": "stopped",
+      "motor_direction": 0,
       "status_color": "red"
     },
     "completionState": {},
@@ -225,10 +227,10 @@
     "solution": {
       "summary": "This is one valid functional reference. The same behavior may be implemented in LAD, FBD, or SCL; the rung layout is not prescribed.",
       "steps": [
-        "travel right: motor_run = true, motor_direction = \"right\".",
-        "right detected: motor_direction = \"left\".",
+        "travel right: motor_run = true, motor_direction = 1 (right).",
+        "right detected: motor_direction = -1 (left).",
         "travel left: no PLC command changes.",
-        "left detected: motor_run = false, motor_direction = \"stopped\"."
+        "left detected: motor_run = false, motor_direction = 0 (stopped)."
       ],
       "acceptance": "Right sensor reverses travel; left sensor stops the completed round trip."
     },
@@ -292,7 +294,7 @@
         ],
         "expect": {
           "motor_run": false,
-          "motor_direction": "stopped",
+          "motor_direction": 0,
           "left_sensor_active": true,
           "right_sensor_active": false,
           "cycle_complete": true
@@ -301,6 +303,7 @@
     ]
   },
   "migration": {
+    "directionContract": "motor_direction changed from STRING to INT: -1 left, 0 stopped, +1 right. Update any previously authored symbolic bindings; no external PLC address mapping is supplied.",
     "sourceFile": "prototype/scenes/lab-2-20-bottle-shuttle.plcscene",
     "sourceFormat": "plcscene",
     "assetMappings": {

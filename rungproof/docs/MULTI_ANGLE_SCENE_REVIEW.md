@@ -1,6 +1,44 @@
 # Multi-angle scene review - 2026-10-04
 
-Bottle Shuttle motion checkpoint (2026-10-05, current): Scene 34 now uses
+Bottle Shuttle controller checkpoint (2026-10-05, current): Scene 34's
+motor_direction is now PLC-owned INT (-1 left, 0 stopped, +1 right), replacing
+the incompatible legacy STRING. Scene/help/verification/migration notes agree.
+No repository external profile mapping was supplied or changed. DB14 and PLC
+ownership remain unchanged. The editable eight-network example is
+rungproof-next/programs/examples/02-bottle-shuttle-reference.rpproj.json:
+Open Logic Editor > Project > Open project, return to scene, Run, then Start.
+
+Selected-controller plant travel now uses the accepted run/direction image
+at 0.75 m/s; it never reverses/stops commands on behalf of the program. Actual
+body-triangle optical feedback reaches the next 20 ms scan (15 mm travel per
+scan). Both-leg playback Stop/Run retains the ladder step; Reset clears plant
+and controller memory. SIM completion observes the stopped return after right
+detection. The bounded X=-3..3 model holds a missed-sensor/invalid-direction
+image without rewriting PLC commands or claiming completion. Belt/drum travel
+shares the plant clock. Native pause exposed a green stacklight after Stop;
+the SIM indicator now changes to amber immediately.
+
+Twenty added integration/contract checks pass within 475 geometry/workflow
+checks; 144 controller tests, clean build, 77-scene/294-asset shell, editable
+project/scene contracts and help validation pass. Red project validation
+reproduced IO002 (INT tag vs STRING point) before migration. Logs:
+.tools/bottle-controller-{red-contract,build-final,geometry-final,tests-final,
+contract,scene-contract,shell,native,native-final}.log.
+
+Windows project opening selected the scene and loaded a stopped controller.
+Start while stopped was blocked; Run alone held home. Scene Start produced
+right travel, outward Stop/Run resumed, reversal produced -1, and left feedback
+ended the trip with run=False/direction=0. Held outward and completed-left
+poses were inspected FR/FL/RL/RR/Top. Final rebuilt window verified amber Stop
+at a right-side return pose, Run restored -1 without machine Start, and Reset
+restored home/scan 0. The first right contact itself was not captured as a
+held native frame. Five-view poses and scan-sampled optics/support do not
+establish continuous video, acceleration/slip/stability or full mechanical
+acceptance. No external transport/live PLC was tested. Whole review remains
+active; preserve the user's carton window and continue remaining catalog
+motion/placement findings.
+
+Bottle Shuttle motion checkpoint (2026-10-05, previous): Scene 34 now uses
 one prescribed 0.75 m/s travel clock for the bottle, belt UV and drums. The
 fixed-duration route and timed PC sensor writes are removed. Actual body
 triangles and lens-to-lens segments determine feedback and first-contact
@@ -2065,7 +2103,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 31 | `lab-2-17-pallet-robot` | 23 historic; broad home candidates are not solid interference | Final modeled pickup and completed landing FR/FL/RL/RR/T; Stop/Reset/restart guard; earlier staged/bridge/sensor views | Imported robot/tool attachment, grounded installation, routes and roller landing repaired; 29 pallet-cell checks PASS within 406 total. Reference sampled at 10 ms; both totes land before count/release, empty pallet fully outbound. FAIL/open: complete normal controller-driven transfer, continuous intermediate native views and physical/rated handling unproven |
 | 32 | `lab-2-18-pallet-pickup` | 0 at repaired home | Rebuilt load home/pickup focused FR/FL/RL/RR/T; prior 50% views, four jogs/fifth blocked, Stop/resume/mode loss/Reset; unheld auto | Pallet/case bearing planes, closed strap route, belt support, sensor mounting and bounded reference repaired; 434 checks pass. Home/pickup underside views added. FAIL/open: normal controller lesson and complete solid-contact/mechanical acceptance |
 | 33 | `lab-2-19-service-door` | 54 original / 0 repaired | Repaired native FR/FL/RL/RR/T; operator FR close; held opening/Stop/reverse; real-time endpoints; open five views; Reset | Layout/plates and reference reversal/position feedback repaired; raw NC signal displays explicit. Physical limit/cable behavior, compressed slat geometry and loaded-controller operation unaccepted |
-| 34 | `lab-2-20-bottle-shuttle` | 39 historic | Repaired home/right endpoint five views; latest completed left and held post-reversal right pose FR/FL/RL/RR/T; outward held sweep, both-leg Stop/Run, real-time completion and Reset | Static placement plus thirteen motion/ownership checks pass within 455. Reference speed/feedback/resume repaired. FAIL/open: normal controller STRING direction compatibility, instantaneous contact not captured as a held native frame, dynamic stability |
+| 34 | `lab-2-20-bottle-shuttle` | 39 historic | Repaired home/right endpoint five views; reference completed left and held post-reversal right FR/FL/RL/RR/T; normal controller held outward/completed-left five views, operator project load/Start/Stop/Run/Reset; rebuilt pause amber and return Run=-1 | INT direction contract and editable reference repair normal offline round trip. Eight placement, thirteen reference and twenty controller integration/contract checks pass within 475. Open: first contact not captured as held native frame, continuous native motion coverage, dynamic stability, external profile/live acceptance |
 | 35 | `lab-2-21-tote-finishing` | 29 | Native FR/FL/RL/RR/T; filler top/FR close; Start | FAIL/open: station columns occupy belt corridor; tote support, station alignment and full transfer unverified. Start unloaded |
 | 36 | `lab-2-22-dual-spindle` | 2 | Native FR/FL/RL/RR/T; plate top/FR close; Start | FAIL/open: plate offset below separate drill coupons, fixture/slide mounting unresolved; adapters rotation only. Start unloaded; feeds and transfer unverified |
 | 37 | `lab-2-23-parcel-sorter` | 174 | FR/FL/RL/RR/T | Repaired static/declared plant path; normal Run lacks controller |
