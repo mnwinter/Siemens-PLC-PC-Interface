@@ -10,7 +10,37 @@ includes failed scenes; it is not a count of accepted scenes.
 
 ## Acceptance method
 
-Shipping pallet installation (2026-10-05, current): Scene 32's pallet runners
+Shipping pallet reference motion (2026-10-05, current): Scene 32 now uses a
+bounded opt-in reference instead of fixed-start timed translations. AUTO Run
+and MANUAL Jog require their respective modes; four jogs advance from the
+current pose to 25/50/75/100%, and another start at pickup is rejected. Stop
+holds position and feedback, Run resumes without teleporting, and mode loss
+stops on the next simulation tick. Continuous position and pickup feedback
+come from travel and the actual case triangles crossed by the lens-to-lens ray.
+The old X=3.1 m endpoint puts the beam in a case-column gap. The first case
+crossing is X=2.5626 m: 6.1626 m travel at 0.75 m/s, about 8.217 s from home;
+each quarter jog is about 1.54065 m / 2.0542 s. The conveyor's nominal speed
+is configured to match; acceleration/slip dynamics are not established.
+
+Native `.tools/pallet-pickup-motion-native.log`: four complete MANUAL jogs,
+Run blocked in MANUAL, fifth jog blocked at pickup, and 50%/100% poses inspected
+FR/FL/RL/RR/Top. The runners remain on the belt; rear-right pickup is partly
+obscured by the stacklight, resolved by the other views. Rebuilt preview
+`.tools/pallet-pickup-motion-hud-native.log`: held Run, half-second advance,
+Stop/held advance/Run/resumed advance, mode loss, Reset and unheld automatic
+completion. Full-precision feedback remains stored; six significant digits and
+reserved text height keep preview controls readable and stationary. These
+observations are not continuous five-angle coverage of every intermediate pose.
+
+Build has zero warnings/errors; geometry 425 checks, controller 143, shell
+77 scenes/294 assets and both declared scene contracts pass. Evidence:
+`.tools/pallet-pickup-motion-{geometry-final,controller,contract-v2}.log` and
+`.tools/pallet-pickup-motion-hud-{build,shell}.log`. The reference rejects
+selected-controller playback and does not replace its command image or motion.
+Normal loaded-controller lesson, internal case/deck seating and full mechanical
+acceptance remain FAIL/open. Whole review goal remains active.
+
+Shipping pallet installation (2026-10-05, previous checkpoint): Scene 32's pallet runners
 were 127.5 mm above the belt and extended 7 mm past the flat drum-axis span.
 Root Y=0.8625 m seats all three imported bottom boards at belt Y=0.9 m;
 starting X=-3.6 m provides 193 mm flat-span margin. The automatic reference
@@ -32,7 +62,7 @@ Evidence: `.tools/pallet-pickup-{build,geometry,controller,shell,contract}.log`.
 Final endpoint assertion and all 411 checks pass again in
 `.tools/pallet-pickup-geometry-final.log`.
 
-Scene 32 remains FAIL/open for runtime correctness: native Jog after automatic
+At that previous checkpoint, Scene 32 remained FAIL/open for runtime correctness: native Jog after automatic
 completion is accepted while AUTO remains true, jumps the pallet back to the
 authored start, and retains pickup_sensor=true away from the beam. Position
 feedback is only assigned at timed endpoints; reference speed and configured
@@ -1894,7 +1924,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 29 | `lab-2-15-fume-extractor` | 0 | FR/FL/RL/RR/T static and running 35%; close plate; speed states; native preview Stop/Run/Off/Reset | LIGHT REQUEST, speed binding and preview Stop repaired; six-blade transform checks pass. Open: beacon substitutes light, hood/duct absent, normal Run unloaded; reference preview is not controller lesson acceptance |
 | 30 | `lab-2-16-safe-drill` | 24 original / 0 repaired | Native repaired FR/FL/RL/RR/T; stock FR close; normal 3D hand/cycle controls; held feed/bottom four close sides; Stop/Reset/restart; unheld completion | Fixture/feed and honest Stop-hold semantics repaired; normal cycle blocks without controller. Top stock view occluded by head; guard/two-hand safety behavior is not modeled |
 | 31 | `lab-2-17-pallet-robot` | 23 historic; broad home candidates are not solid interference | Final modeled pickup and completed landing FR/FL/RL/RR/T; Stop/Reset/restart guard; earlier staged/bridge/sensor views | Imported robot/tool attachment, grounded installation, routes and roller landing repaired; 29 pallet-cell checks PASS within 406 total. Reference sampled at 10 ms; both totes land before count/release, empty pallet fully outbound. FAIL/open: complete normal controller-driven transfer, continuous intermediate native views and physical/rated handling unproven |
-| 32 | `lab-2-18-pallet-pickup` | 0 at repaired home | Native home/mid-travel/pickup FR/FL/RL/RR/T; Stop/Reset; auto and faulty jog | Pallet seating/full reference support and sensor mounting repaired. FAIL/open: AUTO permits jog, fixed-start teleport, stale timed feedback, speed mismatch and normal controller lesson |
+| 32 | `lab-2-18-pallet-pickup` | 0 at repaired home | Native home/50%/pickup FR/FL/RL/RR/T; four jogs/fifth blocked; Stop/resume/mode loss/Reset and unheld auto | Pallet support/sensor mounting and bounded standalone reference repaired; continuous actual-case optical/position feedback, mode guards and restart continuity pass within 425 checks. FAIL/open: normal controller lesson, internal case/deck seating and complete mechanical acceptance |
 | 33 | `lab-2-19-service-door` | 54 original / 0 repaired | Repaired native FR/FL/RL/RR/T; operator FR close; held opening/Stop/reverse; real-time endpoints; open five views; Reset | Layout/plates and reference reversal/position feedback repaired; raw NC signal displays explicit. Physical limit/cable behavior, compressed slat geometry and loaded-controller operation unaccepted |
 | 34 | `lab-2-20-bottle-shuttle` | 39 | Native FR/FL/RL/RR/T; bottle top/FR close; Start | Open: overlapping bottle label text; contact and sensor mounts need measurement. Normal Start unloaded; round-trip motion unverified |
 | 35 | `lab-2-21-tote-finishing` | 29 | Native FR/FL/RL/RR/T; filler top/FR close; Start | FAIL/open: station columns occupy belt corridor; tote support, station alignment and full transfer unverified. Start unloaded |

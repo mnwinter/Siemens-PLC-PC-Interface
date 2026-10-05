@@ -1,6 +1,20 @@
 # Whole program review - 2026-10-03
 
-Shipping pallet installation checkpoint (2026-10-05, current): Scene 32's
+Shipping pallet reference checkpoint (2026-10-05, current): Scene 32's AUTO
+Run and MANUAL jog now use bounded travel from the held pose. Four jogs reach
+25/50/75/100%; pickup blocks subsequent starts. Stop/resume retains pose and
+mode loss stops on the next tick. Feedback follows continuous travel and an
+actual case-triangle optical ray. First crossing is X=2.5626 m, replacing the
+old X=3.1 case-column gap; nominal travel speed is 0.75 m/s. Native 50% and
+pickup have five views; all four jogs, blocked fifth, MANUAL Run guard,
+held Stop/resume, mode loss, Reset and unheld auto completion were observed.
+Preview values are readable and controls remain stationary. Build clean,
+geometry 425/controller 143/shell 77/294/contracts pass. Selected-controller
+commands/motion are preserved by a reference guard. Normal controller lesson,
+internal case/deck seating and full mechanical/dynamic acceptance remain open.
+See [multi-angle evidence](MULTI_ANGLE_SCENE_REVIEW.md). Goal active.
+
+Shipping pallet installation checkpoint (2026-10-05, previous checkpoint): Scene 32's
 127.5 mm pallet/belt gap and 7 mm flat-span overhang are repaired by root
 (-3.6, 0.8625, 0). All three bottom boards sit at 900 mm throughout the
 automatic reference. Photoeye span 3.6 m clears conveyor supports/cables.

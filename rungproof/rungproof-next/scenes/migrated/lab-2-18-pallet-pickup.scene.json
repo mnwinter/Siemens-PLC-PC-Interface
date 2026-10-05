@@ -186,15 +186,21 @@
         "type": "start",
         "sequence": "automatic",
         "requires": {
-          "auto_mode": true
+          "auto_mode": true,
+          "pickup_sensor": false
         },
-        "blockedMessage": "Automatic start blocked - select AUTO"
+        "blockedMessage": "Automatic start blocked - select AUTO and reset a completed pickup"
       },
       {
         "id": "manual-jog",
         "label": "Jog pallet one increment",
         "type": "start",
-        "sequence": "manual"
+        "sequence": "manual",
+        "requires": {
+          "auto_mode": false,
+          "pickup_sensor": false
+        },
+        "blockedMessage": "Manual jog blocked - select MANUAL and reset a completed pickup"
       },
       {
         "id": "stop-pickup",
@@ -229,77 +235,20 @@
         "mode": "indicator"
       }
     ],
-    "sequences": {
-      "automatic": [
-        {
-          "name": "automatic travel",
-          "durationS": 3.4,
-          "set": {
-            "conveyor_run": true,
-            "pickup_sensor": false,
-            "pallet_position": 0,
-            "cycle_complete": false,
-            "status_color": "green"
-          },
-          "motions": [
-            {
-              "type": "translate",
-              "equipmentId": "shipping_pallet",
-              "axis": "x",
-              "from": -3.6,
-              "to": 3.1
-            }
-          ]
-        },
-        {
-          "name": "pickup position",
-          "durationS": 0.1,
-          "set": {
-            "conveyor_run": false,
-            "pickup_sensor": true,
-            "pallet_position": 100,
-            "cycle_complete": true,
-            "status_color": "amber"
-          }
-        }
-      ],
-      "manual": [
-        {
-          "name": "manual jog",
-          "durationS": 1,
-          "set": {
-            "conveyor_run": true,
-            "cycle_complete": false,
-            "status_color": "amber"
-          },
-          "motions": [
-            {
-              "type": "translate",
-              "equipmentId": "shipping_pallet",
-              "axis": "x",
-              "from": -3.6,
-              "to": -1.925
-            }
-          ]
-        },
-        {
-          "name": "jog stopped",
-          "durationS": 0.1,
-          "set": {
-            "conveyor_run": false,
-            "pallet_position": 25,
-            "cycle_complete": true
-          }
-        }
-      ]
-    },
     "defaultSequence": "automatic",
     "safeState": {
       "conveyor_run": false,
       "status_color": "red"
     },
     "completionState": {},
-    "conveyorSpeedMps": 0.75
+    "shippingPalletReference": {
+      "productId": "shipping_pallet",
+      "photoeyeId": "pickup_end_sensor",
+      "conveyorId": "pickup_conveyor",
+      "maximumX": 3.1,
+      "speedMps": 0.75,
+      "jogFraction": 0.25
+    }
   },
   "training": {
     "hints": [
@@ -368,7 +317,7 @@
         "phases": [
           {
             "action": "start-auto",
-            "runForS": 3.8
+            "runForS": 9.0
           }
         ],
         "expect": {
@@ -381,8 +330,12 @@
         "name": "manual-jog",
         "phases": [
           {
+            "action": "set-auto",
+            "runForS": 0
+          },
+          {
             "action": "manual-jog",
-            "runForS": 1.3
+            "runForS": 3.0
           }
         ],
         "expect": {

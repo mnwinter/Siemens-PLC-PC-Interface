@@ -56,17 +56,27 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 
 The shipping pallet's three bottom boards sit on the 900 mm belt, fully
 inside its flat carrying span throughout the automatic reference. Its root
-starts at X=-3.6 m, Y=0.8625 m and ends at X=3.1 m. The first manual reference
-moves to X=-1.925 m (25% of this route). The photoeye stands are 3.6 m apart,
+starts at X=-3.6 m, Y=0.8625 m and stops at the first case crossing,
+X=2.5626 m. The photoeye stands are 3.6 m apart,
 grounded and clear of the conveyor hardware/cable bounds.
 
-These placements were inspected in native Windows home, held mid-travel and
-pickup views from five angles, with Stop/Reset. Geometry samples the automatic
-route every 10 ms. The reference still has unresolved control behavior: Jog
-is accepted in AUTO and repeats from the fixed start, pickup feedback is
-timed and can remain true after jogging away, and configured/reference speeds
-disagree. Reset before a single reference run avoids the repeated-start jump;
-this workaround does not establish lesson acceptance or fix the runtime.
+The standalone reference requires AUTO for Run and MANUAL for Jog. Each jog
+advances one quarter of the 6.1626 m route from the current pose, giving
+25/50/75/100% over four jogs. Nominal speed is 0.75 m/s: about 2.0542 s per
+quarter and 8.217 s for automatic travel from home. Actual case triangles
+crossed by the lens-to-lens ray supply pickup feedback; progress is continuous.
+The old X=3.1 m endpoint aligns the beam with a gap between case columns.
+Stop holds pose and feedback, Run resumes from the held pose, and a mode change
+stops on the next tick. Once at pickup, another start is blocked until Reset.
+Reset returns home in AUTO with zero progress and clear pickup feedback.
+
+Native Windows mid-route and pickup views were inspected from five angles;
+four jogs, blocked fifth, Stop/resume, mode loss, Reset and automatic completion
+were exercised. Geometry samples the route every 10 ms. The preview displays
+six significant digits while retaining full feedback precision. Conveyor
+acceleration/slip equivalence and internal case/deck seating are unaccepted.
+The reference does not run when a virtual/external controller is selected;
+normal loaded-controller lesson acceptance remains open.
 
 A normal Stop removes PLC-owned commands according to the scene runtime. This document does not prove a safety function, a real E-stop circuit, a PLC watchdog, or live-machine commissioning.
 

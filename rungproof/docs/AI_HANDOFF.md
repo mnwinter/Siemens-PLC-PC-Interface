@@ -6,7 +6,25 @@ would otherwise be trapped in a local Codex session. It intentionally excludes
 machine-local Codex databases, credentials, screenshots from private chats, and
 temporary runtime state.
 
-Shipping pallet installation checkpoint (2026-10-05, current): Scene 32 now
+Shipping pallet reference checkpoint (2026-10-05, current): fixed-start Scene
+32 sequences were replaced by an opt-in ShippingPallet reference partial.
+AUTO Run/MANUAL jog are guarded, four quarter-route jogs advance from the held
+pose, pickup rejects another start, Stop/resume keeps position and mode loss
+stops on the next tick. Actual case triangles determine the first beam crossing
+at X=2.5626 m and live pickup feedback; continuous progress uses the 6.1626 m
+route. Nominal speed is 0.75 m/s (8.217 s total; 2.0542 s quarter jog).
+Native 50%/pickup five views, four jogs/fifth blocked, MANUAL Run guard,
+held Stop/resume/mode loss/Reset and unheld auto completion were inspected.
+Preview text uses G6 while retaining full precision, with stationary controls.
+Build clean; geometry 425/controller 143/shell 77/294/contracts pass. Logs:
+`.tools/pallet-pickup-motion-{geometry-final,controller,contract-v2,native}.log`
+and `.tools/pallet-pickup-motion-hud-{build,shell,native}.log`.
+The selected-controller guard deliberately excludes the standalone reference
+from virtual/external playback. Next work: normal loaded-controller lesson and
+internal case/deck seating; do not claim dynamic or mechanical acceptance.
+Whole review goal remains active; no live PLC actions were used.
+
+Shipping pallet installation checkpoint (2026-10-05, previous checkpoint): Scene 32 now
 starts at (-3.6, 0.8625, 0), seating all three imported bottom boards on the
 900 mm belt with 193 mm flat-span margin. Sensor span 3.6 m clears conveyor
 hardware/cable bounds. Automatic endpoint remains X=3.1; first jog ends at

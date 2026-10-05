@@ -51,7 +51,7 @@ public partial class SceneSimulationRuntime : Node
 
     public string RuntimeType => Text(_definition, "type", "none");
     public IReadOnlyDictionary<string, object?> Points => _points;
-    public bool IsRunning => _tankSimulationRunning || _activeStepIndex >= 0 || Controllers().Any(IsControllerRunning);
+    public bool IsRunning => _shippingPalletReferenceActive || _tankSimulationRunning || _activeStepIndex >= 0 || Controllers().Any(IsControllerRunning);
     public bool UsesExternalClock { get; set; }
     private bool _externalPlaybackSelected;
     private bool _externalPlaybackRunning;
@@ -171,6 +171,12 @@ public partial class SceneSimulationRuntime : Node
         }
 
         if (UsesExternalClock && !PlantPlaybackRunning) return;
+
+        if (HasShippingPalletReference && !UsesExternalClock && !_externalPlaybackSelected)
+        {
+            AdvanceShippingPalletReference(delta);
+            return;
+        }
 
         if (RuntimeType == "tank" && PlantPlaybackRunning)
         {
@@ -329,6 +335,7 @@ public partial class SceneSimulationRuntime : Node
 
     public void StopSimulation()
     {
+        _shippingPalletReferenceActive = false;
         if (!UsesExternalClock && RuntimeType == "booleanPanel") _booleanPreviewStopped = true;
         _activeStepIndex = -1;
         _tankSimulationRunning = false;
@@ -401,6 +408,7 @@ public partial class SceneSimulationRuntime : Node
             }
         }
         ApplyInitialTankLevels();
+        ResetShippingPalletReference();
         EvaluateRules();
         ApplyBindings();
         if (RuntimeType == "tank") ProjectTankState();
@@ -545,6 +553,7 @@ public partial class SceneSimulationRuntime : Node
 
     private bool StartSequence(string name)
     {
+        if (HasShippingPalletReference) return StartShippingPalletReference(name);
         if (Controllers().OfType<PalletRobotMotion>().Any(robot => robot.ReferenceNeedsReset))
         {
             // Restarting authored pickup coordinates with a held or deposited

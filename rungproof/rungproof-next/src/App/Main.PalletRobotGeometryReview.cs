@@ -25,7 +25,7 @@ public partial class Main
         // flat carrying span ends at the drum axes, not at the curved wraps.
         _sceneRuntime!.UsesExternalClock = false; // Offline reference, not a loaded controller lesson.
         _sceneRuntime.ExecuteAction("start-auto");
-        for (var sample = 0; sample <= 380; sample++)
+        for (var sample = 0; sample <= 1200; sample++)
         {
             supported &= runners.All(mesh =>
             {
@@ -37,7 +37,12 @@ public partial class Main
             _sceneRuntime.AdvanceSimulation(0.01);
         }
         check(supported, "shipping_pallet_entire_automatic_route_has_full_flat_runner_support");
-        check(MathF.Abs(pallet.Position.X - 3.1f) < 0.001f
+        var lens = ReviewBounds((MeshInstance3D)sensor.FindChild("TX_lens", true, false)).GetCenter();
+        var leadingOffset = ReviewMeshes(pallet).Where(mesh => mesh.Name.ToString().StartsWith("CASE_", StringComparison.Ordinal)
+                && char.IsDigit(mesh.Name.ToString()[5])).Select(ReviewBounds)
+            .Where(bounds => bounds.Position.Y < lens.Y && bounds.End.Y > lens.Y).Max(bounds => bounds.End.X - pallet.Position.X);
+        var pickupX = lens.X - leadingOffset;
+        check(MathF.Abs(pallet.Position.X - pickupX) < 0.001f
             && _sceneRuntime.Points["pickup_sensor"] is true
             && _sceneRuntime.Points["conveyor_run"] is false,
             "shipping_pallet_reference_reaches_pickup_endpoint");
@@ -53,6 +58,78 @@ public partial class Main
         })), "shipping_pallet_sensor_hardware_clear_of_conveyor_bounds");
         check(new[] { "TX", "RX" }.All(side => MathF.Abs(ReviewBounds((MeshInstance3D)sensor.FindChild($"{side}_foot", true, false)).Position.Y) < 0.001f),
             "shipping_pallet_both_sensor_feet_grounded");
+        VerifyShippingPalletReference(check, pallet, sensor, pickupX);
+    }
+
+    private void VerifyShippingPalletReference(Action<bool, string> check, Node3D pallet, Node3D sensor, float pickupX)
+    {
+        var runtime = _sceneRuntime!;
+        var home = pallet.Position;
+        var travel = pickupX - home.X;
+        var opticalAll = true;
+        void Advance(double seconds)
+        {
+            for (var remaining = seconds; remaining > 1e-9; remaining -= 0.01)
+            {
+                runtime.AdvanceSimulation(Math.Min(0.01, remaining));
+                opticalAll &= OpticalMatch();
+            }
+        }
+        double Progress() => Convert.ToDouble(runtime.Points["pallet_position"]);
+        bool OpticalMatch()
+        {
+            var tx = ReviewBounds((MeshInstance3D)sensor.FindChild("TX_lens", true, false)).GetCenter();
+            var rx = ReviewBounds((MeshInstance3D)sensor.FindChild("RX_lens", true, false)).GetCenter();
+            var blocked = ReviewMeshes(pallet).Where(mesh => mesh.Name.ToString().StartsWith("CASE_", StringComparison.Ordinal)
+                && char.IsDigit(mesh.Name.ToString()[5])).Any(mesh => LineHitsBounds(tx, rx, ReviewBounds(mesh)));
+            return blocked == (runtime.Points["pickup_sensor"] is true);
+        }
+        check(!runtime.ExecuteAction("manual-jog") && pallet.Position.IsEqualApprox(home), "shipping_pallet_jog_blocked_in_auto");
+        runtime.ResetSimulation();
+        runtime.ExecuteAction("set-auto");
+        check(!runtime.RunDefault(), "shipping_pallet_auto_run_blocked_in_manual");
+        var progressive = true; var optical = true;
+        for (var jog = 1; jog <= 4; jog++)
+        {
+            var before = pallet.Position;
+            progressive &= runtime.ExecuteAction("manual-jog") && pallet.Position.IsEqualApprox(before);
+            Advance(3);
+            progressive &= MathF.Abs(pallet.Position.X - (home.X + travel * jog / 4)) < 0.001f
+                && Math.Abs(Progress() - jog * 25) < 0.02;
+            optical &= OpticalMatch();
+        }
+        check(progressive, "shipping_pallet_four_jogs_advance_from_current_pose_by_quarters");
+        var atPickup = pallet.Position;
+        check(!runtime.ExecuteAction("manual-jog") && pallet.Position.IsEqualApprox(atPickup), "shipping_pallet_fifth_jog_blocked_at_pickup");
+        check(optical && opticalAll, "shipping_pallet_jog_feedback_matches_case_optical_path");
+        runtime.ResetSimulation(); runtime.RunDefault(); Advance(1);
+        check(MathF.Abs(pallet.Position.X - home.X - 0.75f) < 0.001f
+            && Math.Abs(Progress() - 0.75 / travel * 100) < 0.02, "shipping_pallet_speed_and_progress_follow_actual_travel");
+        check(!runtime.ExecuteAction("start-auto"), "shipping_pallet_active_start_does_not_replace_motion");
+        runtime.StopSimulation(); var stopped = pallet.Position; var stoppedProgress = Progress(); Advance(1);
+        check(pallet.Position.IsEqualApprox(stopped) && Math.Abs(Progress() - stoppedProgress) < 0.001
+            && runtime.Points["conveyor_run"] is false, "shipping_pallet_stop_holds_pose_and_progress");
+        check(runtime.RunDefault() && pallet.Position.IsEqualApprox(stopped), "shipping_pallet_restart_continues_without_teleport");
+        Advance(1);
+        check(MathF.Abs(pallet.Position.X - stopped.X - 0.75f) < 0.001f, "shipping_pallet_resumed_motion_keeps_configured_speed");
+        runtime.ExecuteAction("set-auto"); Advance(0.02);
+        check(runtime.Points["conveyor_run"] is false && !runtime.IsRunning, "shipping_pallet_mode_change_stops_reference");
+        runtime.ResetSimulation(); runtime.RunDefault(); runtime.AdvanceSimulation(30);
+        check(MathF.Abs(pallet.Position.X - pickupX) < 0.001f && OpticalMatch()
+            && runtime.Points["pickup_sensor"] is true && runtime.Points["conveyor_run"] is false,
+            "shipping_pallet_large_clock_step_stops_at_first_optical_crossing");
+        runtime.ResetSimulation();
+        check(pallet.Position.IsEqualApprox(home) && Progress() == 0 && runtime.Points["pickup_sensor"] is false,
+            "shipping_pallet_reset_restores_pose_and_actual_feedback");
+        runtime.UsesExternalClock = true;
+        runtime.SetControllerPlaybackRunning(true);
+        runtime.CommitVirtualControllerOutputs(new System.Collections.Generic.Dictionary<string, bool> { ["conveyor_run"] = true });
+        var controllerOwnsCommand = !runtime.RunDefault();
+        runtime.AdvanceSimulation(1);
+        check(controllerOwnsCommand && runtime.Points["conveyor_run"] is true && pallet.Position.IsEqualApprox(home),
+            "shipping_pallet_reference_does_not_replace_selected_controller_commands_or_motion");
+        runtime.UsesExternalClock = false;
+        runtime.ResetSimulation();
     }
 
     private void VerifyPalletRobotInstallationGeometry(Action<bool, string> check)

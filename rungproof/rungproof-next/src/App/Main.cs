@@ -3539,6 +3539,9 @@ public partial class Main : Node3D
         content.AddChild(new Label { Text = scene.Name });
         content.AddChild(new Label { Text = $"Runtime: {runtime.RuntimeType}" });
         var status = new Label { AutowrapMode = TextServer.AutowrapMode.WordSmart };
+        // Continuous pallet feedback must not push Run/Stop/Reset around as
+        // numbers change width. This reserves four lines in its preview HUD.
+        if (scene.Id == "lab-2-18-pallet-pickup") status.CustomMinimumSize = new Vector2(0, 108);
         content.AddChild(status);
 
         var controls = new HBoxContainer();
@@ -3565,7 +3568,7 @@ public partial class Main : Node3D
         void RefreshStatus()
         {
             var values = runtime.Points.Take(8)
-                .Select(point => $"{point.Key}: {point.Value}");
+                .Select(point => $"{point.Key}: {(point.Value is double number ? number.ToString("G6", System.Globalization.CultureInfo.InvariantCulture) : point.Value)}");
             status.Text = string.Join("   |   ", values);
         }
         runtime.StateChanged += RefreshStatus;
