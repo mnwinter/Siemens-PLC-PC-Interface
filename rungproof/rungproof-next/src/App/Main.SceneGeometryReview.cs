@@ -369,6 +369,7 @@ public partial class Main
             VerifyStaticTrainingReadouts(Check);
             VerifyArithmeticValidityLayouts(Check);
             VerifyArithmeticNumericWorkflows(Check);
+            VerifyFunctionSelectorWorkflow(Check);
             VerifySumCounterWorkflow(Check);
             VerifyBoxVolumeFixture(Check);
             VerifyPalletCountReadoutWorkflow(Check);

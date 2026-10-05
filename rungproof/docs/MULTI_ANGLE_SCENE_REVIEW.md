@@ -28,6 +28,46 @@ Every row requires native inspection.
 
 ## Repairs and open findings
 
+Function Selector numeric repair (2026-10-05): scene 69 preserves its four
+Boolean point names/owners and adds PC-owned DINT operand_a, operand_b and
+function_choice plus PLC-owned selected_result. Four live readouts replace
+the static FUNCTION legend; A/B cycle 0,1,2,5,10 and FUNC NEXT cycles
+0,1 SUM,2 PRODUCT,99 invalid. All six actions fit in the native sidebar.
+The opt-in programs/examples/09-function-selector-reference.rpproj.json has
+four blocks, one continuous 20 ms task, six networks and nine tags. Main
+always calls FB_Selector; qualified comparisons call only FC_Sum or FC_Product.
+Unsupported choices clear validity even when manual FUNC VALID is true;
+permissive loss retains the last numeric result but clears validity.
+Stop clears the output image; Reset clears values and manual inputs.
+This is an original offline reference using global tags, not original-source
+selector parity, FB parameter transfer, instance-local memory or PLC transport.
+The student exercise remains empty until a program is loaded/authored.
+Native testing exposed a picking conflict: clicking the visible CALCULATE
+button changed B because the B readout picking area intercepted the click.
+Moved all four readouts behind the buttons, then individually repeated native
+FR/FL/RL/RR/Top inspection and close FL control testing on the final layout.
+Wide views show grounded/support-connected equipment and no intersections;
+the top QA bar partly obscures the uppermost readout and close FL clips the
+left edge/base, so these views alone are not complete support evidence.
+Normal Project > Open loaded the actual reference; explicit Online > Verify
++ load offline passed before the layout-only move (4 blocks/1 task/6 networks/
+9 tags). Final-layout Project > Open loaded it again. Run and all six actual
+3D input controls set A=2/B=5/choice=1 and all permissives: RESULT 7/lamp on.
+Choice 2 gave 10; choice 99 cleared validity/lamp and retained 10. CALCULATE
+no longer changed B. Stop displayed RESULT 0; Reset restored all four numeric
+readouts to 0, shown Boolean inputs False and scan 0. PLC stayed disconnected.
+17 new workflow/geometry checks replace three obsolete static-readout checks;
+all 276 checks PASS. Build zero warnings/errors, app-shell 77 scenes/294 assets/
+one existing SYSREADY diagnostic PASS, help 294 assets/77 scenes PASS.
+Controller core unchanged; preceding 143 PASS/0 FAIL run remains current.
+Catalog now has 596 equipment instances and 116 training accessories.
+Logs: .tools/function-selector-{build,geometry,shell,native,native-before-layout}.log.
+Added tools/demo-projects/.gdignore so Godot does not import the console
+generator's C# source; removed only its newly generated Program.cs.uid.
+Broader scene/runtime, packaging and candidate asset approval findings remain
+open. Recheck other numeric lessons for the same front-view picking conflict;
+their previous sidebar/clearance checks do not prove every 3D button clickable.
+
 Sum/Product numeric repair (2026-10-05): scenes 66/67 preserve their existing
 Boolean validity/request point names and ownership, and now add two PC-owned
 DINT inputs plus a PLC-owned DINT result. Three live numeric readouts replace
@@ -59,6 +99,7 @@ Catalog now has 593 equipment instances, including 113 training accessories.
 Logs: .tools/arithmetic-numeric-{build,red-geometry,geometry,shell,help,native}.log.
 This is offline/source/native evidence only. Candidate asset approval,
 physical PLC parity and the remaining scene/runtime findings stay open.
+
 Saved demo file parity repair (2026-10-05): all five programs/demos files
 were stale relative to the actual Demo-menu documents. Demo 5 incorrectly
 selected conveyor-cell; Demo 4 used unbound recipe/transfer tags instead of
@@ -84,6 +125,7 @@ Build: zero warnings/errors; controller: 143 PASS, 0 FAIL; app-shell: 77 scenes,
 Logs: .tools/demo-projects-{before,regenerate,build,controller,shell,native}.log.
 This repairs saved-file/menu consistency, not automatic physical feedback,
 packaging or the remaining scene/runtime findings. Whole-program review is open.
+
 Sum and Counter numeric repair (2026-10-05): scene 68 now declares DINT
 operand_a/operand_b (PC), sum_result/event_count (PLC), and four live numeric
 readouts. The unbound CNC was removed; three manual Boolean input plates were
@@ -1321,7 +1363,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 66 | `lab-9-01-sum-function` | 0 | Native FR/FL/RL/RR/T; close front; 3D A/B clicks; actual reference Open/Run/Stop/Reset | Two PC DINT inputs and live SUM result; 2+5=7 observed. Seven grounded, clear props. Global-tag reference FB supplied; exercise remains opt-in; FB parameter/instance semantics and independent asset approval open |
 | 67 | `lab-9-02-product-function` | 0 | Native FR/FL/RL/RR/T; close front; actual reference Open/Run/Stop/Reset; validity loss | Two PC DINT factors and live PRODUCT; 2*5=10 observed. Seven grounded, clear props. Sidebar input proof; individual 3D clicks unverified here. Global-tag FB reference opt-in; FB parameter/instance semantics and independent asset approval open |
 | 68 | `lab-9-03-sum-and-counter-function` | 0 (historical) | Native FR/FL/RL/RR/T; close operand/result views; actual 3D operand clicks; Project Open/Verify + Load; Run/Stop/Reset | CNC removed; typed DINT operands/sum/count and live readouts added. Opt-in reference displays 2+5=7 and one held completion count, Stop zeros image, Run republishes retained count, Reset clears. Eleven integration/clearance checks pass. Open: independent reusable-asset approval; manual call-complete feedback; exercise requires authored/explicit reference logic |
-| 69 | `lab-9-04-function-selector` | 0 (historical) | Native FR/FL/RL/RR/T; focused readout Top/RL/RR; manual inputs/Reset | Unbound CNC/bearing props removed; input plates corrected, rear readout supports visible. Layout/plate checks pass. Open: numeric operands/result and an actual function choice unimplemented, readout has NO LIVE VALUE, authored output behavior unaccepted |
+| 69 | `lab-9-04-function-selector` | 0 (historical) | Final native FR/FL/RL/RR/Top, close FL; actual six 3D inputs; Project Open, Run, invalid choice, Stop/Reset | Live DINT A/B/choice/RESULT and opt-in FB routing to SUM/PRODUCT; observed 7/10 and invalid 99 clears validity. Native picking conflict repaired by moving readouts behind buttons; supports and separate-equipment clearance pass. Open: source-selector parity and FB instance/parameter semantics unverified; QA close/top cropping documented |
 | 70 | `lab-9-10-box-volume` | 46 (historical) | Native FR/FL/RL/RR/T; replacement fixture and readout five focus views each; actual 3D buttons/Reset | Static three-head fixture replaces shutter; carton supported on bench, CNC removed and rear readout view cleared. Seven geometry checks and LENGTH/WIDTH/HEIGHT manual inputs/Reset pass. Open: no numeric dimension acquisition, volume calculation or live MEASUREMENT value; independent asset approval pending |
 | 71 | `lab-9-11-pallet-counting` | 86 | Native FR/FL/RL/RR/T | Carton/fixture/readout geometry repaired and five views/details inspected. Live DINT count/readout FR/FL and invalid/five-edge/held/permissive/Stop/Run/Reset native checks pass. Optical classification/pallet travel/CNC integration open |
 | 72 | `lab-9-12-ev-charging-manager` | 95 | Native FR/FL/RL/RR/T | FAIL/open: shutters/fluid props instead of EV charging route; energy pulse/accumulation contract absent |

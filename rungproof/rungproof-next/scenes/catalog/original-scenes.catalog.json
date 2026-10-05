@@ -3,7 +3,7 @@
   "catalogId": "rungproof-original-scenes-migrated",
   "sourceRoot": "prototype/scenes",
   "sceneCount": 77,
-  "equipmentInstanceCount": 593,
+  "equipmentInstanceCount": 596,
   "equipmentTypeCounts": {
     "box": 30,
     "containerReceiver": 1,
@@ -33,7 +33,7 @@
     "toteFiller": 2,
     "toteLabeler": 1,
     "toteVision": 1,
-    "trainingAccessory": 113,
+    "trainingAccessory": 116,
     "valve": 5
   },
   "scenes": [
@@ -1142,7 +1142,7 @@
       "name": "Lab 9.4 - Function Selector",
       "path": "res://scenes/migrated/lab-9-04-function-selector.scene.json",
       "sourceFile": "prototype/scenes/lab-9-04-function-selector.plcscene",
-      "equipmentCount": 5,
+      "equipmentCount": 8,
       "equipmentTypes": [
         "indicator",
         "switch",

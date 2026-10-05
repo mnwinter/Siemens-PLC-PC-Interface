@@ -88,6 +88,22 @@ Each reference always scans its calculation FB and uses global symbolic tags.
 It does not model FB parameter transfer or instance-local storage. The scenes
 remain offline and require a loaded program before calculating.
 
+## Function Selector exercise reference
+
+Lab 9.4 has manual DINT operands and a real function choice. Open
+`programs/examples/09-function-selector-reference.rpproj.json` through Logic
+Editor > Project > Open, verify and load offline, then return and Run.
+Set A=2, B=5 and enable OPERANDS, FUNC VALID and CALCULATE. FUNC NEXT cycles
+0, 1 SUM, 2 PRODUCT, 99 invalid. Expect RESULT 7 for choice 1 and 10 for choice
+2. Choices 0/99 clear validity and retain the last result; Stop clears the
+output image and Reset clears all inputs and readouts.
+
+Main always calls FB_Selector, which calls only the selected FC_Sum or
+FC_Product. This original offline reference uses global symbolic tags; it
+does not model FB parameter transfer or instance-local storage. The exercise
+starts empty until a program is loaded. Readouts sit behind the pushbuttons
+so their picking areas do not intercept front-view button clicks.
+
 ## Sum and Counter exercise reference
 
 Scene `lab-9-03-sum-and-counter-function` opens with an empty ladder exercise.

@@ -188,7 +188,6 @@ public partial class Main
             ("lab-4-07-parking-garage-entry", "training_accessory_6"),
             ("lab-6-08-hand-dryer", "training_accessory_6"),
             ("lab-6-07-luggage-weight-sort", "training_accessory_6"),
-            ("lab-9-04-function-selector", "training_accessory_4"),
             ("lab-9-10-box-volume", "training_accessory_4")
         })
         {
@@ -318,6 +317,87 @@ public partial class Main
             }
             finally { DisableVirtualController(); }
         }
+    }
+
+    private void VerifyFunctionSelectorWorkflow(Action<bool, string> check)
+    {
+        AddMigratedScene("lab-9-04-function-selector", _candidateCatalog!, _mainCamera!, false, false);
+        var root = _sceneCompositionRoot!;
+        var runtime = _sceneRuntime!;
+        Label3D Readout(int i) => root.GetNode<Node3D>($"numeric_display_{i}").GetNode<Label3D>("NumericReadout");
+        check(Enumerable.Range(0, 4).All(i => Readout(i).Text.EndsWith("\n0", StringComparison.Ordinal))
+            && root.GetNodeOrNull<Node3D>("training_accessory_4") is null,
+            "function_selector_initial_live_readouts_replace_static_legend");
+        bool Clear(MeshInstance3D a, MeshInstance3D b)
+        {
+            var overlap = ReviewBounds(a).Intersection(ReviewBounds(b)).Size;
+            return overlap.X <= 0.005f || overlap.Y <= 0.005f || overlap.Z <= 0.005f || !OrientedBoxesPenetrate(a, b);
+        }
+        var equipment = root.GetChildren().OfType<Node3D>().ToArray();
+        check(equipment.All(a => equipment.Where(b => b != a)
+            .All(b => ReviewMeshes(a).All(am => ReviewMeshes(b).All(bm => Clear(am, bm))))),
+            "function_selector_separate_equipment_clearance");
+        check(Enumerable.Range(0, 4).All(i =>
+        {
+            var display = root.GetNode<Node3D>($"numeric_display_{i}");
+            var foot = (MeshInstance3D)display.FindChild("COUNT_DISPLAY_base", true, false);
+            var mast = (MeshInstance3D)display.FindChild("COUNT_DISPLAY_mast", true, false);
+            var housing = (MeshInstance3D)display.FindChild("COUNT_DISPLAY_housing", true, false);
+            return MathF.Abs(ReviewBounds(foot).Position.Y) < 0.001f
+                && ReviewBounds(mast).Intersects(ReviewBounds(foot).Grow(0.001f))
+                && ReviewBounds(mast).Intersects(ReviewBounds(housing));
+        }), "function_selector_readout_masts_grounded_and_supported");
+        var reference = LadderEditorProjectJson.Load(FileAccess.GetFileAsString(
+            "res://programs/examples/09-function-selector-reference.rpproj.json"));
+        check(reference.IsReadable, "function_selector_opt_in_reference_readable");
+        if (reference.Document is null) throw new InvalidOperationException("Function selector reference is unreadable.");
+        EnableVirtualControllerProgram(reference.Document.BuildProgram());
+        try
+        {
+            _virtualController!.Run();
+            void Scan() => _PhysicsProcess(0.04);
+            void Toggle(string point) { runtime.ExecuteAction("toggle-" + point); Scan(); }
+            void NextChoice() { runtime.ExecuteAction("cycle-function_choice"); Scan(); }
+            bool Result(long value, bool valid) => Equals(runtime.Points["selected_result"], value)
+                && Equals(runtime.Points["selected_result_valid"], valid) && Readout(3).Text == $"RESULT\n{value}";
+            runtime.ExecuteAction("cycle-operand_a"); runtime.ExecuteAction("cycle-operand_a");
+            for (var i = 0; i < 3; i++) runtime.ExecuteAction("cycle-operand_b");
+            Scan();
+            check(Readout(0).Text == "A NEXT\n2" && Readout(1).Text == "B NEXT\n5",
+                "function_selector_manual_operands_publish_live_values");
+            Toggle("operand_set_valid"); Toggle("calculate_request"); NextChoice();
+            check(Result(0L, false), "function_selector_missing_manual_function_valid_blocks_call");
+            Toggle("function_select_valid");
+            check(Result(7L, true) && Readout(2).Text == "FUNC NEXT\n1",
+                "function_selector_choice_one_calls_sum_only");
+            NextChoice();
+            check(Result(10L, true) && Readout(2).Text == "FUNC NEXT\n2",
+                "function_selector_choice_two_calls_product_only");
+            NextChoice(); // 99 is deliberately unsupported, even with FUNC VALID true.
+            check(Result(10L, false) && Readout(2).Text == "FUNC NEXT\n99",
+                "function_selector_invalid_choice_clears_validity_retains_last_result");
+            NextChoice();
+            check(Result(10L, false) && Readout(2).Text == "FUNC NEXT\n0",
+                "function_selector_zero_choice_is_not_authorized_by_manual_validity");
+            NextChoice(); runtime.ExecuteAction("cycle-operand_a"); Scan(); // A=5, B=5, SUM=10.
+            check(Result(10L, true), "function_selector_changed_operand_recalculates_selected_path");
+            Toggle("calculate_request");
+            check(Result(10L, false), "function_selector_request_loss_clears_validity");
+            Toggle("calculate_request"); Toggle("operand_set_valid");
+            check(Result(10L, false), "function_selector_operand_permissive_loss_clears_validity");
+            CommitVirtualControllerSnapshot(_virtualController.Stop());
+            check(Result(0L, false), "function_selector_stop_clears_numeric_output_image");
+            _virtualController.Run(); Scan();
+            check(Result(0L, false), "function_selector_restart_missing_permissive_keeps_result_zero");
+            Toggle("operand_set_valid");
+            check(Result(10L, true), "function_selector_restored_permissive_recalculates");
+            runtime.ResetSimulation(); CommitVirtualControllerSnapshot(_virtualController.Reset());
+            check(Enumerable.Range(0, 4).All(i => Readout(i).Text.EndsWith("\n0", StringComparison.Ordinal))
+                && runtime.Points["operand_set_valid"] is false && runtime.Points["function_select_valid"] is false
+                && runtime.Points["calculate_request"] is false && Result(0L, false),
+                "function_selector_reset_clears_values_and_manual_inputs");
+        }
+        finally { DisableVirtualController(); }
     }
 
     private void VerifySumCounterWorkflow(Action<bool, string> check)
