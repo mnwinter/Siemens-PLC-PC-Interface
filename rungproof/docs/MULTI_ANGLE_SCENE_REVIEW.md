@@ -10,7 +10,39 @@ includes failed scenes; it is not a count of accepted scenes.
 
 ## Acceptance method
 
-Demo 5 repeatable motion inspection (2026-10-05, current): the opt-in native
+Pallet receiver landing (2026-10-05, current): reproduced the old Scene 31
+reference reporting two placements with both totes outside the receiver. New
+actual-reference checks failed landing, count/landing agreement and path
+clearance. Measured bay centers are X=3.03/4.17 m, Z=2.4 m; roller tops are
+395 mm. Lift/carry/lower phases now land tote bottoms on those rollers before
+incrementing placed_count. Carry bottoms are at 2.1 m, clearing the second
+staged tote as well as the conveyor and receiver. A first 1.8 m carry repair
+failed the load/load sweep and was corrected. Staged tote roots rose 4.3049 mm
+to remove deck penetration; pallet nail heads are seated flush. These are
+scene-specific installation/reference changes, with no point ownership change.
+
+The reference now takes about 30.23 seconds; its contract allows 31 seconds.
+Four additional geometry checks pass (396 total): flush nail heads, actual
+roller landing, placement-count agreement and both load meshes clear through
+the reference at 10 ms samples. Existing empty-pallet support/release checks
+still pass. Build zero warnings/errors, controller 143, shell 77/294, plant
+motion 32, scene reference contract and help validation pass.
+
+Final native Windows PLANT PREVIEW (no PLC controller): held second-carry pose
+and completed two-bay landing each inspected in FR/FL/RL/RR/Top (10 views).
+Stop removed commands and held the carried pose after releasing the review
+clock; Reset restored both staged totes/pallet and count zero. An unheld full
+reference completed with two seated totes, empty pallet on the outbound belt,
+both commands off and cycle_complete true. Backstop hides most landed load
+details in rear views; front views and Top expose the separate bays. The held
+carry views visibly show that the robot does not grip/reach the tote. Actual
+robot/load attachment, autonomous robot sweep, controller-driven transfer and
+continuous native review of every intermediate frame remain open. The 10 ms
+screen advances authored reference transforms, not the native robot's separate
+autonomous clock. Scene 31 remains FAIL/open overall.
+Logs: .tools/pallet-landing-*.log. Goal remains active.
+
+Demo 5 repeatable motion inspection (2026-10-05, previous checkpoint): the opt-in native
 review toolbar now provides Hold offline gantry clock and Step 0.5 s. Hold
 freezes the controller and autonomous equipment clocks; Step executes the
 existing input/ladder/output path and gantry motion in 25 authored 20 ms ticks.
@@ -1783,7 +1815,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 28 | `lab-2-14-sump-pump` | 41 (original) | Final repaired FR/FL/RL/RR/T wide + top/FL/RL/FR pump close | Partial piping repair: joined measured ports, aligned valve/spool and grounded supports; still FAIL: buried low probe, float fitting/identity and sump vessel open; normal Run unloaded; full level motion pending |
 | 29 | `lab-2-15-fume-extractor` | 0 | FR/FL/RL/RR/T static and running 35%; close plate; speed states; native preview Stop/Run/Off/Reset | LIGHT REQUEST, speed binding and preview Stop repaired; six-blade transform checks pass. Open: beacon substitutes light, hood/duct absent, normal Run unloaded; reference preview is not controller lesson acceptance |
 | 30 | `lab-2-16-safe-drill` | 24 original / 0 repaired | Native repaired FR/FL/RL/RR/T; stock FR close; normal 3D hand/cycle controls; held feed/bottom four close sides; Stop/Reset/restart; unheld completion | Fixture/feed and honest Stop-hold semantics repaired; normal cycle blocks without controller. Top stock view occluded by head; guard/two-hand safety behavior is not modeled |
-| 31 | `lab-2-17-pallet-robot` | 23 historic; 4 current home bounds candidates | Native staged/final FR/FL/RL/RR/T; held post-bridge Top/RR; bridge Top/RL/RR (occlusions recorded); sensor earlier Top/FL/RR; Reset | Static installation and outbound support repaired; 15 installation/release checks PASS within 380 total. Actual reference sampled at 10 ms, final pallet fully on outbound belt. FAIL/open: container paths miss receiver, robot attachment/reach and complete physical transfer unproven; crossing not continuously observed in five native angles. Normal shell remains controller owned |
+| 31 | `lab-2-17-pallet-robot` | 23 historic; 4 previous home candidates | Final second-carry and completed landing FR/FL/RL/RR/T; Stop/Reset; earlier staged/bridge/sensor views | Pallet seating, outbound support and receiver landing repaired; 19 installation/transfer checks PASS within 396 total. Actual reference sampled at 10 ms; both totes land on receiver rollers before count/release, pallet fully on outbound belt. FAIL/open: robot does not grip/reach moving tote; complete controller-driven transfer and continuous intermediate native views unproven |
 | 32 | `lab-2-18-pallet-pickup` | 29 | Native FR/FL/RL/RR/T; sensor top/FR/RL close; auto toggle and jog | Open: pallet support and sensor/conveyor mounting need measurement; Jog blocks unloaded; full motion unverified |
 | 33 | `lab-2-19-service-door` | 54 original / 0 repaired | Repaired native FR/FL/RL/RR/T; operator FR close; held opening/Stop/reverse; real-time endpoints; open five views; Reset | Layout/plates and reference reversal/position feedback repaired; raw NC signal displays explicit. Physical limit/cable behavior, compressed slat geometry and loaded-controller operation unaccepted |
 | 34 | `lab-2-20-bottle-shuttle` | 39 | Native FR/FL/RL/RR/T; bottle top/FR close; Start | Open: overlapping bottle label text; contact and sensor mounts need measurement. Normal Start unloaded; round-trip motion unverified |

@@ -6,7 +6,20 @@ would otherwise be trapped in a local Codex session. It intentionally excludes
 machine-local Codex databases, credentials, screenshots from private chats, and
 temporary runtime state.
 
-Demo 5 review-clock checkpoint (2026-10-05, current): opt-in offline Hold/Step
+Pallet receiver checkpoint (2026-10-05, current): Scene 31's stale transfer
+targets and height are repaired. The timed reference uses lift/carry/lower
+phases to seat both tote bottoms on the 395 mm receiver rollers at
+X=3.03/4.17, Z=2.4 m, then counts placements and releases the empty pallet.
+Staged roots/nail seating are corrected; carry bottom 2.1 m clears the other
+tote. Reference duration is about 30.23 seconds; contract waits 31 seconds.
+Four new geometry checks raise coverage to 396; build/controller/shell/motion/
+contract/help pass. Native held carry and final landing each have five views,
+plus Stop/Reset. Details: [multi-angle evidence](MULTI_ANGLE_SCENE_REVIEW.md).
+The robot visibly does not grip/reach the tote: this remains a schematic
+reference, not accepted robot transfer or normal controller-driven operation.
+Continue that unresolved finding and the catalog failures. Goal remains active.
+
+Demo 5 review-clock checkpoint (2026-10-05, previous checkpoint): opt-in offline Hold/Step
 now supports repeatable inspection of the existing command-driven gantry.
 Launch with --app-shell --visual-scene-review --shell-scene=lab-11-13-xy-palletizing.
 Enable the three manual permissives and normal Run; hold freezes controller and

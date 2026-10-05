@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Godot;
 
 namespace RungProof.Next.Scenes;
@@ -55,6 +56,17 @@ public static partial class SceneComposer
             var splice = Part(conveyor, "BELT_vulcanized_splice");
             var rise = Bounds(splice).End.Y - Bounds(Part(conveyor, "KIN_belt_surface")).End.Y;
             splice.Position -= InScene((Node3D)splice.GetParent()).Basis.Inverse() * (Vector3.Up * rise);
+        }
+        // These imported nail heads protrude through a tote resting on the
+        // wooden carrying surface. Seat them flush in this pallet installation.
+        var pallet = root.GetNode<Node3D>("robot_pallet");
+        var palletMeshes = pallet.FindChildren("*", string.Empty, true, false).OfType<MeshInstance3D>().ToArray();
+        var deckY = palletMeshes.Where(mesh => mesh.Name.ToString().StartsWith("PALLET_top_board", StringComparison.Ordinal))
+            .Max(mesh => Bounds(mesh).End.Y);
+        foreach (var nail in palletMeshes.Where(mesh => mesh.Name.ToString().StartsWith("PALLET_top_nail", StringComparison.Ordinal)))
+        {
+            var rise = MathF.Max(0, Bounds(nail).End.Y - deckY);
+            nail.Position -= InScene((Node3D)nail.GetParent()).Basis.Inverse() * (Vector3.Up * rise);
         }
     }
 }

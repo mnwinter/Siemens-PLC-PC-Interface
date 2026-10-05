@@ -73,7 +73,7 @@
       "label": "Process container A",
       "position": [
         -3.15,
-        1.12,
+        1.1243049,
         -0.4
       ],
       "config": {
@@ -91,7 +91,7 @@
       "label": "Process container B",
       "position": [
         -2.45,
-        1.12,
+        1.1243049,
         0.4
       ],
       "config": {
@@ -277,15 +277,28 @@
     "sequences": {
       "unload-cycle": [
         {
-          "name": "pick first",
-          "durationS": 1.2,
+          "name": "lift first",
+          "durationS": 1.0,
+          "motions": [
+            {
+              "type": "translate",
+              "equipmentId": "container_a",
+              "axis": "y",
+              "from": 1.1243049,
+              "to": 2.0878049
+            }
+          ],
           "set": {
             "robot_run": true,
             "conveyor_run": false,
             "placed_count": 0,
             "cycle_complete": false,
             "cell_color": "amber"
-          },
+          }
+        },
+        {
+          "name": "carry first",
+          "durationS": 6.2,
           "motions": [
             {
               "type": "position",
@@ -298,14 +311,27 @@
               "equipmentId": "container_a",
               "axis": "x",
               "from": -3.15,
-              "to": 1.5
+              "to": 3.03
             },
             {
               "type": "translate",
               "equipmentId": "container_a",
               "axis": "z",
               "from": -0.4,
-              "to": 1.2
+              "to": 2.4
+            }
+          ]
+        },
+        {
+          "name": "lower first",
+          "durationS": 1.0,
+          "motions": [
+            {
+              "type": "translate",
+              "equipmentId": "container_a",
+              "axis": "y",
+              "from": 2.0878049,
+              "to": 0.3828049
             }
           ]
         },
@@ -317,8 +343,21 @@
           }
         },
         {
-          "name": "pick second",
-          "durationS": 1.2,
+          "name": "lift second",
+          "durationS": 1.0,
+          "motions": [
+            {
+              "type": "translate",
+              "equipmentId": "container_b",
+              "axis": "y",
+              "from": 1.1243049,
+              "to": 2.0878049
+            }
+          ]
+        },
+        {
+          "name": "carry second",
+          "durationS": 6.62,
           "motions": [
             {
               "type": "position",
@@ -331,14 +370,27 @@
               "equipmentId": "container_b",
               "axis": "x",
               "from": -2.45,
-              "to": 2.2
+              "to": 4.17
             },
             {
               "type": "translate",
               "equipmentId": "container_b",
               "axis": "z",
               "from": 0.4,
-              "to": 1.2
+              "to": 2.4
+            }
+          ]
+        },
+        {
+          "name": "lower second",
+          "durationS": 1.0,
+          "motions": [
+            {
+              "type": "translate",
+              "equipmentId": "container_b",
+              "axis": "y",
+              "from": 2.0878049,
+              "to": 0.3828049
             }
           ]
         },
@@ -392,14 +444,14 @@
     "hints": [
       "Define the required result before writing logic: Exactly two containers are placed before the pallet conveyor releases.",
       "Treat pallet_ready as simulator-to-PLC inputs. The PLC should command only robot_run, conveyor_run.",
-      "Use a step/state approach and prove the transition order: pick first \u2192 place first \u2192 pick second \u2192 place second \u2192 release pallet \u2192 ready."
+      "Use a step/state approach: lift, carry and lower each container before counting its placement, then release the empty pallet. Robot reach and gripping remain unmodeled."
     ],
     "solution": {
       "summary": "This is one valid functional reference. The same behavior may be implemented in LAD, FBD, or SCL; the rung layout is not prescribed.",
       "steps": [
-        "pick first: robot_run = true, conveyor_run = false.",
+        "lift/carry/lower first: robot_run = true, conveyor_run = false.",
         "place first: no PLC command changes.",
-        "pick second: no PLC command changes.",
+        "lift/carry/lower second: no PLC command changes.",
         "place second: robot_run = false.",
         "release pallet: conveyor_run = true.",
         "ready: conveyor_run = false."
@@ -414,9 +466,13 @@
         "The PLC is ready to command robot_run, conveyor_run."
       ],
       "normalSequence": [
-        "pick first",
+        "lift first",
+        "carry first",
+        "lower first",
         "place first",
-        "pick second",
+        "lift second",
+        "carry second",
+        "lower second",
         "place second",
         "release pallet",
         "ready"
@@ -430,7 +486,8 @@
         "A missing PLC command leaves the affected equipment stopped and the test diagnosable."
       ],
       "expectedObservations": [
-        "Exactly two containers are placed before the pallet conveyor releases."
+        "The timed reference lowers each container into its receiver roller bay before incrementing placed_count and releasing the pallet.",
+        "Robot reach and load attachment are unmodeled; this reference does not prove a complete robot transfer."
       ]
     },
     "sequenceNumber": 17,
@@ -463,7 +520,7 @@
         "phases": [
           {
             "action": "start-robot",
-            "runForS": 16.0
+            "runForS": 31.0
           }
         ],
         "expect": {

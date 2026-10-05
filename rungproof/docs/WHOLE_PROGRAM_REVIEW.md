@@ -1,6 +1,17 @@
 # Whole program review - 2026-10-03
 
-Demo 5 review-clock checkpoint (2026-10-05, current): seven held phases of the
+Pallet receiver checkpoint (2026-10-05, current): Scene 31's timed reference
+now lands both containers in their actual roller bays before counting them and
+releasing the empty pallet. Flush nail heads and accurate deck seating remove
+staged-load interference; the lift/carry/lower path clears both totes and other
+equipment at 10 ms samples. Build, controller 143, shell 77/294, plant motion
+32, geometry 396, scene contract and help validation pass. Final native held
+carry and completed landing received five views each, with Stop/Reset checked.
+The robot still does not reach/grip the load; Scene 31 remains open overall.
+See [multi-angle evidence](MULTI_ANGLE_SCENE_REVIEW.md) for failed iterations,
+occlusions, reference-only scope and remaining work.
+
+Demo 5 review-clock checkpoint (2026-10-05, previous checkpoint): seven held phases of the
 complete outward/return gantry sweep were inspected in five native Windows
 views (35 pose/view observations). No pallet/post intersection or detached tool
 appeared. The opt-in offline Hold/Step controls use the existing ladder and

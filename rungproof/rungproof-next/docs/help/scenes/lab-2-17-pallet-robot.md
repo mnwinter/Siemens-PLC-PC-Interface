@@ -65,10 +65,15 @@ The outbound conveyor shares the 900 mm carrying height, with a grounded
 tangent points are narrower than each pallet runner. The standalone reference
 release covers 8 m at 0.65 m/s and finishes with the whole pallet on the
 outbound flat belt. Both conveyors use the existing `conveyor_run` command.
-This geometric installation does not establish a complete robot transfer:
-the reference container paths still miss the receiver bays and robot/load
-attachment is unproven. Timed reference motion is separate from the normal
-controller-owned shell and does not prove acceleration, slip or load capacity.
+The timed reference now lifts, carries and lowers each container into its own
+roller bay at X=3.03/4.17 m, Z=2.4 m. Their bottoms meet the measured 395 mm
+roller tops; placed_count changes only after lowering. Carrying bottom height
+is 2.1 m to clear the other staged tote, conveyor and receiver backstop.
+Pallet nail heads are flush with the carrying deck, and staged tote bottoms
+meet that deck. The reference takes about 30.23 seconds before completion.
+This geometric path does not establish a complete robot transfer: robot/load
+attachment and reach are unmodeled. Timed reference motion is separate from
+the normal controller-owned shell and does not prove acceleration, slip or load capacity.
 The reference contract verifies sequence point values, not physical handling.
 
 A normal Stop removes PLC-owned commands according to the scene runtime. This document does not prove a safety function, a real E-stop circuit, a PLC watchdog, or live-machine commissioning.

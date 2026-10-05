@@ -27,10 +27,12 @@ public partial class Main
         check(new[] { "container_a", "container_b" }.All(id =>
         {
             var load = ReviewBounds(root.GetNode(id));
-            return MathF.Abs(load.Position.Y - deckY) < 0.005f
+            return MathF.Abs(load.Position.Y - deckY) < 0.001f
                 && load.Position.X >= palletBounds.Position.X && load.End.X <= palletBounds.End.X
                 && load.Position.Z >= palletBounds.Position.Z && load.End.Z <= palletBounds.End.Z;
         }), "pallet_robot_both_containers_seated_within_pallet_deck");
+        check(ReviewMeshes(pallet).Where(mesh => mesh.Name.ToString().StartsWith("PALLET_top_nail", StringComparison.Ordinal))
+            .All(mesh => ReviewBounds(mesh).End.Y <= deckY + 0.001f), "pallet_robot_top_nail_heads_do_not_protrude_into_staged_loads");
 
         bool Clear(MeshInstance3D a, MeshInstance3D b)
         {
@@ -125,6 +127,24 @@ public partial class Main
         var runners = ReviewMeshes(pallet).Where(mesh => mesh.Name.ToString().StartsWith("PALLET_bottom_runner", StringComparison.Ordinal)).ToArray();
         var surfaces = new[] { staging, receiving, new Aabb(deck.Position with { Y = deck.End.Y }, deck.Size with { Y = 0 }) };
         var supported = true; var moved = false; var commandsTogether = true; var sweepClear = true;
+        var receiver = root.GetNode<Node3D>("process_receiver");
+        var loads = new[] { root.GetNode<Node3D>("container_a"), root.GetNode<Node3D>("container_b") };
+        var loadObstacles = root.GetChildren().OfType<Node3D>().Where(node => !loads.Contains(node))
+            .SelectMany(ReviewMeshes).Where(mesh => !mesh.Name.ToString().StartsWith("KIN_beam", StringComparison.Ordinal)).ToArray();
+        var loadSweepClear = true; var countRequiresLanding = true;
+        bool Landed(int index)
+        {
+            var side = index == 0 ? "left" : "right";
+            var rollers = ReviewMeshes(receiver).Where(mesh => mesh.Name.ToString() == $"KIN_receiver_roller_{side}"
+                || mesh.Name.ToString().StartsWith($"RECEIVER_ROLLER_{side}_", StringComparison.Ordinal)).ToArray();
+            if (rollers.Length != 5) return false;
+            var carrying = ReviewBounds(rollers[0]);
+            foreach (var roller in rollers.Skip(1)) carrying = carrying.Merge(ReviewBounds(roller));
+            var load = ReviewBounds(loads[index]);
+            return MathF.Abs(load.Position.Y - carrying.End.Y) < 0.001f
+                && load.Position.X >= carrying.Position.X && load.End.X <= carrying.End.X
+                && load.Position.Z >= carrying.Position.Z && load.End.Z <= carrying.End.Z;
+        }
         var startX = pallet.Position.X;
         var drives = new[] { inbound, outbound }.Select(node => node.FindChildren("*", string.Empty, true, false)
             .OfType<ConveyorController>().Single()).ToArray();
@@ -133,9 +153,18 @@ public partial class Main
             runtime.UsesExternalClock = false;
             runtime.ResetSimulation();
             runtime.RunDefault();
-            for (var tick = 0; tick < 2000; tick++)
+            for (var tick = 0; tick < 4000; tick++)
             {
                 runtime.AdvanceSimulation(0.01);
+                // Test the actual timed reference, including the transfer path,
+                // rather than accepting placed_count as evidence of placement.
+                if (loadSweepClear)
+                    loadSweepClear = loads.All(load => ReviewMeshes(load).All(part =>
+                        loadObstacles.All(other => PalletTransferPartsClear(part, other))))
+                        && ReviewMeshes(loads[0]).All(part => ReviewMeshes(loads[1]).All(other => PalletTransferPartsClear(part, other)));
+                var placed = Convert.ToInt32(runtime.Points["placed_count"]);
+                if (placed >= 1) countRequiresLanding &= Landed(0);
+                if (placed >= 2) countRequiresLanding &= Landed(1);
                 moved |= pallet.Position.X > startX + 0.001f;
                 commandsTogether &= drives.All(drive => drive.RunCommand == (runtime.Points["conveyor_run"] is true));
                 foreach (var runner in runners)
@@ -156,6 +185,10 @@ public partial class Main
                 && final.End.X <= receiving.End.X, "pallet_robot_empty_pallet_finishes_fully_on_outbound_flat_belt");
             check(commandsTogether && drives.All(drive => !drive.RunCommand),
                 "pallet_robot_one_existing_command_drives_both_conveyors_and_stops_at_completion");
+            check(Landed(0) && Landed(1), "pallet_robot_both_transferred_containers_land_within_actual_receiver_rollers");
+            check(countRequiresLanding, "pallet_robot_placed_count_requires_each_container_already_seated");
+            check(loadSweepClear, "pallet_robot_container_meshes_clear_separate_equipment_through_reference_transfer");
+            GD.Print($"PALLET_RECEIVER_LANDING left={ReviewBounds(loads[0])} right={ReviewBounds(loads[1])}");
             GD.Print($"PALLET_OUTBOUND_DATUM staging={staging} bridge={deck} receiving={receiving} final={final}");
         }
         finally
