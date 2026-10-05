@@ -212,6 +212,7 @@ public partial class Main
             Check(axes.Select((axis, index) => axis.Transform == initialPose[index]).All(reset => reset)
                 && _sceneRuntime.Points["gantry_home"] is false && _sceneRuntime.Points["gantry_cycle"] is false,
                 "demo5_reset_restores_pose_and_manual_feedback");
+            if (_visualSceneReview) VerifyGantryReviewClock(Check);
             GD.Print($"PLANT_MOTION_VERIFY {(passed ? "PASS" : "FAIL")} offline-only; no PLC transport");
             GetTree().Quit(passed ? 0 : 1);
         }

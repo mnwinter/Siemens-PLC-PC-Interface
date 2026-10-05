@@ -99,3 +99,9 @@ branch. DB/interface fields are declarations; runtime values use project tags.
 - XYZ nodes move only while gantry-cycle is commanded and playback is running.
 - Stop or loss of a pick permissive holds the command pose; Reset restores it.
 - The manually supplied home permissive does not track the illustrated pose.
+
+When launched with `--visual-scene-review`, the offline scene has optional
+Hold offline gantry clock and Step 0.5 s controls for inspecting held poses.
+Step requires normal Run and permissives and advances the existing scan/gantry
+path. Changing editor, scene or controller source releases hold. The controls
+do not implement carton pickup or automatic home feedback.

@@ -63,6 +63,7 @@ public partial class Main
         };
         bar.AddChild(_visualReviewFocus);
         UpdateVisualReviewLabel();
+        if (!_visualPlantReview) AddGantryReviewClockControls(layer);
         if (_visualPlantReview && _sceneRuntime is not null)
         {
             // Standalone QA must expose both directions/actions, not only the
@@ -132,6 +133,7 @@ public partial class Main
                 _visualReviewFocus?.AddItem(node.Name);
         GD.Print($"VISUAL_REVIEW_SCENE {_currentSceneId} index={index + 1}");
         if (_sceneCompositionRoot is not null) LogBoundsCandidates(_sceneCompositionRoot);
+        RefreshGantryReviewClockControls();
     }
 
     private void SetVisualReviewAngle(Vector3 direction, string label)

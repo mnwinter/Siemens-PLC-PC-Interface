@@ -6,7 +6,21 @@ would otherwise be trapped in a local Codex session. It intentionally excludes
 machine-local Codex databases, credentials, screenshots from private chats, and
 temporary runtime state.
 
-Carton static installation (2026-10-05, current): cable surface inspection
+Demo 5 review-clock checkpoint (2026-10-05, current): opt-in offline Hold/Step
+now supports repeatable inspection of the existing command-driven gantry.
+Launch with --app-shell --visual-scene-review --shell-scene=lab-11-13-xy-palletizing.
+Enable the three manual permissives and normal Run; hold freezes controller and
+equipment clocks, and each step advances 25 existing 20 ms scan/motion ticks.
+Editor, scene and source changes release hold. It is not a generic plant step.
+Seven outward/return phases in five native views were inspected; native
+Stop/Reset and editor/source transitions passed. --verify-plant-motion
+--visual-scene-review runs 32 checks, including seven clock regressions.
+Build/controller/shell/rendered-input/geometry also pass. Details and occlusions:
+[multi-angle evidence](MULTI_ANGLE_SCENE_REVIEW.md). Continue unresolved catalog
+motion and actual carton/home-feedback work; do not repeat static inspection
+or infer pickup/transport from this illustrative sweep. Goal remains active.
+
+Carton static installation (2026-10-05, previous checkpoint): cable surface inspection
 found the low RX stand crossing the conveyor rail and the pusher base crossing
 conveyor feet. Move RX stand to Z=-1.55 m, configured optical height 0.8470945 m;
 keep the inclined optical line unchanged. Move pusher to X=-0.4 m, Z=-2.4 m.

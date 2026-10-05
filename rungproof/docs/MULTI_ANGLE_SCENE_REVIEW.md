@@ -10,7 +10,33 @@ includes failed scenes; it is not a count of accepted scenes.
 
 ## Acceptance method
 
-Carton static installation (2026-10-05, current): cable surface inspection
+Demo 5 repeatable motion inspection (2026-10-05, current): the opt-in native
+review toolbar now provides Hold offline gantry clock and Step 0.5 s. Hold
+freezes the controller and autonomous equipment clocks; Step executes the
+existing input/ladder/output path and gantry motion in 25 authored 20 ms ticks.
+It requires normal Run and the actual manual permissives. It is scoped to this
+illustrative gantry, not a general plant step. Editor, scene and source changes
+release the hold; the clock controls are hidden outside Demo 5's offline scene.
+
+Native Windows inspection covered seven held phases at 0, 0.5, 1, 1.5, 2, 2.5
+and 3 seconds (stroke 0, 25, 75, 100, 75, 25, 0 percent), each in FR/FL/RL/RR/Top:
+35 pose/view observations across the outward and return sweep. No pallet/post
+intersection or detached tool appeared. RL robot and RR near-post occlusions
+hide parts of the rod/tool; Top hides the rod beneath the carriage/bridge.
+FR/FL cover those regions. Gantry focus crops unrelated equipment edges.
+Release resumed scans; native Stop held scan/pose and Reset restored home/zero.
+Editor return and disconnected External PLC/Built-in mode changes were checked
+in the final build; hold was released and toolbar visibility was correct.
+
+Build passes with zero warnings/errors; controller 143, shell 77 scenes/294
+assets, plant motion 32 and geometry 392 checks pass. The rendered input test
+also passes the clock-toolbar click-through guard. Native reviewers exited zero.
+Logs: .tools/gantry-clock-*.log. These are sampled native poses plus the existing
+20 ms geometry sweep, not continuous all-frame observation. Actual carton
+pickup/transport, automatic home feedback and complete catalog motion remain
+open. Goal remains active.
+
+Carton static installation (2026-10-05, previous checkpoint): cable surface inspection
 found the low RX stand crossing the conveyor rail and the pusher base crossing
 conveyor feet. Move RX stand to Z=-1.55 m, configured optical height 0.8470945 m;
 keep the inclined optical line unchanged. Move pusher to X=-0.4 m, Z=-2.4 m.
@@ -1739,7 +1765,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 10 | `lab-11-07-multi-conveyor-pallet-route` | 892 | FR/FL/RL/RR/T + conveyor T/FR | FAIL: three superimposed belts, disconnected roller zone, vibration/bearing prop instead of handoff sensor, no pallet; empty editor on Run |
 | 11 | `lab-11-11-service-elevator` | 63 | FR/FL/RL/RR/T | FAIL: shutter intersects scissor platform, bucket elevator instead of car/shaft, cabinets instead of call station/position sensor; empty editor on Run |
 | 12 | `lab-11-12-mobile-traffic-lights` | 21 | FR/FL/RL/RR/T | FAIL: vertical guard/window wall instead of roadway, single amber beacons instead of traffic head/link; empty editor on Run |
-| 13 | `lab-11-13-xy-palletizing` | 0 | FR/FL/RL/RR/T | Repaired; static five views and sampled all-moving-part sweep pass; native five motion views with occlusions recorded, Stop/Reset and three labeled 3D inputs checked. Actual carton transport/home feedback open |
+| 13 | `lab-11-13-xy-palletizing` | 0 | FR/FL/RL/RR/T at 7 held phases | Repaired; 35 native pose/view observations across outward/return sweep plus sampled all-moving-part geometry pass; occlusions recorded, Stop/Reset, manual inputs and review-clock lifecycle checked. Actual carton transport/home feedback open |
 | 14 | `lab-11-19-powder-batch-mixer` | 0 | FR/FL/RL/RR/T | Repaired static layout/chute; process behavior unverified |
 | 15 | `lab-2-01-workstation-call` | 0 | FR/FL/RL/RR/T + plate detail; repeated after repair | Clear supports/spacing; MATERIAL CALL plate repaired; normal Run opens empty exercise editor |
 | 16 | `lab-2-02-dual-confirmation` | 0 | FR/FL/RL/RR/T + two plate details; repeated after repair | Clear supports/spacing; OPERATOR OK / QUALITY OK plates repaired; normal Run opens empty exercise editor |

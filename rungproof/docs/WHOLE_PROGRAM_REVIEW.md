@@ -1,6 +1,17 @@
 # Whole program review - 2026-10-03
 
-Carton static installation (2026-10-05, current): cable surface inspection
+Demo 5 review-clock checkpoint (2026-10-05, current): seven held phases of the
+complete outward/return gantry sweep were inspected in five native Windows
+views (35 pose/view observations). No pallet/post intersection or detached tool
+appeared. The opt-in offline Hold/Step controls use the existing ladder and
+20 ms motion path; normal Run and manual permissives remain required. Native
+Stop/Reset and editor/source transitions were checked. Build, controller 143,
+shell 77 scenes/294 assets, rendered input guards, plant motion 32 and geometry
+392 checks pass. See [multi-angle evidence](MULTI_ANGLE_SCENE_REVIEW.md) for
+occlusions and scope. Carton pickup/transport, automatic home feedback and full
+catalog motion remain open; this is not whole-program acceptance.
+
+Carton static installation (2026-10-05, previous checkpoint): cable surface inspection
 found the low RX stand crossing the conveyor rail and the pusher base crossing
 conveyor feet. Move RX stand to Z=-1.55 m, configured optical height 0.8470945 m;
 keep the inclined optical line unchanged. Move pusher to X=-0.4 m, Z=-2.4 m.

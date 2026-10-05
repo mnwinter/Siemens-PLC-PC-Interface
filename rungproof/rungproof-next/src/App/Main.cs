@@ -447,6 +447,8 @@ public partial class Main : Node3D
         _simulatorShell.SceneActionRequested += action => ExecuteSelectedControllerAction(action);
         _simulatorShell.ControllerModeChanged += external =>
         {
+            ReleaseGantryReviewClock();
+            RefreshGantryReviewClockControls();
             _externalPlayback.Pause();
             if (_virtualController is not null) DisableVirtualController();
             if (_sceneRuntime is not null)
@@ -692,6 +694,7 @@ public partial class Main : Node3D
         _virtualSnapshot = snapshot;
         _sceneRuntime?.SetControllerPlaybackRunning(snapshot.State == VirtualControllerState.Running);
         _simulatorShell?.UpdateVirtualController(snapshot);
+        UpdateGantryReviewClockLabel();
     }
 
     private void PulseVirtualInput(string binding, string fallbackName)
@@ -1472,6 +1475,7 @@ public partial class Main : Node3D
             _sceneRuntime.AdvanceSimulation);
         var reviewBarBlocked = true;
         var reviewPopupBlocked = true;
+        var reviewClockBlocked = true;
         if (_visualReviewBar is not null && _visualReviewLabel is not null && _visualReviewFocus is not null)
         {
             // Put the noninteractive coverage label directly over the real Start
@@ -1494,6 +1498,21 @@ public partial class Main : Node3D
             _visualReviewFocus.GetPopup().Hide();
             ResetActiveController();
             RunActiveController();
+            if (_gantryReviewClockBar is not null)
+            {
+                var clockPosition = _gantryReviewClockBar.Position;
+                var clockVisible = _gantryReviewClockBar.Visible;
+                _gantryReviewClockBar.Visible = true;
+                _gantryReviewClockBar.Position = pointer - new Vector2(20, 15);
+                _Input(new InputEventMouseButton
+                { ButtonIndex = MouseButton.Left, Pressed = true, Position = pointer });
+                ScanOnce();
+                reviewClockBlocked = _sceneRuntime.Points.GetValueOrDefault("conveyor_run") is false;
+                _gantryReviewClockBar.Position = clockPosition;
+                _gantryReviewClockBar.Visible = clockVisible;
+                ResetActiveController();
+                RunActiveController();
+            }
         }
         // Exercise the same GUI input route used by an operator. Calling the
         // command method directly would miss a CanvasLayer interception bug.
@@ -1614,8 +1633,8 @@ public partial class Main : Node3D
             && resetReleased && restarted && virtualReady && virtualStart && virtualStopCommand && immediateEstop
             && virtualRestartBlocked && resetDoesNotStart && virtualRestarted && exclusiveExternal && externalActionBlocked
             && externalImagePreserved && awaitingController && noFallbackOverwrite && fallbackRulesWork
-            && invalidOutputRejected && atomicImageRejected && reviewBarBlocked && reviewPopupBlocked;
-        GD.Print($"REVIEW_OVERLAY_INPUT_VERIFY {(reviewBarBlocked && reviewPopupBlocked ? "PASS" : "FAIL")} enabled={_visualReviewBar is not null} bar={reviewBarBlocked} popup={reviewPopupBlocked}");
+            && invalidOutputRejected && atomicImageRejected && reviewBarBlocked && reviewPopupBlocked && reviewClockBlocked;
+        GD.Print($"REVIEW_OVERLAY_INPUT_VERIFY {(reviewBarBlocked && reviewPopupBlocked && reviewClockBlocked ? "PASS" : "FAIL")} enabled={_visualReviewBar is not null} bar={reviewBarBlocked} popup={reviewPopupBlocked} clock={reviewClockBlocked}");
         GD.Print($"EXTERNAL_IMAGE_VERIFY {(invalidOutputRejected && atomicImageRejected ? "PASS" : "FAIL")} typed={invalidOutputRejected} atomic={atomicImageRejected}");
         GD.Print($"SCENE_CONTROL_VERIFY {(passed ? "PASS" : "FAIL")} facesOperator={facesOperator} start={running} depressed={depressed} restored={restored} estopLatched={estopLatched} stopped={stopped} restartBlocked={restartBlocked} resetReleased={resetReleased} restarted={restarted} virtualReady={virtualReady} virtualStart={virtualStart} virtualStopCommand={virtualStopCommand} immediateEstop={immediateEstop} virtualRestartBlocked={virtualRestartBlocked} resetDoesNotStart={resetDoesNotStart} virtualRestarted={virtualRestarted} exclusiveExternal={exclusiveExternal} externalActionBlocked={externalActionBlocked} externalImagePreserved={externalImagePreserved} awaitingController={awaitingController} noFallbackOverwrite={noFallbackOverwrite} fallbackRulesWork={fallbackRulesWork}");
         GetTree().Quit(passed ? 0 : 1);
@@ -3401,6 +3420,7 @@ public partial class Main : Node3D
         bool autoRun = true
     )
     {
+        ReleaseGantryReviewClock();
         if (_externalConnection is not null && (_externalConnection.State != ConnectionState.Disconnected || _externalConnection.IsBusy))
             _externalConnection.Disconnect();
         if (_virtualController is not null) DisableVirtualController();
@@ -3674,6 +3694,7 @@ public partial class Main : Node3D
 
     public override void _PhysicsProcess(double delta)
     {
+        if (GantryReviewClockHeld && !_gantryReviewStepping) return;
         if (_simulatorShell?.IsExternalMode == true)
         {
             if (_externalConnection?.State == ConnectionState.Connected)
@@ -3933,6 +3954,8 @@ public partial class Main : Node3D
         if (_visualReviewBar?.IsVisibleInTree() == true
             && (_visualReviewBar.GetGlobalRect().HasPoint(screenPosition)
                 || _visualReviewFocus?.GetPopup().Visible == true)) return false;
+        if (_gantryReviewClockBar?.IsVisibleInTree() == true
+            && _gantryReviewClockBar.GetGlobalRect().HasPoint(screenPosition)) return false;
         if (_sceneControlInteractor is null || _sceneRuntime is null || _mainCamera is null
             || !_sceneControlInteractor.TryPick(_mainCamera, screenPosition, out var control)
             || control is null)

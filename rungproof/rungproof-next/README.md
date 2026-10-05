@@ -31,6 +31,12 @@ For native multi-angle inspection, launch Godot with `-- --app-shell
 --visual-scene-review`. The opt-in review bar provides catalog navigation, four
 diagonal camera views, overhead, detail zoom and an equipment-focus selector. Scene navigation uses the
 normal unsaved-work guards. Normal launch has no review bar.
+For Demo 5's offline operator view, Hold offline gantry clock freezes scans and
+equipment motion. Step 0.5 s executes 25 existing 20 ms scan/gantry ticks;
+normal Run and manual permissives are still required. Editor, scene and source
+changes release the hold. These controls are scoped to the illustrative gantry.
+`-- --verify-plant-motion --visual-scene-review` runs 32 offline motion checks,
+including hold, full-sweep stepping, Stop, permissive loss, Reset and release.
 `-- --verify-carton-static-routes` runs the focused Scene 2 cable and optical
 path checks without the full catalog sweep. It screens 5 mm broad overlaps
 against cable triangle bounds with a 1 mm world allowance; it is offline only.
@@ -43,7 +49,7 @@ drive-alarm identity/labels/mast support/alarm projection, and motor-state plate
 and actual shaft true/false/Reset output projection, plus label-print prop identity,
 tray/carton support, readout mast and printer-paper contact. The rendered
 `-- --verify-scene-controls --visual-scene-review` regression also checks
-that the review bar/menu cannot activate underlying 3D controls. These checks do not supply
+that the review bar/menu and gantry clock cannot activate underlying 3D controls. These checks do not supply
 missing controllers or implement enum/STRUCT/array lesson behavior.
 For the declared plant geometry only, use `-- --scene-id=lab-2-23-parcel-sorter
 --visual-plant-review`. It starts stopped and labels the preview as having no PLC
