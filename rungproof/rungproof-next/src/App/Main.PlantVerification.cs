@@ -52,13 +52,53 @@ public partial class Main
             var photoeyeSeen = false;
             var extensionSeen = false;
             var extendedSeen = false;
+            var carton = _sceneCompositionRoot!.GetNode<Node3D>("scene2_product");
+            var stagedCarton = carton.Transform;
+            var receiverDeck = ReviewBounds((MeshInstance3D)_sceneCompositionRoot.GetNode("scene2_receiver").FindChild("BENCH_top", true, false));
+            var transferSeen = false; var transferVisible = true; var receivedSeen = false;
+            var receivedHeld = true; var reloadSeen = false; var lastCompleted = 0L;
+            Vector3? releasedPosition = null;
             for (var scan = 0; scan < 650; scan++)
             {
                 Advance(1);
                 photoeyeSeen |= _sceneRuntime!.Points["part_at_pusher"] is true;
                 extensionSeen |= Convert.ToDouble(_sceneRuntime.Points["pusher_position"]) > 0;
                 extendedSeen |= _sceneRuntime.Points["pusher_extended"] is true;
+                var completed = Convert.ToInt64(_sceneRuntime.Points["parts_completed"]);
+                if (completed > lastCompleted)
+                {
+                    transferSeen = true;
+                    transferVisible &= carton.Visible;
+                    releasedPosition = carton.Position;
+                }
+                if (releasedPosition is { } released)
+                {
+                    // The one rendered carton is recycled only at the plant's
+                    // actual reload boundary, never at its transfer threshold.
+                    if (carton.Transform.IsEqualApprox(stagedCarton))
+                    {
+                        reloadSeen |= carton.Visible;
+                        releasedPosition = null;
+                    }
+                    else
+                    {
+                        receivedHeld &= carton.Visible && MathF.Abs(carton.Position.X - released.X) < 0.001f
+                            && carton.Position.Z >= released.Z - 0.001f;
+                        releasedPosition = carton.Position;
+                        if (_sceneRuntime.Points["pusher_extended"] is true)
+                        {
+                            var load = ReviewBounds(carton);
+                            receivedSeen |= MathF.Abs(load.Position.Y - receiverDeck.End.Y) < 0.001f
+                                && load.Position.X >= receiverDeck.Position.X && load.End.X <= receiverDeck.End.X
+                                && load.Position.Z >= receiverDeck.Position.Z && load.End.Z <= receiverDeck.End.Z;
+                        }
+                    }
+                }
+                lastCompleted = completed;
             }
+            Check(transferSeen && transferVisible, "scene2_carton_remains_visible_at_canonical_transfer_threshold");
+            Check(receivedSeen && receivedHeld, "scene2_full_stroke_carton_seated_on_receiver_and_not_dragged_back");
+            Check(reloadSeen, "scene2_visual_carton_recycled_only_when_plant_reloads");
             Check(photoeyeSeen, "scene2_photoeye_from_package_motion");
             Check(extensionSeen && extendedSeen, "scene2_stroke_and_limit_feedback");
             Check(Convert.ToInt64(_sceneRuntime!.Points["parts_completed"]) >= 2, "scene2_repeat_transfer_with_actual_ladder_scans");
@@ -72,6 +112,14 @@ public partial class Main
             ResetActiveController();
             Check(_sceneRuntime.Points["pusher_retracted"] is true && _sceneRuntime.Points["part_at_pusher"] is false
                 && Convert.ToInt64(_sceneRuntime.Points["parts_completed"]) == 0, "scene2_reset_restores_initial_feedback");
+            Check(carton.Visible && carton.Transform.IsEqualApprox(stagedCarton), "scene2_reset_restores_visible_staged_carton");
+
+            // Native inspection fixture: same actual ladder path, but hold the
+            // solenoid after transfer so endpoint views do not race the reload.
+            // It is an ignored QA project, not an authored production solution.
+            SaveReviewProject(program with { Id = "review-scene2-held-transfer", Name = "Scene 2 held transfer inspection",
+                Networks = program.Networks.Where(network => network.Id != "reset-extend").ToArray() },
+                "scene-2-conveyor-pusher", "scene2-held-transfer");
 
             AddMigratedScene("tank-level", _candidateCatalog!, _mainCamera!, false, false);
             var tankProgram = new LadderProgram(1, "review-tank", "Tank plant exercise", "LD", TimeSpan.FromMilliseconds(20),

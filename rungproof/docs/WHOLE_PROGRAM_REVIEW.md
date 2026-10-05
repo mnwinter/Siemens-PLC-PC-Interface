@@ -1,5 +1,20 @@
 # Whole program review - 2026-10-03
 
+Carton retention (2026-10-05, latest): Scene 74's receiver is present and its
+carton now remains visible after canonical transfer. The renderer follows the
+remaining stroke and holds the load on the table through retraction, recycling
+the one visual carton only on actual plant reload. Reset restores the infeed.
+No plant timing, feedback, counts or ownership changed; accumulation is not
+modeled. Four new actual-ladder checks pass (23 motion checks total), along
+with canonical Python parity (eight cases/83 snapshots), build, 143 controller
+tests, 77-scene shell and 380 geometry checks. Native normal Open/Verify/Run
+with an ignored held-solenoid QA fixture showed the received carton in all
+five views; Stop retained it and Reset restored infeed/home/scan zero.
+Automatic retraction/reload has scan evidence, not continuous native visual
+coverage. Scene 74 remains FAIL/open for plate contact, optical feedback
+geometry and residual cable candidates. Earlier disappearance notes below
+are historical. Evidence: `.tools/carton-retention-*.log`; reviewer exited zero.
+
 Pallet outbound support (2026-10-05, latest): Scene 31 has a second conveyor
 and grounded bridge at the same 900 mm carrying height. Its full 8 m timed
 reference release ends with the pallet entirely on the outbound flat belt.

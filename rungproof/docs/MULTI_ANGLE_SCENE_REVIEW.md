@@ -10,6 +10,32 @@ includes failed scenes; it is not a count of accepted scenes.
 
 ## Acceptance method
 
+Carton retention (2026-10-05, latest): Scene 74 keeps its released carton
+visible after the canonical 80% stroke threshold, continues the remaining
+visual stroke, and holds the load on the 900 mm receiving table during
+retraction. The single rendered carton is recycled only at the canonical
+reload boundary; Reset restores its staged pose. Plant timing, counts,
+feedback and point ownership are unchanged. Receiver accumulation is not
+implemented. Earlier disappearing-carton notes below are historical.
+
+Four new actual-ladder checks pass: visibility at transfer, full footprint
+and bottom contact on the receiver at full stroke, no backward drag during
+retraction, reload recycling and Reset (23 plant-motion checks total).
+Canonical Python parity passes eight cases/83 snapshots. Build has zero
+warnings/errors; 143 controller tests, 77-scene shell and all 380 geometry
+checks pass. Evidence: `.tools/carton-retention-*.log`.
+
+Native Windows normal Open/Verify + Load offline/Run used an ignored two-rung
+QA project that holds the solenoid after transfer; the production program was
+not changed. Received/full-extension FR/FL/RL/RR/Top were inspected. The load
+is visible on the table, with lower contact partly hidden in the rear views.
+Stop cleared commands and retained the load; Reset restored home/infeed at
+scan zero. The owned reviewer exited zero. Automatic retraction/reload is
+covered by actual-ladder scans, not continuous native five-angle observation.
+Scene 74 remains FAIL/open: the plate trails the carton, optical geometry
+does not establish feedback parity, and residual cable candidates remain.
+No complete physical transfer or live PLC acceptance is claimed.
+
 Pallet outbound support (2026-10-05, latest): Scene 31 now has a 4 m outbound
 conveyor at X=5.4 m, sharing the staging belt's 900 mm carrying height. A
 425 mm steel deck on a centered 200 mm bearer, two posts and grounded feet
@@ -1694,7 +1720,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 71 | `lab-9-11-pallet-counting` | 86 | Native FR/FL/RL/RR/T | Carton/fixture/readout geometry repaired and five views/details inspected. Live DINT count/readout FR/FL and invalid/five-edge/held/permissive/Stop/Run/Reset native checks pass. Optical classification/pallet travel/CNC integration open |
 | 72 | `lab-9-12-ev-charging-manager` | 95 | Native FR/FL/RL/RR/T | FAIL/open: shutters/fluid props instead of EV charging route; energy pulse/accumulation contract absent |
 | 73 | `scene-1-conveyor-stop` | 34 | Native FR/FL/RL/RR/T | Carton belt contact/load-end footprint repaired; native five wide/Top/FL close and Demo 3 Run/Start/photoeye/Stop/Reset rechecked; full clearance open |
-| 74 | `scene-2-conveyor-pusher` | 88 initial; 7 residual cable candidates after installation repair | Native home and extended FR/FL/RL/RR/T, close pusher Top/RR at both ends; normal Open/Verify/Run/Stop/Reset | Plate height, grounded mounting, guide engagement/cap clearance, photoeye clearance and following bolts repaired; off-station carton stays seated. Receiving surface added; native five angles and receiver Top/FR close; 314 checks PASS. FAIL/open: plate/carton contact timing, canonical disappearing transfer and residual cable candidates. No full supported transfer accepted |
+| 74 | `scene-2-conveyor-pusher` | 88 initial; 7 residual cable candidates after installation repair | Native home/extended FR/FL/RL/RR/T and close pusher Top/RR; receiver Top/FR; latest received/full-extension FR/FL/RL/RR/T; normal Open/Verify/Run/Stop/Reset | Installation and receiving surface repaired. Released carton remains visible, lands on table and holds through retraction until reload; four new actual-ladder checks PASS within 23 plant-motion checks, 380 geometry checks PASS. Native endpoint uses held-solenoid QA fixture. FAIL/open: plate/carton contact, optical feedback geometry and residual cable candidates. No complete physical transfer accepted |
 | 75 | `tank-high-low` | 60 initial; probe/piping/valve-specific screens pass | Native FR/FL/RL/RR/T; valve Top/FL close; normal offline QA Run/Stop/Reset | Probe/piping/valve installations repaired; 365 checks PASS. QA ladder cycle and pointer commands verified. FAIL/open: opaque vessel and broader operator/process acceptance |
 | 76 | `tank-level` | 52 initial; probe/analog/piping/valve-specific screens pass | Native FR/FL/RL/RR/T; valve Top/FL close; normal offline QA Run/Stop/Reset | Installations repaired; QA drain pointer and reset 42% / 10.72 mA observed. 365 checks PASS. FAIL/open: opaque vessel and broader operator/process acceptance |
 | 77 | `tank-radar` | 80 | Native FR/FL/RL/RR/T; repaired radar five focus views | Radar flange/head mounting and antenna-to-surface distance/beam repaired (sampled checks); 35% native range 3.10036. FAIL/open: empty ladder Run, disconnected inlet/outlet/drain route, opaque internal beam; rear-left mount partly obscured |

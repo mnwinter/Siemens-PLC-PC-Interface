@@ -6,6 +6,23 @@ would otherwise be trapped in a local Codex session. It intentionally excludes
 machine-local Codex databases, credentials, screenshots from private chats, and
 temporary runtime state.
 
+Carton retention (2026-10-05, latest): Scene 74 now retains its released
+visual carton separately from the canonical infeed leading edge. It stays
+visible at 80% release, follows the rest of the stroke, holds during retraction
+and recycles only on plant reload. Reset clears the retained pose. This is one
+recycled mesh, not receiver accumulation. Plant timing/counts/feedback and
+point ownership remain unchanged. Four added actual-ladder checks pass within
+23 motion checks; Python parity eight cases/83 snapshots, build, controller
+143, shell and 380 geometry checks pass. Native normal Open/Verify/Run loaded
+the ignored `plant-review-scene2-held-transfer.rpproj.json` fixture: two rungs,
+hold solenoid after transfer for endpoint inspection. Production reference
+unchanged. Received FR/FL/RL/RR/Top inspected, Stop retained load/cleared
+commands, Reset restored home/infeed/scan zero, owned window exited zero.
+Automatic retraction/reload is scan-tested, not continuously observed native.
+Scene remains FAIL/open: plate trails carton, optical feedback geometry and
+residual cable candidates unresolved. Earlier disappearance notes are
+historical. Logs: `.tools/carton-retention-*.log`. Whole goal remains active.
+
 Pallet outbound support (2026-10-05, latest): Scene 31 adds a 4 m outbound
 conveyor at X=5.4 m and a 425 mm bridge deck on a centered 200 mm bearer,
 connected posts/feet. All surfaces carry at 900 mm. Tangent gaps are 70/35 mm;

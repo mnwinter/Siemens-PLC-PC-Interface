@@ -52,9 +52,14 @@ across the beam at first detection without changing the symbolic plant model.
 
 The flat receiving table meets the belt edge at the same 900 mm top height.
 Its supports clear the conveyor bracing, and the receiver-side photoeye stand
-is beyond the table. Its canonical plant still removes the
-carton at the transfer threshold; the rendered path does not establish plate
-contact or a fully supported physical transfer. These remain open review
-findings even when the controller sequence and limit feedback pass.
+is beyond the table. The canonical plant releases the infeed carton at 80%
+stroke. The renderer keeps that carton visible, continues it to the table at
+full stroke, and holds it during retraction. The same single rendered carton
+returns to the infeed when the plant admits its next load; this does not model
+a queue of received cartons. Reset restores the staged carton.
+
+Plate contact and optical feedback geometry remain open review findings.
+The visible receiver landing does not establish a complete physical transfer
+even when the controller sequence and limit feedback pass.
 
 A normal Stop removes PLC-owned commands according to the scene runtime. This document does not prove a safety function, a real E-stop circuit, a PLC watchdog, or live-machine commissioning.

@@ -41,6 +41,10 @@ public partial class SceneSimulationRuntime : Node
     // Its rules otherwise reassert outputs immediately after StopControllers.
     private bool _booleanPreviewStopped;
     private readonly ConveyorPlantModel? _conveyorPlant;
+    // A released carton is still a visible load on the receiving surface.
+    // Keep its visual pose separately from the canonical infeed leading edge.
+    // This scene renders one recycled carton, not a receiver accumulation queue.
+    private Vector3? _releasedCartonPosition;
     private readonly HashSet<string> _pulsePoints = new(StringComparer.Ordinal);
 
     public event Action? StateChanged;
@@ -355,6 +359,7 @@ public partial class SceneSimulationRuntime : Node
         _stepElapsed = 0.0;
         _tankSimulationRunning = false;
         _pulsePoints.Clear();
+        _releasedCartonPosition = null;
         _conveyorPlant?.Reset();
         _points.Clear();
         foreach (var (name, value) in _initialPoints)
@@ -695,7 +700,10 @@ public partial class SceneSimulationRuntime : Node
             }
         if (_sceneRoot.GetNodeOrNull<Node3D>(productId) is { } product)
         {
-            product.Visible = _conveyorPlant.ObjectPresent;
+            if (_conveyorPlant.ObjectPresent) _releasedCartonPosition = null;
+            else if (RuntimeType == "conveyorPusher" && _conveyorPlant.ObjectTransferred)
+                _releasedCartonPosition = product.Position;
+            product.Visible = _conveyorPlant.ObjectPresent || _releasedCartonPosition.HasValue;
             if (_initialEquipmentPositions.TryGetValue(productId, out var initial))
             {
                 var target = initial;
@@ -720,6 +728,16 @@ public partial class SceneSimulationRuntime : Node
                 // withheld transfer feedback/counting for that package.
                 if (RuntimeType == "conveyorPusher" && _conveyorPlant.PhotoeyeBlocked)
                     target.Z += (float)_conveyorPlant.PusherPosition * stroke;
+                if (_releasedCartonPosition is { } released)
+                {
+                    // The plant releases the infeed at its configured threshold,
+                    // before the last part of the cylinder stroke. Continue that
+                    // visual stroke, then leave the carton on the receiver when
+                    // the plate retracts. Recycle only on the actual plant reload.
+                    released.Z = MathF.Max(released.Z, initial.Z + (float)_conveyorPlant.PusherPosition * stroke);
+                    _releasedCartonPosition = released;
+                    target = released;
+                }
                 product.Position = target;
             }
         }
