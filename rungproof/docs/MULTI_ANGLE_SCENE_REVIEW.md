@@ -28,6 +28,17 @@ Every row requires native inspection.
 
 ## Repairs and open findings
 
+Box-volume floor-contact correction (2026-10-05): a focused perspective view
+looked like the carton was suspended. Current delivered mesh bounds instead
+confirm carton bottom Y=0 on the actual 40 x 40 floor at Y=0, with its full
+footprint on that floor and no separate-equipment penetration. Two explicit
+checks pass (215 total geometry/reference/workflow checks); clean build. The
+carton placement was correctly left unchanged. This supersedes the unsupported-
+carton claim in the preceding readout checkpoint. The scene still lacks actual
+dimension sensing/numeric volume and retains a substitute sensor asset.
+Evidence: .tools/box-volume-contact-{build,geometry}.log. Whole-program acceptance
+remains open; review continues.
+
 Static readout and diagnostics follow-up (2026-10-05): six mislabeled shutter/
 selector substitutes were replaced with original stand/readout assets. They
 display MEASUREMENT, RESULT, FUNCTION, COUNT, PROGRESS or WEIGHT plus NO LIVE
@@ -1111,7 +1122,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 67 | `lab-9-02-product-function` | 0 | Native FR/FL/RL/RR/T; replacement readout five focus views | RESULT readout replaced; five focus views (both rear obscured). FAIL/open: wrong calculation props, no numeric factors/product contract |
 | 68 | `lab-9-03-sum-and-counter-function` | 0 | Native FR/FL/RL/RR/T | Static clear spacing; no numeric result/event count contract; CNC unbound |
 | 69 | `lab-9-04-function-selector` | 0 | Native FR/FL/RL/RR/T; replacement readout five focus views | FUNCTION readout replaced; five focus views (RR obscured). FAIL/open: function validity is not a choice value; numeric operands/result and selector binding unresolved |
-| 70 | `lab-9-10-box-volume` | 46 | Native FR/FL/RL/RR/T; replacement readout five focus views | MEASUREMENT readout replaced; five focus views (RR obscured). FAIL/open: dimension sensor remains shutter substitute, carton unsupported, no numeric dimension/volume contract |
+| 70 | `lab-9-10-box-volume` | 46 | Native FR/FL/RL/RR/T; replacement readout five focus views | MEASUREMENT readout replaced; five focus views (RR obscured). FAIL/open: dimension sensor remains shutter substitute, carton contacts actual floor (bounds verified), no numeric dimension/volume contract |
 | 71 | `lab-9-11-pallet-counting` | 86 | Native FR/FL/RL/RR/T | Carton/fixture/readout geometry repaired and five views/details inspected. Live DINT count/readout FR/FL and invalid/five-edge/held/permissive/Stop/Run/Reset native checks pass. Optical classification/pallet travel/CNC integration open |
 | 72 | `lab-9-12-ev-charging-manager` | 95 | Native FR/FL/RL/RR/T | FAIL/open: shutters/fluid props instead of EV charging route; energy pulse/accumulation contract absent |
 | 73 | `scene-1-conveyor-stop` | 34 | Native FR/FL/RL/RR/T | Carton belt contact/load-end footprint repaired; native five wide/Top/FL close and Demo 3 Run/Start/photoeye/Stop/Reset rechecked; full clearance open |

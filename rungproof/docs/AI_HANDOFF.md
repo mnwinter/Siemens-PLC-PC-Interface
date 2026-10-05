@@ -6,6 +6,17 @@ would otherwise be trapped in a local Codex session. It intentionally excludes
 machine-local Codex databases, credentials, screenshots from private chats, and
 temporary runtime state.
 
+Box-volume floor-contact correction (2026-10-05): a focused perspective view
+looked like the carton was suspended. Current delivered mesh bounds instead
+confirm carton bottom Y=0 on the actual 40 x 40 floor at Y=0, with its full
+footprint on that floor and no separate-equipment penetration. Two explicit
+checks pass (215 total geometry/reference/workflow checks); clean build. The
+carton placement was correctly left unchanged. This supersedes the unsupported-
+carton claim in the preceding readout checkpoint. The scene still lacks actual
+dimension sensing/numeric volume and retains a substitute sensor asset.
+Evidence: .tools/box-volume-contact-{build,geometry}.log. Whole-program acceptance
+remains open; review continues.
+
 Static readout and diagnostics follow-up (2026-10-05): six mislabeled shutter/
 selector substitutes were replaced with original stand/readout assets. They
 display MEASUREMENT, RESULT, FUNCTION, COUNT, PROGRESS or WEIGHT plus NO LIVE

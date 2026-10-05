@@ -224,6 +224,30 @@ public partial class Main
         }
     }
 
+    private void VerifyBoxVolumeFloorContact(Action<bool, string> check)
+    {
+        AddMigratedScene("lab-9-10-box-volume", _candidateCatalog!, _mainCamera!, false, false);
+        var carton = _sceneCompositionRoot!.GetNode<Node3D>("box_0");
+        var floor = GetNode<MeshInstance3D>("Floor");
+        var bounds = ReviewBounds(carton);
+        var floorBounds = ReviewBounds(floor);
+        GD.Print($"BOX_VOLUME_FLOOR_CONTACT carton={bounds} floor={floorBounds}");
+        // A perspective screenshot suggested suspension. Compare the delivered
+        // mesh with the actual floor before changing otherwise-correct placement.
+        check(MathF.Abs(bounds.Position.Y - floorBounds.End.Y) < 0.001f
+            && bounds.Position.X >= floorBounds.Position.X && bounds.End.X <= floorBounds.End.X
+            && bounds.Position.Z >= floorBounds.Position.Z && bounds.End.Z <= floorBounds.End.Z,
+            "box_volume_carton_contacts_actual_floor_with_full_footprint");
+        var others = _sceneCompositionRoot.GetChildren().OfType<Node3D>()
+            .Where(node => node != carton).SelectMany(ReviewMeshes).ToArray();
+        check(ReviewMeshes(carton).All(part => others.All(other =>
+        {
+            var overlap = ReviewBounds(part).Intersection(ReviewBounds(other)).Size;
+            return overlap.X <= 0.005f || overlap.Y <= 0.005f || overlap.Z <= 0.005f
+                || !OrientedBoxesPenetrate(part, other);
+        })), "box_volume_carton_clear_of_separate_equipment");
+    }
+
     private void VerifyBaseConveyorCartonSupport(Action<bool, string> check)
     {
         foreach (var number in new[] { 1, 2 })
