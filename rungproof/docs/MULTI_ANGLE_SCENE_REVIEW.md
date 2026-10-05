@@ -28,6 +28,34 @@ Every row requires native inspection.
 
 ## Repairs and open findings
 
+- Fume speed / Stop follow-up: `fan_speed_percent` now binds to the rotor
+  through opt-in `speedPercent`, clamped to 0..100% of the existing 720 rpm
+  nominal animation. Unbound rotating assets keep their authored speed. The
+  separate BOOL run command still gates motion. Actual six-blade world transforms
+  reproduce failures at 35%, 65% and zero before repair; full nominal rotation
+  already worked. All ten new checks now pass, including numeric limits, run
+  false, paused controller clock, Reset and standalone Stop/Run. A single
+  imported hub pivot correctly owns all blades and shaft; no asset rebuild.
+  Native QA preview inspected running 35% from FR/FL/RL/RR/T, then 65%/100%
+  and the matching single speed indication. Native Stop originally restarted
+  the rotor immediately because reference rules reasserted its command. The
+  standalone boolean-panel Stop latch now suppresses those rules until Run or
+  Reset, projecting the declared initial output values while retaining inputs.
+  Fresh native Stop holds the rotor/off outputs through a selector change;
+  Run resumes at retained 65%; selector Off retains independent light; Reset
+  restores initial inputs, rotor and indications. Selected-controller rules
+  remain bypassed and output ownership is unchanged. These previews use the
+  reference runtime, not an authored/loaded PLC program. Native snapshots do
+  not measure rpm or prove blade/guard collision clearance through every frame.
+  Hood/duct, actual inspection illumination and normal lesson execution remain
+  open. Build 0 warnings/errors; 105 geometry checks, five fume contracts,
+  19 plant-motion checks, 142 controller tests and rendered controls pass.
+  Shell passes with its four existing headless position errors and expected
+  missing-workspace warning. Evidence under rungproof-next/.tools:
+  fume-speed-before.log, fume-stop-before.log, fume-speed-geometry.log,
+  fume-speed-native.log, fume-speed-stop-native.log and fume-speed-*.log.
+  Both isolated native previews exited 0; user Demo 1 stays open. Coverage
+  remains 30/77 inspected, 47 pending, including failures. Sump remains FAIL.
 - Sump Dewatering Pump (scene 28): native FR initial / FL / RL / RR / T views
   and close overhead/FL discharge views inspected. **FAIL/open:** the pump has
   no connected suction/discharge route; the elevated spool/valve assembly
@@ -56,12 +84,13 @@ Every row requires native inspection.
   Normal Run still opens EDIT INVALID / NO CONTROLLER LOADED. Five standalone
   contract cases cover all four speeds, exactly one speed flag, independent
   light toggling and return to off. Existing boolean-panel output reset prevents
-  accumulated flags; no runtime rule rewrite was needed. The speed percent has
-  no rendered point binding, so actual variable fan animation remains open.
+  accumulated flags; no rule-content rewrite was needed. The initially missing
+  rendered speed binding and preview Stop failure are repaired in the follow-up above.
   Inspection light is a single-tier beacon; extraction hood/duct and actual
   illumination are not modeled. Guard recognition is not physical safety proof.
   Thus spacing/label/input-pointer observations are bounded; complete extractor
-  identity, speed response, controller outputs and Stop/Reset motion remain open.
+  identity and normal lesson controller execution remain open. Reference preview
+  speed projection and Stop/Reset now have the bounded follow-up evidence above.
   Evidence: sump-native.log, fume-label-native.log and fume-contract.log under
   rungproof-next/.tools, plus inspected native screenshots. Both isolated review
   windows exited cleanly; user Demo 1 remains open. Fresh build has zero warnings/
@@ -521,7 +550,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 26 | `lab-2-12-assembly-lift` | 0 | FR/FL/RL/RR/T + close plates/lift + FL/RR motion | Fixture support, rollers/washers, travel framing and hydraulic attachment repaired; historical bellows approval stale; blank editor on normal Run; shared scenes need follow-up |
 | 27 | `lab-2-13-coolant-jug-fill` | 13 | Catalog FR/FL/RL/RR/T; QA five held filling views + close FL mouth; real-time indexing/exit, Reset | Lane/support/nozzle repaired; sampled sweep clear. Open: external service pipe absent, Run blank controller editor; native Stop endpoint-only |
 | 28 | `lab-2-14-sump-pump` | 41 | FR initial/FL/RL/RR/T + close overhead/FL discharge | FAIL: disconnected pump, elevated unsupported/intersecting piping, buried low probe; float fitting/identity open; normal Run unloaded |
-| 29 | `lab-2-15-fume-extractor` | 0 | FR/FL/RL/RR/T; repaired close plate; native selector 0-1-2-3-0 | Spacing/input pointer checked, LIGHT REQUEST repaired. Open: beacon substitutes light, hood/duct absent, speed animation unbound, Run unloaded; five reference contract cases pass |
+| 29 | `lab-2-15-fume-extractor` | 0 | FR/FL/RL/RR/T static and running 35%; close plate; speed states; native preview Stop/Run/Off/Reset | LIGHT REQUEST, speed binding and preview Stop repaired; six-blade transform checks pass. Open: beacon substitutes light, hood/duct absent, normal Run unloaded; reference preview is not controller lesson acceptance |
 | 30 | `lab-2-16-safe-drill` | 24 | Pending | Pending |
 | 31 | `lab-2-17-pallet-robot` | 23 | Pending | Pending |
 | 32 | `lab-2-18-pallet-pickup` | 29 | Pending | Pending |

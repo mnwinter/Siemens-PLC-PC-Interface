@@ -63,6 +63,9 @@ public partial class EquipmentMotionController : Node
     private float _position;
     private float _targetPosition;
     private float _angleRadians;
+    // Unbound assets keep their authored nominal speed. A numeric scene
+    // binding changes only this fraction; the BOOL run command stays separate.
+    private float _speedFraction = 1.0f;
 
     public override void _Ready()
     {
@@ -110,7 +113,7 @@ public partial class EquipmentMotionController : Node
             case MotionKind.FanRotor:
                 if (RunCommand)
                 {
-                    _angleRadians += RpmToRadiansPerSecond(SpeedRpm) * seconds;
+                    _angleRadians += RpmToRadiansPerSecond(SpeedRpm * _speedFraction) * seconds;
                     ApplyFanRotation(_angleRadians);
                 }
                 break;
@@ -160,6 +163,11 @@ public partial class EquipmentMotionController : Node
 
     public void Stop() => RunCommand = false;
 
+    public void SetSpeedPercent(float percent)
+    {
+        _speedFraction = float.IsFinite(percent) ? Mathf.Clamp(percent, 0.0f, 100.0f) / 100.0f : 0.0f;
+    }
+
     public void SetPositionNormalized(float position)
     {
         _targetPosition = Mathf.Clamp(PositionInputInverted ? 1.0f - position : position, 0.0f, 1.0f);
@@ -182,6 +190,7 @@ public partial class EquipmentMotionController : Node
         _position = 0.0f;
         _targetPosition = 0.0f;
         _angleRadians = 0.0f;
+        _speedFraction = 1.0f;
         foreach (var (node, transform) in _authoredTransforms)
         {
             node.Transform = transform;
@@ -192,7 +201,7 @@ public partial class EquipmentMotionController : Node
 
     private void RotateContinuously(float delta)
     {
-        var radians = RpmToRadiansPerSecond(SpeedRpm) * delta;
+        var radians = RpmToRadiansPerSecond(SpeedRpm * _speedFraction) * delta;
         var axis = RotationAxis.LengthSquared() > 0.0001f
             ? RotationAxis.Normalized()
             : Vector3.Up;

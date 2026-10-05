@@ -315,6 +315,7 @@ public partial class Main
             VerifyInboundToteGeometry(Check);
             VerifyAssemblyLiftGeometry(Check);
             VerifyCoolantJugGeometry(Check);
+            VerifyFumeSpeedProjection(Check);
 
             AddMigratedScene("tank-radar", _candidateCatalog!, _mainCamera!, false, false);
             // Exercise an authored parent scale as well as configured sizing.
@@ -636,6 +637,79 @@ public partial class Main
         runtime.ResetSimulation();
         check(!motion.Running && shaft.Transform == authored && runtime.Points["motor_running"] is false,
             "motor_state_reset_restores_shaft_and_output");
+    }
+
+    private void VerifyFumeSpeedProjection(Action<bool, string> check)
+    {
+        AddMigratedScene("lab-2-15-fume-extractor", _candidateCatalog!, _mainCamera!, false, false);
+        var runtime = _sceneRuntime!;
+        var fan = _sceneCompositionRoot!.GetNode<Node3D>("extractor_fan");
+        var motion = fan.FindChildren("*", "", true, false).OfType<EquipmentMotionController>()
+            .Single(controller => controller.Kind == EquipmentMotionController.MotionKind.FanRotor);
+        var rotor = fan.FindChildren("KIN_*", "", true, false).OfType<Node3D>().ToArray();
+        var hub = rotor.Single(node => node.Name.ToString().StartsWith("KIN_fan_hub", StringComparison.Ordinal));
+        var authored = rotor.ToDictionary(node => node, node => node.Transform);
+        // The imported hub is a pivot owning the visible rotor meshes. A
+        // single bound pivot is valid; verify its descendants in world space.
+        var blades = ReviewMeshes(hub).Where(mesh => mesh.Name.ToString().Contains("blade", StringComparison.OrdinalIgnoreCase)).ToArray();
+        var bladeOffsets = blades.ToDictionary(mesh => mesh, mesh => hub.GlobalTransform.AffineInverse() * mesh.GlobalTransform);
+        runtime.UsesExternalClock = true;
+        runtime.SetControllerPlaybackRunning(true);
+        void Command(bool run, double percent)
+        {
+            runtime.CommitVirtualControllerNumericOutputs(new Dictionary<string, double> { ["fan_speed_percent"] = percent });
+            runtime.CommitVirtualControllerOutputs(new Dictionary<string, bool> { ["fan_run"] = run });
+        }
+        bool SamePose(Dictionary<Node3D, Transform3D> pose) => rotor.All(node => node.Transform.IsEqualApprox(pose[node]));
+        bool HasExpectedRotation(float percent, float? command = null)
+        {
+            motion.ResetMotion();
+            Command(true, command ?? percent);
+            const float elapsed = 0.02f;
+            motion._PhysicsProcess(elapsed);
+            var rotation = new Basis(Vector3.Back, motion.SpeedRpm * percent / 100.0f * Mathf.Tau / 60.0f * elapsed);
+            var center = authored[hub].Origin;
+            var expectedHub = hub.GetParent<Node3D>().GlobalTransform * new Transform3D(
+                rotation * authored[hub].Basis, center);
+            return blades.Length == 6 && blades.All(mesh => mesh.GlobalTransform.IsEqualApprox(expectedHub * bladeOffsets[mesh]))
+                && rotor.All(node => node.Transform.IsEqualApprox(new Transform3D(
+                    rotation * authored[node].Basis, center + rotation * (authored[node].Origin - center))));
+        }
+        foreach (var percent in new[] { 35.0f, 65.0f, 100.0f })
+            check(HasExpectedRotation(percent), $"fume_actual_rotor_follows_{percent}_percent_controller_image");
+        check(HasExpectedRotation(100, 150) && HasExpectedRotation(0, -5),
+            "fume_speed_projection_clamps_numeric_commands_to_zero_through_nominal");
+        Command(true, 0);
+        var held = rotor.ToDictionary(node => node, node => node.Transform);
+        motion._PhysicsProcess(0.03);
+        check(SamePose(held), "fume_zero_speed_holds_rotor_even_with_run_true");
+        Command(false, 100);
+        held = rotor.ToDictionary(node => node, node => node.Transform);
+        motion._PhysicsProcess(0.03);
+        check(SamePose(held), "fume_speed_command_does_not_bypass_run_false");
+        runtime.SetControllerPlaybackRunning(false);
+        Command(true, 65);
+        check(!motion.IsPhysicsProcessing(), "fume_paused_controller_clock_disables_rotor_callback");
+        runtime.ResetSimulation();
+        check(SamePose(authored) && runtime.Points["fan_run"] is false
+            && Convert.ToDouble(runtime.Points["fan_speed_percent"]) == 0,
+            "fume_reset_restores_actual_rotor_and_off_command_image");
+        runtime.UsesExternalClock = false;
+        runtime.ExecuteAction("next-speed");
+        motion._PhysicsProcess(0.02);
+        runtime.StopSimulation();
+        held = rotor.ToDictionary(node => node, node => node.Transform);
+        // Changing a PC selector while stopped must not restart the preview.
+        runtime.ExecuteAction("next-speed");
+        motion._PhysicsProcess(0.03);
+        check(SamePose(held) && runtime.Points["fan_run"] is false
+            && Convert.ToDouble(runtime.Points["fan_speed_percent"]) == 0,
+            "fume_standalone_stop_holds_outputs_off_across_selector_action");
+        runtime.RunDefault();
+        motion._PhysicsProcess(0.02);
+        check(!SamePose(held) && runtime.Points["fan_run"] is true
+            && Convert.ToDouble(runtime.Points["fan_speed_percent"]) == 65,
+            "fume_standalone_run_resumes_from_retained_selector");
     }
 
     private void VerifyCoolantJugGeometry(Action<bool, string> check)

@@ -36,6 +36,9 @@ public partial class SceneSimulationRuntime : Node
     private bool _tankSimulationRunning;
     private bool _controllerPlaybackRunning;
     private bool _controllerClockInitialized;
+    // Only the standalone combinational reference preview uses this latch.
+    // Its rules otherwise reassert outputs immediately after StopControllers.
+    private bool _booleanPreviewStopped;
     private readonly ConveyorPlantModel? _conveyorPlant;
     private readonly HashSet<string> _pulsePoints = new(StringComparer.Ordinal);
 
@@ -287,6 +290,7 @@ public partial class SceneSimulationRuntime : Node
 
         if (RuntimeType == "booleanPanel")
         {
+            _booleanPreviewStopped = false;
             EvaluateRules();
             GD.Print("SCENE_RUNTIME_BOOLEAN_SCAN");
             return true;
@@ -313,6 +317,7 @@ public partial class SceneSimulationRuntime : Node
 
     public void StopSimulation()
     {
+        if (!UsesExternalClock && RuntimeType == "booleanPanel") _booleanPreviewStopped = true;
         _activeStepIndex = -1;
         _tankSimulationRunning = false;
         if (RuntimeType == "tank")
@@ -337,6 +342,7 @@ public partial class SceneSimulationRuntime : Node
 
     public void ResetSimulation()
     {
+        _booleanPreviewStopped = false;
         _activeStepIndex = -1;
         _stepElapsed = 0.0;
         _tankSimulationRunning = false;
@@ -852,7 +858,8 @@ public partial class SceneSimulationRuntime : Node
             // to their declared initial state before matching rules execute.
             foreach (var point in _outputPoints) _points[point] = _initialPoints[point];
         }
-        if (_definition.TryGetProperty("edgeRules", out var edgeRules) && edgeRules.ValueKind == JsonValueKind.Array)
+        var previewStopped = RuntimeType == "booleanPanel" && _booleanPreviewStopped;
+        if (!previewStopped && _definition.TryGetProperty("edgeRules", out var edgeRules) && edgeRules.ValueKind == JsonValueKind.Array)
         {
             foreach (var rule in edgeRules.EnumerateArray())
             {
@@ -867,7 +874,7 @@ public partial class SceneSimulationRuntime : Node
                 }
             }
         }
-        if (_definition.TryGetProperty("rules", out var rules) && rules.ValueKind == JsonValueKind.Array)
+        if (!previewStopped && _definition.TryGetProperty("rules", out var rules) && rules.ValueKind == JsonValueKind.Array)
         {
             foreach (var rule in rules.EnumerateArray())
             {
@@ -902,6 +909,13 @@ public partial class SceneSimulationRuntime : Node
             {
                 case "running":
                     foreach (var controller in Controllers(equipment)) SetControllerRunning(controller, AsBool(value));
+                    break;
+                case "speedPercent":
+                    // Project the declared command image without manufacturing
+                    // a run command or writing any controller/transport state.
+                    var speedPercent = Convert.ToSingle(value, CultureInfo.InvariantCulture);
+                    foreach (var controller in Controllers(equipment).OfType<EquipmentMotionController>())
+                        controller.SetSpeedPercent(speedPercent);
                     break;
                 case "estopPermissive":
                     foreach (var controller in Controllers(equipment).OfType<ConveyorController>())

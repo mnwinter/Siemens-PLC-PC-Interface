@@ -6,7 +6,28 @@ would otherwise be trapped in a local Codex session. It intentionally excludes
 machine-local Codex databases, credentials, screenshots from private chats, and
 temporary runtime state.
 
-Latest sump/fume checkpoint (2026-10-04): coverage 30/77 inspected, 47 pending,
+Latest fume speed/Stop checkpoint (2026-10-04): coverage remains 30/77 inspected,
+47 pending, including failures. Numeric speedPercent binding scales the existing
+720 rpm fan animation while keeping BOOL run separate and unbound asset defaults.
+Six actual blade world transforms reproduce 35/65/zero failures before repair;
+all ten new checks now pass. Hub is one valid pivot owning blades/shaft. Native
+QA running 35% five angles, 65/100 speed indications and Off inspected. Stop
+originally immediately reasserted run via reference rules; standalone boolean
+preview latch now holds declared initial outputs through selector changes until
+Run/Reset. Fresh native Stop, retained-selector Run, Off retaining light and
+Reset inspected. Selected-controller image remains authoritative; QA preview
+does not accept normal controller lesson execution, rpm measurement or physical
+blade/guard clearance. Hood/duct/inspection illumination still absent. Build has
+0 warnings/errors, 105 geometry checks, five fume contracts, 19 motion checks,
+142 controller tests, rendered controls and shell pass. Four existing headless
+position errors remain. Evidence fume-speed-before.log, fume-stop-before.log,
+fume-speed-native.log, fume-speed-stop-native.log and fume-speed-*.log under
+rungproof-next/.tools. Both isolated previews exit 0; user Demo 1 remains open.
+Goal active. Next: repair measured Sump ports/probe mounts/routing/support,
+then scene 30 and remaining 47 inspections. Earlier scene failures, shared lift
+native follow-ups and coolant service piping still require work.
+
+Historical sump/fume checkpoint (2026-10-04): coverage 30/77 inspected, 47 pending,
 including failures. Scene 28 Sump has native five angles and close overhead/FL
 discharge inspection. FAIL: disconnected pump, elevated pipe/valve/support
 assembly interferes with ladder/cage, low tuning-fork probe at Y=-0.175 below

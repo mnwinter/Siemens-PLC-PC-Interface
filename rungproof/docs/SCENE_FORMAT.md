@@ -276,6 +276,16 @@ annunciator exercises without embedding executable expressions. It contains:
 - `pointBindings` that project point state onto reusable switches, selectors,
   indicators, running equipment, or normalized-position assets.
 
+In Godot Next, numeric binding mode `speedPercent` scales an equipment motion
+controller's authored rotational speed by a clamped 0..100%. Pair it with a
+separate BOOL `running` binding; a speed value never starts stopped equipment.
+Assets without this optional binding retain their nominal animation speed.
+The standalone boolean-panel reference preview's Stop suppresses reference
+rules and returns outputs to their declared initial values while retaining PC
+inputs. Run resumes rule evaluation; Reset restores the scene. A selected
+virtual/external controller continues to own its output image and playback gate.
+These are symbolic animation/reference contracts, not physical drive commands.
+
 Operator actions may not target a PLC-owned point. Fake PLC rules may write
 only declared non-PC points. `pulse` holds a PC-owned BOOL input true for at
 least 150 ms so a future live adapter can sample it; a second operation

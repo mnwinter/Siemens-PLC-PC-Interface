@@ -260,6 +260,11 @@
         "mode": "running"
       },
       {
+        "point": "fan_speed_percent",
+        "equipmentId": "extractor_fan",
+        "mode": "speedPercent"
+      },
+      {
         "point": "low_speed",
         "equipmentId": "speed_display",
         "mode": "indicator",

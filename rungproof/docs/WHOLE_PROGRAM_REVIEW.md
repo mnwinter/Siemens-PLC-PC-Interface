@@ -1,5 +1,23 @@
 # Whole program review - 2026-10-03
 
+Fume speed / Stop repair (2026-10-04): coverage remains 30/77 native five-view
+inspections, 47 pending including failures. The missing speed-percent binding
+now projects 0/35/65/100% onto the imported rotor hierarchy without bypassing
+the separate run command. Actual six-blade transforms reproduce the original
+fault and pass after repair. Native QA five running angles, speed indications,
+Stop across a selector change, resumed Run, independent-light Off and Reset
+were inspected. Stop also exposed reference rules immediately restarting the
+fan; a standalone boolean-panel latch now holds the declared initial outputs
+until Run/Reset. Selected-controller ownership remains separate. Ten new
+checks bring geometry verification to 105; build, five fume contracts, 19 plant
+motion checks, 142 controller tests, rendered controls and shell pass. Shell
+retains four headless position errors. Preview windows exit 0; user Demo 1
+preserved. Sump installation still fails, and fume hood/duct/illumination and
+loaded-controller lesson execution remain open. Exact evidence in
+MULTI_ANGLE_SCENE_REVIEW.md.
+
+Earlier checkpoint:
+
 Sump / fume follow-up (2026-10-04): coverage now 30/77 native five-view
 inspections, 47 pending including failures. Sump fails installation review:
 disconnected pump, elevated unsupported/interfering pipe/valve assembly and
