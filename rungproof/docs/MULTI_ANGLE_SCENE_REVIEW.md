@@ -10,7 +10,44 @@ includes failed scenes; it is not a count of accepted scenes.
 
 ## Acceptance method
 
-Tank analog transmitter mounting (2026-10-05, latest): Scene 76 now explicitly
+Tank piping installation (2026-10-05, latest): Scenes 75/76 explicitly opt
+both spools into tankPiping with inlet/outlet roles. The pump and inlet spool
+approach the vessel diagonally, clearing the ladder. A 450 mm centreline-radius
+elbow joins the pump's upward discharge to the full-size delivered inlet spool;
+a hollow radial nozzle/flange joins that spool to the tank at Y=4.6 m. The
+outlet spool is rotated to +Z and seated on the actual delivered outlet flange.
+Four existing spool feet are grounded and their posts extended to the shoes.
+Pump root is (-5.345727,0,-5.345727), inlet root (-2.612760,3.72,-2.612760),
+outlet root approximately (0,0.250952,3.699483) m. Port face centres are measured
+through accumulated mesh transforms, including the diagonal installations.
+A native rear view caught the first straight suction line crossing a support.
+It now bends sideways to a FROM SUPPLY boundary, with its own grounded shoe.
+The final shoe post is clear of the tube and its saddle meets the underside;
+that last height adjustment received a fresh native FR/RR close check in both
+scenes. TO DRAIN identifies the outlet boundary. There is no new supply vessel
+or physical drain-valve model; the symbolic drain command remains unchanged.
+No reusable GLB, level calculation, point ownership, DB14 or live transport changed.
+The route helper's optional wall thickness permits a correctly bored inlet
+flange; existing calls retain their 22 mm wall. These are visual installation
+connections, not hydraulic, hardware-compatibility, fabrication or stress proof.
+Twelve original-layout checks failed before the repair. Sixteen new piping
+checks now pass, including suction/post clearance and supply shoe contact:
+347 total geometry/workflow checks PASS. The shell-radius clearance screen
+uses the complete projected part box, including edge interiors, rather than
+mistaking empty cylinder-box corners for vessel material.
+Build has zero warnings/errors; app-shell 77 scenes / 294 assets / one existing
+diagnostic PASS; 19 plant-motion checks PASS; help 294 assets / 77 scenes PASS.
+Logs: `.tools/tank-piping-red.log`, `tank-piping-build.log`,
+`tank-piping-geometry.log`, `tank-piping-shell.log`, `tank-piping-motion.log`.
+Both lessons received native Windows FR/FL/RL/RR/Top static inspection and
+inlet top/RR and outlet close inspection. Logs: `.tools/tank-piping-accepted-native.log`
+and final shoe adjustment `.tools/tank-piping-shoe-native.log`. Both owned review
+windows exited zero. Runtime stayed STOPPED and PLC disconnected throughout.
+This closes the disconnected tank-piping and floating-support findings only.
+Full controller/operator process behavior, physical drain-valve representation
+and internal tank visibility remain open; whole-program goal stays active.
+
+Tank analog transmitter mounting (2026-10-05, earlier checkpoint): Scene 76 now explicitly
 opts into roofAnalogProbe. The transmitter is installed at (0.35, 6.233334,
 -0.85) m above a short hollow roof socket. Its flange seats on the socket;
 the head clears delivered manway/guardrail geometry. Native close top review
@@ -1553,8 +1590,8 @@ count as this scene's multi-angle or runtime acceptance.
 | 72 | `lab-9-12-ev-charging-manager` | 95 | Native FR/FL/RL/RR/T | FAIL/open: shutters/fluid props instead of EV charging route; energy pulse/accumulation contract absent |
 | 73 | `scene-1-conveyor-stop` | 34 | Native FR/FL/RL/RR/T | Carton belt contact/load-end footprint repaired; native five wide/Top/FL close and Demo 3 Run/Start/photoeye/Stop/Reset rechecked; full clearance open |
 | 74 | `scene-2-conveyor-pusher` | 88 initial; 7 residual cable candidates after installation repair | Native home and extended FR/FL/RL/RR/T, close pusher Top/RR at both ends; normal Open/Verify/Run/Stop/Reset | Plate height, grounded mounting, guide engagement/cap clearance, photoeye clearance and following bolts repaired; off-station carton stays seated. Receiving surface added; native five angles and receiver Top/FR close; 314 checks PASS. FAIL/open: plate/carton contact timing, canonical disappearing transfer and residual cable candidates. No full supported transfer accepted |
-| 75 | `tank-high-low` | 60 initial; switch-specific clearance passes | Final native FR/FL/RL/RR/T and mounting-side close | Low/high probes and socket mounts repaired at actual thresholds; 326 checks PASS. FAIL/open: disconnected pump/piping, elevated pipe supports, opaque tank; full operator dynamics unverified |
-| 76 | `tank-level` | 52 initial; switch and analog mount checks pass | Final native FR/FL/RL/RR/T, transmitter top close and side views | Low/high and roof analog probe mounts repaired; initial 42 percent / 10.72 mA visible. 331 geometry checks pass. FAIL/open: piping/supports and full operator process behavior |
+| 75 | `tank-high-low` | 60 initial; switch/piping-specific screens pass | Native FR/FL/RL/RR/T, inlet/outlet close, final shoe FR/RR close | Low/high probes and piping connections/supports repaired; 347 checks PASS. FAIL/open: opaque vessel, physical drain-valve representation and full controller/operator dynamics |
+| 76 | `tank-level` | 52 initial; switch/analog/piping-specific screens pass | Native FR/FL/RL/RR/T, inlet/outlet close, final shoe FR/RR close | Probe mounts and piping connections/supports repaired; initial 42 percent / 10.72 mA visible. 347 checks PASS. FAIL/open: opaque vessel, physical drain-valve representation and full controller/operator dynamics |
 | 77 | `tank-radar` | 80 | Native FR/FL/RL/RR/T; repaired radar five focus views | Radar flange/head mounting and antenna-to-surface distance/beam repaired (sampled checks); 35% native range 3.10036. FAIL/open: empty ladder Run, disconnected inlet/outlet/drain route, opaque internal beam; rear-left mount partly obscured |
 
 Drive-alarm follow-up evidence: `.tools/drive-alarm-{props-build,build,import,geometry,inventory,scene-contracts,rendered-controls,plant-regression}.log`, `catalog-next-shell-native.log` (baseline), `drive-alarm-native-supported.log` (support and plates), and `drive-alarm-native-final-complete.log` (final five views, keypad detail, failed normal Run). Build zero warnings/errors; 38 focused geometry, 19 plant, rendered scene controls and 71 authored cases pass. These do not approve uninspected scenes, missing controllers, string functionality or hardware.

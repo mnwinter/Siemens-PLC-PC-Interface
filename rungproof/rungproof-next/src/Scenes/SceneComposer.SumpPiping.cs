@@ -127,10 +127,12 @@ public static partial class SceneComposer
         }
     }
 
-    private static void AddSumpRoute(Node3D parent, string name, IReadOnlyList<Vector3> centers, float outerRadius, Material material)
+    private static void AddSumpRoute(Node3D parent, string name, IReadOnlyList<Vector3> centers, float outerRadius, Material material,
+        float wall = 0.022f)
     {
         const int sides = 48;
-        const float wall = 0.022f;
+        if (wall <= 0 || wall >= outerRadius)
+            throw new InvalidOperationException($"Pipe route '{name}' requires a positive wall thinner than its radius.");
         var outer = new Vector3[centers.Count, sides]; var inner = new Vector3[centers.Count, sides];
         var normal = Vector3.Zero;
         for (var ring = 0; ring < centers.Count; ring++)

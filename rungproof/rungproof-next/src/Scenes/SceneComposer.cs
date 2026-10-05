@@ -123,6 +123,8 @@ public static partial class SceneComposer
             ConfigureTankSwitchMounts(root, scene);
         if (scene.Equipment.Any(equipment => Text(equipment.Config, "installation", string.Empty) == "roofAnalogProbe"))
             ConfigureTankAnalogMount(root, scene);
+        if (scene.Equipment.Any(equipment => Text(equipment.Config, "installation", string.Empty) == "tankPiping"))
+            ConfigureTankPiping(root, scene);
         return new SceneComposition(root, rendered, deferred);
     }
 

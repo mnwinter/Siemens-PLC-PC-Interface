@@ -52,9 +52,8 @@ No point-to-equipment bindings are declared.
 The low/high probes are mounted horizontally through sockets on the tank wall.
 Their tips sit inside the vessel at the runtime's threshold elevations, measured
 from the authored liquid/sight-glass range. This placement was checked in the
-native Windows scene. Pipe connections/supports and full operator dynamics
-remain open review findings. These visual sockets do not establish a rated
-pressure-vessel nozzle design.
+native Windows scene. Full operator dynamics remain an open review finding.
+These visual sockets do not establish a rated pressure-vessel nozzle design.
 
 The analog transmitter is mounted through a short roof socket, clear of the
 central manway and guardrail. Its scene-specific sensing rod reaches the
@@ -63,6 +62,18 @@ reusable asset is unchanged. Exterior placement was inspected in native
 Windows views; internal placement was checked by transformed mesh bounds.
 This custom virtual probe does not establish purchased-probe compatibility,
 hardware calibration, or a rated pressure-vessel penetration.
+
+The pump's upward discharge is connected through a riser and elbow to a
+radial tank inlet. The outlet spool meets the delivered tank outlet flange.
+Pipe supports reach the floor; a separate shoe supports the supply line.
+The pump and inlet spool approach diagonally to clear the ladder. These two
+lessons opt into `tankPiping`; installation uses the full delivered spool size,
+not the legacy length/diameter fields. Reusable asset files are unchanged.
+`FROM SUPPLY` and `TO DRAIN` mark external scene boundaries. The scene does not
+model a supply vessel or a physical drain valve. It retains the existing
+symbolic drain command and level calculation. Native static views and measured
+joint/support checks do not prove complete controller-driven behavior,
+hydraulics, fabrication ratings, or pipe stress.
 
 ## Stop and safety boundary
 

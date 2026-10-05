@@ -6,7 +6,44 @@ would otherwise be trapped in a local Codex session. It intentionally excludes
 machine-local Codex databases, credentials, screenshots from private chats, and
 temporary runtime state.
 
-Tank analog transmitter mounting (2026-10-05, latest): Scene 76 now explicitly
+Tank piping installation (2026-10-05, latest): Scenes 75/76 explicitly opt
+both spools into tankPiping with inlet/outlet roles. The pump and inlet spool
+approach the vessel diagonally, clearing the ladder. A 450 mm centreline-radius
+elbow joins the pump's upward discharge to the full-size delivered inlet spool;
+a hollow radial nozzle/flange joins that spool to the tank at Y=4.6 m. The
+outlet spool is rotated to +Z and seated on the actual delivered outlet flange.
+Four existing spool feet are grounded and their posts extended to the shoes.
+Pump root is (-5.345727,0,-5.345727), inlet root (-2.612760,3.72,-2.612760),
+outlet root approximately (0,0.250952,3.699483) m. Port face centres are measured
+through accumulated mesh transforms, including the diagonal installations.
+A native rear view caught the first straight suction line crossing a support.
+It now bends sideways to a FROM SUPPLY boundary, with its own grounded shoe.
+The final shoe post is clear of the tube and its saddle meets the underside;
+that last height adjustment received a fresh native FR/RR close check in both
+scenes. TO DRAIN identifies the outlet boundary. There is no new supply vessel
+or physical drain-valve model; the symbolic drain command remains unchanged.
+No reusable GLB, level calculation, point ownership, DB14 or live transport changed.
+The route helper's optional wall thickness permits a correctly bored inlet
+flange; existing calls retain their 22 mm wall. These are visual installation
+connections, not hydraulic, hardware-compatibility, fabrication or stress proof.
+Twelve original-layout checks failed before the repair. Sixteen new piping
+checks now pass, including suction/post clearance and supply shoe contact:
+347 total geometry/workflow checks PASS. The shell-radius clearance screen
+uses the complete projected part box, including edge interiors, rather than
+mistaking empty cylinder-box corners for vessel material.
+Build has zero warnings/errors; app-shell 77 scenes / 294 assets / one existing
+diagnostic PASS; 19 plant-motion checks PASS; help 294 assets / 77 scenes PASS.
+Logs: `.tools/tank-piping-red.log`, `tank-piping-build.log`,
+`tank-piping-geometry.log`, `tank-piping-shell.log`, `tank-piping-motion.log`.
+Both lessons received native Windows FR/FL/RL/RR/Top static inspection and
+inlet top/RR and outlet close inspection. Logs: `.tools/tank-piping-accepted-native.log`
+and final shoe adjustment `.tools/tank-piping-shoe-native.log`. Both owned review
+windows exited zero. Runtime stayed STOPPED and PLC disconnected throughout.
+This closes the disconnected tank-piping and floating-support findings only.
+Full controller/operator process behavior, physical drain-valve representation
+and internal tank visibility remain open; whole-program goal stays active.
+
+Tank analog transmitter mounting (2026-10-05, earlier checkpoint): Scene 76 now explicitly
 opts into roofAnalogProbe. The transmitter is installed at (0.35, 6.233334,
 -0.85) m above a short hollow roof socket. Its flange seats on the socket;
 the head clears delivered manway/guardrail geometry. Native close top review
