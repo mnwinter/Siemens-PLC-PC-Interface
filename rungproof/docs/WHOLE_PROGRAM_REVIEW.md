@@ -1,6 +1,28 @@
 # Whole program review - 2026-10-03
 
-Carton transfer photoeye (2026-10-05, current): the receiving table and retained
+Carton static installation (2026-10-05, current): cable surface inspection
+found the low RX stand crossing the conveyor rail and the pusher base crossing
+conveyor feet. Move RX stand to Z=-1.55 m, configured optical height 0.8470945 m;
+keep the inclined optical line unchanged. Move pusher to X=-0.4 m, Z=-2.4 m.
+Its additional 250 mm setback is compensated by plateExtensionM=0.87973 m,
+keeping plate contact and the 1.35 m stroke. The placement repair also clears
+RX foot/head from the pusher. No canonical plant or ownership changes.
+
+New cable-triangle/local-component bounds screen (5 mm broad overlaps, 1 mm
+world allowance): 18 original home candidates,
+11 remaining in the first repair, nine final; all nine final candidates exclude
+cable surface. Optical ray now checks cable triangles instead of empty cable
+route bounds. Focused --verify-carton-static-routes runs seven static/optical
+checks; full geometry 392, motion 25, controller 143, shell 77 and build pass.
+Native final home and held-transfer endpoint FR/FL/RL/RR/Top inspected, plus
+pusher-focused RR/Top, Stop hold and Reset/scan zero. Rear views hide lower
+sensor hardware; close Top crops receiver/carton edges. Full stroke remains
+sampled at 2 ms, not continuously observed in five native views. Reviewer exit
+zero. This closes the static cable/stand/base findings at the stated screen
+resolution; arbitrary output sequences and complete catalog motion remain open.
+Logs: .tools/carton-static-cable-*.log. Goal remains active.
+
+Carton transfer photoeye (2026-10-05, previous checkpoint): the receiving table and retained
 carton are confirmed. The former horizontal beam still crossed the received
 load after feedback cleared. Scene 74 now inclines the heads from 1.047 m to
 2.405 m, with beam X=0.225 m and pusher X=-0.3 m to clear moving members.

@@ -369,6 +369,7 @@ public partial class Main
             VerifyCartonReceiverGeometry(Check);
             VerifyCartonPusherContactGeometry(Check);
             VerifyInclinedPhotoeyeGeometry(Check);
+            VerifyCartonStaticCableRoutes(Check);
             VerifyPalletRobotInstallationGeometry(Check);
             VerifyTankSwitchMountGeometry(Check);
             VerifyTankAnalogMountGeometry(Check);

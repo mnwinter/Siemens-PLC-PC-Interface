@@ -47,10 +47,10 @@ No point-to-equipment bindings are declared.
 
 The composed pusher uses its configured 1.38 m centre height, grounded mounts,
 outboard guided shafts and moving plate fasteners. A rigid two-arm yoke extends
-the plate 629.73 mm from the carriage to contact the carton; the cylinder frame
-and 1.35 m stroke stay in place. Front bolts and lettering are recessed to
+the plate 879.73 mm from the carriage to contact the carton. The frame is set
+back 250 mm to clear conveyor feet; the 1.35 m stroke is unchanged. Front bolts and lettering are recessed to
 avoid penetrating the load. The pusher is offset along the conveyor to clear
-the inclined photoeye path. Its heads face each other at 1.047 m and 2.405 m
+the inclined photoeye path. Its configured optical heights are 0.847 m and 2.405 m
 heights; the optional visual carton-centre datum positions the body across the
 beam at first detection without changing the symbolic plant model.
 
@@ -69,7 +69,9 @@ The inclined beam clears above the received carton. Continuous lens-to-lens
 geometry agrees with feedback through reference ladder cycles; fine stroke
 sampling allows a 2 mm grazing boundary at the canonical 80% release. Head
 aim, grounded supports and cable connections also pass geometric checks.
-Residual static cable candidates and complete physical transfer remain open.
+The low stand is outside the rail and cable routes. Nine static enclosing-box
+candidates are excluded by cable triangle bounds; complete physical transfer
+remains unproven.
 These checks do not establish a rated mechanism or safety function.
 
 A normal Stop removes PLC-owned commands according to the scene runtime. This document does not prove a safety function, a real E-stop circuit, a PLC watchdog, or live-machine commissioning.

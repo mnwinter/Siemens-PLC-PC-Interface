@@ -31,7 +31,11 @@ For native multi-angle inspection, launch Godot with `-- --app-shell
 --visual-scene-review`. The opt-in review bar provides catalog navigation, four
 diagonal camera views, overhead, detail zoom and an equipment-focus selector. Scene navigation uses the
 normal unsaved-work guards. Normal launch has no review bar.
-`-- --verify-scene-geometry` runs 262 focused geometry/workflow checks for Demo 5 clearance/attachment,
+`-- --verify-carton-static-routes` runs the focused Scene 2 cable and optical
+path checks without the full catalog sweep. It screens 5 mm broad overlaps
+against cable triangle bounds with a 1 mm world allowance; it is offline only.
+
+`-- --verify-scene-geometry` runs 392 focused geometry/workflow checks for Demo 5 clearance/attachment,
 mixer placement/tank sizing/chute identity/floor support, scaled radar feedback,
 the parcel sorter's supported paths, optical heights and Stop/Reset,
 inspection conveyor support/photoeye clearance/feedback, gallery floor/probe support,

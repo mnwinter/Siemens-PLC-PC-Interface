@@ -67,7 +67,16 @@ public partial class Main
             if (!blocked)
             {
                 releaseSeen = true;
-                unobstructed &= otherSolids.All(mesh => !LineHitsBounds(from, to, ReviewBounds(mesh).Grow(-0.002f)));
+                foreach (var mesh in otherSolids)
+                {
+                    if (!LineHitsBounds(from, to, ReviewBounds(mesh).Grow(-0.002f))) continue;
+                    // A curved cable's enclosing box contains mostly air.
+                    // Test its transformed surface before calling it a blocker.
+                    if (mesh.Name.ToString().Contains("cable", StringComparison.OrdinalIgnoreCase)
+                        && !LineHitsCableSurface(from, to, mesh)) continue;
+                    if (unobstructed) GD.Print($"INCLINED_PHOTOEYE_BLOCKER {mesh.Name}");
+                    unobstructed = false;
+                }
             }
             if (sample == 149) clearAtEnd = !hit;
         }
@@ -97,5 +106,29 @@ public partial class Main
             if (enter > leave) return false;
         }
         return true;
+    }
+
+    private static bool LineHitsCableSurface(Vector3 from, Vector3 to, MeshInstance3D cable)
+    {
+        // Segment/triangle intersection (double-sided). The optical centreline
+        // is symbolic; this does not model a vendor's finite beam diameter.
+        var inverse = cable.GlobalTransform.AffineInverse();
+        var origin = inverse * from; var direction = inverse * to - origin;
+        var faces = cable.Mesh.GetFaces();
+        for (var index = 0; index < faces.Length; index += 3)
+        {
+            var edge1 = faces[index + 1] - faces[index];
+            var edge2 = faces[index + 2] - faces[index];
+            var cross = direction.Cross(edge2); var determinant = edge1.Dot(cross);
+            if (MathF.Abs(determinant) < 1e-9f) continue;
+            var offset = origin - faces[index];
+            var u = offset.Dot(cross) / determinant;
+            if (u < 0 || u > 1) continue;
+            var q = offset.Cross(edge1); var v = direction.Dot(q) / determinant;
+            if (v < 0 || u + v > 1) continue;
+            var distance = edge2.Dot(q) / determinant;
+            if (distance >= 0 && distance <= 1) return true;
+        }
+        return false;
     }
 }

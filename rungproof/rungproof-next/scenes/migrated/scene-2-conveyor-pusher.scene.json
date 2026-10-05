@@ -63,10 +63,10 @@
         0
       ],
       "config": {
-        "span": 1.96,
+        "span": 3.1,
         "positiveStandPositionM": 2.9,
         "height": 1.1,
-        "beamCenterHeightM": 1.0465945,
+        "beamCenterHeightM": 0.8470945,
         "positiveBeamCenterHeightM": 2.4045945,
         "blocked": false
       }
@@ -76,9 +76,9 @@
       "type": "pusher",
       "label": "Single-solenoid spring-return pusher",
       "position": [
-        -0.3,
+        -0.4,
         0,
-        -2.15
+        -2.4
       ],
       "rotation": [
         0,
@@ -89,7 +89,7 @@
         "stroke": 1.35,
         "travelAxis": "z",
         "centerHeight": 1.38,
-        "plateExtensionM": 0.62973,
+        "plateExtensionM": 0.87973,
         "installation": "conveyorPusher",
         "initialPosition": 0
       }
