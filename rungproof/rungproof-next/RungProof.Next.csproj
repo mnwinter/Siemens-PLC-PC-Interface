@@ -10,6 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="tests\**\*.cs" />
+    <Compile Remove="tools\demo-projects\**\*.cs" />
     <!-- External verification harnesses must never be globbed into the Godot
          assembly, even if a tester accidentally stages one under the root. -->
     <Compile Remove="_agent*\**\*.cs" />

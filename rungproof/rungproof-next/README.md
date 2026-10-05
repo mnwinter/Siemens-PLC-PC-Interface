@@ -51,6 +51,25 @@ all 77 shell scenes. Overlapping bounds are inspection candidates, not proof of
 solid collision or visual acceptance. Track native observations in
 [`../docs/MULTI_ANGLE_SCENE_REVIEW.md`](../docs/MULTI_ANGLE_SCENE_REVIEW.md).
 
+## Saved demo projects
+
+The five editable files in `programs/demos` are generated from the same authored
+documents used by the Demo menu. In Logic Editor, choose Project > Open project
+and select one of these files; opening a valid file selects its bound scene and
+loads its controller stopped. Return to the scene and press Run.
+
+After editing `AuthoredDemoLadderPrograms.cs`, regenerate and check the files
+from this directory:
+
+```powershell
+.\.tools\dotnet\dotnet.exe run --project tools/demo-projects/RungProof.DemoProjects.csproj -- --write
+.\.tools\dotnet\dotnet.exe run --project tools/demo-projects/RungProof.DemoProjects.csproj -- --check
+```
+
+The tool defaults to read-only checking. App-shell verification also rejects
+saved projects that differ from their Demo-menu document. These are offline
+references; machine feedback remains manual where the scene declares it.
+
 ## Sum and Counter exercise reference
 
 Scene `lab-9-03-sum-and-counter-function` opens with an empty ladder exercise.

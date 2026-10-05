@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
   "kind": "rungproof-ladder-project",
-  "id": "demo-01",
-  "name": "Demo 1 - Press Count Starter",
+  "id": "demo-1-press-count",
+  "name": "Press_Count_Main",
   "sourceSceneId": "lab-4-01-press-count-lamp",
   "scanPeriodMs": 20,
   "activeBlockIndex": 0,
-  "entryBlockId": "ob1",
-  "nextId": 900,
+  "entryBlockId": "block-1",
+  "nextId": 9,
   "tags": [
     {
       "name": "pulse_received",
@@ -17,29 +17,38 @@
       "binding": "pulse_received"
     },
     {
-      "name": "press_counter",
+      "name": "threshold_lamp",
+      "type": "Bool",
+      "role": "Output",
+      "initial": false,
+      "binding": "threshold_lamp"
+    },
+    {
+      "name": "press_count",
       "type": "Counter",
       "role": "Memory",
       "initial": 0,
       "binding": ""
     },
     {
-      "name": "threshold_lamp",
+      "name": "lamp_enable",
       "type": "Bool",
-      "role": "Output",
+      "role": "Memory",
       "initial": false,
-      "binding": "threshold_lamp"
+      "binding": ""
     }
   ],
   "blocks": [
     {
-      "id": "ob1",
-      "name": "Main [OB1]",
+      "id": "block-1",
+      "name": "Press_Count_Main",
+      "blockType": "OrganizationBlock",
+      "interface": [],
       "rungs": [
         {
-          "id": "r1",
-          "label": "Count each press",
-          "coilVariable": "press_counter",
+          "id": "rung-3",
+          "label": "Count press pulses",
+          "coilVariable": "",
           "coilMode": "Assign",
           "timerVariable": "",
           "timerPresetMs": 1000,
@@ -50,7 +59,7 @@
           "isCounterReset": false,
           "isCounterLoad": false,
           "counterKind": "CountUp",
-          "counterVariable": "press_counter",
+          "counterVariable": "press_count",
           "counterPreset": 3,
           "isNumericOperation": false,
           "numericOperationKind": "Move",
@@ -66,23 +75,23 @@
           "programControlLabel": "",
           "branches": [
             {
-              "id": "r1-branch",
+              "id": "branch-4",
               "contacts": [
                 {
-                  "id": "c1",
+                  "id": "contact-5",
                   "variable": "pulse_received",
                   "normallyClosed": false,
                   "isComparison": false,
                   "compareOperator": "Equal",
                   "rightOperand": "",
-                  "edgeMode": "Rising"
+                  "edgeMode": "None"
                 }
               ]
             }
           ]
         },
         {
-          "id": "r2",
+          "id": "rung-6",
           "label": "Turn on threshold lamp",
           "coilVariable": "threshold_lamp",
           "coilMode": "Assign",
@@ -111,11 +120,11 @@
           "programControlLabel": "",
           "branches": [
             {
-              "id": "r2-branch",
+              "id": "branch-7",
               "contacts": [
                 {
-                  "id": "c2",
-                  "variable": "press_counter.Q",
+                  "id": "contact-8",
+                  "variable": "press_count.DN",
                   "normallyClosed": false,
                   "isComparison": false,
                   "compareOperator": "Equal",
@@ -131,13 +140,17 @@
   ],
   "tasks": [
     {
-      "id": "task-main",
+      "id": "task-2",
       "name": "MainTask",
       "kind": "Continuous",
       "periodMs": 20,
       "priority": 10,
-      "entryBlock": "ob1"
+      "entryBlock": "block-1"
     }
   ],
-  "watchVariables": []
+  "watchVariables": [
+    "pulse_received",
+    "press_count",
+    "threshold_lamp"
+  ]
 }

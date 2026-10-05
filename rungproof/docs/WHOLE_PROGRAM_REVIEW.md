@@ -1,5 +1,30 @@
 # Whole program review - 2026-10-03
 
+Saved demo file parity repair (2026-10-05): all five programs/demos files
+were stale relative to the actual Demo-menu documents. Demo 5 incorrectly
+selected conveyor-cell; Demo 4 used unbound recipe/transfer tags instead of
+pallet inputs and the live DINT count. Regenerated all five from the current
+AuthoredDemoLadderPrograms documents. tools/demo-projects is a dependency-free
+.NET 10 generator/checker: default and --check are read-only, --write changes
+only the five mapped paths. App-shell verification compares each loaded saved
+document with its authored document, preventing this drift from passing again.
+The initial check failed all five; regeneration and the read-only check pass.
+Normal RUN-RUNGPROOF-NEXT.cmd opened the native Windows application without QA
+flags. Project > Open loaded each of the five actual saved files and selected
+its correct scene and bindings. Demo 5 Run with three manual permissives showed
+both commands True, green indications and visible XY motion; Stop cleared the
+commands and Reset restored initial inputs/pose/scan 0. Demo 4 Run accepted a
+valid manual pallet edge and published pallet_count DINT 1; Reset cleared it.
+Demo 2 Run showed request True/output False immediately, then output True and
+an illuminated lamp after the delay; removing the request cleared both, and
+Reset returned stopped/scan 0. Demo 1 and Demo 3 file selection/bindings were
+inspected stopped in this pass; their complete runtime sequences were not
+repeated here. PLC stayed disconnected. The owned review window was closed.
+Build: zero warnings/errors; controller: 143 PASS, 0 FAIL; app-shell: 77 scenes,
+3 groups, 5 demos, 294 assets, one existing SYSREADY scope diagnostic, PASS.
+Logs: .tools/demo-projects-{before,regenerate,build,controller,shell,native}.log.
+This repairs saved-file/menu consistency, not automatic physical feedback,
+packaging or the remaining scene/runtime findings. Whole-program review is open.
 Sum and Counter numeric repair (2026-10-05): scene 68 now declares DINT
 operand_a/operand_b (PC), sum_result/event_count (PLC), and four live numeric
 readouts. The unbound CNC was removed; three manual Boolean input plates were

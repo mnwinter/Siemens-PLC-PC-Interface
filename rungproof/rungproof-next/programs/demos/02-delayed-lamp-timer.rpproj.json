@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
   "kind": "rungproof-ladder-project",
-  "id": "demo-02",
-  "name": "Demo 2 - Delayed Lamp Timer",
+  "id": "demo-2-delayed-lamp",
+  "name": "Delayed_Lamp_Main",
   "sourceSceneId": "lab-5-01-delayed-lamp",
   "scanPeriodMs": 20,
   "activeBlockIndex": 0,
-  "entryBlockId": "ob1",
-  "nextId": 900,
+  "entryBlockId": "block-1",
+  "nextId": 9,
   "tags": [
     {
       "name": "timer_request",
@@ -17,32 +17,34 @@
       "binding": "timer_request"
     },
     {
-      "name": "delay_timer",
-      "type": "Timer",
-      "role": "Memory",
-      "initial": 0,
-      "binding": ""
-    },
-    {
       "name": "delayed_lamp",
       "type": "Bool",
       "role": "Output",
       "initial": false,
       "binding": "delayed_lamp"
+    },
+    {
+      "name": "delay_timer",
+      "type": "Timer",
+      "role": "Memory",
+      "initial": 0,
+      "binding": ""
     }
   ],
   "blocks": [
     {
-      "id": "ob1",
-      "name": "Main [OB1]",
+      "id": "block-1",
+      "name": "Delayed_Lamp_Main",
+      "blockType": "OrganizationBlock",
+      "interface": [],
       "rungs": [
         {
-          "id": "r1",
-          "label": "Start on-delay",
-          "coilVariable": "delay_timer",
+          "id": "rung-3",
+          "label": "Delay lamp request",
+          "coilVariable": "",
           "coilMode": "Assign",
           "timerVariable": "delay_timer",
-          "timerPresetMs": 3000,
+          "timerPresetMs": 2000,
           "timerKind": "OnDelay",
           "isTimer": true,
           "isTimerReset": false,
@@ -66,10 +68,10 @@
           "programControlLabel": "",
           "branches": [
             {
-              "id": "r1-branch",
+              "id": "branch-4",
               "contacts": [
                 {
-                  "id": "c1",
+                  "id": "contact-5",
                   "variable": "timer_request",
                   "normallyClosed": false,
                   "isComparison": false,
@@ -82,8 +84,8 @@
           ]
         },
         {
-          "id": "r2",
-          "label": "Lamp after timer",
+          "id": "rung-6",
+          "label": "Delayed lamp output",
           "coilVariable": "delayed_lamp",
           "coilMode": "Assign",
           "timerVariable": "",
@@ -111,10 +113,10 @@
           "programControlLabel": "",
           "branches": [
             {
-              "id": "r2-branch",
+              "id": "branch-7",
               "contacts": [
                 {
-                  "id": "c2",
+                  "id": "contact-8",
                   "variable": "delay_timer.Q",
                   "normallyClosed": false,
                   "isComparison": false,
@@ -131,13 +133,17 @@
   ],
   "tasks": [
     {
-      "id": "task-main",
+      "id": "task-2",
       "name": "MainTask",
       "kind": "Continuous",
       "periodMs": 20,
       "priority": 10,
-      "entryBlock": "ob1"
+      "entryBlock": "block-1"
     }
   ],
-  "watchVariables": []
+  "watchVariables": [
+    "timer_request",
+    "delay_timer",
+    "delayed_lamp"
+  ]
 }

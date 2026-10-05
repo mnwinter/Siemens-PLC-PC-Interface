@@ -1,73 +1,52 @@
 {
   "schemaVersion": 1,
   "kind": "rungproof-ladder-project",
-  "id": "demo-04",
-  "name": "Demo 4 - Batch Process Blocks",
+  "id": "demo-4-batch-process",
+  "name": "Batch_Process_Main",
   "sourceSceneId": "lab-9-11-pallet-counting",
   "scanPeriodMs": 20,
   "activeBlockIndex": 0,
-  "entryBlockId": "ob1",
-  "nextId": 900,
+  "entryBlockId": "block-1",
+  "nextId": 27,
   "tags": [
     {
-      "name": "auto_mode",
+      "name": "pallet_detected",
       "type": "Bool",
       "role": "Input",
       "initial": false,
-      "binding": ""
+      "binding": "pallet_detected"
     },
     {
-      "name": "start_cycle",
+      "name": "pallet_type_valid",
       "type": "Bool",
       "role": "Input",
       "initial": false,
-      "binding": ""
+      "binding": "pallet_type_valid"
     },
     {
-      "name": "transfer_pulse",
+      "name": "count_request",
       "type": "Bool",
       "role": "Input",
       "initial": false,
-      "binding": ""
+      "binding": "count_request"
     },
     {
-      "name": "recipe_ok",
+      "name": "pallet_count_valid",
       "type": "Bool",
-      "role": "Memory",
+      "role": "Output",
       "initial": false,
-      "binding": ""
+      "binding": "pallet_count_valid"
     },
     {
-      "name": "fill_timer",
-      "type": "Timer",
-      "role": "Memory",
+      "name": "pallet_count",
+      "type": "DInt",
+      "role": "Output",
       "initial": 0,
-      "binding": ""
+      "binding": "pallet_count"
     },
     {
-      "name": "transfer_count",
+      "name": "batch_count",
       "type": "Counter",
-      "role": "Memory",
-      "initial": 0,
-      "binding": ""
-    },
-    {
-      "name": "recipe_mass",
-      "type": "Real",
-      "role": "Memory",
-      "initial": 10,
-      "binding": ""
-    },
-    {
-      "name": "recipe_scale",
-      "type": "Real",
-      "role": "Memory",
-      "initial": 1,
-      "binding": ""
-    },
-    {
-      "name": "batch_mass",
-      "type": "Real",
       "role": "Memory",
       "initial": 0,
       "binding": ""
@@ -75,20 +54,29 @@
     {
       "name": "batch_ready",
       "type": "Bool",
-      "role": "Output",
+      "role": "Memory",
       "initial": false,
+      "binding": ""
+    },
+    {
+      "name": "always_scan",
+      "type": "Bool",
+      "role": "Memory",
+      "initial": true,
       "binding": ""
     }
   ],
   "blocks": [
     {
-      "id": "ob1",
-      "name": "Main [OB1]",
+      "id": "block-1",
+      "name": "Batch_Process_Main",
+      "blockType": "OrganizationBlock",
+      "interface": [],
       "rungs": [
         {
-          "id": "r1",
-          "label": "Accept valid recipe",
-          "coilVariable": "recipe_ok",
+          "id": "rung-18",
+          "label": "Count valid pallet events",
+          "coilVariable": "",
           "coilMode": "Assign",
           "timerVariable": "",
           "timerPresetMs": 1000,
@@ -107,47 +95,38 @@
           "numericSourceB": "0",
           "numericSourceC": "0",
           "numericDestination": "",
-          "isCall": false,
-          "callTarget": "",
+          "isCall": true,
+          "callTarget": "block-3",
           "isReturn": false,
           "isJump": false,
           "isLabel": false,
           "programControlLabel": "",
           "branches": [
             {
-              "id": "r1-branch",
+              "id": "branch-19",
               "contacts": [
                 {
-                  "id": "c1",
-                  "variable": "auto_mode",
+                  "id": "contact-20",
+                  "variable": "always_scan",
                   "normallyClosed": false,
                   "isComparison": false,
                   "compareOperator": "Equal",
                   "rightOperand": "",
                   "edgeMode": "None"
-                },
-                {
-                  "id": "c2",
-                  "variable": "start_cycle",
-                  "normallyClosed": false,
-                  "isComparison": false,
-                  "compareOperator": "Equal",
-                  "rightOperand": "",
-                  "edgeMode": "Rising"
                 }
               ]
             }
           ]
         },
         {
-          "id": "r2",
-          "label": "Fill timer",
-          "coilVariable": "fill_timer",
+          "id": "rung-21",
+          "label": "Validate batch completion",
+          "coilVariable": "",
           "coilMode": "Assign",
-          "timerVariable": "fill_timer",
-          "timerPresetMs": 5000,
+          "timerVariable": "",
+          "timerPresetMs": 1000,
           "timerKind": "OnDelay",
-          "isTimer": true,
+          "isTimer": false,
           "isTimerReset": false,
           "isCounter": false,
           "isCounterReset": false,
@@ -161,19 +140,19 @@
           "numericSourceB": "0",
           "numericSourceC": "0",
           "numericDestination": "",
-          "isCall": false,
-          "callTarget": "",
+          "isCall": true,
+          "callTarget": "block-4",
           "isReturn": false,
           "isJump": false,
           "isLabel": false,
           "programControlLabel": "",
           "branches": [
             {
-              "id": "r2-branch",
+              "id": "branch-22",
               "contacts": [
                 {
-                  "id": "c3",
-                  "variable": "recipe_ok",
+                  "id": "contact-23",
+                  "variable": "always_scan",
                   "normallyClosed": false,
                   "isComparison": false,
                   "compareOperator": "Equal",
@@ -185,9 +164,62 @@
           ]
         },
         {
-          "id": "r3",
-          "label": "Transfer counter",
-          "coilVariable": "transfer_count",
+          "id": "rung-24",
+          "label": "Publish current pallet count",
+          "coilVariable": "",
+          "coilMode": "Assign",
+          "timerVariable": "",
+          "timerPresetMs": 1000,
+          "timerKind": "OnDelay",
+          "isTimer": false,
+          "isTimerReset": false,
+          "isCounter": false,
+          "isCounterReset": false,
+          "isCounterLoad": false,
+          "counterKind": "CountUp",
+          "counterVariable": "",
+          "counterPreset": 10,
+          "isNumericOperation": true,
+          "numericOperationKind": "Move",
+          "numericSourceA": "batch_count.ACC",
+          "numericSourceB": "",
+          "numericSourceC": "0",
+          "numericDestination": "pallet_count",
+          "isCall": false,
+          "callTarget": "",
+          "isReturn": false,
+          "isJump": false,
+          "isLabel": false,
+          "programControlLabel": "",
+          "branches": [
+            {
+              "id": "branch-25",
+              "contacts": [
+                {
+                  "id": "contact-26",
+                  "variable": "always_scan",
+                  "normallyClosed": false,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "None"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "block-3",
+      "name": "FB_ValidPalletCounter",
+      "blockType": "FunctionBlock",
+      "interface": [],
+      "rungs": [
+        {
+          "id": "rung-5",
+          "label": "Count valid pallets",
+          "coilVariable": "",
           "coilMode": "Assign",
           "timerVariable": "",
           "timerPresetMs": 1000,
@@ -198,7 +230,7 @@
           "isCounterReset": false,
           "isCounterLoad": false,
           "counterKind": "CountUp",
-          "counterVariable": "transfer_count",
+          "counterVariable": "batch_count",
           "counterPreset": 5,
           "isNumericOperation": false,
           "numericOperationKind": "Move",
@@ -214,56 +246,29 @@
           "programControlLabel": "",
           "branches": [
             {
-              "id": "r3-branch",
+              "id": "branch-6",
               "contacts": [
                 {
-                  "id": "c4",
-                  "variable": "transfer_pulse",
+                  "id": "edge-7",
+                  "variable": "pallet_detected",
                   "normallyClosed": false,
                   "isComparison": false,
                   "compareOperator": "Equal",
                   "rightOperand": "",
                   "edgeMode": "Rising"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "id": "r4",
-          "label": "Calculate batch mass",
-          "coilVariable": "batch_mass",
-          "coilMode": "Assign",
-          "timerVariable": "",
-          "timerPresetMs": 1000,
-          "timerKind": "OnDelay",
-          "isTimer": false,
-          "isTimerReset": false,
-          "isCounter": false,
-          "isCounterReset": false,
-          "isCounterLoad": false,
-          "counterKind": "CountUp",
-          "counterVariable": "",
-          "counterPreset": 10,
-          "isNumericOperation": true,
-          "numericOperationKind": "Multiply",
-          "numericSourceA": "recipe_mass",
-          "numericSourceB": "recipe_scale",
-          "numericSourceC": "0",
-          "numericDestination": "batch_mass",
-          "isCall": false,
-          "callTarget": "",
-          "isReturn": false,
-          "isJump": false,
-          "isLabel": false,
-          "programControlLabel": "",
-          "branches": [
-            {
-              "id": "r4-branch",
-              "contacts": [
+                },
                 {
-                  "id": "c5",
-                  "variable": "recipe_ok",
+                  "id": "contact-8",
+                  "variable": "pallet_type_valid",
+                  "normallyClosed": false,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "None"
+                },
+                {
+                  "id": "contact-9",
+                  "variable": "count_request",
                   "normallyClosed": false,
                   "isComparison": false,
                   "compareOperator": "Equal",
@@ -273,10 +278,18 @@
               ]
             }
           ]
-        },
+        }
+      ]
+    },
+    {
+      "id": "block-4",
+      "name": "FC_BatchValidation",
+      "blockType": "Function",
+      "interface": [],
+      "rungs": [
         {
-          "id": "r5",
-          "label": "Batch ready",
+          "id": "rung-10",
+          "label": "Batch ready permissive",
           "coilVariable": "batch_ready",
           "coilMode": "Assign",
           "timerVariable": "",
@@ -304,11 +317,11 @@
           "programControlLabel": "",
           "branches": [
             {
-              "id": "r5-branch",
+              "id": "branch-11",
               "contacts": [
                 {
-                  "id": "c6",
-                  "variable": "fill_timer.Q",
+                  "id": "contact-12",
+                  "variable": "pallet_type_valid",
                   "normallyClosed": false,
                   "isComparison": false,
                   "compareOperator": "Equal",
@@ -316,8 +329,62 @@
                   "edgeMode": "None"
                 },
                 {
-                  "id": "c7",
-                  "variable": "transfer_count.Q",
+                  "id": "contact-13",
+                  "variable": "count_request",
+                  "normallyClosed": false,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "None"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "rung-14",
+          "label": "Validate pallet count",
+          "coilVariable": "pallet_count_valid",
+          "coilMode": "Assign",
+          "timerVariable": "",
+          "timerPresetMs": 1000,
+          "timerKind": "OnDelay",
+          "isTimer": false,
+          "isTimerReset": false,
+          "isCounter": false,
+          "isCounterReset": false,
+          "isCounterLoad": false,
+          "counterKind": "CountUp",
+          "counterVariable": "",
+          "counterPreset": 10,
+          "isNumericOperation": false,
+          "numericOperationKind": "Move",
+          "numericSourceA": "0",
+          "numericSourceB": "0",
+          "numericSourceC": "0",
+          "numericDestination": "",
+          "isCall": false,
+          "callTarget": "",
+          "isReturn": false,
+          "isJump": false,
+          "isLabel": false,
+          "programControlLabel": "",
+          "branches": [
+            {
+              "id": "branch-15",
+              "contacts": [
+                {
+                  "id": "contact-16",
+                  "variable": "batch_count.DN",
+                  "normallyClosed": false,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "None"
+                },
+                {
+                  "id": "contact-17",
+                  "variable": "batch_ready",
                   "normallyClosed": false,
                   "isComparison": false,
                   "compareOperator": "Equal",
@@ -333,13 +400,20 @@
   ],
   "tasks": [
     {
-      "id": "task-main",
+      "id": "task-2",
       "name": "MainTask",
       "kind": "Continuous",
       "periodMs": 20,
       "priority": 10,
-      "entryBlock": "ob1"
+      "entryBlock": "block-1"
     }
   ],
-  "watchVariables": []
+  "watchVariables": [
+    "pallet_detected",
+    "pallet_type_valid",
+    "count_request",
+    "batch_count",
+    "pallet_count",
+    "pallet_count_valid"
+  ]
 }

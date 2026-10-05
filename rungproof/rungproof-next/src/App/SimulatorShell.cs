@@ -630,6 +630,11 @@ public partial class SimulatorShell : CanvasLayer
             var compile = LadderCompiler.Compile(demoDocument.BuildProgram());
             if (!compile.IsValid)
                 errors.Add($"authored ladder invalid: {demo.Label} ({string.Join(", ", compile.Issues.Select(issue => issue.Code))})");
+            var savedPath = AuthoredDemoLadderPrograms.ProjectFiles.First(item => item.SceneId == demo.SceneId).RelativePath;
+            var saved = LadderEditorProjectJson.Load(FileAccess.GetFileAsString("res://" + savedPath));
+            if (!saved.IsReadable || saved.Document is null
+                || LadderEditorProjectJson.Save(saved.Document) != LadderEditorProjectJson.Save(demoDocument))
+                errors.Add($"saved demo project differs from Demo menu: {savedPath}");
         }
         if (_productView != "operator" || !_leftDock.Visible || !_rightDock.Visible
             || !_diagnosticsDock.Visible || !_transportDock.Visible)

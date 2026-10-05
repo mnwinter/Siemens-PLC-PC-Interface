@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace RungProof.Next.VirtualController;
 
@@ -9,6 +10,18 @@ namespace RungProof.Next.VirtualController;
 /// </summary>
 public static class AuthoredDemoLadderPrograms
 {
+    // Disk examples and the Demo menu must resolve to the same scene/program.
+    // Regenerate with tools/demo-projects after changing an authored demo.
+    public static IReadOnlyList<(string SceneId, string RelativePath)> ProjectFiles { get; } =
+        Array.AsReadOnly(new[]
+        {
+            ("lab-4-01-press-count-lamp", "programs/demos/01-press-count-starter.rpproj.json"),
+            ("lab-5-01-delayed-lamp", "programs/demos/02-delayed-lamp-timer.rpproj.json"),
+            ("scene-1-conveyor-stop", "programs/demos/03-conveyor-sequence.rpproj.json"),
+            ("lab-9-11-pallet-counting", "programs/demos/04-batch-process-blocks.rpproj.json"),
+            ("lab-11-13-xy-palletizing", "programs/demos/05-integrated-cell-multi-fb-fc.rpproj.json"),
+        });
+
     public static bool TryCreate(string sceneId, out LadderEditorDocument document)
     {
         document = sceneId switch
