@@ -436,10 +436,13 @@ public static partial class SceneComposer
         bool runCommand
     )
     {
-        return CreateControlledAsset(equipment, candidates,
+        var model = CreateControlledAsset(equipment, candidates,
             "access-control.door.roller-shutter.v1", runCommand,
             EquipmentMotionController.MotionKind.RollerShutter, "KIN_", travelM: 2.8f,
             travelTimeSeconds: 2.5f, positionInputInverted: true);
+        if (equipment.Config.TryGetProperty("sequencePositionOnly", out var sequenceOnly) && sequenceOnly.ValueKind == JsonValueKind.True)
+            model.GetNode<EquipmentMotionController>("RollerShutterController").AutonomousPositionTravel = false;
+        return model;
     }
 
     private static Node3D CreateLiftAsset(

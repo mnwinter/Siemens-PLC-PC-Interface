@@ -1,5 +1,22 @@
 # Whole program review - 2026-10-03
 
+Service-door and catalog checkpoint (2026-10-04): coverage 37/77 native
+five-view inspections, 40 pending including failures. Door controls no longer
+intersect the shutter; their plates read OPEN/STOP/CLOSE. Its raw NC signal
+stands are separate and explicitly labeled. Standalone reference motion now
+reverses from the current pose and projects matching SIM position/PC NC feedback,
+with autonomous adapter travel disabled only for this installation. Native
+held opening/Stop/reversal, resumed closing, unheld opening, five open views and
+Reset inspected. No physical limit/cable or loaded-controller acceptance.
+Build zero warnings/errors; 140 geometry/reference checks, two door contracts,
+142 controller tests, 19 motion checks, rendered controls and shell pass. Shell
+retains four headless position errors. Scenes 32 and 34-36 reviewed: pallet/sensor
+mounting, overlapping bottle text, finishing columns in belt corridor and shared
+plate misalignment remain open; normal Start/Jog blocks without a controller.
+Exact scope and evidence are in MULTI_ANGLE_SCENE_REVIEW.md. Goal remains active.
+
+Earlier checkpoint:
+
 Drill geometry checkpoint (2026-10-04): one delivered stock mesh replaces the
 buried duplicate fixture; measured 150 mm home clearance and 245 mm feed now
 move the quill/chuck/bit while retaining spindle rotation. Stop explicitly holds

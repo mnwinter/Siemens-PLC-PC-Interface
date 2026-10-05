@@ -1,7 +1,7 @@
 # Multi-angle scene review - 2026-10-04
 
 Status: **active**. The prior software review did not establish multi-angle
-visual acceptance. Thirty-two scenes have five-view native static inspections; 45 remain pending.
+visual acceptance. Thirty-seven scenes have five-view native static inspections; 40 remain pending.
 Demo 5, Powder Batch Mixer, Parcel Size Sorter, Conveyor Inspection Cell,
 the Equipment Gallery, Drive Alarm-Code String and Chicken Label Print have repaired static layouts.
 The sorter operator Run still lacks a controller; eight simple panels now have corrected function plates and clear spacing. Other scenes
@@ -27,6 +27,57 @@ also does not prove proper support, equipment identity, or moving clearance.
 Every row requires native inspection.
 
 ## Repairs and open findings
+
+- Service Door Shutter (scene 33): original five views and close button views
+  confirm the close enclosure overlaps its guide, the green beacon occupies
+  the curtain, and all three plates read START. Controls now stand 1 m forward
+  of the shutter plane, with OPEN/STOP/CLOSE plates; both signal stands sit
+  beyond the right-hand equipment envelope. Fresh normal native five views
+  and operator FR close view inspected. The indicators explicitly show raw NC
+  signals, not reached-limit lamps; the description no longer claims cable
+  monitoring. Original rendered Close blocks without a ladder controller.
+  Standalone motion review also reproduced stale 100% position during travel
+  and a Close reversal that initially opens farther. Opt-in fromCurrent motion
+  now captures the actual adapter input pose at each step; sequencePositionOnly
+  prevents a second autonomous travel source. Reference-only positionFeedback
+  updates a declared SIM REAL and PC BOOL NC inputs, refusing PLC-owned targets
+  and skipping controller/external clocks. Fresh native preview shows opening
+  to 60% closed, Stop holding across another reference second, Close starting
+  at that pose and moving to 68%, resumed real-time closing to 100%, unheld
+  opening to 0%, five open-endpoint views and Reset back to 100%. Eleven new
+  checks cover layout/floor/plates, 101 curtain poses, raw polarity, no autonomous
+  creep, intermediate feedback, Stop, both reversal directions and open endpoint.
+  The compressed slat animation remains illustrative; continuous animation,
+  physical limit/cable faults and loaded-controller door operation are unaccepted.
+  Build has zero warnings/errors; all 140 geometry/reference checks, two door
+  contracts, 142 controller tests, 19 motion checks, rendered controls and shell
+  pass. Geometry has no warnings/errors; shell retains four headless position
+  errors and its missing-workspace warning. Local evidence: service-door-native.log,
+  service-door-plant-native.log (reproduction), service-door-fixed-plant-native.log,
+  service-door-{build,geometry,contract,controller,motion,controls,shell}.log.
+- Shipping Pallet Accumulation (scene 32): native five views plus sensor top/FR/RL
+  close views inspected. Pallet support and sensor/conveyor support intersections
+  remain open; 29 bounds candidates require solid/contact measurement. Native
+  Toggle auto changes auto_mode true to false; Jog blocks without a controller.
+  Full accumulation/jog/Stop/Reset motion remains unverified.
+- Bottle Shuttle Conveyor (scene 34): native five views and bottle top/FR close
+  inspected. Bottle label text overlaps and extends past its panel; bottle/belt
+  contact and both sensor/conveyor attachments still need measurement. The 39
+  bounds candidates are screening findings. Normal Start blocks without a ladder
+  controller; full round trip, reversal, Stop and Reset remain unverified.
+- Chemical Tote Finishing Line (scene 35): native five views and filler top/FR
+  close inspected. Station columns occupy the belt corridor; its 29 candidates
+  include conveyor/filler (7), capper (5), labeler (5), vision (12). Tote support,
+  nozzle/cap alignment and full transfer through all stations remain unverified.
+  Normal Start blocks without a ladder controller. FAIL/open.
+- Dual-Spindle Plate Cell (scene 36): native five views and metal plate top/FR
+  close inspected. The shared plate is offset from both spindle axes and below
+  their separate yellow vise coupons; fixture/slide support also needs measurement.
+  Two candidates concern drill_a base/transfer frame. Both adapters remain rotation
+  only, so actual dual feed/retraction and transfer are unaccepted. Normal Start
+  blocks without a controller. FAIL/open. Native scenes 34-36 evidence is in
+  catalog-34-native.log; scenes 32-33 original review in catalog-32-native.log.
+  Coverage is 37/77 inspected, 40 pending, including failed scenes.
 
 - Drill fixture/feed follow-up: the opt-in fixtureDrill installation uses the
   delivery's single yellow stock mesh in the separate workpiece equipment root,
@@ -662,11 +713,11 @@ count as this scene's multi-angle or runtime acceptance.
 | 29 | `lab-2-15-fume-extractor` | 0 | FR/FL/RL/RR/T static and running 35%; close plate; speed states; native preview Stop/Run/Off/Reset | LIGHT REQUEST, speed binding and preview Stop repaired; six-blade transform checks pass. Open: beacon substitutes light, hood/duct absent, normal Run unloaded; reference preview is not controller lesson acceptance |
 | 30 | `lab-2-16-safe-drill` | 24 original / 0 repaired | Native repaired FR/FL/RL/RR/T; stock FR close; normal 3D hand/cycle controls; held feed/bottom four close sides; Stop/Reset/restart; unheld completion | Fixture/feed and honest Stop-hold semantics repaired; normal cycle blocks without controller. Top stock view occluded by head; guard/two-hand safety behavior is not modeled |
 | 31 | `lab-2-17-pallet-robot` | 23 | Native FR/FL/RL/RR/T; receiver top/FR close; normal Run | FAIL/open: receiver backstop intersects conveyor; pallet appears raised off belt. Sensor/brace candidates and robot transfer/reach remain unresolved. Run unloaded |
-| 32 | `lab-2-18-pallet-pickup` | 29 | Pending | Pending |
-| 33 | `lab-2-19-service-door` | 54 | Pending | Pending |
-| 34 | `lab-2-20-bottle-shuttle` | 39 | Pending | Pending |
-| 35 | `lab-2-21-tote-finishing` | 29 | Pending | Pending |
-| 36 | `lab-2-22-dual-spindle` | 2 | Pending | Pending |
+| 32 | `lab-2-18-pallet-pickup` | 29 | Native FR/FL/RL/RR/T; sensor top/FR/RL close; auto toggle and jog | Open: pallet support and sensor/conveyor mounting need measurement; Jog blocks unloaded; full motion unverified |
+| 33 | `lab-2-19-service-door` | 54 original / 0 repaired | Repaired native FR/FL/RL/RR/T; operator FR close; held opening/Stop/reverse; real-time endpoints; open five views; Reset | Layout/plates and reference reversal/position feedback repaired; raw NC signal displays explicit. Physical limit/cable behavior, compressed slat geometry and loaded-controller operation unaccepted |
+| 34 | `lab-2-20-bottle-shuttle` | 39 | Native FR/FL/RL/RR/T; bottle top/FR close; Start | Open: overlapping bottle label text; contact and sensor mounts need measurement. Normal Start unloaded; round-trip motion unverified |
+| 35 | `lab-2-21-tote-finishing` | 29 | Native FR/FL/RL/RR/T; filler top/FR close; Start | FAIL/open: station columns occupy belt corridor; tote support, station alignment and full transfer unverified. Start unloaded |
+| 36 | `lab-2-22-dual-spindle` | 2 | Native FR/FL/RL/RR/T; plate top/FR close; Start | FAIL/open: plate offset below separate drill coupons, fixture/slide mounting unresolved; adapters rotation only. Start unloaded; feeds and transfer unverified |
 | 37 | `lab-2-23-parcel-sorter` | 174 | FR/FL/RL/RR/T | Repaired static/declared plant path; normal Run lacks controller |
 | 38 | `lab-2-24-robot-cnc` | 29 | Pending | Pending |
 | 39 | `lab-2-25-inspection-toggle` | 0 | Pending | Pending |

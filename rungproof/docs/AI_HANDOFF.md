@@ -6,6 +6,33 @@ would otherwise be trapped in a local Codex session. It intentionally excludes
 machine-local Codex databases, credentials, screenshots from private chats, and
 temporary runtime state.
 
+Latest service-door/catalog checkpoint (2026-10-04): coverage 37/77 native
+five-view inspections, 40 pending including failures. Scene 33 door button/guide
+and beacon/curtain overlaps repaired; controls 1 m forward, signal stands beyond
+right equipment envelope, OPEN/STOP/CLOSE plates inspected close. Signals label
+raw NC truth and description removes unsupported cable monitoring. Native
+reference reproduced stale position and reversal opening jump; opt-in fromCurrent
+captures actual adapter input pose, sequencePositionOnly removes autonomous creep,
+and reference-only positionFeedback validates SIM REAL/PC BOOL owners and skips
+controller/external clocks. Native fresh stopped 60% pose, Close to 68%, resumed
+100% closed, unheld 0% open, open five views and Reset observed. Eleven added
+checks bring total to 140; build zero warnings/errors, two door contracts, 142
+controller tests, 19 motion checks, rendered controls and shell pass. Geometry
+stderr clean; shell still four headless position errors/missing-workspace warning.
+Compressed slat animation, physical limits/cable faults and loaded-controller
+operation unaccepted. Local .tools evidence: service-door-native.log,
+service-door-plant-native.log (repro), service-door-fixed-plant-native.log and
+service-door-{build,geometry,contract,controller,motion,controls,shell}.log.
+Scenes 32 and 34-36 also have five native views and recorded close inspections:
+pallet/sensor support needs measurement; bottle label overlaps; finishing columns
+occupy belt corridor; shared plate offset below two separate drill coupons, both
+drill adapters rotation only. Start/Jog blocks without controller. catalog-32-native.log
+and catalog-34-native.log contain navigation evidence. Goal active; continue at
+scene 38 (37 was inspected earlier), then remaining catalog and all open failures.
+No live PLC transport exercised. Detailed findings in MULTI_ANGLE_SCENE_REVIEW.md.
+
+Earlier checkpoint:
+
 Latest fixture/feed checkpoint (2026-10-04): coverage 32/77 native five-view
 inspections, 45 pending including failures. Opt-in fixtureDrill moves the actual
 delivered yellow coupon into the workpiece root at its vise center, removing the

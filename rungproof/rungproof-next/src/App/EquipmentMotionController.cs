@@ -41,6 +41,9 @@ public partial class EquipmentMotionController : Node
     [Export(PropertyHint.Range, "-360,360,1,suffix:deg")]
     public float TravelDegrees { get; set; } = 90.0f;
     [Export] public bool PositionInputInverted { get; set; }
+    // Sequence-driven installations supply their own position each tick. They
+    // must not also creep toward the adapter's autonomous endpoint.
+    [Export] public bool AutonomousPositionTravel { get; set; } = true;
     // Opt-in setpoint slew for indexed parcel tables. Other assets retain
     // their existing immediate position contract when this value is zero.
     [Export] public float PositionInputSlewSeconds { get; set; }
@@ -49,6 +52,7 @@ public partial class EquipmentMotionController : Node
 
     public bool Running => RunCommand;
     public float PositionPercent => _position * 100.0f;
+    public float InputPositionNormalized => PositionInputInverted ? 1.0f - _position : _position;
 
     private readonly List<Node3D> _targets = [];
     private readonly Dictionary<Node3D, Transform3D> _authoredTransforms = [];
@@ -160,7 +164,7 @@ public partial class EquipmentMotionController : Node
             case MotionKind.PneumaticPusher:
             case MotionKind.ScissorLift:
             case MotionKind.RollerShutter:
-                if (RunCommand)
+                if (RunCommand && AutonomousPositionTravel)
                 {
                     _position = Mathf.MoveToward(_position, 1.0f, seconds / MathF.Max(TravelTimeSeconds, 0.05f));
                     ApplyPosition();

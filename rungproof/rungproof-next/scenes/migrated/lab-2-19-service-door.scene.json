@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-2-19-service-door",
   "name": "Lab 2.19 - Service Door Shutter",
-  "description": "Open, close, and stop commands move a service-door shutter between normally-closed cable-monitored limits.",
+  "description": "Open, close, and stop commands move a symbolic service-door shutter between simulated normally-closed limit inputs.",
   "camera": {
     "position": [
       9.8,
@@ -30,7 +30,8 @@
       "config": {
         "width": 4.2,
         "height": 3.5,
-        "initialPosition": 1
+        "initialPosition": 1,
+        "sequencePositionOnly": true
       }
     },
     {
@@ -40,11 +41,12 @@
       "position": [
         -3.5,
         0,
-        0
+        1
       ],
       "config": {
         "style": "pushbutton",
         "action": "open-door",
+        "faceLabel": "OPEN",
         "color": 2204518
       }
     },
@@ -55,11 +57,12 @@
       "position": [
         -2.6,
         0,
-        0
+        1
       ],
       "config": {
         "style": "pushbutton",
         "action": "stop-door",
+        "faceLabel": "STOP",
         "color": 14695473
       }
     },
@@ -70,22 +73,23 @@
       "position": [
         -1.7,
         0,
-        0
+        1
       ],
       "config": {
         "style": "pushbutton",
         "action": "close-door",
+        "faceLabel": "CLOSE",
         "color": 3050449
       }
     },
     {
       "id": "door_open_lamp",
       "type": "indicator",
-      "label": "Door open limit",
+      "label": "Open limit NC signal",
       "position": [
-        2.9,
+        4.7,
         0,
-        0
+        1
       ],
       "config": {
         "colors": [
@@ -97,11 +101,11 @@
     {
       "id": "door_closed_lamp",
       "type": "indicator",
-      "label": "Door closed limit",
+      "label": "Closed limit NC signal",
       "position": [
-        4.1,
+        5.5,
         0,
-        0
+        1
       ],
       "config": {
         "colors": [
@@ -208,8 +212,6 @@
           "set": {
             "motor_open": true,
             "motor_close": false,
-            "open_limit_nc": true,
-            "closed_limit_nc": true,
             "cycle_complete": false
           },
           "motions": [
@@ -217,6 +219,8 @@
               "type": "position",
               "equipmentId": "service_shutter",
               "from": 1,
+              "fromCurrent": true,
+              "positionFeedback": { "point": "door_position", "scale": 100, "lowNcPoint": "open_limit_nc", "highNcPoint": "closed_limit_nc" },
               "to": 0
             }
           ]
@@ -239,8 +243,6 @@
           "set": {
             "motor_close": true,
             "motor_open": false,
-            "open_limit_nc": true,
-            "closed_limit_nc": true,
             "cycle_complete": false
           },
           "motions": [
@@ -248,6 +250,8 @@
               "type": "position",
               "equipmentId": "service_shutter",
               "from": 0,
+              "fromCurrent": true,
+              "positionFeedback": { "point": "door_position", "scale": 100, "lowNcPoint": "open_limit_nc", "highNcPoint": "closed_limit_nc" },
               "to": 1
             }
           ]
@@ -276,7 +280,8 @@
     "hints": [
       "Define the required result before writing logic: Each direction stops at its limit; open and close outputs are never on together.",
       "Treat open_limit_nc, closed_limit_nc as simulator-to-PLC inputs. The PLC should command only motor_open, motor_close.",
-      "Use a step/state approach and prove the transition order: opening \u2192 open limit."
+      "Use a step/state approach and prove the transition order: opening \u2192 open limit.",
+      "The freestanding beacons show raw NC input states: illuminated means TRUE (limit not reached); off means FALSE (limit reached in this reference). They are signal displays, not physical limit switches or cable-fault monitoring."
     ],
     "solution": {
       "summary": "This is one valid functional reference. The same behavior may be implemented in LAD, FBD, or SCL; the rung layout is not prescribed.",
@@ -287,7 +292,7 @@
       "acceptance": "Each direction stops at its limit; open and close outputs are never on together."
     },
     "machineGuide": {
-      "purpose": "Open, close, and stop commands move a service-door shutter between normally-closed cable-monitored limits.",
+      "purpose": "Open, close, and stop commands move a symbolic service-door shutter between simulated normally-closed limit inputs.",
       "startConditions": [
         "The common PLC/watchdog foundation is healthy.",
         "All required simulator inputs are at their documented initial state.",

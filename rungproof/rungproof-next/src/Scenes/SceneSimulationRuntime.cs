@@ -30,6 +30,7 @@ public partial class SceneSimulationRuntime : Node
     private JsonElement _activeSteps;
     private int _activeStepIndex = -1;
     private double _stepElapsed;
+    private readonly Dictionary<string, float> _positionMotionStarts = new(StringComparer.Ordinal);
     // Tank scenes are continuous process simulations, not timed sequences. Keep
     // their running state independently so a stopped tank cannot keep changing
     // level merely because a pump command remains authored in the scene.
@@ -554,6 +555,19 @@ public partial class SceneSimulationRuntime : Node
 
     private void EnterStep(JsonElement step)
     {
+        // Opt-in position sequences capture their starting pose once, rather
+        // than restarting from an authored endpoint after Stop or reversal.
+        _positionMotionStarts.Clear();
+        if (step.TryGetProperty("motions", out var startingMotions))
+        foreach (var motion in startingMotions.EnumerateArray())
+        {
+            if (Text(motion, "type", string.Empty) != "position"
+                || !motion.TryGetProperty("fromCurrent", out var current) || current.ValueKind != JsonValueKind.True) continue;
+            var id = SafeNodeName(Text(motion, "equipmentId", string.Empty));
+            if (_sceneRoot.GetNodeOrNull<Node3D>(id) is { } equipment)
+                _positionMotionStarts[id] = equipment.FindChildren("*", string.Empty, true, false)
+                    .OfType<EquipmentMotionController>().Single().InputPositionNormalized;
+        }
         if (step.TryGetProperty("set", out var values) && values.ValueKind == JsonValueKind.Object)
         {
             ApplySet(values);
@@ -577,6 +591,8 @@ public partial class SceneSimulationRuntime : Node
                 continue;
             }
             var from = (float)Number(motion, "from", 0.0);
+            if (_positionMotionStarts.TryGetValue(equipmentId, out var currentFrom)
+                && Text(motion, "type", string.Empty) == "position") from = currentFrom;
             var to = (float)Number(motion, "to", 0.0);
             var value = Mathf.Lerp(from, to, progress);
             switch (Text(motion, "type", string.Empty))
@@ -591,6 +607,7 @@ public partial class SceneSimulationRuntime : Node
                     {
                         controller.SetPositionNormalized(value);
                     }
+                    ProjectReferencePositionFeedback(motion, value);
                     break;
                 case "rotate":
                     _sequenceRotatedEquipment.Add(equipmentId);
