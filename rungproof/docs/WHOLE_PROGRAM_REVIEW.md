@@ -1,5 +1,15 @@
 # Whole program review - 2026-10-03
 
+Catalog success-message scope repair (2026-10-05): SYS-READY now says
+catalog data checks passed for 294 assets/77 scenes, followed by the requirement
+to verify scene appearance, motion, control logic and PLC operation separately.
+It no longer describes the combined production/candidate asset catalog as all
+candidate assets or implies no corrective action remains. Native Windows scene
+browser shows the complete message on one readable line without clipping at
+1602 x 936. Build has zero warnings/errors. Evidence: .tools/catalog-status-
+{build,native}.log. This wording change does not close the open visual/runtime
+findings or establish real PLC compatibility. Review continues.
+
 Radar installation and range repair (2026-10-05): five native focused views
 reproduced electronics buried in the roof/manway. The transmitter now mounts
 at X=0.7, Y=6.213333, Z=0.5: its process flange bottom contacts the delivered

@@ -40,8 +40,8 @@ public static class ProjectValidator
                 "SYS-READY",
                 DiagnosticSeverity.Information,
                 "Project",
-                $"Validated {assets.Assets.Count} candidate assets and {scenes.Count} migrated scenes.",
-                "No corrective action is required for the loaded project data."
+                $"Catalog data checks passed: {assets.Assets.Count} assets, {scenes.Count} scenes.",
+                "Scene appearance, motion, control logic and PLC operation require separate verification."
             ));
         }
         return issues;
