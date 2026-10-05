@@ -28,6 +28,27 @@ Every row requires native inspection.
 
 ## Repairs and open findings
 
+Pallet Counting prop repair (2026-10-05): the type sensor was a pallet and the
+count display was a roller shutter, with unrelated recognition records. Both
+now use original Blender-source geometry: an optical-profile fixture and a
+stand readout. Stale motion/basis/reference/quality evidence was cleared; old
+review files are preserved as invalid identity history. Help was rebuilt for
+these two assets only. The fixture surrounds the conveyor at (-1.1,0,0).
+The first version failed delivered feet/control/cable clearance; the widened
+version passes six identity/support/solid-clearance checks. All 171 geometry/
+reference checks pass. Final native scene FR/FL/RL/RR/T wide, fixture Top/FL/RL
+close and display FR close were inspected. Rear display detail is CNC-occluded
+and is not an acceptance view. COUNT / NO LIVE VALUE is readable; base/mast
+are seated. Type algorithm, numeric count binding, pallet motion and a new
+controller workflow remain unverified; the CNC is still unrelated/unbound.
+Build clean, import without ERROR, initial contract and 142 controller tests
+pass; app shell passes without ERROR, with the expected missing-workspace
+warning. Global help validation now fails at the existing cut_length_display
+KIN_bottom_bar mismatch. Evidence: pallet-props-{build,code-build,geometry,
+collision-build,collision,clearance-build,clearance-import,clearance-geometry,
+final-build,final-import,native-final,help,controller,contract,shell}.log.
+Goal active. All 77 initial native inspections include failures, not acceptance.
+
 Headless dialog repair (2026-10-04): unsaved ladder PopupCentered was
 spawning at (-293,-128) on the headless display. Headless now uses explicit
 (0,0,650,320) Popup; normal Windows keeps PopupCentered and the same guard
@@ -963,7 +984,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 68 | `lab-9-03-sum-and-counter-function` | 0 | Native FR/FL/RL/RR/T | Static clear spacing; no numeric result/event count contract; CNC unbound |
 | 69 | `lab-9-04-function-selector` | 0 | Native FR/FL/RL/RR/T | Function validity is not a choice value; numeric operands/result and selector binding unresolved |
 | 70 | `lab-9-10-box-volume` | 46 | Native FR/FL/RL/RR/T | Two shutter substitutes, obscured carton; no numeric dimension/volume contract |
-| 71 | `lab-9-11-pallet-counting` | 86 | Native FR/FL/RL/RR/T | Carton support repaired/re-inspected wide and Top/FL close. FAIL/open: white pallet/shutter-post type sensor, shutter display. Demo 4 five detection edges/Stop/Run/Reset checked |
+| 71 | `lab-9-11-pallet-counting` | 86 | Native FR/FL/RL/RR/T | Carton, optical fixture and readout geometry repaired/re-inspected five wide/details; static NO LIVE VALUE. Demo 4 baseline five edges/Stop/Run/Reset checked; type algorithm/numeric binding/motion open |
 | 72 | `lab-9-12-ev-charging-manager` | 95 | Native FR/FL/RL/RR/T | FAIL/open: shutters/fluid props instead of EV charging route; energy pulse/accumulation contract absent |
 | 73 | `scene-1-conveyor-stop` | 34 | Native FR/FL/RL/RR/T | Carton belt contact/load-end footprint repaired; native five wide/Top/FL close and Demo 3 Run/Start/photoeye/Stop/Reset rechecked; full clearance open |
 | 74 | `scene-2-conveyor-pusher` | 88 | Native FR/FL/RL/RR/T | Carton belt contact/load-end footprint repaired; native five wide/Top/FL close rechecked; no receiver, pusher/photoeye motion clearance unresolved |

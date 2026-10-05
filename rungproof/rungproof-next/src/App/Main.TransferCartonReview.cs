@@ -7,6 +7,51 @@ namespace RungProof.Next.App;
 
 public partial class Main
 {
+    private void VerifyPalletCountPropGeometry(Action<bool, string> check)
+    {
+        AddMigratedScene("lab-9-11-pallet-counting", _candidateCatalog!, _mainCamera!, false, false);
+        var root = _sceneCompositionRoot!;
+        var fixture = root.GetNode<Node3D>("training_accessory_5");
+        var display = root.GetNode<Node3D>("training_accessory_6");
+        var fixtureMeshes = ReviewMeshes(fixture);
+        var displayMeshes = ReviewMeshes(display);
+        check(fixtureMeshes.Count(mesh => mesh.Name.ToString().StartsWith("PROFILE_head_", StringComparison.Ordinal)) == 4
+            && fixture.FindChild("PROFILE_crossbeam", true, false) is not null
+            && !fixtureMeshes.Any(mesh => mesh.Name.ToString().Contains("PALLET", StringComparison.OrdinalIgnoreCase)),
+            "pallet_count_fixture_is_optical_profile_geometry_not_pallet");
+        check(display.FindChild("COUNT_DISPLAY_screen", true, false) is not null
+            && display.FindChild("COUNT_DISPLAY_static_legend", true, false) is not null
+            && display.FindChild("KIN_bottom_bar", true, false) is null,
+            "pallet_count_display_is_static_readout_not_shutter");
+        var feet = fixtureMeshes.Where(mesh => mesh.Name.ToString().StartsWith("PROFILE_foot_", StringComparison.Ordinal)).ToArray();
+        var posts = fixtureMeshes.Where(mesh => mesh.Name.ToString().StartsWith("PROFILE_post_", StringComparison.Ordinal)).ToArray();
+        check(feet.Length == 2 && posts.Length == 2
+            && feet.All(foot => MathF.Abs(ReviewBounds(foot).Position.Y) < 0.001f)
+            && posts.All(post => feet.Any(foot => ReviewBounds(post).Intersects(ReviewBounds(foot).Grow(0.001f)))),
+            "pallet_count_profile_posts_seated_on_grounded_feet");
+        var baseMesh = (MeshInstance3D)display.FindChild("COUNT_DISPLAY_base", true, false);
+        var mast = (MeshInstance3D)display.FindChild("COUNT_DISPLAY_mast", true, false);
+        var housing = (MeshInstance3D)display.FindChild("COUNT_DISPLAY_housing", true, false);
+        check(MathF.Abs(ReviewBounds(baseMesh).Position.Y) < 0.001f
+            && ReviewBounds(mast).Intersects(ReviewBounds(baseMesh).Grow(0.001f))
+            && ReviewBounds(mast).Intersects(ReviewBounds(housing)),
+            "pallet_count_readout_mast_seated_on_base_and_housing");
+        bool Clear(MeshInstance3D a, MeshInstance3D b)
+        {
+            var overlap = ReviewBounds(a).Intersection(ReviewBounds(b)).Size;
+            return overlap.X <= 0.005f || overlap.Y <= 0.005f || overlap.Z <= 0.005f || !OrientedBoxesPenetrate(a, b);
+        }
+        var otherSolids = root.GetChildren().OfType<Node3D>().Where(node => node != fixture && node != display)
+            .SelectMany(ReviewMeshes).ToArray();
+        foreach (var part in fixtureMeshes)
+            foreach (var other in otherSolids.Where(other => !Clear(part, other)))
+                GD.Print($"PALLET_PROFILE_COLLISION {part.Name} {other.GetParent().Name}/{other.Name} {ReviewBounds(part)} {ReviewBounds(other)}");
+        check(fixtureMeshes.All(part => otherSolids.All(other => Clear(part, other))),
+            "pallet_count_profile_fixture_clear_of_conveyor_carton_and_other_equipment");
+        check(displayMeshes.All(part => otherSolids.Concat(fixtureMeshes).All(other => Clear(part, other))),
+            "pallet_count_readout_clear_of_separate_equipment");
+    }
+
     private void VerifyBaseConveyorCartonSupport(Action<bool, string> check)
     {
         foreach (var number in new[] { 1, 2 })

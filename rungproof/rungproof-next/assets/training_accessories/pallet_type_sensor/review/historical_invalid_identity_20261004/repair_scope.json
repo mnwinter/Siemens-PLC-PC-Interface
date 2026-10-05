@@ -1,0 +1,6 @@
+{
+  "assetId": "training.accessory.pallet_type_sensor.v1",
+  "status": "candidate-unapproved",
+  "scope": "Original static training geometry; no live numeric display or type-classification algorithm.",
+  "historicalEvidence": "historical_invalid_identity_20261004 is invalid for the replacement geometry."
+}

@@ -107,11 +107,11 @@
     {
       "id": "training_accessory_5",
       "type": "trainingAccessory",
-      "label": "Pallet Count Function - pallet-type sensor",
+      "label": "Pallet Count Function - optical profile fixture (static)",
       "position": [
         -1.1,
         0,
-        1.8
+        0
       ],
       "config": {
         "assetName": "pallet-type sensor",
@@ -121,7 +121,7 @@
     {
       "id": "training_accessory_6",
       "type": "trainingAccessory",
-      "label": "Pallet Count Function - count display",
+      "label": "Pallet Count Function - count display (unbound)",
       "position": [
         1.1,
         0,

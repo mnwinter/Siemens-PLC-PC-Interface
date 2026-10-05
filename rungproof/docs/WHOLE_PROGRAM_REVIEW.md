@@ -1,5 +1,26 @@
 # Whole program review - 2026-10-03
 
+Pallet Counting prop repair (2026-10-05): the type sensor was a pallet and the
+count display was a roller shutter, with unrelated recognition records. Both
+now use original Blender-source geometry: an optical-profile fixture and a
+stand readout. Stale motion/basis/reference/quality evidence was cleared; old
+review files are preserved as invalid identity history. Help was rebuilt for
+these two assets only. The fixture surrounds the conveyor at (-1.1,0,0).
+The first version failed delivered feet/control/cable clearance; the widened
+version passes six identity/support/solid-clearance checks. All 171 geometry/
+reference checks pass. Final native scene FR/FL/RL/RR/T wide, fixture Top/FL/RL
+close and display FR close were inspected. Rear display detail is CNC-occluded
+and is not an acceptance view. COUNT / NO LIVE VALUE is readable; base/mast
+are seated. Type algorithm, numeric count binding, pallet motion and a new
+controller workflow remain unverified; the CNC is still unrelated/unbound.
+Build clean, import without ERROR, initial contract and 142 controller tests
+pass; app shell passes without ERROR, with the expected missing-workspace
+warning. Global help validation now fails at the existing cut_length_display
+KIN_bottom_bar mismatch. Evidence: pallet-props-{build,code-build,geometry,
+collision-build,collision,clearance-build,clearance-import,clearance-geometry,
+final-build,final-import,native-final,help,controller,contract,shell}.log.
+Goal active. All 77 initial native inspections include failures, not acceptance.
+
 Headless dialog repair (2026-10-04): unsaved ladder PopupCentered was
 spawning at (-293,-128) on the headless display. Headless now uses explicit
 (0,0,650,320) Popup; normal Windows keeps PopupCentered and the same guard

@@ -5712,33 +5712,6 @@
       ]
     },
     {
-      "assetId": "training.accessory.count_display.v1",
-      "status": "referenced",
-      "comparisonStatus": "reference-identified",
-      "comparisonNotes": "Generic family reference inherited for candidate package review; the training accessory must be independently compared before promotion.",
-      "referenceFamily": "industrial coiling steel service door",
-      "sources": [
-        {
-          "publisher": "Clopay",
-          "title": "Roll-Up Sheet Doors product page",
-          "url": "https://www.clopaydoor.com/coiling-sheet-doors",
-          "sourceType": "oem-product-page",
-          "accessed": "2026-09-22"
-        }
-      ],
-      "modeledFeatures": [
-        "interlocking horizontal curtain slats",
-        "vertical guide tracks",
-        "header coil/shaft zone",
-        "bottom bar",
-        "side-mounted operator context"
-      ],
-      "intentionallyGeneric": [
-        "No Clopay mark, slat gauge, curtain material, door size, drive voltage, cycle count, weather sealing, or safety edge is reproduced.",
-        "Simulator travel is not a real door safety or commissioning claim."
-      ]
-    },
-    {
       "assetId": "training.accessory.crosswalk_road_module.v1",
       "status": "referenced",
       "comparisonStatus": "reference-identified",
@@ -6932,32 +6905,6 @@
       "intentionallyGeneric": [
         "No Interroll mark, drive voltage, pallet capacity, roller pitch, speed, zone logic, guarding, controls architecture, or installation rating is reproduced.",
         "Conveyor motion and input points remain simulator-only."
-      ]
-    },
-    {
-      "assetId": "training.accessory.pallet_type_sensor.v1",
-      "status": "referenced",
-      "comparisonStatus": "reference-identified",
-      "comparisonNotes": "Generic family reference inherited for candidate package review; the training accessory must be independently compared before promotion.",
-      "referenceFamily": "48 by 40 inch wood GMA stringer pallet",
-      "sources": [
-        {
-          "publisher": "48forty Solutions",
-          "title": "Recycled Pallets product page",
-          "url": "https://www.48forty.com/recycled-pallets",
-          "sourceType": "oem-product-page",
-          "accessed": "2026-09-22"
-        }
-      ],
-      "modeledFeatures": [
-        "48 by 40 proportion",
-        "top and bottom deck boards",
-        "stringer structure",
-        "fork-entry openings"
-      ],
-      "intentionallyGeneric": [
-        "No supplier mark, wood species, grade, repair state, heat treatment, load rating, or logistics certification is reproduced.",
-        "The pallet is a passive scene load."
       ]
     },
     {
