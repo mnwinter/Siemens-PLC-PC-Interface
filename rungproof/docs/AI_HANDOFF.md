@@ -6,6 +6,17 @@ would otherwise be trapped in a local Codex session. It intentionally excludes
 machine-local Codex databases, credentials, screenshots from private chats, and
 temporary runtime state.
 
+Control feedback continuation (2026-10-05): fixed numeric stands must never
+depress on input clicks. SceneControlInteractor now limits press travel to
+modeled button members or explicitly bound meshes, preserves original home
+across repeated pulses, and uses declared travel. The seven-check composed Box
+Volume suite fails before/passes after; rendered control/picking/ownership/E-stop
+verification and zero-warning build pass. Native wide FR/FL/close FL repeated
+readout clicks yielded 850/720/720 with fixed stands; three actual length-valid
+cap clicks set True with a fixed mount; Reset restored zero/False. Empty
+exercise, PLC disconnected, owned window exit zero. No new five-angle or
+loaded calculation acceptance. Details/logs in WHOLE_PROGRAM_REVIEW.md.
+
 Pusher continuation (2026-10-05): EquipmentMotionController now stretches the
 960 mm delivered rod in parent X (imported local X is vertical), preventing
 detached ends and diameter changes. SceneSimulationRuntime now applies

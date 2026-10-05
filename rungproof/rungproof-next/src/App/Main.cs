@@ -1604,7 +1604,8 @@ public partial class Main : Node3D
         fixtureRuntime.Free();
         fixtureRoot.Free();
         var pickingPassed = VerifySceneControlPicking();
-        var passed = pickingPassed && facesOperator && running && depressed && restored && estopLatched && stopped && restartBlocked
+        var feedbackPassed = VerifySceneControlFeedback();
+        var passed = pickingPassed && feedbackPassed && facesOperator && running && depressed && restored && estopLatched && stopped && restartBlocked
             && resetReleased && restarted && virtualReady && virtualStart && virtualStopCommand && immediateEstop
             && virtualRestartBlocked && resetDoesNotStart && virtualRestarted && exclusiveExternal && externalActionBlocked
             && externalImagePreserved && awaitingController && noFallbackOverwrite && fallbackRulesWork
@@ -1613,6 +1614,44 @@ public partial class Main : Node3D
         GD.Print($"EXTERNAL_IMAGE_VERIFY {(invalidOutputRejected && atomicImageRejected ? "PASS" : "FAIL")} typed={invalidOutputRejected} atomic={atomicImageRejected}");
         GD.Print($"SCENE_CONTROL_VERIFY {(passed ? "PASS" : "FAIL")} facesOperator={facesOperator} start={running} depressed={depressed} restored={restored} estopLatched={estopLatched} stopped={stopped} restartBlocked={restartBlocked} resetReleased={resetReleased} restarted={restarted} virtualReady={virtualReady} virtualStart={virtualStart} virtualStopCommand={virtualStopCommand} immediateEstop={immediateEstop} virtualRestartBlocked={virtualRestartBlocked} resetDoesNotStart={resetDoesNotStart} virtualRestarted={virtualRestarted} exclusiveExternal={exclusiveExternal} externalActionBlocked={externalActionBlocked} externalImagePreserved={externalImagePreserved} awaitingController={awaitingController} noFallbackOverwrite={noFallbackOverwrite} fallbackRulesWork={fallbackRulesWork}");
         GetTree().Quit(passed ? 0 : 1);
+    }
+
+    private bool VerifySceneControlFeedback()
+    {
+        AddMigratedScene("lab-9-10-box-volume", _candidateCatalog!, _mainCamera!, false, false);
+        var interactor = _sceneControlInteractor!;
+        var readout = interactor.Bindings.Single(binding => binding.EquipmentId == "numeric_display_0");
+        var nodes = readout.Node.FindChildren("*", string.Empty, true, false).OfType<Node3D>()
+            .Append(readout.Node).ToArray();
+        var poses = nodes.ToDictionary(node => node, node => node.Transform);
+        bool FixedReadout() => nodes.All(node => node.Transform.IsEqualApprox(poses[node]));
+        interactor.PlayAcceptedFeedback(readout);
+        interactor.AdvanceFeedback(0.08);
+        var standFixed = FixedReadout();
+        interactor.PlayAcceptedFeedback(readout);
+        interactor.AdvanceFeedback(0.08);
+        var repeatedReadoutFixed = FixedReadout();
+        interactor.AdvanceFeedback(0.30);
+        var readoutRestored = FixedReadout();
+
+        var button = interactor.Bindings.Single(binding => binding.ActionId == "toggle-length_valid");
+        var cap = (Node3D)button.Node.FindChild("KIN_pushbutton", true, false);
+        var authoredCap = cap.Transform;
+        var authoredStand = button.Node.Transform;
+        interactor.PlayAcceptedFeedback(button);
+        interactor.AdvanceFeedback(0.08);
+        var capPressed = cap.Position.DistanceTo(authoredCap.Origin) > 0.001f;
+        var standUnmoved = button.Node.Transform.IsEqualApprox(authoredStand);
+        var firstPress = cap.Transform;
+        interactor.PlayAcceptedFeedback(button);
+        interactor.AdvanceFeedback(0.08);
+        var repeatHasNoExtraTravel = cap.Transform.IsEqualApprox(firstPress);
+        interactor.AdvanceFeedback(0.30);
+        var repeatReturnsHome = cap.Transform.IsEqualApprox(authoredCap);
+        var passed = standFixed && repeatedReadoutFixed && readoutRestored && capPressed
+            && standUnmoved && repeatHasNoExtraTravel && repeatReturnsHome;
+        GD.Print($"CONTROL_FEEDBACK_VERIFY {(passed ? "PASS" : "FAIL")} standFixed={standFixed} repeatedReadoutFixed={repeatedReadoutFixed} readoutRestored={readoutRestored} capPressed={capPressed} standUnmoved={standUnmoved} repeatHasNoExtraTravel={repeatHasNoExtraTravel} repeatReturnsHome={repeatReturnsHome}");
+        return passed;
     }
 
     private bool VerifySceneControlPicking()

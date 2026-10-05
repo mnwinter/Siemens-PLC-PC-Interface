@@ -24,7 +24,7 @@ public sealed class SceneControlInteractor
         float FeedbackTravelM = 0.018f,
         string ReleaseWhenPoint = ""
     );
-    private sealed record ActivePulse(Node3D Target, Transform3D AuthoredTransform, double ElapsedSeconds);
+    private sealed record ActivePulse(Node3D Target, Transform3D AuthoredTransform, double ElapsedSeconds, float TravelM);
 
     private readonly IReadOnlyList<Binding> _bindings;
     private readonly List<ActivePulse> _activePulses = [];
@@ -49,20 +49,28 @@ public sealed class SceneControlInteractor
     {
         var target = binding.Node.FindChild("KIN_pushbutton", true, false) as Node3D
             ?? binding.Node.FindChild("KIN_estop", true, false) as Node3D;
-        target ??= binding.Node;
+        // A numeric input/display is clickable, but its stand is fixed. Only
+        // a modeled button member, or an explicitly bound individual mesh
+        // such as the conveyor E-stop cap, has mechanical press travel.
+        target ??= binding.Node as MeshInstance3D;
+        if (target is null) return;
+
+        // A second accepted click can arrive before release. Keep the first
+        // authored home; recording the depressed pose would accumulate drift.
+        var authored = _activePulses.FirstOrDefault(pulse => pulse.Target == target)?.AuthoredTransform
+            ?? target.Transform;
+        _activePulses.RemoveAll(pulse => pulse.Target == target);
 
         if (binding.ReleaseWhenPoint.Length > 0)
         {
-            _activePulses.RemoveAll(pulse => pulse.Target == target);
             if (!_latchedFeedback.ContainsKey(target))
-                _latchedFeedback[target] = (target.Transform, binding.ReleaseWhenPoint);
+                _latchedFeedback[target] = (authored, binding.ReleaseWhenPoint);
             target.Transform = _latchedFeedback[target].AuthoredTransform
                 .TranslatedLocal(Vector3.Forward * binding.FeedbackTravelM);
             return;
         }
 
-        _activePulses.RemoveAll(pulse => pulse.Target == target);
-        _activePulses.Add(new ActivePulse(target, target.Transform, 0.0));
+        _activePulses.Add(new ActivePulse(target, authored, 0.0, binding.FeedbackTravelM));
     }
 
     /// <summary>Advances accepted-control feedback while preserving its authored pose.</summary>
@@ -79,10 +87,10 @@ public sealed class SceneControlInteractor
 
             var elapsed = pulse.ElapsedSeconds + delta;
             var depth = PressFraction(elapsed);
-            // KIN_pushbutton / KIN_estop use their local Z axis as their
-            // declared linear-travel axis. The authored catalog limits this
-            // to 18 mm, matching the asset's kinematic contract.
-            pulse.Target.Transform = pulse.AuthoredTransform.TranslatedLocal(Vector3.Forward * (0.018f * depth));
+            // KIN_pushbutton / KIN_estop use local Z travel. Catalog buttons
+            // default to 18 mm; an explicitly bound cap can declare its own
+            // travel without moving its fixed mounting assembly.
+            pulse.Target.Transform = pulse.AuthoredTransform.TranslatedLocal(Vector3.Forward * (pulse.TravelM * depth));
             if (elapsed < 0.28)
             {
                 _activePulses[index] = pulse with { ElapsedSeconds = elapsed };

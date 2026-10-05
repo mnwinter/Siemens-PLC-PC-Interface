@@ -1,5 +1,22 @@
 # Whole program review - 2026-10-03
 
+Control feedback repair (2026-10-05): clickable numeric displays previously
+depressed their entire fixed stand; repeated clicks during a press captured
+the depressed pose as a new home and accumulated permanent drift. Mechanical
+feedback now targets modeled button members or explicitly bound individual
+meshes. Repeated presses retain the original home, and use declared travel.
+The seven-check composed-asset suite failed before the fix and passes afterward;
+the rendered scene-control verifier, picking, controller ownership and E-stop
+checks pass. Build has zero warnings/errors. Logs are
+`.tools/control-feedback-red.log` and `.tools/control-feedback-rendered.log`.
+Native Windows Box Volume wide FR/FL and close FL were inspected. Four L,
+three W and three H readout clicks produced 850/720/720 without moving their
+stands. Three actual length-valid cap clicks set its flag True without moving
+the mount; Reset showed four zero readouts and the shown flags False. PLC
+remained DISCONNECTED and no controller was loaded for this input/geometry
+pass. Owned window exited zero. This is not a new five-angle or calculation
+acceptance pass; those are recorded separately below.
+
 Pusher rod and off-station projection repair (2026-10-05): native Scene 74
 dragged its infeed carton sideways when the pusher extended with the conveyor
 OFF and photoeye FALSE. The plant correctly withheld transfer/counting; the

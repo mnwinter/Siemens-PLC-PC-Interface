@@ -10,6 +10,17 @@ includes failed scenes; it is not a count of accepted scenes.
 
 ## Acceptance method
 
+Control feedback continuation (2026-10-05): numeric readout clicks no longer
+translate fixed stands. Repeated modeled-button presses retain their original
+home instead of accumulating travel. The seven-check composed Box Volume suite
+fails before and passes after the fix; rendered control verification and clean build
+pass. Native wide FR/FL and close FL inspection with repeated L/W/H readout
+clicks showed fixed housings/masts/bases and values 850/720/720. Three actual
+length-valid cap clicks toggled True with a stationary mount. Reset returned
+four zero readouts and shown flags False; PLC disconnected, empty exercise,
+owned window exit zero. This bounded pass adds input/feedback evidence, not
+new five-angle or loaded calculation acceptance.
+
 Pusher continuation (2026-10-05): Scene 74 rod motion now stretches along the
 imported asset's parent X, using its delivered 960 mm length. The gland end
 stays fixed, the free end follows the clevis and transverse diameter stays
