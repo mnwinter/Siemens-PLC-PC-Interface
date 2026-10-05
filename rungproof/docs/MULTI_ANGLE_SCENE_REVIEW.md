@@ -28,6 +28,19 @@ Every row requires native inspection.
 
 ## Repairs and open findings
 
+Luggage/Pallet carton repair (2026-10-04): scene 64 and 71 box_1 origins
+Y=0 -> 0.9 m match the measured carrying belt. Four delivered-mesh support/
+solid-clearance checks fail before and pass after. Fresh normal native instances
+of each inspected FR/FL/RL/RR/T and carton Top/FL close confirm contact and
+footprint. This does not repair luggage identities/weight contract or pallet
+sensor/post/display assembly. Build zero warnings/errors; all 155 geometry/
+reference checks, both initial-state contracts and 142 controller checks pass;
+no real PLC transport/connection. App shell passes 77 scenes/294 assets but
+retains four known headless position errors and missing-workspace warning.
+Evidence: luggage-pallet-{red-build,red-geometry,build,geometry,luggage-contract,
+count-contract,controller,shell}.log, luggage-carton-native-final.log,
+pallet-count-carton-native-final.log. Initial 77-scene coverage includes failures;
+all open repairs and unverified motion remain. Goal active.
 - Catalog completion checkpoint (2026-10-04): scenes 66-77 each inspected in
   native FR/FL/RL/RR/T. This completes initial static coverage, including failures;
   it does not complete repairs, motion sweeps or whole-program acceptance.
@@ -917,14 +930,14 @@ count as this scene's multi-angle or runtime acceptance.
 | 61 | `lab-5-08-drawbridge-control` | 43 | Native FR/FL/RL/RR/T | FAIL/open: scissor table, guard and shutter instead of bridge route; only lamp outputs, no bridge motion |
 | 62 | `lab-5-09-bag-indexing-conveyor` | 37 (historic) | Repaired native FR/FL/RL/RR/T; carton top/FR close | Carton belt support repaired. FAIL/open: carton/bag identity, outside sensors, only lamp outputs; indexing/reversal unverified |
 | 63 | `lab-5-10-coating-line` | 97 | Native FR/FL/RL/RR/T | FAIL/open: CNC occupies belt, disconnected coating/spray/ventilation props; only lamp outputs, process unverified |
-| 64 | `lab-6-07-luggage-weight-sort` | 110 | Native FR/FL/RL/RR/T | FAIL/open: buried carton, shutter display, disconnected weighing/rejecting layout; no measured weight/numeric class, only lamps |
+| 64 | `lab-6-07-luggage-weight-sort` | 110 | Native FR/FL/RL/RR/T | Carton support repaired/re-inspected wide and Top/FL close. FAIL/open: shutter display, disconnected weighing/rejecting layout; no numeric weight/class, only lamps |
 | 65 | `lab-6-08-hand-dryer` | 634 | Native FR/FL/RL/RR/T | FAIL/open: overlapping shutters and disconnected fan/panel/bottle props; no remaining-time point/display binding, only lamp outputs |
 | 66 | `lab-9-01-sum-function` | 0 | Native FR/FL/RL/RR/T | Static clear spacing; wrong calculation/display props, no numeric operand/result contract |
 | 67 | `lab-9-02-product-function` | 0 | Native FR/FL/RL/RR/T | Static clear spacing; wrong calculation/display props, no numeric factors/product contract |
 | 68 | `lab-9-03-sum-and-counter-function` | 0 | Native FR/FL/RL/RR/T | Static clear spacing; no numeric result/event count contract; CNC unbound |
 | 69 | `lab-9-04-function-selector` | 0 | Native FR/FL/RL/RR/T | Function validity is not a choice value; numeric operands/result and selector binding unresolved |
 | 70 | `lab-9-10-box-volume` | 46 | Native FR/FL/RL/RR/T | Two shutter substitutes, obscured carton; no numeric dimension/volume contract |
-| 71 | `lab-9-11-pallet-counting` | 86 | Native FR/FL/RL/RR/T | FAIL/open: buried carton, white pallet/shutter-post type sensor, shutter display. Authored Demo 4 five detection edges/Stop/Run/Reset checked |
+| 71 | `lab-9-11-pallet-counting` | 86 | Native FR/FL/RL/RR/T | Carton support repaired/re-inspected wide and Top/FL close. FAIL/open: white pallet/shutter-post type sensor, shutter display. Demo 4 five detection edges/Stop/Run/Reset checked |
 | 72 | `lab-9-12-ev-charging-manager` | 95 | Native FR/FL/RL/RR/T | FAIL/open: shutters/fluid props instead of EV charging route; energy pulse/accumulation contract absent |
 | 73 | `scene-1-conveyor-stop` | 34 | Native FR/FL/RL/RR/T | Apparent carton support gap; authored Demo 3 start/advance/photoeye stop/Stop/Reset checked; clearance sweep open |
 | 74 | `scene-2-conveyor-pusher` | 88 | Native FR/FL/RL/RR/T | Apparent carton support gap; no receiver support; pusher/photoeye motion clearance unresolved |

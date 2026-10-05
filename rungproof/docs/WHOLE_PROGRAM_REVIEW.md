@@ -1,5 +1,20 @@
 # Whole program review - 2026-10-03
 
+Luggage/Pallet carton repair (2026-10-04): scene 64 and 71 box_1 origins
+Y=0 -> 0.9 m match the measured carrying belt. Four delivered-mesh support/
+solid-clearance checks fail before and pass after. Fresh normal native instances
+of each inspected FR/FL/RL/RR/T and carton Top/FL close confirm contact and
+footprint. This does not repair luggage identities/weight contract or pallet
+sensor/post/display assembly. Build zero warnings/errors; all 155 geometry/
+reference checks, both initial-state contracts and 142 controller checks pass;
+no real PLC transport/connection. App shell passes 77 scenes/294 assets but
+retains four known headless position errors and missing-workspace warning.
+Evidence: luggage-pallet-{red-build,red-geometry,build,geometry,luggage-contract,
+count-contract,controller,shell}.log, luggage-carton-native-final.log,
+pallet-count-carton-native-final.log. Initial 77-scene coverage includes failures;
+all open repairs and unverified motion remain. Goal active.
+Earlier checkpoint:
+
 Catalog completion checkpoint (2026-10-04): all 77 scenes now have initial
 native FR/FL/RL/RR/T inspections, including failed scenes. No pending initial
 static rows; repairs and motion/controller acceptance remain open. Scenes

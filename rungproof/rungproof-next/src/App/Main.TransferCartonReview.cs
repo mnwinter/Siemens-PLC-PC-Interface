@@ -12,7 +12,9 @@ public partial class Main
         {
             "lab-3-01-guarded-pallet-transfer",
             "lab-4-08-package-grouping",
-            "lab-5-09-bag-indexing-conveyor"
+            "lab-5-09-bag-indexing-conveyor",
+            "lab-6-07-luggage-weight-sort",
+            "lab-9-11-pallet-counting"
         })
         {
             AddMigratedScene(sceneId, _candidateCatalog!, _mainCamera!, false, false);
