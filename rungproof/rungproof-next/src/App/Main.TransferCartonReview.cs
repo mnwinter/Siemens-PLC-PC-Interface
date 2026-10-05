@@ -187,8 +187,7 @@ public partial class Main
         {
             ("lab-4-07-parking-garage-entry", "training_accessory_6"),
             ("lab-6-08-hand-dryer", "training_accessory_6"),
-            ("lab-6-07-luggage-weight-sort", "training_accessory_6"),
-            ("lab-9-10-box-volume", "training_accessory_4")
+            ("lab-6-07-luggage-weight-sort", "training_accessory_6")
         })
         {
             AddMigratedScene(sceneId, _candidateCatalog!, _mainCamera!, false, false);
@@ -594,6 +593,85 @@ public partial class Main
             return overlap.X <= 0.005f || overlap.Y <= 0.005f || overlap.Z <= 0.005f
                 || !OrientedBoxesPenetrate(part, other);
         })), "box_volume_fixture_clear_of_controls_and_readout");
+    }
+
+    private void VerifyBoxVolumeNumericWorkflow(Action<bool, string> check)
+    {
+        AddMigratedScene("lab-9-10-box-volume", _candidateCatalog!, _mainCamera!, false, false);
+        var root = _sceneCompositionRoot!;
+        var runtime = _sceneRuntime!;
+        var displayIds = new[] { "numeric_display_0", "numeric_display_1", "numeric_display_2", "training_accessory_4" };
+        Label3D? Readout(int index) => root.GetNodeOrNull<Node3D>(displayIds[index])?.GetNodeOrNull<Label3D>("NumericReadout");
+        var live = Enumerable.Range(0, 4).All(i => Readout(i)?.Text.EndsWith("\n0", StringComparison.Ordinal) == true);
+        check(live, "box_volume_four_live_numeric_readouts_initially_zero");
+        if (!live) return; // Report the missing contract without obscuring other scene checks.
+        bool Clear(MeshInstance3D a, MeshInstance3D b)
+        {
+            var overlap = ReviewBounds(a).Intersection(ReviewBounds(b)).Size;
+            return overlap.X <= 0.005f || overlap.Y <= 0.005f || overlap.Z <= 0.005f || !OrientedBoxesPenetrate(a, b);
+        }
+        var displays = displayIds.Select(id => root.GetNode<Node3D>(id)).ToArray();
+        check(displays.All(display => ReviewMeshes(display).All(part => root.GetChildren().OfType<Node3D>()
+            .Where(other => other != display).SelectMany(ReviewMeshes).All(other => Clear(part, other)))),
+            "box_volume_all_readouts_clear_of_fixture_carton_and_controls");
+        check(displays.All(display =>
+        {
+            var foot = (MeshInstance3D)display.FindChild("COUNT_DISPLAY_base", true, false);
+            var mast = (MeshInstance3D)display.FindChild("COUNT_DISPLAY_mast", true, false);
+            var head = (MeshInstance3D)display.FindChild("COUNT_DISPLAY_housing", true, false);
+            return MathF.Abs(ReviewBounds(foot).Position.Y) < 0.001f
+                && ReviewBounds(mast).Intersects(ReviewBounds(foot).Grow(0.001f))
+                && ReviewBounds(mast).Intersects(ReviewBounds(head));
+        }), "box_volume_numeric_stands_grounded_and_supported");
+        var reference = LadderEditorProjectJson.Load(FileAccess.GetFileAsString("res://programs/examples/09-box-volume-reference.rpproj.json"));
+        check(reference.IsReadable, "box_volume_reference_readable");
+        if (reference.Document is null) throw new InvalidOperationException("Box-volume reference is unreadable.");
+        EnableVirtualControllerProgram(reference.Document.BuildProgram());
+        try
+        {
+            _virtualController!.Run();
+            void Scan() => _PhysicsProcess(0.04);
+            void Toggle(string point) { runtime.ExecuteAction("toggle-" + point); Scan(); }
+            void Next(string point, int times = 1) { for (var i = 0; i < times; i++) runtime.ExecuteAction("cycle-" + point); Scan(); }
+            bool Result(long value, bool valid) => Equals(runtime.Points["volume_mm3"], value)
+                && Equals(runtime.Points["volume_result_valid"], valid) && Readout(3)!.Text == $"VOLUME mm3\n{value}";
+            Toggle("length_valid"); Toggle("width_valid"); Toggle("height_valid");
+            check(Result(0, false), "box_volume_zero_dimensions_invalid_despite_manual_validity");
+            Next("length_mm", 4); Next("width_mm", 3); Next("height_mm", 3);
+            check(Readout(0)!.Text == "L mm NEXT\n850" && Readout(1)!.Text == "W mm NEXT\n720"
+                && Readout(2)!.Text == "H mm NEXT\n720", "box_volume_manual_mm_cycles_update_readouts");
+            check(Result(440640000, true), "box_volume_850_by_720_by_720_publishes_same_scan_mm3");
+            Next("height_mm");
+            check(Result(520200000, true), "box_volume_changed_height_recalculates");
+            foreach (var point in new[] { "length_valid", "width_valid", "height_valid" })
+            {
+                Toggle(point);
+                check(Result(520200000, false), $"box_volume_{point}_loss_invalidates_retains_last_value");
+                Toggle(point);
+            }
+            // An in-memory sampled-input fixture exercises the reference guard
+            // beyond bounded UI cycles; it never contacts or writes a PLC.
+            bool Guard(double value)
+            {
+                var inputs = new Dictionary<string, double>(SampleVirtualControllerNumericInputs()) { ["height_mm"] = value };
+                _virtualController.Advance(0.02, SampleVirtualControllerInputs, () => inputs,
+                    CommitVirtualControllerOutputs, CommitVirtualControllerNumericOutputs, runtime.AdvanceSimulation);
+                return Result(520200000, false);
+            }
+            check(Guard(-1), "box_volume_negative_dimension_invalid");
+            check(Guard(1001), "box_volume_above_1000_mm_invalid_before_dint_multiply");
+            Next("length_mm"); Next("width_mm", 2); Next("height_mm");
+            check(Result(1000000000, true), "box_volume_upper_bound_product_fits_dint");
+            CommitVirtualControllerSnapshot(_virtualController.Stop());
+            check(Result(0, false), "box_volume_stop_clears_output_image");
+            _virtualController.Run(); Scan();
+            check(Result(1000000000, true), "box_volume_restart_recalculates_valid_dimensions");
+            runtime.ResetSimulation(); CommitVirtualControllerSnapshot(_virtualController.Reset());
+            check(Result(0, false) && Enumerable.Range(0, 3).All(i => Readout(i)!.Text.EndsWith("\n0", StringComparison.Ordinal))
+                && new[] { "length_valid", "width_valid", "height_valid" }.All(point => runtime.Points[point] is false),
+                "box_volume_reset_clears_numeric_and_boolean_inputs");
+        }
+        finally { DisableVirtualController(); }
     }
 
     private void VerifyBaseConveyorCartonSupport(Action<bool, string> check)

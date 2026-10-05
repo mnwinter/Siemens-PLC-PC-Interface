@@ -6,7 +6,7 @@ Scene contract: `res://scenes/migrated/lab-9-10-box-volume.scene.json`
 
 ## Purpose
 
-Manual box-dimension validity exercise. A static three-head fixture supports the carton; numeric dimensions and volume are not modeled. The MEASUREMENT readout has no live value.
+Set manual length, width and height in mm, then confirm each validity flag. Your loaded ladder program calculates volume in mm3. The fixture is static.
 
 ## Expected I/O to operate this scene
 
@@ -18,6 +18,10 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | `width_valid` | `BOOL` | **PC** | `False` |
 | `height_valid` | `BOOL` | **PC** | `False` |
 | `volume_result_valid` | `BOOL` | **PLC** | `False` |
+| `length_mm` | `DINT` | **PC** | `0` |
+| `width_mm` | `DINT` | **PC** | `0` |
+| `height_mm` | `DINT` | **PC** | `0` |
+| `volume_mm3` | `DINT` | **PLC** | `0` |
 
 ## Operator actions
 
@@ -26,6 +30,9 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | `Toggle length valid` | `toggle` | `length_valid` |
 | `Toggle width valid` | `toggle` | `width_valid` |
 | `Toggle height valid` | `toggle` | `height_valid` |
+| `Next length (mm)` | `cycle` | `length_mm` |
+| `Next width (mm)` | `cycle` | `width_mm` |
+| `Next height (mm)` | `cycle` | `height_mm` |
 
 ## Equipment bindings
 
@@ -35,6 +42,10 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | `width_valid` | `switch_6` | `switch` |
 | `height_valid` | `switch_7` | `switch` |
 | `volume_result_valid` | `indicator_2` | `indicator` |
+| `length_mm` | `numeric_display_0` | `numericDisplay` |
+| `width_mm` | `numeric_display_1` | `numericDisplay` |
+| `height_mm` | `numeric_display_2` | `numericDisplay` |
+| `volume_mm3` | `training_accessory_4` | `numericDisplay` |
 
 ## Expected equipment
 
@@ -43,10 +54,13 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | `box_0` | `box` | Box Volume Calculation box |
 | `indicator_2` | `indicator` | Box Volume Calculation indicator |
 | `training_accessory_3` | `trainingAccessory` | Static dimension fixture with carrying bench |
-| `training_accessory_4` | `trainingAccessory` | Box Volume Calculation - numeric measurement display |
 | `switch_5` | `switch` | Length valid manual input |
 | `switch_6` | `switch` | Width valid manual input |
 | `switch_7` | `switch` | Height valid manual input |
+| `numeric_display_0` | `trainingAccessory` | L mm NEXT live numeric readout |
+| `numeric_display_1` | `trainingAccessory` | W mm NEXT live numeric readout |
+| `numeric_display_2` | `trainingAccessory` | H mm NEXT live numeric readout |
+| `training_accessory_4` | `trainingAccessory` | VOLUME mm3 live numeric readout |
 
 ## Stop and safety boundary
 
@@ -54,20 +68,19 @@ A normal Stop removes PLC-owned commands according to the scene runtime. This do
 
 ## Machine guide
 
-Manual box-dimension validity exercise. A static three-head fixture supports the carton; numeric dimensions and volume are not modeled. The MEASUREMENT readout has no live value.
+Set manual length, width and height in mm, then confirm each validity flag. Your loaded ladder program calculates volume in mm3. The fixture is static.
 
 ### Start conditions
 
-- The common PLC/watchdog foundation is healthy.
-- All required simulator inputs are at their documented initial state.
+- Local offline runtime selected; load the reference or author a program.
 
 ### Normal sequence
 
-- Apply the requested input condition.
-- Verify only the documented PLC outputs respond.
+- Open programs/examples/09-box-volume-reference.rpproj.json with Project > Open, verify and load offline, then Run.
+- Set length=850, width=720, height=720 mm and enable all three validity flags. VOLUME mm3 displays 440640000 and its lamp turns green.
 
 ### Expected observations
 
-- Volume result-valid is asserted only when all three dimensions are valid.
-- The readout says NO LIVE VALUE and is not bound to a numeric point.
-- The carton rests on the fixture bench; three sensor heads illustrate mounting only. LENGTH / WIDTH / HEIGHT buttons toggle manual validity inputs.
+- All dimensions must be positive and at most 1000 mm. Qualified volume is length*width*height in mm3; 1000*1000*1000=1000000000 fits DINT.
+- The carton remains supported on the bench; its three heads are static mounting illustrations, not simulated measuring sensors.
+- An empty exercise does not calculate until a program is loaded.

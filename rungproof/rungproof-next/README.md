@@ -104,6 +104,25 @@ does not model FB parameter transfer or instance-local storage. The exercise
 starts empty until a program is loaded. Readouts sit behind the pushbuttons
 so their picking areas do not intercept front-view button clicks.
 
+## Box Volume exercise reference
+
+Lab 9.10 now provides manual DINT length, width and height in millimetres and
+a live PLC-owned volume in cubic millimetres. Open
+`programs/examples/09-box-volume-reference.rpproj.json` through Logic Editor >
+Project > Open, verify and load offline, then return to the scene and Run.
+The three input readouts cycle 0, 250, 500, 720, 850, 1000 mm. Set 850/720/720
+and enable all three validity buttons: expect `440640000` and a green lamp.
+All six actions also appear in the sidebar.
+
+Main always calls FB_Volume; two MUL networks calculate base area and volume
+using global symbolic tags. The reference requires each dimension to be
+1..1000 mm, keeping the largest result (`1000000000`) within DINT range.
+Missing validity or an invalid dimension clears the lamp and retains the last
+result; Stop clears outputs and Reset clears all inputs and values. The
+exercise starts empty. Its carton and sensor heads remain static illustrations;
+manual dimensions do not resize the carton or represent sensor acquisition.
+FB parameter transfer and instance-local storage are not modeled.
+
 ## Sum and Counter exercise reference
 
 Scene `lab-9-03-sum-and-counter-function` opens with an empty ladder exercise.

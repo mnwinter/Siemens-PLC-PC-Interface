@@ -372,6 +372,7 @@ public partial class Main
             VerifyFunctionSelectorWorkflow(Check);
             VerifySumCounterWorkflow(Check);
             VerifyBoxVolumeFixture(Check);
+            VerifyBoxVolumeNumericWorkflow(Check);
             VerifyPalletCountReadoutWorkflow(Check);
             VerifyNumericSceneOutputTypes(Check);
             VerifyRadarMountAndBeam(Check);

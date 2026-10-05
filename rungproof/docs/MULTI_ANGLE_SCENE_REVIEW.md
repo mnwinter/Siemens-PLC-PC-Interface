@@ -28,6 +28,42 @@ Every row requires native inspection.
 
 ## Repairs and open findings
 
+Box Volume numeric repair (2026-10-05): scene 70 preserves its four Boolean
+point names/owners and adds PC-owned DINT length_mm/width_mm/height_mm plus
+PLC-owned volume_mm3. Four live readouts replace the static MEASUREMENT legend;
+input cycles are 0,250,500,720,850,1000 mm. All six native sidebar actions fit.
+The carton/bench/three-head fixture remains static; manual dimensions neither
+resize the carton nor simulate sensor acquisition. An empty exercise still
+requires a loaded/authored controller. The opt-in project is
+`programs/examples/09-box-volume-reference.rpproj.json`: Main always calls FB_Volume;
+two MUL networks use global base_area_mm2 memory, then publish validity from
+all three manual flags and 1..1000 mm numeric bounds. The maximum product is
+1000000000 mm3, within DINT range. Missing validity or invalid dimensions clears
+validity while retaining the last numeric result; Stop zeroes output image;
+Reset clears inputs/results. FB parameter/instance semantics and source parity
+are not established. No transport or physical PLC writes were introduced.
+Native Windows FR/FL/RL/RR/Top and close FL were individually inspected: grounded,
+supported stands, no separate-equipment penetration, carton seated on bench.
+Close FL clips the far-left fixture edge and output-display base; wide views
+supply that coverage. Project > Open loaded the actual reference; Online >
+Verify + load offline reported 2 blocks, 1 task, 4 networks and 10 tags. Run
+and all six actual 3D inputs produced 850*720*720 = 440640000 and a green lamp.
+Changing all inputs to 1000 displayed 1000000000; both numeric strings fit
+the readout. Width-valid loss cleared lamp/validity but retained that result;
+restoration revalidated it; zero height again cleared validity. Stop showed
+volume 0; Reset showed all four readouts 0, shown flags False and scan 0.
+PLC stayed disconnected. Owned review window closed with exit 0.
+17 new integration/geometry checks replace three static-readout checks; all
+290 checks PASS. The missing-live-readout regression first failed on the old
+scene. Negative/above-limit guard tests use an in-memory sampled-input fixture,
+not UI entry or transport. Build zero warnings/errors; app-shell 77 scenes/294
+assets/one existing SYSREADY diagnostic PASS; help 294/77 PASS. Controller tests
+rerun: 143 PASS/0 FAIL, no PLC transport constructed. Catalog now has 599
+equipment instances, including 119 training accessories.
+Logs: .tools/box-volume-{red,build,geometry,shell,help,controller,native}.log.
+Automatic dimension acquisition, candidate reusable-asset approval, remaining
+scene/runtime findings and full packaging acceptance remain open.
+
 Shared 3D control picking repair (2026-10-05): the previous picker merged
 all meshes of a control into one world-axis bounding box. Empty space between
 readout head, mast and foot could intercept another control's click; rotations
@@ -1390,7 +1426,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 67 | `lab-9-02-product-function` | 0 | Native FR/FL/RL/RR/T; close front; actual reference Open/Run/Stop/Reset; validity loss; all five 3D inputs after shared-picker repair | Two PC DINT factors and live PRODUCT; 2*5=10 observed. Seven grounded, clear props. Shared-picker follow-up correctly targets all five controls and Reset clears them. Global-tag FB reference opt-in; FB parameter/instance semantics and independent asset approval open |
 | 68 | `lab-9-03-sum-and-counter-function` | 0 (historical) | Native FR/FL/RL/RR/T; close operand/result views; actual 3D operand clicks; Project Open/Verify + Load; Run/Stop/Reset | CNC removed; typed DINT operands/sum/count and live readouts added. Opt-in reference displays 2+5=7 and one held completion count, Stop zeros image, Run republishes retained count, Reset clears. Eleven integration/clearance checks pass. Open: independent reusable-asset approval; manual call-complete feedback; exercise requires authored/explicit reference logic |
 | 69 | `lab-9-04-function-selector` | 0 (historical) | Final native FR/FL/RL/RR/Top, close FL; actual six 3D inputs; Project Open, Run, invalid choice, Stop/Reset | Live DINT A/B/choice/RESULT and opt-in FB routing to SUM/PRODUCT; observed 7/10 and invalid 99 clears validity. Native picking conflict repaired by moving readouts behind buttons; supports and separate-equipment clearance pass. Open: source-selector parity and FB instance/parameter semantics unverified; QA close/top cropping documented |
-| 70 | `lab-9-10-box-volume` | 46 (historical) | Native FR/FL/RL/RR/T; replacement fixture and readout five focus views each; actual 3D buttons/Reset | Static three-head fixture replaces shutter; carton supported on bench, CNC removed and rear readout view cleared. Seven geometry checks and LENGTH/WIDTH/HEIGHT manual inputs/Reset pass. Open: no numeric dimension acquisition, volume calculation or live MEASUREMENT value; independent asset approval pending |
+| 70 | `lab-9-10-box-volume` | 46 (historical) | Updated native FR/FL/RL/RR/Top and close FL; all six 3D inputs; actual reference Open/Verify + Load/Run; invalid value/flag; Stop/Reset | Static supported fixture/carton and four live DINT readouts; observed 850*720*720=440640000 mm3 and maximum 1000000000. Missing validity/zero dimensions invalidate retained result. Readouts grounded/clear; 17 new checks pass. Open: automatic acquisition, source parity, FB instance/parameter semantics and independent asset approval; close-view cropping documented |
 | 71 | `lab-9-11-pallet-counting` | 86 | Native FR/FL/RL/RR/T | Carton/fixture/readout geometry repaired and five views/details inspected. Live DINT count/readout FR/FL and invalid/five-edge/held/permissive/Stop/Run/Reset native checks pass. Optical classification/pallet travel/CNC integration open |
 | 72 | `lab-9-12-ev-charging-manager` | 95 | Native FR/FL/RL/RR/T | FAIL/open: shutters/fluid props instead of EV charging route; energy pulse/accumulation contract absent |
 | 73 | `scene-1-conveyor-stop` | 34 | Native FR/FL/RL/RR/T | Carton belt contact/load-end footprint repaired; native five wide/Top/FL close and Demo 3 Run/Start/photoeye/Stop/Reset rechecked; full clearance open |

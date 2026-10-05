@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-9-10-box-volume",
   "name": "Lab 9.10 - Box Volume Calculation",
-  "description": "Manual box-dimension validity exercise. A static three-head fixture supports the carton; numeric dimensions and volume are not modeled. The MEASUREMENT readout has no live value.",
+  "description": "Set manual length, width and height in mm, then confirm each validity flag. Your loaded ladder program calculates volume in mm3. The fixture is static.",
   "camera": {
     "position": [
       11,
@@ -69,20 +69,6 @@
       }
     },
     {
-      "id": "training_accessory_4",
-      "type": "trainingAccessory",
-      "label": "Box Volume Calculation - numeric measurement display",
-      "position": [
-        -3.3000000000000003,
-        0,
-        1.8
-      ],
-      "config": {
-        "assetName": "numeric measurement display",
-        "catalogAssetId": "training.accessory.numeric_measurement_display.v1"
-      }
-    },
-    {
       "id": "switch_5",
       "type": "switch",
       "label": "Length valid manual input",
@@ -129,6 +115,73 @@
         "color": 2204518,
         "faceLabel": "HEIGHT"
       }
+    },
+    {
+      "id": "numeric_display_0",
+      "type": "trainingAccessory",
+      "label": "L mm NEXT live numeric readout",
+      "position": [
+        -0.65,
+        0,
+        -1.8
+      ],
+      "config": {
+        "assetName": "count display",
+        "catalogAssetId": "training.accessory.count_display.v1",
+        "display": "numeric",
+        "displayLabel": "L mm NEXT",
+        "action": "cycle-length_mm"
+      }
+    },
+    {
+      "id": "numeric_display_1",
+      "type": "trainingAccessory",
+      "label": "W mm NEXT live numeric readout",
+      "position": [
+        1.55,
+        0,
+        -1.8
+      ],
+      "config": {
+        "assetName": "count display",
+        "catalogAssetId": "training.accessory.count_display.v1",
+        "display": "numeric",
+        "displayLabel": "W mm NEXT",
+        "action": "cycle-width_mm"
+      }
+    },
+    {
+      "id": "numeric_display_2",
+      "type": "trainingAccessory",
+      "label": "H mm NEXT live numeric readout",
+      "position": [
+        3.75,
+        0,
+        -1.8
+      ],
+      "config": {
+        "assetName": "count display",
+        "catalogAssetId": "training.accessory.count_display.v1",
+        "display": "numeric",
+        "displayLabel": "H mm NEXT",
+        "action": "cycle-height_mm"
+      }
+    },
+    {
+      "id": "training_accessory_4",
+      "type": "trainingAccessory",
+      "label": "VOLUME mm3 live numeric readout",
+      "position": [
+        -3.3,
+        0,
+        1.8
+      ],
+      "config": {
+        "assetName": "count display",
+        "catalogAssetId": "training.accessory.count_display.v1",
+        "display": "numeric",
+        "displayLabel": "VOLUME mm3"
+      }
     }
   ],
   "simulation": {
@@ -158,6 +211,31 @@
         "owner": "PLC",
         "initial": false,
         "role": "output"
+      },
+      {
+        "name": "length_mm",
+        "type": "DINT",
+        "owner": "PC",
+        "initial": 0
+      },
+      {
+        "name": "width_mm",
+        "type": "DINT",
+        "owner": "PC",
+        "initial": 0
+      },
+      {
+        "name": "height_mm",
+        "type": "DINT",
+        "owner": "PC",
+        "initial": 0
+      },
+      {
+        "name": "volume_mm3",
+        "type": "DINT",
+        "owner": "PLC",
+        "initial": 0,
+        "role": "output"
       }
     ],
     "actions": [
@@ -178,6 +256,48 @@
         "label": "Toggle height valid",
         "type": "toggle",
         "point": "height_valid"
+      },
+      {
+        "id": "cycle-length_mm",
+        "label": "Next length (mm)",
+        "type": "cycle",
+        "point": "length_mm",
+        "values": [
+          0,
+          250,
+          500,
+          720,
+          850,
+          1000
+        ]
+      },
+      {
+        "id": "cycle-width_mm",
+        "label": "Next width (mm)",
+        "type": "cycle",
+        "point": "width_mm",
+        "values": [
+          0,
+          250,
+          500,
+          720,
+          850,
+          1000
+        ]
+      },
+      {
+        "id": "cycle-height_mm",
+        "label": "Next height (mm)",
+        "type": "cycle",
+        "point": "height_mm",
+        "values": [
+          0,
+          250,
+          500,
+          720,
+          850,
+          1000
+        ]
       }
     ],
     "rules": [],
@@ -203,49 +323,74 @@
         "equipmentId": "indicator_2",
         "mode": "indicator",
         "activeColor": "green"
+      },
+      {
+        "point": "length_mm",
+        "equipmentId": "numeric_display_0",
+        "mode": "numericDisplay",
+        "label": "L mm NEXT"
+      },
+      {
+        "point": "width_mm",
+        "equipmentId": "numeric_display_1",
+        "mode": "numericDisplay",
+        "label": "W mm NEXT"
+      },
+      {
+        "point": "height_mm",
+        "equipmentId": "numeric_display_2",
+        "mode": "numericDisplay",
+        "label": "H mm NEXT"
+      },
+      {
+        "point": "volume_mm3",
+        "equipmentId": "training_accessory_4",
+        "mode": "numericDisplay",
+        "label": "VOLUME mm3"
       }
     ]
   },
   "training": {
     "hints": [
-      "Translate the lesson into explicit state and permissive logic: Volume result-valid is asserted only when all three dimensions are valid.",
-      "Inputs are simulator feedback (length_valid, width_valid, height_valid); PLC logic owns volume_result_valid.",
-      "Test the initial state, the valid condition, and at least one missing permissive."
+      "L/W/H mm NEXT cycle manual DINT dimensions: 0,250,500,720,850,1000 mm. These inputs do not resize the static carton or come from the illustrated sensor heads.",
+      "The three buttons toggle manual dimension-valid flags. The reference also requires each numeric value to be 1..1000 mm before multiplying.",
+      "The PLC-authored program owns volume_mm3 and volume_result_valid. An old displayed value is invalid while its lamp is off."
     ],
     "solution": {
-      "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
+      "summary": "Original offline reference: Main always calls FB_Volume; two qualified MUL networks calculate length times width times height through global base_area_mm2 memory. This does not model FB parameter transfer, instance-local storage or sensor acquisition.",
       "steps": [
-        "Require the documented inputs: length_valid, width_valid, height_valid.",
-        "Command the documented outputs: volume_result_valid.",
-        "Remove PLC commands when the permissive is lost."
+        "Open programs/examples/09-box-volume-reference.rpproj.json with Project > Open, verify and load offline, then Run.",
+        "Set length=850, width=720, height=720 mm and enable all three validity flags. VOLUME mm3 displays 440640000 and its lamp turns green.",
+        "Zero, negative, above 1000 mm or a missing validity flag clears result-valid and retains the last result. Stop zeroes outputs; Reset clears all values and inputs."
       ],
-      "acceptance": "Volume result-valid is asserted only when all three dimensions are valid."
+      "acceptance": "All dimensions must be positive and at most 1000 mm. Qualified volume is length*width*height in mm3; 1000*1000*1000=1000000000 fits DINT."
     },
     "assetRequirements": [
-      "dimension sensors",
-      "numeric measurement display"
+      "Static three-head dimension fixture and supported carton",
+      "Three manual dimension-valid pushbuttons",
+      "Three clickable live DINT millimetre input readouts",
+      "Live PLC-owned DINT cubic-millimetre volume and validity lamp"
     ],
     "machineGuide": {
-      "purpose": "Manual box-dimension validity exercise. A static three-head fixture supports the carton; numeric dimensions and volume are not modeled. The MEASUREMENT readout has no live value.",
+      "purpose": "Set manual length, width and height in mm, then confirm each validity flag. Your loaded ladder program calculates volume in mm3. The fixture is static.",
       "startConditions": [
-        "The common PLC/watchdog foundation is healthy.",
-        "All required simulator inputs are at their documented initial state."
+        "Local offline runtime selected; load the reference or author a program."
       ],
       "normalSequence": [
-        "Apply the requested input condition.",
-        "Verify only the documented PLC outputs respond."
+        "Open programs/examples/09-box-volume-reference.rpproj.json with Project > Open, verify and load offline, then Run.",
+        "Set length=850, width=720, height=720 mm and enable all three validity flags. VOLUME mm3 displays 440640000 and its lamp turns green."
       ],
       "stopBehavior": [
-        "Removing the permissive removes PLC-owned commands.",
-        "Reset returns the module to its initial state."
+        "Zero, negative, above 1000 mm or a missing validity flag clears result-valid and retains the last result. Stop zeroes outputs; Reset clears all values and inputs."
       ],
       "faultBehavior": [
-        "A missing or stale input must fail safe and remain diagnosable."
+        "Do not treat a retained volume as valid when the validity lamp is off.",
+        "The 1000 mm reference limit keeps the three-factor product within DINT range."
       ],
       "expectedObservations": [
-        "Volume result-valid is asserted only when all three dimensions are valid.",
-        "The readout says NO LIVE VALUE and is not bound to a numeric point.",
-        "The carton rests on the fixture bench; three sensor heads illustrate mounting only. LENGTH / WIDTH / HEIGHT buttons toggle manual validity inputs."
+        "All dimensions must be positive and at most 1000 mm. Qualified volume is length*width*height in mm3; 1000*1000*1000=1000000000 fits DINT.",
+        "The carton remains supported on the bench; its three heads are static mounting illustrations, not simulated measuring sensors.",
+        "An empty exercise does not calculate until a program is loaded."
       ]
     },
     "sequenceNumber": 56,
@@ -262,7 +407,11 @@
       "length_valid",
       "width_valid",
       "height_valid",
-      "volume_result_valid"
+      "volume_result_valid",
+      "length_mm",
+      "width_mm",
+      "height_mm",
+      "volume_mm3"
     ],
     "changedTags": [],
     "previousAcceptance": [
@@ -274,7 +423,8 @@
       {
         "name": "initial-safe-state",
         "expect": {
-          "volume_result_valid": false
+          "volume_result_valid": false,
+          "volume_mm3": 0
         }
       }
     ]
