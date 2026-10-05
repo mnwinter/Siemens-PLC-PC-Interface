@@ -1,7 +1,7 @@
 # Multi-angle scene review - 2026-10-04
 
 Status: **active**. The prior software review did not establish multi-angle
-visual acceptance. Forty-two scenes have five-view native static inspections; 35 remain pending.
+visual acceptance. Fifty scenes have five-view native static inspections; 27 remain pending.
 Demo 5, Powder Batch Mixer, Parcel Size Sorter, Conveyor Inspection Cell,
 the Equipment Gallery, Drive Alarm-Code String and Chicken Label Print have repaired static layouts.
 The sorter operator Run still lacks a controller; eight simple panels now have corrected function plates and clear spacing. Other scenes
@@ -28,6 +28,35 @@ Every row requires native inspection.
 
 ## Repairs and open findings
 
+- Scenes 43-50 (2026-10-04): each has inspected native FR/FL/RL/RR/T views.
+  Counter/reset and pattern panels have clear static stand spacing, but their
+  persistent toggles expose precomputed count/pattern conditions rather than
+  raw counting/press events. No loaded controller or Run/Stop/Reset workflow was
+  exercised for these eight scenes. Their START plates remain ambiguous.
+  Repeat Cycle's CNC has no machine-output binding. Sequence Light Tower
+  promises four colors but has three-tier beacons and two green-only bindings.
+  Parking Entry's declared vehicle is visibly a MOTOR STARTER (FR close), with
+  two shutters and a wall panel; barrier_open binds only to a beacon, without
+  barrier/shutter motion or numeric occupancy feedback. Package Grouping's
+  carton was below its belt (top/FR close); Chain Lift has overlapping lift/
+  conveyor equipment, two scissor tables instead of the declared vertical hoist,
+  a floor carton and an isolated palletized-load accessory. Chain/lift outputs
+  bind only to beacons. Complete transfer, sensor feedback and motion remain open.
+  Baseline evidence: press-count-fixed-native.log, scene JSON bindings and
+  individually inspected native screenshots. Bounds counts in the table remain
+  the earlier inventory; they have not been regenerated for these repairs.
+- Guarded Transfer (40) and Package Grouping (49) carton support repair:
+  box_1 Y changes from 0 to 0.9 m, matching the actual transformed belt top.
+  Four new mesh checks fail before repair and pass after: carrying-footprint/
+  surface contact and separate-equipment solid clearance for each carton.
+  All 149 geometry/reference checks pass, build has zero warnings/errors, both
+  initial-state contracts pass. Rebuilt native normal-shell instances inspected
+  from all five wide angles and carton top/FR close views for both scenes.
+  Cartons now visibly rest on the belts. This placement repair does not accept
+  transfer motion, counter grouping, protective-function behavior or the other
+  misplaced accessories. Evidence: transfer-carton-{red-build,red-geometry,
+  build,geometry,guard-contract,group-contract,guard-native,group-native}.log.
+  Full catalog goal remains active.
 - Press-Count Lamp / Demo 1 (scene 42): native five static views show clear,
   grounded stands. Normal Run starts the authored two-network CTU program.
   Original control toggles rather than pulses: three native clicks leave the
@@ -767,17 +796,17 @@ count as this scene's multi-angle or runtime acceptance.
 | 37 | `lab-2-23-parcel-sorter` | 174 | FR/FL/RL/RR/T | Repaired static/declared plant path; normal Run lacks controller |
 | 38 | `lab-2-24-robot-cnc` | 29 | Native FR/FL/RL/RR/T; Start | Open: robot behind closed CNC back; workpiece support, reach, door/chuck transfer unverified; Start unloaded |
 | 39 | `lab-2-25-inspection-toggle` | 0 | Native FR/FL/RL/RR/T; repaired plate FR close; real editor create/load/Run/pulse/Stop/Reset | TOGGLE plate repaired, clear stands. Loaded one-network SET test lights beacon; discarded test is not odd/even lesson acceptance |
-| 40 | `lab-3-01-guarded-pallet-transfer` | 20 | Native FR/FL/RL/RR/T; carton top/FR close; guard toggle/Reset | FAIL/open: carton buried under belt; sensors/curtain/gate outside conveyor route. Transfer/protective behavior unverified |
+| 40 | `lab-3-01-guarded-pallet-transfer` | 20 (historic) | Native FR/FL/RL/RR/T; final carton top/FR close; earlier guard toggle/Reset | Carton support repaired and re-inspected. FAIL/open: sensors/curtain/gate outside conveyor route; transfer/protective behavior unverified |
 | 41 | `lab-3-02-robot-cell-safe-restart` | 42 | Native FR/FL/RL/RR/T; persistent reset toggle/Reset | FAIL/open: robot occupies CNC; no cell perimeter; reset toggle vs edge request mismatch; only lamp output bindings, no robot-motion binding |
 | 42 | `lab-4-01-press-count-lamp` | 0 | Native FR/FL/RL/RR/T; final FR close PULSE; normal Run, rail/3D pulses, Stop/Run/Reset | Pulse/plate repaired. Three presses light authored CTU lamp, Stop removes output, Run retains count, Reset clears; five integration checks pass |
-| 43 | `lab-4-02-counter-reset-lamp` | 0 | Pending | Pending |
-| 44 | `lab-4-03-repeat-cycle-counter` | 0 | Pending | Pending |
-| 45 | `lab-4-04-sequence-light-tower` | 0 | Pending | Pending |
-| 46 | `lab-4-05-dual-input-count-window` | 0 | Pending | Pending |
-| 47 | `lab-4-06-multi-press-confirmation` | 0 | Pending | Pending |
-| 48 | `lab-4-07-parking-garage-entry` | 20 | Pending | Pending |
-| 49 | `lab-4-08-package-grouping` | 118 | Pending | Pending |
-| 50 | `lab-4-09-chain-drive-lift` | 145 | Pending | Pending |
+| 43 | `lab-4-02-counter-reset-lamp` | 0 | Native FR/FL/RL/RR/T | Static stands clear. Precomputed count_reached and persistent reset toggle; actual counter/reset workflow unverified |
+| 44 | `lab-4-03-repeat-cycle-counter` | 0 | Native FR/FL/RL/RR/T | Static spacing clear. Precomputed cycle_count_complete; outputs only lamps, CNC motion absent; bounded-cycle behavior unverified |
+| 45 | `lab-4-04-sequence-light-tower` | 0 | Native FR/FL/RL/RR/T | FAIL/open: promised four-color sequence has three-tier beacons and two green-only bindings; behavior unverified |
+| 46 | `lab-4-05-dual-input-count-window` | 0 | Native FR/FL/RL/RR/T | Static stands clear. Precomputed channel-ready toggles; raw counting/window workflow unverified |
+| 47 | `lab-4-06-multi-press-confirmation` | 0 | Native FR/FL/RL/RR/T | Static stands clear. Precomputed pattern-ok toggles; raw press order/timing workflow unverified |
+| 48 | `lab-4-07-parking-garage-entry` | 20 | Native FR/FL/RL/RR/T; vehicle FR close | FAIL/open: vehicle is motor starter, two shutters/wall panel; barrier output only lamp; occupancy/barrier motion unverified |
+| 49 | `lab-4-08-package-grouping` | 118 (historic) | Native FR/FL/RL/RR/T; final carton top/FR close | Carton support repaired and re-inspected. FAIL/open: grouping/release outputs only lamps; separated receiver/stop/sensors and transfer behavior unverified |
+| 50 | `lab-4-09-chain-drive-lift` | 145 | Native FR/FL/RL/RR/T | FAIL/open: conveyor/lifts overlap, floor carton, disconnected pallet load; hoist is scissor table; chain/lift outputs only lamps; motion unverified |
 | 51 | `lab-4-10-cookie-packaging` | 146 | Pending | Pending |
 | 52 | `lab-4-11-barrel-fill-station` | 143 | Pending | Pending |
 | 53 | `lab-4-12-cable-cut-length` | 21 | Pending | Pending |

@@ -6,6 +6,24 @@ would otherwise be trapped in a local Codex session. It intentionally excludes
 machine-local Codex databases, credentials, screenshots from private chats, and
 temporary runtime state.
 
+Latest catalog/carton checkpoint (2026-10-04): coverage 50/77 native five-view
+static inspections; 27 pending including failures. Scenes 43-50 inspected;
+clear counter/pattern panels do not prove actual counting/press workflows.
+Four-color lesson has three tiers/green-only bindings. Garage vehicle is a
+motor starter (native close); shutter/barrier motion bindings absent. Package
+and chain-lift outputs only beacons; chain-lift conveyor/tables overlap.
+Guarded Transfer (40) and Package Grouping (49) box_1 origins move from Y=0 to
+0.9 m measured belt top. Rebuilt native normal-shell instances each inspected
+in FR/FL/RL/RR/T plus carton top/FR close. Four new support/clearance checks fail
+before and pass after; all 149 geometry/reference checks and both initial-state
+contracts pass, build zero warnings/errors. No controller/motion acceptance
+added. Logs: transfer-carton-{red-build,red-geometry,build,geometry,guard-contract,
+group-contract,guard-native,group-native}.log. Baseline scenes 43-50 in
+press-count-fixed-native.log. Continue with scene 51 and all remaining scenes,
+then open placement, identity, output-binding and workflow repairs. Goal active.
+
+Earlier checkpoint:
+
 Latest press-count checkpoint (2026-10-04): coverage 42/77 native five-view
 inspections, 35 pending including failures. Demo 1 aliases scene 42, not a
 separate catalog scene. Native baseline three action clicks left input true and

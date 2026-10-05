@@ -328,6 +328,7 @@ public partial class Main
             VerifyDrillFeedGeometry(Check);
             VerifyServiceDoorPlacement(Check);
             VerifyPressCountWorkflow(Check);
+            VerifyTransferCartonSupport(Check);
 
             AddMigratedScene("tank-radar", _candidateCatalog!, _mainCamera!, false, false);
             // Exercise an authored parent scale as well as configured sizing.

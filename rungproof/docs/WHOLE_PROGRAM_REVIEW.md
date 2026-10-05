@@ -1,5 +1,20 @@
 # Whole program review - 2026-10-03
 
+Catalog/carton checkpoint (2026-10-04): coverage 50/77 native five-view static
+inspections; 27 pending, and inspection includes failures. Scenes 43-50 expose
+count/pattern and machine-behavior gaps. Four-color lesson binds only green
+lamps; garage vehicle is a motor starter, barrier output only a lamp; package
+and chain-lift outputs also only lamps. Chain-lift equipment overlaps.
+Guarded Transfer and Package Grouping cartons were below their belts. Both now
+rest on measured 0.9 m belt tops, confirmed in rebuilt native five wide views
+and top/FR close views. Four new delivered-mesh checks fail before/pass after;
+all 149 geometry/reference checks and both initial-state contracts pass, build
+zero warnings/errors. Machine motion, protective behavior and complete counter
+workflows are still unaccepted. See MULTI_ANGLE_SCENE_REVIEW.md for exact scope
+and evidence. Goal active.
+
+Earlier checkpoint:
+
 Press-count checkpoint (2026-10-04): coverage 42/77 native five-view inspections,
 35 pending including failures. Demo 1's input was a persistent toggle: three
 clicks created only two rising edges. It now pulses and its plate reads PULSE.
