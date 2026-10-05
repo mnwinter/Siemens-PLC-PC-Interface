@@ -1,5 +1,19 @@
 # Whole program review - 2026-10-03
 
+Shipping pallet installation checkpoint (2026-10-05, current): Scene 32's
+127.5 mm pallet/belt gap and 7 mm flat-span overhang are repaired by root
+(-3.6, 0.8625, 0). All three bottom boards sit at 900 mm throughout the
+automatic reference. Photoeye span 3.6 m clears conveyor supports/cables.
+First-jog endpoint -1.925 m matches 25% of the 6.7 m route. Five added checks
+bring geometry to 411; build/controller 143/shell 77/294/contracts pass.
+Native home, held mid-travel and completed pickup each have five views,
+plus Stop/Reset and an unheld automatic cycle. Details/occlusions are in
+[multi-angle evidence](MULTI_ANGLE_SCENE_REVIEW.md). Native post-completion
+Jog still runs in AUTO, teleports to the authored start and leaves pickup
+feedback true away from the beam. Timed feedback, repeat/restart continuity,
+speed mismatch and normal controller-driven operation remain FAIL/open.
+This closes the installation findings only. Goal remains active.
+
 Pallet robot handling checkpoint (2026-10-05, current): Scene 31's imported
 joints now drive the gripper and held tote. A grounded pedestal and raised,
 reoriented receiver bring both bays within the modeled reach. The reference

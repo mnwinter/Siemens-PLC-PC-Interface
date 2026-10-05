@@ -6,6 +6,55 @@ namespace RungProof.Next.App;
 
 public partial class Main
 {
+    private void VerifyShippingPalletGeometry(Action<bool, string> check)
+    {
+        AddMigratedScene("lab-2-18-pallet-pickup", _candidateCatalog!, _mainCamera!, false, false);
+        var root = _sceneCompositionRoot!;
+        var conveyor = root.GetNode<Node3D>("pickup_conveyor");
+        var pallet = root.GetNode<Node3D>("shipping_pallet");
+        var sensor = root.GetNode<Node3D>("pickup_end_sensor");
+        var belt = ReviewBounds((MeshInstance3D)conveyor.FindChild("KIN_belt_surface", true, false));
+        var tailX = ReviewBounds((MeshInstance3D)conveyor.FindChild("KIN_tail_drum", true, false)).GetCenter().X;
+        var driveX = ReviewBounds((MeshInstance3D)conveyor.FindChild("KIN_drive_drum", true, false)).GetCenter().X;
+        var runners = ReviewMeshes(pallet).Where(mesh => mesh.Name.ToString().StartsWith("PALLET_BOTTOM_", StringComparison.Ordinal)).ToArray();
+        GD.Print($"SHIPPING_PALLET_DATUM belt={belt} flatX={tailX}..{driveX} pallet={ReviewBounds(pallet)}");
+        check(runners.Length == 3 && runners.All(mesh => MathF.Abs(ReviewBounds(mesh).Position.Y - belt.End.Y) < 0.001f),
+            "shipping_pallet_all_three_runners_seated_on_belt");
+        var supported = true;
+        // Inspect actual reference transforms, including both endpoints. The
+        // flat carrying span ends at the drum axes, not at the curved wraps.
+        _sceneRuntime!.UsesExternalClock = false; // Offline reference, not a loaded controller lesson.
+        _sceneRuntime.ExecuteAction("start-auto");
+        for (var sample = 0; sample <= 380; sample++)
+        {
+            supported &= runners.All(mesh =>
+            {
+                var bounds = ReviewBounds(mesh);
+                return MathF.Abs(bounds.Position.Y - belt.End.Y) < 0.001f
+                    && bounds.Position.X >= tailX && bounds.End.X <= driveX
+                    && bounds.Position.Z >= belt.Position.Z && bounds.End.Z <= belt.End.Z;
+            });
+            _sceneRuntime.AdvanceSimulation(0.01);
+        }
+        check(supported, "shipping_pallet_entire_automatic_route_has_full_flat_runner_support");
+        check(MathF.Abs(pallet.Position.X - 3.1f) < 0.001f
+            && _sceneRuntime.Points["pickup_sensor"] is true
+            && _sceneRuntime.Points["conveyor_run"] is false,
+            "shipping_pallet_reference_reaches_pickup_endpoint");
+        _sceneRuntime.ResetSimulation();
+        var sensorSolids = ReviewMeshes(sensor).Where(mesh => !mesh.Name.ToString().StartsWith("KIN_beam", StringComparison.Ordinal)).ToArray();
+        var conveyorSolids = ReviewMeshes(conveyor);
+        check(sensorSolids.All(a => conveyorSolids.All(b =>
+        {
+            var overlap = ReviewBounds(a).Intersection(ReviewBounds(b)).Size;
+            if (overlap.X <= 0.001f || overlap.Y <= 0.001f || overlap.Z <= 0.001f || !OrientedBoxesPenetrate(a, b)) return true;
+            GD.Print($"SHIPPING_PALLET_SENSOR_CONFLICT {a.Name}/{b.Name} a={ReviewBounds(a)} b={ReviewBounds(b)}");
+            return false;
+        })), "shipping_pallet_sensor_hardware_clear_of_conveyor_bounds");
+        check(new[] { "TX", "RX" }.All(side => MathF.Abs(ReviewBounds((MeshInstance3D)sensor.FindChild($"{side}_foot", true, false)).Position.Y) < 0.001f),
+            "shipping_pallet_both_sensor_feet_grounded");
+    }
+
     private void VerifyPalletRobotInstallationGeometry(Action<bool, string> check)
     {
         AddMigratedScene("lab-2-17-pallet-robot", _candidateCatalog!, _mainCamera!, false, false);

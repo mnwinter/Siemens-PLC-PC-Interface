@@ -6,6 +6,22 @@ would otherwise be trapped in a local Codex session. It intentionally excludes
 machine-local Codex databases, credentials, screenshots from private chats, and
 temporary runtime state.
 
+Shipping pallet installation checkpoint (2026-10-05, current): Scene 32 now
+starts at (-3.6, 0.8625, 0), seating all three imported bottom boards on the
+900 mm belt with 193 mm flat-span margin. Sensor span 3.6 m clears conveyor
+hardware/cable bounds. Automatic endpoint remains X=3.1; first jog ends at
+-1.925, exactly 25% of the new 6.7 m route. Five added checks give geometry
+411; build/controller 143/shell 77/294/contracts pass. Native home, held
+mid-travel and pickup have five views each, plus Stop/Reset and an unheld
+automatic run. See [multi-angle evidence](MULTI_ANGLE_SCENE_REVIEW.md).
+Scene 32 remains FAIL/open: native post-completion Jog is accepted in AUTO,
+jumps to the fixed authored start and retains pickup_sensor=true away from
+the beam. Next repair incremental bounded jog, mode requirements, restart
+continuity, position/optical feedback and speed agreement; do not repeat the
+completed installation review. Normal loaded-controller lesson and internal
+case/deck seating remain unaccepted. Logs `.tools/pallet-pickup-*.log`.
+Whole goal remains active; no live PLC actions were used.
+
 Pallet robot handling checkpoint (2026-10-05, current): the offline Scene 31
 reference now uses PalletRobotMotion on the imported six joints, with held
 load/tool attachment, wrist-mounted jaws and following forearm cable. Robot

@@ -373,6 +373,7 @@ public partial class Main
             VerifyInclinedPhotoeyeGeometry(Check);
             VerifyCartonStaticCableRoutes(Check);
             VerifyPalletRobotInstallationGeometry(Check);
+            VerifyShippingPalletGeometry(Check);
             VerifyTankSwitchMountGeometry(Check);
             VerifyTankAnalogMountGeometry(Check);
             VerifyTankPipingGeometry(Check);

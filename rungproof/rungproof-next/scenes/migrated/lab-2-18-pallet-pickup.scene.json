@@ -40,8 +40,8 @@
       "type": "palletLoad",
       "label": "Loaded shipping pallet",
       "position": [
-        -3.8,
-        0.99,
+        -3.6,
+        0.8625,
         0
       ],
       "config": {
@@ -62,7 +62,7 @@
         0
       ],
       "config": {
-        "span": 2.05,
+        "span": 3.6,
         "height": 1.1,
         "beamCenterHeightM": 1.35,
         "blocked": false
@@ -246,7 +246,7 @@
               "type": "translate",
               "equipmentId": "shipping_pallet",
               "axis": "x",
-              "from": -3.8,
+              "from": -3.6,
               "to": 3.1
             }
           ]
@@ -277,8 +277,8 @@
               "type": "translate",
               "equipmentId": "shipping_pallet",
               "axis": "x",
-              "from": -3.8,
-              "to": -2.1
+              "from": -3.6,
+              "to": -1.925
             }
           ]
         },

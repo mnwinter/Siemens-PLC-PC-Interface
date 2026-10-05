@@ -10,6 +10,36 @@ includes failed scenes; it is not a count of accepted scenes.
 
 ## Acceptance method
 
+Shipping pallet installation (2026-10-05, current): Scene 32's pallet runners
+were 127.5 mm above the belt and extended 7 mm past the flat drum-axis span.
+Root Y=0.8625 m seats all three imported bottom boards at belt Y=0.9 m;
+starting X=-3.6 m provides 193 mm flat-span margin. The automatic reference
+still ends at X=3.1 m. Manual first-jog endpoint is now X=-1.925 m, exactly
+25% of the updated 6.7 m route. Photoeye stand span changes from 2.05 to
+3.6 m; its hardware/cable enclosing bounds now clear the conveyor, and both
+feet remain on the floor. Five new checks pass within 411 geometry checks,
+including actual automatic reference transforms sampled every 10 ms.
+
+Native `.tools/pallet-pickup-native-final.log`: repaired home, held 1.5 s
+mid-travel and completed pickup each inspected FR/FL/RL/RR/Top. Stop removed
+the conveyor command and advancing the held clock retained the pose; Reset
+restored the supported start. An unheld automatic run reached pickup and
+stopped. Rear-right pickup obscures part of the load behind the stacklight;
+other angles resolve its footprint. This is an offline plant preview, not
+the normal loaded-controller lesson or continuous five-angle observation.
+Build clean, controller 143, shell 77/294 and both declared contracts pass.
+Evidence: `.tools/pallet-pickup-{build,geometry,controller,shell,contract}.log`.
+Final endpoint assertion and all 411 checks pass again in
+`.tools/pallet-pickup-geometry-final.log`.
+
+Scene 32 remains FAIL/open for runtime correctness: native Jog after automatic
+completion is accepted while AUTO remains true, jumps the pallet back to the
+authored start, and retains pickup_sensor=true away from the beam. Position
+feedback is only assigned at timed endpoints; reference speed and configured
+conveyor speed differ. Repair bounded incremental jog, restart continuity,
+mode permissives and actual position/optical feedback next. Internal case/deck
+seating and complete mechanical acceptance are not established. Goal active.
+
 Pallet robot handling (2026-10-05, current): Scene 31 now uses the imported
 six-joint hierarchy and tool attachment rather than an independent base
 oscillator plus disconnected tote translations. The grounded pedestal and
@@ -1864,7 +1894,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 29 | `lab-2-15-fume-extractor` | 0 | FR/FL/RL/RR/T static and running 35%; close plate; speed states; native preview Stop/Run/Off/Reset | LIGHT REQUEST, speed binding and preview Stop repaired; six-blade transform checks pass. Open: beacon substitutes light, hood/duct absent, normal Run unloaded; reference preview is not controller lesson acceptance |
 | 30 | `lab-2-16-safe-drill` | 24 original / 0 repaired | Native repaired FR/FL/RL/RR/T; stock FR close; normal 3D hand/cycle controls; held feed/bottom four close sides; Stop/Reset/restart; unheld completion | Fixture/feed and honest Stop-hold semantics repaired; normal cycle blocks without controller. Top stock view occluded by head; guard/two-hand safety behavior is not modeled |
 | 31 | `lab-2-17-pallet-robot` | 23 historic; broad home candidates are not solid interference | Final modeled pickup and completed landing FR/FL/RL/RR/T; Stop/Reset/restart guard; earlier staged/bridge/sensor views | Imported robot/tool attachment, grounded installation, routes and roller landing repaired; 29 pallet-cell checks PASS within 406 total. Reference sampled at 10 ms; both totes land before count/release, empty pallet fully outbound. FAIL/open: complete normal controller-driven transfer, continuous intermediate native views and physical/rated handling unproven |
-| 32 | `lab-2-18-pallet-pickup` | 29 | Native FR/FL/RL/RR/T; sensor top/FR/RL close; auto toggle and jog | Open: pallet support and sensor/conveyor mounting need measurement; Jog blocks unloaded; full motion unverified |
+| 32 | `lab-2-18-pallet-pickup` | 0 at repaired home | Native home/mid-travel/pickup FR/FL/RL/RR/T; Stop/Reset; auto and faulty jog | Pallet seating/full reference support and sensor mounting repaired. FAIL/open: AUTO permits jog, fixed-start teleport, stale timed feedback, speed mismatch and normal controller lesson |
 | 33 | `lab-2-19-service-door` | 54 original / 0 repaired | Repaired native FR/FL/RL/RR/T; operator FR close; held opening/Stop/reverse; real-time endpoints; open five views; Reset | Layout/plates and reference reversal/position feedback repaired; raw NC signal displays explicit. Physical limit/cable behavior, compressed slat geometry and loaded-controller operation unaccepted |
 | 34 | `lab-2-20-bottle-shuttle` | 39 | Native FR/FL/RL/RR/T; bottle top/FR close; Start | Open: overlapping bottle label text; contact and sensor mounts need measurement. Normal Start unloaded; round-trip motion unverified |
 | 35 | `lab-2-21-tote-finishing` | 29 | Native FR/FL/RL/RR/T; filler top/FR close; Start | FAIL/open: station columns occupy belt corridor; tote support, station alignment and full transfer unverified. Start unloaded |

@@ -41,7 +41,7 @@ including hold, full-sweep stepping, Stop, permissive loss, Reset and release.
 path checks without the full catalog sweep. It screens 5 mm broad overlaps
 against cable triangle bounds with a 1 mm world allowance; it is offline only.
 
-`-- --verify-scene-geometry` runs 406 focused geometry/workflow checks for Demo 5 clearance/attachment,
+`-- --verify-scene-geometry` runs 411 focused geometry/workflow checks for Demo 5 clearance/attachment,
 the pallet cell's grounded installation, imported robot joints/tool attachment,
 sampled transfer clearance, supported outbound path, receiver landing/count
 agreement, Stop/Reset/restart guard and unreachable-target rejection,
