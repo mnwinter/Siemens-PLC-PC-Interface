@@ -1,7 +1,7 @@
 # Multi-angle scene review - 2026-10-04
 
 Status: **active**. The prior software review did not establish multi-angle
-visual acceptance. Twenty-seven scenes have five-view native static inspections; 50 remain pending.
+visual acceptance. Twenty-eight scenes have five-view native static inspections; 49 remain pending.
 Demo 5, Powder Batch Mixer, Parcel Size Sorter, Conveyor Inspection Cell,
 the Equipment Gallery, Drive Alarm-Code String and Chicken Label Print have repaired static layouts.
 The sorter operator Run still lacks a controller; eight simple panels now have corrected function plates and clear spacing. Other scenes
@@ -28,6 +28,21 @@ Every row requires native inspection.
 
 ## Repairs and open findings
 
+- Coolant Jug Filling Cell (scene 27) has native FR/FL/RL/RR/T inspections and
+  close overhead/FL fill-unit views. **Visual acceptance FAIL/open:** the jug
+  retains its red cap, while fixed fill-assembly solids occupy its indexing
+  lane on the belt. A usable nozzle-to-open-jug fill path and supported clear
+  travel are not established. The source maps coolant_jug to the jerry-can asset
+  and toteFiller to the volumetric tote filling station; that standalone station
+  needs a scene integration review rather than treating its recognition as a
+  validated conveyor installation. The 53 AABB candidates remain a screening
+  count, not 53 proven collisions. Imported cap/nozzle, belt/support and sensor
+  bounds need measurement before the repair. Normal Run opens the blank editor
+  with EDIT INVALID / NO CONTROLLER LOADED. No filling sequence, high-probe
+  behavior, transfer endpoint or motion clearance is accepted. Evidence:
+  coolant-jug-native.log in rungproof-next/.tools plus native screenshot
+  observations in the review session. Isolated window closed cleanly; user
+  Demo 1 preserved. Coverage 28/77 inspected, 49 pending, including failed scenes.
 - Assembly Lift hydraulic follow-up: the stationary rod/clevis failure recorded
   below is repaired. The driven lower-front arm now carries its clevis, pin and
   drive lug. The fixed-length barrel pivots at its base pin; only the rod's
@@ -421,7 +436,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 24 | `lab-2-10-dust-collector-seal-in` | 0 | FR/FL/RL/RR/T + close STOP | Static clear; STOP repaired; 3D PC requests/Reset checked. Fan schematic only; Run empty controller. |
 | 25 | `lab-2-11-inbound-tote-stop` | 7 | FR/FL/RL/RR/T + close tote; FL/RR motion endpoints | Tote support, sensor clearance and cycle endpoint repaired; six focused checks pass. Native completion/Reset and endpoint Stop checked; Run empty controller. Cable AABB candidates remain. |
 | 26 | `lab-2-12-assembly-lift` | 0 | FR/FL/RL/RR/T + close plates/lift + FL/RR motion | Fixture support, rollers/washers, travel framing and hydraulic attachment repaired; historical bellows approval stale; blank editor on normal Run; shared scenes need follow-up |
-| 27 | `lab-2-13-coolant-jug-fill` | 53 | Pending | Pending |
+| 27 | `lab-2-13-coolant-jug-fill` | 53 | FR/FL/RL/RR/T + close fill unit | FAIL/open: capped jug, fixed fill solids in indexing lane; fill-path/support/motion clearance unverified; Run blank controller editor |
 | 28 | `lab-2-14-sump-pump` | 41 | Pending | Pending |
 | 29 | `lab-2-15-fume-extractor` | 0 | Pending | Pending |
 | 30 | `lab-2-16-safe-drill` | 24 | Pending | Pending |

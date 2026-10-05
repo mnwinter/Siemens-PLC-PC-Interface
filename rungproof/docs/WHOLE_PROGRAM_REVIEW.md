@@ -1,5 +1,17 @@
 # Whole program review - 2026-10-03
 
+Coolant Jug inspection (2026-10-04): coverage is now 28/77 native five-view
+inspections, 49 pending, including failures. Five angles and close fill-unit
+views expose a capped jug and fixed fill-assembly solids in its indexing lane.
+Visual acceptance remains failed/open; imported cap/nozzle, belt/support and
+sensor bounds need measurement before repairing the installation. The 53 AABB
+candidates are not 53 proven collisions. Normal Run opens a blank controller
+editor with EDIT INVALID / NO CONTROLLER LOADED. No filling sequence, probe,
+transfer endpoint or moving clearance acceptance. Isolated window closed and
+user Demo 1 preserved. See MULTI_ANGLE_SCENE_REVIEW.md for exact evidence.
+
+Earlier checkpoint:
+
 Hydraulic attachment follow-up (2026-10-04): Assembly Lift's fixed rod/clevis
 failure is repaired with a connected arm/clevis/rod/barrel chain. Actual imported
 mesh-cap checks reproduce two failures before repair and pass through both

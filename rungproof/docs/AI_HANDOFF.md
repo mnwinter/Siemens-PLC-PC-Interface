@@ -6,7 +6,22 @@ would otherwise be trapped in a local Codex session. It intentionally excludes
 machine-local Codex databases, credentials, screenshots from private chats, and
 temporary runtime state.
 
-Latest hydraulic follow-up (2026-10-04): the fixed rod/clevis failure is repaired.
+Latest inspection (2026-10-04): coverage 28/77, 49 pending, including failures.
+Scene 27 Coolant Jug has native FR/FL/RL/RR/T and close overhead/FL fill-unit
+inspection. FAIL/open: red cap still on jug and fixed fill solids in its indexing
+lane. Source uses the jerry-can and standalone volumetric tote filling assets.
+Measure actual imported cap/nozzle, belt/support and sensor bounds before
+repairing the integration. The 53 AABB candidates are screening evidence only.
+Normal Run opens blank ladder editor with EDIT INVALID / NO CONTROLLER LOADED;
+no filling sequence, high-probe, endpoint or moving-clearance acceptance.
+Evidence coolant-jug-native.log in rungproof-next/.tools and current native
+screenshot observations. Isolated window closed, user Demo 1 preserved.
+Goal active. Next: repair/verify Coolant Jug installation and full motion, shared
+lift-scene follow-up, then scene 28 Sump Pump and the remaining 49 inspections
+plus recorded failure repairs. Do not substitute a shifted assembly without a
+usable fill path, floor/mount support and full jug travel clearance.
+
+Earlier hydraulic follow-up (2026-10-04): the fixed rod/clevis failure is repaired.
 EquipmentMotionController binds the delivered lower-front arm, base/tip pins,
 barrel, rod and clevis/lug siblings. The clevis/pin/lug follow the driven arm,
 the fixed-length barrel pivots at its base, and only the rod's longitudinal mesh
