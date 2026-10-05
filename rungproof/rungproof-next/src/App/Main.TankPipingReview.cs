@@ -109,6 +109,7 @@ public partial class Main
                 && MathF.Abs(ReviewBounds(supplySaddle).End.Y - (supplyEnd.Y - 0.18f)) < 0.001f,
                 $"{sceneId}_supply_shoe_grounded_and_saddle_supported");
             GD.Print($"TANK_PIPING_DATUM {sceneId} pump={pump.Position} inlet={inlet.Position} outlet={outlet.Position}");
+            VerifyTankDrainValve(sceneId, root, outlet, check);
         }
     }
 }

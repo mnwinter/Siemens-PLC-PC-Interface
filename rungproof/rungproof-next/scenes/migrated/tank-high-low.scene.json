@@ -107,6 +107,19 @@
       }
     },
     {
+      "id": "hl_drain_valve",
+      "type": "valve",
+      "label": "Tank drain valve",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "config": {
+        "installation": "tankDrainValve"
+      }
+    },
+    {
       "id": "hl_low_switch",
       "type": "levelSensor",
       "label": "Low level switch LSL-201",
@@ -271,7 +284,14 @@
     "inletRatePerSecond": 0.08,
     "outletRatePerSecond": 0.06,
     "lowThreshold": 0.25,
-    "highThreshold": 0.75
+    "highThreshold": 0.75,
+    "pointBindings": [
+      {
+        "point": "drain_valve_open",
+        "equipmentId": "hl_drain_valve",
+        "mode": "position"
+      }
+    ]
   },
   "migration": {
     "sourceFile": "prototype/scenes/tank-high-low.json",

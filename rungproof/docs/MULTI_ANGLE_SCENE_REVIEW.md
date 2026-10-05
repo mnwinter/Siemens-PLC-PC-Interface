@@ -10,7 +10,40 @@ includes failed scenes; it is not a count of accepted scenes.
 
 ## Acceptance method
 
-Tank piping installation (2026-10-05, latest): Scenes 75/76 explicitly opt
+Tank drain-valve installation (2026-10-05, latest): Scenes 75/76 now declare
+one full-size actuated ball valve each, appended to the outlet spool. The
+continuous bore's measured near face meets the spool flange at approximately
+(0,1.130952,5.464483) m; valve root is (0,0.410952,6.574483) m and the TO DRAIN
+boundary is now at its far bore end Z=7.684483 m. A hollow mating flange joins
+the installed end. Both shoes are grounded, their posts extended to the
+original saddles, and ground fasteners lowered with their respective shoes.
+The scene-specific position binding projects existing drain_valve_open: TRUE
+is pointer parallel/open, FALSE perpendicular/closed. Inversion is explicit;
+autonomous travel is disabled. This uses the existing instantaneous process
+command, not an actuator-travel simulation or new valve-position feedback.
+No reusable GLB, level calculation, symbolic point ownership, DB14 or live
+transport changed. Catalog totals are recomputed from all 77 definitions:
+602 equipment instances / seven valves; this also corrects the previously
+stale receiver total from one to two. Eighteen new checks pass, including
+101 pointer sweep positions, shoe/saddle/anchor contact, joint alignment,
+other-equipment clearance and real offline ladder scans across fill/drain
+transitions and Stop/Reset: 365 geometry/workflow checks total PASS.
+Build zero warnings/errors; app-shell 77 scenes / 294 assets / one existing
+diagnostic PASS; 19 plant-motion checks and 143 controller tests PASS;
+help 294 assets / 77 scenes PASS. Logs: .tools/tank-drain-{build,geometry,
+shell,motion,controller}.log and tank-drain-red.log (both absent-valve checks
+failed before repair). Native Windows FR/FL/RL/RR/Top and valve-focused Top/FL
+were inspected in both scenes. Temporary ignored four-rung QA projects were
+opened through File > Open Ladder Agent Project, then Online > Verify + load
+offline, Return to scene and normal Run/Stop/Reset. Actual native snapshots
+showed closed/filling and open/draining pointers, stopped commands and reset
+initial levels (50%; 42% / 10.72 mA). Native log: .tools/tank-drain-native.log;
+owned window exited zero, PLC disconnected throughout. These observations
+prove the bounded offline QA path, not all possible student programs or
+external-controller behavior. Internal tank visibility and broader operator
+process acceptance remain open; the whole-program goal remains active.
+
+Tank piping installation (2026-10-05, earlier checkpoint): Scenes 75/76 explicitly opt
 both spools into tankPiping with inlet/outlet roles. The pump and inlet spool
 approach the vessel diagonally, clearing the ladder. A 450 mm centreline-radius
 elbow joins the pump's upward discharge to the full-size delivered inlet spool;
@@ -1590,8 +1623,8 @@ count as this scene's multi-angle or runtime acceptance.
 | 72 | `lab-9-12-ev-charging-manager` | 95 | Native FR/FL/RL/RR/T | FAIL/open: shutters/fluid props instead of EV charging route; energy pulse/accumulation contract absent |
 | 73 | `scene-1-conveyor-stop` | 34 | Native FR/FL/RL/RR/T | Carton belt contact/load-end footprint repaired; native five wide/Top/FL close and Demo 3 Run/Start/photoeye/Stop/Reset rechecked; full clearance open |
 | 74 | `scene-2-conveyor-pusher` | 88 initial; 7 residual cable candidates after installation repair | Native home and extended FR/FL/RL/RR/T, close pusher Top/RR at both ends; normal Open/Verify/Run/Stop/Reset | Plate height, grounded mounting, guide engagement/cap clearance, photoeye clearance and following bolts repaired; off-station carton stays seated. Receiving surface added; native five angles and receiver Top/FR close; 314 checks PASS. FAIL/open: plate/carton contact timing, canonical disappearing transfer and residual cable candidates. No full supported transfer accepted |
-| 75 | `tank-high-low` | 60 initial; switch/piping-specific screens pass | Native FR/FL/RL/RR/T, inlet/outlet close, final shoe FR/RR close | Low/high probes and piping connections/supports repaired; 347 checks PASS. FAIL/open: opaque vessel, physical drain-valve representation and full controller/operator dynamics |
-| 76 | `tank-level` | 52 initial; switch/analog/piping-specific screens pass | Native FR/FL/RL/RR/T, inlet/outlet close, final shoe FR/RR close | Probe mounts and piping connections/supports repaired; initial 42 percent / 10.72 mA visible. 347 checks PASS. FAIL/open: opaque vessel, physical drain-valve representation and full controller/operator dynamics |
+| 75 | `tank-high-low` | 60 initial; probe/piping/valve-specific screens pass | Native FR/FL/RL/RR/T; valve Top/FL close; normal offline QA Run/Stop/Reset | Probe/piping/valve installations repaired; 365 checks PASS. QA ladder cycle and pointer commands verified. FAIL/open: opaque vessel and broader operator/process acceptance |
+| 76 | `tank-level` | 52 initial; probe/analog/piping/valve-specific screens pass | Native FR/FL/RL/RR/T; valve Top/FL close; normal offline QA Run/Stop/Reset | Installations repaired; QA drain pointer and reset 42% / 10.72 mA observed. 365 checks PASS. FAIL/open: opaque vessel and broader operator/process acceptance |
 | 77 | `tank-radar` | 80 | Native FR/FL/RL/RR/T; repaired radar five focus views | Radar flange/head mounting and antenna-to-surface distance/beam repaired (sampled checks); 35% native range 3.10036. FAIL/open: empty ladder Run, disconnected inlet/outlet/drain route, opaque internal beam; rear-left mount partly obscured |
 
 Drive-alarm follow-up evidence: `.tools/drive-alarm-{props-build,build,import,geometry,inventory,scene-contracts,rendered-controls,plant-regression}.log`, `catalog-next-shell-native.log` (baseline), `drive-alarm-native-supported.log` (support and plates), and `drive-alarm-native-final-complete.log` (final five views, keypad detail, failed normal Run). Build zero warnings/errors; 38 focused geometry, 19 plant, rendered scene controls and 71 authored cases pass. These do not approve uninspected scenes, missing controllers, string functionality or hardware.

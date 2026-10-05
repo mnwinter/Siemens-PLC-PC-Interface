@@ -3,10 +3,10 @@
   "catalogId": "rungproof-original-scenes-migrated",
   "sourceRoot": "prototype/scenes",
   "sceneCount": 77,
-  "equipmentInstanceCount": 599,
+  "equipmentInstanceCount": 602,
   "equipmentTypeCounts": {
     "box": 30,
-    "containerReceiver": 1,
+    "containerReceiver": 2,
     "conveyor": 32,
     "drillPress": 4,
     "fan": 5,
@@ -34,7 +34,7 @@
     "toteLabeler": 1,
     "toteVision": 1,
     "trainingAccessory": 119,
-    "valve": 5
+    "valve": 7
   },
   "scenes": [
     {
@@ -1244,14 +1244,15 @@
       "name": "Water Tank — High/Low Switches",
       "path": "res://scenes/migrated/tank-high-low.scene.json",
       "sourceFile": "prototype/scenes/tank-high-low.json",
-      "equipmentCount": 9,
+      "equipmentCount": 10,
       "equipmentTypes": [
         "indicator",
         "levelSensor",
         "pipe",
         "pump",
         "switch",
-        "tank"
+        "tank",
+        "valve"
       ],
       "unresolvedAssetTypes": [],
       "visualStatus": "mapped"
@@ -1261,14 +1262,15 @@
       "name": "Tank Level / 4–20 mA",
       "path": "res://scenes/migrated/tank-level.scene.json",
       "sourceFile": "prototype/scenes/tank-level.json",
-      "equipmentCount": 10,
+      "equipmentCount": 11,
       "equipmentTypes": [
         "indicator",
         "levelSensor",
         "pipe",
         "pump",
         "switch",
-        "tank"
+        "tank",
+        "valve"
       ],
       "unresolvedAssetTypes": [],
       "visualStatus": "mapped"

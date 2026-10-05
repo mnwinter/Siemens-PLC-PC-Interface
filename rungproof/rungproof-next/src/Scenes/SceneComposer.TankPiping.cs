@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
+using RungProof.Next.App;
 
 namespace RungProof.Next.Scenes;
 
@@ -90,14 +91,45 @@ public static partial class SceneComposer
         outlet.Position = centre;
         outlet.Position += Face(Part(tank, "NOZZLE_outlet_flange"), 1) - Face(Part(outlet, "FLANGE_-1_72"), -1);
         GroundSupports(inlet); GroundSupports(outlet);
-        Boundary("TANK_supply_boundary", "FROM SUPPLY", supplyEnd + Vector3.Up * 0.38f);
-        Boundary("TANK_drain_boundary", "TO DRAIN", Face(Part(outlet, "FLANGE_1_72"), 1) + Vector3.Up * 0.40f);
-
-        void GroundSupports(Node3D spool)
+        var drainEnd = Face(Part(outlet, "FLANGE_1_72"), 1);
+        var valveEquipment = scene.Equipment.SingleOrDefault(equipment =>
+            Text(equipment.Config, "installation", string.Empty) == "tankDrainValve");
+        if (valveEquipment is not null)
         {
-            foreach (var foot in spool.FindChildren("SUPPORT_foot*", "MeshInstance3D", true, false).OfType<MeshInstance3D>())
-                foot.Position -= Vector3.Up * Bounds(foot).Position.Y;
-            foreach (var post in spool.FindChildren("SUPPORT_post*", "MeshInstance3D", true, false).OfType<MeshInstance3D>())
+            var valve = sceneRoot.GetNode<Node3D>(SafeNodeName(valveEquipment.Id));
+            valve.RotationDegrees = new Vector3(0, -90, 0);
+            valve.Position = centre;
+            var liner = Part(valve, "PROCESS_bore_liner");
+            // Keep the verified tank/spool joint. Append the full delivered
+            // valve, measuring its continuous bore rather than guessing a root.
+            valve.Position += drainEnd - Face(liner, -1);
+            Route(valve, "TANK_DRAIN_mating_flange", new[] { drainEnd, drainEnd + Vector3.Back * 0.09f }, 0.31f, 0.17f);
+            GroundSupports(valve, "PIPE_foot", "PIPE_shoe_post", "PIPE_anchor");
+            var controller = valve.GetNode<EquipmentMotionController>("PositionRotationController");
+            // Authored pointer parallel to bore = OPEN. Existing tank physics
+            // applies the BOOL command immediately; project that same state.
+            controller.PositionInputInverted = true;
+            controller.AutonomousPositionTravel = false;
+            drainEnd = Face(liner, 1);
+        }
+        Boundary("TANK_supply_boundary", "FROM SUPPLY", supplyEnd + Vector3.Up * 0.38f);
+        Boundary("TANK_drain_boundary", "TO DRAIN", drainEnd + Vector3.Up * 0.40f);
+
+        void GroundSupports(Node3D spool, string footPrefix = "SUPPORT_foot", string postPrefix = "SUPPORT_post", string? anchorPrefix = null)
+        {
+            var meshes = spool.FindChildren("*", "MeshInstance3D", true, false).OfType<MeshInstance3D>().ToArray();
+            var feet = meshes.Where(mesh => mesh.Name.ToString().StartsWith(footPrefix, StringComparison.Ordinal)).ToArray();
+            foreach (var foot in feet)
+            {
+                var drop = Bounds(foot).Position.Y;
+                foot.Position -= Vector3.Up * drop;
+                if (anchorPrefix is not null)
+                    foreach (var anchor in meshes.Where(mesh => mesh.Name.ToString().StartsWith(anchorPrefix, StringComparison.Ordinal)))
+                        if (feet.OrderBy(other => new Vector2(other.Position.X - anchor.Position.X,
+                            other.Position.Z - anchor.Position.Z).LengthSquared()).First() == foot)
+                            anchor.Position -= Vector3.Up * drop;
+            }
+            foreach (var post in meshes.Where(mesh => mesh.Name.ToString().StartsWith(postPrefix, StringComparison.Ordinal)))
             {
                 var bounds = Bounds(post);
                 var bottom = 0.06f; // 10 mm overlap with the 70 mm ground shoe.

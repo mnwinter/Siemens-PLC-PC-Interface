@@ -32,7 +32,9 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 
 ## Equipment bindings
 
-No point-to-equipment bindings are declared.
+| Point | Equipment | Mode |
+| --- | --- | --- |
+| `drain_valve_open` | `drain_valve` | `position` |
 
 ## Expected equipment
 
@@ -42,6 +44,7 @@ No point-to-equipment bindings are declared.
 | `inlet_pump` | `pump` | Inlet pump P-101 |
 | `inlet_pipe` | `pipe` | Tank inlet pipe |
 | `outlet_pipe` | `pipe` | Tank outlet pipe |
+| `drain_valve` | `valve` | Tank drain valve |
 | `low_level_switch` | `levelSensor` | Low level switch LSL-101 |
 | `high_level_switch` | `levelSensor` | High level switch LSH-101 |
 | `level_transmitter` | `levelSensor` | Level transmitter LT-101 |
@@ -70,10 +73,16 @@ The pump and inlet spool approach diagonally to clear the ladder. These two
 lessons opt into `tankPiping`; installation uses the full delivered spool size,
 not the legacy length/diameter fields. Reusable asset files are unchanged.
 `FROM SUPPLY` and `TO DRAIN` mark external scene boundaries. The scene does not
-model a supply vessel or a physical drain valve. It retains the existing
-symbolic drain command and level calculation. Native static views and measured
-joint/support checks do not prove complete controller-driven behavior,
-hydraulics, fabrication ratings, or pipe stress.
+model a supply vessel. A full-size quarter-turn drain valve is appended to the
+outlet spool, with a mating flange and grounded shoes. `drain_valve_open` TRUE
+puts its pointer parallel to the pipe; FALSE puts it perpendicular. This
+indication follows the existing instantaneous drain command; it does not model
+actuator travel time or add valve-position feedback. Reusable assets, level
+calculation and point ownership remain unchanged. Both installations received
+native five-angle and valve-focused inspections. An offline QA ladder program
+was opened, verified and run through the normal Windows menus, with open/closed
+pointer, Stop and Reset observations. These checks do not establish complete
+process commissioning, hydraulics, fabrication ratings, or pipe stress.
 
 ## Stop and safety boundary
 

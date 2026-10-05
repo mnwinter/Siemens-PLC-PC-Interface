@@ -1,6 +1,39 @@
 # Whole program review - 2026-10-03
 
-Tank piping installation (2026-10-05, latest): Scenes 75/76 explicitly opt
+Tank drain-valve installation (2026-10-05, latest): Scenes 75/76 now declare
+one full-size actuated ball valve each, appended to the outlet spool. The
+continuous bore's measured near face meets the spool flange at approximately
+(0,1.130952,5.464483) m; valve root is (0,0.410952,6.574483) m and the TO DRAIN
+boundary is now at its far bore end Z=7.684483 m. A hollow mating flange joins
+the installed end. Both shoes are grounded, their posts extended to the
+original saddles, and ground fasteners lowered with their respective shoes.
+The scene-specific position binding projects existing drain_valve_open: TRUE
+is pointer parallel/open, FALSE perpendicular/closed. Inversion is explicit;
+autonomous travel is disabled. This uses the existing instantaneous process
+command, not an actuator-travel simulation or new valve-position feedback.
+No reusable GLB, level calculation, symbolic point ownership, DB14 or live
+transport changed. Catalog totals are recomputed from all 77 definitions:
+602 equipment instances / seven valves; this also corrects the previously
+stale receiver total from one to two. Eighteen new checks pass, including
+101 pointer sweep positions, shoe/saddle/anchor contact, joint alignment,
+other-equipment clearance and real offline ladder scans across fill/drain
+transitions and Stop/Reset: 365 geometry/workflow checks total PASS.
+Build zero warnings/errors; app-shell 77 scenes / 294 assets / one existing
+diagnostic PASS; 19 plant-motion checks and 143 controller tests PASS;
+help 294 assets / 77 scenes PASS. Logs: .tools/tank-drain-{build,geometry,
+shell,motion,controller}.log and tank-drain-red.log (both absent-valve checks
+failed before repair). Native Windows FR/FL/RL/RR/Top and valve-focused Top/FL
+were inspected in both scenes. Temporary ignored four-rung QA projects were
+opened through File > Open Ladder Agent Project, then Online > Verify + load
+offline, Return to scene and normal Run/Stop/Reset. Actual native snapshots
+showed closed/filling and open/draining pointers, stopped commands and reset
+initial levels (50%; 42% / 10.72 mA). Native log: .tools/tank-drain-native.log;
+owned window exited zero, PLC disconnected throughout. These observations
+prove the bounded offline QA path, not all possible student programs or
+external-controller behavior. Internal tank visibility and broader operator
+process acceptance remain open; the whole-program goal remains active.
+
+Tank piping installation (2026-10-05, earlier checkpoint): Scenes 75/76 explicitly opt
 both spools into tankPiping with inlet/outlet roles. The pump and inlet spool
 approach the vessel diagonally, clearing the ladder. A 450 mm centreline-radius
 elbow joins the pump's upward discharge to the full-size delivered inlet spool;
