@@ -1,0 +1,311 @@
+{
+  "schemaVersion": 1,
+  "kind": "rungproof-ladder-project",
+  "id": "reference-chain-lift-installation",
+  "name": "Chain_Lift_Installation",
+  "sourceSceneId": "lab-4-09-chain-drive-lift",
+  "scanPeriodMs": 20,
+  "activeBlockIndex": 0,
+  "entryBlockId": "block-1",
+  "nextId": 22,
+  "tags": [
+    {
+      "name": "box_present",
+      "type": "Bool",
+      "role": "Input",
+      "initial": false,
+      "binding": "box_present"
+    },
+    {
+      "name": "lift_home",
+      "type": "Bool",
+      "role": "Input",
+      "initial": false,
+      "binding": "lift_home"
+    },
+    {
+      "name": "destination_clear",
+      "type": "Bool",
+      "role": "Input",
+      "initial": false,
+      "binding": "destination_clear"
+    },
+    {
+      "name": "lift_start",
+      "type": "Bool",
+      "role": "Input",
+      "initial": false,
+      "binding": "lift_start"
+    },
+    {
+      "name": "stop_command",
+      "type": "Bool",
+      "role": "Input",
+      "initial": false,
+      "binding": "operator.stop"
+    },
+    {
+      "name": "start_edge",
+      "type": "Bool",
+      "role": "Memory",
+      "initial": false,
+      "binding": ""
+    },
+    {
+      "name": "chain_run",
+      "type": "Bool",
+      "role": "Output",
+      "initial": false,
+      "binding": "chain_run"
+    },
+    {
+      "name": "lift_enable",
+      "type": "Bool",
+      "role": "Output",
+      "initial": false,
+      "binding": "lift_enable"
+    }
+  ],
+  "blocks": [
+    {
+      "id": "block-1",
+      "name": "Chain_Lift_Installation",
+      "blockType": "OrganizationBlock",
+      "interface": [],
+      "rungs": [
+        {
+          "id": "rung-3",
+          "label": "Sample momentary installation Start",
+          "coilVariable": "start_edge",
+          "coilMode": "Assign",
+          "timerVariable": "",
+          "timerPresetMs": 1000,
+          "timerKind": "OnDelay",
+          "isTimer": false,
+          "isTimerReset": false,
+          "isCounter": false,
+          "isCounterReset": false,
+          "isCounterLoad": false,
+          "counterKind": "CountUp",
+          "counterVariable": "",
+          "counterPreset": 10,
+          "isNumericOperation": false,
+          "numericOperationKind": "Move",
+          "numericSourceA": "0",
+          "numericSourceB": "0",
+          "numericSourceC": "0",
+          "numericDestination": "",
+          "isCall": false,
+          "callTarget": "",
+          "isReturn": false,
+          "isJump": false,
+          "isLabel": false,
+          "programControlLabel": "",
+          "branches": [
+            {
+              "id": "branch-4",
+              "contacts": [
+                {
+                  "id": "edge-5",
+                  "variable": "lift_start",
+                  "normallyClosed": false,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "Rising"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "rung-6",
+          "label": "Lift drive seal with manual test permissives",
+          "coilVariable": "lift_enable",
+          "coilMode": "Assign",
+          "timerVariable": "",
+          "timerPresetMs": 1000,
+          "timerKind": "OnDelay",
+          "isTimer": false,
+          "isTimerReset": false,
+          "isCounter": false,
+          "isCounterReset": false,
+          "isCounterLoad": false,
+          "counterKind": "CountUp",
+          "counterVariable": "",
+          "counterPreset": 10,
+          "isNumericOperation": false,
+          "numericOperationKind": "Move",
+          "numericSourceA": "0",
+          "numericSourceB": "0",
+          "numericSourceC": "0",
+          "numericDestination": "",
+          "isCall": false,
+          "callTarget": "",
+          "isReturn": false,
+          "isJump": false,
+          "isLabel": false,
+          "programControlLabel": "",
+          "branches": [
+            {
+              "id": "branch-7",
+              "contacts": [
+                {
+                  "id": "contact-8",
+                  "variable": "start_edge",
+                  "normallyClosed": false,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "None"
+                },
+                {
+                  "id": "contact-11",
+                  "variable": "box_present",
+                  "normallyClosed": false,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "None"
+                },
+                {
+                  "id": "contact-12",
+                  "variable": "lift_home",
+                  "normallyClosed": false,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "None"
+                },
+                {
+                  "id": "contact-13",
+                  "variable": "destination_clear",
+                  "normallyClosed": false,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "None"
+                },
+                {
+                  "id": "contact-14",
+                  "variable": "stop_command",
+                  "normallyClosed": true,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "None"
+                }
+              ]
+            },
+            {
+              "id": "branch-9",
+              "contacts": [
+                {
+                  "id": "contact-10",
+                  "variable": "lift_enable",
+                  "normallyClosed": false,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "None"
+                },
+                {
+                  "id": "contact-15",
+                  "variable": "box_present",
+                  "normallyClosed": false,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "None"
+                },
+                {
+                  "id": "contact-16",
+                  "variable": "lift_home",
+                  "normallyClosed": false,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "None"
+                },
+                {
+                  "id": "contact-17",
+                  "variable": "destination_clear",
+                  "normallyClosed": false,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "None"
+                },
+                {
+                  "id": "contact-18",
+                  "variable": "stop_command",
+                  "normallyClosed": true,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "None"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "rung-19",
+          "label": "Chain drive follows installation enable",
+          "coilVariable": "chain_run",
+          "coilMode": "Assign",
+          "timerVariable": "",
+          "timerPresetMs": 1000,
+          "timerKind": "OnDelay",
+          "isTimer": false,
+          "isTimerReset": false,
+          "isCounter": false,
+          "isCounterReset": false,
+          "isCounterLoad": false,
+          "counterKind": "CountUp",
+          "counterVariable": "",
+          "counterPreset": 10,
+          "isNumericOperation": false,
+          "numericOperationKind": "Move",
+          "numericSourceA": "0",
+          "numericSourceB": "0",
+          "numericSourceC": "0",
+          "numericDestination": "",
+          "isCall": false,
+          "callTarget": "",
+          "isReturn": false,
+          "isJump": false,
+          "isLabel": false,
+          "programControlLabel": "",
+          "branches": [
+            {
+              "id": "branch-20",
+              "contacts": [
+                {
+                  "id": "contact-21",
+                  "variable": "lift_enable",
+                  "normallyClosed": false,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "None"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "task-2",
+      "name": "MainTask",
+      "kind": "Continuous",
+      "periodMs": 20,
+      "priority": 10,
+      "entryBlock": "block-1"
+    }
+  ],
+  "watchVariables": []
+}

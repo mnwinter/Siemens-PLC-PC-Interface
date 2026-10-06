@@ -1,6 +1,57 @@
 # RungProof / PLC Visual Simulator AI handoff
 
-Sequence tower repair (2026-10-05, current): Scene 45 now installs four
+Scene 50 installation repair (2026-10-05, current checkpoint): replaced the
+overlapping conveyor/scissor-table installation and incorrect mill/scissor/
+E-stop accessories with a scene-local guided chain lift, separate chain
+infeed, two transfer bridges, frame-mounted endpoint switches, an upper
+receiving belt and floor-mounted end stop. The staged carton bears on the
+yellow deck; two crossmembers connect the deck to the moving side beams.
+Shared catalog deliveries and DB14 remain unchanged. The scene now declares
+14 equipment items, 6 symbolic points and 4 actions. Chain/lift PLC commands
+reach actual drive adapters, with the carton following actual carriage height.
+Chain links/sprockets follow that position; the infeed animates its upper run.
+
+The editable chain-lift-installation-reference.rpproj.json is an installation
+test using three explicitly manual permissives and a momentary Start. Normal
+20 ms offline scans reject missing permissives and stale Start, drive the
+supported load on fresh Start, hold on Stop, require fresh Start after Run,
+clear the seal on destination loss, and restore initial state on global Reset.
+It is not the final continuous carton-transfer program.
+
+Native Windows home and upper endpoint snapshots were inspected FR/FL/RL/RR/
+Top, with the source example opened through File -> Open Ladder Agent Project.
+Normal operator checks exercised rejected Start, fresh Start, upper Stop,
+Run/fresh-Start behavior, destination loss/recovery and Reset. A partial raised
+snapshot was seen; mid-stroke Stop was verified in the focused headless audit.
+Final deck crossmember correction was rechecked in native focused FR/RL home
+and raised views. These are inspected snapshots, not every-frame native stroke
+acceptance. Some rear views occlude the upper receiving surface. PLC remained
+disconnected; both own repaired/final native QA processes exited 0.
+
+All 28 --audit-chain-lift-installation checks pass, including deck bearing,
+fixed switch bracket/endpoint roller contact, carton support and selected
+obstacle clearance at 211 height samples (10 mm), actual controller sequencing,
+drive Stop/Reset and restoring every feed sprocket without another command.
+Guides, chain links and intended limit contacts are excluded from the sampled
+clearance check; this is not continuous swept-volume or self-collision proof.
+Static candidate count fell from 145 to 3 intended switch/post interfaces.
+Final build has zero warnings/errors. Controller regression: 144 pass;
+geometry regression: 487 pass; shell: 77 scenes/294 assets; Scene 50 contract:
+6 points/4 actions/14 rendered/0 deferred. Help validation passes. Broad
+regressions preceded the final crossmember and feed-sprocket Reset corrections;
+final build/focused audit cover them, and final native inspection covers deck
+support geometry. Logs: rungproof-next/.tools/chain-lift-{build,audit,controller,
+geometry,shell,contract,repaired-native,final-native}.log.
+
+OPEN: carton starts on the lift; horizontal loading/discharge, automatic
+position/load feedback, receiving-belt motion and lowering/return are not yet
+implemented. Manual HOME can remain asserted while raised. Infeed animation
+is an upper-run visual model, not flexible-chain physics. Next implement a
+supported continuous carton route and real simulator feedback, then inspect
+full native motion from all five angles and continue the remaining catalog.
+Goal active; whole-program review remains incomplete.
+
+Sequence tower repair (2026-10-05, previous): Scene 45 now installs four
 separate red/amber/green/blue tiers and a separate completion beacon. The
 scene-local assembly extends the delivered three-tier model by its 235 mm
 pitch and raises the cap/sounder. Independent indicatorChannel bindings show

@@ -400,6 +400,28 @@ that all lab PLC-owned points remain safe under every operator action.
 
 ## Reusable catalog direction
 
+### Chain lift scene installation (Godot migrated scene)
+
+`lab-4-09-chain-drive-lift` uses the following scene-local equipment config
+selectors. These create installation geometry without registering substitute
+catalog assets or modifying shared deliveries:
+
+| Equipment type | `config.installation` | Result |
+| --- | --- | --- |
+| `conveyor` | `chainLiftFeed` | Delivered two-strand chain conveyor with demonstration pallet removed and a commanded upper-run animation |
+| `liftTable` | `guidedChainLift` | Guided vertical chain lift with a 2.1 m stroke in 4 s |
+| `sceneInstallation` | `chainLiftFeedBridge` | Fixed lower transfer plate and supports |
+| `sceneInstallation` | `chainLiftOutfeedBridge` | Fixed upper receiving plate and supports |
+| `sceneInstallation` | `chainLiftLimits` | Two guide-mounted endpoint switches |
+| `sceneInstallation` | `chainLiftStop` | Floor-mounted upper receiving end stop |
+
+An unknown `sceneInstallation` selector fails composition. The current guided
+lift follower targets this scene's `liftTable_1` and `box_2` IDs; it is not a
+generic scene-builder actuator. `running` bindings project `chain_run` and
+`lift_enable` into motion adapters. They do not infer PLC permissives or write
+sensor points. The three existing feedback BOOLs remain manual in this
+installation checkpoint; continuous horizontal load transfer remains open.
+
 Scene equipment instances already reference stable type IDs and type-specific
 configuration. A future scene builder should use the same definitions as its
 equipment palette and emit this same versioned JSON. The builder must validate

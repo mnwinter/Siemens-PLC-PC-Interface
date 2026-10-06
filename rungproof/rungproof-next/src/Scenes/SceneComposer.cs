@@ -31,6 +31,7 @@ public static partial class SceneComposer
         {
             var node = equipment.Type switch
             {
+                "conveyor" when Text(equipment.Config, "installation", string.Empty) == "chainLiftFeed" => CreateChainLiftFeed(equipment, candidates),
                 "conveyor" => CreateConveyor(equipment, candidates, runCommands),
                 "box" => CreateSceneLoad(equipment, candidates),
                 "palletLoad" => CreateMappedAsset(equipment, candidates,
@@ -79,6 +80,7 @@ public static partial class SceneComposer
                 "rotarySwitch" => CreateSelectorAsset(equipment, candidates),
                 "fan" => CreateControlledAsset(equipment, candidates, "air-handling.fan.axial-1900.v1", runCommands,
                     EquipmentMotionController.MotionKind.FanRotor, "KIN_", speedRpm: 720.0f),
+                "liftTable" when Text(equipment.Config, "installation", string.Empty) == "guidedChainLift" => CreateGuidedChainLift(),
                 "liftTable" => CreateLiftAsset(equipment, candidates, runCommands),
                 "drillPress" when Text(equipment.Config, "installation", string.Empty) == "fixtureDrill" =>
                     CreateControlledAsset(equipment, candidates, "machining.drill-press.pedestal.v1", runCommands,
@@ -100,6 +102,7 @@ public static partial class SceneComposer
                     ? CreateHandDryerAsset()
                     : CreateControlledAsset(equipment, candidates, "machining.machine.enclosed-center.v1", runCommands,
                         EquipmentMotionController.MotionKind.ContinuousRotation, "KIN_spindle", speedRpm: 3200.0f),
+                "sceneInstallation" => CreateChainLiftAccessory(Text(equipment.Config, "installation", string.Empty)),
                 "trainingAccessory" => CreateTrainingAccessory(equipment, candidates),
                 _ => null,
             };
@@ -143,6 +146,8 @@ public static partial class SceneComposer
             ConfigureCncTendingStock(root, scene);
         if (scene.Equipment.Any(equipment => Text(equipment.Config, "installation", string.Empty) == "robotRestartGuard"))
             ConfigureRobotRestartInterlock(root);
+        if (scene.Equipment.Any(equipment => Text(equipment.Config, "installation", string.Empty) == "guidedChainLift"))
+            root.GetNode<Node3D>("liftTable_1").GetNode<ChainLiftDriveVisual>("ChainLiftMotion").PositionFollower = root.GetNode<Node3D>("box_2");
         return new SceneComposition(root, rendered, deferred);
     }
 

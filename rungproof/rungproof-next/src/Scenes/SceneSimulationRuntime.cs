@@ -406,6 +406,12 @@ public partial class SceneSimulationRuntime : Node
         {
             switch (controller)
             {
+                case ChainLiftDriveVisual lift:
+                    lift.ResetMotion();
+                    break;
+                case ChainFeedMotion feed:
+                    feed.ResetMotion();
+                    break;
                 case EquipmentMotionController motion:
                     motion.ResetMotion();
                     break;

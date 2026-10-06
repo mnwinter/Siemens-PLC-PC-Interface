@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-4-09-chain-drive-lift",
   "name": "Lab 4.9 - Chain-Drive Lift",
-  "description": "A chain-driven transfer moves a box only when the lift is at a valid home position.",
+  "description": "A guided chain lift with aligned infeed and upper receiving surfaces. Manual feedback points exercise permissives; the staged carton follows the actual lift carriage. Continuous carton transfer remains under review.",
   "camera": {
     "position": [
       11,
@@ -21,44 +21,38 @@
     {
       "id": "conveyor_0",
       "type": "conveyor",
-      "label": "Chain-Drive Lift conveyor",
+      "label": "Two-strand chain infeed",
       "position": [
-        -3.3000000000000003,
+        -2.7,
         0,
         0
       ],
       "config": {
-        "length": 6.5,
-        "width": 1.4,
-        "deckHeight": 0.9,
-        "beltColor": 2568760,
+        "installation": "chainLiftFeed",
         "running": false
       }
     },
     {
       "id": "liftTable_1",
       "type": "liftTable",
-      "label": "Chain-Drive Lift lift Table",
+      "label": "Guided chain-driven vertical lift",
       "position": [
-        -1.1,
+        0,
         0,
         0
       ],
       "config": {
-        "width": 2.3,
-        "depth": 1.8,
-        "minimumHeight": 0.6,
-        "travel": 2.1,
-        "initialPosition": 0
+        "installation": "guidedChainLift",
+        "travel": 2.1
       }
     },
     {
       "id": "box_2",
       "type": "box",
-      "label": "Chain-Drive Lift box",
+      "label": "Carton staged on the lift platform",
       "position": [
-        1.1,
         0,
+        0.9675,
         0
       ],
       "config": {
@@ -73,11 +67,11 @@
     {
       "id": "indicator_3",
       "type": "indicator",
-      "label": "Chain-Drive Lift indicator",
+      "label": "Chain run status",
       "position": [
-        3.3000000000000003,
+        -3.7,
         0,
-        0
+        2.8
       ],
       "config": {
         "colors": [
@@ -90,113 +84,112 @@
     },
     {
       "id": "training_accessory_4",
-      "type": "trainingAccessory",
-      "label": "Chain-Drive Lift - chain conveyor",
+      "type": "sceneInstallation",
+      "label": "Fixed infeed transfer bridge",
       "position": [
-        -3.3000000000000003,
-        0,
-        1.8
+        -1.325,
+        0.9675,
+        0
       ],
       "config": {
-        "assetName": "chain conveyor",
-        "catalogAssetId": "training.accessory.chain_conveyor.v1"
+        "installation": "chainLiftFeedBridge"
       }
     },
     {
       "id": "training_accessory_5",
-      "type": "trainingAccessory",
-      "label": "Chain-Drive Lift - chain hoist/vertical lift",
+      "type": "sceneInstallation",
+      "label": "Fixed upper receiving bridge",
       "position": [
-        -1.1,
-        0,
-        1.8
+        1.325,
+        3.0675,
+        0
       ],
       "config": {
-        "assetName": "chain hoist/vertical lift",
-        "catalogAssetId": "training.accessory.chain_hoist_vertical_lift.v1"
+        "installation": "chainLiftOutfeedBridge"
       }
     },
     {
       "id": "training_accessory_6",
-      "type": "trainingAccessory",
-      "label": "Chain-Drive Lift - lift limit switches",
+      "type": "sceneInstallation",
+      "label": "Frame-mounted lower and upper limit switches",
       "position": [
-        1.1,
+        -1.24,
         0,
-        1.8
+        0.94
       ],
       "config": {
-        "assetName": "lift limit switches",
-        "catalogAssetId": "training.accessory.lift_limit_switches.v1"
+        "installation": "chainLiftLimits"
       }
     },
     {
       "id": "training_accessory_7",
-      "type": "trainingAccessory",
-      "label": "Chain-Drive Lift - mechanical stop",
+      "type": "sceneInstallation",
+      "label": "Upper receiving conveyor end stop",
       "position": [
-        3.3000000000000003,
-        0,
-        1.8
+        4.15,
+        3.0675,
+        0
       ],
       "config": {
-        "assetName": "mechanical stop",
-        "catalogAssetId": "training.accessory.mechanical_stop.v1"
+        "installation": "chainLiftStop"
       }
     },
     {
       "id": "switch_8",
       "type": "switch",
-      "label": "Chain-Drive Lift operator input",
+      "label": "BOX PRESENT (manual)",
       "position": [
-        -2.4000000000000004,
+        -1.5,
         0,
-        4.7
+        2.8
       ],
       "config": {
         "style": "pushbutton",
         "action": "toggle-box_present",
-        "color": 2204518
+        "color": 2204518,
+        "faceLabel": "BOX PRESENT (manual)"
       }
     },
     {
       "id": "switch_9",
       "type": "switch",
-      "label": "Chain-Drive Lift operator input",
+      "label": "HOME (manual)",
       "position": [
-        -0.20000000000000007,
         0,
-        4.7
+        0,
+        2.8
       ],
       "config": {
         "style": "pushbutton",
         "action": "toggle-lift_home",
-        "color": 2204518
+        "color": 2204518,
+        "faceLabel": "HOME (manual)"
       }
     },
     {
       "id": "switch_10",
       "type": "switch",
-      "label": "Chain-Drive Lift operator input",
+      "label": "DEST CLEAR (manual)",
       "position": [
-        2,
+        1.5,
         0,
-        4.7
+        2.8
       ],
       "config": {
         "style": "pushbutton",
         "action": "toggle-destination_clear",
-        "color": 2204518
+        "color": 2204518,
+        "faceLabel": "DEST CLEAR (manual)"
       }
     },
     {
       "id": "indicator_11",
       "type": "indicator",
-      "label": "Chain-Drive Lift output indication",
+      "label": "Lift enable status",
       "position": [
-        4.2,
+        3.7,
         0,
-        4.7
+        2.8
       ],
       "config": {
         "colors": [
@@ -205,6 +198,38 @@
           "green"
         ],
         "active": "red"
+      }
+    },
+    {
+      "id": "receiving_conveyor",
+      "type": "conveyor",
+      "label": "Upper receiving belt conveyor",
+      "position": [
+        2.7021667,
+        0,
+        0
+      ],
+      "config": {
+        "length": 2.6,
+        "width": 1.4,
+        "deckHeight": 3.0675,
+        "running": false
+      }
+    },
+    {
+      "id": "lift_start_station",
+      "type": "switch",
+      "label": "Lift installation Start (momentary)",
+      "position": [
+        2.5,
+        0,
+        2.8
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "start-lift-installation",
+        "faceLabel": "START",
+        "color": 2204518
       }
     }
   ],
@@ -242,6 +267,12 @@
         "owner": "PLC",
         "initial": false,
         "role": "output"
+      },
+      {
+        "name": "lift_start",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
       }
     ],
     "actions": [
@@ -262,6 +293,12 @@
         "label": "Toggle destination clear",
         "type": "toggle",
         "point": "destination_clear"
+      },
+      {
+        "id": "start-lift-installation",
+        "label": "Start lift installation (momentary)",
+        "type": "pulse",
+        "point": "lift_start"
       }
     ],
     "rules": [],
@@ -293,6 +330,21 @@
         "equipmentId": "indicator_11",
         "mode": "indicator",
         "activeColor": "green"
+      },
+      {
+        "point": "chain_run",
+        "equipmentId": "conveyor_0",
+        "mode": "running"
+      },
+      {
+        "point": "lift_enable",
+        "equipmentId": "liftTable_1",
+        "mode": "running"
+      },
+      {
+        "point": "lift_start",
+        "equipmentId": "lift_start_station",
+        "mode": "switch"
       }
     ]
   },
@@ -335,7 +387,9 @@
         "A missing or stale input must fail safe and remain diagnosable."
       ],
       "expectedObservations": [
-        "The chain and lift are enabled only with a box present, valid home, and clear destination."
+        "chain_run animates the installed infeed chain and its drive sprockets.",
+        "lift_enable raises the guided platform and its staged carton through 2.1 m; command loss holds position.",
+        "Feedback toggles remain explicit manual test inputs; automatic home/presence sensing and continuous carton transfer are not yet implemented."
       ]
     },
     "sequenceNumber": 36,
@@ -353,7 +407,8 @@
       "lift_home",
       "destination_clear",
       "chain_run",
-      "lift_enable"
+      "lift_enable",
+      "lift_start"
     ],
     "changedTags": [],
     "previousAcceptance": [
@@ -405,11 +460,10 @@
       "sizeSensorBank": "sensing.dimensioning.parcel-three-height.v1"
     },
     "scenePropTypes": [
-      "box"
+      "box",
+      "sceneInstallation"
     ],
-    "unresolvedAssetTypes": [
-      "trainingAccessory"
-    ],
+    "unresolvedAssetTypes": [],
     "visualStatus": "partial",
     "productionApproved": false,
     "reason": "Production approval requires every reusable asset and the complete scene to pass visual review."

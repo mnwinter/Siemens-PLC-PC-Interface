@@ -494,3 +494,20 @@ Use `--audit-sequence-tower` after building for 30 focused checks of the saved
 reference, actual controller sequencing, independent lamp channels and tier
 clearance. The CNC remains static and the sounder is uncommanded. These are
 offline checks; no physical or live PLC acceptance is implied.
+
+### Chain lift installation reference
+
+Scene `lab-4-09-chain-drive-lift` includes an editable installation test:
+`programs/examples/chain-lift-installation-reference.rpproj.json`. Open it with
+**File -> Open Ladder Agent Project**, Run scans, assert the three manual
+BOX PRESENT/HOME/DEST CLEAR inputs, then press Start Lift Installation. The
+staged carton rises on the carriage to the upper receiving height. Stop holds
+the position; Run requires a fresh Start. Global Reset restores the home pose
+and clears the manual inputs. See
+[`the scene guide`](docs/help/scenes/lab-4-09-chain-drive-lift.md).
+
+Use `--audit-chain-lift-installation` after building for 28 focused offline
+checks of support, selected clearance at 211 heights, actual command adapters,
+saved reference/controller behavior and drive Reset. This checkpoint does not
+implement continuous carton loading/discharge, automatic feedback or lowering.
+The receiving belt is static; the infeed animates its upper chain run only.
