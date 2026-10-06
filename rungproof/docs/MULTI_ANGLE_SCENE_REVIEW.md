@@ -1,5 +1,20 @@
 # Multi-angle scene review - 2026-10-04
 
+Scene 63 baseline native review (2026-10-06, next repair):
+Repeated FR/FL/RL/RR/Top in the Windows shell. CNC enclosure occupies the belt;
+coating-enclosure asset is an electrical cabinet, workpiece asset a motor starter,
+and damper asset a roller shutter. Spray gun has a relevant identity but sits
+unmounted away from the conveyor. Scene uses booleanPanel; its three outputs
+bind only lamps, and workpiece_at_station is manually toggled. Normal Run opened
+the blank editor with no controller loaded, as expected for an unauthored exercise.
+No timed coating/index/discharge reference exists yet. Source description is a
+spray-coating line, not an immersion bath. All four accessory IDs are used only
+by this scene. Preserve the valid spray-gun asset; repair wrong identities,
+connect the supported workpiece route and ventilation/spray installation, then
+implement actual position feedback and an explicitly opened timed reference.
+Baseline window closed normally; .tools/coating-native-before.log. Scene 63 is
+still FAIL/open; no new geometry or process implementation has been accepted.
+
 Scene 62 bag indexing repair (2026-10-06, current checkpoint):
 Replaced the copied pneumatic pusher/carton with an original filled sack, flat
 bearing underside, tapered body, sealed ends and BAG label. Removed duplicate
