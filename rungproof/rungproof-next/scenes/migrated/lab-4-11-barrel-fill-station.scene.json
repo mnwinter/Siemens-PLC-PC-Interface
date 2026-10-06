@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-4-11-barrel-fill-station",
   "name": "Lab 4.11 - Barrel Fill Station",
-  "description": "A moving container stops at a fill point and resumes only after the fill-complete feedback is present.",
+  "description": "One supported barrel indexes under a connected nozzle, receives a measured 150 L batch and remains on the outfeed.",
   "camera": {
     "position": [
       11,
@@ -12,8 +12,8 @@
     ],
     "target": [
       0,
-      1.1,
-      0
+      1.4,
+      -0.6
     ],
     "fov": 45
   },
@@ -21,73 +21,83 @@
     {
       "id": "conveyor_0",
       "type": "conveyor",
-      "label": "Barrel Fill Station conveyor",
+      "label": "Indexed barrel conveyor",
       "position": [
-        -3.3000000000000003,
+        0,
         0,
         0
       ],
       "config": {
-        "length": 6.5,
+        "length": 8,
         "width": 1.4,
         "deckHeight": 0.9,
-        "beltColor": 2568760,
         "running": false
       }
     },
     {
       "id": "tank_1",
       "type": "tank",
-      "label": "Barrel Fill Station tank",
+      "label": "Elevated 200 L source cutaway",
       "position": [
-        -1.1,
         0,
-        0
+        0,
+        -2.75
       ],
       "config": {
-        "diameter": 2.6,
-        "height": 2.5,
-        "initialLevel": 0.35,
-        "fluidColor": 3718648
+        "installation": "barrelSupply"
       }
     },
     {
       "id": "valve_2",
       "type": "valve",
-      "label": "Barrel Fill Station valve",
+      "label": "Connected quarter-turn fill valve",
       "position": [
-        1.1,
         0,
-        0
+        0,
+        -1.5
       ],
       "config": {
-        "initialPosition": 0
+        "installation": "barrelValve"
       }
     },
     {
       "id": "photoeye_3",
       "type": "photoeye",
-      "label": "Barrel Fill Station photoeye",
+      "label": "Fill-entry photoeye",
       "position": [
-        3.3000000000000003,
+        0,
         0,
         0
       ],
       "config": {
-        "span": 2.05,
-        "height": 0.7,
-        "beamCenterHeightM": 1.1,
+        "span": 4,
+        "beamCenterHeightM": 1.35,
+        "blocked": false
+      }
+    },
+    {
+      "id": "exit_photoeye",
+      "type": "photoeye",
+      "label": "Outfeed occupancy photoeye",
+      "position": [
+        3,
+        0,
+        0
+      ],
+      "config": {
+        "span": 3.1,
+        "beamCenterHeightM": 1.35,
         "blocked": false
       }
     },
     {
       "id": "indicator_4",
       "type": "indicator",
-      "label": "Barrel Fill Station indicator",
+      "label": "Feed command",
       "position": [
-        -2.85,
+        0.5,
         0,
-        2.35
+        2.5
       ],
       "config": {
         "colors": [
@@ -101,98 +111,65 @@
     {
       "id": "training_accessory_5",
       "type": "trainingAccessory",
-      "label": "Barrel Fill Station - barrel/container load",
+      "label": "Open-top barrel cutaway",
       "position": [
-        -1.1,
-        0,
-        1.8
+        -2.8,
+        0.9,
+        0
       ],
       "config": {
-        "assetName": "barrel/container load",
-        "catalogAssetId": "training.accessory.barrel_container_load.v1"
+        "installation": "barrelLoad"
       }
     },
     {
       "id": "training_accessory_6",
       "type": "trainingAccessory",
-      "label": "Barrel Fill Station - flow meter",
+      "label": "Connected volumetric meter",
       "position": [
-        1.1,
         0,
-        1.8
+        0,
+        -0.9
       ],
       "config": {
-        "assetName": "flow meter",
-        "catalogAssetId": "training.accessory.flow_meter.v1"
+        "installation": "barrelMeter"
       }
     },
     {
       "id": "training_accessory_7",
       "type": "trainingAccessory",
-      "label": "Barrel Fill Station - fill nozzle",
+      "label": "Supported overhead fill nozzle",
       "position": [
-        3.3000000000000003,
         0,
-        1.8
+        0,
+        0
       ],
       "config": {
-        "assetName": "fill nozzle",
-        "catalogAssetId": "training.accessory.fill_nozzle.v1"
+        "installation": "barrelNozzle"
       }
     },
     {
       "id": "switch_8",
       "type": "switch",
-      "label": "Barrel Fill Station operator input",
+      "label": "Start / resume barrel batch",
       "position": [
-        -2.4000000000000004,
+        -2.5,
         0,
-        4.7
+        2.5
       ],
       "config": {
         "style": "pushbutton",
-        "action": "toggle-barrel_at_fill",
-        "color": 2204518
-      }
-    },
-    {
-      "id": "switch_9",
-      "type": "switch",
-      "label": "Barrel Fill Station operator input",
-      "position": [
-        -0.20000000000000007,
-        0,
-        4.7
-      ],
-      "config": {
-        "style": "pushbutton",
-        "action": "toggle-fill_complete",
-        "color": 2204518
-      }
-    },
-    {
-      "id": "switch_10",
-      "type": "switch",
-      "label": "Barrel Fill Station operator input",
-      "position": [
-        2,
-        0,
-        4.7
-      ],
-      "config": {
-        "style": "pushbutton",
-        "action": "toggle-downstream_clear",
+        "action": "start-barrel-batch",
         "color": 2204518
       }
     },
     {
       "id": "indicator_11",
       "type": "indicator",
-      "label": "Barrel Fill Station output indication",
+      "label": "Fill valve command",
       "position": [
-        4.2,
+        2.5,
         0,
-        4.7
+        2.5
       ],
       "config": {
         "colors": [
@@ -223,7 +200,55 @@
         "name": "downstream_clear",
         "type": "BOOL",
         "owner": "PC",
+        "initial": true
+      },
+      {
+        "name": "barrel_parked",
+        "type": "BOOL",
+        "owner": "PC",
         "initial": false
+      },
+      {
+        "name": "fill_beam_blocked",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "exit_beam_blocked",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "fill_fault",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "batch_start",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "barrel_litres",
+        "type": "REAL",
+        "owner": "PC",
+        "initial": 0.0
+      },
+      {
+        "name": "source_litres",
+        "type": "REAL",
+        "owner": "PC",
+        "initial": 200.0
+      },
+      {
+        "name": "flow_lps",
+        "type": "REAL",
+        "owner": "PC",
+        "initial": 0.0
       },
       {
         "name": "infeed_run",
@@ -238,45 +263,37 @@
         "owner": "PLC",
         "initial": false,
         "role": "output"
+      },
+      {
+        "name": "cycle_active",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "cycle_complete",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
       }
     ],
     "actions": [
       {
-        "id": "toggle-barrel_at_fill",
-        "label": "Toggle barrel at fill",
-        "type": "toggle",
-        "point": "barrel_at_fill"
-      },
-      {
-        "id": "toggle-fill_complete",
-        "label": "Toggle fill complete",
-        "type": "toggle",
-        "point": "fill_complete"
-      },
-      {
-        "id": "toggle-downstream_clear",
-        "label": "Toggle downstream clear",
-        "type": "toggle",
-        "point": "downstream_clear"
+        "id": "start-barrel-batch",
+        "label": "Start / resume barrel batch",
+        "type": "pulse",
+        "point": "batch_start"
       }
     ],
     "rules": [],
     "edgeRules": [],
     "pointBindings": [
       {
-        "point": "barrel_at_fill",
-        "equipmentId": "switch_8",
-        "mode": "switch"
-      },
-      {
-        "point": "fill_complete",
-        "equipmentId": "switch_9",
-        "mode": "switch"
-      },
-      {
-        "point": "downstream_clear",
-        "equipmentId": "switch_10",
-        "mode": "switch"
+        "point": "infeed_run",
+        "equipmentId": "conveyor_0",
+        "mode": "running"
       },
       {
         "point": "infeed_run",
@@ -289,23 +306,49 @@
         "equipmentId": "indicator_11",
         "mode": "indicator",
         "activeColor": "green"
+      },
+      {
+        "point": "fill_beam_blocked",
+        "equipmentId": "photoeye_3",
+        "mode": "photoeye"
+      },
+      {
+        "point": "exit_beam_blocked",
+        "equipmentId": "exit_photoeye",
+        "mode": "photoeye"
+      },
+      {
+        "point": "barrel_litres",
+        "equipmentId": "training_accessory_6",
+        "mode": "numericDisplay",
+        "label": "LITRES",
+        "format": "F1"
+      },
+      {
+        "point": "batch_start",
+        "equipmentId": "switch_8",
+        "mode": "switch"
       }
-    ]
+    ],
+    "barrelFillPlant": {
+      "model": "single-barrel-metered-fill-v1"
+    }
   },
   "training": {
     "hints": [
-      "Translate the lesson into explicit state and permissive logic: The valve opens only at the fill position and the conveyor resumes after completion.",
-      "Inputs are simulator feedback (barrel_at_fill, fill_complete, downstream_clear); PLC logic owns infeed_run, fill_valve_open.",
-      "Test the initial state, the valid condition, and at least one missing permissive."
+      "Open programs/examples/barrel-fill-reference.rpproj.json through File -> Open Ladder Agent Project. Default empty ladder remains an exercise.",
+      "Run starts scans; fresh Start authorizes travel/fill. Stop holds position and volume; Run alone stays held.",
+      "Observe 150 L transferred from the 200 L source, then a supported barrel retained on the outfeed. Reset reloads the finite batch."
     ],
     "solution": {
-      "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
+      "summary": "Editable offline one-barrel metered filling sequence. PLC owns commands; PC observes position and conserved liquid volume.",
       "steps": [
-        "Require the documented inputs: barrel_at_fill, fill_complete, downstream_clear.",
-        "Command the documented outputs: infeed_run, fill_valve_open.",
-        "Remove PLC commands when the permissive is lost."
+        "Authorize on a fresh Start, no fault and no completed barrel.",
+        "Index the empty barrel beneath the fixed nozzle before opening the valve.",
+        "At 150 L, close fill, latch discharge permission while the downstream zone is clear and move to the retained stop.",
+        "Stop clears authorization; fresh Start resumes the same held batch."
       ],
-      "acceptance": "The valve opens only at the fill position and the conveyor resumes after completion."
+      "acceptance": "150 L in the barrel, 50 L in the source, both commands off and the barrel retained at the outfeed."
     },
     "assetRequirements": [
       "barrel/container load",
@@ -313,24 +356,27 @@
       "fill nozzle"
     ],
     "machineGuide": {
-      "purpose": "A moving container stops at a fill point and resumes only after the fill-complete feedback is present.",
+      "purpose": "One supported barrel indexes under a connected nozzle, receives a measured 150 L batch and remains on the outfeed.",
       "startConditions": [
-        "The common PLC/watchdog foundation is healthy.",
-        "All required simulator inputs are at their documented initial state."
+        "Open the editable reference or author equivalent ladder.",
+        "Run starts offline scans; fresh Start authorizes the finite batch."
       ],
       "normalSequence": [
-        "Apply the requested input condition.",
-        "Verify only the documented PLC outputs respond."
+        "Index the supported empty barrel at X=0.",
+        "Transfer liquid at prescribed 20 L/s until 150 L is measured.",
+        "Close fill, discharge while authorized and retain the barrel at X=3."
       ],
       "stopBehavior": [
-        "Removing the permissive removes PLC-owned commands.",
-        "Reset returns the module to its initial state."
+        "Stop clears commands and holds barrel position and volume.",
+        "Run alone holds; fresh Start resumes.",
+        "Reset restores the empty infeed barrel, 200 L source and stopped playback."
       ],
       "faultBehavior": [
-        "A missing or stale input must fail safe and remain diagnosable."
+        "Fill during feed or without an indexed barrel latches fill_fault until Reset; raw commands remain visible."
       ],
       "expectedObservations": [
-        "The valve opens only at the fill position and the conveyor resumes after completion."
+        "Litres are conserved; source plus barrel remains 200 L.",
+        "No hydraulic head, valve transit, fluid slosh, slip or replenishment is modeled."
       ]
     },
     "sequenceNumber": 38,
@@ -348,7 +394,17 @@
       "barrel_at_fill",
       "fill_complete",
       "downstream_clear",
-      "fill_valve_open"
+      "barrel_parked",
+      "fill_beam_blocked",
+      "exit_beam_blocked",
+      "fill_fault",
+      "batch_start",
+      "barrel_litres",
+      "source_litres",
+      "flow_lps",
+      "fill_valve_open",
+      "cycle_active",
+      "cycle_complete"
     ],
     "changedTags": [],
     "previousAcceptance": [
@@ -402,11 +458,9 @@
     "scenePropTypes": [
       "box"
     ],
-    "unresolvedAssetTypes": [
-      "trainingAccessory"
-    ],
+    "unresolvedAssetTypes": [],
     "visualStatus": "partial",
     "productionApproved": false,
-    "reason": "Production approval requires every reusable asset and the complete scene to pass visual review."
+    "reason": "Scene-local open barrel, finite source and connected valve/meter/nozzle replace mismatched props. Prescribed offline process only; physical approval remains open."
   }
 }

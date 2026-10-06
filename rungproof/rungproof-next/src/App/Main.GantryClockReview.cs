@@ -21,10 +21,10 @@ public partial class Main
     private bool _gantryReviewOperatorView = true;
 
     // Scoped to reviewed offline clock implementations: the autonomous
-    // gantry adapter and the single-clock chain lift / cookie plants. Other scenes may
+    // gantry adapter and the single-clock chain lift / cookie / barrel plants. Other scenes may
     // have separate callbacks; this is not a general external PLC step.
     private bool CanReviewGantryClock => _visualSceneReview && !_visualPlantReview
-        && _currentSceneId is "lab-11-13-xy-palletizing" or "lab-4-09-chain-drive-lift" or "lab-4-10-cookie-packaging"
+        && _currentSceneId is "lab-11-13-xy-palletizing" or "lab-4-09-chain-drive-lift" or "lab-4-10-cookie-packaging" or "lab-4-11-barrel-fill-station"
         && _simulatorShell?.IsExternalMode != true;
 
     private bool GantryReviewClockHeld => _gantryReviewHeldRoot is not null
@@ -57,7 +57,7 @@ public partial class Main
         if (_gantryReviewClockBar is not null)
             _gantryReviewClockBar.Visible = CanReviewGantryClock && _gantryReviewOperatorView;
         if (_gantryReviewStep is not null)
-            _gantryReviewStep.Text = _currentSceneId is "lab-4-09-chain-drive-lift" or "lab-4-10-cookie-packaging" ? "Step 2.0 s" : "Step 0.5 s";
+            _gantryReviewStep.Text = _currentSceneId is "lab-4-09-chain-drive-lift" or "lab-4-10-cookie-packaging" or "lab-4-11-barrel-fill-station" ? "Step 2.0 s" : "Step 0.5 s";
         UpdateGantryReviewClockLabel();
     }
 
@@ -97,7 +97,7 @@ public partial class Main
         if (!CanReviewGantryClock || !GantryReviewClockHeld
             || _virtualController?.Snapshot.State != VirtualControllerState.Running) return;
         var chainLift = _currentSceneId == "lab-4-09-chain-drive-lift";
-        var cookiePlant = _currentSceneId == "lab-4-10-cookie-packaging";
+        var cookiePlant = _currentSceneId is "lab-4-10-cookie-packaging" or "lab-4-11-barrel-fill-station";
         var motion = cookiePlant ? null : chainLift ? _sceneCompositionRoot!.GetNode<Node3D>("liftTable_1").GetNode<EquipmentMotionController>("ChainLiftMotion")
             : _sceneCompositionRoot!.GetNode<Node3D>("training_accessory_4").GetNode<EquipmentMotionController>("GantryCommandMotion");
         _gantryReviewStepping = true;
@@ -125,6 +125,11 @@ public partial class Main
         if (_gantryReviewClockLabel is null) return;
         var motion = _sceneCompositionRoot?.FindChildren("*", string.Empty, true, false)
             .OfType<EquipmentMotionController>().FirstOrDefault(item => item is ChainLiftDriveVisual || item.Kind == EquipmentMotionController.MotionKind.CartesianGantry);
+        if (_currentSceneId == "lab-4-11-barrel-fill-station")
+        {
+            _gantryReviewClockLabel.Text = $"QA | {(_virtualController?.Snapshot.SimulatedTime.TotalSeconds ?? 0):F2} s | barrel {_sceneRuntime?.Points.GetValueOrDefault("barrel_litres") ?? 0:0.0} L | source {_sceneRuntime?.Points.GetValueOrDefault("source_litres") ?? 0:0.0} L";
+            return;
+        }
         if (_currentSceneId == "lab-4-10-cookie-packaging")
         {
             _gantryReviewClockLabel.Text = $"QA | {(_virtualController?.Snapshot.SimulatedTime.TotalSeconds ?? 0):F2} s | cookies {_sceneRuntime?.Points.GetValueOrDefault("cookie_count") ?? 0} | sealed {_sceneRuntime?.Points.GetValueOrDefault("wrapped_count") ?? 0}";

@@ -3,7 +3,7 @@
   "catalogId": "rungproof-original-scenes-migrated",
   "sourceRoot": "prototype/scenes",
   "sceneCount": 77,
-  "equipmentInstanceCount": 612,
+  "equipmentInstanceCount": 611,
   "equipmentTypeCounts": {
     "box": 30,
     "containerReceiver": 3,
@@ -17,7 +17,7 @@
     "meteringSkid": 1,
     "motor": 11,
     "palletLoad": 1,
-    "photoeye": 28,
+    "photoeye": 29,
     "pipe": 8,
     "pump": 6,
     "pusher": 2,
@@ -28,7 +28,7 @@
     "rotaryTable": 4,
     "sceneInstallation": 4,
     "sizeSensorBank": 1,
-    "switch": 163,
+    "switch": 161,
     "tank": 12,
     "toteCapper": 1,
     "toteFiller": 2,
@@ -870,7 +870,7 @@
       "name": "Lab 4.11 - Barrel Fill Station",
       "path": "res://scenes/migrated/lab-4-11-barrel-fill-station.scene.json",
       "sourceFile": "prototype/scenes/lab-4-11-barrel-fill-station.plcscene",
-      "equipmentCount": 12,
+      "equipmentCount": 11,
       "equipmentTypes": [
         "conveyor",
         "indicator",
@@ -880,9 +880,7 @@
         "trainingAccessory",
         "valve"
       ],
-      "unresolvedAssetTypes": [
-        "trainingAccessory"
-      ],
+      "unresolvedAssetTypes": [],
       "visualStatus": "partial"
     },
     {
@@ -1242,7 +1240,7 @@
     },
     {
       "id": "tank-high-low",
-      "name": "Water Tank — High/Low Switches",
+      "name": "Water Tank \u2014 High/Low Switches",
       "path": "res://scenes/migrated/tank-high-low.scene.json",
       "sourceFile": "prototype/scenes/tank-high-low.json",
       "equipmentCount": 10,
@@ -1260,7 +1258,7 @@
     },
     {
       "id": "tank-level",
-      "name": "Tank Level / 4–20 mA",
+      "name": "Tank Level / 4\u201320 mA",
       "path": "res://scenes/migrated/tank-level.scene.json",
       "sourceFile": "prototype/scenes/tank-level.json",
       "equipmentCount": 11,
@@ -1278,7 +1276,7 @@
     },
     {
       "id": "tank-radar",
-      "name": "Water Tank — Radar Level",
+      "name": "Water Tank \u2014 Radar Level",
       "path": "res://scenes/migrated/tank-radar.scene.json",
       "sourceFile": "prototype/scenes/tank-radar.json",
       "equipmentCount": 8,

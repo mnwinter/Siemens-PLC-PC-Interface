@@ -1,6 +1,52 @@
 # Multi-angle scene review - 2026-10-04
 
-Scene 51 cookie-packaging repair (2026-10-05, current checkpoint): replaced
+Scene 52 barrel-fill repair (2026-10-06, current checkpoint): replaced the
+motor-starter barrel and disconnected dosing/filler props with an open-top
+barrel, elevated 200 L cutaway source, connected valve/meter/nozzle and grounded
+supports. The scene has 11 equipment items and 15 symbolic points. One finite
+plant clock indexes the barrel, transfers 150 L at a prescribed 20 L/s, then
+parks the filled barrel on the conveyor. Source plus barrel remains 200 L.
+PC owns observed volumes/positions; PLC owns commands and authorization.
+The editable seven-rung 20 ms Barrel_Metered_Fill_Cycle reference opens through
+File -> Open Ladder Agent Project. Default empty ladder stays an exercise.
+Shared deliveries and DB14 remain unchanged. Mechanical indexing and constant
+flow are assumptions; hydraulics, slosh, slip, replenishment and collision
+physics are excluded.
+
+Final focused audit: 29/29 pass, 1,344 actual-controller 20 ms samples.
+Checks cover support/visible bounds, actual optical rays/rendered beams,
+rendered liquid volumes and stream endpoint, mating pipe end rings, finite
+inventory, completed restart rejection, Stop/Run/fresh Start during infeed,
+fill, discharge and occupied outfeed, Reset, invalid fill diagnostics,
+external pause and held native steps. One coarse cable/post bounds candidate
+remains; actual cable triangle bounds clear the axis-aligned valve/portal
+parts. These screens are not solid-contact or swept-volume acceptance.
+
+Native Windows at 1602x932 loaded the reference through the normal File route.
+The first repaired build's initial and 53.2 L filling states were inspected
+in FR/FL/RL/RR/Top. This revealed floating-point text spilling off the meter.
+Added optional numericDisplay formats G/F0/F1/F2/F3; this scene uses F1.
+The final build showed readable 53.2 L in FL at held 14 s. Stop closed the
+valve/stream and retained volume; Run plus 100 scans held it; fresh Start
+continued to 93.2 L at 18 s. At 22 s, 150 L discharged with 50 L remaining.
+At 30 s, Stop/Run/100 scans held the occupied outfeed; fresh Start parked it
+at 34 s with both outputs off. Completion was inspected in FR/FL/RL/RR/Top,
+plus wide Top to resolve cropping. Rear-left source occludes the parked barrel;
+rear-right/front views resolve it. Back sides of 3D labels appear reversed.
+Completed Start plus scans held the batch. Reset restored an empty barrel,
+200 L source and stopped scan 0. A normal realtime run showed initial FL,
+filled discharge FL at scan 1379 / 27.58 s and retained completion FL at scan
+2082 / 41.64 s (Start around 8 s). Intermediate realtime frames were not all
+inspected. Native console session exited normally with code 0.
+
+Final build has zero warnings/errors. Controller tests: 144 pass, 0 fail.
+Shared geometry: 487 checks; shared motion: 32 checks. Shell (77 scenes),
+help and Scene 52 contract pass. After the display edit, the focused 29-check
+audit, shared numeric workflow and Scene 51's 24-check regression pass.
+Whole-program goal remains active: Scene 53 cable-cut substitutions, Demo 5
+continuous motion and other documented runtime gaps remain open.
+
+Scene 51 cookie-packaging repair (2026-10-05, previous checkpoint): replaced
 an overlapping CNC, floor-level packaged-meat prop and pneumatic-pusher counter
 with scene-local cookie trays, a grounded ring-jaw sealer and numeric displays.
 There are 14 equipment items, 13 symbolic points and one momentary Start.
@@ -2529,7 +2575,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 49 | `lab-4-08-package-grouping` | 118 (historic) | Native FR/FL/RL/RR/T; final carton top/FR close | Carton support repaired and re-inspected. FAIL/open: grouping/release outputs only lamps; separated receiver/stop/sensors and transfer behavior unverified |
 | 50 | `lab-4-09-chain-drive-lift` | 3 intended mounts | Native lower bridge/mid-rise/shaft approach/upper bridge/empty return FR/FL/RL/RR/T; Stop/fresh Start/completed HOME/Reset | Supported complete single-carton route and automatic feedback repaired; 36 focused checks pass with 2,897 samples. OPEN every-frame five-angle native coverage, swept-volume/self-collision and broader physical/process acceptance |
 | 51 | `lab-4-10-cookie-packaging` | 3 coarse; cable triangles clear sealer | Native initial/down/first-sealed/complete FR/FL/RL/RR/T; real-time FL/RR | Repaired finite six-cookie cycle: 24 focused checks, 1,252 samples; support/count/seal/retention/Stop/resume/Reset. Top header occludes food; snapshots and bounds only. Physical process acceptance open |
-| 52 | `lab-4-11-barrel-fill-station` | 143 | Native FR/FL/RL/RR/T; barrel top/FR close | FAIL/open: tank occupies conveyor, barrel is motor starter; disconnected fill route; lamp-only outputs, fill/transfer unverified |
+| 52 | `lab-4-11-barrel-fill-station` | 1 coarse; cable triangle bounds clear post | Native initial/fill FR/FL/RL/RR/T; final completion FR/FL/RL/RR/T and wide Top; realtime FL | Repaired finite 150 L fill/retained barrel cycle: 29 focused checks, 1,344 samples; inventory/support/optics/Stop/resume/Reset. Meter formatted F1. Rear-left occlusion and Top cropping resolved by other views; snapshots and bounds only. Physical process acceptance open |
 | 53 | `lab-4-12-cable-cut-length` | 21 (prior inventory) | Native FR/FL/RL/RR/T; repaired readout five focus views; 3D inputs/Reset | Readout now grounded LENGTH / NO MEASUREMENT, front readable/Top clear; rear details blocked. CABLE/LENGTH/HOME plates and matching PC points verified. FAIL/open: payoff shutter, dancer/cutter trays, unbound encoder, no continuous cable measurement/cut route; outputs only lamps |
 | 54 | `lab-5-01-delayed-lamp` | 0 | Native FR/FL/RL/RR/T; normal Run, rail/3D toggles, Stop/Reset | Authored TON initially off then green; 3D clears request, Stop removes output, Reset clears points/scan; exact native interval unmeasured; selector/plate mismatch open |
 | 55 | `lab-5-02-timed-lamp-off` | 0 | Native FR/FL/RL/RR/T | Static spacing clear; persistent start_pulse, precomputed time_active, ambiguous START plates; timer behavior unverified |

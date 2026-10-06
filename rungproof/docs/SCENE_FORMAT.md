@@ -494,3 +494,38 @@ player accepts the file.
 Use the scene library selector or click **Load**. Validation occurs before the
 current 3D equipment is replaced. If validation fails, the player displays the
 error and does not attempt any PLC operation.
+
+## Barrel filling plant opt-in
+
+Scene 52 declares `barrelFillPlant: { "model": "single-barrel-metered-fill-v1" }`.
+It owns a fixed single-barrel route: X=-2.8 to indexed X=0 to retained X=3,
+belt top Y=0.9, inner barrel radius 0.28 m and 200 L source. A prescribed
+20 L/s transfers a 150 L batch. This is an offline exercise with mechanical
+indexing, not a hydraulic solver. No replenishment or recycling occurs.
+
+The model requires PC-owned BOOL `barrel_at_fill`, `fill_complete`,
+`downstream_clear`, `barrel_parked`, `fill_beam_blocked`, `exit_beam_blocked`,
+`fill_fault`; PC-owned REAL `barrel_litres`, `source_litres`, `flow_lps`; and
+PLC-owned BOOL `infeed_run`, `fill_valve_open`. Feedback follows the rendered
+plant. Commands are not rewritten by the plant. Fill away from the station
+or with feed active latches a diagnostic fault without changing inventory.
+
+Scene-local selectors are `barrelSupply` (tank), `barrelValve` (valve), and
+`barrelLoad`, `barrelMeter`, `barrelNozzle` (training accessory). Fixed runtime
+IDs are `conveyor_0`, `tank_1`, `valve_2`, `training_accessory_5`,
+`training_accessory_6` and `training_accessory_7`; geometry, IDs and constants
+must change together. Shared delivered assets are unaffected. All belt/load/
+liquid/stream projections use one clock. Stop preserves plant state and
+requires a fresh Start after Run. The reference retains discharge intent
+across Stop so the same barrel may finish parking through its occupied exit
+sensor; feed is still gated by active cycle authorization. Reset clears intent
+and restores the initial inventory.
+
+## Numeric display formatting
+
+A `numericDisplay` binding may specify `format`: `G` (default, preserving
+existing displays), `F0`, `F1`, `F2`, or `F3`. Other values are rejected.
+Formatting uses invariant culture and changes displayed text only, not point
+values or calculations. Scene 52 binds `barrel_litres` with `format: "F1"`
+so fractional readings fit the meter. Decimal display precision does not
+establish physical measurement accuracy.

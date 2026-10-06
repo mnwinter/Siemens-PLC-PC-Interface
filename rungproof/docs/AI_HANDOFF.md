@@ -1,6 +1,52 @@
 # RungProof / PLC Visual Simulator AI handoff
 
-Scene 51 cookie-packaging repair (2026-10-05, current checkpoint): replaced
+Scene 52 barrel-fill repair (2026-10-06, current checkpoint): replaced the
+motor-starter barrel and disconnected dosing/filler props with an open-top
+barrel, elevated 200 L cutaway source, connected valve/meter/nozzle and grounded
+supports. The scene has 11 equipment items and 15 symbolic points. One finite
+plant clock indexes the barrel, transfers 150 L at a prescribed 20 L/s, then
+parks the filled barrel on the conveyor. Source plus barrel remains 200 L.
+PC owns observed volumes/positions; PLC owns commands and authorization.
+The editable seven-rung 20 ms Barrel_Metered_Fill_Cycle reference opens through
+File -> Open Ladder Agent Project. Default empty ladder stays an exercise.
+Shared deliveries and DB14 remain unchanged. Mechanical indexing and constant
+flow are assumptions; hydraulics, slosh, slip, replenishment and collision
+physics are excluded.
+
+Final focused audit: 29/29 pass, 1,344 actual-controller 20 ms samples.
+Checks cover support/visible bounds, actual optical rays/rendered beams,
+rendered liquid volumes and stream endpoint, mating pipe end rings, finite
+inventory, completed restart rejection, Stop/Run/fresh Start during infeed,
+fill, discharge and occupied outfeed, Reset, invalid fill diagnostics,
+external pause and held native steps. One coarse cable/post bounds candidate
+remains; actual cable triangle bounds clear the axis-aligned valve/portal
+parts. These screens are not solid-contact or swept-volume acceptance.
+
+Native Windows at 1602x932 loaded the reference through the normal File route.
+The first repaired build's initial and 53.2 L filling states were inspected
+in FR/FL/RL/RR/Top. This revealed floating-point text spilling off the meter.
+Added optional numericDisplay formats G/F0/F1/F2/F3; this scene uses F1.
+The final build showed readable 53.2 L in FL at held 14 s. Stop closed the
+valve/stream and retained volume; Run plus 100 scans held it; fresh Start
+continued to 93.2 L at 18 s. At 22 s, 150 L discharged with 50 L remaining.
+At 30 s, Stop/Run/100 scans held the occupied outfeed; fresh Start parked it
+at 34 s with both outputs off. Completion was inspected in FR/FL/RL/RR/Top,
+plus wide Top to resolve cropping. Rear-left source occludes the parked barrel;
+rear-right/front views resolve it. Back sides of 3D labels appear reversed.
+Completed Start plus scans held the batch. Reset restored an empty barrel,
+200 L source and stopped scan 0. A normal realtime run showed initial FL,
+filled discharge FL at scan 1379 / 27.58 s and retained completion FL at scan
+2082 / 41.64 s (Start around 8 s). Intermediate realtime frames were not all
+inspected. Native console session exited normally with code 0.
+
+Final build has zero warnings/errors. Controller tests: 144 pass, 0 fail.
+Shared geometry: 487 checks; shared motion: 32 checks. Shell (77 scenes),
+help and Scene 52 contract pass. After the display edit, the focused 29-check
+audit, shared numeric workflow and Scene 51's 24-check regression pass.
+Whole-program goal remains active: Scene 53 cable-cut substitutions, Demo 5
+continuous motion and other documented runtime gaps remain open.
+
+Scene 51 cookie-packaging repair (2026-10-05, previous checkpoint): replaced
 an overlapping CNC, floor-level packaged-meat prop and pneumatic-pusher counter
 with scene-local cookie trays, a grounded ring-jaw sealer and numeric displays.
 There are 14 equipment items, 13 symbolic points and one momentary Start.

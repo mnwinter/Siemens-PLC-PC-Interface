@@ -67,6 +67,7 @@ public partial class SceneSimulationRuntime : Node
         if (selected && !running) PauseBottleShuttleClock();
         if (selected && !running) PauseChainLiftClock();
         if (selected && !running) PauseCookieClock();
+        if (selected && !running) PauseBarrelClock();
         if (selected && running) ApplyBindings();
     }
 
@@ -89,6 +90,7 @@ public partial class SceneSimulationRuntime : Node
         if (!running) PauseBottleShuttleClock();
         if (!running) PauseChainLiftClock();
         if (!running) PauseCookieClock();
+        if (!running) PauseBarrelClock();
         if (RuntimeType == "tank") ProjectTankState();
     }
 
@@ -104,6 +106,7 @@ public partial class SceneSimulationRuntime : Node
         _bottleShuttleConveyor?.SetPhysicsProcess(false);
         FreezeChainLiftAdapters();
         FreezeCookieAdapters();
+        FreezeBarrelAdapters();
     }
 
     public void ConsumeExternalInputPulses(IReadOnlyDictionary<string, object?> sampledPoints)
@@ -185,6 +188,7 @@ public partial class SceneSimulationRuntime : Node
 
         if (HasChainLiftPlant) { AdvanceChainLiftPlant(delta); return; }
         if (HasCookiePackagingPlant) { AdvanceCookiePackagingPlant(delta); return; }
+        if (HasBarrelFillPlant) { AdvanceBarrelFillPlant(delta); return; }
 
         if (HasBottleShuttleReference)
         {
@@ -440,6 +444,7 @@ public partial class SceneSimulationRuntime : Node
         ResetBottleShuttleReference();
         ResetChainLiftPlant();
         ResetCookiePackagingPlant();
+        ResetBarrelFillPlant();
         EvaluateRules();
         ApplyBindings();
         if (RuntimeType == "tank") ProjectTankState();
@@ -1109,8 +1114,13 @@ public partial class SceneSimulationRuntime : Node
                 case "numericDisplay":
                     if (equipment.GetNodeOrNull<Label3D>("NumericReadout") is { } readout
                         && IsNumericPointType(_pointTypes.GetValueOrDefault(point) ?? string.Empty))
+                    {
+                        var format = Text(binding, "format", "G");
+                        if (format is not ("G" or "F0" or "F1" or "F2" or "F3"))
+                            throw new InvalidOperationException($"Numeric display '{equipmentId}' requires G or F0 through F3 format.");
                         readout.Text = Text(binding, "label", string.Empty) + "\n"
-                            + Convert.ToDouble(value, CultureInfo.InvariantCulture).ToString("G", CultureInfo.InvariantCulture);
+                            + Convert.ToDouble(value, CultureInfo.InvariantCulture).ToString(format, CultureInfo.InvariantCulture);
+                    }
                     break;
                 case "indicator":
                     var color = value is string text ? text : Text(binding, "activeColor", "green");

@@ -539,3 +539,26 @@ counts, retained packages, Stop/resume, Reset and command diagnostics.
 (100 actual scans). This finite model assumes mechanical indexing; heat, film
 mechanics, slip and replenishment are excluded. Bounds and native snapshots
 do not establish physical process or live PLC acceptance.
+
+### Barrel fill batch reference
+
+Scene `lab-4-11-barrel-fill-station` includes the editable offline project
+`programs/examples/barrel-fill-reference.rpproj.json`. Open it with **File ->
+Open Ladder Agent Project**, return to Scene, Run scans, then press **Start /
+resume barrel batch**. The empty barrel indexes beneath the connected nozzle,
+receives 150 L and parks on the outfeed. The meter reads 150.0 L and the source
+retains 50 L. Stop retains position and inventory; Run alone holds until a
+fresh Start. An interrupted discharge retains its ownership even when its own
+barrel occupies the exit sensor. Completion stays held until Reset restores
+an empty barrel and 200 L source. See
+[`the scene guide`](docs/help/scenes/lab-4-11-barrel-fill-station.md).
+
+After building, `--audit-barrel-fill` runs 29 focused checks with 1,344 actual
+20 ms controller samples. These check liquid inventory/rendering, support,
+selected geometry, pipe connections, optical feedback, Stop/resume, Reset,
+invalid-command diagnostics and the native Hold/Step path. Launch with
+`--visual-scene-review --shell-scene=lab-4-11-barrel-fill-station
+--shell-view=operator` for camera views and 2 s steps of 100 actual scans.
+This finite model assumes mechanical indexing and prescribed constant flow;
+hydraulics, slosh, slip and replenishment are excluded. Bounds and native
+snapshots do not establish physical process or live PLC acceptance.

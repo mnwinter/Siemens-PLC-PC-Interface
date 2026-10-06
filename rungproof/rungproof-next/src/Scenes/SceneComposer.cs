@@ -69,10 +69,12 @@ public static partial class SceneComposer
                     EquipmentMotionController.MotionKind.ContinuousRotation, "KIN_motor_", speedRpm: 1450.0f,
                     rotationAxis: Vector3.Right),
                 "pipe" => CreateMappedAsset(equipment, candidates, "process.pipe.flanged-spool.v1"),
+                "tank" when Text(equipment.Config, "installation", string.Empty) == "barrelSupply" => CreateBarrelFillPart("barrelSupply"),
                 "tank" => CreateTankAsset(equipment, candidates),
                 "pump" => CreateControlledAsset(equipment, candidates, "process.pump.centrifugal-skid.v1", runCommands,
                     EquipmentMotionController.MotionKind.ContinuousRotation, "KIN_pump_shaft", speedRpm: 1450.0f,
                     rotationAxis: Vector3.Right),
+                "valve" when Text(equipment.Config, "installation", string.Empty) == "barrelValve" => CreateBarrelFillPart("barrelValve"),
                 "valve" => CreateControlledAsset(equipment, candidates, "process.valve.actuated-ball.v1", runCommands,
                     EquipmentMotionController.MotionKind.PositionRotation, "KIN_valve_stem", travelDegrees: 90.0f, travelTimeSeconds: 1.2f),
                 "levelSensor" => CreateLevelSensorAsset(equipment, candidates),
@@ -151,6 +153,7 @@ public static partial class SceneComposer
             root.GetNode<Node3D>("liftTable_1").GetNode<ChainLiftDriveVisual>("ChainLiftMotion").PositionFollower = root.GetNode<Node3D>("box_2");
         if (scene.Simulation.TryGetProperty("chainLiftPlant", out _)) ConfigureChainLiftReceiver(root);
         if (scene.Simulation.TryGetProperty("cookiePackagingPlant", out _)) ConfigureCookieConveyor(root);
+        if (scene.Simulation.TryGetProperty("barrelFillPlant", out _)) ConfigureBarrelConveyor(root);
         return new SceneComposition(root, rendered, deferred);
     }
 
@@ -277,6 +280,7 @@ public static partial class SceneComposer
 
     private static Node3D? CreateTrainingAccessory(SceneEquipment equipment, AssetCatalogDocument candidates)
     {
+        if (Text(equipment.Config, "installation", string.Empty) is "barrelLoad" or "barrelMeter" or "barrelNozzle") return CreateBarrelFillPart(Text(equipment.Config, "installation", string.Empty));
         if (Text(equipment.Config, "installation", string.Empty) is "cookieTray" or "cookieCounter") return CreateCookiePackagingPart(Text(equipment.Config, "installation", string.Empty));
         if (Text(equipment.Config, "installation", string.Empty) == "robotRestartGuard") return CreateRobotRestartGuard();
         if (Text(equipment.Config, "installation", string.Empty) == "robotRestartPanel") return CreateRobotRestartPanel();
