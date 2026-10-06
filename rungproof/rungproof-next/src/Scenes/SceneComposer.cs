@@ -90,6 +90,8 @@ public static partial class SceneComposer
                     EquipmentMotionController.MotionKind.ContinuousRotation, "KIN_spindle", speedRpm: 900.0f),
                 "robotArm" when Text(equipment.Config, "installation", string.Empty) == "palletHandlingRobot" =>
                     CreatePalletHandlingRobot(equipment, candidates),
+                "robotArm" when Text(equipment.Config, "installation", string.Empty) == "cncTendingRobot" =>
+                    CreateCncTendingRobot(equipment, candidates),
                 "robotArm" => CreateControlledAsset(equipment, candidates, "robotics.robot.six-axis-medium.v1", runCommands,
                     EquipmentMotionController.MotionKind.OscillatingRotation, "KIN_axis_1", travelDegrees: 55.0f),
                 "rotaryTable" => CreateRotaryTable(equipment, candidates, runCommands),

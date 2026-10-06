@@ -1,6 +1,49 @@
 # RungProof / PLC Visual Simulator AI handoff
 
-Robot CNC installation checkpoint (2026-10-05, current): Scene 38 now carries
+Robot CNC transfer repair (2026-10-05, current): Scene 38's reference now
+uses the actual six robot joints and tool attachment for both transfers.
+The 400 x 140 x 252 mm billet remains between the fingers while lifted,
+carried through a staged front corridor, seated on the existing bearing shoe,
+released, regripped and delivered to outfeed. A CNC-specific grip datum,
+orientation, joint seed and park pose leave existing tote defaults unchanged.
+Sliding door assemblies and the retracting nose/tool stack use explicit access
+position. The robot parks before access closes and the machining timer starts.
+The doors' rollers bear on an extended, supported top track throughout travel.
+Vise bolts, the coolant nozzle/service hose and the rear backdrop were moved
+clear of the stock/finger route. Changes are opt-in to the CNC tending scene.
+
+The separate `--audit-robot-cnc` passes all 23 checks, exit 0: actual tool/load
+attachment and two-finger contact, belt/vise footprint bearing, both aperture
+crossings with open doors/retracted tool, closed access/tool down with ungripped
+stopped robot during machining, door track bearing, completion and Stop/Reset/
+restart rejection. It advances 22500 two-ms runtime/adapter ticks (45 s),
+including 2250 twenty-ms load/robot-versus-other-equipment clearance samples.
+The contact screens use bounds/OBB and cable triangle bounds with allowances;
+they do not establish continuous swept volume, robot self-collision clearance,
+mechanical ratings or physical interlock operation.
+
+Native Windows: home, held grip, held loaded entry above the vise and completed
+outfeed each inspected FR/FL/RL/RR/Top. Held infeed, opening, approach, lift,
+front-corridor travel, lowering, release and withdrawal were also inspected.
+Front views show supported released stock; rear enclosure walls and the roof
+occlude some details. Held outfeed delivery was inspected FR/FL/Top. Stop held
+the loaded outfeed approach and removed commands; restart was rejected until
+Reset. A subsequent uninterrupted reference cycle completed; completed restart
+was rejected and Reset restored home. These are inspected snapshots, not a
+continuous recording or every-frame review. This joint adapter and explicit
+access motions advance with held Step; autonomous spindle animation remains
+frozen. Phase-boundary remainder is discarded, so step counts do not prove time.
+
+Build clean; geometry 487 checks, controller 144 tests, Scene 38 contract,
+app shell (77 scenes/294 assets) and help validation PASS. Logs under
+`rungproof-next/.tools/robot-cnc-transfer-{build,audit,geometry,controller,
+contract,shell,native-resumed}.log`. The own QA process exited 0 and closed.
+The user had closed the earlier windows during the break; none was restored.
+Goal active. Normal selected-controller operation, feedback-driven door/clamp/
+process interlocks, material removal, full robot sweep and live proof remain
+open. Next: continue the remaining catalog placement and process failures.
+
+Robot CNC installation checkpoint (2026-10-05, previous): Scene 38 now carries
 one 400 x 140 x 252 mm billet on the 0.9 m belt instead of transporting an entire
 vise. The robot is on the front access side (Z=.6) of the grounded CNC
 (Z=-2.6). Moving the enclosure back clears conveyor drives. The wider pickup

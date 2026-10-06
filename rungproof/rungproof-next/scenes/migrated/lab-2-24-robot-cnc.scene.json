@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-2-24-robot-cnc",
   "name": "Lab 2.24 - Robot CNC Tending Cell",
-  "description": "An interlocked robot transfers a blank from an infeed conveyor into a CNC enclosure, waits for machining, and places the finished part on an outfeed conveyor.",
+  "description": "Offline reference: a joint-driven robot carries one blank through open CNC access, seats it on a supported vise, waits for a machining timer and delivers it to outfeed. Feedback-driven door/clamp interlocks and normal controller operation remain unverified.",
   "camera": {
     "position": [
       14,
@@ -59,7 +59,7 @@
       "position": [
         -6.1,
         0.9,
-        0
+        0.55
       ],
       "config": {
         "size": [
@@ -82,8 +82,14 @@
       ],
       "config": {
         "initialPosition": 0,
-        "running": false
-      }
+        "running": false,
+        "installation": "cncTendingRobot"
+      },
+      "rotation": [
+        0,
+        90,
+        0
+      ]
     },
     {
       "id": "cnc_machine",
@@ -114,7 +120,7 @@
         0
       ],
       "config": {
-        "span": 2.8,
+        "span": 4.4,
         "height": 0.7,
         "beamCenterHeightM": 0.97,
         "blocked": false
@@ -275,6 +281,7 @@
             "blank_at_pickup": false,
             "machining_complete": false,
             "cycle_complete": false,
+            "cnc_ready": false,
             "status_color": "green"
           },
           "motions": [
@@ -288,41 +295,251 @@
           ]
         },
         {
-          "name": "pickup",
-          "durationS": 1.2,
+          "name": "open access for loading",
+          "durationS": 1,
           "set": {
             "infeed_run": false,
             "blank_at_pickup": true,
-            "robot_run": true,
             "status_color": "amber"
           },
           "motions": [
             {
               "type": "position",
+              "equipmentId": "cnc_machine",
+              "from": 0,
+              "to": 1
+            }
+          ]
+        },
+        {
+          "name": "approach infeed via front corridor",
+          "durationS": 2,
+          "set": {
+            "robot_run": true
+          },
+          "motions": [
+            {
+              "type": "robotApproach",
               "equipmentId": "cnc_robot",
-              "from": 0,
-              "to": 0.55
-            },
+              "loadId": "cnc_workpiece",
+              "toPosition": [
+                -1.8,
+                1.8,
+                -1.3
+              ]
+            }
+          ]
+        },
+        {
+          "name": "approach blank above belt",
+          "durationS": 2,
+          "motions": [
             {
-              "type": "translate",
-              "equipmentId": "cnc_workpiece",
-              "axis": "x",
-              "from": -1.8,
+              "type": "robotApproach",
+              "equipmentId": "cnc_robot",
+              "loadId": "cnc_workpiece",
+              "toPosition": [
+                -1.8,
+                1.8,
+                0.55
+              ]
+            }
+          ]
+        },
+        {
+          "name": "descend to blank",
+          "durationS": 1,
+          "motions": [
+            {
+              "type": "robotWithdraw",
+              "equipmentId": "cnc_robot",
+              "loadId": "cnc_workpiece",
+              "fromPosition": [
+                -1.8,
+                1.8,
+                0.55
+              ],
+              "toPosition": [
+                -1.8,
+                0.9,
+                0.55
+              ]
+            }
+          ]
+        },
+        {
+          "name": "grip blank",
+          "durationS": 0.4,
+          "motions": [
+            {
+              "type": "robotGrip",
+              "equipmentId": "cnc_robot",
+              "loadId": "cnc_workpiece"
+            }
+          ]
+        },
+        {
+          "name": "lift blank clear of belt",
+          "durationS": 1,
+          "set": {
+            "blank_at_pickup": false
+          },
+          "motions": [
+            {
+              "type": "robotTransfer",
+              "equipmentId": "cnc_robot",
+              "loadId": "cnc_workpiece",
+              "fromPosition": [
+                -1.8,
+                0.9,
+                0.55
+              ],
+              "toPosition": [
+                -1.8,
+                1.8,
+                0.55
+              ]
+            }
+          ]
+        },
+        {
+          "name": "carry blank clear of robot base",
+          "durationS": 2,
+          "motions": [
+            {
+              "type": "robotTransfer",
+              "equipmentId": "cnc_robot",
+              "loadId": "cnc_workpiece",
+              "fromPosition": [
+                -1.8,
+                1.8,
+                0.55
+              ],
+              "toPosition": [
+                -1.8,
+                1.8,
+                -1.3
+              ]
+            }
+          ]
+        },
+        {
+          "name": "carry blank to front opening",
+          "durationS": 2,
+          "motions": [
+            {
+              "type": "robotTransfer",
+              "equipmentId": "cnc_robot",
+              "loadId": "cnc_workpiece",
+              "fromPosition": [
+                -1.8,
+                1.8,
+                -1.3
+              ],
+              "toPosition": [
+                0,
+                1.8,
+                -1.3
+              ]
+            }
+          ]
+        },
+        {
+          "name": "enter open enclosure above vise",
+          "durationS": 1.5,
+          "motions": [
+            {
+              "type": "robotTransfer",
+              "equipmentId": "cnc_robot",
+              "loadId": "cnc_workpiece",
+              "fromPosition": [
+                0,
+                1.8,
+                -1.3
+              ],
+              "toPosition": [
+                0,
+                1.8,
+                -1.985
+              ]
+            }
+          ]
+        },
+        {
+          "name": "lower blank onto bearing",
+          "durationS": 0.8,
+          "motions": [
+            {
+              "type": "robotTransfer",
+              "equipmentId": "cnc_robot",
+              "loadId": "cnc_workpiece",
+              "fromPosition": [
+                0,
+                1.8,
+                -1.985
+              ],
+              "toPosition": [
+                0,
+                1.66,
+                -1.985
+              ]
+            }
+          ]
+        },
+        {
+          "name": "release seated blank",
+          "durationS": 0.3,
+          "motions": [
+            {
+              "type": "robotRelease",
+              "equipmentId": "cnc_robot",
+              "loadId": "cnc_workpiece"
+            }
+          ]
+        },
+        {
+          "name": "withdraw from loaded vise",
+          "durationS": 1.5,
+          "motions": [
+            {
+              "type": "robotWithdraw",
+              "equipmentId": "cnc_robot",
+              "loadId": "cnc_workpiece",
+              "fromPosition": [
+                0,
+                1.66,
+                -1.985
+              ],
+              "toPosition": [
+                0,
+                1.66,
+                -1.3
+              ]
+            }
+          ]
+        },
+        {
+          "name": "park clear before machining",
+          "durationS": 2,
+          "motions": [
+            {
+              "type": "robotApproach",
+              "equipmentId": "cnc_robot"
+            }
+          ]
+        },
+        {
+          "name": "close access for machining",
+          "durationS": 1,
+          "set": {
+            "robot_run": false
+          },
+          "motions": [
+            {
+              "type": "position",
+              "equipmentId": "cnc_machine",
+              "from": 1,
               "to": 0
-            },
-            {
-              "type": "translate",
-              "equipmentId": "cnc_workpiece",
-              "axis": "z",
-              "from": 0,
-              "to": -1.985
-            },
-            {
-              "type": "translate",
-              "equipmentId": "cnc_workpiece",
-              "axis": "y",
-              "from": 0.9,
-              "to": 1.66
             }
           ]
         },
@@ -330,10 +547,7 @@
           "name": "machining",
           "durationS": 2,
           "set": {
-            "blank_at_pickup": false,
-            "robot_run": false,
             "cnc_run": true,
-            "cnc_ready": false,
             "status_color": "green"
           }
         },
@@ -343,43 +557,252 @@
           "set": {
             "cnc_run": false,
             "machining_complete": true,
-            "cnc_ready": true
+            "status_color": "amber"
           }
         },
         {
-          "name": "unload",
-          "durationS": 1.2,
+          "name": "open access for unloading",
+          "durationS": 1,
+          "motions": [
+            {
+              "type": "position",
+              "equipmentId": "cnc_machine",
+              "from": 0,
+              "to": 1
+            }
+          ]
+        },
+        {
+          "name": "approach completed part outside opening",
+          "durationS": 2,
           "set": {
-            "robot_run": true,
-            "status_color": "amber"
+            "robot_run": true
+          },
+          "motions": [
+            {
+              "type": "robotApproach",
+              "equipmentId": "cnc_robot",
+              "loadId": "cnc_workpiece",
+              "toPosition": [
+                0,
+                1.66,
+                -1.3
+              ]
+            }
+          ]
+        },
+        {
+          "name": "enter to completed part",
+          "durationS": 1.5,
+          "motions": [
+            {
+              "type": "robotWithdraw",
+              "equipmentId": "cnc_robot",
+              "loadId": "cnc_workpiece",
+              "fromPosition": [
+                0,
+                1.66,
+                -1.3
+              ],
+              "toPosition": [
+                0,
+                1.66,
+                -1.985
+              ]
+            }
+          ]
+        },
+        {
+          "name": "grip completed part",
+          "durationS": 0.4,
+          "motions": [
+            {
+              "type": "robotGrip",
+              "equipmentId": "cnc_robot",
+              "loadId": "cnc_workpiece"
+            }
+          ]
+        },
+        {
+          "name": "lift part clear of vise",
+          "durationS": 0.8,
+          "motions": [
+            {
+              "type": "robotTransfer",
+              "equipmentId": "cnc_robot",
+              "loadId": "cnc_workpiece",
+              "fromPosition": [
+                0,
+                1.66,
+                -1.985
+              ],
+              "toPosition": [
+                0,
+                1.8,
+                -1.985
+              ]
+            }
+          ]
+        },
+        {
+          "name": "extract through open front",
+          "durationS": 1.5,
+          "motions": [
+            {
+              "type": "robotTransfer",
+              "equipmentId": "cnc_robot",
+              "loadId": "cnc_workpiece",
+              "fromPosition": [
+                0,
+                1.8,
+                -1.985
+              ],
+              "toPosition": [
+                0,
+                1.8,
+                -1.3
+              ]
+            }
+          ]
+        },
+        {
+          "name": "carry part along front corridor",
+          "durationS": 2,
+          "motions": [
+            {
+              "type": "robotTransfer",
+              "equipmentId": "cnc_robot",
+              "loadId": "cnc_workpiece",
+              "fromPosition": [
+                0,
+                1.8,
+                -1.3
+              ],
+              "toPosition": [
+                1.8,
+                1.8,
+                -1.3
+              ]
+            }
+          ]
+        },
+        {
+          "name": "carry part above outfeed",
+          "durationS": 2,
+          "motions": [
+            {
+              "type": "robotTransfer",
+              "equipmentId": "cnc_robot",
+              "loadId": "cnc_workpiece",
+              "fromPosition": [
+                1.8,
+                1.8,
+                -1.3
+              ],
+              "toPosition": [
+                1.8,
+                1.8,
+                0.55
+              ]
+            }
+          ]
+        },
+        {
+          "name": "lower part onto outfeed",
+          "durationS": 1,
+          "motions": [
+            {
+              "type": "robotTransfer",
+              "equipmentId": "cnc_robot",
+              "loadId": "cnc_workpiece",
+              "fromPosition": [
+                1.8,
+                1.8,
+                0.55
+              ],
+              "toPosition": [
+                1.8,
+                0.9,
+                0.55
+              ]
+            }
+          ]
+        },
+        {
+          "name": "release on outfeed",
+          "durationS": 0.3,
+          "motions": [
+            {
+              "type": "robotRelease",
+              "equipmentId": "cnc_robot",
+              "loadId": "cnc_workpiece"
+            }
+          ]
+        },
+        {
+          "name": "withdraw above outfeed",
+          "durationS": 1,
+          "motions": [
+            {
+              "type": "robotWithdraw",
+              "equipmentId": "cnc_robot",
+              "loadId": "cnc_workpiece",
+              "fromPosition": [
+                1.8,
+                0.9,
+                0.55
+              ],
+              "toPosition": [
+                1.8,
+                1.8,
+                0.55
+              ]
+            }
+          ]
+        },
+        {
+          "name": "withdraw outfeed via front corridor",
+          "durationS": 2,
+          "motions": [
+            {
+              "type": "robotWithdraw",
+              "equipmentId": "cnc_robot",
+              "loadId": "cnc_workpiece",
+              "fromPosition": [
+                1.8,
+                1.8,
+                0.55
+              ],
+              "toPosition": [
+                1.8,
+                1.8,
+                -1.3
+              ]
+            }
+          ]
+        },
+        {
+          "name": "park after unload",
+          "durationS": 2,
+          "motions": [
+            {
+              "type": "robotApproach",
+              "equipmentId": "cnc_robot"
+            }
+          ]
+        },
+        {
+          "name": "close access after unload",
+          "durationS": 1,
+          "set": {
+            "robot_run": false
           },
           "motions": [
             {
               "type": "position",
-              "equipmentId": "cnc_robot",
-              "from": 0.55,
-              "to": 1
-            },
-            {
-              "type": "translate",
-              "equipmentId": "cnc_workpiece",
-              "axis": "x",
-              "from": 0,
-              "to": 1.8
-            },
-            {
-              "type": "translate",
-              "equipmentId": "cnc_workpiece",
-              "axis": "z",
-              "from": -1.985,
+              "equipmentId": "cnc_machine",
+              "from": 1,
               "to": 0
-            },
-            {
-              "type": "translate",
-              "equipmentId": "cnc_workpiece",
-              "axis": "y",
-              "from": 1.66,
-              "to": 0.9
             }
           ]
         },
@@ -387,7 +810,6 @@
           "name": "outfeed",
           "durationS": 1.5,
           "set": {
-            "robot_run": false,
             "outfeed_run": true,
             "status_color": "green"
           },
@@ -406,6 +828,7 @@
           "durationS": 0.1,
           "set": {
             "outfeed_run": false,
+            "cnc_ready": true,
             "cycle_complete": true,
             "status_color": "amber"
           }
@@ -421,7 +844,8 @@
       "status_color": "red"
     },
     "completionState": {},
-    "conveyorSpeedMps": 0.75
+    "conveyorSpeedMps": 0.75,
+    "requireHomeForReferenceStart": true
   },
   "training": {
     "hints": [
@@ -443,7 +867,7 @@
       "acceptance": "The CNC runs only while the robot is stopped; the part exits after machining complete."
     },
     "machineGuide": {
-      "purpose": "An interlocked robot transfers a blank from an infeed conveyor into a CNC enclosure, waits for machining, and places the finished part on an outfeed conveyor.",
+      "purpose": "Offline reference: a joint-driven robot carries one blank through open CNC access, seats it on a supported vise, waits for a machining timer and delivers it to outfeed. Feedback-driven door/clamp interlocks and normal controller operation remain unverified.",
       "startConditions": [
         "The common PLC/watchdog foundation is healthy.",
         "All required simulator inputs are at their documented initial state.",
@@ -467,7 +891,10 @@
         "A missing PLC command leaves the affected equipment stopped and the test diagnosable."
       ],
       "expectedObservations": [
-        "The CNC runs only while the robot is stopped; the part exits after machining complete."
+        "Preview action opens access and retracts the tool before the gripped stock crosses the opening.",
+        "Released stock remains on the vise support; the robot parks and access closes before the machining timer.",
+        "The same stock is regripped and delivered to outfeed. Reset is required after completion or interruption.",
+        "Timed reference states do not prove sensed completion, clamp feedback or PLC interlock operation."
       ]
     },
     "sequenceNumber": 24,
@@ -503,7 +930,7 @@
         "phases": [
           {
             "action": "start-cnc",
-            "runForS": 8
+            "runForS": 45
           }
         ],
         "expect": {

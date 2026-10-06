@@ -54,6 +54,7 @@ public partial class Main
             Check(machine.FindChild("WORK_stock", true, false) is not MeshInstance3D coupon || !coupon.IsVisibleInTree(),
                 "machine_has_no_duplicate_stock");
             var door = Part(machine, "DOOR_glazing_left");
+            var closedDoorPlane = ReviewBounds(door).GetCenter().Z;
             var localRobot = machine.GlobalTransform.AffineInverse() * robot.GlobalPosition;
             var localDoor = machine.GlobalTransform.AffineInverse() * door.GlobalPosition;
             Check(localRobot.Z > localDoor.Z, "robot_base_is_on_machine_front_access_side");
@@ -107,6 +108,26 @@ public partial class Main
             var gripped = true;
             var sawTransfer = false;
             var doorsClear = true;
+            var robotClear = true;
+            var transferAttached = true;
+            var machiningGuarded = true;
+            var sawMachining = false;
+            var handling = robot.GetNode<RungProof.Next.Scenes.PalletRobotMotion>("PalletRobotMotion");
+            var access = machine.GetNode<EquipmentMotionController>("CncDoorleftMotion");
+            var rightAccess = machine.GetNode<EquipmentMotionController>("CncDoorrightMotion");
+            var toolAccess = machine.GetNode<EquipmentMotionController>("CncToolClearanceMotion");
+            var homeAngles = handling.JointAngles;
+            var sawLoadEntry = false;
+            var sawUnloadExit = false;
+            var accessOpenForCrossing = true;
+            var doorBearings = true;
+            var track = ReviewBounds(Part(machine, "DOOR_top_track"));
+            var rollers = ReviewMeshes(machine).Where(part => part.Name.ToString().StartsWith("KIN_door_roller_", StringComparison.Ordinal)).ToArray();
+            var robotParts = ReviewMeshes(robot).Where(Solid).ToArray();
+            var fixedSurroundings = groups.Where(group => group != load && group != robot)
+                .SelectMany(ReviewMeshes).Where(Solid).ToArray();
+            var previousLoadPosition = load.GlobalPosition;
+            var previousBeltRunning = false;
             var reportedContacts = new HashSet<string>(StringComparer.Ordinal);
             var surrounding = groups.Where(group => group != load).SelectMany(ReviewMeshes).Where(Solid).ToArray();
             var fingers = ReviewMeshes(robot).Where(part => part.Name.ToString().StartsWith("ROBOT_gripper_finger", StringComparison.Ordinal)
@@ -114,7 +135,7 @@ public partial class Main
             var doors = ReviewMeshes(machine).Where(part => part.Name.ToString().StartsWith("DOOR_", StringComparison.Ordinal)).ToArray();
             var controllers = root.FindChildren("*", "", true, false).OfType<EquipmentMotionController>().ToArray();
             runtime.ExecuteAction("start-cnc");
-            for (var tick = 0; tick < 4000; tick++)
+            for (var tick = 0; tick < 22500; tick++)
             {
                 runtime.AdvanceSimulation(0.002);
                 foreach (var controller in controllers) controller._PhysicsProcess(0.002);
@@ -122,6 +143,10 @@ public partial class Main
                 if (runtime.Points["outfeed_run"] is true) outfeedSupported &= OnBelt(outfeed);
                 if (runtime.Points["cnc_run"] is true)
                 {
+                    sawMachining = true;
+                    machiningGuarded &= access.PositionPercent < 0.001f && rightAccess.PositionPercent < 0.001f
+                        && toolAccess.PositionPercent < 0.001f && handling.GrippedLoad is null
+                        && runtime.Points["robot_run"] is false;
                     var item = ReviewBounds(load);
                     stationSupported &= ReviewMeshes(machine).Any(part =>
                     {
@@ -131,14 +156,35 @@ public partial class Main
                             && bearing.Position.Z <= item.Position.Z + 0.001f && bearing.End.Z >= item.End.Z - 0.001f;
                     });
                 }
-                if (runtime.Points["robot_run"] is true)
+                var stockBounds = ReviewBounds(load);
+                if (stockBounds.Position.Z < closedDoorPlane && stockBounds.End.Z > closedDoorPlane)
+                {
+                    if (runtime.Points["machining_complete"] is true) sawUnloadExit = true; else sawLoadEntry = true;
+                    accessOpenForCrossing &= access.PositionPercent > 99.999f && rightAccess.PositionPercent > 99.999f
+                        && toolAccess.PositionPercent > 99.999f && handling.GrippedLoad == load;
+                }
+                doorBearings &= rollers.Length == 2 && rollers.All(part =>
+                {
+                    var bearing = ReviewBounds(part);
+                    return MathF.Abs(bearing.Position.Y - track.End.Y) < 0.002f
+                        && bearing.Position.X >= track.Position.X && bearing.End.X <= track.End.X;
+                });
+                // Approach/release/withdraw intentionally have no held stock.
+                // Every non-belt stock movement, however, must be tool-driven.
+                var beltRunning = runtime.Points["infeed_run"] is true || runtime.Points["outfeed_run"] is true;
+                if (!beltRunning && !previousBeltRunning
+                    && load.GlobalPosition.DistanceTo(previousLoadPosition) > 0.00001f)
                 {
                     sawTransfer = true;
+                    transferAttached &= handling.GrippedLoad == load
+                        && (handling.ToolTransform.Origin - load.GlobalPosition - Vector3.Up * handling.GripHeightM).Length() < 0.001f;
                     var item = ReviewBounds(load);
                     gripped &= fingers.Length == 2 && fingers.All(part => ReviewBounds(part).Grow(0.003f).Intersects(item));
                     doorsClear &= doors.All(part => !OrientedBoxesPenetrate(ReviewMeshes(load).First(), part));
                 }
-                if (tick % 5 != 0) continue;
+                previousLoadPosition = load.GlobalPosition;
+                previousBeltRunning = beltRunning;
+                if (tick % 10 != 0) continue;
                 cache.Clear();
                 foreach (var part in ReviewMeshes(load))
                 foreach (var other in surrounding)
@@ -148,18 +194,51 @@ public partial class Main
                     // Retain concrete failing pairs for the next transfer repair,
                     // without flooding the diagnostic with every sampled tick.
                     var pair = $"{part.Name}/{other.Name}";
-                    if (reportedContacts.Count < 12 && reportedContacts.Add(pair))
+                    if (reportedContacts.Count < 24 && reportedContacts.Add(pair))
                         GD.Print($"ROBOT_CNC_MOTION_CONTACT {pair} tick={tick}");
+                }
+                foreach (var part in robotParts)
+                foreach (var other in fixedSurroundings)
+                {
+                    if (Clear(part, other)) continue;
+                    robotClear = false;
+                    var pair = $"{part.Name}/{other.Name}";
+                    if (reportedContacts.Count < 24 && reportedContacts.Add(pair))
+                        GD.Print($"ROBOT_CNC_ROBOT_CONTACT {pair} tick={tick} part={Bounds(part)} angles={string.Join(',', handling.JointAngles.Select(Mathf.RadToDeg))}");
                 }
             }
             Check(infeedSupported && outfeedSupported && OnBelt(outfeed), "blank_supported_through_infeed_and_outfeed_routes");
-            Check(stationSupported, "machining_blank_has_full_bearing_surface");
-            Check(loadClear, "moving_blank_clears_separate_equipment_through_800_samples");
+            Check(sawMachining && stationSupported, "machining_blank_has_full_bearing_surface");
+            Check(loadClear, "moving_blank_clears_separate_equipment_through_2250_samples");
             Check(sawTransfer && gripped, "both_robot_fingers_contact_blank_through_transfers");
+            Check(sawTransfer && transferAttached, "moving_blank_follows_actual_tool_without_detached_translation");
             Check(sawTransfer && doorsClear, "transferred_blank_clears_enclosure_doors");
+            Check(robotClear, "robot_clears_other_equipment_through_2250_samples");
+            Check(sawMachining && machiningGuarded, "machining_reference_has_closed_access_and_ungripped_stopped_robot");
+            Check(sawLoadEntry && sawUnloadExit && accessOpenForCrossing, "both_actual_aperture_crossings_have_open_doors_retracted_tool_and_attached_load");
+            Check(doorBearings, "both_moving_door_rollers_bear_on_track_through_full_cycle");
             Check(runtime.Points["cycle_complete"] is true, "timed_reference_reports_completion");
+            var completedLoad = load.Transform;
+            Check(!runtime.ExecuteAction("start-cnc") && load.Transform.IsEqualApprox(completedLoad), "completed_restart_rejected_without_teleport");
             runtime.ResetSimulation();
             Check(load.Transform.IsEqualApprox(home), "reset_restores_blank_home");
+            bool RestoredRobot() => handling.JointAngles.Zip(homeAngles).All(pair => MathF.Abs(pair.First - pair.Second) < 0.0001f)
+                && handling.GrippedLoad is null && access.PositionPercent < 0.001f
+                && rightAccess.PositionPercent < 0.001f && toolAccess.PositionPercent < 0.001f;
+            Check(RestoredRobot(), "reset_restores_robot_access_and_tool_home");
+            runtime.ExecuteAction("start-cnc");
+            for (var tick = 0; tick < 4000; tick++) runtime.AdvanceSimulation(0.002);
+            var heldLoad = load.Transform;
+            var heldAngles = handling.JointAngles;
+            var wasHeld = handling.GrippedLoad == load;
+            runtime.StopSimulation();
+            runtime.AdvanceSimulation(1);
+            Check(wasHeld && load.Transform.IsEqualApprox(heldLoad)
+                && handling.JointAngles.Zip(heldAngles).All(pair => MathF.Abs(pair.First - pair.Second) < 0.0001f)
+                && runtime.Points["robot_run"] is false && runtime.Points["cnc_run"] is false
+                && !runtime.ExecuteAction("start-cnc"), "stop_holds_attached_load_and_robot_until_reset");
+            runtime.ResetSimulation();
+            Check(RestoredRobot() && load.Transform.IsEqualApprox(home), "reset_recovers_interrupted_transfer");
         }
         catch (Exception error)
         {

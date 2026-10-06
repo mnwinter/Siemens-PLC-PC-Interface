@@ -21,10 +21,16 @@ public partial class PalletRobotMotion : Node
         _joints[5].GlobalTransform * new Vector3(0.98f, 0, 0));
     public float[] JointAngles => (float[])_angles.Clone();
     public bool ReferenceNeedsReset => _motionKey.Length > 0;
+    // Installation-specific grip datum/orientation. Existing tote handling
+    // keeps its original values; a thin CNC billet needs a higher side grip
+    // to clear the vise jaws and a tool pointing into the front opening.
+    public float GripHeightM { get; set; } = 0.53f;
+    public Basis DesiredToolBasis { get; set; } = new(Vector3.Back, Vector3.Up, Vector3.Left);
+    public float[]? InitialJointAngles { get; set; }
+    public Vector3 ParkOffset { get; set; } = new(0, 3.25f, 0);
 
     private static readonly Vector3[] Axes = [Vector3.Up, Vector3.Back, Vector3.Back,
         Vector3.Right, Vector3.Back, Vector3.Right];
-    private static readonly Basis ToolBasis = new(Vector3.Back, Vector3.Up, Vector3.Left);
     private readonly Node3D[] _joints = new Node3D[6];
     private readonly Transform3D[] _rest = new Transform3D[6];
     private float[] _angles = [2.7f, -0.35f, -0.5f, Mathf.Pi / 2, -Mathf.Pi / 2, -1.6f];
@@ -55,12 +61,13 @@ public partial class PalletRobotMotion : Node
 
     public override void _Ready()
     {
+        if (InitialJointAngles is { Length: 6 }) _angles = (float[])InitialJointAngles.Clone();
         if (!Solve(ParkTarget)) throw new InvalidOperationException("Pallet robot park pose is unreachable.");
         _home = (float[])_angles.Clone();
         ResetMotion();
     }
 
-    public Vector3 ParkTarget => Robot.GlobalPosition + new Vector3(0, 3.25f, 0);
+    public Vector3 ParkTarget => Robot.GlobalPosition + ParkOffset;
 
     public void ResetMotion()
     {
@@ -83,7 +90,7 @@ public partial class PalletRobotMotion : Node
             if (load is not null)
             {
                 var bounds = Bounds(load);
-                _loadOffset = Vector3.Up * (bounds.Position.Y - load.GlobalPosition.Y + 0.53f);
+                _loadOffset = Vector3.Up * (bounds.Position.Y - load.GlobalPosition.Y + GripHeightM);
                 // Tool Z spans the tote's world X sides. Thin fingers fit the
                 // measured bay guides while retaining a visible side contact.
                 _closedHalfSpan = bounds.Size.X / 2 + 0.035f;
@@ -138,11 +145,11 @@ public partial class PalletRobotMotion : Node
             ApplyAngles(updateAttachments: false);
             var tool = ToolTransform;
             var position = target - tool.Origin;
-            var rotation = (tool.Basis.X.Cross(ToolBasis.X) + tool.Basis.Y.Cross(ToolBasis.Y)
-                + tool.Basis.Z.Cross(ToolBasis.Z)) * 0.5f;
+            var rotation = (tool.Basis.X.Cross(DesiredToolBasis.X) + tool.Basis.Y.Cross(DesiredToolBasis.Y)
+                + tool.Basis.Z.Cross(DesiredToolBasis.Z)) * 0.5f;
             PositionErrorM = position.Length();
-            OrientationError = (tool.Basis.X - ToolBasis.X).Length()
-                + (tool.Basis.Y - ToolBasis.Y).Length() + (tool.Basis.Z - ToolBasis.Z).Length();
+            OrientationError = (tool.Basis.X - DesiredToolBasis.X).Length()
+                + (tool.Basis.Y - DesiredToolBasis.Y).Length() + (tool.Basis.Z - DesiredToolBasis.Z).Length();
             if (PositionErrorM < 0.0002f && OrientationError < 0.003f)
             { UpdateCable(); return true; }
             var jacobian = new double[6, 6];

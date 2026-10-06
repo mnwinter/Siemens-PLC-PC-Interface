@@ -37,15 +37,16 @@ behavior. Eighteen checks pass for the repaired reference installation. This
 diagnostic is separate from the geometry regressions and does not imply
 selected-controller operation or mechanical acceptance.
 
-`-- --audit-robot-cnc` diagnoses Scene 38's installed stock, conveyor/vise
-support, front access and sampled transfers. The placement repair passes 11
-of 14 checks; this command intentionally exits 1 for detached stock, moving
-clearance and closed-door transfer failures. It is separate from accepted
-geometry regressions. Reference completion does not accept the tending process.
-In standalone `--visual-plant-review`, held Step advances only the sequence;
-generic autonomous equipment adapters remain frozen. Release the clock to
-observe their animation. Held steps also discard leftover time at phase
-boundaries, so their count is not elapsed-time acceptance.
+`-- --audit-robot-cnc` checks Scene 38's stock bearing, actual six-joint/tool
+attachment, two-finger contact, staged transfers through open doors, retracted
+tool clearance, door track bearing, sampled clearance and Stop/Reset/restart
+behavior. All 23 focused checks pass for the repaired reference. It is separate
+from geometry regressions and does not establish normal selected-controller
+operation, physical interlocks or mechanical acceptance.
+In standalone `--visual-plant-review`, held Step advances the sequence and its
+explicit joint/access motions; generic autonomous adapters such as the spindle
+remain frozen. Release the clock to observe those animations. Held steps also
+discard leftover time at phase boundaries, so counts are not time acceptance.
 
 For Demo 5's offline operator view, Hold offline gantry clock freezes scans and
 equipment motion. Step 0.5 s executes 25 existing 20 ms scan/gantry ticks;

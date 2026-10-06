@@ -1,6 +1,49 @@
 # Multi-angle scene review - 2026-10-04
 
-Robot CNC installation checkpoint (2026-10-05, current): Scene 38 now carries
+Robot CNC transfer repair (2026-10-05, current): Scene 38's reference now
+uses the actual six robot joints and tool attachment for both transfers.
+The 400 x 140 x 252 mm billet remains between the fingers while lifted,
+carried through a staged front corridor, seated on the existing bearing shoe,
+released, regripped and delivered to outfeed. A CNC-specific grip datum,
+orientation, joint seed and park pose leave existing tote defaults unchanged.
+Sliding door assemblies and the retracting nose/tool stack use explicit access
+position. The robot parks before access closes and the machining timer starts.
+The doors' rollers bear on an extended, supported top track throughout travel.
+Vise bolts, the coolant nozzle/service hose and the rear backdrop were moved
+clear of the stock/finger route. Changes are opt-in to the CNC tending scene.
+
+The separate `--audit-robot-cnc` passes all 23 checks, exit 0: actual tool/load
+attachment and two-finger contact, belt/vise footprint bearing, both aperture
+crossings with open doors/retracted tool, closed access/tool down with ungripped
+stopped robot during machining, door track bearing, completion and Stop/Reset/
+restart rejection. It advances 22500 two-ms runtime/adapter ticks (45 s),
+including 2250 twenty-ms load/robot-versus-other-equipment clearance samples.
+The contact screens use bounds/OBB and cable triangle bounds with allowances;
+they do not establish continuous swept volume, robot self-collision clearance,
+mechanical ratings or physical interlock operation.
+
+Native Windows: home, held grip, held loaded entry above the vise and completed
+outfeed each inspected FR/FL/RL/RR/Top. Held infeed, opening, approach, lift,
+front-corridor travel, lowering, release and withdrawal were also inspected.
+Front views show supported released stock; rear enclosure walls and the roof
+occlude some details. Held outfeed delivery was inspected FR/FL/Top. Stop held
+the loaded outfeed approach and removed commands; restart was rejected until
+Reset. A subsequent uninterrupted reference cycle completed; completed restart
+was rejected and Reset restored home. These are inspected snapshots, not a
+continuous recording or every-frame review. This joint adapter and explicit
+access motions advance with held Step; autonomous spindle animation remains
+frozen. Phase-boundary remainder is discarded, so step counts do not prove time.
+
+Build clean; geometry 487 checks, controller 144 tests, Scene 38 contract,
+app shell (77 scenes/294 assets) and help validation PASS. Logs under
+`rungproof-next/.tools/robot-cnc-transfer-{build,audit,geometry,controller,
+contract,shell,native-resumed}.log`. The own QA process exited 0 and closed.
+The user had closed the earlier windows during the break; none was restored.
+Goal active. Normal selected-controller operation, feedback-driven door/clamp/
+process interlocks, material removal, full robot sweep and live proof remain
+open. Next: continue the remaining catalog placement and process failures.
+
+Robot CNC installation checkpoint (2026-10-05, previous): Scene 38 now carries
 one 400 x 140 x 252 mm billet on the 0.9 m belt instead of transporting an entire
 vise. The robot is on the front access side (Z=.6) of the grounded CNC
 (Z=-2.6). Moving the enclosure back clears conveyor drives. The wider pickup
@@ -2216,7 +2259,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 35 | `lab-2-21-tote-finishing` | 0 after cable-surface screen | Initial/discharge native FR/FL/RL/RR/T; held fill four sides and filler Top/RR close; released preview/Reset; normal Run/Start | Placement/reference repaired: grounded outside-belt stations, seated tote, supported discharge and attached tools; 12 checks. FAIL/open: controller transport/Start binding, capped fill/volume, cap stroke, label application, scripted inspection, restart/resume/dynamics; normal controller unloaded |
 | 36 | `lab-2-22-dual-spindle` | Repaired separate-equipment screen clear | Repaired native home/full feed/intermediate transfer/endpoint FR/FL/RL/RR/T; near-end Top; stopped partial feed/restart rejection/Reset | Placement/reference repaired: one shared stock, grounded supporting bed, 330 mm axial feeds with reference home flags, contacted matching 2.2 m slide/fixture travel; 18 focused checks PASS. Open: normal controller feed/transfer/Start binding, independent retraction, material removal/dynamics and continuous native motion; completion remains timed |
 | 37 | `lab-2-23-parcel-sorter` | 174 | FR/FL/RL/RR/T | Repaired static/declared plant path; normal Run lacks controller |
-| 38 | `lab-2-24-robot-cnc` | Home clear; transfer RED (11/14 checks) | Repaired home/outfeed FR/FL/RL/RR/T; held pickup FR/FL; machining front/detail; released completion/Reset | Front access and billet belt/vise bearing repaired. Detached stock, machine contact and closed-door transfer fail; timed feedback/controller/door/clamp/cutting remain open. Held step freezes autonomous adapters. |
+| 38 | `lab-2-24-robot-cnc` | Reference transfer repaired; 23 checks pass | Home/grip/loaded entry/outfeed FR/FL/RL/RR/T; held route and seated release; held outfeed FR/FL/T; native Stop/restart rejection/Reset; uninterrupted completion | Actual joints/tool carry stock through open access onto supported vise and outfeed. Sampled other-equipment clearance passes; self-collision/full sweep, feedback interlocks, normal controller and cutting remain open. |
 | 39 | `lab-2-25-inspection-toggle` | 0 | Native FR/FL/RL/RR/T; repaired plate FR close; real editor create/load/Run/pulse/Stop/Reset | TOGGLE plate repaired, clear stands. Loaded one-network SET test lights beacon; discarded test is not odd/even lesson acceptance |
 | 40 | `lab-3-01-guarded-pallet-transfer` | 20 (historic) | Native FR/FL/RL/RR/T; final carton top/FR close; earlier guard toggle/Reset | Carton support repaired and re-inspected. FAIL/open: sensors/curtain/gate outside conveyor route; transfer/protective behavior unverified |
 | 41 | `lab-3-02-robot-cell-safe-restart` | 42 | Native FR/FL/RL/RR/T; persistent reset toggle/Reset | FAIL/open: robot occupies CNC; no cell perimeter; reset toggle vs edge request mismatch; only lamp output bindings, no robot-motion binding |

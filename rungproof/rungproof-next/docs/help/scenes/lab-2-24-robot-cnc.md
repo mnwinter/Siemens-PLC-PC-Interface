@@ -6,28 +6,37 @@ Scene contract: `res://scenes/migrated/lab-2-24-robot-cnc.scene.json`
 
 ## Purpose
 
-The intended process transfers a blank from an infeed conveyor into a CNC enclosure, waits for machining, and places the part on an outfeed conveyor. The current timed reference does not implement an attached robot transfer or door interlocks.
+The offline reference transfers one blank from infeed into the CNC enclosure
+using the actual six robot joints and gripper, waits for a machining timer,
+and places the same part on outfeed. It opens both sliding doors and retracts
+the tool for transfer, then parks the robot before closing access for machining.
 
-## Current installation and unresolved transfer
+## Current installation and verification
 
-The single 400 x 140 x 252 mm billet rests on the 0.9 m conveyor deck. The
-robot is installed on the CNC's front access side. At the machining target,
-a bearing shoe connects the existing vise base to the billet's Y=1.66 m
-bottom; its footprint fills the space between the delivered jaw faces.
-The machine vise remains fixed and the duplicate coupon has been removed.
+The 400 x 140 x 252 mm billet rests on the 0.9 m conveyor deck. The robot stands
+on the CNC's front access side. A bearing shoe connects the fixed vise base to
+the billet's machining bottom at Y=1.66 m. The duplicate coupon is removed.
+Staged waypoints lift stock clear of each belt, carry it along the machine
+front, enter above the vise and lower it onto that support. Only gripped stock
+follows the tool; release leaves it seated. Moving door rollers remain on their
+extended supported track, and the coolant line clears the handling route.
 
-The focused `--audit-robot-cnc` currently passes 11 of 14 checks and exits 1.
-Three failures remain: the stock is detached from the gripper during transfer,
-the straight transfer penetrates machine parts, and it passes through closed
-doors. Pickup/readiness/completion feedback is still timed. These failures
-must be repaired before accepting the intended process; normal controller
-operation, clamping and cutting/material removal are unverified.
+The focused `--audit-robot-cnc` passes 23 checks over 45 seconds: actual attachment
+and finger contact, belt/vise bearing, door/tool clearance at both aperture
+crossings, machining reference state, sampled clearance, completion and
+Stop/Reset/restart behavior. These sampled geometric checks do not prove robot
+self-collision clearance, full swept volume or mechanical performance.
+Pickup, readiness and machining completion still use timed reference states.
+Normal selected-controller operation, feedback-driven door/clamp interlocks
+and cutting/material removal remain unverified.
 
-Native Windows home and outfeed positions were inspected from four diagonal
-views and Top, plus held pickup and front machine detail views. Doors, the
-roof and robot obscure parts of the vise. The diagnostic measures bearing
-contact separately. Held preview Step advances the sequence but freezes the
-generic robot/spindle animation; release the clock to observe that motion.
+Native Windows home, held grip, held loaded entry and completed outfeed were
+inspected from four diagonal views and Top. Front views supplement rear/roof
+occlusion; held release showed stock remaining on its support. Stop retained a
+loaded pose and blocked restart until Reset. A full subsequent reference cycle
+completed. Held Step advances this joint adapter and explicit access motions,
+but autonomous spindle animation stays frozen. Phase boundaries discard leftover
+step time; do not use step counts as elapsed-time acceptance.
 
 ## Expected I/O to operate this scene
 
@@ -93,8 +102,8 @@ Declared simulation safe state:
 
 ## Machine guide
 
-The sequence below describes the intended tending process. The current timed
-preview has the transfer failures documented above and is not process acceptance.
+The sequence below describes the tending reference. Its completion is timed;
+normal controller and feedback-driven process acceptance remain open.
 
 ### Start conditions
 
@@ -114,6 +123,11 @@ preview has the transfer failures documented above and is not process acceptance
 
 ### Expected observations
 
-- The timed preview sets `cnc_run` while `robot_run` is false, then sends the
-  billet to outfeed. These point values alone do not prove robot withdrawal,
-  door closure, clamping or machining completion.
+- Preview action moves the actual robot and attached stock through open access.
+- Stock stays on the bearing shoe after release; the robot parks and doors close
+  before `cnc_run` becomes true. The tool is retracted again before unloading.
+- Stock is released onto outfeed and remains visible at the completed endpoint.
+- Stop removes commands and holds the current pose. Restart requires Reset after
+  interruption or completion. Reset restores stock, joints, doors and tool home.
+- These observations prove reference presentation only; they do not establish
+  actual clamping, sensed machining completion or PLC interlock operation.
