@@ -10541,9 +10541,9 @@
         "thumbnailFile": "res://assets/training_accessories/crosswalk_road_module/thumbnail.png"
       },
       "bounds": {
-        "widthM": 4.25,
-        "heightM": 3.15,
-        "depthM": 0.55
+        "widthM": 10.0,
+        "heightM": 0.15000000596046448,
+        "depthM": 9.199999809265137
       },
       "connectors": [],
       "kinematics": [],
@@ -10556,10 +10556,9 @@
         "topologyReviewed": false,
         "materialReviewed": false,
         "scaleReviewed": false,
-        "animationReviewed": true
+        "animationReviewed": false
       },
       "trainingRequirement": "crosswalk/road module",
-      "genericBasisAssetId": "safety.enclosure.observation-window-panel.v1",
       "copyrightBoundary": "Generic training visual; no logo, trade dress, product number, or exact OEM claim."
     },
     {
@@ -12855,9 +12854,9 @@
         "thumbnailFile": "res://assets/training_accessories/pedestrian_signal_head/thumbnail.png"
       },
       "bounds": {
-        "widthM": 0.4,
-        "heightM": 1.4,
-        "depthM": 0.4
+        "widthM": 0.699999988079071,
+        "heightM": 3.434999942779541,
+        "depthM": 0.6599999964237213
       },
       "connectors": [],
       "kinematics": [],
@@ -12870,10 +12869,9 @@
         "topologyReviewed": false,
         "materialReviewed": false,
         "scaleReviewed": false,
-        "animationReviewed": true
+        "animationReviewed": false
       },
       "trainingRequirement": "pedestrian signal head",
-      "genericBasisAssetId": "controls.beacon.single-tier.v1",
       "copyrightBoundary": "Generic training visual; no logo, trade dress, product number, or exact OEM claim."
     },
     {
@@ -13885,9 +13883,9 @@
         "thumbnailFile": "res://assets/training_accessories/traffic_signal_head/thumbnail.png"
       },
       "bounds": {
-        "widthM": 0.4,
-        "heightM": 1.4,
-        "depthM": 0.4
+        "widthM": 0.699999988079071,
+        "heightM": 3.75,
+        "depthM": 0.7099999785423279
       },
       "connectors": [],
       "kinematics": [],
@@ -13900,10 +13898,9 @@
         "topologyReviewed": false,
         "materialReviewed": false,
         "scaleReviewed": false,
-        "animationReviewed": true
+        "animationReviewed": false
       },
       "trainingRequirement": "traffic signal head",
-      "genericBasisAssetId": "controls.beacon.single-tier.v1",
       "copyrightBoundary": "Generic training visual; no logo, trade dress, product number, or exact OEM claim."
     },
     {

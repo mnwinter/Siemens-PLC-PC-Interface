@@ -202,7 +202,22 @@ phase; Run restores that phase without a startup edge. Reset clears all state
 and stays stopped. Native Windows checks cover five angles, close labels,
 physical controls, pulse consumption, Stop/Run/Reset and continuous playback.
 
-`-- --verify-scene-geometry` runs 830 focused geometry/workflow checks with `--visual-scene-review` for Demo 5 supported pickup, four-carton placement, moving clearance and attachment,
+`-- --audit-pedestrian-crossing` runs 30 offline checks for Scene 60 and writes
+ignored `.tools/plant-review-pedestrian-crossing.rpproj.json` (twenty rungs).
+Open explicitly through File; the default exercise remains empty. CROSS is a
+momentary request, PATH is manual raw BLOCK/CLEAR feedback and `sequence_running`
+is now PLC status. New PLC outputs: `vehicle_amber`, `vehicle_ready`,
+`pedestrian_stop`; Stop/WALK drive red/white symbols on the actual signal heads.
+The original reference uses amber 1 s, all-red 0.5 s, WALK 2 s and steady red/hand
+clearance 3 s, with 3 s startup clearance on each Run. Timings are declared
+illustrative choices absent from the source; flashing-hand change interval,
+people/vehicle motion and public-road engineering are outside this reference.
+PATH BLOCK prevents green release. Stop clears commands and Run overrides retained
+WALK with startup clearance. Native Windows checks cover five angles, physical
+request/selector controls, blocked clearance, Stop/Run/Reset and continuous cycle.
+
+`-- --verify-scene-geometry` runs 865 focused geometry/workflow checks with `--visual-scene-review` for Demo 5 supported pickup, four-carton placement, moving clearance and attachment,
+pedestrian-crossing supported road/sidewalks, symbol/color channels, timed phases, blocked release and startup restart,
 running-tower separate color channels, raw Step edges, wrap, disabled/held/repeated pulses and retained-phase restart,
 alternating/variable-rate periodic scans, lamp exclusivity, rate conflicts and all configured selector alignment,
 rotary-flasher periodic scans, phase retention, OFF cancellation and selector alignment,

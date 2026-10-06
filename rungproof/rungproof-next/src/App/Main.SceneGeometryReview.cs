@@ -308,6 +308,7 @@ public partial class Main
             VerifyRotaryFlasherWorkflow(Check);
             VerifyFlashPairWorkflows(Check);
             VerifyRunningTowerWorkflow(Check);
+            VerifyPedestrianCrossingWorkflow(Check);
             VerifyTransferCartonSupport(Check);
             VerifyBaseConveyorCartonSupport(Check);
             VerifyPusherRodGeometry(Check);
@@ -1110,7 +1111,7 @@ public partial class Main
         // Inspect actual imported pointer/tick geometry through each declared
         // action, including the BOOL mode selector and a four-position dial.
         foreach (var sceneId in new[] { "lab-2-05-bay-light-selector", "lab-2-09-maintenance-beacon",
-            "lab-2-15-fume-extractor", "lab-2-18-pallet-pickup", "lab-5-01-delayed-lamp", "lab-5-03-rotary-flasher", "lab-5-04-alternating-lamps", "lab-5-05-variable-flash-rate", "lab-5-06-running-light-tower" })
+            "lab-2-15-fume-extractor", "lab-2-18-pallet-pickup", "lab-5-01-delayed-lamp", "lab-5-03-rotary-flasher", "lab-5-04-alternating-lamps", "lab-5-05-variable-flash-rate", "lab-5-06-running-light-tower", "lab-5-07-pedestrian-crossing" })
         {
             AddMigratedScene(sceneId, _candidateCatalog!, _mainCamera!, false, false);
             var runtime = _sceneRuntime!;

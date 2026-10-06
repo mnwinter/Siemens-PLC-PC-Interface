@@ -1225,6 +1225,7 @@ public partial class SceneSimulationRuntime : Node
         {
             "red" => new Color("e03c31"), "amber" => new Color("f2a900"),
             "blue" => new Color("2e8bd1"), "white" => new Color("e9f2f5"),
+            "orange" => new Color("ff6400"),
             _ => new Color("21a366"),
         };
         var lenses = equipment.FindChildren("*", string.Empty, true, false).OfType<MeshInstance3D>()
@@ -1232,7 +1233,7 @@ public partial class SceneSimulationRuntime : Node
         foreach (var mesh in lenses)
         {
             var name = mesh.Name.ToString().ToLowerInvariant();
-            var nativeColor = new[] { "red", "amber", "green", "blue", "white" }
+            var nativeColor = new[] { "red", "amber", "green", "blue", "white", "orange" }
                 .FirstOrDefault(name.Contains) ?? colorName;
             if (channelOnly && !nativeColor.Equals(colorName, StringComparison.OrdinalIgnoreCase)) continue;
             var color = SignalColor(nativeColor);

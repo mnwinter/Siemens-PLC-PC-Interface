@@ -3,142 +3,150 @@
   "version": 1,
   "id": "lab-5-07-pedestrian-crossing",
   "name": "Lab 5.7 - Pedestrian Crossing",
-  "description": "A request starts a timed crossing sequence that coordinates vehicle and pedestrian indications.",
+  "description": "A momentary crossing request starts a PLC-owned timed signal sequence over a supported horizontal road and crosswalk.",
   "camera": {
     "position": [
+      14,
       11,
-      8,
-      12
+      14
     ],
     "target": [
       0,
-      1.1,
+      1,
       0
     ],
     "fov": 45
   },
   "equipment": [
     {
-      "id": "indicator_0",
-      "type": "indicator",
-      "label": "Pedestrian Crossing indicator",
+      "id": "training_accessory_5",
+      "type": "trainingAccessory",
+      "label": "Horizontal road, marked crossing and raised sidewalks",
       "position": [
-        -3.3000000000000003,
+        0,
+        0,
+        0
+      ],
+      "rotation": [
+        0,
         0,
         0
       ],
       "config": {
-        "colors": [
-          "red",
-          "amber",
-          "green"
-        ],
-        "active": "red"
-      }
-    },
-    {
-      "id": "indicator_1",
-      "type": "indicator",
-      "label": "Pedestrian Crossing indicator",
-      "position": [
-        -1.1,
-        0,
-        0
-      ],
-      "config": {
-        "colors": [
-          "red",
-          "amber",
-          "green"
-        ],
-        "active": "red"
-      }
-    },
-    {
-      "id": "switch_2",
-      "type": "switch",
-      "label": "Pedestrian Crossing switch",
-      "position": [
-        1.1,
-        0,
-        0
-      ],
-      "config": {
-        "style": "pushbutton",
-        "action": "toggle-crossing_request",
-        "color": 2204518
+        "assetName": "Horizontal road, marked crossing and raised sidewalks",
+        "catalogAssetId": "training.accessory.crosswalk_road_module.v1"
       }
     },
     {
       "id": "training_accessory_3",
       "type": "trainingAccessory",
-      "label": "Pedestrian Crossing - traffic signal head",
+      "label": "Eastbound red / amber / green signal",
       "position": [
-        3.3000000000000003,
+        -2.7,
+        0.15,
+        3.8
+      ],
+      "rotation": [
         0,
+        -90,
         0
       ],
       "config": {
-        "assetName": "traffic signal head",
+        "assetName": "Eastbound red / amber / green signal",
+        "catalogAssetId": "training.accessory.traffic_signal_head.v1"
+      }
+    },
+    {
+      "id": "traffic_west",
+      "type": "trainingAccessory",
+      "label": "Westbound red / amber / green signal",
+      "position": [
+        2.7,
+        0.15,
+        -3.8
+      ],
+      "rotation": [
+        0,
+        90,
+        0
+      ],
+      "config": {
+        "assetName": "Westbound red / amber / green signal",
         "catalogAssetId": "training.accessory.traffic_signal_head.v1"
       }
     },
     {
       "id": "training_accessory_4",
       "type": "trainingAccessory",
-      "label": "Pedestrian Crossing - pedestrian signal head",
+      "label": "Far-side hand / walking person",
       "position": [
-        -3.3000000000000003,
+        1.65,
+        0.15,
+        -3.8
+      ],
+      "rotation": [
         0,
-        1.8
+        0,
+        0
       ],
       "config": {
-        "assetName": "pedestrian signal head",
+        "assetName": "Far-side hand / walking person",
         "catalogAssetId": "training.accessory.pedestrian_signal_head.v1"
       }
     },
     {
-      "id": "training_accessory_5",
+      "id": "pedestrian_south",
       "type": "trainingAccessory",
-      "label": "Pedestrian Crossing - crosswalk/road module",
+      "label": "Opposite hand / walking person",
       "position": [
-        -1.1,
+        -1.65,
+        0.15,
+        3.8
+      ],
+      "rotation": [
         0,
-        1.8
+        180,
+        0
       ],
       "config": {
-        "assetName": "crosswalk/road module",
-        "catalogAssetId": "training.accessory.crosswalk_road_module.v1"
+        "assetName": "Opposite hand / walking person",
+        "catalogAssetId": "training.accessory.pedestrian_signal_head.v1"
       }
     },
     {
-      "id": "switch_6",
+      "id": "switch_2",
       "type": "switch",
-      "label": "Pedestrian Crossing operator input",
+      "label": "Momentary crossing request",
       "position": [
-        1.55,
-        0,
-        2.35
+        -0.8,
+        0.15,
+        3.8
       ],
       "config": {
         "style": "pushbutton",
-        "action": "toggle-sequence_running",
-        "color": 2204518
+        "action": "toggle-crossing_request",
+        "color": 2204518,
+        "faceLabel": "CROSS"
       }
     },
     {
       "id": "switch_7",
-      "type": "switch",
-      "label": "Pedestrian Crossing operator input",
+      "type": "rotarySwitch",
+      "label": "Manual path feedback BLOCK / CLEAR",
       "position": [
-        3.7500000000000004,
+        5.8,
         0,
-        2.35
+        3.8
       ],
       "config": {
-        "style": "pushbutton",
         "action": "toggle-clear_to_finish",
-        "color": 2204518
+        "positionCount": 2,
+        "initialPosition": 0,
+        "positionLabels": [
+          "BLOCK",
+          "CLEAR"
+        ],
+        "faceLabel": "PATH"
       }
     }
   ],
@@ -147,12 +155,6 @@
     "points": [
       {
         "name": "crossing_request",
-        "type": "BOOL",
-        "owner": "PC",
-        "initial": false
-      },
-      {
-        "name": "sequence_running",
         "type": "BOOL",
         "owner": "PC",
         "initial": false
@@ -171,7 +173,35 @@
         "role": "output"
       },
       {
+        "name": "vehicle_amber",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "vehicle_ready",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "pedestrian_stop",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
         "name": "pedestrian_walk",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "sequence_running",
         "type": "BOOL",
         "owner": "PLC",
         "initial": false,
@@ -181,19 +211,13 @@
     "actions": [
       {
         "id": "toggle-crossing_request",
-        "label": "Toggle crossing request",
-        "type": "toggle",
+        "label": "Press CROSS (momentary)",
+        "type": "pulse",
         "point": "crossing_request"
       },
       {
-        "id": "toggle-sequence_running",
-        "label": "Toggle sequence running",
-        "type": "toggle",
-        "point": "sequence_running"
-      },
-      {
         "id": "toggle-clear_to_finish",
-        "label": "Toggle clear to finish",
+        "label": "Turn PATH BLOCK / CLEAR (manual raw feedback)",
         "type": "toggle",
         "point": "clear_to_finish"
       }
@@ -207,43 +231,86 @@
         "mode": "switch"
       },
       {
-        "point": "sequence_running",
-        "equipmentId": "switch_6",
-        "mode": "switch"
-      },
-      {
         "point": "clear_to_finish",
         "equipmentId": "switch_7",
-        "mode": "switch"
+        "mode": "selector"
       },
       {
         "point": "vehicle_stop",
-        "equipmentId": "indicator_0",
-        "mode": "indicator",
+        "equipmentId": "training_accessory_3",
+        "mode": "indicatorChannel",
+        "activeColor": "red"
+      },
+      {
+        "point": "vehicle_amber",
+        "equipmentId": "training_accessory_3",
+        "mode": "indicatorChannel",
+        "activeColor": "amber"
+      },
+      {
+        "point": "vehicle_ready",
+        "equipmentId": "training_accessory_3",
+        "mode": "indicatorChannel",
         "activeColor": "green"
       },
       {
-        "point": "pedestrian_walk",
-        "equipmentId": "indicator_1",
-        "mode": "indicator",
+        "point": "vehicle_stop",
+        "equipmentId": "traffic_west",
+        "mode": "indicatorChannel",
+        "activeColor": "red"
+      },
+      {
+        "point": "vehicle_amber",
+        "equipmentId": "traffic_west",
+        "mode": "indicatorChannel",
+        "activeColor": "amber"
+      },
+      {
+        "point": "vehicle_ready",
+        "equipmentId": "traffic_west",
+        "mode": "indicatorChannel",
         "activeColor": "green"
+      },
+      {
+        "point": "pedestrian_stop",
+        "equipmentId": "training_accessory_4",
+        "mode": "indicatorChannel",
+        "activeColor": "orange"
+      },
+      {
+        "point": "pedestrian_walk",
+        "equipmentId": "training_accessory_4",
+        "mode": "indicatorChannel",
+        "activeColor": "white"
+      },
+      {
+        "point": "pedestrian_stop",
+        "equipmentId": "pedestrian_south",
+        "mode": "indicatorChannel",
+        "activeColor": "orange"
+      },
+      {
+        "point": "pedestrian_walk",
+        "equipmentId": "pedestrian_south",
+        "mode": "indicatorChannel",
+        "activeColor": "white"
       }
     ]
   },
   "training": {
     "hints": [
-      "Translate the lesson into explicit state and permissive logic: A crossing request stops vehicle traffic before enabling the pedestrian indication, then returns to idle.",
-      "Inputs are simulator feedback (crossing_request, sequence_running, clear_to_finish); PLC logic owns vehicle_stop, pedestrian_walk.",
-      "Test the initial state, the valid condition, and at least one missing permissive."
+      "Crossing request is a momentary raw PC input; PATH is manually operated raw feedback, not an automatic pedestrian detector.",
+      "PLC logic owns signal colors, sequence state and timers. Green and WALK must never overlap.",
+      "Open the reference explicitly or author your own ladder; exercise loading installs no solution."
     ],
     "solution": {
-      "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
+      "summary": "Original offline training reference, with declared timings not supplied by the source lesson.",
       "steps": [
-        "Require the documented inputs: crossing_request, sequence_running, clear_to_finish.",
-        "Command the documented outputs: vehicle_stop, pedestrian_walk.",
-        "Remove PLC commands when the permissive is lost."
+        "Start/restart with red and hand for 3 s; wait for PATH CLEAR before releasing green.",
+        "Accept a fresh CROSS edge only while idle and PATH CLEAR. Amber 1 s, all-red 0.5 s, WALK 2 s, steady hand/red clearance 3 s.",
+        "Return to green only with PATH CLEAR. Requests during an active sequence or blocked path are discarded."
       ],
-      "acceptance": "A crossing request stops vehicle traffic before enabling the pedestrian indication, then returns to idle."
+      "acceptance": "The reference keeps vehicle red throughout WALK and clearance, then returns to idle only when PATH CLEAR."
     },
     "assetRequirements": [
       "traffic signal head",
@@ -251,24 +318,24 @@
       "crosswalk/road module"
     ],
     "machineGuide": {
-      "purpose": "A request starts a timed crossing sequence that coordinates vehicle and pedestrian indications.",
+      "purpose": "A momentary crossing request starts a PLC-owned timed signal sequence over a supported horizontal road and crosswalk.",
       "startConditions": [
-        "The common PLC/watchdog foundation is healthy.",
-        "All required simulator inputs are at their documented initial state."
+        "Built-in offline controller with authored or explicitly opened reference logic.",
+        "Initial CROSS released, PATH BLOCK and all commands false. The blank exercise does not start a sequence."
       ],
       "normalSequence": [
-        "Apply the requested input condition.",
-        "Verify only the documented PLC outputs respond."
+        "Open .tools/plant-review-pedestrian-crossing.rpproj.json generated by --audit-pedestrian-crossing.",
+        "Run; red/hand startup clearance lasts 3 s. Set PATH CLEAR to release vehicle green.",
+        "Press CROSS: amber, all-red, white WALK, then orange hand/red clearance. PATH BLOCK prevents vehicle release."
       ],
       "stopBehavior": [
-        "Removing the permissive removes PLC-owned commands.",
-        "Reset returns the module to its initial state."
-      ],
-      "faultBehavior": [
-        "A missing or stale input must fail safe and remain diagnosable."
+        "Stop clears symbolic outputs and pending requests; internal phase is retained but Run overrides it with startup clearance before any traffic release.",
+        "Reset restores inputs false, phase zero, commands false and stopped scan zero."
       ],
       "expectedObservations": [
-        "A crossing request stops vehicle traffic before enabling the pedestrian indication, then returns to idle."
+        "Two opposing vehicle heads and two far-side pedestrian heads have independent PLC channels.",
+        "ROAD and sidewalks physically support the controls; no people or vehicle motion is simulated.",
+        "This simplified sequence omits the public-road flashing-hand change interval and is not a road controller or timing design."
       ]
     },
     "sequenceNumber": 46,
@@ -283,12 +350,17 @@
     ],
     "addedTags": [
       "crossing_request",
-      "sequence_running",
       "clear_to_finish",
       "vehicle_stop",
-      "pedestrian_walk"
+      "vehicle_amber",
+      "vehicle_ready",
+      "pedestrian_stop",
+      "pedestrian_walk",
+      "sequence_running"
     ],
-    "changedTags": [],
+    "changedTags": [
+      "sequence_running moved from a PC toggle to PLC sequence status"
+    ],
     "previousAcceptance": [
       "lab-5-06-running-light-tower"
     ]
@@ -296,10 +368,14 @@
   "verification": {
     "cases": [
       {
-        "name": "initial-safe-state",
+        "name": "initial-dark-blank-exercise",
         "expect": {
           "vehicle_stop": false,
-          "pedestrian_walk": false
+          "vehicle_amber": false,
+          "vehicle_ready": false,
+          "pedestrian_stop": false,
+          "pedestrian_walk": false,
+          "sequence_running": false
         }
       }
     ]

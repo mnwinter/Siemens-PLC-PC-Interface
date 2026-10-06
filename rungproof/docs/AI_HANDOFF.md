@@ -1,6 +1,61 @@
 # RungProof / PLC Visual Simulator AI handoff
 
-Scene 59 running-light-tower repair (2026-10-06, current checkpoint):
+Scene 60 pedestrian-crossing repair (2026-10-06, current checkpoint):
+Replaced three wrong copied assets: horizontal 10 x 6 m road with two raised
+sidewalks and nine crosswalk marks; red/amber/green vehicle heads; orange-hand /
+white-walking-person pedestrian heads. Two opposing heads of each kind stand on
+the sidewalks. Request button is supported; manual PATH BLOCK/CLEAR selector is
+separate on the floor. Seven scene items, eight symbolic points; whole catalog
+actual equipment total 614. Three older counter-lesson catalog counts/types were
+also synchronized with their actual scene files. Contract verification now rejects
+stale equipment counts/types, including duplicate types (77 positive/3 negative
+metadata probes). Historical prototype, blank exercises and five demos remain.
+
+CROSS is a momentary PC raw request; clear_to_finish is manual raw PATH feedback,
+not an automatic detector. sequence_running is now PLC status, removing its fake
+operator toggle. Added vehicle_amber/vehicle_ready/pedestrian_stop commands;
+vehicle_stop now drives red, WALK drives white symbols. Update older projects.
+Renderer exposes independently commanded channels even if user ladder conflicts.
+An unbound reference_running PLC output detects Stop and prevents retained WALK
+from being republished directly on Run. No live PLC transport is constructed.
+
+-- --audit-pedestrian-crossing runs 30 checks and generates the ignored twenty-rung
+.tools/plant-review-pedestrian-crossing.rpproj.json for explicit File Open. It
+starts red/hand for 3 s; waits for PATH CLEAR, then idle green/hand. A fresh idle
+request with CLEAR selects amber 1 s, all-red 0.5 s, WALK 2 s, steady hand/red
+clearance 3 s. Green waits for PATH CLEAR. Blocked/active requests are discarded;
+held request produces one cycle. Source supplies no presets: these are original
+illustrative training choices. The simplified reference omits a flashing-hand
+change interval, traffic/people motion and road engineering; no compliance claim.
+Signal appearance uses FHWA Chapter 4E visual reference only:
+https://mutcd.fhwa.dot.gov/htm/2009r1r2/part4/part4e.htm
+Old enclosure/beacon recognition evidence is retained in each asset's
+review/historical_invalid_identity_20261006 and invalid for new geometry. Assets
+remain candidates with independent approval pending; no OEM/certification claim.
+
+Native Windows: File Open/Return to Scene worked. Held Run scan zero, startup
+red/hand at 1. Physical PATH CLEAR, idle green at 151; physical CROSS entered amber
+at 152, all-red at 202, white WALK at 227. FR/FL/RL/RR/Top inspected during WALK;
+front/rear faces, sidewalk support, separate mast/control footprints and stop
+lines are visible. Focused WALK and hand/red faces inspected. PATH BLOCK during
+WALK: hand/red at 327, still held at 502 after clearance expired. Focused PATH /
+BLOCK / CLEAR legend and pointer were readable; physical CLEAR released idle at
+503. Second request reached WALK at 603; Stop cleared commands and retained phase
+3; Run's first scan 604 selected startup phase 5. Normal continuous clock returned
+to idle at 1486; another request was amber at 1859 and completed idle green at
+3632. Reset stopped at zero with all eight points false. Owned reviewer closed
+normally (exit zero). These are sampled native observations, not every-frame or
+mechanical/hardware proof. Overhead visors obscure faces in top view as expected;
+close focus may place upper housings behind the existing QA overlay.
+
+Verification: build zero warnings/errors, focused 30/30, rendered geometry and
+workflow 865/865, controller conformance 144/144, scene contracts 71/71. Rendered
+scene controls/overlay/external image and virtual-controller UI pass. Help
+294 assets/77 scenes; shell 77 scenes/294 assets/five demos/28 diagnostics pass.
+Ignored evidence: .tools/crossing-*.log. Whole-program goal remains active.
+Next: Scene 61 Drawbridge Control, then the remaining review-matrix failures.
+
+Scene 59 running-light-tower repair (2026-10-06, previous checkpoint):
 Replaced the fake held-input pushbutton with an actual ENABLE OFF/RUN selector.
 STEP now supplies a momentary PC-owned pulse, consumed on one accepted scan.
 Replaced obsolete single green-only tower_step_active with independent PLC-owned

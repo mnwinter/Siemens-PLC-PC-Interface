@@ -14,6 +14,17 @@ CATALOG = ROOT / "scenes" / "catalog" / "original-scenes.catalog.json"
 OUTPUT = ROOT / "build" / "scene-contract-verification"
 
 
+def verify_catalog_metadata(entry: dict, scene: dict) -> None:
+    """Keep scene-browser metadata synchronized with the actual contract."""
+    equipment = scene.get("equipment", [])
+    actual_types = {item["type"] for item in equipment}
+    if entry.get("equipmentCount") != len(equipment):
+        raise ValueError(f"{entry['id']}: catalog equipmentCount differs from scene contract")
+    declared_types = entry.get("equipmentTypes", [])
+    if set(declared_types) != actual_types or len(declared_types) != len(actual_types):
+        raise ValueError(f"{entry['id']}: catalog equipmentTypes differs from scene contract")
+
+
 def verify_visual_layout(scene_id: str, scene: dict[str, object]) -> None:
     """Reject authored layouts that deliberately stack peer controls in depth.
 
@@ -291,6 +302,7 @@ def main() -> int:
     for entry in catalog["scenes"]:
         scene_path = ROOT / entry["path"].removeprefix("res://")
         scene = json.loads(scene_path.read_text(encoding="utf-8"))
+        verify_catalog_metadata(entry, scene)
         verify_visual_layout(entry["id"], scene)
         verify_all_photoeye_geometry(entry["id"], scene)
         verify_peer_controls_are_not_depth_stacked(entry["id"], scene)

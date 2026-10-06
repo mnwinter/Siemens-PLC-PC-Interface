@@ -744,11 +744,12 @@
       "name": "Lab 4.3 - Repeat-Cycle Counter",
       "path": "res://scenes/migrated/lab-4-03-repeat-cycle-counter.scene.json",
       "sourceFile": "prototype/scenes/lab-4-03-repeat-cycle-counter.plcscene",
-      "equipmentCount": 5,
+      "equipmentCount": 6,
       "equipmentTypes": [
         "indicator",
         "machine",
-        "switch"
+        "switch",
+        "trainingAccessory"
       ],
       "unresolvedAssetTypes": [],
       "visualStatus": "mapped"
@@ -772,10 +773,11 @@
       "name": "Lab 4.5 - Dual-Input Count Window",
       "path": "res://scenes/migrated/lab-4-05-dual-input-count-window.scene.json",
       "sourceFile": "prototype/scenes/lab-4-05-dual-input-count-window.plcscene",
-      "equipmentCount": 3,
+      "equipmentCount": 6,
       "equipmentTypes": [
         "indicator",
-        "switch"
+        "switch",
+        "trainingAccessory"
       ],
       "unresolvedAssetTypes": [],
       "visualStatus": "mapped"
@@ -785,10 +787,11 @@
       "name": "Lab 4.6 - Multi-Press Confirmation",
       "path": "res://scenes/migrated/lab-4-06-multi-press-confirmation.scene.json",
       "sourceFile": "prototype/scenes/lab-4-06-multi-press-confirmation.plcscene",
-      "equipmentCount": 3,
+      "equipmentCount": 6,
       "equipmentTypes": [
         "indicator",
-        "switch"
+        "switch",
+        "trainingAccessory"
       ],
       "unresolvedAssetTypes": [],
       "visualStatus": "mapped"
@@ -980,9 +983,9 @@
       "name": "Lab 5.7 - Pedestrian Crossing",
       "path": "res://scenes/migrated/lab-5-07-pedestrian-crossing.scene.json",
       "sourceFile": "prototype/scenes/lab-5-07-pedestrian-crossing.plcscene",
-      "equipmentCount": 8,
+      "equipmentCount": 7,
       "equipmentTypes": [
-        "indicator",
+        "rotarySwitch",
         "switch",
         "trainingAccessory"
       ],

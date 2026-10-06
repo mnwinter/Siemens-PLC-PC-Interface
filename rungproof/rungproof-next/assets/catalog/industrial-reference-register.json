@@ -5712,33 +5712,6 @@
       ]
     },
     {
-      "assetId": "training.accessory.crosswalk_road_module.v1",
-      "status": "referenced",
-      "comparisonStatus": "reference-identified",
-      "comparisonNotes": "Generic family reference inherited for candidate package review; the training accessory must be independently compared before promotion.",
-      "referenceFamily": "modular industrial equipment-enclosure observation-window panel",
-      "sources": [
-        {
-          "publisher": "Panel Built",
-          "title": "Modular Inplant Equipment Enclosure case study",
-          "url": "https://www.panelbuilt.com/case-studies/inplant-equipment-enclosure/",
-          "sourceType": "oem-product-page",
-          "accessed": "2026-09-22"
-        }
-      ],
-      "modeledFeatures": [
-        "modular panel field",
-        "framed observation opening",
-        "retention frame",
-        "panel-to-panel interfaces",
-        "floor and top connection context"
-      ],
-      "intentionallyGeneric": [
-        "No Panel Built mark, panel material, glazing type, impact rating, fire rating, sound rating, enclosure specification, or code compliance is reproduced.",
-        "This model is not a machine-safety claim."
-      ]
-    },
-    {
       "assetId": "training.accessory.destination_conveyor_bank.v1",
       "status": "referenced",
       "comparisonStatus": "reference-identified",
@@ -6801,33 +6774,6 @@
       ]
     },
     {
-      "assetId": "training.accessory.pedestrian_signal_head.v1",
-      "status": "referenced",
-      "comparisonStatus": "reference-identified",
-      "comparisonNotes": "Generic family reference inherited for candidate package review; the training accessory must be independently compared before promotion.",
-      "referenceFamily": "single-tier base-mounted industrial signal beacon",
-      "sources": [
-        {
-          "publisher": "WERMA Signaltechnik",
-          "title": "210 Permanent Beacon technical data sheet",
-          "url": "https://www.werma.com/media/6c/19/22/1733928892/21010000_en.pdf",
-          "sourceType": "oem-datasheet",
-          "accessed": "2026-09-22"
-        }
-      ],
-      "modeledFeatures": [
-        "single translucent light lens",
-        "top and base caps",
-        "internal lamp context",
-        "stem",
-        "base mounting plate"
-      ],
-      "intentionallyGeneric": [
-        "No WERMA mark, part number, color code, voltage, connection, ingress rating, optical performance, or signaling standard is reproduced.",
-        "The beacon state is symbolic simulator output only and does not signal a real plant condition."
-      ]
-    },
-    {
       "assetId": "training.accessory.pipe_manifold.v1",
       "status": "referenced",
       "comparisonStatus": "reference-identified",
@@ -7368,33 +7314,6 @@
       "intentionallyGeneric": [
         "No Clopay mark, slat gauge, curtain material, door size, drive voltage, cycle count, weather sealing, or safety edge is reproduced.",
         "Simulator travel is not a real door safety or commissioning claim."
-      ]
-    },
-    {
-      "assetId": "training.accessory.traffic_signal_head.v1",
-      "status": "referenced",
-      "comparisonStatus": "reference-identified",
-      "comparisonNotes": "Generic family reference inherited for candidate package review; the training accessory must be independently compared before promotion.",
-      "referenceFamily": "single-tier base-mounted industrial signal beacon",
-      "sources": [
-        {
-          "publisher": "WERMA Signaltechnik",
-          "title": "210 Permanent Beacon technical data sheet",
-          "url": "https://www.werma.com/media/6c/19/22/1733928892/21010000_en.pdf",
-          "sourceType": "oem-datasheet",
-          "accessed": "2026-09-22"
-        }
-      ],
-      "modeledFeatures": [
-        "single translucent light lens",
-        "top and base caps",
-        "internal lamp context",
-        "stem",
-        "base mounting plate"
-      ],
-      "intentionallyGeneric": [
-        "No WERMA mark, part number, color code, voltage, connection, ingress rating, optical performance, or signaling standard is reproduced.",
-        "The beacon state is symbolic simulator output only and does not signal a real plant condition."
       ]
     },
     {

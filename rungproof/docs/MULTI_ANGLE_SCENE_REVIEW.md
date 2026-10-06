@@ -1,6 +1,61 @@
 # Multi-angle scene review - 2026-10-04
 
-Scene 59 running-light-tower repair (2026-10-06, current checkpoint):
+Scene 60 pedestrian-crossing repair (2026-10-06, current checkpoint):
+Replaced three wrong copied assets: horizontal 10 x 6 m road with two raised
+sidewalks and nine crosswalk marks; red/amber/green vehicle heads; orange-hand /
+white-walking-person pedestrian heads. Two opposing heads of each kind stand on
+the sidewalks. Request button is supported; manual PATH BLOCK/CLEAR selector is
+separate on the floor. Seven scene items, eight symbolic points; whole catalog
+actual equipment total 614. Three older counter-lesson catalog counts/types were
+also synchronized with their actual scene files. Contract verification now rejects
+stale equipment counts/types, including duplicate types (77 positive/3 negative
+metadata probes). Historical prototype, blank exercises and five demos remain.
+
+CROSS is a momentary PC raw request; clear_to_finish is manual raw PATH feedback,
+not an automatic detector. sequence_running is now PLC status, removing its fake
+operator toggle. Added vehicle_amber/vehicle_ready/pedestrian_stop commands;
+vehicle_stop now drives red, WALK drives white symbols. Update older projects.
+Renderer exposes independently commanded channels even if user ladder conflicts.
+An unbound reference_running PLC output detects Stop and prevents retained WALK
+from being republished directly on Run. No live PLC transport is constructed.
+
+-- --audit-pedestrian-crossing runs 30 checks and generates the ignored twenty-rung
+.tools/plant-review-pedestrian-crossing.rpproj.json for explicit File Open. It
+starts red/hand for 3 s; waits for PATH CLEAR, then idle green/hand. A fresh idle
+request with CLEAR selects amber 1 s, all-red 0.5 s, WALK 2 s, steady hand/red
+clearance 3 s. Green waits for PATH CLEAR. Blocked/active requests are discarded;
+held request produces one cycle. Source supplies no presets: these are original
+illustrative training choices. The simplified reference omits a flashing-hand
+change interval, traffic/people motion and road engineering; no compliance claim.
+Signal appearance uses FHWA Chapter 4E visual reference only:
+https://mutcd.fhwa.dot.gov/htm/2009r1r2/part4/part4e.htm
+Old enclosure/beacon recognition evidence is retained in each asset's
+review/historical_invalid_identity_20261006 and invalid for new geometry. Assets
+remain candidates with independent approval pending; no OEM/certification claim.
+
+Native Windows: File Open/Return to Scene worked. Held Run scan zero, startup
+red/hand at 1. Physical PATH CLEAR, idle green at 151; physical CROSS entered amber
+at 152, all-red at 202, white WALK at 227. FR/FL/RL/RR/Top inspected during WALK;
+front/rear faces, sidewalk support, separate mast/control footprints and stop
+lines are visible. Focused WALK and hand/red faces inspected. PATH BLOCK during
+WALK: hand/red at 327, still held at 502 after clearance expired. Focused PATH /
+BLOCK / CLEAR legend and pointer were readable; physical CLEAR released idle at
+503. Second request reached WALK at 603; Stop cleared commands and retained phase
+3; Run's first scan 604 selected startup phase 5. Normal continuous clock returned
+to idle at 1486; another request was amber at 1859 and completed idle green at
+3632. Reset stopped at zero with all eight points false. Owned reviewer closed
+normally (exit zero). These are sampled native observations, not every-frame or
+mechanical/hardware proof. Overhead visors obscure faces in top view as expected;
+close focus may place upper housings behind the existing QA overlay.
+
+Verification: build zero warnings/errors, focused 30/30, rendered geometry and
+workflow 865/865, controller conformance 144/144, scene contracts 71/71. Rendered
+scene controls/overlay/external image and virtual-controller UI pass. Help
+294 assets/77 scenes; shell 77 scenes/294 assets/five demos/28 diagnostics pass.
+Ignored evidence: .tools/crossing-*.log. Whole-program goal remains active.
+Next: Scene 61 Drawbridge Control, then the remaining review-matrix failures.
+
+Scene 59 running-light-tower repair (2026-10-06, previous checkpoint):
 Replaced the fake held-input pushbutton with an actual ENABLE OFF/RUN selector.
 STEP now supplies a momentary PC-owned pulse, consumed on one accepted scan.
 Replaced obsolete single green-only tower_step_active with independent PLC-owned
@@ -3306,7 +3361,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 57 | `lab-5-04-alternating-lamps` | 0 | Final native FR/FL/RL/RR/T; readable ENABLE focus; physical OFF/RUN; held boundaries; Stop/Run/Reset; continuous playback | Raw enable replaces fake PC phase; explicit PLC reference alternates amber A/green B every 25 scans; exactly one lamp per enabled scan; Run resumes retained phase with fresh interval; Reset zero/stopped; empty default exercise |
 | 58 | `lab-5-05-variable-flash-rate` | 0 | Final native FR/FL/RL/RR/T; readable FAST/SLOW focus; physical three selectors; held boundaries; conflict/no-rate; Stop/Run/Reset; both rates continuous playback | Three raw maintained requests; explicit PLC reference FAST 10 scans/SLOW 25 per half-period; both/neither selections inhibit/clear timing; direct valid rate change retains phase only without accepted intermediate invalid scan; Reset all selectors OFF; empty default exercise |
 | 59 | `lab-5-06-running-light-tower` | 0 | Final native FR/FL/RL/RR/T; readable ENABLE and STEP focus; physical controls; explicit reference Open; held and continuous playback; Stop/Run/Reset | Three PLC color channels replace single green-only output; raw ENABLE maintained selector and momentary STEP; explicit original reference red -> amber -> green -> red, no idle advance; disabled/pending-stop pulses discarded; Run restores retained color; Reset OFF/stopped zero; default exercise empty; independent asset/hardware acceptance remains open |
-| 60 | `lab-5-07-pedestrian-crossing` | 26 | Native FR/FL/RL/RR/T | FAIL/open: vertical wall instead of road, amber beacons instead of signal heads; vehicle_stop green binding; timed crossing unverified |
+| 60 | `lab-5-07-pedestrian-crossing` | 26 historic; intended road support excluded from separation check | Repaired native FR/FL/RL/RR/T; signal and PATH focus; continuous cycle | Repaired horizontal road/sidewalks, two opposing vehicle and pedestrian heads, independent channels, momentary request, PLC-owned timed reference and startup restart. 30 offline checks pass. Declared simplified timings; no traffic/people motion or public-road compliance; independent asset approval open |
 | 61 | `lab-5-08-drawbridge-control` | 43 | Native FR/FL/RL/RR/T | FAIL/open: scissor table, guard and shutter instead of bridge route; only lamp outputs, no bridge motion |
 | 62 | `lab-5-09-bag-indexing-conveyor` | 37 (historic) | Repaired native FR/FL/RL/RR/T; carton top/FR close | Carton belt support repaired. FAIL/open: carton/bag identity, outside sensors, only lamp outputs; indexing/reversal unverified |
 | 63 | `lab-5-10-coating-line` | 97 | Native FR/FL/RL/RR/T | FAIL/open: CNC occupies belt, disconnected coating/spray/ventilation props; only lamp outputs, process unverified |

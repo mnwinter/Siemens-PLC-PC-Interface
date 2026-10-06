@@ -1,0 +1,7 @@
+{
+  "assetId": "training.accessory.traffic_signal_head.v1",
+  "status": "candidate-unapproved",
+  "scope": "Original illustrative geometry. Signal symbol/color reference only; no public-road timing, accessibility, certification or OEM claim.",
+  "visualReference": "https://mutcd.fhwa.dot.gov/htm/2009r1r2/part4/part4e.htm",
+  "historicalEvidence": "historical_invalid_identity_20261006 is invalid for the replacement geometry."
+}
