@@ -1,5 +1,27 @@
 # RungProof / PLC Visual Simulator AI handoff
 
+Scene 74 native continuous playback checkpoint (2026-10-06): normal
+File -> Open Ladder Agent Project loaded the generated offline reference
+`.tools/plant-review-scene2.rpproj.json` (three rungs with limit-triggered
+retraction, not the older held-solenoid endpoint fixture). Return to Scene and
+normal Run drove repeated transfers. Native 1602x932 snapshots inspected FR
+scan 38 (infeed), FL 578 (infeed), RL 2055 (received), RR 2549 (received),
+Top 3466 (received) and FR 6150 (received). Received carton visibly bears on
+the table and stays visible after plate return. Stop at 6557 removed both
+commands and retained carton; FL reinspection held the same scan/received pose.
+Reset restored staged infeed, empty receiver, commands false and stopped scan 0.
+Owned native window exited code 0. Evidence: .tools/carton-transfer-continuous-native.log.
+
+This is snapshot coverage during ordinary repeated playback, not every-frame
+or phase-by-phase full-stroke acceptance. Fast extension/retraction phases
+need closer native review; arbitrary command sequences and physical transfer
+remain open. The generated review file is ignored QA evidence, not a shipped
+authored solution. Default exercises remain empty. Next step: expose a scoped
+single-clock native Hold/small-step inspector for Scene 74, validate its exact
+scan increment and Stop/Reset behavior, then inspect intermediate stroke and
+80-percent release poses from multiple views. Other whole-program gaps remain;
+do not mark the goal complete after these two scenes.
+
 Demo 5 supported four-carton repair (2026-10-06, current checkpoint):
 replaced the autonomous illustrative sweep with one fixed kinematic plant driven
 by the normal 20 ms ladder clock. A receiving/pick table joins the narrower

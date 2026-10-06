@@ -1,5 +1,27 @@
 # Multi-angle scene review - 2026-10-04
 
+Scene 74 native continuous playback checkpoint (2026-10-06): normal
+File -> Open Ladder Agent Project loaded the generated offline reference
+`.tools/plant-review-scene2.rpproj.json` (three rungs with limit-triggered
+retraction, not the older held-solenoid endpoint fixture). Return to Scene and
+normal Run drove repeated transfers. Native 1602x932 snapshots inspected FR
+scan 38 (infeed), FL 578 (infeed), RL 2055 (received), RR 2549 (received),
+Top 3466 (received) and FR 6150 (received). Received carton visibly bears on
+the table and stays visible after plate return. Stop at 6557 removed both
+commands and retained carton; FL reinspection held the same scan/received pose.
+Reset restored staged infeed, empty receiver, commands false and stopped scan 0.
+Owned native window exited code 0. Evidence: .tools/carton-transfer-continuous-native.log.
+
+This is snapshot coverage during ordinary repeated playback, not every-frame
+or phase-by-phase full-stroke acceptance. Fast extension/retraction phases
+need closer native review; arbitrary command sequences and physical transfer
+remain open. The generated review file is ignored QA evidence, not a shipped
+authored solution. Default exercises remain empty. Next step: expose a scoped
+single-clock native Hold/small-step inspector for Scene 74, validate its exact
+scan increment and Stop/Reset behavior, then inspect intermediate stroke and
+80-percent release poses from multiple views. Other whole-program gaps remain;
+do not mark the goal complete after these two scenes.
+
 Demo 5 supported four-carton repair (2026-10-06, current checkpoint):
 replaced the autonomous illustrative sweep with one fixed kinematic plant driven
 by the normal 20 ms ladder clock. A receiving/pick table joins the narrower
@@ -2731,7 +2753,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 71 | `lab-9-11-pallet-counting` | 86 | Native FR/FL/RL/RR/T | Carton/fixture/readout geometry repaired and five views/details inspected. Live DINT count/readout FR/FL and invalid/five-edge/held/permissive/Stop/Run/Reset native checks pass. Optical classification/pallet travel/CNC integration open |
 | 72 | `lab-9-12-ev-charging-manager` | 95 | Native FR/FL/RL/RR/T | FAIL/open: shutters/fluid props instead of EV charging route; energy pulse/accumulation contract absent |
 | 73 | `scene-1-conveyor-stop` | 34 | Native FR/FL/RL/RR/T | Carton belt contact/load-end footprint repaired; native five wide/Top/FL close and Demo 3 Run/Start/photoeye/Stop/Reset rechecked; full clearance open |
-| 74 | `scene-2-conveyor-pusher` | 88 initial; 9 current home enclosing-bound candidates, all excluded by cable triangle screen | Native final staged/received FR/FL/RL/RR/T; close pusher RR/Top; normal Open/Verify/Run/Stop/Reset; earlier receiver Top/FR | Receiving surface, retention, plate contact, reference optical path and static stand/base installation repaired. RX stand Z=-1.55; pusher X=-0.4/Z=-2.4; connected yoke extension 879.73 mm. Geometry 392 and motion 25 PASS. Cable screen uses 5 mm broad candidates and 1 mm world allowance. Native held-solenoid endpoint fixture; lower sensor hidden in rear views, close Top crops carton edges. Open: continuous native stroke review from five angles and arbitrary output sequences |
+| 74 | `scene-2-conveyor-pusher` | 88 initial; 9 current home enclosing-bound candidates, all excluded by cable triangle screen | Native final staged/received FR/FL/RL/RR/T; close pusher RR/Top; normal Open/Verify/Run/Stop/Reset; earlier receiver Top/FR | Receiving surface, retention, plate contact, reference optical path and static stand/base installation repaired. RX stand Z=-1.55; pusher X=-0.4/Z=-2.4; connected yoke extension 879.73 mm. Geometry 392 and motion 25 PASS. Cable screen uses 5 mm broad candidates and 1 mm world allowance. Native held-solenoid endpoint fixture; lower sensor hidden in rear views, close Top crops carton edges. Normal three-rung reference continuous playback inspected FR/FL/RL/RR/Top, with received retention, Stop and Reset. Open: intermediate fast-stroke/release native views and arbitrary output sequences |
 | 75 | `tank-high-low` | 60 initial; probe/piping/valve-specific screens pass | Native FR/FL/RL/RR/T; valve Top/FL close; normal offline QA Run/Stop/Reset | Probe/piping/valve installations repaired; 365 checks PASS. QA ladder cycle and pointer commands verified. FAIL/open: opaque vessel and broader operator/process acceptance |
 | 76 | `tank-level` | 52 initial; probe/analog/piping/valve-specific screens pass | Native FR/FL/RL/RR/T; valve Top/FL close; normal offline QA Run/Stop/Reset | Installations repaired; QA drain pointer and reset 42% / 10.72 mA observed. 365 checks PASS. FAIL/open: opaque vessel and broader operator/process acceptance |
 | 77 | `tank-radar` | 80 | Native FR/FL/RL/RR/T; repaired radar five focus views | Radar flange/head mounting and antenna-to-surface distance/beam repaired (sampled checks); 35% native range 3.10036. FAIL/open: empty ladder Run, disconnected inlet/outlet/drain route, opaque internal beam; rear-left mount partly obscured |
