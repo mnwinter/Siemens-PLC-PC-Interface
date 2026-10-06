@@ -1,6 +1,56 @@
 # Multi-angle scene review - 2026-10-04
 
-Scene 60 pedestrian-crossing repair (2026-10-06, current checkpoint):
+Scene 61 drawbridge repair (2026-10-06, current checkpoint):
+Replaced copied scissor/table, guard and shutter geometry with an original hinged
+4 m bridge deck, two supported 4.8 m road barriers, and a shaft-connected cam /
+HOME and RAISED roller switches. Grounded approaches/piers, landing seats, channel
+and approach rails are visible. Barrier arms clear the fixed rails. Eight scene
+items, fifteen symbolic points; actual whole-catalog equipment total is 613.
+Historical prototype, blank exercises and exactly five authored demos remain.
+
+PC owns raw maintained CLOSE/OPEN request and manual NO/YES STOPPED acknowledgement.
+STOPPED is not a traffic detector. Actual deck/barrier angles derive HOME, RAISED,
+CLOSED and OPEN feedback; removed the fake manual HOME toggle. PLC owns both bridge
+directions, both barrier directions and red/green commands. Invalid commands remain
+visible; conflicting/impossible motion asserts PC motion_inhibited and blocks the
+affected motion. Amber traffic lenses stay dark because no amber command exists.
+Update older Scene 61 projects for the new point roles and outputs.
+
+-- --audit-drawbridge passes 35 focused checks and generates only the ignored
+.tools/plant-review-drawbridge.rpproj.json for explicit File Open. Six reference
+rungs close barriers before raising, require manual STOPPED, lower before opening
+barriers, and release green only after HOME and OPEN limits. Original illustrative
+travel times: gates 2 s, deck 4 s to 70 degrees. Limits and cam follow the rendered
+angles every accepted 20 ms scan. This is symbolic/offline kinematics, not traffic
+control, structural/load analysis, physics collision or commissioning evidence.
+Three assets remain unapproved candidates; old unrelated recognition/render
+evidence is retained under review/historical_invalid_identity_20261006 and does
+not approve the replacement geometry.
+
+Native Windows: explicit File Open and Return to Scene; physical request and
+STOPPED selectors; missing STOPPED held deck home with closed barriers. Deck at
+35 degrees after 2 s and 70 degrees after 4 s accumulated motion; losing STOPPED
+held 35 degrees. FR/FL/RL/RR/Top inspected at home/closed, mid-travel and raised.
+Focused cam contact and separate green HOME / amber RAISED lenses inspected at
+both endpoints; both off mid-travel. Shaft connection and plate/pier clearance
+inspected from front/rear. Stop cleared outputs and froze actual pose and scan
+clock with review hold off; Run resumed lowering. Normal continuous opening and
+return reached raised/closed/red, then HOME/open/green. Reset restored zero scan,
+home/closed, raw requests false and outputs off. Camera fits complete motion;
+final top-view framing verification and rendered regression results follow below.
+
+Focused audit 35/35 PASS, build zero warnings/errors, conformance 144/0, contracts
+71/0 (77 positive catalog metadata probes), help 294 assets/77 scenes valid.
+Final native top view inspected at home with barriers both down and fully raised
+at scan 594 / 11.88 s; raised tips clear the clock/toolbar after the framing fix.
+Rendered geometry/workflow 910/910 PASS; controls, review-overlay input,
+external-image, virtual-controller UI and app-shell regressions PASS. Native
+preview and all verification processes exited normally. No PLC connection.
+
+Whole-program goal ACTIVE and incomplete. Next: Scene 62 Bag Indexing Conveyor,
+then coating bath, hand dryer, EV manager and remaining matrix/process issues.
+
+Scene 60 pedestrian-crossing repair (2026-10-06, previous checkpoint):
 Replaced three wrong copied assets: horizontal 10 x 6 m road with two raised
 sidewalks and nine crosswalk marks; red/amber/green vehicle heads; orange-hand /
 white-walking-person pedestrian heads. Two opposing heads of each kind stand on
@@ -3362,7 +3412,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 58 | `lab-5-05-variable-flash-rate` | 0 | Final native FR/FL/RL/RR/T; readable FAST/SLOW focus; physical three selectors; held boundaries; conflict/no-rate; Stop/Run/Reset; both rates continuous playback | Three raw maintained requests; explicit PLC reference FAST 10 scans/SLOW 25 per half-period; both/neither selections inhibit/clear timing; direct valid rate change retains phase only without accepted intermediate invalid scan; Reset all selectors OFF; empty default exercise |
 | 59 | `lab-5-06-running-light-tower` | 0 | Final native FR/FL/RL/RR/T; readable ENABLE and STEP focus; physical controls; explicit reference Open; held and continuous playback; Stop/Run/Reset | Three PLC color channels replace single green-only output; raw ENABLE maintained selector and momentary STEP; explicit original reference red -> amber -> green -> red, no idle advance; disabled/pending-stop pulses discarded; Run restores retained color; Reset OFF/stopped zero; default exercise empty; independent asset/hardware acceptance remains open |
 | 60 | `lab-5-07-pedestrian-crossing` | 26 historic; intended road support excluded from separation check | Repaired native FR/FL/RL/RR/T; signal and PATH focus; continuous cycle | Repaired horizontal road/sidewalks, two opposing vehicle and pedestrian heads, independent channels, momentary request, PLC-owned timed reference and startup restart. 30 offline checks pass. Declared simplified timings; no traffic/people motion or public-road compliance; independent asset approval open |
-| 61 | `lab-5-08-drawbridge-control` | 43 | Native FR/FL/RL/RR/T | FAIL/open: scissor table, guard and shutter instead of bridge route; only lamp outputs, no bridge motion |
+| 61 | `lab-5-08-drawbridge-control` | 43 historical; 2 current shaft/limit-mount contact candidates | Repaired native home/35/70-degree FR/FL/RL/RR/T; focused cam/endpoints and physical selectors; final Top barriers down/90 degrees; continuous cycle and Stop/Run/Reset | Reviewed / bounded: actual hinged deck and two supported barriers; angle-derived limits, moving cam, independent red/green, no false manual HOME. 35 focused checks PASS. Explicit six-rung reference, default exercise blank. Candidate shaft/mount contact intentional; sampled rail bounds and native views only, no solid collision/road/hardware acceptance |
 | 62 | `lab-5-09-bag-indexing-conveyor` | 37 (historic) | Repaired native FR/FL/RL/RR/T; carton top/FR close | Carton belt support repaired. FAIL/open: carton/bag identity, outside sensors, only lamp outputs; indexing/reversal unverified |
 | 63 | `lab-5-10-coating-line` | 97 | Native FR/FL/RL/RR/T | FAIL/open: CNC occupies belt, disconnected coating/spray/ventilation props; only lamp outputs, process unverified |
 | 64 | `lab-6-07-luggage-weight-sort` | 110 | Native FR/FL/RL/RR/T; replacement readout five focus views | Carton support repaired earlier; WEIGHT readout replaced and five focus views inspected (RL obscured, RR partly obscured). FAIL/open: disconnected weighing/rejecting layout; no numeric weight/class |

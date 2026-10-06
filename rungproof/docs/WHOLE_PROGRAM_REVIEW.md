@@ -1,6 +1,56 @@
 # Whole program review - 2026-10-03
 
-Scene 60 pedestrian-crossing repair (2026-10-06, current checkpoint):
+Scene 61 drawbridge repair (2026-10-06, current checkpoint):
+Replaced copied scissor/table, guard and shutter geometry with an original hinged
+4 m bridge deck, two supported 4.8 m road barriers, and a shaft-connected cam /
+HOME and RAISED roller switches. Grounded approaches/piers, landing seats, channel
+and approach rails are visible. Barrier arms clear the fixed rails. Eight scene
+items, fifteen symbolic points; actual whole-catalog equipment total is 613.
+Historical prototype, blank exercises and exactly five authored demos remain.
+
+PC owns raw maintained CLOSE/OPEN request and manual NO/YES STOPPED acknowledgement.
+STOPPED is not a traffic detector. Actual deck/barrier angles derive HOME, RAISED,
+CLOSED and OPEN feedback; removed the fake manual HOME toggle. PLC owns both bridge
+directions, both barrier directions and red/green commands. Invalid commands remain
+visible; conflicting/impossible motion asserts PC motion_inhibited and blocks the
+affected motion. Amber traffic lenses stay dark because no amber command exists.
+Update older Scene 61 projects for the new point roles and outputs.
+
+-- --audit-drawbridge passes 35 focused checks and generates only the ignored
+.tools/plant-review-drawbridge.rpproj.json for explicit File Open. Six reference
+rungs close barriers before raising, require manual STOPPED, lower before opening
+barriers, and release green only after HOME and OPEN limits. Original illustrative
+travel times: gates 2 s, deck 4 s to 70 degrees. Limits and cam follow the rendered
+angles every accepted 20 ms scan. This is symbolic/offline kinematics, not traffic
+control, structural/load analysis, physics collision or commissioning evidence.
+Three assets remain unapproved candidates; old unrelated recognition/render
+evidence is retained under review/historical_invalid_identity_20261006 and does
+not approve the replacement geometry.
+
+Native Windows: explicit File Open and Return to Scene; physical request and
+STOPPED selectors; missing STOPPED held deck home with closed barriers. Deck at
+35 degrees after 2 s and 70 degrees after 4 s accumulated motion; losing STOPPED
+held 35 degrees. FR/FL/RL/RR/Top inspected at home/closed, mid-travel and raised.
+Focused cam contact and separate green HOME / amber RAISED lenses inspected at
+both endpoints; both off mid-travel. Shaft connection and plate/pier clearance
+inspected from front/rear. Stop cleared outputs and froze actual pose and scan
+clock with review hold off; Run resumed lowering. Normal continuous opening and
+return reached raised/closed/red, then HOME/open/green. Reset restored zero scan,
+home/closed, raw requests false and outputs off. Camera fits complete motion;
+final top-view framing verification and rendered regression results follow below.
+
+Focused audit 35/35 PASS, build zero warnings/errors, conformance 144/0, contracts
+71/0 (77 positive catalog metadata probes), help 294 assets/77 scenes valid.
+Final native top view inspected at home with barriers both down and fully raised
+at scan 594 / 11.88 s; raised tips clear the clock/toolbar after the framing fix.
+Rendered geometry/workflow 910/910 PASS; controls, review-overlay input,
+external-image, virtual-controller UI and app-shell regressions PASS. Native
+preview and all verification processes exited normally. No PLC connection.
+
+Whole-program goal ACTIVE and incomplete. Next: Scene 62 Bag Indexing Conveyor,
+then coating bath, hand dryer, EV manager and remaining matrix/process issues.
+
+Scene 60 pedestrian-crossing repair (2026-10-06, previous checkpoint):
 Replaced three wrong copied assets: horizontal 10 x 6 m road with two raised
 sidewalks and nine crosswalk marks; red/amber/green vehicle heads; orange-hand /
 white-walking-person pedestrian heads. Two opposing heads of each kind stand on

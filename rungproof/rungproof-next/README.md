@@ -216,7 +216,18 @@ PATH BLOCK prevents green release. Stop clears commands and Run overrides retain
 WALK with startup clearance. Native Windows checks cover five angles, physical
 request/selector controls, blocked clearance, Stop/Run/Reset and continuous cycle.
 
-`-- --verify-scene-geometry` runs 865 focused geometry/workflow checks with `--visual-scene-review` for Demo 5 supported pickup, four-carton placement, moving clearance and attachment,
+`-- --audit-drawbridge` checks Scene 61's actual deck/barrier angles, derived
+limits, independent signal channels and interlocks. It generates the ignored
+`.tools/plant-review-drawbridge.rpproj.json` for explicit File Open; the default
+exercise stays blank. The original six-rung reference requires manual STOPPED
+acknowledgement, closes barriers before raising, lowers before opening barriers,
+and releases green only at HOME with barriers OPEN. Travel times and geometry
+are illustrative offline kinematics. Old Scene 61 projects need the revised
+input roles and outputs. Native Windows checks cover five views, physical
+selectors, missing/lost acknowledgement, full cycle and Stop/Run/Reset.
+
+`-- --verify-scene-geometry` runs 910 focused geometry/workflow checks with `--visual-scene-review` for Demo 5 supported pickup, four-carton placement, moving clearance and attachment,
+drawbridge actual motion/limits, connected cam, sampled rail clearance and controller interlocks,
 pedestrian-crossing supported road/sidewalks, symbol/color channels, timed phases, blocked release and startup restart,
 running-tower separate color channels, raw Step edges, wrap, disabled/held/repeated pulses and retained-phase restart,
 alternating/variable-rate periodic scans, lamp exclusivity, rate conflicts and all configured selector alignment,

@@ -212,6 +212,7 @@ public partial class SceneSimulationRuntime : Node
         if (HasCableCutPlant) { AdvanceCableCutPlant(delta); return; }
         if (HasPalletizerPlant) { AdvancePalletizerPlant(delta); return; }
         if (HasRepeatCyclePlant) { AdvanceRepeatCyclePlant(delta); return; }
+        if (HasDrawbridgePlant) { AdvanceDrawbridgePlant(delta); return; }
         if (HasParkingEntryPlant) { AdvanceParkingEntryPlant(delta); return; }
         if (HasPackageGroupingPlant) { AdvancePackageGroupingPlant(delta); return; }
 
@@ -474,6 +475,7 @@ public partial class SceneSimulationRuntime : Node
         ResetCableCutPlant();
         ResetPalletizerPlant();
         ResetRepeatCyclePlant();
+        ResetDrawbridgePlant();
         ResetParkingEntryPlant();
         ResetPackageGroupingPlant();
         EvaluateRules();

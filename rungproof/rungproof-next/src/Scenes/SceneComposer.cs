@@ -293,6 +293,10 @@ public static partial class SceneComposer
         if (Text(equipment.Config, "installation", string.Empty) == "robotRestartPanel") return CreateRobotRestartPanel();
         if (Text(equipment.Config, "installation", string.Empty) == "palletTransferBridge") return new Node3D();
         var model = CreateOptionalMappedAsset(equipment, candidates, Text(equipment.Config, "catalogAssetId", string.Empty));
+        var installation = Text(equipment.Config, "installation", string.Empty);
+        if (model is not null && installation is "drawbridgeDeck" or "drawbridgeGate" or "drawbridgeLimits")
+            return AddDrawbridgePivot(model, installation);
+        if (model is not null && installation == "drawbridgeSignal") return CreateDrawbridgeSignal(model);
         var display = Text(equipment.Config, "display", string.Empty);
         if (model is not null && display is "palletCount" or "numeric" or "lengthNumeric")
         {

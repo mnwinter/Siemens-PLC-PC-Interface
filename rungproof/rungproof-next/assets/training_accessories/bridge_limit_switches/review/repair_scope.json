@@ -1,0 +1,6 @@
+{
+  "assetId": "training.accessory.bridge_limit_switches.v1",
+  "status": "candidate-unapproved",
+  "scope": "Original bascule bridge, boom and cam-limit geometry. No load, road engineering, hydraulic design or OEM claim.",
+  "historicalEvidence": "historical_invalid_identity_20261006 is invalid for the replacement geometry."
+}

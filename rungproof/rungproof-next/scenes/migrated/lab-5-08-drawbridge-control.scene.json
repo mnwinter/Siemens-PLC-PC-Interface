@@ -3,164 +3,184 @@
   "version": 1,
   "id": "lab-5-08-drawbridge-control",
   "name": "Lab 5.8 - Drawbridge Control",
-  "description": "A bridge raises only after traffic is stopped and the bridge returns to its home limit before reopening traffic.",
+  "description": "Traffic barriers close before the hinged bridge raises; actual home feedback interlocks barrier opening and traffic release.",
   "camera": {
     "position": [
-      11,
-      8,
-      12
+      20,
+      14,
+      19
     ],
     "target": [
       0,
-      1.1,
+      2.5,
       0
     ],
     "fov": 45
   },
   "equipment": [
     {
-      "id": "liftTable_0",
-      "type": "liftTable",
-      "label": "Drawbridge Control lift Table",
-      "position": [
-        -3.3000000000000003,
-        0,
-        0
-      ],
-      "config": {
-        "width": 2.3,
-        "depth": 1.8,
-        "minimumHeight": 0.6,
-        "travel": 2.1,
-        "initialPosition": 0
-      }
-    },
-    {
-      "id": "indicator_1",
-      "type": "indicator",
-      "label": "Drawbridge Control indicator",
-      "position": [
-        -1.1,
-        0,
-        0
-      ],
-      "config": {
-        "colors": [
-          "red",
-          "amber",
-          "green"
-        ],
-        "active": "red"
-      }
-    },
-    {
-      "id": "switch_2",
-      "type": "switch",
-      "label": "Drawbridge Control switch",
-      "position": [
-        1.1,
-        0,
-        0
-      ],
-      "config": {
-        "style": "pushbutton",
-        "action": "toggle-traffic_stopped",
-        "color": 2204518
-      }
-    },
-    {
       "id": "training_accessory_3",
       "type": "trainingAccessory",
-      "label": "Drawbridge Control - drawbridge deck",
+      "label": "Hinged bridge, supported approaches and channel",
       "position": [
-        3.3000000000000003,
+        0,
+        0,
+        0
+      ],
+      "rotation": [
+        0,
         0,
         0
       ],
       "config": {
-        "assetName": "drawbridge deck",
-        "catalogAssetId": "training.accessory.drawbridge_deck.v1"
+        "assetName": "Hinged bridge, supported approaches and channel",
+        "catalogAssetId": "training.accessory.drawbridge_deck.v1",
+        "installation": "drawbridgeDeck"
       }
     },
     {
       "id": "training_accessory_4",
       "type": "trainingAccessory",
-      "label": "Drawbridge Control - road barrier",
+      "label": "West approach hinged traffic barrier",
       "position": [
-        -3.3000000000000003,
+        -3.6,
+        1.4,
+        2.7
+      ],
+      "rotation": [
         0,
-        1.8
+        90,
+        0
       ],
       "config": {
-        "assetName": "road barrier",
-        "catalogAssetId": "training.accessory.road_barrier.v1"
+        "assetName": "West approach hinged traffic barrier",
+        "catalogAssetId": "training.accessory.road_barrier.v1",
+        "installation": "drawbridgeGate"
+      }
+    },
+    {
+      "id": "barrier_east",
+      "type": "trainingAccessory",
+      "label": "East approach hinged traffic barrier",
+      "position": [
+        3.6,
+        1.4,
+        -2.7
+      ],
+      "rotation": [
+        0,
+        -90,
+        0
+      ],
+      "config": {
+        "assetName": "East approach hinged traffic barrier",
+        "catalogAssetId": "training.accessory.road_barrier.v1",
+        "installation": "drawbridgeGate"
       }
     },
     {
       "id": "training_accessory_5",
       "type": "trainingAccessory",
-      "label": "Drawbridge Control - bridge limit switches",
+      "label": "Bridge cam, HOME and RAISED roller switches",
       "position": [
-        -1.1,
+        -2,
         0,
-        1.8
+        2.95
+      ],
+      "rotation": [
+        0,
+        0,
+        0
       ],
       "config": {
-        "assetName": "bridge limit switches",
-        "catalogAssetId": "training.accessory.bridge_limit_switches.v1"
+        "assetName": "Bridge cam, HOME and RAISED roller switches",
+        "catalogAssetId": "training.accessory.bridge_limit_switches.v1",
+        "installation": "drawbridgeLimits"
       }
     },
     {
-      "id": "switch_6",
-      "type": "switch",
-      "label": "Drawbridge Control operator input",
+      "id": "indicator_1",
+      "type": "trainingAccessory",
+      "label": "West approach red / green traffic signal",
       "position": [
-        1.55,
+        -4.9,
         0,
-        2.35
+        -2.7
+      ],
+      "rotation": [
+        0,
+        -90,
+        0
       ],
       "config": {
-        "style": "pushbutton",
-        "action": "toggle-bridge_request",
-        "color": 2204518
-      }
-    },
-    {
-      "id": "switch_7",
-      "type": "switch",
-      "label": "Drawbridge Control operator input",
-      "position": [
-        3.7500000000000004,
-        0,
-        2.35
-      ],
-      "config": {
-        "style": "pushbutton",
-        "action": "toggle-bridge_home",
-        "color": 2204518
+        "assetName": "West approach red / green traffic signal",
+        "catalogAssetId": "training.accessory.traffic_signal_head.v1",
+        "installation": "drawbridgeSignal"
       }
     },
     {
       "id": "indicator_8",
-      "type": "indicator",
-      "label": "Drawbridge Control output indication",
+      "type": "trainingAccessory",
+      "label": "East approach red / green traffic signal",
       "position": [
-        -2.4000000000000004,
+        4.9,
         0,
-        4.7
+        2.7
+      ],
+      "rotation": [
+        0,
+        90,
+        0
       ],
       "config": {
-        "colors": [
-          "red",
-          "amber",
-          "green"
+        "assetName": "East approach red / green traffic signal",
+        "catalogAssetId": "training.accessory.traffic_signal_head.v1",
+        "installation": "drawbridgeSignal"
+      }
+    },
+    {
+      "id": "switch_6",
+      "type": "rotarySwitch",
+      "label": "Maintained bridge request CLOSE / OPEN",
+      "position": [
+        -5.5,
+        0,
+        4.8
+      ],
+      "config": {
+        "action": "toggle-bridge_request",
+        "positionCount": 2,
+        "initialPosition": 0,
+        "positionLabels": [
+          "CLOSE",
+          "OPEN"
         ],
-        "active": "red"
+        "faceLabel": "BRIDGE"
+      }
+    },
+    {
+      "id": "switch_2",
+      "type": "rotarySwitch",
+      "label": "Manual traffic stopped feedback NO / YES",
+      "position": [
+        -3.5,
+        0,
+        4.8
+      ],
+      "config": {
+        "action": "toggle-traffic_stopped",
+        "positionCount": 2,
+        "initialPosition": 0,
+        "positionLabels": [
+          "NO",
+          "YES"
+        ],
+        "faceLabel": "STOPPED"
       }
     }
   ],
   "simulation": {
-    "type": "booleanPanel",
+    "type": "drawbridge",
     "points": [
       {
         "name": "traffic_stopped",
@@ -178,10 +198,67 @@
         "name": "bridge_home",
         "type": "BOOL",
         "owner": "PC",
+        "initial": true
+      },
+      {
+        "name": "bridge_raised",
+        "type": "BOOL",
+        "owner": "PC",
         "initial": false
       },
       {
+        "name": "barriers_closed",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": true
+      },
+      {
+        "name": "barriers_open",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "motion_inhibited",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "bridge_angle",
+        "type": "REAL",
+        "owner": "PC",
+        "initial": 0
+      },
+      {
+        "name": "barrier_angle",
+        "type": "REAL",
+        "owner": "PC",
+        "initial": 0
+      },
+      {
         "name": "bridge_raise",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "bridge_lower",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "barrier_close",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "barrier_open",
         "type": "BOOL",
         "owner": "PLC",
         "initial": false,
@@ -193,74 +270,94 @@
         "owner": "PLC",
         "initial": false,
         "role": "output"
+      },
+      {
+        "name": "traffic_stop",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
       }
     ],
     "actions": [
       {
-        "id": "toggle-traffic_stopped",
-        "label": "Toggle traffic stopped",
-        "type": "toggle",
-        "point": "traffic_stopped"
-      },
-      {
         "id": "toggle-bridge_request",
-        "label": "Toggle bridge request",
+        "label": "Turn BRIDGE CLOSE / OPEN (maintained)",
         "type": "toggle",
         "point": "bridge_request"
       },
       {
-        "id": "toggle-bridge_home",
-        "label": "Toggle bridge home",
+        "id": "toggle-traffic_stopped",
+        "label": "Set manual STOPPED feedback NO / YES",
         "type": "toggle",
-        "point": "bridge_home"
+        "point": "traffic_stopped"
       }
     ],
     "rules": [],
     "edgeRules": [],
     "pointBindings": [
       {
-        "point": "traffic_stopped",
-        "equipmentId": "switch_2",
-        "mode": "switch"
-      },
-      {
         "point": "bridge_request",
         "equipmentId": "switch_6",
-        "mode": "switch"
+        "mode": "selector"
+      },
+      {
+        "point": "traffic_stopped",
+        "equipmentId": "switch_2",
+        "mode": "selector"
       },
       {
         "point": "bridge_home",
-        "equipmentId": "switch_7",
-        "mode": "switch"
+        "equipmentId": "training_accessory_5",
+        "mode": "indicatorChannel",
+        "activeColor": "green"
       },
       {
-        "point": "bridge_raise",
+        "point": "bridge_raised",
+        "equipmentId": "training_accessory_5",
+        "mode": "indicatorChannel",
+        "activeColor": "amber"
+      },
+      {
+        "point": "traffic_stop",
         "equipmentId": "indicator_1",
-        "mode": "indicator",
+        "mode": "indicatorChannel",
+        "activeColor": "red"
+      },
+      {
+        "point": "traffic_release",
+        "equipmentId": "indicator_1",
+        "mode": "indicatorChannel",
         "activeColor": "green"
+      },
+      {
+        "point": "traffic_stop",
+        "equipmentId": "indicator_8",
+        "mode": "indicatorChannel",
+        "activeColor": "red"
       },
       {
         "point": "traffic_release",
         "equipmentId": "indicator_8",
-        "mode": "indicator",
+        "mode": "indicatorChannel",
         "activeColor": "green"
       }
     ]
   },
   "training": {
     "hints": [
-      "Translate the lesson into explicit state and permissive logic: Bridge motion and traffic release are mutually interlocked.",
-      "Inputs are simulator feedback (traffic_stopped, bridge_request, bridge_home); PLC logic owns bridge_raise, traffic_release.",
-      "Test the initial state, the valid condition, and at least one missing permissive."
+      "PC owns manual request/traffic-stopped feedback and angle-derived bridge/barrier limits; PLC owns all commands.",
+      "Require both barriers closed and traffic-stopped feedback before either bridge direction.",
+      "Open barriers only after HOME; release green only after barriers reach OPEN. No manual HOME toggle exists."
     ],
     "solution": {
-      "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
+      "summary": "Original explicitly opened offline interlock reference; plant motion durations are illustrative choices.",
       "steps": [
-        "Require the documented inputs: traffic_stopped, bridge_request, bridge_home.",
-        "Command the documented outputs: bridge_raise, traffic_release.",
-        "Remove PLC commands when the permissive is lost."
+        "Request OPEN closes both road barriers. With raw STOPPED YES and barriers closed, raise to the actual 70-degree limit.",
+        "Request CLOSE lowers only with STOPPED YES and barriers closed. Hold red until HOME.",
+        "At HOME with CLOSE request, open barriers. Both OPEN limits allow traffic release."
       ],
-      "acceptance": "Bridge motion and traffic release are mutually interlocked."
+      "acceptance": "Bridge movement and traffic release are mutually interlocked by actual angle-derived limits."
     },
     "assetRequirements": [
       "drawbridge deck",
@@ -268,24 +365,29 @@
       "bridge limit switches"
     ],
     "machineGuide": {
-      "purpose": "A bridge raises only after traffic is stopped and the bridge returns to its home limit before reopening traffic.",
+      "purpose": "Traffic barriers close before the hinged bridge raises; actual home feedback interlocks barrier opening and traffic release.",
       "startConditions": [
-        "The common PLC/watchdog foundation is healthy.",
-        "All required simulator inputs are at their documented initial state."
+        "Blank exercise: horizontal HOME, both barriers down, PLC commands false and no movement.",
+        "Built-in offline controller with user-authored logic or explicitly opened .tools/plant-review-drawbridge.rpproj.json after --audit-drawbridge."
       ],
       "normalSequence": [
-        "Apply the requested input condition.",
-        "Verify only the documented PLC outputs respond."
+        "Run the six-rung reference. CLOSE at HOME opens the barriers, then releases green.",
+        "Select OPEN, acknowledge STOPPED YES; barriers close in 2 s, bridge raises in 4 s to 70 degrees.",
+        "Select CLOSE: bridge lowers in 4 s to HOME, barriers open in 2 s, then green releases."
       ],
       "stopBehavior": [
-        "Removing the permissive removes PLC-owned commands.",
-        "Reset returns the module to its initial state."
+        "STOPPED NO removes bridge-direction commands and holds its current angle. Select YES to resume the maintained request.",
+        "Application Stop clears outputs and freezes deck/barriers. Run reevaluates retained raw requests and position feedback.",
+        "Reset restores horizontal HOME, both gates down, raw manual selectors NO/CLOSE, commands false and stopped scan zero."
       ],
       "faultBehavior": [
-        "A missing or stale input must fail safe and remain diagnosable."
+        "Conflicting bridge directions inhibit the deck; conflicting gate directions inhibit the barriers. Off-home barrier opening is blocked.",
+        "Impossible traffic release asserts motion_inhibited and blocks deck motion. Commanded outputs remain visible for diagnosis; the renderer does not conceal a conflicting red/green PLC image."
       ],
       "expectedObservations": [
-        "Bridge motion and traffic release are mutually interlocked."
+        "Bridge deck and limit cam share their actual hinge angle; HOME and RAISED lamps follow limits, not elapsed timers.",
+        "The manual traffic-stopped input is an operator simulation acknowledgement; no vehicles, boats or traffic occupancy detector are simulated.",
+        "Original geometry/travel times do not establish load capacity, actuator sizing, road compliance or real bridge safety."
       ]
     },
     "sequenceNumber": 47,
@@ -302,10 +404,22 @@
       "traffic_stopped",
       "bridge_request",
       "bridge_home",
+      "bridge_raised",
+      "barriers_closed",
+      "barriers_open",
+      "motion_inhibited",
+      "bridge_angle",
+      "barrier_angle",
       "bridge_raise",
-      "traffic_release"
+      "bridge_lower",
+      "barrier_close",
+      "barrier_open",
+      "traffic_release",
+      "traffic_stop"
     ],
-    "changedTags": [],
+    "changedTags": [
+      "bridge_home changed from an operator toggle to actual deck-angle feedback"
+    ],
     "previousAcceptance": [
       "lab-5-07-pedestrian-crossing"
     ]
@@ -313,9 +427,14 @@
   "verification": {
     "cases": [
       {
-        "name": "initial-safe-state",
+        "name": "initial-supported-home-and-closed-barriers",
         "expect": {
+          "bridge_home": true,
+          "bridge_raised": false,
+          "barriers_closed": true,
+          "barriers_open": false,
           "bridge_raise": false,
+          "bridge_lower": false,
           "traffic_release": false
         }
       }

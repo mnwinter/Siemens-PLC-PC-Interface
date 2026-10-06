@@ -2,11 +2,11 @@
 
 Scene ID: `lab-5-08-drawbridge-control`  
 Migrated source: `prototype/scenes/lab-5-08-drawbridge-control.plcscene`  
-Scene contract: `prototype/scenes/lab-5-08-drawbridge-control.plcscene`
+Scene contract: `res://scenes/migrated/lab-5-08-drawbridge-control.scene.json`
 
 ## Purpose
 
-A bridge raises only after traffic is stopped and the bridge returns to its home limit before reopening traffic.
+Traffic barriers close before the hinged bridge raises; actual home feedback interlocks barrier opening and traffic release.
 
 ## Expected I/O to operate this scene
 
@@ -16,41 +16,52 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | --- | --- | --- | --- |
 | `traffic_stopped` | `BOOL` | **PC** | `False` |
 | `bridge_request` | `BOOL` | **PC** | `False` |
-| `bridge_home` | `BOOL` | **PC** | `False` |
+| `bridge_home` | `BOOL` | **PC** | `True` |
+| `bridge_raised` | `BOOL` | **PC** | `False` |
+| `barriers_closed` | `BOOL` | **PC** | `True` |
+| `barriers_open` | `BOOL` | **PC** | `False` |
+| `motion_inhibited` | `BOOL` | **PC** | `False` |
+| `bridge_angle` | `REAL` | **PC** | `0` |
+| `barrier_angle` | `REAL` | **PC** | `0` |
 | `bridge_raise` | `BOOL` | **PLC** | `False` |
+| `bridge_lower` | `BOOL` | **PLC** | `False` |
+| `barrier_close` | `BOOL` | **PLC** | `False` |
+| `barrier_open` | `BOOL` | **PLC** | `False` |
 | `traffic_release` | `BOOL` | **PLC** | `False` |
+| `traffic_stop` | `BOOL` | **PLC** | `False` |
 
 ## Operator actions
 
 | Action | Type | Bound point/sequence |
 | --- | --- | --- |
-| `Toggle traffic stopped` | `toggle` | `traffic_stopped` |
-| `Toggle bridge request` | `toggle` | `bridge_request` |
-| `Toggle bridge home` | `toggle` | `bridge_home` |
+| `Turn BRIDGE CLOSE / OPEN (maintained)` | `toggle` | `bridge_request` |
+| `Set manual STOPPED feedback NO / YES` | `toggle` | `traffic_stopped` |
 
 ## Equipment bindings
 
 | Symbolic point | Equipment | Mode |
 | --- | --- | --- |
-| `traffic_stopped` | `switch_2` | `switch` |
-| `bridge_request` | `switch_6` | `switch` |
-| `bridge_home` | `switch_7` | `switch` |
-| `bridge_raise` | `indicator_1` | `indicator` |
-| `traffic_release` | `indicator_8` | `indicator` |
+| `bridge_request` | `switch_6` | `selector` |
+| `traffic_stopped` | `switch_2` | `selector` |
+| `bridge_home` | `training_accessory_5` | `indicatorChannel` |
+| `bridge_raised` | `training_accessory_5` | `indicatorChannel` |
+| `traffic_stop` | `indicator_1` | `indicatorChannel` |
+| `traffic_release` | `indicator_1` | `indicatorChannel` |
+| `traffic_stop` | `indicator_8` | `indicatorChannel` |
+| `traffic_release` | `indicator_8` | `indicatorChannel` |
 
 ## Expected equipment
 
 | ID | Type | Label |
 | --- | --- | --- |
-| `liftTable_0` | `liftTable` | Drawbridge Control lift Table |
-| `indicator_1` | `indicator` | Drawbridge Control indicator |
-| `switch_2` | `switch` | Drawbridge Control switch |
-| `training_accessory_3` | `trainingAccessory` | Drawbridge Control - drawbridge deck |
-| `training_accessory_4` | `trainingAccessory` | Drawbridge Control - road barrier |
-| `training_accessory_5` | `trainingAccessory` | Drawbridge Control - bridge limit switches |
-| `switch_6` | `switch` | Drawbridge Control operator input |
-| `switch_7` | `switch` | Drawbridge Control operator input |
-| `indicator_8` | `indicator` | Drawbridge Control output indication |
+| `training_accessory_3` | `trainingAccessory` | Hinged bridge, supported approaches and channel |
+| `training_accessory_4` | `trainingAccessory` | West approach hinged traffic barrier |
+| `barrier_east` | `trainingAccessory` | East approach hinged traffic barrier |
+| `training_accessory_5` | `trainingAccessory` | Bridge cam, HOME and RAISED roller switches |
+| `indicator_1` | `trainingAccessory` | West approach red / green traffic signal |
+| `indicator_8` | `trainingAccessory` | East approach red / green traffic signal |
+| `switch_6` | `rotarySwitch` | Maintained bridge request CLOSE / OPEN |
+| `switch_2` | `rotarySwitch` | Manual traffic stopped feedback NO / YES |
 
 ## Stop and safety boundary
 
@@ -58,18 +69,21 @@ A normal Stop removes PLC-owned commands according to the scene runtime. This do
 
 ## Machine guide
 
-A bridge raises only after traffic is stopped and the bridge returns to its home limit before reopening traffic.
+Traffic barriers close before the hinged bridge raises; actual home feedback interlocks barrier opening and traffic release.
 
 ### Start conditions
 
-- The common PLC/watchdog foundation is healthy.
-- All required simulator inputs are at their documented initial state.
+- Blank exercise: horizontal HOME, both barriers down, PLC commands false and no movement.
+- Built-in offline controller with user-authored logic or explicitly opened .tools/plant-review-drawbridge.rpproj.json after --audit-drawbridge.
 
 ### Normal sequence
 
-- Apply the requested input condition.
-- Verify only the documented PLC outputs respond.
+- Run the six-rung reference. CLOSE at HOME opens the barriers, then releases green.
+- Select OPEN, acknowledge STOPPED YES; barriers close in 2 s, bridge raises in 4 s to 70 degrees.
+- Select CLOSE: bridge lowers in 4 s to HOME, barriers open in 2 s, then green releases.
 
 ### Expected observations
 
-- Bridge motion and traffic release are mutually interlocked.
+- Bridge deck and limit cam share their actual hinge angle; HOME and RAISED lamps follow limits, not elapsed timers.
+- The manual traffic-stopped input is an operator simulation acknowledgement; no vehicles, boats or traffic occupancy detector are simulated.
+- Original geometry/travel times do not establish load capacity, actuator sizing, road compliance or real bridge safety.

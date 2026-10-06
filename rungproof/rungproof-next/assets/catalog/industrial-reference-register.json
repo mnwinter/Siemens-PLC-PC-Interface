@@ -5360,34 +5360,6 @@
       ]
     },
     {
-      "assetId": "training.accessory.bridge_limit_switches.v1",
-      "status": "referenced",
-      "comparisonStatus": "reference-identified",
-      "comparisonNotes": "Generic family reference inherited for candidate package review; the training accessory must be independently compared before promotion.",
-      "referenceFamily": "metal-bodied roller-lever industrial limit switch",
-      "sources": [
-        {
-          "publisher": "Schneider Electric",
-          "title": "XCKJ10541 roller-lever limit switch data sheet",
-          "url": "https://iportal2.schneider-electric.com/Contents/docs/SQD-XCKJ10541.PDF",
-          "sourceType": "oem-datasheet",
-          "accessed": "2026-09-22"
-        }
-      ],
-      "modeledFeatures": [
-        "metal switch body",
-        "rotary operating head",
-        "spring-return lever",
-        "roller",
-        "mounting holes",
-        "cable entry"
-      ],
-      "intentionallyGeneric": [
-        "No Schneider Electric mark, contact arrangement, actuation angle, cable-gland size, electrical rating, environment rating, safety function, or wiring is reproduced.",
-        "Lever movement is simulator-only geometry and does not establish a real limit or safety input."
-      ]
-    },
-    {
       "assetId": "training.accessory.bulk_powder_hopper.v1",
       "status": "referenced",
       "comparisonStatus": "reference-identified",
@@ -5735,33 +5707,6 @@
       "intentionallyGeneric": [
         "No Dorner mark, exact profile, drive option, belt construction, load capacity, electrical specification, or guarding configuration is reproduced.",
         "Motion and I/O remain scene-declared simulator behavior only."
-      ]
-    },
-    {
-      "assetId": "training.accessory.drawbridge_deck.v1",
-      "status": "referenced",
-      "comparisonStatus": "reference-identified",
-      "comparisonNotes": "Generic family reference inherited for candidate package review; the training accessory must be independently compared before promotion.",
-      "referenceFamily": "industrial coiling steel service door",
-      "sources": [
-        {
-          "publisher": "Clopay",
-          "title": "Roll-Up Sheet Doors product page",
-          "url": "https://www.clopaydoor.com/coiling-sheet-doors",
-          "sourceType": "oem-product-page",
-          "accessed": "2026-09-22"
-        }
-      ],
-      "modeledFeatures": [
-        "interlocking horizontal curtain slats",
-        "vertical guide tracks",
-        "header coil/shaft zone",
-        "bottom bar",
-        "side-mounted operator context"
-      ],
-      "intentionallyGeneric": [
-        "No Clopay mark, slat gauge, curtain material, door size, drive voltage, cycle count, weather sealing, or safety edge is reproduced.",
-        "Simulator travel is not a real door safety or commissioning claim."
       ]
     },
     {
@@ -6963,33 +6908,6 @@
       "intentionallyGeneric": [
         "No Siemens mark, frame width, voltage, bus rating, motor rating, feedback protocol, firmware, safety function, connector pinout, parameterization, or certification is reproduced.",
         "The simulator does not generate motion torque, establish a DC bus, or claim an implemented safety function."
-      ]
-    },
-    {
-      "assetId": "training.accessory.road_barrier.v1",
-      "status": "referenced",
-      "comparisonStatus": "reference-identified",
-      "comparisonNotes": "Generic family reference inherited for candidate package review; the training accessory must be independently compared before promotion.",
-      "referenceFamily": "modular solid industrial acoustic barrier panel",
-      "sources": [
-        {
-          "publisher": "Noise Barriers",
-          "title": "QuietLine SL modular acoustic barrier walls",
-          "url": "https://www.noisebarriers.com/barrier-walls/sl-slr",
-          "sourceType": "oem-product-page",
-          "accessed": "2026-09-22"
-        }
-      ],
-      "modeledFeatures": [
-        "continuous solid panel skin",
-        "two vertical support posts",
-        "top trim",
-        "post caps",
-        "anchored base plates"
-      ],
-      "intentionallyGeneric": [
-        "No Noise Barriers mark, panel thickness, fill material, perforation, acoustic attenuation, structural rating, fire rating, or installation method is reproduced.",
-        "The model is a visual partition only; it does not establish a noise-control, machine-guarding, or personnel-protection performance claim."
       ]
     },
     {

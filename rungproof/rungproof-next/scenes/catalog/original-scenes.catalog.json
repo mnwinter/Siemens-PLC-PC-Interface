@@ -999,11 +999,9 @@
       "name": "Lab 5.8 - Drawbridge Control",
       "path": "res://scenes/migrated/lab-5-08-drawbridge-control.scene.json",
       "sourceFile": "prototype/scenes/lab-5-08-drawbridge-control.plcscene",
-      "equipmentCount": 9,
+      "equipmentCount": 8,
       "equipmentTypes": [
-        "indicator",
-        "liftTable",
-        "switch",
+        "rotarySwitch",
         "trainingAccessory"
       ],
       "unresolvedAssetTypes": [

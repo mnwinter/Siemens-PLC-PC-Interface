@@ -9863,9 +9863,9 @@
         "thumbnailFile": "res://assets/training_accessories/bridge_limit_switches/thumbnail.png"
       },
       "bounds": {
-        "widthM": 0.75,
-        "heightM": 1.05,
-        "depthM": 0.65
+        "widthM": 1.5499999523162842,
+        "heightM": 2.0074338912963867,
+        "depthM": 0.3499999940395355
       },
       "connectors": [],
       "kinematics": [],
@@ -9878,10 +9878,9 @@
         "topologyReviewed": false,
         "materialReviewed": false,
         "scaleReviewed": false,
-        "animationReviewed": true
+        "animationReviewed": false
       },
       "trainingRequirement": "bridge limit switches",
-      "genericBasisAssetId": "sensing.position.roller-lever-limit-switch.v1",
       "copyrightBoundary": "Generic training visual; no logo, trade dress, product number, or exact OEM claim."
     },
     {
@@ -10706,29 +10705,13 @@
         "thumbnailFile": "res://assets/training_accessories/drawbridge_deck/thumbnail.png"
       },
       "bounds": {
-        "widthM": 5.3,
-        "heightM": 4.2,
-        "depthM": 0.8
+        "widthM": 16.0,
+        "heightM": 2.3350000381469727,
+        "depthM": 7.400000095367432
       },
       "connectors": [],
-      "kinematics": [
-        {
-          "id": "door_position",
-          "kind": "linear",
-          "nodePath": "KIN_bottom_bar",
-          "minimum": 0,
-          "maximum": 3.2,
-          "unit": "m",
-          "maximumRate": 1.2
-        }
-      ],
-      "animationTags": [
-        {
-          "id": "door_position",
-          "nodePath": "KIN_bottom_bar",
-          "kind": "linear"
-        }
-      ],
+      "kinematics": [],
+      "animationTags": [],
       "signals": [],
       "quality": {
         "status": "candidate",
@@ -10737,10 +10720,9 @@
         "topologyReviewed": false,
         "materialReviewed": false,
         "scaleReviewed": false,
-        "animationReviewed": true
+        "animationReviewed": false
       },
       "trainingRequirement": "drawbridge deck",
-      "genericBasisAssetId": "access-control.door.roller-shutter.v1",
       "copyrightBoundary": "Generic training visual; no logo, trade dress, product number, or exact OEM claim."
     },
     {
@@ -13311,9 +13293,9 @@
         "thumbnailFile": "res://assets/training_accessories/road_barrier/thumbnail.png"
       },
       "bounds": {
-        "widthM": 4.25,
-        "heightM": 3.15,
-        "depthM": 0.45
+        "widthM": 5.100000202655792,
+        "heightM": 1.3600000143051147,
+        "depthM": 0.6000000238418579
       },
       "connectors": [],
       "kinematics": [],
@@ -13326,10 +13308,9 @@
         "topologyReviewed": false,
         "materialReviewed": false,
         "scaleReviewed": false,
-        "animationReviewed": true
+        "animationReviewed": false
       },
       "trainingRequirement": "road barrier",
-      "genericBasisAssetId": "safety.fence.solid-acoustic-panel-4x3.v1",
       "copyrightBoundary": "Generic training visual; no logo, trade dress, product number, or exact OEM claim."
     },
     {
