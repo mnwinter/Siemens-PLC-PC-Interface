@@ -301,6 +301,7 @@ public partial class Main
             VerifyRepeatCycleWorkflow(Check);
             VerifyButtonCounterWorkflows(Check);
             VerifyParkingEntryWorkflow(Check);
+            VerifyPackageGroupingWorkflow(Check);
             VerifyTransferCartonSupport(Check);
             VerifyBaseConveyorCartonSupport(Check);
             VerifyPusherRodGeometry(Check);

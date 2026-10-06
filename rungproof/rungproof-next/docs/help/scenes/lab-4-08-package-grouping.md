@@ -2,11 +2,11 @@
 
 Scene ID: `lab-4-08-package-grouping`  
 Migrated source: `prototype/scenes/lab-4-08-package-grouping.plcscene`  
-Scene contract: `prototype/scenes/lab-4-08-package-grouping.plcscene`
+Scene contract: `res://scenes/migrated/lab-4-08-package-grouping.scene.json`
 
 ## Purpose
 
-A conveyor groups a fixed number of cartons before releasing the group to the next station.
+Original offline three-carton grouping exercise: actual optical count feedback, guided accumulation stop and a connected powered receiving surface.
 
 ## Expected I/O to operate this scene
 
@@ -14,46 +14,56 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 
 | Point | Type | Owner | Initial value |
 | --- | --- | --- | --- |
-| `package_detected` | `BOOL` | **PC** | `False` |
-| `group_count_reached` | `BOOL` | **PC** | `False` |
+| `machine_enabled` | `BOOL` | **PC** | `False` |
 | `release_clear` | `BOOL` | **PC** | `False` |
+| `package_detected` | `BOOL` | **PC** | `False` |
+| `group_staged` | `BOOL` | **PC** | `False` |
+| `stop_raised` | `BOOL` | **PC** | `False` |
+| `receiver_occupied` | `BOOL` | **PC** | `False` |
+| `receiver_detected` | `BOOL` | **PC** | `False` |
+| `transfer_complete` | `BOOL` | **PC** | `False` |
+| `stop_lowered` | `BOOL` | **PC** | `True` |
+| `stop_position` | `REAL` | **PC** | `0` |
 | `group_conveyor_run` | `BOOL` | **PLC** | `False` |
 | `group_release` | `BOOL` | **PLC** | `False` |
+| `group_ready` | `BOOL` | **PLC** | `False` |
+| `group_count` | `DINT` | **PLC** | `0` |
 
 ## Operator actions
 
 | Action | Type | Bound point/sequence |
 | --- | --- | --- |
-| `Toggle package detected` | `toggle` | `package_detected` |
-| `Toggle group count reached` | `toggle` | `group_count_reached` |
-| `Toggle release clear` | `toggle` | `release_clear` |
+| `Toggle conveyor enable` | `toggle` | `machine_enabled` |
+| `Toggle downstream clear` | `toggle` | `release_clear` |
+| `Load one carton (idle feed)` | `groupingLoad` | `` |
 
 ## Equipment bindings
 
 | Symbolic point | Equipment | Mode |
 | --- | --- | --- |
-| `package_detected` | `switch_8` | `switch` |
-| `group_count_reached` | `switch_9` | `switch` |
-| `release_clear` | `switch_10` | `switch` |
-| `group_conveyor_run` | `indicator_3` | `indicator` |
-| `group_release` | `indicator_11` | `indicator` |
+| `machine_enabled` | `enable_switch` | `switch` |
+| `release_clear` | `clear_switch` | `switch` |
+| `package_detected` | `entry_photoeye` | `photoeye` |
+| `receiver_detected` | `receiver_photoeye` | `photoeye` |
+| `group_ready` | `group_ready_lamp` | `indicator` |
+| `group_count` | `group_count_display` | `numericDisplay` |
 
 ## Expected equipment
 
 | ID | Type | Label |
 | --- | --- | --- |
-| `conveyor_0` | `conveyor` | Package Grouping Station conveyor |
-| `box_1` | `box` | Package Grouping Station box |
-| `photoeye_2` | `photoeye` | Package Grouping Station photoeye |
-| `indicator_3` | `indicator` | Package Grouping Station indicator |
-| `training_accessory_4` | `trainingAccessory` | Package Grouping Station - powered roller conveyor |
-| `training_accessory_5` | `trainingAccessory` | Package Grouping Station - package spacing sensor |
-| `training_accessory_6` | `trainingAccessory` | Package Grouping Station - pallet receiver |
-| `training_accessory_7` | `trainingAccessory` | Package Grouping Station - guided group stop |
-| `switch_8` | `switch` | Package Grouping Station operator input |
-| `switch_9` | `switch` | Package Grouping Station operator input |
-| `switch_10` | `switch` | Package Grouping Station operator input |
-| `indicator_11` | `indicator` | Package Grouping Station output indication |
+| `group_line` | `trainingAccessory` | Aligned powered infeed and receiving rollers |
+| `carton_0` | `box` | Grouping carton 1 |
+| `carton_1` | `box` | Grouping carton 2 |
+| `carton_2` | `box` | Grouping carton 3 |
+| `group_stop` | `trainingAccessory` | Guided carton group stop |
+| `entry_photoeye` | `photoeye` | Actual incoming carton beam |
+| `receiver_photoeye` | `photoeye` | Actual receiving beam |
+| `group_count_display` | `trainingAccessory` | PLC incoming group count |
+| `group_ready_lamp` | `indicator` | PLC target group count reached |
+| `enable_switch` | `switch` | Held conveyor enable |
+| `clear_switch` | `switch` | Held downstream clear |
+| `load_button` | `switch` | Load one carton into the idle infeed |
 
 ## Stop and safety boundary
 
@@ -61,18 +71,21 @@ A normal Stop removes PLC-owned commands according to the scene runtime. This do
 
 ## Machine guide
 
-A conveyor groups a fixed number of cartons before releasing the group to the next station.
+Original offline three-carton grouping exercise: actual optical count feedback, guided accumulation stop and a connected powered receiving surface.
 
 ### Start conditions
 
-- The common PLC/watchdog foundation is healthy.
-- All required simulator inputs are at their documented initial state.
+- Open an explicitly authored PLC project; the default exercise editor remains empty.
+- Run, set conveyor enable and downstream clear, then LOAD one carton.
 
 ### Normal sequence
 
-- Apply the requested input condition.
-- Verify only the documented PLC outputs respond.
+- Wait for the loaded carton to reach its accumulation position before loading another.
+- Three actual incoming beam edges give PLC count three; actual staged-group feedback permits stop retraction.
+- Watch all three cartons move onto the connected powered receiver and remain visible.
 
 ### Expected observations
 
-- The release command occurs only after the target group count and downstream clear signal.
+- The readout follows PLC CTU count from actual beam feedback, not a PC precomputed ready toggle.
+- Cartons remain supported on aligned infeed/receiver rollers throughout the transfer.
+- Prescribed accumulation positions exclude slip, contact forces and collision dynamics; there is no hardware safety or commissioning claim.

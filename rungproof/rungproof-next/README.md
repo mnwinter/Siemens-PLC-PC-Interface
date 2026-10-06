@@ -128,7 +128,29 @@ Native Windows five-angle and operator checks cover approach, partial boom,
 crossing, parking, full capacity, departure, removal and Stop/Run/Reset.
 This does not establish vehicle physics, barrier safety or live commissioning.
 
-`-- --verify-scene-geometry` runs 637 focused geometry/workflow checks with `--visual-scene-review` for Demo 5 supported pickup, four-carton placement, moving clearance and attachment,
+`-- --audit-package-grouping` runs 27 focused Scene 49 checks with 3,847
+sampled poses and writes ignored `.tools/plant-review-package-grouping.rpproj.json`.
+Open this seven-rung reference explicitly through File -> Open Ladder Agent
+Project, Return to Scene, Run, Enable, Clear, then Load each carton after the
+previous feed stops. PLC CTU counts actual incoming photoeye crossings and
+releases only a physically accumulated group of three. Two scoped Blender/glTF
+assemblies provide a guided retracting stop and aligned powered receiver.
+Capacity three, 0.4 m/s prescribed travel and one-second stop stroke are original
+offline training choices. All cartons remain visible on the receiver after
+actual completion; Reset starts a new empty finite batch and stays stopped.
+Stop clears the PLC output/readout image while retaining plant poses, CTU and
+release memory; Run resumes and republishes. Enable/path loss holds motion.
+Old projects must replace manual `group_count_reached` with actual feedback
+and PLC-owned DINT `group_count` from scene help. Default exercise editors stay
+empty and there remain exactly five authored demos. Native Windows five-angle
+inspection covers entry, partial stop, crossing and retained completion;
+physical Load, continuous playback and Stop/Run/Reset were exercised. Top partly
+crops the far infeed behind the HUD; other angles show it. Prescribed accumulation
+excludes roller slip/contact forces; these checks do not establish hardware
+safety, collision physics or live commissioning.
+
+`-- --verify-scene-geometry` runs 662 focused geometry/workflow checks with `--visual-scene-review` for Demo 5 supported pickup, four-carton placement, moving clearance and attachment,
+package grouping real optical counts, guided stop clearance, retained supported receiver group and Stop/Run/Reset,
 repeat-cycle actual completion, PLC count ownership, head clearance, permissive loss and held clock,
 raw counter/reset and independent A/B count comparisons with reset priority, pending-pulse discard on Stop, retained counter restart,
 the pallet cell's grounded installation, imported robot joints/tool attachment,

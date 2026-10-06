@@ -1,6 +1,61 @@
 # Whole program review - 2026-10-03
 
-Scene 48 parking-entry repair (2026-10-06, current checkpoint):
+Scene 49 package-grouping repair (2026-10-06, current checkpoint):
+replaced the disconnected belt/roller/pallet and substitute stop/sensor layout
+with two original scoped Blender/glTF assemblies: a continuously supported
+powered roller line/receiver and a guided retracting stop. Three real cartons,
+two actual optical stations, an inline operator row and a separate GROUP display
+form the installation. Capacity three, 0.4 m/s travel and one-second stop stroke
+are declared offline training choices; no OEM or source-exact timing is claimed.
+Prescribed accumulation excludes slip, contact forces and collision dynamics.
+
+Accepted local controller/plant scans own every carton, gate, rod and roller
+pose. Raw PC feedback comes from actual beam crossings and positions; PLC CTU
+owns the count and PLC BOOL outputs own feed/release. The release latch requires
+count three plus actual accumulation. The gate clears the cartons before travel;
+a connected receiving surface supports the whole transferred group. All three
+cartons remain visible after actual completion. Enable/path loss holds motion;
+Stop freezes scan and plant while clearing the PLC output/readout image. Run
+restores retained CTU/release memory; Reset empties the finite batch and stops.
+
+Reproduce with -- --audit-package-grouping: 27 checks / 3,847 sampled poses pass.
+The audit writes ignored .tools/plant-review-package-grouping.rpproj.json, a
+seven-rung reference opened explicitly via File -> Open Ladder Agent Project.
+Default exercise editors remain empty and exactly five authored demos remain.
+Old Scene 49 projects must replace manual group_count_reached with raw actual
+feedback and PLC-owned DINT group_count, using the current scene help. Historical
+prototype files are unchanged. This replaces Scene 49's former two static carton
+support checks with full three-carton route/count/Stop/Reset coverage.
+
+Native Windows evidence: the explicit QA reference was opened through File,
+then Run, Enable, Clear and Load. Held scan 75 / 1.50 s counted the first actual
+beam crossing; FR/FL/RL/RR/Top were inspected. Stop at 75 disabled stepping and
+held the carton; one Run scan republished count one without another edge.
+The first/second cartons accumulated at 18.02/34.02 s with counts one/two.
+At scan 2375 / 47.50 s three retained cartons waited behind the stop at 40%;
+all five views were inspected. At scan 2450 / 49.00 s the raised stop cleared
+the crossing group; all five views were inspected. Stop/Run held and resumed
+that crossing. Ordinary continuous playback completed the group, then held
+scan 3093 / 61.86 s showed count three, done true and the returned stop at zero.
+The retained receiver group was inspected from all five views; close front
+GROUP 3 was readable. Fourth Load was blocked with the idle-feed/free-position/
+Reset explanation. Reset returned empty/stopped/scan zero. The physical 3D LOAD
+button accepted a fresh carton; a final Reset left the scene stopped. The Top
+view partly crops the far infeed behind the review HUD; diagonal views resolve
+that area. Native package-grouping-final-native exited zero.
+
+Verification: build zero warnings/errors; 144 controller tests; 662 shared
+geometry/workflow checks; 71 scene contracts; shell 77 scenes / 294 assets /
+five demos; help 294 / 77; virtual-controller UI and rendered scene-control/
+review-overlay regression all pass. Rotating-cylinder support checks use actual
+mesh vertices, avoiding inflated rotated bounding-box contact reports. These
+are sampled offline geometry and reference-controller results, not swept-solid,
+hardware safety, roller mechanics or live PLC commissioning acceptance.
+Whole-program goal remains active. Scenes 50-53 already have scoped repairs;
+next gaps are Scene 54 selector labeling and Scenes 55-59 raw timer/control
+behavior. Shared substitute assets elsewhere remain unresolved.
+
+Scene 48 parking-entry repair (2026-10-06, previous checkpoint):
 replaced the motor-starter vehicle and substitute barrier/wall with four
 original scene-scoped Blender/glTF models: supported parking pad, wheeled
 vehicle, barrier cabinet and hinged boom. Two vehicles use separate marked

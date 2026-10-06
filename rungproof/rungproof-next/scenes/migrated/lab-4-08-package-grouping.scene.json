@@ -3,44 +3,40 @@
   "version": 1,
   "id": "lab-4-08-package-grouping",
   "name": "Lab 4.8 - Package Grouping Station",
-  "description": "A conveyor groups a fixed number of cartons before releasing the group to the next station.",
+  "description": "Original offline three-carton grouping exercise: actual optical count feedback, guided accumulation stop and a connected powered receiving surface.",
   "camera": {
     "position": [
-      11,
-      8,
-      12
+      16,
+      10,
+      14
     ],
     "target": [
-      0,
-      1.1,
+      1,
+      1,
       0
     ],
     "fov": 45
   },
   "equipment": [
     {
-      "id": "conveyor_0",
-      "type": "conveyor",
-      "label": "Package Grouping Station conveyor",
+      "id": "group_line",
+      "type": "trainingAccessory",
+      "label": "Aligned powered infeed and receiving rollers",
       "position": [
-        -3.3000000000000003,
+        0,
         0,
         0
       ],
       "config": {
-        "length": 6.5,
-        "width": 1.4,
-        "deckHeight": 0.9,
-        "beltColor": 2568760,
-        "running": false
+        "installation": "groupingLine"
       }
     },
     {
-      "id": "box_1",
+      "id": "carton_0",
       "type": "box",
-      "label": "Package Grouping Station box",
+      "label": "Grouping carton 1",
       "position": [
-        -1.1,
+        -4.4,
         0.9,
         0
       ],
@@ -54,170 +50,172 @@
       }
     },
     {
-      "id": "photoeye_2",
-      "type": "photoeye",
-      "label": "Package Grouping Station photoeye",
+      "id": "carton_1",
+      "type": "box",
+      "label": "Grouping carton 2",
       "position": [
-        1.1,
+        -4.4,
+        0.9,
+        0
+      ],
+      "config": {
+        "size": [
+          0.85,
+          0.72,
+          0.72
+        ],
+        "color": 13142603
+      }
+    },
+    {
+      "id": "carton_2",
+      "type": "box",
+      "label": "Grouping carton 3",
+      "position": [
+        -4.4,
+        0.9,
+        0
+      ],
+      "config": {
+        "size": [
+          0.85,
+          0.72,
+          0.72
+        ],
+        "color": 13142603
+      }
+    },
+    {
+      "id": "group_stop",
+      "type": "trainingAccessory",
+      "label": "Guided carton group stop",
+      "position": [
+        3,
         0,
         0
       ],
       "config": {
-        "span": 2.05,
-        "height": 0.7,
-        "beamCenterHeightM": 1.1,
+        "installation": "groupingStop"
+      }
+    },
+    {
+      "id": "entry_photoeye",
+      "type": "photoeye",
+      "label": "Actual incoming carton beam",
+      "position": [
+        -3.5,
+        0,
+        0
+      ],
+      "config": {
+        "span": 2.9,
+        "beamCenterHeightM": 1.18,
         "blocked": false
       }
     },
     {
-      "id": "indicator_3",
-      "type": "indicator",
-      "label": "Package Grouping Station indicator",
+      "id": "receiver_photoeye",
+      "type": "photoeye",
+      "label": "Actual receiving beam",
       "position": [
-        3.3000000000000003,
+        3.7,
         0,
         0
       ],
       "config": {
+        "span": 2.9,
+        "beamCenterHeightM": 1.18,
+        "blocked": false
+      }
+    },
+    {
+      "id": "group_count_display",
+      "type": "trainingAccessory",
+      "label": "PLC incoming group count",
+      "position": [
+        4.9,
+        0,
+        3.6
+      ],
+      "config": {
+        "catalogAssetId": "training.accessory.count_display.v1",
+        "display": "numeric",
+        "displayLabel": "GROUP"
+      }
+    },
+    {
+      "id": "group_ready_lamp",
+      "type": "indicator",
+      "label": "PLC target group count reached",
+      "position": [
+        2.7,
+        0,
+        3.6
+      ],
+      "config": {
         "colors": [
-          "red",
-          "amber",
           "green"
         ],
-        "active": "red"
+        "active": ""
       }
     },
     {
-      "id": "training_accessory_4",
-      "type": "trainingAccessory",
-      "label": "Package Grouping Station - powered roller conveyor",
-      "position": [
-        -3.3000000000000003,
-        0,
-        1.8
-      ],
-      "config": {
-        "assetName": "powered roller conveyor",
-        "catalogAssetId": "training.accessory.powered_roller_conveyor.v1"
-      }
-    },
-    {
-      "id": "training_accessory_5",
-      "type": "trainingAccessory",
-      "label": "Package Grouping Station - package spacing sensor",
-      "position": [
-        -1.1,
-        0,
-        1.8
-      ],
-      "config": {
-        "assetName": "package spacing sensor",
-        "catalogAssetId": "training.accessory.package_spacing_sensor.v1"
-      }
-    },
-    {
-      "id": "training_accessory_6",
-      "type": "trainingAccessory",
-      "label": "Package Grouping Station - pallet receiver",
-      "position": [
-        1.1,
-        0,
-        1.8
-      ],
-      "config": {
-        "assetName": "pallet receiver",
-        "catalogAssetId": "training.accessory.pallet_receiver.v1"
-      }
-    },
-    {
-      "id": "training_accessory_7",
-      "type": "trainingAccessory",
-      "label": "Package Grouping Station - guided group stop",
-      "position": [
-        3.3000000000000003,
-        0,
-        1.8
-      ],
-      "config": {
-        "assetName": "guided group stop",
-        "catalogAssetId": "training.accessory.guided_group_stop.v1"
-      }
-    },
-    {
-      "id": "switch_8",
+      "id": "enable_switch",
       "type": "switch",
-      "label": "Package Grouping Station operator input",
+      "label": "Held conveyor enable",
       "position": [
-        -2.4000000000000004,
+        -3.9,
         0,
-        4.7
+        3.6
       ],
       "config": {
         "style": "pushbutton",
-        "action": "toggle-package_detected",
+        "action": "toggle-machine_enabled",
+        "faceLabel": "ENABLE",
         "color": 2204518
       }
     },
     {
-      "id": "switch_9",
+      "id": "clear_switch",
       "type": "switch",
-      "label": "Package Grouping Station operator input",
+      "label": "Held downstream clear",
       "position": [
-        -0.20000000000000007,
+        -1.7,
         0,
-        4.7
-      ],
-      "config": {
-        "style": "pushbutton",
-        "action": "toggle-group_count_reached",
-        "color": 2204518
-      }
-    },
-    {
-      "id": "switch_10",
-      "type": "switch",
-      "label": "Package Grouping Station operator input",
-      "position": [
-        2,
-        0,
-        4.7
+        3.6
       ],
       "config": {
         "style": "pushbutton",
         "action": "toggle-release_clear",
+        "faceLabel": "CLEAR",
         "color": 2204518
       }
     },
     {
-      "id": "indicator_11",
-      "type": "indicator",
-      "label": "Package Grouping Station output indication",
+      "id": "load_button",
+      "type": "switch",
+      "label": "Load one carton into the idle infeed",
       "position": [
-        4.2,
+        0.5,
         0,
-        4.7
+        3.6
       ],
       "config": {
-        "colors": [
-          "red",
-          "amber",
-          "green"
-        ],
-        "active": "red"
+        "style": "pushbutton",
+        "action": "load-carton",
+        "faceLabel": "LOAD",
+        "color": 2204518
       }
     }
   ],
   "simulation": {
     "type": "booleanPanel",
+    "packageGroupingPlant": {
+      "model": "three-carton-accumulation-v1"
+    },
     "points": [
       {
-        "name": "package_detected",
-        "type": "BOOL",
-        "owner": "PC",
-        "initial": false
-      },
-      {
-        "name": "group_count_reached",
+        "name": "machine_enabled",
         "type": "BOOL",
         "owner": "PC",
         "initial": false
@@ -227,6 +225,54 @@
         "type": "BOOL",
         "owner": "PC",
         "initial": false
+      },
+      {
+        "name": "package_detected",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "group_staged",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "stop_raised",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "receiver_occupied",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "receiver_detected",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "transfer_complete",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "stop_lowered",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": true
+      },
+      {
+        "name": "stop_position",
+        "type": "REAL",
+        "owner": "PC",
+        "initial": 0
       },
       {
         "name": "group_conveyor_run",
@@ -241,100 +287,124 @@
         "owner": "PLC",
         "initial": false,
         "role": "output"
+      },
+      {
+        "name": "group_ready",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "group_count",
+        "type": "DINT",
+        "owner": "PLC",
+        "initial": 0,
+        "role": "output"
       }
     ],
     "actions": [
       {
-        "id": "toggle-package_detected",
-        "label": "Toggle package detected",
+        "id": "toggle-machine_enabled",
+        "label": "Toggle conveyor enable",
         "type": "toggle",
-        "point": "package_detected"
-      },
-      {
-        "id": "toggle-group_count_reached",
-        "label": "Toggle group count reached",
-        "type": "toggle",
-        "point": "group_count_reached"
+        "point": "machine_enabled"
       },
       {
         "id": "toggle-release_clear",
-        "label": "Toggle release clear",
+        "label": "Toggle downstream clear",
         "type": "toggle",
         "point": "release_clear"
+      },
+      {
+        "id": "load-carton",
+        "label": "Load one carton (idle feed)",
+        "type": "groupingLoad"
       }
     ],
     "rules": [],
     "edgeRules": [],
     "pointBindings": [
       {
-        "point": "package_detected",
-        "equipmentId": "switch_8",
-        "mode": "switch"
-      },
-      {
-        "point": "group_count_reached",
-        "equipmentId": "switch_9",
+        "point": "machine_enabled",
+        "equipmentId": "enable_switch",
         "mode": "switch"
       },
       {
         "point": "release_clear",
-        "equipmentId": "switch_10",
+        "equipmentId": "clear_switch",
         "mode": "switch"
       },
       {
-        "point": "group_conveyor_run",
-        "equipmentId": "indicator_3",
+        "point": "package_detected",
+        "equipmentId": "entry_photoeye",
+        "mode": "photoeye"
+      },
+      {
+        "point": "receiver_detected",
+        "equipmentId": "receiver_photoeye",
+        "mode": "photoeye"
+      },
+      {
+        "point": "group_ready",
+        "equipmentId": "group_ready_lamp",
         "mode": "indicator",
         "activeColor": "green"
       },
       {
-        "point": "group_release",
-        "equipmentId": "indicator_11",
-        "mode": "indicator",
-        "activeColor": "green"
+        "point": "group_count",
+        "equipmentId": "group_count_display",
+        "mode": "numericDisplay",
+        "label": "GROUP",
+        "format": "F0"
       }
     ]
   },
   "training": {
     "hints": [
-      "Translate the lesson into explicit state and permissive logic: The release command occurs only after the target group count and downstream clear signal.",
-      "Inputs are simulator feedback (package_detected, group_count_reached, release_clear); PLC logic owns group_conveyor_run, group_release.",
-      "Test the initial state, the valid condition, and at least one missing permissive."
+      "Count actual incoming beam rising edges in PLC logic; no manual group-count-reached input is provided.",
+      "Command the conveyor and group-stop release using raw enable/path and actual staged-group feedback.",
+      "Three cartons, 0.4 m/s and a one-second stop stroke are original offline training choices."
     ],
     "solution": {
-      "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
+      "summary": "Original offline reference uses a PLC CTU with preset three and a retained release latch; it is not a copy of a photographed or manufacturer solution.",
       "steps": [
-        "Require the documented inputs: package_detected, group_count_reached, release_clear.",
-        "Command the documented outputs: group_conveyor_run, group_release.",
-        "Remove PLC commands when the permissive is lost."
+        "Enable and clear the downstream path; LOAD stages one actual carton only while feed is idle.",
+        "PLC counts actual incoming beam crossings and publishes DINT group_count; completed accumulation feedback permits release.",
+        "Hold release while the group crosses; stop movement on lost permissives and retain the group on its powered receiver."
       ],
-      "acceptance": "The release command occurs only after the target group count and downstream clear signal."
+      "acceptance": "Three actual arrivals form a supported group; its release requires the PLC count, actual staged cartons and downstream clear."
     },
     "assetRequirements": [
-      "powered roller conveyor",
-      "package spacing sensor",
-      "pallet receiver",
-      "guided group stop"
+      "original aligned powered roller infeed and receiver",
+      "original guided group stop",
+      "actual entry and receiving beams",
+      "PLC-owned numeric group count"
     ],
     "machineGuide": {
-      "purpose": "A conveyor groups a fixed number of cartons before releasing the group to the next station.",
+      "purpose": "Original offline three-carton grouping exercise: actual optical count feedback, guided accumulation stop and a connected powered receiving surface.",
       "startConditions": [
-        "The common PLC/watchdog foundation is healthy.",
-        "All required simulator inputs are at their documented initial state."
+        "Open an explicitly authored PLC project; the default exercise editor remains empty.",
+        "Run, set conveyor enable and downstream clear, then LOAD one carton."
       ],
       "normalSequence": [
-        "Apply the requested input condition.",
-        "Verify only the documented PLC outputs respond."
+        "Wait for the loaded carton to reach its accumulation position before loading another.",
+        "Three actual incoming beam edges give PLC count three; actual staged-group feedback permits stop retraction.",
+        "Watch all three cartons move onto the connected powered receiver and remain visible."
       ],
       "stopBehavior": [
-        "Removing the permissive removes PLC-owned commands.",
-        "Reset returns the module to its initial state."
+        "Stop freezes cartons, stop and roller poses while clearing PLC outputs; Run republishes count and resumes retained reference state.",
+        "Enable/path loss holds motion; the retained reference release resumes when permissives return.",
+        "Application Reset hides all cartons, lowers the stop, clears the PLC count and stays stopped."
       ],
       "faultBehavior": [
-        "A missing or stale input must fail safe and remain diagnosable."
+        "Incomplete groups cannot physically retract the stop or generate completion.",
+        "A fourth load is blocked; Reset starts the next finite three-carton batch."
       ],
       "expectedObservations": [
-        "The release command occurs only after the target group count and downstream clear signal."
+        "The readout follows PLC CTU count from actual beam feedback, not a PC precomputed ready toggle.",
+        "Cartons remain supported on aligned infeed/receiver rollers throughout the transfer.",
+        "Prescribed accumulation positions exclude slip, contact forces and collision dynamics; there is no hardware safety or commissioning claim."
       ]
     },
     "sequenceNumber": 35,
@@ -348,11 +418,20 @@
       "Simulation_Timeout"
     ],
     "addedTags": [
-      "package_detected",
-      "group_count_reached",
+      "machine_enabled",
       "release_clear",
+      "package_detected",
+      "group_staged",
+      "stop_raised",
+      "receiver_occupied",
+      "receiver_detected",
+      "transfer_complete",
+      "stop_lowered",
+      "stop_position",
       "group_conveyor_run",
-      "group_release"
+      "group_release",
+      "group_ready",
+      "group_count"
     ],
     "changedTags": [],
     "previousAcceptance": [
@@ -411,6 +490,6 @@
     ],
     "visualStatus": "partial",
     "productionApproved": false,
-    "reason": "Production approval requires every reusable asset and the complete scene to pass visual review."
+    "reason": "Original scene-scoped grouping models replace disconnected substitute props. Native multi-angle and actual-controller acceptance are recorded in the review matrix; reusable substitute catalog assets elsewhere remain unresolved."
   }
 }

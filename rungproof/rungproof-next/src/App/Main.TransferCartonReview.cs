@@ -1032,7 +1032,6 @@ public partial class Main
         foreach (var sceneId in new[]
         {
             "lab-3-01-guarded-pallet-transfer",
-            "lab-4-08-package-grouping",
             "lab-5-09-bag-indexing-conveyor",
             "lab-6-07-luggage-weight-sort",
             "lab-9-11-pallet-counting"

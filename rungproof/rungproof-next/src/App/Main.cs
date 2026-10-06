@@ -150,6 +150,7 @@ public partial class Main : Node3D
         _auditRepeatCycle = userArguments.Contains("--audit-repeat-cycle", StringComparer.Ordinal);
         _auditButtonCounters = userArguments.Contains("--audit-button-counters", StringComparer.Ordinal);
         _auditParkingEntry = userArguments.Contains("--audit-parking-entry", StringComparer.Ordinal);
+        _auditPackageGrouping = userArguments.Contains("--audit-package-grouping", StringComparer.Ordinal);
         _auditBarrelFill = userArguments.Contains("--audit-barrel-fill", StringComparer.Ordinal);
         _auditCookiePackaging = userArguments.Contains("--audit-cookie-packaging", StringComparer.Ordinal);
         _auditChainLiftInstallation = userArguments.Contains("--audit-chain-lift-installation", StringComparer.Ordinal);
@@ -173,7 +174,7 @@ public partial class Main : Node3D
         _mcpSceneId = userArguments
             .FirstOrDefault(argument => argument.StartsWith("--mcp-scene=", StringComparison.Ordinal))?
             .Substring("--mcp-scene=".Length);
-        _appShellRequested = _reportSceneGeometry || _verifySceneGeometry || _verifyToteFinishing || _auditDualSpindle || _auditRobotCnc || _auditRobotRestart || _auditSequenceTower || _auditChainLiftInstallation || _auditCookiePackaging || _auditBarrelFill || _auditCableCut || _auditPalletizer || _auditRepeatCycle || _auditButtonCounters || _auditParkingEntry || _verifyCartonStaticRoutes || (_visualSceneReview && !_visualPlantReview) || _verifyAppShell || _verifyExternalDialog || _verifyExternalPlayback || _verifyPlantMotion || _verifyWorkspace || _verifyHud || _verifyCameraInput || _verifySceneControls
+        _appShellRequested = _reportSceneGeometry || _verifySceneGeometry || _verifyToteFinishing || _auditDualSpindle || _auditRobotCnc || _auditRobotRestart || _auditSequenceTower || _auditChainLiftInstallation || _auditCookiePackaging || _auditBarrelFill || _auditCableCut || _auditPalletizer || _auditRepeatCycle || _auditButtonCounters || _auditParkingEntry || _auditPackageGrouping || _verifyCartonStaticRoutes || (_visualSceneReview && !_visualPlantReview) || _verifyAppShell || _verifyExternalDialog || _verifyExternalPlayback || _verifyPlantMotion || _verifyWorkspace || _verifyHud || _verifyCameraInput || _verifySceneControls
             || _verifyVirtualController || _verifyNumericSceneIo || _verifyLadderEditor || _verifySplitView || _verifyUiDensity || _virtualControllerDemo
             || userArguments.Contains("--app-shell", StringComparer.Ordinal);
         if (_visualPlantReview && (_sceneId is null || _appShellRequested || _verifySceneContract))
@@ -542,6 +543,10 @@ public partial class Main : Node3D
         else if (_auditPalletizer)
         {
             CallDeferred(nameof(AuditPalletizer));
+        }
+        else if (_auditPackageGrouping)
+        {
+            CallDeferred(nameof(AuditPackageGrouping));
         }
         else if (_auditParkingEntry)
         {
@@ -4072,6 +4077,7 @@ public partial class Main : Node3D
             "parkingEnter" => "Entry needs an idle lane and a free bay; use EXIT when both spaces are occupied",
             "parkingExit" => "Exit needs an idle lane and a parked vehicle; REMOVE or re-enter any departed vehicle first",
             "parkingClearDeparted" => "REMOVE applies only after a vehicle has fully departed and the lane is idle",
+            "groupingLoad" => "LOAD requires an idle feed and a free group position; wait for the carton to stop, or Reset after the three-carton transfer",
             _ => "scene permissives are not satisfied; reset before restarting",
         });
         if (_simulatorShell?.IsExternalMode == true)
