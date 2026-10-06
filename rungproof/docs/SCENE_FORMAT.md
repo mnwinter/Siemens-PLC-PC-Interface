@@ -452,6 +452,37 @@ not advance a held plant. Editor, source and scene transitions release the
 hold. This control is excluded in external PLC mode and is not a general
 simulation-clock facility. DB14 and catalog asset deliveries are unchanged.
 
+### Cookie packaging scene plant (Godot migrated scene)
+
+`lab-4-10-cookie-packaging` opts in with
+`cookiePackagingPlant: { "model": "six-cookie-index-seal-v1" }`.
+Unknown models fail initialization. Scene-local config selectors are
+`machine` / `cookieSealer`, `trainingAccessory` / `cookieTray` and
+`trainingAccessory` / `cookieCounter`; shared deliveries remain unchanged.
+Fixed IDs are `conveyor_0`, `machine_1`, `cookie_0` through `cookie_5`,
+`photoeye_2`, `cookie_counter` and `package_counter`. Authored dimensions and
+positions must match the model; installation edits need corresponding model
+and audit changes. This is not a generic scene-builder actuator.
+
+One plant integrates belt displacement and head travel; independent belt
+physics is disabled. Validated PC-owned BOOL feedback is `product_present`,
+`packaging_ready`, `packaging_busy`, `batch_complete`, `count_beam_blocked`
+and `packaging_fault`; PC-owned INTs are `cookie_count` and `wrapped_count`.
+Validated PLC-owned BOOL commands are `infeed_run` and `packaging_enable`.
+`batch_start` is a PC pulse; `cycle_active` and `cycle_complete` belong to
+selected ladder. Counts arise from biscuit leading-edge crossings and complete
+jaw cycles. Visible packages project from that same plant state. Mechanical
+indexing at the next unwrapped tray is assumed; all six remain at completion.
+
+Feed during sealing/busy latches a diagnostic and holds until Reset, preserving
+raw PLC commands. External pause preserves commands and poses. Offline Stop
+clears reference authorization; Run alone holds; fresh Start resumes. Reset
+restores initial trays/head, counts, fault and belt phases.
+`--audit-cookie-packaging` verifies the reference and installation. Offline
+review Hold/Step executes 100 actual 20 ms scans per 2 s step. Heat, film
+mechanics, slip, replenishment and collision dynamics are excluded. Bounds and
+snapshots are not physical process acceptance.
+
 Scene equipment instances already reference stable type IDs and type-specific
 configuration. A future scene builder should use the same definitions as its
 equipment palette and emit this same versioned JSON. The builder must validate

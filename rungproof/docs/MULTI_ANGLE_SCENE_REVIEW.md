@@ -1,6 +1,47 @@
 # Multi-angle scene review - 2026-10-04
 
-Scene 50 carton-cycle repair (2026-10-05, current checkpoint): the carton now
+Scene 51 cookie-packaging repair (2026-10-05, current checkpoint): replaced
+an overlapping CNC, floor-level packaged-meat prop and pneumatic-pusher counter
+with scene-local cookie trays, a grounded ring-jaw sealer and numeric displays.
+There are 14 equipment items, 13 symbolic points and one momentary Start.
+Six trays stay supported on the 9 m conveyor. A single prescribed plant clock
+indexes each cookie, observes its actual beam crossing, lowers/holds/raises
+the jaws, reveals its package and retains all six at the outfeed. PC owns
+observed counts/positions; PLC owns commands/authorization. The saved six-rung
+20 ms Cookie_Packaging_Batch reference opens through File -> Open Ladder Agent
+Project. Default empty ladder remains an exercise. Shared deliveries and DB14
+are unchanged. Mechanical indexing is assumed; heat, film mechanics, slip,
+replenishment and collision dynamics are excluded.
+
+Final focused audit: 24/24 pass with 1,252 actual-controller 20 ms cycle samples.
+Checks cover support/visible load bounds, actual beam/rendered visibility,
+exactly six counts/seals, retained completion, Stop/Run/fresh Start during feed
+and partial head travel, Reset, empty sealing, conflict diagnostics, external
+pause and held native steps. Three coarse static bounds candidates remain;
+curved-cable triangle bounds clear the axis-aligned sealer parts. These are
+sampled bounds and prescribed kinematics, not solid-contact, swept-volume or
+physical process acceptance.
+
+Final native Windows application at 1602x932 loaded the reference through its
+File menu. Initial, jaws-down, first sealed and completed states were inspected
+in FR/FL/RL/RR/Top views. Top obscures food/head beneath the portal header;
+close views can crop belt ends/control bases. Front/rear views resolve those
+occlusions. Stop at held 6 s cleared commands; Run plus scans held the pose;
+fresh Start resumed. Reset restored six unwrapped trays, zero counts and
+stopped scans. With hold released, a normal real-time run showed initial travel
+in FL, count 3/sealed 2 in FL, count 5/sealed 5 in RR and completion at scan
+1916 / 38.32 s in RR (Start around 10.94 s). Another Start left package poses
+and counts held through scan 2809 / 56.18 s. These are inspected snapshots,
+not every-frame five-angle coverage. Owned native console session exited 0.
+
+Final build: zero warnings/errors. Controller tests: 144 pass, 0 fail. Shared
+motion: 32 checks; catalog geometry: 487 checks. Shell (77 scenes), help,
+Scene 51 contract, virtual-controller UI and Scene 50's 36-check regression
+pass. Whole-program goal stays active. Next open installation is Scene 52
+barrel transfer; Demo 5 and other documented continuous-motion/runtime gaps
+remain open.
+
+Scene 50 carton-cycle repair (2026-10-05, previous checkpoint): the carton now
 loads from the chain infeed, crosses a supported lower bridge, rises on the
 powered carrying deck, crosses the upper bridge to the receiving belt, stops
 at its plate, and remains there while the empty carriage returns HOME. The
@@ -2487,7 +2528,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 48 | `lab-4-07-parking-garage-entry` | 20 | Native FR/FL/RL/RR/T; replacement readout five focus views | Readout replaced/repositioned; five native focus views (RL obscured). FAIL/open: motor-starter vehicle, substitute barrier/wall, no occupancy numeric binding or barrier motion acceptance |
 | 49 | `lab-4-08-package-grouping` | 118 (historic) | Native FR/FL/RL/RR/T; final carton top/FR close | Carton support repaired and re-inspected. FAIL/open: grouping/release outputs only lamps; separated receiver/stop/sensors and transfer behavior unverified |
 | 50 | `lab-4-09-chain-drive-lift` | 3 intended mounts | Native lower bridge/mid-rise/shaft approach/upper bridge/empty return FR/FL/RL/RR/T; Stop/fresh Start/completed HOME/Reset | Supported complete single-carton route and automatic feedback repaired; 36 focused checks pass with 2,897 samples. OPEN every-frame five-angle native coverage, swept-volume/self-collision and broader physical/process acceptance |
-| 51 | `lab-4-10-cookie-packaging` | 146 | Native FR/FL/RL/RR/T; food top/FR close | FAIL/open: CNC occupies belt, packaged meat below indexing conveyor; lamp-only outputs, cookie count/transfer/packaging unverified |
+| 51 | `lab-4-10-cookie-packaging` | 3 coarse; cable triangles clear sealer | Native initial/down/first-sealed/complete FR/FL/RL/RR/T; real-time FL/RR | Repaired finite six-cookie cycle: 24 focused checks, 1,252 samples; support/count/seal/retention/Stop/resume/Reset. Top header occludes food; snapshots and bounds only. Physical process acceptance open |
 | 52 | `lab-4-11-barrel-fill-station` | 143 | Native FR/FL/RL/RR/T; barrel top/FR close | FAIL/open: tank occupies conveyor, barrel is motor starter; disconnected fill route; lamp-only outputs, fill/transfer unverified |
 | 53 | `lab-4-12-cable-cut-length` | 21 (prior inventory) | Native FR/FL/RL/RR/T; repaired readout five focus views; 3D inputs/Reset | Readout now grounded LENGTH / NO MEASUREMENT, front readable/Top clear; rear details blocked. CABLE/LENGTH/HOME plates and matching PC points verified. FAIL/open: payoff shutter, dancer/cutter trays, unbound encoder, no continuous cable measurement/cut route; outputs only lamps |
 | 54 | `lab-5-01-delayed-lamp` | 0 | Native FR/FL/RL/RR/T; normal Run, rail/3D toggles, Stop/Reset | Authored TON initially off then green; 3D clears request, Stop removes output, Reset clears points/scan; exact native interval unmeasured; selector/plate mismatch open |

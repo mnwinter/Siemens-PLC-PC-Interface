@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Godot;
 using RungProof.Next.Scenes;
@@ -19,11 +20,11 @@ public partial class Main
     private bool _gantryReviewStepping;
     private bool _gantryReviewOperatorView = true;
 
-    // Scoped to two reviewed offline clock implementations: the autonomous
-    // gantry adapter and the single-clock chain lift plant. Other scenes may
+    // Scoped to reviewed offline clock implementations: the autonomous
+    // gantry adapter and the single-clock chain lift / cookie plants. Other scenes may
     // have separate callbacks; this is not a general external PLC step.
     private bool CanReviewGantryClock => _visualSceneReview && !_visualPlantReview
-        && _currentSceneId is "lab-11-13-xy-palletizing" or "lab-4-09-chain-drive-lift"
+        && _currentSceneId is "lab-11-13-xy-palletizing" or "lab-4-09-chain-drive-lift" or "lab-4-10-cookie-packaging"
         && _simulatorShell?.IsExternalMode != true;
 
     private bool GantryReviewClockHeld => _gantryReviewHeldRoot is not null
@@ -56,7 +57,7 @@ public partial class Main
         if (_gantryReviewClockBar is not null)
             _gantryReviewClockBar.Visible = CanReviewGantryClock && _gantryReviewOperatorView;
         if (_gantryReviewStep is not null)
-            _gantryReviewStep.Text = _currentSceneId == "lab-4-09-chain-drive-lift" ? "Step 2.0 s" : "Step 0.5 s";
+            _gantryReviewStep.Text = _currentSceneId is "lab-4-09-chain-drive-lift" or "lab-4-10-cookie-packaging" ? "Step 2.0 s" : "Step 0.5 s";
         UpdateGantryReviewClockLabel();
     }
 
@@ -96,7 +97,8 @@ public partial class Main
         if (!CanReviewGantryClock || !GantryReviewClockHeld
             || _virtualController?.Snapshot.State != VirtualControllerState.Running) return;
         var chainLift = _currentSceneId == "lab-4-09-chain-drive-lift";
-        var motion = chainLift ? _sceneCompositionRoot!.GetNode<Node3D>("liftTable_1").GetNode<EquipmentMotionController>("ChainLiftMotion")
+        var cookiePlant = _currentSceneId == "lab-4-10-cookie-packaging";
+        var motion = cookiePlant ? null : chainLift ? _sceneCompositionRoot!.GetNode<Node3D>("liftTable_1").GetNode<EquipmentMotionController>("ChainLiftMotion")
             : _sceneCompositionRoot!.GetNode<Node3D>("training_accessory_4").GetNode<EquipmentMotionController>("GantryCommandMotion");
         _gantryReviewStepping = true;
         try
@@ -104,15 +106,15 @@ public partial class Main
             // Preserve the existing input -> ladder -> output -> plant path,
             // at the authored 20 ms scan cadence. The disabled parent prevents
             // Godot from also advancing autonomous equipment during inspection.
-            for (var tick = 0; tick < (chainLift ? 100 : 25); tick++)
+            for (var tick = 0; tick < (chainLift || cookiePlant ? 100 : 25); tick++)
             {
                 _PhysicsProcess(0.02);
-                if (!chainLift && motion.IsPhysicsProcessing()) motion._PhysicsProcess(0.02);
+                if (!chainLift && !cookiePlant && motion!.IsPhysicsProcessing()) motion._PhysicsProcess(0.02);
             }
         }
         finally { _gantryReviewStepping = false; }
         UpdateGantryReviewClockLabel();
-        GD.Print($"GANTRY_REVIEW_STEP time={_virtualController.Snapshot.SimulatedTime.TotalSeconds:F2} scan={_virtualController.Snapshot.ScanNumber} position={motion.PositionPercent:F3}%");
+        GD.Print($"GANTRY_REVIEW_STEP time={_virtualController.Snapshot.SimulatedTime.TotalSeconds:F2} scan={_virtualController.Snapshot.ScanNumber} position={motion?.PositionPercent ?? 0:F3}%");
     }
 
     private void UpdateGantryReviewClockLabel()
@@ -123,6 +125,11 @@ public partial class Main
         if (_gantryReviewClockLabel is null) return;
         var motion = _sceneCompositionRoot?.FindChildren("*", string.Empty, true, false)
             .OfType<EquipmentMotionController>().FirstOrDefault(item => item is ChainLiftDriveVisual || item.Kind == EquipmentMotionController.MotionKind.CartesianGantry);
+        if (_currentSceneId == "lab-4-10-cookie-packaging")
+        {
+            _gantryReviewClockLabel.Text = $"QA | {(_virtualController?.Snapshot.SimulatedTime.TotalSeconds ?? 0):F2} s | cookies {_sceneRuntime?.Points.GetValueOrDefault("cookie_count") ?? 0} | sealed {_sceneRuntime?.Points.GetValueOrDefault("wrapped_count") ?? 0}";
+            return;
+        }
         _gantryReviewClockLabel.Text = $"QA · {(_virtualController?.Snapshot.SimulatedTime.TotalSeconds ?? 0):F2} s · stroke {motion?.PositionPercent ?? 0:F1}%";
     }
 

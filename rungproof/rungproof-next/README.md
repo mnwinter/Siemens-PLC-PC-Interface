@@ -518,3 +518,24 @@ four-leg Stop/resume, invalid-command diagnostics, exact drive Reset and the
 native review clock path. This fixed-geometry, single-carton model excludes
 falling loads, slip, inertia and flexible-chain physics. Sampled bounds and
 native snapshots do not establish mechanical or live PLC acceptance.
+
+### Cookie packaging batch reference
+
+Scene `lab-4-10-cookie-packaging` includes the editable offline project
+`programs/examples/cookie-packaging-reference.rpproj.json`. Open it with
+**File -> Open Ladder Agent Project**, return to Scene, Run scans, then press
+**Start / resume cookie batch**. Expect six photoeye counts and six jaw cycles;
+COOKIES and SEALED finish at 6, with all packages retained on the conveyor.
+Stop holds trays and head. Run alone stays held; a fresh Start resumes. Reset
+restores six unwrapped trays, zero counts, head home and stopped playback.
+Default empty ladder remains an exercise. See
+[`the scene guide`](docs/help/scenes/lab-4-10-cookie-packaging.md).
+
+After building, `--audit-cookie-packaging` runs 24 focused checks with 1,252
+actual-controller 20 ms samples of support, visible bounds, optical crossings,
+counts, retained packages, Stop/resume, Reset and command diagnostics.
+`--visual-scene-review --shell-scene=lab-4-10-cookie-packaging
+--shell-view=operator` exposes camera views and offline Hold/Step 2.0 s
+(100 actual scans). This finite model assumes mechanical indexing; heat, film
+mechanics, slip and replenishment are excluded. Bounds and native snapshots
+do not establish physical process or live PLC acceptance.

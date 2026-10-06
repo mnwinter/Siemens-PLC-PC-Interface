@@ -66,6 +66,7 @@ public partial class SceneSimulationRuntime : Node
         RefreshEquipmentClock();
         if (selected && !running) PauseBottleShuttleClock();
         if (selected && !running) PauseChainLiftClock();
+        if (selected && !running) PauseCookieClock();
         if (selected && running) ApplyBindings();
     }
 
@@ -87,6 +88,7 @@ public partial class SceneSimulationRuntime : Node
         RefreshEquipmentClock();
         if (!running) PauseBottleShuttleClock();
         if (!running) PauseChainLiftClock();
+        if (!running) PauseCookieClock();
         if (RuntimeType == "tank") ProjectTankState();
     }
 
@@ -101,6 +103,7 @@ public partial class SceneSimulationRuntime : Node
         // The general conveyor callback must not integrate a second motion.
         _bottleShuttleConveyor?.SetPhysicsProcess(false);
         FreezeChainLiftAdapters();
+        FreezeCookieAdapters();
     }
 
     public void ConsumeExternalInputPulses(IReadOnlyDictionary<string, object?> sampledPoints)
@@ -181,6 +184,7 @@ public partial class SceneSimulationRuntime : Node
         if (UsesExternalClock && !PlantPlaybackRunning) return;
 
         if (HasChainLiftPlant) { AdvanceChainLiftPlant(delta); return; }
+        if (HasCookiePackagingPlant) { AdvanceCookiePackagingPlant(delta); return; }
 
         if (HasBottleShuttleReference)
         {
@@ -435,6 +439,7 @@ public partial class SceneSimulationRuntime : Node
         ResetShippingPalletReference();
         ResetBottleShuttleReference();
         ResetChainLiftPlant();
+        ResetCookiePackagingPlant();
         EvaluateRules();
         ApplyBindings();
         if (RuntimeType == "tank") ProjectTankState();

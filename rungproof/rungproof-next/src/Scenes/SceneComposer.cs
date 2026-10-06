@@ -98,6 +98,7 @@ public static partial class SceneComposer
                     EquipmentMotionController.MotionKind.OscillatingRotation, "KIN_axis_1", travelDegrees: 55.0f),
                 "rotaryTable" => CreateRotaryTable(equipment, candidates, runCommands),
                 "rollerShutter" => CreateShutterAsset(equipment, candidates, runCommands),
+                "machine" when Text(equipment.Config, "installation", string.Empty) == "cookieSealer" => CreateCookiePackagingPart("cookieSealer"),
                 "machine" => equipment.Label.Contains("Hand-Dryer", StringComparison.OrdinalIgnoreCase)
                     ? CreateHandDryerAsset()
                     : CreateControlledAsset(equipment, candidates, "machining.machine.enclosed-center.v1", runCommands,
@@ -149,6 +150,7 @@ public static partial class SceneComposer
         if (scene.Equipment.Any(equipment => Text(equipment.Config, "installation", string.Empty) == "guidedChainLift") && !scene.Simulation.TryGetProperty("chainLiftPlant", out _))
             root.GetNode<Node3D>("liftTable_1").GetNode<ChainLiftDriveVisual>("ChainLiftMotion").PositionFollower = root.GetNode<Node3D>("box_2");
         if (scene.Simulation.TryGetProperty("chainLiftPlant", out _)) ConfigureChainLiftReceiver(root);
+        if (scene.Simulation.TryGetProperty("cookiePackagingPlant", out _)) ConfigureCookieConveyor(root);
         return new SceneComposition(root, rendered, deferred);
     }
 
@@ -275,6 +277,7 @@ public static partial class SceneComposer
 
     private static Node3D? CreateTrainingAccessory(SceneEquipment equipment, AssetCatalogDocument candidates)
     {
+        if (Text(equipment.Config, "installation", string.Empty) is "cookieTray" or "cookieCounter") return CreateCookiePackagingPart(Text(equipment.Config, "installation", string.Empty));
         if (Text(equipment.Config, "installation", string.Empty) == "robotRestartGuard") return CreateRobotRestartGuard();
         if (Text(equipment.Config, "installation", string.Empty) == "robotRestartPanel") return CreateRobotRestartPanel();
         if (Text(equipment.Config, "installation", string.Empty) == "palletTransferBridge") return new Node3D();

@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-4-10-cookie-packaging",
   "name": "Lab 4.10 - Cookie Packaging Cell",
-  "description": "A product stream is counted, indexed, and presented to a packaging station.",
+  "description": "Six supported cookie trays are optically counted, indexed and sealed; completed packages remain on the outfeed.",
   "camera": {
     "position": [
       11,
@@ -12,7 +12,7 @@
     ],
     "target": [
       0,
-      1.1,
+      0.9,
       0
     ],
     "fov": 45
@@ -21,15 +21,15 @@
     {
       "id": "conveyor_0",
       "type": "conveyor",
-      "label": "Cookie Packaging Cell conveyor",
+      "label": "Six-cookie indexing conveyor",
       "position": [
-        -3.3000000000000003,
+        0,
         0,
         0
       ],
       "config": {
-        "length": 6.5,
-        "width": 1.4,
+        "length": 9,
+        "width": 0.8,
         "deckHeight": 0.9,
         "beltColor": 2568760,
         "running": false
@@ -38,46 +38,167 @@
     {
       "id": "machine_1",
       "type": "machine",
-      "label": "Cookie Packaging Cell machine",
+      "label": "Cookie tray sealing station",
       "position": [
-        -1.1,
+        0.3,
         0,
         0
       ],
       "config": {
-        "size": [
-          2.1,
-          2.7,
-          1.7
-        ],
-        "color": 5466227,
-        "running": false
+        "installation": "cookieSealer"
       }
     },
     {
       "id": "photoeye_2",
       "type": "photoeye",
-      "label": "Cookie Packaging Cell photoeye",
+      "label": "Physical cookie count photoeye",
       "position": [
-        1.1,
+        0,
         0,
         0
       ],
       "config": {
-        "span": 2.05,
-        "height": 0.7,
-        "beamCenterHeightM": 1.1,
+        "span": 2.5,
+        "height": 0.935,
+        "beamCenterHeightM": 0.935,
         "blocked": false
+      }
+    },
+    {
+      "id": "cookie_0",
+      "type": "trainingAccessory",
+      "label": "Cookie tray 1",
+      "position": [
+        -3.45,
+        0.9,
+        0
+      ],
+      "config": {
+        "installation": "cookieTray",
+        "assetName": "food product load"
+      }
+    },
+    {
+      "id": "cookie_1",
+      "type": "trainingAccessory",
+      "label": "Cookie tray 2",
+      "position": [
+        -2.85,
+        0.9,
+        0
+      ],
+      "config": {
+        "installation": "cookieTray",
+        "assetName": "food product load"
+      }
+    },
+    {
+      "id": "cookie_2",
+      "type": "trainingAccessory",
+      "label": "Cookie tray 3",
+      "position": [
+        -2.25,
+        0.9,
+        0
+      ],
+      "config": {
+        "installation": "cookieTray",
+        "assetName": "food product load"
+      }
+    },
+    {
+      "id": "cookie_3",
+      "type": "trainingAccessory",
+      "label": "Cookie tray 4",
+      "position": [
+        -1.6500000000000004,
+        0.9,
+        0
+      ],
+      "config": {
+        "installation": "cookieTray",
+        "assetName": "food product load"
+      }
+    },
+    {
+      "id": "cookie_4",
+      "type": "trainingAccessory",
+      "label": "Cookie tray 5",
+      "position": [
+        -1.0500000000000003,
+        0.9,
+        0
+      ],
+      "config": {
+        "installation": "cookieTray",
+        "assetName": "food product load"
+      }
+    },
+    {
+      "id": "cookie_5",
+      "type": "trainingAccessory",
+      "label": "Cookie tray 6",
+      "position": [
+        -0.4500000000000002,
+        0.9,
+        0
+      ],
+      "config": {
+        "installation": "cookieTray",
+        "assetName": "food product load"
+      }
+    },
+    {
+      "id": "cookie_counter",
+      "type": "trainingAccessory",
+      "label": "COOKIES physical feedback display",
+      "position": [
+        -1.5,
+        0,
+        2.5
+      ],
+      "config": {
+        "installation": "cookieCounter",
+        "assetName": "product counter"
+      }
+    },
+    {
+      "id": "package_counter",
+      "type": "trainingAccessory",
+      "label": "SEALED physical feedback display",
+      "position": [
+        1.5,
+        0,
+        2.5
+      ],
+      "config": {
+        "installation": "cookieCounter",
+        "assetName": "product counter"
+      }
+    },
+    {
+      "id": "switch_8",
+      "type": "switch",
+      "label": "Start / resume cookie batch",
+      "position": [
+        -3,
+        0,
+        2.5
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "start-cookie-batch",
+        "color": 2204518
       }
     },
     {
       "id": "indicator_3",
       "type": "indicator",
-      "label": "Cookie Packaging Cell indicator",
+      "label": "Feed command",
       "position": [
-        3.3000000000000003,
+        3,
         0,
-        0
+        2.5
       ],
       "config": {
         "colors": [
@@ -89,114 +210,13 @@
       }
     },
     {
-      "id": "training_accessory_4",
-      "type": "trainingAccessory",
-      "label": "Cookie Packaging Cell - food product load",
-      "position": [
-        -3.3000000000000003,
-        0,
-        1.8
-      ],
-      "config": {
-        "assetName": "food product load",
-        "catalogAssetId": "training.accessory.food_product_load.v1"
-      }
-    },
-    {
-      "id": "training_accessory_5",
-      "type": "trainingAccessory",
-      "label": "Cookie Packaging Cell - indexing conveyor",
-      "position": [
-        -1.1,
-        0,
-        1.8
-      ],
-      "config": {
-        "assetName": "indexing conveyor",
-        "catalogAssetId": "training.accessory.indexing_conveyor.v1"
-      }
-    },
-    {
-      "id": "training_accessory_6",
-      "type": "trainingAccessory",
-      "label": "Cookie Packaging Cell - packaging machine",
-      "position": [
-        1.1,
-        0,
-        1.8
-      ],
-      "config": {
-        "assetName": "packaging machine",
-        "catalogAssetId": "training.accessory.packaging_machine.v1"
-      }
-    },
-    {
-      "id": "training_accessory_7",
-      "type": "trainingAccessory",
-      "label": "Cookie Packaging Cell - product counter",
-      "position": [
-        3.3000000000000003,
-        0,
-        1.8
-      ],
-      "config": {
-        "assetName": "product counter",
-        "catalogAssetId": "training.accessory.product_counter.v1"
-      }
-    },
-    {
-      "id": "switch_8",
-      "type": "switch",
-      "label": "Cookie Packaging Cell operator input",
-      "position": [
-        -2.4000000000000004,
-        0,
-        4.7
-      ],
-      "config": {
-        "style": "pushbutton",
-        "action": "toggle-product_present",
-        "color": 2204518
-      }
-    },
-    {
-      "id": "switch_9",
-      "type": "switch",
-      "label": "Cookie Packaging Cell operator input",
-      "position": [
-        -0.20000000000000007,
-        0,
-        4.7
-      ],
-      "config": {
-        "style": "pushbutton",
-        "action": "toggle-packaging_ready",
-        "color": 2204518
-      }
-    },
-    {
-      "id": "switch_10",
-      "type": "switch",
-      "label": "Cookie Packaging Cell operator input",
-      "position": [
-        2,
-        0,
-        4.7
-      ],
-      "config": {
-        "style": "pushbutton",
-        "action": "toggle-batch_complete",
-        "color": 2204518
-      }
-    },
-    {
       "id": "indicator_11",
       "type": "indicator",
-      "label": "Cookie Packaging Cell output indication",
+      "label": "Sealer command",
       "position": [
-        4.2,
+        4.5,
         0,
-        4.7
+        2.5
       ],
       "config": {
         "colors": [
@@ -221,13 +241,49 @@
         "name": "packaging_ready",
         "type": "BOOL",
         "owner": "PC",
-        "initial": false
+        "initial": true
       },
       {
         "name": "batch_complete",
         "type": "BOOL",
         "owner": "PC",
         "initial": false
+      },
+      {
+        "name": "packaging_busy",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "count_beam_blocked",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "packaging_fault",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "batch_start",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "cookie_count",
+        "type": "INT",
+        "owner": "PC",
+        "initial": 0
+      },
+      {
+        "name": "wrapped_count",
+        "type": "INT",
+        "owner": "PC",
+        "initial": 0
       },
       {
         "name": "infeed_run",
@@ -242,45 +298,37 @@
         "owner": "PLC",
         "initial": false,
         "role": "output"
+      },
+      {
+        "name": "cycle_active",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "cycle_complete",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
       }
     ],
     "actions": [
       {
-        "id": "toggle-product_present",
-        "label": "Toggle product present",
-        "type": "toggle",
-        "point": "product_present"
-      },
-      {
-        "id": "toggle-packaging_ready",
-        "label": "Toggle packaging ready",
-        "type": "toggle",
-        "point": "packaging_ready"
-      },
-      {
-        "id": "toggle-batch_complete",
-        "label": "Toggle batch complete",
-        "type": "toggle",
-        "point": "batch_complete"
+        "id": "start-cookie-batch",
+        "label": "Start / resume cookie batch",
+        "type": "pulse",
+        "point": "batch_start"
       }
     ],
     "rules": [],
     "edgeRules": [],
     "pointBindings": [
       {
-        "point": "product_present",
-        "equipmentId": "switch_8",
-        "mode": "switch"
-      },
-      {
-        "point": "packaging_ready",
-        "equipmentId": "switch_9",
-        "mode": "switch"
-      },
-      {
-        "point": "batch_complete",
-        "equipmentId": "switch_10",
-        "mode": "switch"
+        "point": "infeed_run",
+        "equipmentId": "conveyor_0",
+        "mode": "running"
       },
       {
         "point": "infeed_run",
@@ -293,23 +341,49 @@
         "equipmentId": "indicator_11",
         "mode": "indicator",
         "activeColor": "green"
+      },
+      {
+        "point": "count_beam_blocked",
+        "equipmentId": "photoeye_2",
+        "mode": "photoeye"
+      },
+      {
+        "point": "batch_start",
+        "equipmentId": "switch_8",
+        "mode": "switch"
+      },
+      {
+        "point": "cookie_count",
+        "equipmentId": "cookie_counter",
+        "mode": "numericDisplay",
+        "label": "COOKIES"
+      },
+      {
+        "point": "wrapped_count",
+        "equipmentId": "package_counter",
+        "mode": "numericDisplay",
+        "label": "SEALED"
       }
-    ]
+    ],
+    "cookiePackagingPlant": {
+      "model": "six-cookie-index-seal-v1"
+    }
   },
   "training": {
     "hints": [
-      "Translate the lesson into explicit state and permissive logic: Product advances only when packaging is ready and the current batch is not complete.",
-      "Inputs are simulator feedback (product_present, packaging_ready, batch_complete); PLC logic owns infeed_run, packaging_enable.",
-      "Test the initial state, the valid condition, and at least one missing permissive."
+      "Open programs/examples/cookie-packaging-reference.rpproj.json through File -> Open Ladder Agent Project. Default ladder remains an exercise.",
+      "Run arms scans; a fresh Start / resume is required to move. Stop holds every tray and the sealer head; Run alone cannot restart motion.",
+      "Observe six distinct beam crossings and six sealing cycles. Reset reloads six unwrapped trays and both counts return to zero."
     ],
     "solution": {
-      "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
+      "summary": "Editable offline reference for six-cookie indexing and sealing. PLC owns commands; PC position/crossing feedback owns counts.",
       "steps": [
-        "Require the documented inputs: product_present, packaging_ready, batch_complete.",
-        "Command the documented outputs: infeed_run, packaging_enable.",
-        "Remove PLC commands when the permissive is lost."
+        "Authorize a cycle on a fresh Start edge with no plant fault or completed batch.",
+        "Feed only while the sealer is ready, the station is empty and the batch is incomplete.",
+        "Seal only a tray at the station, retaining the command while the head is busy.",
+        "Stop clears the authorization; fresh Start resumes a held cycle. Reset clears the batch."
       ],
-      "acceptance": "Product advances only when packaging is ready and the current batch is not complete."
+      "acceptance": "Exactly six optical crossings and six sealed trays; all remain supported and visible after completion."
     },
     "assetRequirements": [
       "food product load",
@@ -318,24 +392,28 @@
       "product counter"
     ],
     "machineGuide": {
-      "purpose": "A product stream is counted, indexed, and presented to a packaging station.",
+      "purpose": "Six supported cookie trays are optically counted, indexed and sealed; completed packages remain on the outfeed.",
       "startConditions": [
-        "The common PLC/watchdog foundation is healthy.",
-        "All required simulator inputs are at their documented initial state."
+        "Open the editable reference or author equivalent ladder.",
+        "Run starts offline scans. Fresh Start authorizes motion."
       ],
       "normalSequence": [
-        "Apply the requested input condition.",
-        "Verify only the documented PLC outputs respond."
+        "Feed the next tray into the stationary sealing position.",
+        "Stop feed, lower the ring jaws, hold, and raise them.",
+        "Advance the sealed tray and index the next.",
+        "After six seals, advance 150 mm and retain all packages on the belt."
       ],
       "stopBehavior": [
-        "Removing the permissive removes PLC-owned commands.",
-        "Reset returns the module to its initial state."
+        "Stop removes PLC commands and holds head/tray position.",
+        "Run alone holds; fresh Start resumes.",
+        "Reset restores six unwrapped trays, head home, counts zero and stopped playback."
       ],
       "faultBehavior": [
-        "A missing or stale input must fail safe and remain diagnosable."
+        "Conflicting feed/seal commands latch packaging_fault and hold the plant until Reset."
       ],
       "expectedObservations": [
-        "Product advances only when packaging is ready and the current batch is not complete."
+        "COOKIES increments on actual leading-edge photoeye crossings; SEALED increments only after a complete head cycle.",
+        "There is no automatic replenishment, deletion, recycling, film mechanics or heat-process simulation."
       ]
     },
     "sequenceNumber": 37,
@@ -352,8 +430,16 @@
       "product_present",
       "packaging_ready",
       "batch_complete",
+      "packaging_busy",
+      "count_beam_blocked",
+      "packaging_fault",
+      "batch_start",
+      "cookie_count",
+      "wrapped_count",
       "infeed_run",
-      "packaging_enable"
+      "packaging_enable",
+      "cycle_active",
+      "cycle_complete"
     ],
     "changedTags": [],
     "previousAcceptance": [
@@ -407,11 +493,9 @@
     "scenePropTypes": [
       "box"
     ],
-    "unresolvedAssetTypes": [
-      "trainingAccessory"
-    ],
+    "unresolvedAssetTypes": [],
     "visualStatus": "partial",
     "productionApproved": false,
-    "reason": "Production approval requires every reusable asset and the complete scene to pass visual review."
+    "reason": "Purpose-specific scene-local cookie/sealer/counter geometry replaces mismatched generic deliveries. Offline prescribed indexing only; production approval and physical process acceptance remain open."
   }
 }

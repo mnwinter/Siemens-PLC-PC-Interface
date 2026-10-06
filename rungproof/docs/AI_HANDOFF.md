@@ -1,6 +1,47 @@
 # RungProof / PLC Visual Simulator AI handoff
 
-Scene 50 carton-cycle repair (2026-10-05, current checkpoint): the carton now
+Scene 51 cookie-packaging repair (2026-10-05, current checkpoint): replaced
+an overlapping CNC, floor-level packaged-meat prop and pneumatic-pusher counter
+with scene-local cookie trays, a grounded ring-jaw sealer and numeric displays.
+There are 14 equipment items, 13 symbolic points and one momentary Start.
+Six trays stay supported on the 9 m conveyor. A single prescribed plant clock
+indexes each cookie, observes its actual beam crossing, lowers/holds/raises
+the jaws, reveals its package and retains all six at the outfeed. PC owns
+observed counts/positions; PLC owns commands/authorization. The saved six-rung
+20 ms Cookie_Packaging_Batch reference opens through File -> Open Ladder Agent
+Project. Default empty ladder remains an exercise. Shared deliveries and DB14
+are unchanged. Mechanical indexing is assumed; heat, film mechanics, slip,
+replenishment and collision dynamics are excluded.
+
+Final focused audit: 24/24 pass with 1,252 actual-controller 20 ms cycle samples.
+Checks cover support/visible load bounds, actual beam/rendered visibility,
+exactly six counts/seals, retained completion, Stop/Run/fresh Start during feed
+and partial head travel, Reset, empty sealing, conflict diagnostics, external
+pause and held native steps. Three coarse static bounds candidates remain;
+curved-cable triangle bounds clear the axis-aligned sealer parts. These are
+sampled bounds and prescribed kinematics, not solid-contact, swept-volume or
+physical process acceptance.
+
+Final native Windows application at 1602x932 loaded the reference through its
+File menu. Initial, jaws-down, first sealed and completed states were inspected
+in FR/FL/RL/RR/Top views. Top obscures food/head beneath the portal header;
+close views can crop belt ends/control bases. Front/rear views resolve those
+occlusions. Stop at held 6 s cleared commands; Run plus scans held the pose;
+fresh Start resumed. Reset restored six unwrapped trays, zero counts and
+stopped scans. With hold released, a normal real-time run showed initial travel
+in FL, count 3/sealed 2 in FL, count 5/sealed 5 in RR and completion at scan
+1916 / 38.32 s in RR (Start around 10.94 s). Another Start left package poses
+and counts held through scan 2809 / 56.18 s. These are inspected snapshots,
+not every-frame five-angle coverage. Owned native console session exited 0.
+
+Final build: zero warnings/errors. Controller tests: 144 pass, 0 fail. Shared
+motion: 32 checks; catalog geometry: 487 checks. Shell (77 scenes), help,
+Scene 51 contract, virtual-controller UI and Scene 50's 36-check regression
+pass. Whole-program goal stays active. Next open installation is Scene 52
+barrel transfer; Demo 5 and other documented continuous-motion/runtime gaps
+remain open.
+
+Scene 50 carton-cycle repair (2026-10-05, previous checkpoint): the carton now
 loads from the chain infeed, crosses a supported lower bridge, rises on the
 powered carrying deck, crosses the upper bridge to the receiving belt, stops
 at its plate, and remains there while the empty carriage returns HOME. The
