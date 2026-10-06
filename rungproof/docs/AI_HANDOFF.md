@@ -46,6 +46,21 @@ Goal active; whole-program review remains incomplete. Next address the
 Scene 50 lift-conveyor placement/receiving-surface failures and continue the
 remaining catalog process and continuous-motion checks.
 
+Scene 50 follow-up baseline (2026-10-05, open): the normal Windows
+operator shell reproduced the same conveyor/lift overlap in FR/FL/RL/RR/Top
+and FR close-up. The close/top views crop parts of the long installation;
+rear views expose the separate floor carton. The nominal chain-hoist accessory
+is a vertical knee milling machine (also identified in its local review file);
+the limit-switch accessory renders another complete scissor table. The scene
+contract binds chain_run and lift_enable only to indicator lamps, so it has no
+commanded chain/lift/carton transfer. Baseline log confirms 145 enclosing-bound
+candidates, including 131 conveyor/table candidates and a platform/platform
+intersection. No Scene 50 repair or motion acceptance is claimed. Own baseline
+window closed, process exit 0, PLC disconnected. Next replace the incorrect
+scene-specific equipment identities, establish an aligned supported carton
+route, and bind actual motion/feedback without silently enforcing PLC logic.
+Log: rungproof-next/.tools/chain-lift-baseline-native.log.
+
 Robot restart repair (2026-10-05, previous): Scene 41 now separates the
 robot from the static CNC inside a four-sided welded-wire fence with an
 outward-opening gate. The coded sensor stays on the latch post; its actuator
