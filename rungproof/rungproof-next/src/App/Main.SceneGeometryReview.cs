@@ -297,6 +297,7 @@ public partial class Main
             VerifyDrillFeedGeometry(Check);
             VerifyServiceDoorPlacement(Check);
             VerifyPressCountWorkflow(Check);
+            VerifyCounterResetWorkflow(Check);
             VerifyTransferCartonSupport(Check);
             VerifyBaseConveyorCartonSupport(Check);
             VerifyPusherRodGeometry(Check);

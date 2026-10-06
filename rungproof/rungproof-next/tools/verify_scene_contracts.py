@@ -72,14 +72,26 @@ def verify_photoeye_product_envelope(scene_id: str, scene: dict[str, object]) ->
     config = photoeye.get("config", {})
     if not isinstance(config, dict) or not isinstance(config.get("beamCenterHeightM"), (int, float)):
         raise ValueError(f"{scene_id}: photoeye '{photoeye_id}' requires numeric beamCenterHeightM")
-    centerline = float(config["beamCenterHeightM"])
+    # The two lens elevations can differ. Check the beam where the product
+    # travels, rather than comparing the lower lens to the belt elevation.
+    # This authored-envelope check supports unrotated, unscaled sensor roots;
+    # transformed installations need a world-space geometry audit instead.
+    if (any(float(value) != 0 for value in photoeye.get("rotation", [0, 0, 0]))
+            or any(float(value) != 1 for value in photoeye.get("scale", [1, 1, 1]))):
+        raise ValueError(f"{scene_id}: transformed photoeye requires a world-space product-envelope audit")
+    sensor_position = photoeye.get("position", [0, 0, 0])
+    lower_height = float(config["beamCenterHeightM"])
+    upper_height = float(config.get("positiveBeamCenterHeightM", lower_height))
+    negative_stand = -float(config.get("span", 1.44)) / 2
+    positive_stand = float(config.get("positiveStandPositionM", -negative_stand))
+    if not math.isfinite(negative_stand) or not math.isfinite(positive_stand) or positive_stand <= negative_stand:
+        raise ValueError(f"{scene_id}: photoeye requires finite separated stand positions")
     conveyor = equipment.get(str(simulation.get("conveyorId", "")))
+    deck = None
     if conveyor is not None:
         conveyor_config = conveyor.get("config", {})
         if isinstance(conveyor_config, dict) and isinstance(conveyor_config.get("deckHeight"), (int, float)):
             deck = float(conveyor_config["deckHeight"])
-            if centerline <= deck:
-                raise ValueError(f"{scene_id}: photoeye beam {centerline:g} m is not above conveyor deck {deck:g} m")
     product_ids = simulation.get("productIds", [])
     if not product_ids and isinstance(simulation.get("productId"), str):
         product_ids = [simulation["productId"]]
@@ -92,11 +104,18 @@ def verify_photoeye_product_envelope(scene_id: str, scene: dict[str, object]) ->
         position = product.get("position", [])
         product_config = product.get("config", {})
         size = product_config.get("size", []) if isinstance(product_config, dict) else []
-        if (not isinstance(position, list) or len(position) < 2
+        if (not isinstance(position, list) or len(position) < 3
                 or not isinstance(size, list) or len(size) < 2):
             raise ValueError(f"{scene_id}: product '{product_id}' has no vertical envelope")
         bottom = float(position[1])
         top = bottom + float(size[1])
+        local_z = float(position[2]) - float(sensor_position[2])
+        if not negative_stand < local_z < positive_stand:
+            raise ValueError(f"{scene_id}: product '{product_id}' travels outside the photoeye stand span")
+        centerline = (float(sensor_position[1]) + lower_height
+                      + (upper_height - lower_height) * (local_z - negative_stand) / (positive_stand - negative_stand))
+        if deck is not None and centerline <= deck:
+            raise ValueError(f"{scene_id}: photoeye beam {centerline:g} m is not above conveyor deck {deck:g} m")
         if not bottom < centerline < top:
             raise ValueError(
                 f"{scene_id}: photoeye beam {centerline:g} m misses product '{product_id}' envelope "
@@ -116,11 +135,21 @@ def verify_all_photoeye_geometry(scene_id: str, scene: dict[str, object]) -> Non
             continue
         config = equipment.get("config", {})
         height = config.get("beamCenterHeightM") if isinstance(config, dict) else None
-        if not isinstance(height, (int, float)) or not 0.85 <= float(height) <= 2.5:
+        # Match the compositor's floor-mounted stand minimum. An upper-level
+        # conveyor can require a beam above 2.5 m (the chain lift uses 3.2 m);
+        # a universal ceiling cannot establish whether that beam meets its load.
+        # Product-envelope and installation audits make that separate check.
+        if (isinstance(height, bool) or not isinstance(height, (int, float))
+                or not math.isfinite(height) or height < 0.3):
             raise ValueError(
-                f"{scene_id}: through-beam '{equipment.get('id', '?')}' requires a plausible "
-                "beamCenterHeightM (0.85–2.5 m)"
+                f"{scene_id}: through-beam '{equipment.get('id', '?')}' requires a finite "
+                "numeric beamCenterHeightM >= 0.3 m"
             )
+        if "positiveBeamCenterHeightM" in config:
+            positive_height = config["positiveBeamCenterHeightM"]
+            if (isinstance(positive_height, bool) or not isinstance(positive_height, (int, float))
+                    or not math.isfinite(positive_height) or positive_height < 0.3):
+                raise ValueError(f"{scene_id}: positiveBeamCenterHeightM must be finite numeric >= 0.3 m")
 
 
 def verify_peer_controls_are_not_depth_stacked(scene_id: str, scene: dict[str, object]) -> None:

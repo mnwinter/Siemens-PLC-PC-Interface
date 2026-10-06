@@ -1,6 +1,61 @@
 # Multi-angle scene review - 2026-10-04
 
-Scene 43 counter/reset baseline (2026-10-06, unresolved next action):
+Scene 43 counter/reset repair and catalog preflight (2026-10-06, current checkpoint):
+replaced the PC-computed count_reached toggle with raw pulse_received; reset_pressed
+is now a one-scan momentary action. Corrected physical plates COUNT/RESET and
+reset button color. PLC CTU/RES owns the counter and lamp; the default editor
+remains empty. The verifier writes ignored .tools/plant-review-counter-reset.rpproj.json
+(preset three, matching Demo 1); no sixth demo or automatic solution is added.
+Older controller projects must replace the removed count_reached input.
+
+Found and repaired an unscanned local action surviving Stop: pending scene pulse
+points are cleared on local shell and standalone Stop, so Run cannot replay an
+old COUNT/RESET. Held inputs are retained. External playback bypasses this cleanup.
+Eleven controller/action regressions cover three distinct presses, idle retention,
+reset/recount, coincident count/reset priority, Stop/Run retention, discarding both
+pending pulses and application Reset. These timing cases are deterministic evidence.
+
+Final native Windows operator workflow: normal File -> Open Ladder Agent Project,
+Return to Scene and Run. First/second COUNT kept the lamp off (scans 1101/1614);
+physical third COUNT lit the green tier at 2406, with pulse_received already false.
+Wide FR 3273, FL 3638, RL 3970, RR 4353 and Top 4754 inspected while lamp remained
+on during idle scans. All three stands are grounded and separate. Rear angles hide
+faceplates; close FR crops the outer reset foot, so wide angles supplied full feet.
+Physical RESET at 5873 cleared lamp/input while Running; fresh one/two/three presses
+re-established completion. Stop at 7459 cleared lamp; Run at 7499 restored retained
+completion. Application Reset restored stopped scan 0 and all three points false.
+Exact accumulated values were verified deterministically, not read in native watch.
+Native exited 0; .tools/counter-reset-final-native.log records this workflow.
+
+Catalog preflight exposed two stale assumptions and one actual layout defect.
+Photoeye validation now matches the compositor's finite height minimum 0.3 m;
+the chain lift's 3.2 m receiving sensor must not fail an arbitrary 2.5 m ceiling.
+Inclined photoeyes are checked at the product's cross-belt path using both lens
+heights and stand locations. Rotated/scaled roots fail this bounded authored-envelope
+check rather than receiving an unsupported claim. Six Python regressions cover
+actual upper/inclined installations, invalid elevations and missed product/belt.
+Existing native/world-space chain-lift and carton audits remain the geometric basis.
+
+Scene 68 (not 66), sum-and-counter: moved indicator_5 from (3.3,0,-1.2) to
+(5.5,0,0), beside its peer rather than behind it. Two authored coordinates changed;
+I/O/reference behavior is retained. Native FR/FL/RL/RR/Top inspected all nine props;
+front readouts are small but separate, rear cables/feet clear. Default Top cropped
+the outer control under the toolbar; four mouse-wheel zoom-out detents exposed all
+nine footprints. Camera auto-fit at Top remains a separate usability gap. Native
+exited 0; .tools/sum-counter-indicator-{baseline,final}-native.log. Existing eleven
+sum/counter integration/clearance checks also pass against this final placement.
+
+Verification: final build 0 warnings/errors; geometry/workflow 544/544 with inspection
+overlay (539/539 without); controller 144/144; plant motion 85/85 including 2,576
+Demo 5 route samples; rendered controls/overlay/external-image PASS; shell 77 scenes,
+294 assets/five demos PASS; authored contracts 71/71; help 77/294 PASS; six new Python
+tests PASS; diff whitespace PASS. Logs use .tools/counter-reset-final-*, with final
+layout geometry in .tools/counter-reset-final-layout-geometry.log. These are bounded
+offline/runtime checks, not physical PLC transport or commissioning evidence.
+Goal remains active. Next unresolved lesson is Scene 44 repeat-cycle counter;
+review its precomputed completion/manual input and actual native operator workflow.
+
+Scene 43 counter/reset baseline (2026-10-06, historical; superseded above):
 normal native Windows operator shell (`--shell-scene=lab-4-02-counter-reset-lamp`,
 not standalone `--scene-id`) confirmed the precomputed `count_reached` toggle
 and persistent `reset_pressed` toggle. Both actions latched true while stopped;
@@ -2787,7 +2842,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 40 | `lab-3-01-guarded-pallet-transfer` | 20 (historic) | Native FR/FL/RL/RR/T; final carton top/FR close; earlier guard toggle/Reset | Carton support repaired and re-inspected. FAIL/open: sensors/curtain/gate outside conveyor route; transfer/protective behavior unverified |
 | 41 | `lab-3-02-robot-cell-safe-restart` | 1 | FR/FL/RL/RR/T static and commanded sweep; gate/interlock details; final normal operator workflow | Repaired robot/CNC clearance, complete fence/gate, mounted moving actuator and cabinet identity; 35 focused checks plus native offline Reset/Start/permissive-loss/Stop/Run/Reset pass. Remaining bounds pair is intended sensor mounting. Generic robot sweep/static CNC/E-stop reference only; physical/live proof open |
 | 42 | `lab-4-01-press-count-lamp` | 0 | Native FR/FL/RL/RR/T; final FR close PULSE; normal Run, rail/3D pulses, Stop/Run/Reset | Pulse/plate repaired. Three presses light authored CTU lamp, Stop removes output, Run retains count, Reset clears; five integration checks pass |
-| 43 | `lab-4-02-counter-reset-lamp` | 0 | Native FR/FL/RL/RR/T | Static stands clear. Native operator baseline confirms latched count_reached/reset inputs, both plates START and normal Run opens empty editor. Actual counter/reset workflow unverified; next scoped repair is raw pulses/momentary reset plus explicit QA CTU controller |
+| 43 | `lab-4-02-counter-reset-lamp` | 0 | Native FR/FL/RL/RR/T; normal project Open/Run; physical COUNT/RESET; Stop/Run/application Reset | Raw momentary pulse/reset, corrected plates; explicit three-count CTU reference native lamp off after 1/2 and on after 3. Reset clears; restart retains count; pending pulses discarded. Eleven exact workflow checks pass. Empty exercise editor remains intentional; hardware/external behavior unverified |
 | 44 | `lab-4-03-repeat-cycle-counter` | 0 | Native FR/FL/RL/RR/T | Static spacing clear. Precomputed cycle_count_complete; outputs only lamps, CNC motion absent; bounded-cycle behavior unverified |
 | 45 | `lab-4-04-sequence-light-tower` | 0 | Repaired FR/FL/RL/RR/T geometry; final FR close/full four colors; normal Open/Start/Step/Stop/Run/Reset | Four physical tiers, independent color bindings, momentary requests and editable offline reference repaired. Native complete cycle/restart/reset inspected; 30 focused checks PASS. Rear details partly occluded. CNC static, sounder uncommanded; live/physical acceptance open |
 | 46 | `lab-4-05-dual-input-count-window` | 0 | Native FR/FL/RL/RR/T | Static stands clear. Precomputed channel-ready toggles; raw counting/window workflow unverified |
@@ -2812,7 +2867,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 65 | `lab-6-08-hand-dryer` | 634 | Native FR/FL/RL/RR/T; replacement readout five focus views | PROGRESS readout replaced/repositioned; five focus views (FL text partly obscured, RL obscured). FAIL/open: substitute heating shutter and disconnected fan/panel/bottle; no remaining-time numeric binding |
 | 66 | `lab-9-01-sum-function` | 0 | Native FR/FL/RL/RR/T; close front; 3D A/B clicks; actual reference Open/Run/Stop/Reset | Two PC DINT inputs and live SUM result; 2+5=7 observed. Seven grounded, clear props. Global-tag reference FB supplied; exercise remains opt-in; FB parameter/instance semantics and independent asset approval open |
 | 67 | `lab-9-02-product-function` | 0 | Native FR/FL/RL/RR/T; close front; actual reference Open/Run/Stop/Reset; validity loss; all five 3D inputs after shared-picker repair | Two PC DINT factors and live PRODUCT; 2*5=10 observed. Seven grounded, clear props. Shared-picker follow-up correctly targets all five controls and Reset clears them. Global-tag FB reference opt-in; FB parameter/instance semantics and independent asset approval open |
-| 68 | `lab-9-03-sum-and-counter-function` | 0 (historical) | Native FR/FL/RL/RR/T; close operand/result views; actual 3D operand clicks; Project Open/Verify + Load; Run/Stop/Reset | CNC removed; typed DINT operands/sum/count and live readouts added. Opt-in reference displays 2+5=7 and one held completion count, Stop zeros image, Run republishes retained count, Reset clears. Eleven integration/clearance checks pass. Open: independent reusable-asset approval; manual call-complete feedback; exercise requires authored/explicit reference logic |
+| 68 | `lab-9-03-sum-and-counter-function` | 0 (historical) | Native FR/FL/RL/RR/T; close operand/result views; actual 3D operand clicks; Project Open/Verify + Load; Run/Stop/Reset | CNC removed; typed DINT operands/sum/count and live readouts added. Opt-in reference displays 2+5=7 and one held completion count, Stop zeros image, Run republishes retained count, Reset clears. Eleven integration/clearance checks pass. 2026-10-06: indicator peers moved inline; final native five angles and full top wheel-zoom inspected; eleven existing integration/clearance checks pass. Default top framing crops an outer control. Open: independent reusable-asset approval; manual call-complete feedback; exercise requires authored/explicit reference logic |
 | 69 | `lab-9-04-function-selector` | 0 (historical) | Final native FR/FL/RL/RR/Top, close FL; actual six 3D inputs; Project Open, Run, invalid choice, Stop/Reset | Live DINT A/B/choice/RESULT and opt-in FB routing to SUM/PRODUCT; observed 7/10 and invalid 99 clears validity. Native picking conflict repaired by moving readouts behind buttons; supports and separate-equipment clearance pass. Open: source-selector parity and FB instance/parameter semantics unverified; QA close/top cropping documented |
 | 70 | `lab-9-10-box-volume` | 46 (historical) | Updated native FR/FL/RL/RR/Top and close FL; all six 3D inputs; actual reference Open/Verify + Load/Run; invalid value/flag; Stop/Reset | Static supported fixture/carton and four live DINT readouts; observed 850*720*720=440640000 mm3 and maximum 1000000000. Missing validity/zero dimensions invalidate retained result. Readouts grounded/clear; 17 new checks pass. Open: automatic acquisition, source parity, FB instance/parameter semantics and independent asset approval; close-view cropping documented |
 | 71 | `lab-9-11-pallet-counting` | 86 | Native FR/FL/RL/RR/T | Carton/fixture/readout geometry repaired and five views/details inspected. Live DINT count/readout FR/FL and invalid/five-edge/held/permissive/Stop/Run/Reset native checks pass. Optical classification/pallet travel/CNC integration open |

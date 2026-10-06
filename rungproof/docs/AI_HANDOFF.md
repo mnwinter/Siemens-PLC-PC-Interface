@@ -1,6 +1,61 @@
 # RungProof / PLC Visual Simulator AI handoff
 
-Scene 43 counter/reset baseline (2026-10-06, unresolved next action):
+Scene 43 counter/reset repair and catalog preflight (2026-10-06, current checkpoint):
+replaced the PC-computed count_reached toggle with raw pulse_received; reset_pressed
+is now a one-scan momentary action. Corrected physical plates COUNT/RESET and
+reset button color. PLC CTU/RES owns the counter and lamp; the default editor
+remains empty. The verifier writes ignored .tools/plant-review-counter-reset.rpproj.json
+(preset three, matching Demo 1); no sixth demo or automatic solution is added.
+Older controller projects must replace the removed count_reached input.
+
+Found and repaired an unscanned local action surviving Stop: pending scene pulse
+points are cleared on local shell and standalone Stop, so Run cannot replay an
+old COUNT/RESET. Held inputs are retained. External playback bypasses this cleanup.
+Eleven controller/action regressions cover three distinct presses, idle retention,
+reset/recount, coincident count/reset priority, Stop/Run retention, discarding both
+pending pulses and application Reset. These timing cases are deterministic evidence.
+
+Final native Windows operator workflow: normal File -> Open Ladder Agent Project,
+Return to Scene and Run. First/second COUNT kept the lamp off (scans 1101/1614);
+physical third COUNT lit the green tier at 2406, with pulse_received already false.
+Wide FR 3273, FL 3638, RL 3970, RR 4353 and Top 4754 inspected while lamp remained
+on during idle scans. All three stands are grounded and separate. Rear angles hide
+faceplates; close FR crops the outer reset foot, so wide angles supplied full feet.
+Physical RESET at 5873 cleared lamp/input while Running; fresh one/two/three presses
+re-established completion. Stop at 7459 cleared lamp; Run at 7499 restored retained
+completion. Application Reset restored stopped scan 0 and all three points false.
+Exact accumulated values were verified deterministically, not read in native watch.
+Native exited 0; .tools/counter-reset-final-native.log records this workflow.
+
+Catalog preflight exposed two stale assumptions and one actual layout defect.
+Photoeye validation now matches the compositor's finite height minimum 0.3 m;
+the chain lift's 3.2 m receiving sensor must not fail an arbitrary 2.5 m ceiling.
+Inclined photoeyes are checked at the product's cross-belt path using both lens
+heights and stand locations. Rotated/scaled roots fail this bounded authored-envelope
+check rather than receiving an unsupported claim. Six Python regressions cover
+actual upper/inclined installations, invalid elevations and missed product/belt.
+Existing native/world-space chain-lift and carton audits remain the geometric basis.
+
+Scene 68 (not 66), sum-and-counter: moved indicator_5 from (3.3,0,-1.2) to
+(5.5,0,0), beside its peer rather than behind it. Two authored coordinates changed;
+I/O/reference behavior is retained. Native FR/FL/RL/RR/Top inspected all nine props;
+front readouts are small but separate, rear cables/feet clear. Default Top cropped
+the outer control under the toolbar; four mouse-wheel zoom-out detents exposed all
+nine footprints. Camera auto-fit at Top remains a separate usability gap. Native
+exited 0; .tools/sum-counter-indicator-{baseline,final}-native.log. Existing eleven
+sum/counter integration/clearance checks also pass against this final placement.
+
+Verification: final build 0 warnings/errors; geometry/workflow 544/544 with inspection
+overlay (539/539 without); controller 144/144; plant motion 85/85 including 2,576
+Demo 5 route samples; rendered controls/overlay/external-image PASS; shell 77 scenes,
+294 assets/five demos PASS; authored contracts 71/71; help 77/294 PASS; six new Python
+tests PASS; diff whitespace PASS. Logs use .tools/counter-reset-final-*, with final
+layout geometry in .tools/counter-reset-final-layout-geometry.log. These are bounded
+offline/runtime checks, not physical PLC transport or commissioning evidence.
+Goal remains active. Next unresolved lesson is Scene 44 repeat-cycle counter;
+review its precomputed completion/manual input and actual native operator workflow.
+
+Scene 43 counter/reset baseline (2026-10-06, historical; superseded above):
 normal native Windows operator shell (`--shell-scene=lab-4-02-counter-reset-lamp`,
 not standalone `--scene-id`) confirmed the precomputed `count_reached` toggle
 and persistent `reset_pressed` toggle. Both actions latched true while stopped;

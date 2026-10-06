@@ -75,7 +75,8 @@ against cable triangle bounds with a 1 mm world allowance; it is offline only.
 The Scene 32 standalone `--visual-plant-review` action bar also has a camera-only
 Pallet underside view for inspecting strap returns inside the fork openings.
 
-`-- --verify-scene-geometry` runs 528 focused geometry/workflow checks for Demo 5 supported pickup, four-carton placement, moving clearance and attachment,
+`-- --verify-scene-geometry` runs 544 focused geometry/workflow checks with `--visual-scene-review` (539 without the inspection overlay) for Demo 5 supported pickup, four-carton placement, moving clearance and attachment,
+raw counter/reset pulses with reset priority, pending-pulse discard on Stop, retained counter restart,
 the pallet cell's grounded installation, imported robot joints/tool attachment,
 sampled transfer clearance, supported outbound path, receiver landing/count
 agreement, Stop/Reset/restart guard and unreachable-target rejection,

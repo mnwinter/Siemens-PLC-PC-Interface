@@ -86,3 +86,7 @@ Numeric sum and event-count exercise: manual operands and call-complete input; P
 - A NEXT and B NEXT immediately show their PC input values.
 - SUM and COUNT stay zero with the empty exercise program.
 - With the opt-in reference: A=2, B=5 and one valid completion yield SUM=7, COUNT=1; event_counted is a one-scan pulse, result_valid follows the three Boolean inputs.
+
+The two indicator towers are placed beside each other on the rear equipment row;
+use a front view to read SUM and COUNT. In the inspection Top view, wheel-zoom
+out if the toolbar hides an outer control.

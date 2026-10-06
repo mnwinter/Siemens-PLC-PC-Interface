@@ -127,6 +127,18 @@ public partial class SceneSimulationRuntime : Node
         if (consumed.Length > 0) { EvaluateRules(); StateChanged?.Invoke(); }
     }
 
+    public void DiscardPendingLocalInputPulses()
+    {
+        // A momentary scene action accepted before local Stop but not sampled
+        // must not become a delayed command on Run. Held inputs are separate;
+        // external PLC pulses remain owned by the accepted exchange path.
+        if (_externalPlaybackSelected || _pulsePoints.Count == 0) return;
+        foreach (var name in _pulsePoints) SetPoint(name, false);
+        _pulsePoints.Clear();
+        ApplyBindings();
+        StateChanged?.Invoke();
+    }
+
     public bool TryGetAction(string id, out JsonElement action)
     {
         action = Actions().FirstOrDefault(item => Text(item, "id", string.Empty) == id);
@@ -366,6 +378,7 @@ public partial class SceneSimulationRuntime : Node
 
     public void StopSimulation()
     {
+        DiscardPendingLocalInputPulses();
         _bottleShuttleReferenceActive = false;
         _bottleShuttleConveyor?.ApplyPlantTravel(0, 0);
         _shippingPalletReferenceActive = false;

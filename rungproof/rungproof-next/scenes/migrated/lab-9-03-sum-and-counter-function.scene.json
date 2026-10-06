@@ -89,9 +89,9 @@
       "type": "indicator",
       "label": "PLC event counted indication",
       "position": [
-        3.3,
+        5.5,
         0,
-        -1.2
+        0
       ],
       "config": {
         "colors": [

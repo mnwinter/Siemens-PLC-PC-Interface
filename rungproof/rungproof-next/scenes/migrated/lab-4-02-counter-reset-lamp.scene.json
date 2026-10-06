@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-4-02-counter-reset-lamp",
   "name": "Lab 4.2 - Counter Reset Lamp",
-  "description": "A counter state controls a lamp and a reset input returns the station to a known state.",
+  "description": "Count raw operator pulses in the PLC counter, light the lamp at its preset, and clear the count with a momentary reset.",
   "camera": {
     "position": [
       11,
@@ -21,7 +21,7 @@
     {
       "id": "switch_0",
       "type": "switch",
-      "label": "Counter Reset Lamp switch",
+      "label": "Count pulse button",
       "position": [
         -3.3000000000000003,
         0,
@@ -29,8 +29,9 @@
       ],
       "config": {
         "style": "pushbutton",
-        "action": "toggle-count_reached",
-        "color": 2204518
+        "action": "pulse-count",
+        "color": 2204518,
+        "faceLabel": "COUNT"
       }
     },
     {
@@ -54,7 +55,7 @@
     {
       "id": "switch_2",
       "type": "switch",
-      "label": "Counter Reset Lamp operator input",
+      "label": "Counter reset button",
       "position": [
         1.1,
         0,
@@ -62,8 +63,9 @@
       ],
       "config": {
         "style": "pushbutton",
-        "action": "toggle-reset_pressed",
-        "color": 2204518
+        "action": "pulse-reset",
+        "color": 16755234,
+        "faceLabel": "RESET"
       }
     }
   ],
@@ -71,7 +73,7 @@
     "type": "booleanPanel",
     "points": [
       {
-        "name": "count_reached",
+        "name": "pulse_received",
         "type": "BOOL",
         "owner": "PC",
         "initial": false
@@ -92,15 +94,15 @@
     ],
     "actions": [
       {
-        "id": "toggle-count_reached",
-        "label": "Toggle count reached",
-        "type": "toggle",
-        "point": "count_reached"
+        "id": "pulse-count",
+        "label": "Count pulse",
+        "type": "pulse",
+        "point": "pulse_received"
       },
       {
-        "id": "toggle-reset_pressed",
-        "label": "Toggle reset pressed",
-        "type": "toggle",
+        "id": "pulse-reset",
+        "label": "Reset counter",
+        "type": "pulse",
         "point": "reset_pressed"
       }
     ],
@@ -108,7 +110,7 @@
     "edgeRules": [],
     "pointBindings": [
       {
-        "point": "count_reached",
+        "point": "pulse_received",
         "equipmentId": "switch_0",
         "mode": "switch"
       },
@@ -127,39 +129,40 @@
   },
   "training": {
     "hints": [
-      "Translate the lesson into explicit state and permissive logic: The lamp follows the count state and clears when reset is applied.",
-      "Inputs are simulator feedback (count_reached, reset_pressed); PLC logic owns counter_lamp.",
-      "Test the initial state, the valid condition, and at least one missing permissive."
+      "Count rising edges of pulse_received with a PLC CTU. The reference preset is three, inherited from the preceding example.",
+      "reset_pressed clears the counter; it takes priority if count and reset arrive in the same scan. Both buttons produce one accepted-scan pulse.",
+      "The controller owns the counter and counter_lamp. The default exercise has no loaded solution; author or explicitly open a controller before Run."
     ],
     "solution": {
       "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
       "steps": [
-        "Require the documented inputs: count_reached, reset_pressed.",
-        "Command the documented outputs: counter_lamp.",
-        "Remove PLC commands when the permissive is lost."
+        "Count raw pulse_received edges with a CTU; inhibit counting while reset_pressed is true.",
+        "Reset the CTU from reset_pressed before evaluating its done bit for counter_lamp.",
+        "Stop removes the output but retains the count; application Reset clears the complete controller and stops it."
       ],
-      "acceptance": "The lamp follows the count state and clears when reset is applied."
+      "acceptance": "Three separate count pulses light the reference lamp; reset clears count and lamp, and a subsequent new count starts at one."
     },
     "assetRequirements": [],
     "machineGuide": {
-      "purpose": "A counter state controls a lamp and a reset input returns the station to a known state.",
+      "purpose": "Count raw operator pulses in the PLC counter, light the lamp at its preset, and clear the count with a momentary reset.",
       "startConditions": [
         "The common PLC/watchdog foundation is healthy.",
         "All required simulator inputs are at their documented initial state."
       ],
       "normalSequence": [
-        "Apply the requested input condition.",
-        "Verify only the documented PLC outputs respond."
+        "Author or explicitly load a compatible counter/reset ladder project and Run.",
+        "Press COUNT three times, waiting for the input to return false between presses.",
+        "Press RESET to clear the counter and lamp; the next COUNT starts a new batch."
       ],
       "stopBehavior": [
-        "Removing the permissive removes PLC-owned commands.",
-        "Reset returns the module to its initial state."
+        "Stop clears lamp command and unscanned momentary inputs while retaining the accumulated PLC count.",
+        "Run resumes the counter; application Reset clears all inputs, outputs and counter state and stays stopped."
       ],
       "faultBehavior": [
         "A missing or stale input must fail safe and remain diagnosable."
       ],
       "expectedObservations": [
-        "The lamp follows the count state and clears when reset is applied."
+        "Three separate count pulses light the reference lamp; reset clears count and lamp, and a subsequent new count starts at one."
       ]
     },
     "sequenceNumber": 29,
@@ -173,11 +176,13 @@
       "Simulation_Timeout"
     ],
     "addedTags": [
-      "count_reached",
+      "pulse_received",
       "reset_pressed",
       "counter_lamp"
     ],
-    "changedTags": [],
+    "changedTags": [
+      "count_reached removed: use raw pulse_received; the PLC owns accumulated count/done state."
+    ],
     "previousAcceptance": [
       "lab-4-01-press-count-lamp"
     ]

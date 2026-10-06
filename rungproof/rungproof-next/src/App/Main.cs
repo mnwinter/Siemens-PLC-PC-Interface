@@ -981,6 +981,7 @@ public partial class Main : Node3D
             _simulatorShell.SetWorkspaceStatus("Scene playback paused · PLC connection and heartbeat exchange remain active");
             return;
         }
+        _sceneRuntime?.DiscardPendingLocalInputPulses();
         if (_virtualController is not null && _sceneRuntime is not null)
         {
             var snapshot = _virtualController.Stop();
