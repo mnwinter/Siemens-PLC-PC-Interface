@@ -75,7 +75,26 @@ against cable triangle bounds with a 1 mm world allowance; it is offline only.
 The Scene 32 standalone `--visual-plant-review` action bar also has a camera-only
 Pallet underside view for inspecting strap returns inside the fork openings.
 
-`-- --verify-scene-geometry` runs 544 focused geometry/workflow checks with `--visual-scene-review` (539 without the inspection overlay) for Demo 5 supported pickup, four-carton placement, moving clearance and attachment,
+`-- --audit-repeat-cycle --visual-scene-review` runs 23 focused offline checks
+for Scene 44's CNC dry stroke and writes the ignored explicit reference project
+`.tools/plant-review-repeat-cycle.rpproj.json`. Open it using File -> Open Ladder
+Agent Project, Return to Scene, Run, Enable and Start Batch. The default training
+editor remains empty. The declared reference feeds 100 mm in 1 s, dwells 0.5 s
+and returns in 1 s; a PLC CTU stops the batch after three actual completed
+returns. These are documented training choices, not OEM machining specifications.
+Stop holds the partial pose and retains counter memory while clearing outputs;
+Run resumes it. Enable loss drops the batch latch, requiring a fresh Start.
+Application Reset restores disabled home and zero count. Old projects must replace
+the removed manual `cycle_count_complete` input with the new raw inputs and actual
+feedback described in `docs/help/scenes/lab-4-03-repeat-cycle-counter.md`.
+Launch with `--visual-scene-review --shell-scene=lab-4-03-repeat-cycle-counter
+--shell-view=operator` for Hold, Step 0.5 s (25 actual scans) and Step 20 ms.
+Native held and continuous playback were tested; 618 sampled head poses screen
+moving clearance. Closed rear panels and roof obscure internal motion; bounds
+checks and screenshots do not establish collision physics or live PLC acceptance.
+
+`-- --verify-scene-geometry` runs 567 focused geometry/workflow checks with `--visual-scene-review` for Demo 5 supported pickup, four-carton placement, moving clearance and attachment,
+repeat-cycle actual completion, PLC count ownership, head clearance, permissive loss and held clock,
 raw counter/reset pulses with reset priority, pending-pulse discard on Stop, retained counter restart,
 the pallet cell's grounded installation, imported robot joints/tool attachment,
 sampled transfer clearance, supported outbound path, receiver landing/count

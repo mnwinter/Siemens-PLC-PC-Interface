@@ -298,6 +298,7 @@ public partial class Main
             VerifyServiceDoorPlacement(Check);
             VerifyPressCountWorkflow(Check);
             VerifyCounterResetWorkflow(Check);
+            VerifyRepeatCycleWorkflow(Check);
             VerifyTransferCartonSupport(Check);
             VerifyBaseConveyorCartonSupport(Check);
             VerifyPusherRodGeometry(Check);

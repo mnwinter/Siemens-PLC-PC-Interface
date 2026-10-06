@@ -1,6 +1,57 @@
 # Multi-angle scene review - 2026-10-04
 
-Scene 44 repeat-cycle baseline (2026-10-06, next unresolved repair): normal
+Scene 44 repeat-cycle repair (2026-10-06, current checkpoint):
+replaced the manual PC count-complete toggle with machine enable plus actual
+home/busy/cycle_done/head-position feedback. A scoped CNC dry-stroke model owns
+the complete connected Z head and spindle on accepted plant ticks. PLC ladder
+owns the batch latch, CTU and displayed count. The default editor remains empty.
+Ignored .tools/plant-review-repeat-cycle.rpproj.json is an explicitly opened,
+five-rung QA reference, not a sixth demo. Its three-cycle preset, 100 mm feed,
+1 s feed, 0.5 s dwell and 1 s return are documented training choices; the
+prototype supplies no corresponding OEM specification. Old projects must replace
+removed cycle_count_complete and bind the new typed contract.
+
+Moving-route checks exposed motor/roof, spindle/door/bearing and coolant/truck
+conflicts. Raised the scoped enclosure roof/panels by 100 mm, deepened its front
+bay by 350 mm, moved the complete closed-door/track/header assembly, removed an
+internal decorative solid backdrop, rerouted coolant beside the guide trucks
+and installed a stock-bearing shoe. Shared delivery assets are unchanged.
+Controls/readouts sit in a separate front row; the selector plate says ENABLE.
+
+Native Windows: normal File -> Open Ladder Agent Project -> Return to Scene ->
+Run, Enable, Start Batch. Held scan 25 showed half feed/head 50%/count 0; Stop
+kept pose/scan and disabled Step; Run resumed. Inspected focused FR/FL/RL/RR/Top
+at scan 25 half feed, scan 50 work endpoint and scan 100 half return. Actual return
+at 125 produced Done True/count 0; scan 126 acknowledged and counted one. Second
+return at 251 counted two at 252; scan 402 showed home/count three/batch complete.
+Completion full-scene FR/FL/RL/RR/Top inspected. Top initially hid the roof edge
+under the overlay; two wheel detents exposed all six footprints. Rear-left still
+occludes near stands; front views and overhead supply their placement evidence.
+Closed rear/roof panels obscure internal motion and glazing limits detail.
+Focused COUNT readout showed 3 and green completion; ordinary continuous playback
+also completed three and retained idle. Stop clears display/output image to zero
+while retaining CTU memory; one resumed scan republishes three without motion.
+Application Reset restored disabled home, stopped scan zero and count zero.
+Native .tools/repeat-cycle-final-native.log exited zero.
+
+Native Hold exposed a stale QA count label immediately after Stop: snapshot
+publication preceded output projection, with no later callback while held.
+Refresh now follows snapshot output projection. Rebuilt native File/Open workflow
+repeated the batch at held scan 400: Stop immediately showed count 0 at scan 400,
+home unchanged and completion lamp off. Native overlay-final log exited zero.
+
+Final build zero warnings/errors; 23 focused checks pass, including 618 executed
+route samples, missing Enable, permissive loss/fresh Start, held high command,
+actual completion edge/CTU agreement, Stop/Run, Reset and clock ownership.
+Geometry/workflow 567/567 with overlay, controller 144/144, rendered scene
+controls/overlay/external typed image PASS, shell 77 scenes/294 assets/five demos
+PASS, authored contracts 71/71, help 77/294 PASS, prior unchanged plant-motion
+85/85 PASS. Logs: .tools/repeat-cycle-final-*, committed-geometry, rendered-controls,
+motion and contracts. Offline prescribed motion/bounds evidence only; no live PLC,
+material removal, dynamics or commissioning acceptance. Whole-program goal remains
+active. Next matrix gaps include Scenes 46/47 counter lessons and Scene 48 barrier.
+
+Scene 44 repeat-cycle baseline (2026-10-06, historical; superseded above): normal
 native Windows operator shell opened the unchanged lab-4-03-repeat-cycle-counter.
 Both sidebar actions latch PC cycle_request/cycle_count_complete true while Stopped;
 PLC cycle_active/cycle_complete remain false. Normal Run opens the intentionally
@@ -2862,7 +2913,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 41 | `lab-3-02-robot-cell-safe-restart` | 1 | FR/FL/RL/RR/T static and commanded sweep; gate/interlock details; final normal operator workflow | Repaired robot/CNC clearance, complete fence/gate, mounted moving actuator and cabinet identity; 35 focused checks plus native offline Reset/Start/permissive-loss/Stop/Run/Reset pass. Remaining bounds pair is intended sensor mounting. Generic robot sweep/static CNC/E-stop reference only; physical/live proof open |
 | 42 | `lab-4-01-press-count-lamp` | 0 | Native FR/FL/RL/RR/T; final FR close PULSE; normal Run, rail/3D pulses, Stop/Run/Reset | Pulse/plate repaired. Three presses light authored CTU lamp, Stop removes output, Run retains count, Reset clears; five integration checks pass |
 | 43 | `lab-4-02-counter-reset-lamp` | 0 | Native FR/FL/RL/RR/T; normal project Open/Run; physical COUNT/RESET; Stop/Run/application Reset | Raw momentary pulse/reset, corrected plates; explicit three-count CTU reference native lamp off after 1/2 and on after 3. Reset clears; restart retains count; pending pulses discarded. Eleven exact workflow checks pass. Empty exercise editor remains intentional; hardware/external behavior unverified |
-| 44 | `lab-4-03-repeat-cycle-counter` | 0 (historical) | Native FR/FL/RL/RR/T; normal request/completion toggles and Run baseline | Manual PC count-complete can be latched, outputs false with intentional empty editor. Static CNC has no command/motion/feedback binding. Front-left hides request station; rear-left hides near beacon. Actual counted cycle remains unresolved; next scoped repair must establish actual completion feedback plus explicit QA controller |
+| 44 | `lab-4-03-repeat-cycle-counter` | 0 (historical) | Native focused FR/FL/RL/RR/T at half feed, work endpoint and half return; full completion five views; normal File/Open/Run; held Stop/Run/Reset; continuous batch; focused COUNT 3; rebuilt held Stop label | Actual scoped CNC dry stroke with connected head/spindle and PLC CTU preset three. 23 checks, 618 sampled route poses; repaired roof, front bay, coolant and stock support. Count 1/2/3 observed; no early/idle fourth count. Default editor stays empty. Rear panels obscure internal motion/near stands; Top needs wheel adjustment. Offline prescribed motion and sampled bounds only; OEM dynamics/material removal/live PLC acceptance open |
 | 45 | `lab-4-04-sequence-light-tower` | 0 | Repaired FR/FL/RL/RR/T geometry; final FR close/full four colors; normal Open/Start/Step/Stop/Run/Reset | Four physical tiers, independent color bindings, momentary requests and editable offline reference repaired. Native complete cycle/restart/reset inspected; 30 focused checks PASS. Rear details partly occluded. CNC static, sounder uncommanded; live/physical acceptance open |
 | 46 | `lab-4-05-dual-input-count-window` | 0 | Native FR/FL/RL/RR/T | Static stands clear. Precomputed channel-ready toggles; raw counting/window workflow unverified |
 | 47 | `lab-4-06-multi-press-confirmation` | 0 | Native FR/FL/RL/RR/T | Static stands clear. Precomputed pattern-ok toggles; raw press order/timing workflow unverified |

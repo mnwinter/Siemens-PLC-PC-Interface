@@ -111,6 +111,7 @@ public partial class SceneSimulationRuntime : Node
         FreezeChainLiftAdapters();
         FreezeCookieAdapters();
         FreezeBarrelAdapters();
+        FreezeRepeatCycleAdapters();
     }
 
     public void ConsumeExternalInputPulses(IReadOnlyDictionary<string, object?> sampledPoints)
@@ -208,6 +209,7 @@ public partial class SceneSimulationRuntime : Node
         if (HasBarrelFillPlant) { AdvanceBarrelFillPlant(delta); return; }
         if (HasCableCutPlant) { AdvanceCableCutPlant(delta); return; }
         if (HasPalletizerPlant) { AdvancePalletizerPlant(delta); return; }
+        if (HasRepeatCyclePlant) { AdvanceRepeatCyclePlant(delta); return; }
 
         if (HasBottleShuttleReference)
         {
@@ -467,6 +469,7 @@ public partial class SceneSimulationRuntime : Node
         ResetBarrelFillPlant();
         ResetCableCutPlant();
         ResetPalletizerPlant();
+        ResetRepeatCyclePlant();
         EvaluateRules();
         ApplyBindings();
         if (RuntimeType == "tank") ProjectTankState();

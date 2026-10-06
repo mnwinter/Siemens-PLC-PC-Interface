@@ -147,6 +147,7 @@ public partial class Main : Node3D
         _auditSequenceTower = userArguments.Contains("--audit-sequence-tower", StringComparer.Ordinal);
         _auditPalletizer = userArguments.Contains("--audit-palletizer", StringComparer.Ordinal);
         _auditCableCut = userArguments.Contains("--audit-cable-cut", StringComparer.Ordinal);
+        _auditRepeatCycle = userArguments.Contains("--audit-repeat-cycle", StringComparer.Ordinal);
         _auditBarrelFill = userArguments.Contains("--audit-barrel-fill", StringComparer.Ordinal);
         _auditCookiePackaging = userArguments.Contains("--audit-cookie-packaging", StringComparer.Ordinal);
         _auditChainLiftInstallation = userArguments.Contains("--audit-chain-lift-installation", StringComparer.Ordinal);
@@ -170,7 +171,7 @@ public partial class Main : Node3D
         _mcpSceneId = userArguments
             .FirstOrDefault(argument => argument.StartsWith("--mcp-scene=", StringComparison.Ordinal))?
             .Substring("--mcp-scene=".Length);
-        _appShellRequested = _reportSceneGeometry || _verifySceneGeometry || _verifyToteFinishing || _auditDualSpindle || _auditRobotCnc || _auditRobotRestart || _auditSequenceTower || _auditChainLiftInstallation || _auditCookiePackaging || _auditBarrelFill || _auditCableCut || _auditPalletizer || _verifyCartonStaticRoutes || (_visualSceneReview && !_visualPlantReview) || _verifyAppShell || _verifyExternalDialog || _verifyExternalPlayback || _verifyPlantMotion || _verifyWorkspace || _verifyHud || _verifyCameraInput || _verifySceneControls
+        _appShellRequested = _reportSceneGeometry || _verifySceneGeometry || _verifyToteFinishing || _auditDualSpindle || _auditRobotCnc || _auditRobotRestart || _auditSequenceTower || _auditChainLiftInstallation || _auditCookiePackaging || _auditBarrelFill || _auditCableCut || _auditPalletizer || _auditRepeatCycle || _verifyCartonStaticRoutes || (_visualSceneReview && !_visualPlantReview) || _verifyAppShell || _verifyExternalDialog || _verifyExternalPlayback || _verifyPlantMotion || _verifyWorkspace || _verifyHud || _verifyCameraInput || _verifySceneControls
             || _verifyVirtualController || _verifyNumericSceneIo || _verifyLadderEditor || _verifySplitView || _verifyUiDensity || _virtualControllerDemo
             || userArguments.Contains("--app-shell", StringComparer.Ordinal);
         if (_visualPlantReview && (_sceneId is null || _appShellRequested || _verifySceneContract))
@@ -540,6 +541,10 @@ public partial class Main : Node3D
         {
             CallDeferred(nameof(AuditPalletizer));
         }
+        else if (_auditRepeatCycle)
+        {
+            CallDeferred(nameof(AuditRepeatCycle));
+        }
         else if (_auditCableCut)
         {
             CallDeferred(nameof(AuditCableCut));
@@ -821,6 +826,9 @@ public partial class Main : Node3D
     {
         CommitVirtualControllerOutputs(snapshot.Outputs);
         CommitVirtualControllerNumericOutputs(snapshot.NumericOutputs);
+        // SnapshotPublished precedes output projection. Held inspection has no
+        // later physics callback to refresh the label after Stop clears outputs.
+        UpdateGantryReviewClockLabel();
     }
 
     private async void VerifyExternalPlayback()

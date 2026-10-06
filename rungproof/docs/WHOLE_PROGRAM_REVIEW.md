@@ -1,6 +1,57 @@
 # Whole program review - 2026-10-03
 
-Scene 44 repeat-cycle baseline (2026-10-06, next unresolved repair): normal
+Scene 44 repeat-cycle repair (2026-10-06, current checkpoint):
+replaced the manual PC count-complete toggle with machine enable plus actual
+home/busy/cycle_done/head-position feedback. A scoped CNC dry-stroke model owns
+the complete connected Z head and spindle on accepted plant ticks. PLC ladder
+owns the batch latch, CTU and displayed count. The default editor remains empty.
+Ignored .tools/plant-review-repeat-cycle.rpproj.json is an explicitly opened,
+five-rung QA reference, not a sixth demo. Its three-cycle preset, 100 mm feed,
+1 s feed, 0.5 s dwell and 1 s return are documented training choices; the
+prototype supplies no corresponding OEM specification. Old projects must replace
+removed cycle_count_complete and bind the new typed contract.
+
+Moving-route checks exposed motor/roof, spindle/door/bearing and coolant/truck
+conflicts. Raised the scoped enclosure roof/panels by 100 mm, deepened its front
+bay by 350 mm, moved the complete closed-door/track/header assembly, removed an
+internal decorative solid backdrop, rerouted coolant beside the guide trucks
+and installed a stock-bearing shoe. Shared delivery assets are unchanged.
+Controls/readouts sit in a separate front row; the selector plate says ENABLE.
+
+Native Windows: normal File -> Open Ladder Agent Project -> Return to Scene ->
+Run, Enable, Start Batch. Held scan 25 showed half feed/head 50%/count 0; Stop
+kept pose/scan and disabled Step; Run resumed. Inspected focused FR/FL/RL/RR/Top
+at scan 25 half feed, scan 50 work endpoint and scan 100 half return. Actual return
+at 125 produced Done True/count 0; scan 126 acknowledged and counted one. Second
+return at 251 counted two at 252; scan 402 showed home/count three/batch complete.
+Completion full-scene FR/FL/RL/RR/Top inspected. Top initially hid the roof edge
+under the overlay; two wheel detents exposed all six footprints. Rear-left still
+occludes near stands; front views and overhead supply their placement evidence.
+Closed rear/roof panels obscure internal motion and glazing limits detail.
+Focused COUNT readout showed 3 and green completion; ordinary continuous playback
+also completed three and retained idle. Stop clears display/output image to zero
+while retaining CTU memory; one resumed scan republishes three without motion.
+Application Reset restored disabled home, stopped scan zero and count zero.
+Native .tools/repeat-cycle-final-native.log exited zero.
+
+Native Hold exposed a stale QA count label immediately after Stop: snapshot
+publication preceded output projection, with no later callback while held.
+Refresh now follows snapshot output projection. Rebuilt native File/Open workflow
+repeated the batch at held scan 400: Stop immediately showed count 0 at scan 400,
+home unchanged and completion lamp off. Native overlay-final log exited zero.
+
+Final build zero warnings/errors; 23 focused checks pass, including 618 executed
+route samples, missing Enable, permissive loss/fresh Start, held high command,
+actual completion edge/CTU agreement, Stop/Run, Reset and clock ownership.
+Geometry/workflow 567/567 with overlay, controller 144/144, rendered scene
+controls/overlay/external typed image PASS, shell 77 scenes/294 assets/five demos
+PASS, authored contracts 71/71, help 77/294 PASS, prior unchanged plant-motion
+85/85 PASS. Logs: .tools/repeat-cycle-final-*, committed-geometry, rendered-controls,
+motion and contracts. Offline prescribed motion/bounds evidence only; no live PLC,
+material removal, dynamics or commissioning acceptance. Whole-program goal remains
+active. Next matrix gaps include Scenes 46/47 counter lessons and Scene 48 barrier.
+
+Scene 44 repeat-cycle baseline (2026-10-06, historical; superseded above): normal
 native Windows operator shell opened the unchanged lab-4-03-repeat-cycle-counter.
 Both sidebar actions latch PC cycle_request/cycle_count_complete true while Stopped;
 PLC cycle_active/cycle_complete remain false. Normal Run opens the intentionally

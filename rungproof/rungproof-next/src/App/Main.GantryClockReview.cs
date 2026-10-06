@@ -22,10 +22,10 @@ public partial class Main
     private bool _gantryReviewOperatorView = true;
 
     // Scoped to reviewed offline clock implementations: the
-    // single-clock palletizer / conveyor-pusher / chain lift / cookie / barrel / cable plants. Other scenes may
+    // single-clock palletizer / conveyor-pusher / chain lift / cookie / barrel / cable / repeat-cycle plants. Other scenes may
     // have separate callbacks; this is not a general external PLC step.
     private bool CanReviewGantryClock => _visualSceneReview && !_visualPlantReview
-        && _currentSceneId is "scene-2-conveyor-pusher" or "lab-11-13-xy-palletizing" or "lab-4-09-chain-drive-lift" or "lab-4-10-cookie-packaging" or "lab-4-11-barrel-fill-station" or "lab-4-12-cable-cut-length"
+        && _currentSceneId is "scene-2-conveyor-pusher" or "lab-11-13-xy-palletizing" or "lab-4-09-chain-drive-lift" or "lab-4-10-cookie-packaging" or "lab-4-11-barrel-fill-station" or "lab-4-12-cable-cut-length" or "lab-4-03-repeat-cycle-counter"
         && _simulatorShell?.IsExternalMode != true;
 
     private bool GantryReviewClockHeld => _gantryReviewHeldRoot is not null
@@ -62,7 +62,7 @@ public partial class Main
             _gantryReviewClockBar.Visible = CanReviewGantryClock && _gantryReviewOperatorView;
         if (_gantryReviewStep is not null)
             _gantryReviewStep.Text = _currentSceneId == "scene-2-conveyor-pusher" ? "Step 0.1 s" : _currentSceneId is "lab-4-09-chain-drive-lift" or "lab-4-10-cookie-packaging" or "lab-4-11-barrel-fill-station" ? "Step 2.0 s" : "Step 0.5 s";
-        if (_gantryReviewFineStep is not null) _gantryReviewFineStep.Visible = _currentSceneId == "scene-2-conveyor-pusher";
+        if (_gantryReviewFineStep is not null) _gantryReviewFineStep.Visible = _currentSceneId is "scene-2-conveyor-pusher" or "lab-4-03-repeat-cycle-counter";
         UpdateGantryReviewClockLabel();
     }
 
@@ -99,7 +99,7 @@ public partial class Main
 
     private void StepGantryReviewClock() => AdvanceGantryReviewClock(
         _currentSceneId == "scene-2-conveyor-pusher" ? 5 :
-        _currentSceneId is "lab-4-12-cable-cut-length" or "lab-11-13-xy-palletizing" ? 25 : 100);
+        _currentSceneId is "lab-4-12-cable-cut-length" or "lab-11-13-xy-palletizing" or "lab-4-03-repeat-cycle-counter" ? 25 : 100);
 
     private void AdvanceGantryReviewClock(int ticks)
     {
@@ -134,6 +134,11 @@ public partial class Main
         if (_currentSceneId == "scene-2-conveyor-pusher")
         {
             _gantryReviewClockLabel.Text = $"QA | {(_virtualController?.Snapshot.SimulatedTime.TotalSeconds ?? 0):F2} s | stroke {_sceneRuntime?.Points.GetValueOrDefault("pusher_position") ?? 0:0.0}% | count {_sceneRuntime?.Points.GetValueOrDefault("parts_completed") ?? 0}";
+            return;
+        }
+        if (_currentSceneId == "lab-4-03-repeat-cycle-counter")
+        {
+            _gantryReviewClockLabel.Text = $"QA | {(_virtualController?.Snapshot.SimulatedTime.TotalSeconds ?? 0):F2} s | head {_sceneRuntime?.Points.GetValueOrDefault("head_position") ?? 0:0.0}% | count {_sceneRuntime?.Points.GetValueOrDefault("batch_count") ?? 0} | done {_sceneRuntime?.Points.GetValueOrDefault("cycle_done") ?? false}";
             return;
         }
         var motion = _sceneCompositionRoot?.FindChildren("*", string.Empty, true, false)

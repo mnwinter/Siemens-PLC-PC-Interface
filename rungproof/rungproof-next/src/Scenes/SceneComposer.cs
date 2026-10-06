@@ -103,6 +103,7 @@ public static partial class SceneComposer
                 "rollerShutter" => CreateShutterAsset(equipment, candidates, runCommands),
                 "machine" when Text(equipment.Config, "installation", string.Empty) == "cookieSealer" => CreateCookiePackagingPart("cookieSealer"),
                 "machine" when Text(equipment.Config, "installation", "") == "cableFeed" => CreateCableCutPart("cableFeed"),
+                "machine" when Text(equipment.Config, "installation", "") == "repeatCycleCnc" => CreateRepeatCycleMachine(equipment, candidates),
                 "machine" => equipment.Label.Contains("Hand-Dryer", StringComparison.OrdinalIgnoreCase)
                     ? CreateHandDryerAsset()
                     : CreateControlledAsset(equipment, candidates, "machining.machine.enclosed-center.v1", runCommands,
