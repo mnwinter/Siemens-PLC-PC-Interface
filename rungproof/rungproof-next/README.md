@@ -479,3 +479,18 @@ Use `--audit-robot-restart` after building for 35 focused offline checks of
 the saved ladder reference, restart sequencing, gate mounting/swing and robot
 sweep clearance. The installed CNC is static and the E-stop prop is a visual
 reference only. These checks do not validate physical safety or live operation.
+
+### Sequence light tower reference
+
+Scene `lab-4-04-sequence-light-tower` includes the editable offline example
+`programs/examples/sequence-light-tower-reference.rpproj.json`. Open it with
+**File -> Open Ladder Agent Project**, Run scans and press Start for red.
+Separate Step presses select amber, green, blue, then off with the completion
+beacon. Stop clears all lamp commands; restarting requires a fresh Start.
+The default template remains an exercise. See
+[`the scene guide`](docs/help/scenes/lab-4-04-sequence-light-tower.md).
+
+Use `--audit-sequence-tower` after building for 30 focused checks of the saved
+reference, actual controller sequencing, independent lamp channels and tier
+clearance. The CNC remains static and the sounder is uncommanded. These are
+offline checks; no physical or live PLC acceptance is implied.

@@ -599,7 +599,10 @@ public static partial class SceneComposer
         var colors = StringArray(equipment.Config, "colors", new[] { "green" });
         if (colors.Length > 1)
         {
-            return CreateMappedAsset(equipment, candidates, "controls.stack-light.3-tier.v1");
+            var tower = CreateMappedAsset(equipment, candidates, "controls.stack-light.3-tier.v1");
+            if (Text(equipment.Config, "installation", string.Empty) == "fourColorSequenceTower")
+                AddSequenceTowerBlueTier(tower);
+            return tower;
         }
         var model = CreateMappedAsset(equipment, candidates, "controls.beacon.single-tier.v1");
         if (model.FindChild("LENS_single", true, false) is MeshInstance3D lens)
@@ -610,6 +613,34 @@ public static partial class SceneComposer
                 color, active ? 5.0f : 0.03f);
         }
         return model;
+    }
+
+    // Extend the delivered three-tier assembly for this lesson only. Reuse
+    // its lens/bezel geometry and lift the complete cap/sounder assembly so
+    // the new tier occupies a real supported slot rather than overlaps a cap.
+    private static void AddSequenceTowerBlueTier(Node3D tower)
+    {
+        var parts = tower.FindChildren("*", "MeshInstance3D", true, false).OfType<MeshInstance3D>().ToArray();
+        var lens = parts.Single(part => part.Name == "LENS_red");
+        var bezel = parts.Single(part => part.Name == "BEZEL_red_lower");
+        void Raise(MeshInstance3D part)
+        {
+            var parentTransform = Transform3D.Identity;
+            for (var parent = part.GetParent(); parent != tower; parent = parent.GetParent())
+                if (parent is Node3D spatial) parentTransform = spatial.Transform * parentTransform;
+            part.Position += parentTransform.Basis.Inverse() * new Vector3(0, 0.235f, 0);
+        }
+        foreach (var part in parts.Where(part => part.Name == "BEZEL_red_upper" || part.Name == "CAP"
+                     || part.Name.ToString().StartsWith("BUZZER", StringComparison.Ordinal))) Raise(part);
+        var blueLens = (MeshInstance3D)lens.Duplicate();
+        blueLens.Name = "LENS_blue";
+        lens.GetParent().AddChild(blueLens);
+        Raise(blueLens);
+        blueLens.MaterialOverride = Material(NamedSignalColor("blue").Darkened(0.72f), 0.03f, 0.18f);
+        var blueBezel = (MeshInstance3D)bezel.Duplicate();
+        blueBezel.Name = "BEZEL_blue_lower";
+        bezel.GetParent().AddChild(blueBezel);
+        Raise(blueBezel);
     }
 
     private static Node3D CreateSceneLoad(SceneEquipment equipment, AssetCatalogDocument candidates)

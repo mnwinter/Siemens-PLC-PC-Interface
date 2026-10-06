@@ -1,6 +1,52 @@
 # Whole program review - 2026-10-03
 
-Robot restart repair (2026-10-05, current): Scene 41 now separates the
+Sequence tower repair (2026-10-05, current): Scene 45 now installs four
+separate red/amber/green/blue tiers and a separate completion beacon. The
+scene-local assembly extends the delivered three-tier model by its 235 mm
+pitch and raises the cap/sounder. Independent indicatorChannel bindings show
+each PLC BOOL, including conflicting simultaneous commands; existing exclusive
+indicator behavior and shared catalog models are preserved. Legacy request
+names/action IDs remain, but Start and Step are momentary pulses. Four new
+symbolic PLC outputs supply the colors; DB14 is unchanged.
+
+The editable sequence-light-tower-reference.rpproj.json implements red ->
+amber -> green -> blue -> off on separate Step edges. Repeated Start while
+active and Step before Start/after completion are discarded. Stop clears
+active/completion/color commands; Run or Step cannot resume the old state.
+Fresh Start resets the retained count. Global Reset clears points/count and
+stops scans. Completion seals only after an active sequence finishes, so a
+retained count cannot relight it after Stop.
+
+Native Windows baseline reproduced the three-tier/two-green-binding conflict.
+Repaired geometry was inspected FR/FL/RL/RR/Top; no unintended placement
+intersection was seen. Rear views occlude some operator/completion details.
+Final lamp brightness was reduced after close-up inspection revealed washed
+out colors. Final FR close/full views distinguish all four energized tiers.
+The final saved example was opened through File -> Open Ladder Agent Project
+in the normal operator shell. Actual offline scans exercised the complete
+color cycle, repeated Start, completion/extra Step, Stop after completion and
+mid-cycle, Run/Step rejection, fresh Start and global Reset. PLC disconnected
+throughout. Own native QA process closed and exited 0. These are inspected
+snapshots and operator interactions, not an every-frame motion review.
+
+All 30 --audit-sequence-tower checks pass: saved example equality, actual
+20 ms symbolic controller scans, pulses/idle/Stop/Reset behavior, four lens
+identities/pitch/cap clearance/floor position and independent-channel material
+projection. Final build: zero warnings/errors. The existing regression run
+passes 144 controller tests and 487 geometry checks; app shell has 77 scenes /
+294 assets, Scene 45 contract has 8 points / 2 actions / 5 rendered / 0 deferred.
+Help validation passes. Broad checks preceded the final lamp-brightness and
+reference completion-seal corrections; final build/focused audit and native
+operator checks cover those final changes. Logs: rungproof-next/.tools/
+sequence-tower-{build,audit,controller,geometry,shell,contract,final-color-native}.log.
+
+The CNC is explicitly static; the sounder is uncommanded. This is an offline
+symbolic exercise, with no live PLC, wiring or physical acceptance claim.
+Goal active; whole-program review remains incomplete. Next address the
+Scene 50 lift-conveyor placement/receiving-surface failures and continue the
+remaining catalog process and continuous-motion checks.
+
+Robot restart repair (2026-10-05, previous): Scene 41 now separates the
 robot from the static CNC inside a four-sided welded-wire fence with an
 outward-opening gate. The coded sensor stays on the latch post; its actuator
 and bearing bracket move with the actual gate. A controller cabinet replaces

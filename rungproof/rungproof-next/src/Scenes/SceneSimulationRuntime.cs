@@ -1101,6 +1101,12 @@ public partial class SceneSimulationRuntime : Node
                     if (!indicatorStates.ContainsKey(equipment)) indicatorStates[equipment] = (false, color);
                     if (active) indicatorStates[equipment] = (true, color);
                     break;
+                case "indicatorChannel":
+                    // Independent PLC-owned lamp channels must remain visible
+                    // together. Do not collapse conflicting commands to the
+                    // last active binding as an exclusive indicator does.
+                    SetIndicator(equipment, AsBool(value), Text(binding, "activeColor", "green"), channelOnly: true);
+                    break;
                 case "photoeye":
                     foreach (var beam in equipment.FindChildren("KIN_beam*", string.Empty, true, false).OfType<Node3D>())
                         beam.Visible = !AsBool(value);
@@ -1151,7 +1157,7 @@ public partial class SceneSimulationRuntime : Node
         }
     }
 
-    private static void SetIndicator(Node3D equipment, bool active, string colorName)
+    private static void SetIndicator(Node3D equipment, bool active, string colorName, bool channelOnly = false)
     {
         static Color SignalColor(string name) => name.ToLowerInvariant() switch
         {
@@ -1166,6 +1172,7 @@ public partial class SceneSimulationRuntime : Node
             var name = mesh.Name.ToString().ToLowerInvariant();
             var nativeColor = new[] { "red", "amber", "green", "blue", "white" }
                 .FirstOrDefault(name.Contains) ?? colorName;
+            if (channelOnly && !nativeColor.Equals(colorName, StringComparison.OrdinalIgnoreCase)) continue;
             var color = SignalColor(nativeColor);
             var lensActive = active && (lenses.Length == 1 || nativeColor.Equals(colorName, StringComparison.OrdinalIgnoreCase));
             mesh.MaterialOverride = new StandardMaterial3D
@@ -1174,7 +1181,9 @@ public partial class SceneSimulationRuntime : Node
                 Roughness = 0.18f,
                 EmissionEnabled = lensActive,
                 Emission = color,
-                EmissionEnergyMultiplier = lensActive ? 4.0f : 0.0f,
+                // Keep independent channels recognizable by hue in the HDR
+                // viewport. The old exclusive indicator intensity is retained.
+                EmissionEnergyMultiplier = lensActive ? (channelOnly ? 0.65f : 4.0f) : 0.0f,
             };
         }
     }

@@ -22,7 +22,7 @@ public static class ProjectValidator
 
     private static readonly HashSet<string> BindingModes = new(StringComparer.Ordinal)
     {
-        "running", "speedPercent", "estopPermissive", "switch", "selector", "numericDisplay", "indicator", "photoeye", "position", "levelSensor",
+        "running", "speedPercent", "estopPermissive", "switch", "selector", "numericDisplay", "indicator", "indicatorChannel", "photoeye", "position", "levelSensor",
     };
 
     public static IReadOnlyList<DiagnosticIssue> Validate(

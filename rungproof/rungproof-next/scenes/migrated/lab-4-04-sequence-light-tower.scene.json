@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-4-04-sequence-light-tower",
   "name": "Lab 4.4 - Sequence Light Tower",
-  "description": "A state sequence advances a four-color tower through a defined indication order.",
+  "description": "A four-color tower advances red -> amber -> green -> blue -> off on separate Step requests.",
   "camera": {
     "position": [
       11,
@@ -21,7 +21,7 @@
     {
       "id": "machine_0",
       "type": "machine",
-      "label": "Sequence Light Tower machine",
+      "label": "Static process equipment",
       "position": [
         -3.3000000000000003,
         0,
@@ -40,7 +40,7 @@
     {
       "id": "switch_1",
       "type": "switch",
-      "label": "Sequence Light Tower switch",
+      "label": "Momentary sequence Start",
       "position": [
         -1.1,
         0,
@@ -49,13 +49,14 @@
       "config": {
         "style": "pushbutton",
         "action": "toggle-sequence_start",
-        "color": 2204518
+        "color": 2204518,
+        "faceLabel": "START"
       }
     },
     {
       "id": "indicator_2",
       "type": "indicator",
-      "label": "Sequence Light Tower indicator",
+      "label": "Four-color sequence tower",
       "position": [
         1.1,
         0,
@@ -65,15 +66,17 @@
         "colors": [
           "red",
           "amber",
-          "green"
+          "green",
+          "blue"
         ],
-        "active": "red"
+        "active": "",
+        "installation": "fourColorSequenceTower"
       }
     },
     {
       "id": "switch_3",
       "type": "switch",
-      "label": "Sequence Light Tower operator input",
+      "label": "Momentary sequence Step",
       "position": [
         3.3000000000000003,
         0,
@@ -82,13 +85,14 @@
       "config": {
         "style": "pushbutton",
         "action": "toggle-sequence_step_due",
-        "color": 2204518
+        "color": 2204518,
+        "faceLabel": "STEP"
       }
     },
     {
       "id": "indicator_4",
       "type": "indicator",
-      "label": "Sequence Light Tower output indication",
+      "label": "Sequence complete status",
       "position": [
         -2.85,
         0,
@@ -96,11 +100,9 @@
       ],
       "config": {
         "colors": [
-          "red",
-          "amber",
           "green"
         ],
-        "active": "red"
+        "active": ""
       }
     }
   ],
@@ -132,19 +134,47 @@
         "owner": "PLC",
         "initial": false,
         "role": "output"
+      },
+      {
+        "name": "tower_red",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "tower_amber",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "tower_green",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "tower_blue",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
       }
     ],
     "actions": [
       {
         "id": "toggle-sequence_start",
-        "label": "Toggle sequence start",
-        "type": "toggle",
+        "label": "Press sequence Start (momentary)",
+        "type": "pulse",
         "point": "sequence_start"
       },
       {
         "id": "toggle-sequence_step_due",
-        "label": "Toggle sequence step due",
-        "type": "toggle",
+        "label": "Press sequence Step (momentary)",
+        "type": "pulse",
         "point": "sequence_step_due"
       }
     ],
@@ -162,54 +192,77 @@
         "mode": "switch"
       },
       {
-        "point": "tower_active",
-        "equipmentId": "indicator_2",
-        "mode": "indicator",
-        "activeColor": "green"
-      },
-      {
         "point": "sequence_complete",
         "equipmentId": "indicator_4",
         "mode": "indicator",
         "activeColor": "green"
+      },
+      {
+        "point": "tower_red",
+        "equipmentId": "indicator_2",
+        "mode": "indicatorChannel",
+        "activeColor": "red"
+      },
+      {
+        "point": "tower_amber",
+        "equipmentId": "indicator_2",
+        "mode": "indicatorChannel",
+        "activeColor": "amber"
+      },
+      {
+        "point": "tower_green",
+        "equipmentId": "indicator_2",
+        "mode": "indicatorChannel",
+        "activeColor": "green"
+      },
+      {
+        "point": "tower_blue",
+        "equipmentId": "indicator_2",
+        "mode": "indicatorChannel",
+        "activeColor": "blue"
       }
     ]
   },
   "training": {
     "hints": [
-      "Translate the lesson into explicit state and permissive logic: The tower advances in order and ends with every command off.",
-      "Inputs are simulator feedback (sequence_start, sequence_step_due); PLC logic owns tower_active, sequence_complete.",
-      "Test the initial state, the valid condition, and at least one missing permissive."
+      "Start and Step are momentary PC-owned requests. Detect their edges in the PLC program.",
+      "PLC logic owns the four tower colors, tower_active status, and sequence_complete status.",
+      "Start selects red; four separate Steps select amber, green, blue, then off. Idle scans must not advance.",
+      "Reject Step before Start and repeated Start while active. Stop removes commands; a fresh Start begins again at red."
     ],
     "solution": {
       "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
       "steps": [
-        "Require the documented inputs: sequence_start, sequence_step_due.",
-        "Command the documented outputs: tower_active, sequence_complete.",
-        "Remove PLC commands when the permissive is lost."
+        "Accept a fresh Start only while inactive and reset the step counter.",
+        "Advance one state on each fresh Step while active; decode only one of four color outputs.",
+        "After the fourth Step, turn all tower colors off and indicate completion separately.",
+        "Stop removes commands; require a fresh Start rather than resuming the previous state."
       ],
-      "acceptance": "The tower advances in order and ends with every command off."
+      "acceptance": "Red -> amber -> green -> blue -> off; four separate Step presses, exactly one color while active, no idle advance."
     },
     "assetRequirements": [],
     "machineGuide": {
-      "purpose": "A state sequence advances a four-color tower through a defined indication order.",
+      "purpose": "A four-color tower advances red -> amber -> green -> blue -> off on separate Step requests.",
       "startConditions": [
-        "The common PLC/watchdog foundation is healthy.",
-        "All required simulator inputs are at their documented initial state."
+        "An offline controller program is verified and loaded.",
+        "Controller scans are running; the sequence is inactive."
       ],
       "normalSequence": [
-        "Apply the requested input condition.",
-        "Verify only the documented PLC outputs respond."
+        "Accept a fresh Start only while inactive and reset the step counter.",
+        "Advance one state on each fresh Step while active; decode only one of four color outputs.",
+        "After the fourth Step, turn all tower colors off and indicate completion separately.",
+        "Stop removes commands; require a fresh Start rather than resuming the previous state."
       ],
       "stopBehavior": [
-        "Removing the permissive removes PLC-owned commands.",
-        "Reset returns the module to its initial state."
+        "Stop removes PLC-owned commands.",
+        "Run alone does not resume the tower; a fresh Start selects red.",
+        "Global Reset clears the counter and returns every point to its initial state."
       ],
       "faultBehavior": [
         "A missing or stale input must fail safe and remain diagnosable."
       ],
       "expectedObservations": [
-        "The tower advances in order and ends with every command off."
+        "Red -> amber -> green -> blue -> off; four separate Step presses, exactly one color while active, no idle advance."
       ]
     },
     "sequenceNumber": 31,
@@ -226,7 +279,11 @@
       "sequence_start",
       "sequence_step_due",
       "tower_active",
-      "sequence_complete"
+      "sequence_complete",
+      "tower_red",
+      "tower_amber",
+      "tower_green",
+      "tower_blue"
     ],
     "changedTags": [],
     "previousAcceptance": [
@@ -239,7 +296,11 @@
         "name": "initial-safe-state",
         "expect": {
           "tower_active": false,
-          "sequence_complete": false
+          "sequence_complete": false,
+          "tower_red": false,
+          "tower_amber": false,
+          "tower_green": false,
+          "tower_blue": false
         }
       }
     ]

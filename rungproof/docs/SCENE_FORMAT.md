@@ -280,6 +280,12 @@ In Godot Next, numeric binding mode `speedPercent` scales an equipment motion
 controller's authored rotational speed by a clamped 0..100%. Pair it with a
 separate BOOL `running` binding; a speed value never starts stopped equipment.
 Assets without this optional binding retain their nominal animation speed.
+Godot Next also supports BOOL `indicatorChannel` bindings with an explicit
+`activeColor` (red, amber, green, blue or white). This mode changes only lenses
+named for that color, preserving the other channels. Provide a binding for
+each installed tier so its false state is projected too. Multiple true outputs
+remain visibly lit together; the renderer does not enforce sequence exclusivity.
+Use the existing `indicator` mode for an exclusive status-color selector.
 The standalone boolean-panel reference preview's Stop suppresses reference
 rules and returns outputs to their declared initial values while retaining PC
 inputs. Run resumes rule evaluation; Reset restores the scene. A selected
