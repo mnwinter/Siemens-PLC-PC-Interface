@@ -1,6 +1,58 @@
 # RungProof / PLC Visual Simulator AI handoff
 
-Scene 44 repeat-cycle repair (2026-10-06, current checkpoint):
+Scenes 46/47 button-counter repair (2026-10-06, current checkpoint):
+replaced PC precomputed channel-ready/pattern-ok toggles with raw one-accepted-scan
+A/B presses and RESET. Added correctly labeled A/B/RESET physical buttons and
+two PLC-owned DINT accumulated-count readouts; all six props sit in a separate
+inline row. PLC ladder owns both CTUs and comparisons. The existing pulse
+interface coalesces clicks before the same accepted scan; it does not queue
+every rapid click or model a hardware high-speed counter.
+
+The prototype contracts specify no presets, order or timing. The explicitly
+opened original offline reference for Scene 46 uses inclusive A=2..3/B=3..4
+numeric count windows; Scene 47 uses exact A=2/B=3 count comparison. Both permit
+either press order and impose no elapsed-time window. These are declared
+training choices, not source-exact solutions or ordered-pattern validation.
+Old projects must replace removed ready/pattern_ok inputs and bind the new
+raw BOOL inputs plus PLC DINT count outputs. Historical prototype files remain
+unchanged; current migrated JSON/help are the runtime contract.
+
+Reproduce with -- --audit-button-counters. This runs 46 focused checks and writes
+ignored .tools/plant-review-dual-count.rpproj.json and
+.tools/plant-review-multi-press.rpproj.json. Each seven-rung reference has two
+CTUs, two priority resets, comparison output and two count MOVs. These remain
+explicit QA projects, never auto-loaded solutions; the catalog still has five
+authored demos and an empty default exercise editor.
+
+Native Windows: File -> Open Ladder Agent Project -> Return to Scene -> Run.
+Scene 46 sidebar presses counted A=1,2 and B=1,2,3; A=2/B=3 gave green. Full-scene
+FR/FL/RL/RR/Top inspected with six separated feet and no stand intersections.
+Close front A display view showed readable A=2/B=3. A=3/B=4 remained green;
+Stop cleared both displayed output counts to zero at scan 6206, Run republished
+3/4 without new presses. A=4 removed green. Sidebar RESET cleared both; a new
+B press showed one and the physical 3D RESET button cleared it. Application
+Reset returned stopped scan zero. Native dual-count-final log exited zero.
+
+Scene 47 used physical 3D A twice and B three times, giving A=2/B=3 and green.
+Full FR/FL/RL/RR/Top inspected with all six feet clear. Close front count view
+showed readable 2/3; nearby B housing is cropped by the right pane in this
+focused view, while its digits remain readable and full-scene views show its
+complete footprint. Stop at scan 6221 cleared both readouts/green; Run restored
+2/3. Extra B gave 2/4 and removed confirmation. Physical 3D RESET cleared both;
+new A showed one, and application Reset cleared it and stopped at scan zero.
+Native multi-press-final log exited zero. Rear views hide front-facing digits;
+overhead establishes spacing rather than readout readability. No motion model
+is needed for these operator counter panels.
+
+Build zero warnings/errors; 46 focused workflow checks, 613/613 geometry/workflow
+with overlay (605 without), 144/144 controller conformance, rendered scene
+controls/overlay/external typed-image PASS, shell 77 scenes/294 assets/five demos
+PASS, authored contracts 71/71 and help 77/294 PASS. Logs: .tools/button-counter-*
+plus dual-count-final-native and multi-press-final-native. Tests use offline
+transport only. Whole-program goal remains active; next Scene 48 parking entry
+still has substituted static props and no demonstrated occupancy/barrier route.
+
+Scene 44 repeat-cycle repair (2026-10-06, previous checkpoint):
 replaced the manual PC count-complete toggle with machine enable plus actual
 home/busy/cycle_done/head-position feedback. A scoped CNC dry-stroke model owns
 the complete connected Z head and spindle on accepted plant ticks. PLC ladder

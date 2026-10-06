@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-4-06-multi-press-confirmation",
   "name": "Lab 4.6 - Multi-Press Confirmation",
-  "description": "A paired-button confirmation exercise requires the requested press pattern before enabling the result.",
+  "description": "Count raw A/B button presses in independent PLC counters and compare their accumulated counts. Reset clears both counters.",
   "camera": {
     "position": [
       11,
@@ -21,7 +21,7 @@
     {
       "id": "switch_0",
       "type": "switch",
-      "label": "Multi-Press Confirmation switch",
+      "label": "Channel A pulse button",
       "position": [
         -3.3000000000000003,
         0,
@@ -29,14 +29,15 @@
       ],
       "config": {
         "style": "pushbutton",
-        "action": "toggle-button_a_pattern_ok",
-        "color": 2204518
+        "action": "pulse-a",
+        "color": 2204518,
+        "faceLabel": "A"
       }
     },
     {
       "id": "switch_1",
       "type": "switch",
-      "label": "Multi-Press Confirmation switch",
+      "label": "Channel B pulse button",
       "position": [
         -1.1,
         0,
@@ -44,14 +45,15 @@
       ],
       "config": {
         "style": "pushbutton",
-        "action": "toggle-button_b_pattern_ok",
-        "color": 2204518
+        "action": "pulse-b",
+        "color": 2204518,
+        "faceLabel": "B"
       }
     },
     {
       "id": "indicator_2",
       "type": "indicator",
-      "label": "Multi-Press Confirmation indicator",
+      "label": "PLC count comparison indication",
       "position": [
         1.1,
         0,
@@ -65,19 +67,73 @@
         ],
         "active": "red"
       }
+    },
+    {
+      "id": "reset_button",
+      "type": "switch",
+      "label": "Reset both PLC counters",
+      "position": [
+        3.3,
+        0,
+        0
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "pulse-reset",
+        "color": 16755234,
+        "faceLabel": "RESET"
+      }
+    },
+    {
+      "id": "count_a_display",
+      "type": "trainingAccessory",
+      "label": "PLC channel A accumulated count",
+      "position": [
+        5.5,
+        0,
+        0
+      ],
+      "config": {
+        "assetName": "count display",
+        "catalogAssetId": "training.accessory.count_display.v1",
+        "display": "numeric",
+        "displayLabel": "A COUNT"
+      }
+    },
+    {
+      "id": "count_b_display",
+      "type": "trainingAccessory",
+      "label": "PLC channel B accumulated count",
+      "position": [
+        7.7,
+        0,
+        0
+      ],
+      "config": {
+        "assetName": "count display",
+        "catalogAssetId": "training.accessory.count_display.v1",
+        "display": "numeric",
+        "displayLabel": "B COUNT"
+      }
     }
   ],
   "simulation": {
     "type": "booleanPanel",
     "points": [
       {
-        "name": "button_a_pattern_ok",
+        "name": "button_a_pressed",
         "type": "BOOL",
         "owner": "PC",
         "initial": false
       },
       {
-        "name": "button_b_pattern_ok",
+        "name": "button_b_pressed",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "reset_pressed",
         "type": "BOOL",
         "owner": "PC",
         "initial": false
@@ -88,33 +144,58 @@
         "owner": "PLC",
         "initial": false,
         "role": "output"
+      },
+      {
+        "name": "button_a_count",
+        "type": "DINT",
+        "owner": "PLC",
+        "initial": 0,
+        "role": "output"
+      },
+      {
+        "name": "button_b_count",
+        "type": "DINT",
+        "owner": "PLC",
+        "initial": 0,
+        "role": "output"
       }
     ],
     "actions": [
       {
-        "id": "toggle-button_a_pattern_ok",
-        "label": "Toggle button a pattern ok",
-        "type": "toggle",
-        "point": "button_a_pattern_ok"
+        "id": "pulse-a",
+        "label": "Press A",
+        "type": "pulse",
+        "point": "button_a_pressed"
       },
       {
-        "id": "toggle-button_b_pattern_ok",
-        "label": "Toggle button b pattern ok",
-        "type": "toggle",
-        "point": "button_b_pattern_ok"
+        "id": "pulse-b",
+        "label": "Press B",
+        "type": "pulse",
+        "point": "button_b_pressed"
+      },
+      {
+        "id": "pulse-reset",
+        "label": "Reset both counters",
+        "type": "pulse",
+        "point": "reset_pressed"
       }
     ],
     "rules": [],
     "edgeRules": [],
     "pointBindings": [
       {
-        "point": "button_a_pattern_ok",
+        "point": "button_a_pressed",
         "equipmentId": "switch_0",
         "mode": "switch"
       },
       {
-        "point": "button_b_pattern_ok",
+        "point": "button_b_pressed",
         "equipmentId": "switch_1",
+        "mode": "switch"
+      },
+      {
+        "point": "reset_pressed",
+        "equipmentId": "reset_button",
         "mode": "switch"
       },
       {
@@ -122,44 +203,63 @@
         "equipmentId": "indicator_2",
         "mode": "indicator",
         "activeColor": "green"
+      },
+      {
+        "point": "button_a_count",
+        "equipmentId": "count_a_display",
+        "mode": "numericDisplay",
+        "label": "A COUNT",
+        "format": "F0"
+      },
+      {
+        "point": "button_b_count",
+        "equipmentId": "count_b_display",
+        "mode": "numericDisplay",
+        "label": "B COUNT",
+        "format": "F0"
       }
     ]
   },
   "training": {
     "hints": [
-      "Translate the lesson into explicit state and permissive logic: The confirmation is valid only when both independent press patterns are valid.",
-      "Inputs are simulator feedback (button_a_pattern_ok, button_b_pattern_ok); PLC logic owns confirmation_valid.",
-      "Test the initial state, the valid condition, and at least one missing permissive."
+      "Count rising edges of button_a_pressed and button_b_pressed with separate PLC CTUs. Each operator action is a one-accepted-scan pulse; clicks before the same accepted scan coalesce, rather than forming a queued click counter.",
+      "The original offline reference enables confirmation_valid only at exactly A=2 and B=3; extra presses beyond the limits remove it. These values are chosen training assumptions, not source-specified presets. Press order is unrestricted; there is no elapsed-time window.",
+      "reset_pressed inhibits both count rungs and resets both CTUs before evaluating the indication. Author or explicitly open a controller before Run; no solution is automatically loaded."
     ],
     "solution": {
       "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
       "steps": [
-        "Require the documented inputs: button_a_pattern_ok, button_b_pattern_ok.",
-        "Command the documented outputs: confirmation_valid.",
-        "Remove PLC commands when the permissive is lost."
+        "Use two PLC CTUs driven by the raw A/B inputs, each inhibited by reset_pressed.",
+        "Reset both counters before comparing their .ACC values. Publish each .ACC to its PLC-owned DINT count display.",
+        "Compare both counts in series for confirmation_valid; use exactly A=2 and B=3 for the explicit original offline reference.",
+        "Stop clears outputs and pending pulses but retains PLC counter state. Application Reset clears all state and stays stopped."
       ],
-      "acceptance": "The confirmation is valid only when both independent press patterns are valid."
+      "acceptance": "The original offline reference enables confirmation_valid only at exactly A=2 and B=3; extra presses beyond the limits remove it. These values are chosen training assumptions, not source-specified presets. Press order is unrestricted; there is no elapsed-time window."
     },
     "assetRequirements": [],
     "machineGuide": {
-      "purpose": "A paired-button confirmation exercise requires the requested press pattern before enabling the result.",
+      "purpose": "Count raw A/B button presses in independent PLC counters and compare their accumulated counts. Reset clears both counters.",
       "startConditions": [
-        "The common PLC/watchdog foundation is healthy.",
-        "All required simulator inputs are at their documented initial state."
+        "Use the built-in offline controller; explicitly author or open a compatible project before Run.",
+        "Both raw press inputs and reset_pressed start false; both PLC count outputs start zero."
       ],
       "normalSequence": [
-        "Apply the requested input condition.",
-        "Verify only the documented PLC outputs respond."
+        "Author or explicitly open a compatible ladder project, then Run.",
+        "Press A twice and B three times, waiting for the momentary input to return false between presses.",
+        "Verify both PLC count displays and the green indication; extra presses beyond the reference limits remove the indication.",
+        "Press RESET to clear both PLC counters and the indication.",
+        "Stop clears both PLC count readouts to zero while retaining counter memory; Run republishes the retained counts. Application Reset clears counter memory and stays stopped."
       ],
       "stopBehavior": [
-        "Removing the permissive removes PLC-owned commands.",
-        "Reset returns the module to its initial state."
+        "Stop clears command/readout outputs and pending pulses, while retaining the PLC accumulated counts.",
+        "Run republishes the retained counts without a new press. Application Reset clears everything and stays stopped."
       ],
       "faultBehavior": [
-        "A missing or stale input must fail safe and remain diagnosable."
+        "Removed precomputed inputs are incompatible with older projects. Rebind raw inputs and PLC DINT count outputs before loading.",
+        "Presses before the same accepted scan coalesce. This sampled pulse interface does not queue every rapid click and is not a high-speed hardware counter."
       ],
       "expectedObservations": [
-        "The confirmation is valid only when both independent press patterns are valid."
+        "The original offline reference enables confirmation_valid only at exactly A=2 and B=3; extra presses beyond the limits remove it. These values are chosen training assumptions, not source-specified presets. Press order is unrestricted; there is no elapsed-time window."
       ]
     },
     "sequenceNumber": 33,
@@ -173,11 +273,16 @@
       "Simulation_Timeout"
     ],
     "addedTags": [
-      "button_a_pattern_ok",
-      "button_b_pattern_ok",
-      "confirmation_valid"
+      "button_a_pressed",
+      "button_b_pressed",
+      "reset_pressed",
+      "confirmation_valid",
+      "button_a_count",
+      "button_b_count"
     ],
-    "changedTags": [],
+    "changedTags": [
+      "Precomputed ready/pattern_ok inputs removed: the PLC now counts raw presses and performs the comparison."
+    ],
     "previousAcceptance": [
       "lab-4-05-dual-input-count-window"
     ]

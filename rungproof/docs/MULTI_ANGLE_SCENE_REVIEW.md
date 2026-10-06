@@ -1,6 +1,58 @@
 # Multi-angle scene review - 2026-10-04
 
-Scene 44 repeat-cycle repair (2026-10-06, current checkpoint):
+Scenes 46/47 button-counter repair (2026-10-06, current checkpoint):
+replaced PC precomputed channel-ready/pattern-ok toggles with raw one-accepted-scan
+A/B presses and RESET. Added correctly labeled A/B/RESET physical buttons and
+two PLC-owned DINT accumulated-count readouts; all six props sit in a separate
+inline row. PLC ladder owns both CTUs and comparisons. The existing pulse
+interface coalesces clicks before the same accepted scan; it does not queue
+every rapid click or model a hardware high-speed counter.
+
+The prototype contracts specify no presets, order or timing. The explicitly
+opened original offline reference for Scene 46 uses inclusive A=2..3/B=3..4
+numeric count windows; Scene 47 uses exact A=2/B=3 count comparison. Both permit
+either press order and impose no elapsed-time window. These are declared
+training choices, not source-exact solutions or ordered-pattern validation.
+Old projects must replace removed ready/pattern_ok inputs and bind the new
+raw BOOL inputs plus PLC DINT count outputs. Historical prototype files remain
+unchanged; current migrated JSON/help are the runtime contract.
+
+Reproduce with -- --audit-button-counters. This runs 46 focused checks and writes
+ignored .tools/plant-review-dual-count.rpproj.json and
+.tools/plant-review-multi-press.rpproj.json. Each seven-rung reference has two
+CTUs, two priority resets, comparison output and two count MOVs. These remain
+explicit QA projects, never auto-loaded solutions; the catalog still has five
+authored demos and an empty default exercise editor.
+
+Native Windows: File -> Open Ladder Agent Project -> Return to Scene -> Run.
+Scene 46 sidebar presses counted A=1,2 and B=1,2,3; A=2/B=3 gave green. Full-scene
+FR/FL/RL/RR/Top inspected with six separated feet and no stand intersections.
+Close front A display view showed readable A=2/B=3. A=3/B=4 remained green;
+Stop cleared both displayed output counts to zero at scan 6206, Run republished
+3/4 without new presses. A=4 removed green. Sidebar RESET cleared both; a new
+B press showed one and the physical 3D RESET button cleared it. Application
+Reset returned stopped scan zero. Native dual-count-final log exited zero.
+
+Scene 47 used physical 3D A twice and B three times, giving A=2/B=3 and green.
+Full FR/FL/RL/RR/Top inspected with all six feet clear. Close front count view
+showed readable 2/3; nearby B housing is cropped by the right pane in this
+focused view, while its digits remain readable and full-scene views show its
+complete footprint. Stop at scan 6221 cleared both readouts/green; Run restored
+2/3. Extra B gave 2/4 and removed confirmation. Physical 3D RESET cleared both;
+new A showed one, and application Reset cleared it and stopped at scan zero.
+Native multi-press-final log exited zero. Rear views hide front-facing digits;
+overhead establishes spacing rather than readout readability. No motion model
+is needed for these operator counter panels.
+
+Build zero warnings/errors; 46 focused workflow checks, 613/613 geometry/workflow
+with overlay (605 without), 144/144 controller conformance, rendered scene
+controls/overlay/external typed-image PASS, shell 77 scenes/294 assets/five demos
+PASS, authored contracts 71/71 and help 77/294 PASS. Logs: .tools/button-counter-*
+plus dual-count-final-native and multi-press-final-native. Tests use offline
+transport only. Whole-program goal remains active; next Scene 48 parking entry
+still has substituted static props and no demonstrated occupancy/barrier route.
+
+Scene 44 repeat-cycle repair (2026-10-06, previous checkpoint):
 replaced the manual PC count-complete toggle with machine enable plus actual
 home/busy/cycle_done/head-position feedback. A scoped CNC dry-stroke model owns
 the complete connected Z head and spindle on accepted plant ticks. PLC ladder
@@ -2915,8 +2967,8 @@ count as this scene's multi-angle or runtime acceptance.
 | 43 | `lab-4-02-counter-reset-lamp` | 0 | Native FR/FL/RL/RR/T; normal project Open/Run; physical COUNT/RESET; Stop/Run/application Reset | Raw momentary pulse/reset, corrected plates; explicit three-count CTU reference native lamp off after 1/2 and on after 3. Reset clears; restart retains count; pending pulses discarded. Eleven exact workflow checks pass. Empty exercise editor remains intentional; hardware/external behavior unverified |
 | 44 | `lab-4-03-repeat-cycle-counter` | 0 (historical) | Native focused FR/FL/RL/RR/T at half feed, work endpoint and half return; full completion five views; normal File/Open/Run; held Stop/Run/Reset; continuous batch; focused COUNT 3; rebuilt held Stop label | Actual scoped CNC dry stroke with connected head/spindle and PLC CTU preset three. 23 checks, 618 sampled route poses; repaired roof, front bay, coolant and stock support. Count 1/2/3 observed; no early/idle fourth count. Default editor stays empty. Rear panels obscure internal motion/near stands; Top needs wheel adjustment. Offline prescribed motion and sampled bounds only; OEM dynamics/material removal/live PLC acceptance open |
 | 45 | `lab-4-04-sequence-light-tower` | 0 | Repaired FR/FL/RL/RR/T geometry; final FR close/full four colors; normal Open/Start/Step/Stop/Run/Reset | Four physical tiers, independent color bindings, momentary requests and editable offline reference repaired. Native complete cycle/restart/reset inspected; 30 focused checks PASS. Rear details partly occluded. CNC static, sounder uncommanded; live/physical acceptance open |
-| 46 | `lab-4-05-dual-input-count-window` | 0 | Native FR/FL/RL/RR/T | Static stands clear. Precomputed channel-ready toggles; raw counting/window workflow unverified |
-| 47 | `lab-4-06-multi-press-confirmation` | 0 | Native FR/FL/RL/RR/T | Static stands clear. Precomputed pattern-ok toggles; raw press order/timing workflow unverified |
+| 46 | `lab-4-05-dual-input-count-window` | 0 | Native FR/FL/RL/RR/T | Raw A/B/reset, PLC count readouts; explicit numeric-window reference and native File/Open/Run/Stop/reset verified. Six stand footprints clear; no elapsed-time window |
+| 47 | `lab-4-06-multi-press-confirmation` | 0 | Native FR/FL/RL/RR/T | Raw A/B/reset, PLC count readouts; explicit exact-count reference and physical 3D button workflow verified. Six stands clear; order unrestricted, no timed-pattern claim |
 | 48 | `lab-4-07-parking-garage-entry` | 20 | Native FR/FL/RL/RR/T; replacement readout five focus views | Readout replaced/repositioned; five native focus views (RL obscured). FAIL/open: motor-starter vehicle, substitute barrier/wall, no occupancy numeric binding or barrier motion acceptance |
 | 49 | `lab-4-08-package-grouping` | 118 (historic) | Native FR/FL/RL/RR/T; final carton top/FR close | Carton support repaired and re-inspected. FAIL/open: grouping/release outputs only lamps; separated receiver/stop/sensors and transfer behavior unverified |
 | 50 | `lab-4-09-chain-drive-lift` | 3 intended mounts | Native lower bridge/mid-rise/shaft approach/upper bridge/empty return FR/FL/RL/RR/T; Stop/fresh Start/completed HOME/Reset | Supported complete single-carton route and automatic feedback repaired; 36 focused checks pass with 2,897 samples. OPEN every-frame five-angle native coverage, swept-volume/self-collision and broader physical/process acceptance |

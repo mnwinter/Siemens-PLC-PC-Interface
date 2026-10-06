@@ -93,9 +93,26 @@ Native held and continuous playback were tested; 618 sampled head poses screen
 moving clearance. Closed rear panels and roof obscure internal motion; bounds
 checks and screenshots do not establish collision physics or live PLC acceptance.
 
-`-- --verify-scene-geometry` runs 567 focused geometry/workflow checks with `--visual-scene-review` for Demo 5 supported pickup, four-carton placement, moving clearance and attachment,
+`-- --audit-button-counters` runs 46 focused checks for Scenes 46/47 and writes
+ignored `.tools/plant-review-dual-count.rpproj.json` and
+`.tools/plant-review-multi-press.rpproj.json`. Explicitly open the matching project
+via File -> Open Ladder Agent Project, Return to Scene, Run. Press A twice and B
+three times; the two PLC counters publish live DINT readouts. RESET clears both
+with priority. Original offline references use inclusive A=2..3/B=3..4 numeric
+windows for Scene 46 and exact A=2/B=3 for Scene 47. These chosen limits are not
+specified in the prototype; either press order is allowed and no timed window
+or ordered pattern is claimed. Extra presses beyond the limits remove green.
+Stop clears output/readout values while retaining CTU memory; Run republishes
+counts, and application Reset clears all state and stays stopped. Each operator
+press is one accepted-scan pulse; clicks before the same scan coalesce. Default
+exercise editors remain empty; these references do not add authored demos.
+Old projects must rebind removed `channel_*_ready` / `button_*_pattern_ok` inputs
+to the raw press/reset inputs and new typed PLC count outputs documented in help.
+Both lessons were operated in native Windows and inspected from FR/FL/RL/RR/Top.
+
+`-- --verify-scene-geometry` runs 613 focused geometry/workflow checks with `--visual-scene-review` for Demo 5 supported pickup, four-carton placement, moving clearance and attachment,
 repeat-cycle actual completion, PLC count ownership, head clearance, permissive loss and held clock,
-raw counter/reset pulses with reset priority, pending-pulse discard on Stop, retained counter restart,
+raw counter/reset and independent A/B count comparisons with reset priority, pending-pulse discard on Stop, retained counter restart,
 the pallet cell's grounded installation, imported robot joints/tool attachment,
 sampled transfer clearance, supported outbound path, receiver landing/count
 agreement, Stop/Reset/restart guard and unreachable-target rejection,

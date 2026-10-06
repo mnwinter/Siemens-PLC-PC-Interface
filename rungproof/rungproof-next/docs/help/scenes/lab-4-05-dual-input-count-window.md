@@ -2,11 +2,11 @@
 
 Scene ID: `lab-4-05-dual-input-count-window`  
 Migrated source: `prototype/scenes/lab-4-05-dual-input-count-window.plcscene`  
-Scene contract: `prototype/scenes/lab-4-05-dual-input-count-window.plcscene`
+Scene contract: `res://scenes/migrated/lab-4-05-dual-input-count-window.scene.json`
 
 ## Purpose
 
-Two independent inputs must meet separate count conditions before a station indication is enabled.
+Count raw A/B button presses in independent PLC counters and compare their accumulated counts. Reset clears both counters.
 
 ## Expected I/O to operate this scene
 
@@ -14,32 +14,42 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 
 | Point | Type | Owner | Initial value |
 | --- | --- | --- | --- |
-| `channel_a_ready` | `BOOL` | **PC** | `False` |
-| `channel_b_ready` | `BOOL` | **PC** | `False` |
+| `channel_a_pulse` | `BOOL` | **PC** | `False` |
+| `channel_b_pulse` | `BOOL` | **PC** | `False` |
+| `reset_pressed` | `BOOL` | **PC** | `False` |
 | `window_ready` | `BOOL` | **PLC** | `False` |
+| `channel_a_count` | `DINT` | **PLC** | `0` |
+| `channel_b_count` | `DINT` | **PLC** | `0` |
 
 ## Operator actions
 
 | Action | Type | Bound point/sequence |
 | --- | --- | --- |
-| `Toggle channel a ready` | `toggle` | `channel_a_ready` |
-| `Toggle channel b ready` | `toggle` | `channel_b_ready` |
+| `Press A` | `pulse` | `channel_a_pulse` |
+| `Press B` | `pulse` | `channel_b_pulse` |
+| `Reset both counters` | `pulse` | `reset_pressed` |
 
 ## Equipment bindings
 
 | Symbolic point | Equipment | Mode |
 | --- | --- | --- |
-| `channel_a_ready` | `switch_0` | `switch` |
-| `channel_b_ready` | `switch_1` | `switch` |
+| `channel_a_pulse` | `switch_0` | `switch` |
+| `channel_b_pulse` | `switch_1` | `switch` |
+| `reset_pressed` | `reset_button` | `switch` |
 | `window_ready` | `indicator_2` | `indicator` |
+| `channel_a_count` | `count_a_display` | `numericDisplay` |
+| `channel_b_count` | `count_b_display` | `numericDisplay` |
 
 ## Expected equipment
 
 | ID | Type | Label |
 | --- | --- | --- |
-| `switch_0` | `switch` | Dual-Input Count Window switch |
-| `switch_1` | `switch` | Dual-Input Count Window switch |
-| `indicator_2` | `indicator` | Dual-Input Count Window indicator |
+| `switch_0` | `switch` | Channel A pulse button |
+| `switch_1` | `switch` | Channel B pulse button |
+| `indicator_2` | `indicator` | PLC count comparison indication |
+| `reset_button` | `switch` | Reset both PLC counters |
+| `count_a_display` | `trainingAccessory` | PLC channel A accumulated count |
+| `count_b_display` | `trainingAccessory` | PLC channel B accumulated count |
 
 ## Stop and safety boundary
 
@@ -47,18 +57,21 @@ A normal Stop removes PLC-owned commands according to the scene runtime. This do
 
 ## Machine guide
 
-Two independent inputs must meet separate count conditions before a station indication is enabled.
+Count raw A/B button presses in independent PLC counters and compare their accumulated counts. Reset clears both counters.
 
 ### Start conditions
 
-- The common PLC/watchdog foundation is healthy.
-- All required simulator inputs are at their documented initial state.
+- Use the built-in offline controller; explicitly author or open a compatible project before Run.
+- Both raw press inputs and reset_pressed start false; both PLC count outputs start zero.
 
 ### Normal sequence
 
-- Apply the requested input condition.
-- Verify only the documented PLC outputs respond.
+- Author or explicitly open a compatible ladder project, then Run.
+- Press A twice and B three times, waiting for the momentary input to return false between presses.
+- Verify both PLC count displays and the green indication; extra presses beyond the reference limits remove the indication.
+- Press RESET to clear both PLC counters and the indication.
+- Stop clears both PLC count readouts to zero while retaining counter memory; Run republishes the retained counts. Application Reset clears counter memory and stays stopped.
 
 ### Expected observations
 
-- The ready indication is on only when both count conditions are satisfied.
+- The original offline reference enables window_ready only at A=2..3 and B=3..4, inclusive; extra presses beyond the limits remove it. These values are chosen training assumptions, not source-specified presets. Press order is unrestricted; there is no elapsed-time window.

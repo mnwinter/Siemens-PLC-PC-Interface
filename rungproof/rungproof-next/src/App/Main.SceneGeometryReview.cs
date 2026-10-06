@@ -299,6 +299,7 @@ public partial class Main
             VerifyPressCountWorkflow(Check);
             VerifyCounterResetWorkflow(Check);
             VerifyRepeatCycleWorkflow(Check);
+            VerifyButtonCounterWorkflows(Check);
             VerifyTransferCartonSupport(Check);
             VerifyBaseConveyorCartonSupport(Check);
             VerifyPusherRodGeometry(Check);
