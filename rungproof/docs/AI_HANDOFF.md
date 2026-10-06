@@ -1,6 +1,69 @@
 # RungProof / PLC Visual Simulator AI handoff
 
-Scene 61 drawbridge repair (2026-10-06, current checkpoint):
+Scene 62 bag indexing repair (2026-10-06, current checkpoint):
+Replaced the copied pneumatic pusher/carton with an original filled sack, flat
+bearing underside, tapered body, sealed ends and BAG label. Removed duplicate
+pusher/drive/control substitutes. Eight actual items and ten symbolic points;
+whole-catalog equipment total 609. Catalog remains 77 scenes / 294 runtime assets,
+with exactly five authored demos and default exercises blank.
+
+ENTRY and EXIT now span the carrying belt at 1.1 m and derive feedback from a
+finite optical segment intersecting delivered BAG_BODY triangles. EXIT X=1.7 m,
+front stand Z=1.3 m and rear stand Z=-1.75 m clear the integral control station
+and cable route. Static installation screen: two enclosing-bound candidates,
+zero unresolved after cable-triangle/local-bound refinement. This is a sampled
+geometry screen, not solid collision or physical installation acceptance.
+
+PC owns actual entry/exit, position/speed, raw momentary START, manual maintained
+PAUSE BLOCKED/CLEAR, and motion_inhibited/travel_limited diagnostics. PLC owns
+run enable and reverse direction separately; both true is valid permitted return.
+Single green/amber lamps project those commands. Removed fake sensor toggles.
+Bag and conveyor travel share accepted scan time; no separate conveyor callback.
+Illustrative 0.5 m/s kinematics and supported X bounds -2.6..2.6 m. A malformed
+reverse without CLEAR holds motion while exposing the command image; missed EXIT
+clamps supported travel and reports travel_limited without rewriting PLC outputs
+or fabricating completion. Update older projects for revised Scene 62 point roles.
+
+-- --audit-bag-index passes 30 focused checks / 1203 accepted samples. It creates
+only ignored .tools/plant-review-bag-index.rpproj.json for explicit File Open.
+Six original reference rungs: fresh START at ENTRY runs forward; actual EXIT
+stops into pause; manual CLEAR plus a fresh START runs reverse; actual ENTRY
+stops into idle. Travel-phase START and blocked-pause START are discarded.
+CLEAR alone does not initiate return; losing CLEAR holds the retained return.
+Stop retains phase/pose but clears output commands and pending pulses; Run
+resumes the retained leg with its permissive. Reset restores supported X=-2,
+raw inputs false, outputs dark and zero scan. Sack remains unapproved candidate;
+old pusher recognition/renders are archived under
+review/historical_invalid_identity_20261006 and do not approve this replacement.
+No flexible-body, material, hardware or commissioning claim.
+
+Native Windows: default blank exercise observed; explicit File Open / Return to
+Scene; actual 3D START and PAUSE CLEAR selector accepted. Final installation
+FR/FL/RL/RR/Top inspected at forward X=-1, EXIT X=1.28, reverse X=0.28; bag stayed
+supported and visible. Missing CLEAR / CLEAR alone held EXIT. Fresh START lit
+both run/reverse lamps and moved back. Losing CLEAR held X=0.28 for two stepped
+seconds with run false / reverse true. Stop cleared both outputs; Run with CLEAR
+resumed reverse to ENTRY X=-1.58. Stop also froze scan100 / X=-1 with hold released.
+Reset restored X=-2 / zero scan / outputs off. After final framing adjustment,
+Top home and continuous returned ENTRY inspected; rear sensor head clears review
+bar, BAG label readable. Normal continuous outbound reached EXIT X=1.28 and return
+reached ENTRY X=-1.58 with both outputs off. Native previews exited normally.
+
+Build zero warnings/errors; conformance 144/0; final contracts 71/0 with 77
+positive catalog metadata probes; help 294 assets / 77 scenes valid.
+Rendered geometry/workflow 945/945 PASS (including 30 bag workflow/installation
+and five new selector-alignment checks). Rendered scene controls, review-overlay
+input, external-image and virtual-controller UI PASS; headless app shell PASS
+(77 scenes, five demos, 294 assets). All verification processes exited normally;
+no regression errors. App-shell Load Last Workspace emitted the expected
+WORKSPACE_LOAD_FAILED warning because no saved workspace existed. No PLC connection.
+Logs: .tools/bag-index-{geometry,controls,controller-ui,app-shell,contracts-final,
+help-final}.log. Conformance evidence: .tools/bag-index-conformance.log.
+
+Whole-program goal ACTIVE and incomplete. Next: Scene 63 Coating Line, then hand
+dryer, EV manager and remaining review-matrix/process failures.
+
+Scene 61 drawbridge repair (2026-10-06, previous checkpoint):
 Replaced copied scissor/table, guard and shutter geometry with an original hinged
 4 m bridge deck, two supported 4.8 m road barriers, and a shaft-connected cam /
 HOME and RAISED roller switches. Grounded approaches/piers, landing seats, channel

@@ -1014,12 +1014,12 @@
       "name": "Lab 5.9 - Bag Indexing Conveyor",
       "path": "res://scenes/migrated/lab-5-09-bag-indexing-conveyor.scene.json",
       "sourceFile": "prototype/scenes/lab-5-09-bag-indexing-conveyor.plcscene",
-      "equipmentCount": 12,
+      "equipmentCount": 8,
       "equipmentTypes": [
-        "box",
         "conveyor",
         "indicator",
         "photoeye",
+        "rotarySwitch",
         "switch",
         "trainingAccessory"
       ],

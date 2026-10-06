@@ -9771,29 +9771,13 @@
         "thumbnailFile": "res://assets/training_accessories/bag_product_load/thumbnail.png"
       },
       "bounds": {
-        "widthM": 3.1,
-        "heightM": 1.1,
-        "depthM": 0.72
+        "widthM": 0.9099999666213989,
+        "heightM": 0.45899999141693115,
+        "depthM": 0.5600000023841858
       },
       "connectors": [],
-      "kinematics": [
-        {
-          "id": "pusher_position",
-          "kind": "linear",
-          "nodePath": "KIN_pusher_plate",
-          "minimum": 0,
-          "maximum": 1.35,
-          "unit": "m",
-          "maximumRate": 0.65
-        }
-      ],
-      "animationTags": [
-        {
-          "id": "pusher_position",
-          "nodePath": "KIN_pusher_plate",
-          "kind": "linear"
-        }
-      ],
+      "kinematics": [],
+      "animationTags": [],
       "signals": [],
       "quality": {
         "status": "candidate",
@@ -9802,10 +9786,9 @@
         "topologyReviewed": false,
         "materialReviewed": false,
         "scaleReviewed": false,
-        "animationReviewed": true
+        "animationReviewed": false
       },
       "trainingRequirement": "bag product load",
-      "genericBasisAssetId": "actuation.pneumatic-pusher.1350mm.v1",
       "copyrightBoundary": "Generic training visual; no logo, trade dress, product number, or exact OEM claim."
     },
     {

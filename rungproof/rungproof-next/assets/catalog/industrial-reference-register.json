@@ -5305,33 +5305,6 @@
       ]
     },
     {
-      "assetId": "training.accessory.bag_product_load.v1",
-      "status": "referenced",
-      "comparisonStatus": "reference-identified",
-      "comparisonNotes": "Generic family reference inherited for candidate package review; the training accessory must be independently compared before promotion.",
-      "referenceFamily": "double-acting single-rod pneumatic cylinder used as a pusher",
-      "sources": [
-        {
-          "publisher": "SMC",
-          "title": "CS1 Large Bore Tie Rod Actuator product page",
-          "url": "https://www.smcusa.com/products/pneumatic-actuators/linear-actuators/tie-rod/cs1~53642",
-          "sourceType": "oem-product-page",
-          "accessed": "2026-09-22"
-        }
-      ],
-      "modeledFeatures": [
-        "cylinder barrel",
-        "end caps",
-        "single extending rod",
-        "mounting feet/clevis interface",
-        "air-port zone"
-      ],
-      "intentionallyGeneric": [
-        "No SMC mark, bore, stroke rating, pressure, cushioning, switch type, port thread, mounting load, or pneumatic circuit is reproduced.",
-        "Pusher motion remains symbolic simulator kinematics."
-      ]
-    },
-    {
       "assetId": "training.accessory.barrel_container_load.v1",
       "status": "referenced",
       "comparisonStatus": "reference-identified",

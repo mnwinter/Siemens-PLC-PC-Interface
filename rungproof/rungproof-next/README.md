@@ -226,7 +226,19 @@ are illustrative offline kinematics. Old Scene 61 projects need the revised
 input roles and outputs. Native Windows checks cover five views, physical
 selectors, missing/lost acknowledgement, full cycle and Stop/Run/Reset.
 
-`-- --verify-scene-geometry` runs 910 focused geometry/workflow checks with `--visual-scene-review` for Demo 5 supported pickup, four-carton placement, moving clearance and attachment,
+`-- --audit-bag-index` runs 30 offline workflow/installation checks and creates
+only ignored `.tools/plant-review-bag-index.rpproj.json` for explicit File Open.
+Scene 62 now carries an original sack on the belt, with actual body/beam feedback,
+a physical START button and manual PAUSE BLOCKED/CLEAR selector. Run enable and
+reverse direction are separate outputs; both are true during permitted return.
+The six-rung reference requires CLEAR plus a fresh START at EXIT, stops on actual
+ENTRY, retains phase/pose on Stop and resumes on Run. Reset restores the starting
+bag and zero scan. The default exercise stays blank. Speed and supported bounds
+are illustrative; travel-limit diagnostics do not manufacture a PLC stop.
+Old projects need the revised point roles. Independent asset approval remains open.
+
+`-- --verify-scene-geometry` runs 945 focused geometry/workflow checks with `--visual-scene-review` for Demo 5 supported pickup, four-carton placement, moving clearance and attachment,
+bag indexing actual sack/belt support, optical feedback, static cable screen, manual return acknowledgement and Stop/Run/Reset,
 drawbridge actual motion/limits, connected cam, sampled rail clearance and controller interlocks,
 pedestrian-crossing supported road/sidewalks, symbol/color channels, timed phases, blocked release and startup restart,
 running-tower separate color channels, raw Step edges, wrap, disabled/held/repeated pulses and retained-phase restart,

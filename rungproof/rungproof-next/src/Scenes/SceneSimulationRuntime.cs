@@ -70,6 +70,7 @@ public partial class SceneSimulationRuntime : Node
         if (selected && !running) PauseBarrelClock();
         if (selected && !running) PauseCableClock();
         if (selected && !running) PausePalletizerClock();
+        if (selected && !running) PauseBagIndexClock();
         if (selected && running) ApplyBindings();
     }
 
@@ -95,6 +96,7 @@ public partial class SceneSimulationRuntime : Node
         if (!running) PauseBarrelClock();
         if (!running) PauseCableClock();
         if (!running) PausePalletizerClock();
+        if (!running) PauseBagIndexClock();
         if (RuntimeType == "tank") ProjectTankState();
     }
 
@@ -112,6 +114,7 @@ public partial class SceneSimulationRuntime : Node
         FreezeCookieAdapters();
         FreezeBarrelAdapters();
         FreezeRepeatCycleAdapters();
+        FreezeBagIndexAdapter();
     }
 
     public void ConsumeExternalInputPulses(IReadOnlyDictionary<string, object?> sampledPoints)
@@ -213,6 +216,7 @@ public partial class SceneSimulationRuntime : Node
         if (HasPalletizerPlant) { AdvancePalletizerPlant(delta); return; }
         if (HasRepeatCyclePlant) { AdvanceRepeatCyclePlant(delta); return; }
         if (HasDrawbridgePlant) { AdvanceDrawbridgePlant(delta); return; }
+        if (HasBagIndexPlant) { AdvanceBagIndexPlant(delta); return; }
         if (HasParkingEntryPlant) { AdvanceParkingEntryPlant(delta); return; }
         if (HasPackageGroupingPlant) { AdvancePackageGroupingPlant(delta); return; }
 
@@ -388,6 +392,7 @@ public partial class SceneSimulationRuntime : Node
         DiscardPendingLocalInputPulses();
         _bottleShuttleReferenceActive = false;
         _bottleShuttleConveyor?.ApplyPlantTravel(0, 0);
+        PauseBagIndexClock();
         _shippingPalletReferenceActive = false;
         if (!UsesExternalClock && RuntimeType == "booleanPanel") _booleanPreviewStopped = true;
         _activeStepIndex = -1;
@@ -476,6 +481,7 @@ public partial class SceneSimulationRuntime : Node
         ResetPalletizerPlant();
         ResetRepeatCyclePlant();
         ResetDrawbridgePlant();
+        ResetBagIndexPlant();
         ResetParkingEntryPlant();
         ResetPackageGroupingPlant();
         EvaluateRules();

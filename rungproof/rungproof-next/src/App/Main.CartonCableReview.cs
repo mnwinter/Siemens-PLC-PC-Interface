@@ -29,9 +29,10 @@ public partial class Main
         GetTree().Quit(passed ? 0 : 1);
     }
 
-    private void VerifyCartonStaticCableRoutes(Action<bool, string> check)
+    private void VerifyCartonStaticCableRoutes(Action<bool, string> check,
+        string sceneId = "scene-2-conveyor-pusher", string checkPrefix = "scene2")
     {
-        AddMigratedScene("scene-2-conveyor-pusher", _candidateCatalog!, _mainCamera!, false, false);
+        AddMigratedScene(sceneId, _candidateCatalog!, _mainCamera!, false, false);
         var equipment = _sceneCompositionRoot!.GetChildren().OfType<Node3D>()
             .Select(node => (Node: node, Meshes: ReviewMeshes(node))).ToArray();
         var candidates = 0; var unresolved = 0;
@@ -84,6 +85,6 @@ public partial class Main
             GD.Print($"CARTON_STATIC_ROUTE {equipment[a].Node.Name}/{left.Name} {equipment[b].Node.Name}/{right.Name} surfaceCandidate={surfaceCandidate}");
         }
         GD.Print($"CARTON_STATIC_ROUTE_TOTAL broad={candidates} unresolved={unresolved}");
-        check(unresolved == 0, "scene2_static_routes_clear_other_equipment_local_bounds_at_one_mm_tolerance");
+        check(unresolved == 0, $"{checkPrefix}_static_routes_clear_other_equipment_local_bounds_at_one_mm_tolerance");
     }
 }
