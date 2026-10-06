@@ -141,6 +141,8 @@ public static partial class SceneComposer
                 .OfType<EquipmentMotionController>().Single().PositionFollower = root.GetNode<Node3D>("metal_plate");
         if (scene.Equipment.Any(equipment => Text(equipment.Config, "installation", string.Empty) == "cncTendingStock"))
             ConfigureCncTendingStock(root, scene);
+        if (scene.Equipment.Any(equipment => Text(equipment.Config, "installation", string.Empty) == "robotRestartGuard"))
+            ConfigureRobotRestartInterlock(root);
         return new SceneComposition(root, rendered, deferred);
     }
 
@@ -267,6 +269,8 @@ public static partial class SceneComposer
 
     private static Node3D? CreateTrainingAccessory(SceneEquipment equipment, AssetCatalogDocument candidates)
     {
+        if (Text(equipment.Config, "installation", string.Empty) == "robotRestartGuard") return CreateRobotRestartGuard();
+        if (Text(equipment.Config, "installation", string.Empty) == "robotRestartPanel") return CreateRobotRestartPanel();
         if (Text(equipment.Config, "installation", string.Empty) == "palletTransferBridge") return new Node3D();
         var model = CreateOptionalMappedAsset(equipment, candidates, Text(equipment.Config, "catalogAssetId", string.Empty));
         var display = Text(equipment.Config, "display", string.Empty);

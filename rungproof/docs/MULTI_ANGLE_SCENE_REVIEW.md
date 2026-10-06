@@ -1,6 +1,50 @@
 # Multi-angle scene review - 2026-10-04
 
-Robot CNC transfer repair (2026-10-05, current): Scene 38's reference now
+Robot restart repair (2026-10-05, current): Scene 41 now separates the
+robot from the static CNC inside a four-sided welded-wire fence with an
+outward-opening gate. The coded sensor stays on the latch post; its actuator
+and bearing bracket move with the actual gate. A controller cabinet replaces
+the unrelated pallet-fork prop. These installations are scene-local opt-ins.
+The gate feedback, robot enable and momentary requests drive real scene adapters.
+The legacy reset_complete name is retained, but its action is now a pulse.
+The new motion_request pulse provides a separate Start; Reset authorizes the
+cell without starting the robot. Existing DB14 and shared assets are unchanged.
+
+Native Windows baseline reproduced the robot wrist inside the CNC enclosure
+and the incorrect fence/cabinet identities. The first repaired gate endpoints
+looked clear, but its intermediate swing hit the gate-feedback station. Moving
+the operator stations to Z=5.2 clears that full swing; the actuator bracket was
+widened to bear on the leaf frame. Static repaired installation and the final
+running robot were inspected FR/FL/RL/RR/Top, with additional gate/interlock
+details. These are inspected snapshots, not a continuous every-frame review.
+
+The final saved, editable robot-cell-restart-reference.rpproj.json was opened
+through File -> Open Ladder Agent Project in the normal Windows operator shell.
+Actual offline scans rejected Start before Reset, lit Cell Ready without motion
+on Reset, then enabled motion on separate Start. Gate/ready loss cleared both
+outputs; restoration alone did not restart. Stop held pose; Run and Start alone
+could not reuse authorization. Fresh Reset plus Start resumed motion; global
+Reset restored home/open gate/false points/stopped scans. PLC stayed disconnected.
+
+All 35 --audit-robot-restart checks pass: saved reference equality, actual
+symbolic controller sequencing, actuator mounting, 800 robot samples at 10 ms
+covering the complete base-axis cycle, and 91 gate angles through 90 degrees.
+The contact screens exclude the intended hinges and interlock mounting contacts.
+Build: zero warnings/errors. Controller: 144 tests. Existing geometry: 487
+checks. Scene 41 contract: 6 points/4 actions/12 rendered/0 deferred. App shell:
+77 scenes/294 assets. Help validation passes. Logs: rungproof-next/.tools/
+robot-restart-{build,audit,controller,geometry,contract,shell,operator-final-native}.log.
+The own native QA process closed and exited 0.
+
+This is an offline symbolic reset/start exercise. The robot performs a generic
+base-axis sweep, not CNC tending; the CNC remains static. The E-stop prop has no
+declared action or circuit. No continuous swept-volume, robot self-collision,
+physical safety function, wiring, mechanical rating or live acceptance is proven.
+Goal active: continue the remaining catalog placement/process failures; the
+whole-program review is not complete. Next inspect the remaining sequence and
+transfer scenes, including Scene 45's four-color/three-tier beacon conflict.
+
+Robot CNC transfer repair (2026-10-05, previous): Scene 38's reference now
 uses the actual six robot joints and tool attachment for both transfers.
 The 400 x 140 x 252 mm billet remains between the fingers while lifted,
 carried through a staged front corridor, seated on the existing bearing shoe,
@@ -2262,7 +2306,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 38 | `lab-2-24-robot-cnc` | Reference transfer repaired; 23 checks pass | Home/grip/loaded entry/outfeed FR/FL/RL/RR/T; held route and seated release; held outfeed FR/FL/T; native Stop/restart rejection/Reset; uninterrupted completion | Actual joints/tool carry stock through open access onto supported vise and outfeed. Sampled other-equipment clearance passes; self-collision/full sweep, feedback interlocks, normal controller and cutting remain open. |
 | 39 | `lab-2-25-inspection-toggle` | 0 | Native FR/FL/RL/RR/T; repaired plate FR close; real editor create/load/Run/pulse/Stop/Reset | TOGGLE plate repaired, clear stands. Loaded one-network SET test lights beacon; discarded test is not odd/even lesson acceptance |
 | 40 | `lab-3-01-guarded-pallet-transfer` | 20 (historic) | Native FR/FL/RL/RR/T; final carton top/FR close; earlier guard toggle/Reset | Carton support repaired and re-inspected. FAIL/open: sensors/curtain/gate outside conveyor route; transfer/protective behavior unverified |
-| 41 | `lab-3-02-robot-cell-safe-restart` | 42 | Native FR/FL/RL/RR/T; persistent reset toggle/Reset | FAIL/open: robot occupies CNC; no cell perimeter; reset toggle vs edge request mismatch; only lamp output bindings, no robot-motion binding |
+| 41 | `lab-3-02-robot-cell-safe-restart` | 1 | FR/FL/RL/RR/T static and commanded sweep; gate/interlock details; final normal operator workflow | Repaired robot/CNC clearance, complete fence/gate, mounted moving actuator and cabinet identity; 35 focused checks plus native offline Reset/Start/permissive-loss/Stop/Run/Reset pass. Remaining bounds pair is intended sensor mounting. Generic robot sweep/static CNC/E-stop reference only; physical/live proof open |
 | 42 | `lab-4-01-press-count-lamp` | 0 | Native FR/FL/RL/RR/T; final FR close PULSE; normal Run, rail/3D pulses, Stop/Run/Reset | Pulse/plate repaired. Three presses light authored CTU lamp, Stop removes output, Run retains count, Reset clears; five integration checks pass |
 | 43 | `lab-4-02-counter-reset-lamp` | 0 | Native FR/FL/RL/RR/T | Static stands clear. Precomputed count_reached and persistent reset toggle; actual counter/reset workflow unverified |
 | 44 | `lab-4-03-repeat-cycle-counter` | 0 | Native FR/FL/RL/RR/T | Static spacing clear. Precomputed cycle_count_complete; outputs only lamps, CNC motion absent; bounded-cycle behavior unverified |

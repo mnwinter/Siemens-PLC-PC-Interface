@@ -464,3 +464,18 @@ Desktop UI density and DPI behavior are documented in
 [`docs/UI_SCALING.md`](docs/UI_SCALING.md). The engineering shell uses the
 actual window viewport rather than stretching a fixed design canvas, so higher
 resolutions provide more workspace instead of oversized controls.
+
+### Robot cell restart reference
+
+Scene `lab-3-02-robot-cell-safe-restart` includes an editable offline example:
+`programs/examples/robot-cell-restart-reference.rpproj.json`. Open it with
+**File -> Open Ladder Agent Project**, Run scans, close Gate, set Robot Ready,
+press Reset to authorize the cell, then press the separate Start motion button.
+Gate/ready loss or Stop clears authorization; recovery requires Reset and Start.
+The default lab template remains an exercise. See
+[`the scene guide`](docs/help/scenes/lab-3-02-robot-cell-safe-restart.md).
+
+Use `--audit-robot-restart` after building for 35 focused offline checks of
+the saved ladder reference, restart sequencing, gate mounting/swing and robot
+sweep clearance. The installed CNC is static and the E-stop prop is a visual
+reference only. These checks do not validate physical safety or live operation.
