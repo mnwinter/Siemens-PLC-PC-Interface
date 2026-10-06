@@ -101,6 +101,7 @@ public static partial class SceneComposer
                 "rotaryTable" => CreateRotaryTable(equipment, candidates, runCommands),
                 "rollerShutter" => CreateShutterAsset(equipment, candidates, runCommands),
                 "machine" when Text(equipment.Config, "installation", string.Empty) == "cookieSealer" => CreateCookiePackagingPart("cookieSealer"),
+                "machine" when Text(equipment.Config, "installation", "") == "cableFeed" => CreateCableCutPart("cableFeed"),
                 "machine" => equipment.Label.Contains("Hand-Dryer", StringComparison.OrdinalIgnoreCase)
                     ? CreateHandDryerAsset()
                     : CreateControlledAsset(equipment, candidates, "machining.machine.enclosed-center.v1", runCommands,
@@ -280,6 +281,7 @@ public static partial class SceneComposer
 
     private static Node3D? CreateTrainingAccessory(SceneEquipment equipment, AssetCatalogDocument candidates)
     {
+        if (Text(equipment.Config, "installation", "") is "cablePayoff" or "cableGuide" or "cableEncoder" or "cableCutter" or "cableReceiver" or "cableStrand") return CreateCableCutPart(Text(equipment.Config, "installation", ""));
         if (Text(equipment.Config, "installation", string.Empty) is "barrelLoad" or "barrelMeter" or "barrelNozzle") return CreateBarrelFillPart(Text(equipment.Config, "installation", string.Empty));
         if (Text(equipment.Config, "installation", string.Empty) is "cookieTray" or "cookieCounter") return CreateCookiePackagingPart(Text(equipment.Config, "installation", string.Empty));
         if (Text(equipment.Config, "installation", string.Empty) == "robotRestartGuard") return CreateRobotRestartGuard();
@@ -287,11 +289,11 @@ public static partial class SceneComposer
         if (Text(equipment.Config, "installation", string.Empty) == "palletTransferBridge") return new Node3D();
         var model = CreateOptionalMappedAsset(equipment, candidates, Text(equipment.Config, "catalogAssetId", string.Empty));
         var display = Text(equipment.Config, "display", string.Empty);
-        if (model is not null && display is "palletCount" or "numeric")
+        if (model is not null && display is "palletCount" or "numeric" or "lengthNumeric")
         {
             // Only explicitly configured equipment opts into a live readout. The reusable
             // asset retains its honest NO LIVE VALUE legend when used alone.
-            var legend = model.FindChild("COUNT_DISPLAY_static_legend", true, false) as MeshInstance3D
+            var legend = model.FindChild(display == "lengthNumeric" ? "LENGTH_DISPLAY_static_legend" : "COUNT_DISPLAY_static_legend", true, false) as MeshInstance3D
                 ?? throw new InvalidOperationException($"Count display '{equipment.Id}' is missing its authored legend.");
             legend.Visible = false;
             model.AddChild(new Label3D

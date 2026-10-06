@@ -1,6 +1,54 @@
 # Multi-angle scene review - 2026-10-04
 
-Scene 52 barrel-fill repair (2026-10-06, current checkpoint): replaced the
+Scene 53 cable-cut repair (2026-10-06, current checkpoint): replaced the
+payoff shutter, dancer/cutter trays and unrelated machine with a connected
+scene-local reel, passive guide/encoder/feed rolls, slotted-anvil cutter and
+grounded receiving table. There are 11 equipment items and 15 symbolic points.
+The delivered length display opts into F2 measured feedback. Manual feedback
+switches become one Start. One finite clock feeds 3 m at prescribed 0.3 m/s,
+cuts, returns the knife home and retains the piece. Available stock finishes
+at 7 m from 10 m, excluding the 5.5 m already threaded upstream route. Reel
+motion uses a constant 0.35 m effective pitch radius. PC owns feedback; PLC
+owns commands/authorization. The saved six-rung 20 ms Cable_Measured_Cut_Cycle
+opens through File -> Open Ladder Agent Project. Default empty ladder stays
+an exercise. DB14 and shared delivered geometry are unchanged. No tension,
+slip, sag, layering, elasticity, cutting force or collision physics is modeled.
+
+Focused audit: 31/31 pass, 581 executed 20 ms cycle samples, zero coarse static
+bounds candidates. Corrected the counter to exclude its final loop-condition
+evaluation. Checks cover piece dimensions/support, selected knife clearance,
+measured inventory, F2 readout, reel/encoder/blade projections, interlocks,
+retained completion, Stop/Run/fresh Start during feed/downstroke/return, Reset,
+invalid cut commands, clock partitioning and held native steps. Intentional
+knife/cable cutting, rod/actuator interfaces and the narrow slot are excluded
+from selected clearance screens. These are sampled bounds and prescribed
+kinematics, not solid-contact, swept-volume or physical process acceptance.
+
+Native Windows at 1602x932 loaded the saved reference through its File dialog.
+Initial, 0.60 m feed at held 2.5 s, partial blade at 11 s / 0.63 stroke and
+completed 3 m / home at 13.5 s were inspected in FR/FL/RL/RR/Top. Wide overhead
+resolves close-view cropping. FR receiving end is behind right HUD; FL reel
+behind left HUD; RL reel behind right HUD. Alternate views resolve these.
+Focused cutter Top/RR were also inspected at completion; header/blade obscure
+the small cutting-plane gap, whose 60 mm position is numerically checked.
+Rear labels are reversed; display backs are plain housing. Run plus 25 scans
+held initial state. Stop at 11 s cleared commands and held 0.63 stroke; Run
+plus 25 scans held it; fresh Start resumed. At 12 s return was stopped at
+0.75 stroke; Run plus scans held it; fresh Start completed return. Completed
+Start plus scans could not repeat the cut. Reset restored empty receiver,
+zero length, home blade and stopped scan 0. Normal realtime FL focused playback
+showed 0.24 m at scan 399 / 7.98 s and retained 3.00 m / home / commands off
+at scan 1205 / 24.10 s (Start around 7.2 s). I/O confirmed 3 m measured, 7 m
+remaining and no fault at scan 2053. The brief realtime knife stroke was not
+captured frame by frame. Native console exited normally with code 0.
+
+Build: zero warnings/errors. Controller tests: 144 pass, 0 fail. Shared
+geometry: 487 checks; motion: 32 checks. Shell (77 scenes), help, Scene 53
+initial contract and shared numeric workflow pass. Scene 52 regression: 29/29.
+Whole-program goal remains active: Demo 5 continuous motion and other
+runtime/installation gaps remain open.
+
+Scene 52 barrel-fill repair (2026-10-06, previous checkpoint): replaced the
 motor-starter barrel and disconnected dosing/filler props with an open-top
 barrel, elevated 200 L cutaway source, connected valve/meter/nozzle and grounded
 supports. The scene has 11 equipment items and 15 symbolic points. One finite
@@ -43,8 +91,9 @@ Final build has zero warnings/errors. Controller tests: 144 pass, 0 fail.
 Shared geometry: 487 checks; shared motion: 32 checks. Shell (77 scenes),
 help and Scene 52 contract pass. After the display edit, the focused 29-check
 audit, shared numeric workflow and Scene 51's 24-check regression pass.
-Whole-program goal remains active: Scene 53 cable-cut substitutions, Demo 5
-continuous motion and other documented runtime gaps remain open.
+At the Scene 52 checkpoint, Scene 53 cable-cut substitutions and Demo 5
+continuous motion remained open; the newer Scene 53 checkpoint above supersedes
+that cable-cut finding.
 
 Scene 51 cookie-packaging repair (2026-10-05, previous checkpoint): replaced
 an overlapping CNC, floor-level packaged-meat prop and pneumatic-pusher counter
@@ -2576,7 +2625,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 50 | `lab-4-09-chain-drive-lift` | 3 intended mounts | Native lower bridge/mid-rise/shaft approach/upper bridge/empty return FR/FL/RL/RR/T; Stop/fresh Start/completed HOME/Reset | Supported complete single-carton route and automatic feedback repaired; 36 focused checks pass with 2,897 samples. OPEN every-frame five-angle native coverage, swept-volume/self-collision and broader physical/process acceptance |
 | 51 | `lab-4-10-cookie-packaging` | 3 coarse; cable triangles clear sealer | Native initial/down/first-sealed/complete FR/FL/RL/RR/T; real-time FL/RR | Repaired finite six-cookie cycle: 24 focused checks, 1,252 samples; support/count/seal/retention/Stop/resume/Reset. Top header occludes food; snapshots and bounds only. Physical process acceptance open |
 | 52 | `lab-4-11-barrel-fill-station` | 1 coarse; cable triangle bounds clear post | Native initial/fill FR/FL/RL/RR/T; final completion FR/FL/RL/RR/T and wide Top; realtime FL | Repaired finite 150 L fill/retained barrel cycle: 29 focused checks, 1,344 samples; inventory/support/optics/Stop/resume/Reset. Meter formatted F1. Rear-left occlusion and Top cropping resolved by other views; snapshots and bounds only. Physical process acceptance open |
-| 53 | `lab-4-12-cable-cut-length` | 21 (prior inventory) | Native FR/FL/RL/RR/T; repaired readout five focus views; 3D inputs/Reset | Readout now grounded LENGTH / NO MEASUREMENT, front readable/Top clear; rear details blocked. CABLE/LENGTH/HOME plates and matching PC points verified. FAIL/open: payoff shutter, dancer/cutter trays, unbound encoder, no continuous cable measurement/cut route; outputs only lamps |
+| 53 | `lab-4-12-cable-cut-length` | 0 coarse static candidates | Native initial/feed/partial blade/completed FR/FL/RL/RR/T; wide overhead and cutter focus; normal File/reference/Run/Start; Stop/Run/fresh Start/Reset | Connected reel/rolls/knife/receiver, measured F2 length and 3 m retained cut. 31 focused checks, 581 executed 20 ms samples. Realtime FL initial/feed/completed inspected; brief knife transient not frame-by-frame. Close HUD cropping/header occlusion resolved by other views; small 60 mm gap numerically checked. Prescribed no-slip kinematics and selected bounds only; no solid/swept/physical acceptance |
 | 54 | `lab-5-01-delayed-lamp` | 0 | Native FR/FL/RL/RR/T; normal Run, rail/3D toggles, Stop/Reset | Authored TON initially off then green; 3D clears request, Stop removes output, Reset clears points/scan; exact native interval unmeasured; selector/plate mismatch open |
 | 55 | `lab-5-02-timed-lamp-off` | 0 | Native FR/FL/RL/RR/T | Static spacing clear; persistent start_pulse, precomputed time_active, ambiguous START plates; timer behavior unverified |
 | 56 | `lab-5-03-rotary-flasher` | 0 | Native FR/FL/RL/RR/T | Static spacing clear; pushbutton instead of rotary selector, manual flash_tick; flashing/off behavior unverified |

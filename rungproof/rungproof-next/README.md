@@ -562,3 +562,26 @@ invalid-command diagnostics and the native Hold/Step path. Launch with
 This finite model assumes mechanical indexing and prescribed constant flow;
 hydraulics, slosh, slip and replenishment are excluded. Bounds and native
 snapshots do not establish physical process or live PLC acceptance.
+
+### Measured cable cut reference
+
+Scene `lab-4-12-cable-cut-length` includes the editable offline project
+`programs/examples/cable-cut-reference.rpproj.json`. Open it through **File ->
+Open Ladder Agent Project**, return to Scene, Run scans, then press **Start /
+resume cable cut**. The encoder readout rises to 3.00 m; feed stops, the knife
+cuts and returns home, and the piece stays on the anvil/receiving table.
+Available stock finishes at 7 m. Run alone cannot start or resume the cut.
+Stop preserves length and blade pose; a fresh Start resumes. Reset restores
+10 m available stock, zero measurement, home knife and stopped scans.
+The default empty ladder remains an exercise. See
+[the scene guide](docs/help/scenes/lab-4-12-cable-cut-length.md).
+
+After building, `--audit-cable-cut` runs 31 focused checks with 581 actual
+20 ms controller samples. These check measured inventory, readout, selected
+support/clearance, knife/reel/roller motion, Stop/resume, Reset and diagnostics.
+Launch with `--visual-scene-review --shell-scene=lab-4-12-cable-cut-length
+--shell-view=operator` for camera views and offline Hold/Step 0.5 s, executing
+25 actual scans. This finite model assumes no-slip feed and a constant-radius
+reel. Tension, sag, layering, elasticity and cutting force are excluded.
+Sampled bounds and native snapshots do not establish physical process or
+live PLC acceptance.

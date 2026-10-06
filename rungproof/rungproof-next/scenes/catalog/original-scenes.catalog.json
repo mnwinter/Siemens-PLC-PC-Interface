@@ -3,7 +3,7 @@
   "catalogId": "rungproof-original-scenes-migrated",
   "sourceRoot": "prototype/scenes",
   "sceneCount": 77,
-  "equipmentInstanceCount": 611,
+  "equipmentInstanceCount": 609,
   "equipmentTypeCounts": {
     "box": 30,
     "containerReceiver": 3,
@@ -15,9 +15,9 @@
     "liftTable": 5,
     "machine": 14,
     "meteringSkid": 1,
-    "motor": 11,
+    "motor": 10,
     "palletLoad": 1,
-    "photoeye": 29,
+    "photoeye": 28,
     "pipe": 8,
     "pump": 6,
     "pusher": 2,
@@ -28,13 +28,13 @@
     "rotaryTable": 4,
     "sceneInstallation": 4,
     "sizeSensorBank": 1,
-    "switch": 161,
+    "switch": 159,
     "tank": 12,
     "toteCapper": 1,
     "toteFiller": 2,
     "toteLabeler": 1,
     "toteVision": 1,
-    "trainingAccessory": 120,
+    "trainingAccessory": 122,
     "valve": 7
   },
   "scenes": [
@@ -888,18 +888,14 @@
       "name": "Lab 4.12 - Cable Cut-Length Cell",
       "path": "res://scenes/migrated/lab-4-12-cable-cut-length.scene.json",
       "sourceFile": "prototype/scenes/lab-4-12-cable-cut-length.plcscene",
-      "equipmentCount": 13,
+      "equipmentCount": 11,
       "equipmentTypes": [
         "indicator",
         "machine",
-        "motor",
-        "photoeye",
         "switch",
         "trainingAccessory"
       ],
-      "unresolvedAssetTypes": [
-        "trainingAccessory"
-      ],
+      "unresolvedAssetTypes": [],
       "visualStatus": "partial"
     },
     {

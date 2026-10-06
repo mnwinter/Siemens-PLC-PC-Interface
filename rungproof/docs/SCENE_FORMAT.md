@@ -529,3 +529,45 @@ Formatting uses invariant culture and changes displayed text only, not point
 values or calculations. Scene 52 binds `barrel_litres` with `format: "F1"`
 so fractional readings fit the meter. Decimal display precision does not
 establish physical measurement accuracy.
+
+## Measured cable cutting plant opt-in
+
+Scene 53 declares `cableCutPlant: { "model": "single-three-metre-cut-v1" }`.
+Unknown models fail initialization. Fixed IDs are `training_accessory_4`
+(payoff), `training_accessory_5` (guide), `training_accessory_6` (encoder),
+`machine_1` (feed), `training_accessory_7` (knife), `cable_receiver`,
+`cable_strand` and `training_accessory_8` (delivered readout). Scene-local
+`installation` selectors are `cablePayoff`, `cableGuide`, `cableEncoder`,
+`cableFeed`, `cableCutter`, `cableReceiver` and `cableStrand`. The authored
+IDs, geometry and fixed model constants must change together.
+
+The runtime validates PC-owned BOOL `cable_present`, `length_reached`,
+`cutter_home`, `cut_done`, `cut_complete`, `cut_fault`; PC-owned REAL
+`measured_length_m`, `stock_remaining_m`, `feed_speed_mps`, `cutter_position`;
+and PLC-owned BOOL `feed_run`, `cutter_fire`, `cycle_active`. `batch_start`
+is a PC pulse; `cycle_complete` belongs to the selected ladder reference.
+The 10 m available stock excludes the 5.5 m already threaded upstream route.
+Feed caps at 3 m at prescribed 0.3 m/s. Effective payoff pitch radius is
+0.35 m; roller radii are 0.12 m / 0.08 m / 0.12 m. This is prescribed
+no-slip motion, not a winding-layer or tension simulation.
+
+Knife travel is 0.35 m in 0.8 s each way. `cut_done` latches at full descent;
+release `cutter_fire` to return. Both descent and return require active cycle
+authorization. Simultaneous feed/cut, feed away from home, or cut before the
+measured target latches a fault before motion; raw commands remain diagnostic.
+Offline Stop clears authorization and holds pose/inventory, including return;
+Run alone holds until fresh Start. External pause holds plant motion without
+rewriting commands. Reset restores stock, zero length, home axes and fault.
+
+The cable center is Y=1.1 m with 0.014 m radius. The anvil and receiving table
+meet at X=0.4 m with bearing surfaces Y=1.086 m; the narrow knife slot is
+intentional. After cut, the received piece shifts 0.06 m to reveal separation,
+then remains until Reset. Collection, sag, elasticity and collision physics
+are excluded. The delivered length display opts in with `display:
+"lengthNumeric"`, `displayLabel: "LENGTH m"` and a `numericDisplay` binding
+using `format: "F2"`. Other instances retain their static legend.
+
+Offline review Hold/Step executes 25 actual 20 ms scans per 0.5 s step.
+`--audit-cable-cut` checks the saved reference and selected installation bounds.
+Neither these checks nor native camera snapshots establish solid/swept-volume
+or physical process acceptance. Shared deliveries and DB14 are unaffected.

@@ -175,10 +175,10 @@ public partial class Main
         }
         check(ReviewMeshes(display).All(part => others.All(other => Clear(part, other))),
             "cut_length_display_clear_of_separate_equipment");
-        var labels = new[] { "CABLE", "LENGTH", "HOME" };
-        check(labels.Select((label, index) => root.GetNode<Node3D>($"switch_{index + 9}")
-                .FindChild("OperatorFaceLabel", true, false) is Label3D plate && plate.Text == label).All(value => value),
-            "cut_length_manual_input_plates_match_their_functions");
+        check(root.GetNode<Node3D>("switch_9").FindChild("OperatorFaceLabel", true, false)
+                is Label3D plate && plate.Text == "START"
+            && root.GetNodeOrNull<Node3D>("switch_10") is null && root.GetNodeOrNull<Node3D>("switch_11") is null,
+            "cut_length_start_plate_replaces_manual_feedback_switches");
     }
 
     private void VerifyStaticTrainingReadouts(Action<bool, string> check)

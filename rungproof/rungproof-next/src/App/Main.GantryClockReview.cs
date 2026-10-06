@@ -21,10 +21,10 @@ public partial class Main
     private bool _gantryReviewOperatorView = true;
 
     // Scoped to reviewed offline clock implementations: the autonomous
-    // gantry adapter and the single-clock chain lift / cookie / barrel plants. Other scenes may
+    // gantry adapter and the single-clock chain lift / cookie / barrel / cable plants. Other scenes may
     // have separate callbacks; this is not a general external PLC step.
     private bool CanReviewGantryClock => _visualSceneReview && !_visualPlantReview
-        && _currentSceneId is "lab-11-13-xy-palletizing" or "lab-4-09-chain-drive-lift" or "lab-4-10-cookie-packaging" or "lab-4-11-barrel-fill-station"
+        && _currentSceneId is "lab-11-13-xy-palletizing" or "lab-4-09-chain-drive-lift" or "lab-4-10-cookie-packaging" or "lab-4-11-barrel-fill-station" or "lab-4-12-cable-cut-length"
         && _simulatorShell?.IsExternalMode != true;
 
     private bool GantryReviewClockHeld => _gantryReviewHeldRoot is not null
@@ -97,8 +97,8 @@ public partial class Main
         if (!CanReviewGantryClock || !GantryReviewClockHeld
             || _virtualController?.Snapshot.State != VirtualControllerState.Running) return;
         var chainLift = _currentSceneId == "lab-4-09-chain-drive-lift";
-        var cookiePlant = _currentSceneId is "lab-4-10-cookie-packaging" or "lab-4-11-barrel-fill-station";
-        var motion = cookiePlant ? null : chainLift ? _sceneCompositionRoot!.GetNode<Node3D>("liftTable_1").GetNode<EquipmentMotionController>("ChainLiftMotion")
+        var indexedPlant = _currentSceneId is "lab-4-10-cookie-packaging" or "lab-4-11-barrel-fill-station" or "lab-4-12-cable-cut-length";
+        var motion = indexedPlant ? null : chainLift ? _sceneCompositionRoot!.GetNode<Node3D>("liftTable_1").GetNode<EquipmentMotionController>("ChainLiftMotion")
             : _sceneCompositionRoot!.GetNode<Node3D>("training_accessory_4").GetNode<EquipmentMotionController>("GantryCommandMotion");
         _gantryReviewStepping = true;
         try
@@ -106,10 +106,10 @@ public partial class Main
             // Preserve the existing input -> ladder -> output -> plant path,
             // at the authored 20 ms scan cadence. The disabled parent prevents
             // Godot from also advancing autonomous equipment during inspection.
-            for (var tick = 0; tick < (chainLift || cookiePlant ? 100 : 25); tick++)
+            for (var tick = 0; tick < (_currentSceneId == "lab-4-12-cable-cut-length" ? 25 : chainLift || indexedPlant ? 100 : 25); tick++)
             {
                 _PhysicsProcess(0.02);
-                if (!chainLift && !cookiePlant && motion!.IsPhysicsProcessing()) motion._PhysicsProcess(0.02);
+                if (!chainLift && !indexedPlant && motion!.IsPhysicsProcessing()) motion._PhysicsProcess(0.02);
             }
         }
         finally { _gantryReviewStepping = false; }
@@ -125,6 +125,11 @@ public partial class Main
         if (_gantryReviewClockLabel is null) return;
         var motion = _sceneCompositionRoot?.FindChildren("*", string.Empty, true, false)
             .OfType<EquipmentMotionController>().FirstOrDefault(item => item is ChainLiftDriveVisual || item.Kind == EquipmentMotionController.MotionKind.CartesianGantry);
+        if (_currentSceneId == "lab-4-12-cable-cut-length")
+        {
+            _gantryReviewClockLabel.Text = $"QA | {(_virtualController?.Snapshot.SimulatedTime.TotalSeconds ?? 0):F2} s | length {_sceneRuntime?.Points.GetValueOrDefault("measured_length_m") ?? 0:0.00} m | blade {_sceneRuntime?.Points.GetValueOrDefault("cutter_position") ?? 0:0.00}";
+            return;
+        }
         if (_currentSceneId == "lab-4-11-barrel-fill-station")
         {
             _gantryReviewClockLabel.Text = $"QA | {(_virtualController?.Snapshot.SimulatedTime.TotalSeconds ?? 0):F2} s | barrel {_sceneRuntime?.Points.GetValueOrDefault("barrel_litres") ?? 0:0.0} L | source {_sceneRuntime?.Points.GetValueOrDefault("source_litres") ?? 0:0.0} L";

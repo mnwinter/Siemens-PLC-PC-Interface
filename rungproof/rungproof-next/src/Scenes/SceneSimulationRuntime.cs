@@ -68,6 +68,7 @@ public partial class SceneSimulationRuntime : Node
         if (selected && !running) PauseChainLiftClock();
         if (selected && !running) PauseCookieClock();
         if (selected && !running) PauseBarrelClock();
+        if (selected && !running) PauseCableClock();
         if (selected && running) ApplyBindings();
     }
 
@@ -91,6 +92,7 @@ public partial class SceneSimulationRuntime : Node
         if (!running) PauseChainLiftClock();
         if (!running) PauseCookieClock();
         if (!running) PauseBarrelClock();
+        if (!running) PauseCableClock();
         if (RuntimeType == "tank") ProjectTankState();
     }
 
@@ -189,6 +191,7 @@ public partial class SceneSimulationRuntime : Node
         if (HasChainLiftPlant) { AdvanceChainLiftPlant(delta); return; }
         if (HasCookiePackagingPlant) { AdvanceCookiePackagingPlant(delta); return; }
         if (HasBarrelFillPlant) { AdvanceBarrelFillPlant(delta); return; }
+        if (HasCableCutPlant) { AdvanceCableCutPlant(delta); return; }
 
         if (HasBottleShuttleReference)
         {
@@ -445,6 +448,7 @@ public partial class SceneSimulationRuntime : Node
         ResetChainLiftPlant();
         ResetCookiePackagingPlant();
         ResetBarrelFillPlant();
+        ResetCableCutPlant();
         EvaluateRules();
         ApplyBindings();
         if (RuntimeType == "tank") ProjectTankState();
