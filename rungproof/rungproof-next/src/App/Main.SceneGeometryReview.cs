@@ -302,6 +302,7 @@ public partial class Main
             VerifyButtonCounterWorkflows(Check);
             VerifyParkingEntryWorkflow(Check);
             VerifyPackageGroupingWorkflow(Check);
+            VerifyTimerLessonWorkflows(Check);
             VerifyTransferCartonSupport(Check);
             VerifyBaseConveyorCartonSupport(Check);
             VerifyPusherRodGeometry(Check);
@@ -1104,7 +1105,7 @@ public partial class Main
         // Inspect actual imported pointer/tick geometry through each declared
         // action, including the BOOL mode selector and a four-position dial.
         foreach (var sceneId in new[] { "lab-2-05-bay-light-selector", "lab-2-09-maintenance-beacon",
-            "lab-2-15-fume-extractor", "lab-2-18-pallet-pickup" })
+            "lab-2-15-fume-extractor", "lab-2-18-pallet-pickup", "lab-5-01-delayed-lamp" })
         {
             AddMigratedScene(sceneId, _candidateCatalog!, _mainCamera!, false, false);
             var equipment = _sceneCompositionRoot!.GetChildren().OfType<Node3D>()

@@ -549,6 +549,14 @@ public static partial class SceneComposer
             || !double.IsFinite(initialValue) || initialValue != Math.Truncate(initialValue) || initialValue < 0 || initialValue >= countValue)
             throw new InvalidOperationException($"Selector '{equipment.Id}' requires 2-4 positions and a valid initial ordinal.");
         var count = (int)countValue;
+        string[]? positionLabels = null;
+        if (equipment.Config.TryGetProperty("positionLabels", out var labels))
+        {
+            if (labels.ValueKind != JsonValueKind.Array || labels.GetArrayLength() != count
+                || labels.EnumerateArray().Any(label => label.ValueKind != JsonValueKind.String || string.IsNullOrWhiteSpace(label.GetString())))
+                throw new InvalidOperationException($"Selector '{equipment.Id}' needs one nonempty label per detent.");
+            positionLabels = labels.EnumerateArray().Select(label => label.GetString()!).ToArray();
+        }
         var handle = model.FindChild("KIN_selector_handle", true, false) as Node3D
             ?? throw new InvalidOperationException("Selector asset is missing its handle pivot.");
         // The delivered master has three fixed marks. Keep the master intact;
@@ -572,13 +580,20 @@ public static partial class SceneComposer
             });
             model.AddChild(new Label3D
             {
-                Name = $"SelectorOrdinal_{ordinal}", Text = ordinal.ToString(CultureInfo.InvariantCulture),
+                Name = $"SelectorOrdinal_{ordinal}", Text = positionLabels?[ordinal] ?? ordinal.ToString(CultureInfo.InvariantCulture),
                 // Put numbers beyond the dial rim so a projecting handle does
                 // not cover its selected number in an oblique operator view.
                 Position = new Vector3(0, 1.15f, 0.198f) + radial * 0.153f,
                 FontSize = 32, PixelSize = 0.00085f, OutlineSize = 0, Modulate = Colors.White,
             });
         }
+        var faceLabel = Text(equipment.Config, "faceLabel", string.Empty);
+        if (faceLabel.Length > 0)
+            model.AddChild(new Label3D
+            {
+                Name = "OperatorFaceLabel", Text = faceLabel, Position = new Vector3(0, 1.39f, .205f),
+                FontSize = 40, PixelSize = .001f, OutlineSize = 0, Modulate = Colors.White,
+            });
         var controller = new SelectorSwitchController { Name = "SelectorSwitchController" };
         model.AddChild(controller);
         controller.Configure(handle, count, (int)initialValue);

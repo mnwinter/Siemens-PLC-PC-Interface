@@ -2,11 +2,11 @@
 
 Scene ID: `lab-5-01-delayed-lamp`  
 Migrated source: `prototype/scenes/lab-5-01-delayed-lamp.plcscene`  
-Scene contract: `prototype/scenes/lab-5-01-delayed-lamp.plcscene`
+Scene contract: `res://scenes/migrated/lab-5-01-delayed-lamp.scene.json`
 
 ## Purpose
 
-A selector request starts an on-delay before a station lamp is energized.
+A maintained OFF/ON selector requests the existing authored two-second PLC TON; only PLC timer completion energizes the lamp.
 
 ## Expected I/O to operate this scene
 
@@ -15,31 +15,27 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | Point | Type | Owner | Initial value |
 | --- | --- | --- | --- |
 | `timer_request` | `BOOL` | **PC** | `False` |
-| `delay_complete` | `BOOL` | **PC** | `False` |
 | `delayed_lamp` | `BOOL` | **PLC** | `False` |
 
 ## Operator actions
 
 | Action | Type | Bound point/sequence |
 | --- | --- | --- |
-| `Toggle timer request` | `toggle` | `timer_request` |
-| `Toggle delay complete` | `toggle` | `delay_complete` |
+| `Turn request OFF / ON` | `toggle` | `timer_request` |
 
 ## Equipment bindings
 
 | Symbolic point | Equipment | Mode |
 | --- | --- | --- |
-| `timer_request` | `switch_0` | `switch` |
-| `delay_complete` | `switch_2` | `switch` |
+| `timer_request` | `switch_0` | `selector` |
 | `delayed_lamp` | `indicator_1` | `indicator` |
 
 ## Expected equipment
 
 | ID | Type | Label |
 | --- | --- | --- |
-| `switch_0` | `switch` | Delayed Lamp switch |
-| `indicator_1` | `indicator` | Delayed Lamp indicator |
-| `switch_2` | `switch` | Delayed Lamp operator input |
+| `switch_0` | `rotarySwitch` | Timer REQUEST selector OFF / ON |
+| `indicator_1` | `indicator` | PLC timed lamp |
 
 ## Stop and safety boundary
 
@@ -47,18 +43,19 @@ A normal Stop removes PLC-owned commands according to the scene runtime. This do
 
 ## Machine guide
 
-A selector request starts an on-delay before a station lamp is energized.
+A maintained OFF/ON selector requests the existing authored two-second PLC TON; only PLC timer completion energizes the lamp.
 
 ### Start conditions
 
-- The common PLC/watchdog foundation is healthy.
-- All required simulator inputs are at their documented initial state.
+- Use the built-in offline controller and the stated authored or explicitly opened reference program.
+- Initial input false, timer zero and lamp off.
 
 ### Normal sequence
 
-- Apply the requested input condition.
-- Verify only the documented PLC outputs respond.
+- Select Demo 2, Run, then turn REQUEST ON.
+- The authored PLC TON keeps the lamp off for 100 accepted 20 ms scans (2 s), then on while REQUEST remains ON.
+- Turning OFF clears the timer and lamp on the next accepted scan; a new ON needs the full delay.
 
 ### Expected observations
 
-- The lamp remains off until delay_complete, then turns on while the request remains active.
+- Two-second TON in existing Demo 2; OFF resets it, Stop resets it, Run with retained ON starts the full delay again.

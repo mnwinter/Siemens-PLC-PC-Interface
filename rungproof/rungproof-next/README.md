@@ -149,7 +149,22 @@ crops the far infeed behind the HUD; other angles show it. Prescribed accumulati
 excludes roller slip/contact forces; these checks do not establish hardware
 safety, collision physics or live commissioning.
 
-`-- --verify-scene-geometry` runs 662 focused geometry/workflow checks with `--visual-scene-review` for Demo 5 supported pickup, four-carton placement, moving clearance and attachment,
+`-- --audit-timer-lessons` runs 33 offline checks for Scenes 54/55. Demo 2
+retains its existing two-second TON; REQUEST is now a maintained OFF/ON selector
+with readable detent labels. Scene 55 supplies one accepted-scan START pulse,
+with no manually precomputed timer-result input. The audit writes ignored
+`.tools/plant-review-timed-lamp-off.rpproj.json`; open it explicitly through File
+to test an original three-second, nonretriggerable TP reference. This preset is
+a declared training choice. Exercise editors remain empty by default and the
+authored demo catalog remains five. Both scenes expose held 0.5 s/20 ms steps
+for accepted local scans; Stop resets their nonretentive timers. Run with the
+retained REQUEST ON starts the TON again, whereas the TP needs a fresh START.
+Native Windows five-angle inspection and operator checks cover exact timer
+boundaries, active-pulse rejection, Stop/Run/Reset and Scene 55 continuous playback.
+These are offline checks; no real PLC connection or commissioning is implied.
+
+`-- --verify-scene-geometry` runs 700 focused geometry/workflow checks with `--visual-scene-review` for Demo 5 supported pickup, four-carton placement, moving clearance and attachment,
+timer-lesson actual TON/TP boundaries, maintained selector alignment and pulse consumption,
 package grouping real optical counts, guided stop clearance, retained supported receiver group and Stop/Run/Reset,
 repeat-cycle actual completion, PLC count ownership, head clearance, permissive loss and held clock,
 raw counter/reset and independent A/B count comparisons with reset priority, pending-pulse discard on Stop, retained counter restart,

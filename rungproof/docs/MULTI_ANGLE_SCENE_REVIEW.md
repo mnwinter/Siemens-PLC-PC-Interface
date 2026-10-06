@@ -1,6 +1,60 @@
 # Multi-angle scene review - 2026-10-04
 
-Scene 49 package-grouping repair (2026-10-06, current checkpoint):
+Scenes 54/55 timer-lesson repair (2026-10-06, current checkpoint):
+Demo 2 retains its actual authored two-second TON program. Scene 54 now has a
+maintained REQUEST OFF/ON selector with correct imported pointer/tick geometry
+and readable white face/detent labels. Only raw timer_request is PC-owned;
+delayed_lamp follows the PLC result. Scene 55 now has one momentary START,
+consumed by one accepted scan; removed time_active was a manually precomputed
+timer result. Only PLC timed_lamp drives its green tier; unused tiers stay dark.
+Both scenes retain their grounded separated installation and two I/O points.
+
+The new -- --audit-timer-lessons executes 33 actual controller/scene checks.
+It tests the real authored Demo 2 and writes an ignored, explicitly opened
+.tools/plant-review-timed-lamp-off.rpproj.json: two rungs with a three-second TP.
+Three seconds is an original offline training choice absent from the source.
+No extra authored demo or automatic solution loading was added. Old Scene 55
+projects must replace time_active with raw START and PLC timer output. Five
+authored demos, 77 scenes and 294 runtime assets remain; current equipment
+instances total 617 after removing the fake time switch. Historical prototype
+files are unchanged. Generic selectors retain numeric labels unless configured.
+
+Native Windows evidence, final assembly: Scene 54 FR/FL/RL/RR/Top were inspected
+and close FR REQUEST/OFF/ON labels were readable. Actual physical selector and
+held scans showed the existing TON off at scan 99 / ET 1.98 s, on at 100 / 2.00 s.
+Stop at scan 50 / ET 1.00 s cleared ET/lamp, retained ON and disabled stepping.
+Run plus 100 fresh scans switched the lamp on at scan 150. Physical OFF at 150
+cleared input immediately and lamp/ET at accepted scan 151. Reset restored
+OFF, stopped scan zero and no lamp. Scene 54 continuous playback was not
+remeasured in this checkpoint; the exact-boundary evidence uses held scans.
+
+Scene 55's explicit reference was opened through normal File -> Open Ladder
+Agent Project. Physical START at held scan zero gave lamp true, input consumed
+and ET 0.02 s at scan 1. FR/FL/RL/RR/Top were inspected in that state. A second
+press during the interval did not restart ET: scan 77 showed 1.54 s. The lamp
+was on at 149 / ET 2.98 s and off at 150 / 3.00 s. A fresh START then ran another
+interval; Stop at scan 200 / ET 1.00 s cleared lamp/ET, and Run plus 100 scans
+left the lamp off at scan 300. Normal continuous playback then visibly lit the
+green lamp (ET 0.64 s) and subsequently cleared it with raw START false; it did
+not repeat. Reset left stopped scan zero and both points false. Both final
+native sessions exited zero after normal close. Timing is accepted offline
+scan time, not a wall-clock performance guarantee or live-controller proof.
+
+Verification: build zero warnings/errors; final focused timer audit 33/33;
+broad geometry/workflow 700/700, including five additional selector checks;
+71 migrated scene contracts; 144 deterministic controller tests; rendered
+scene-control, review-overlay input and virtual-controller UI regressions;
+shell 77 scenes/294 assets/five demos and 28 diagnostics; help 294 assets/77
+scenes and git diff --check pass. The 700 sweep preceded only the cosmetic
+REQUEST font/contrast adjustment; final native inspection and the focused
+audit covered that final label. Logs are ignored .tools/timer-lessons-*.log,
+.tools/timer-delayed-final-native-2.log and .tools/timer-pulse-final-native.log.
+These bounded checks do not establish every scene's operational acceptance.
+
+The whole-program goal remains active. Next: Scene 56 Rotary Flasher, then the
+remaining timer/sequence and process installations identified in the matrix.
+
+Scene 49 package-grouping repair (2026-10-06, previous checkpoint):
 replaced the disconnected belt/roller/pallet and substitute stop/sensor layout
 with two original scoped Blender/glTF assemblies: a continuously supported
 powered roller line/receiver and a guided retracting stop. Three real cartons,
@@ -3096,8 +3150,8 @@ count as this scene's multi-angle or runtime acceptance.
 | 51 | `lab-4-10-cookie-packaging` | 3 coarse; cable triangles clear sealer | Native initial/down/first-sealed/complete FR/FL/RL/RR/T; real-time FL/RR | Repaired finite six-cookie cycle: 24 focused checks, 1,252 samples; support/count/seal/retention/Stop/resume/Reset. Top header occludes food; snapshots and bounds only. Physical process acceptance open |
 | 52 | `lab-4-11-barrel-fill-station` | 1 coarse; cable triangle bounds clear post | Native initial/fill FR/FL/RL/RR/T; final completion FR/FL/RL/RR/T and wide Top; realtime FL | Repaired finite 150 L fill/retained barrel cycle: 29 focused checks, 1,344 samples; inventory/support/optics/Stop/resume/Reset. Meter formatted F1. Rear-left occlusion and Top cropping resolved by other views; snapshots and bounds only. Physical process acceptance open |
 | 53 | `lab-4-12-cable-cut-length` | 0 coarse static candidates | Native initial/feed/partial blade/completed FR/FL/RL/RR/T; wide overhead and cutter focus; normal File/reference/Run/Start; Stop/Run/fresh Start/Reset | Connected reel/rolls/knife/receiver, measured F2 length and 3 m retained cut. 31 focused checks, 581 executed 20 ms samples. Realtime FL initial/feed/completed inspected; brief knife transient not frame-by-frame. Close HUD cropping/header occlusion resolved by other views; small 60 mm gap numerically checked. Prescribed no-slip kinematics and selected bounds only; no solid/swept/physical acceptance |
-| 54 | `lab-5-01-delayed-lamp` | 0 | Native FR/FL/RL/RR/T; normal Run, rail/3D toggles, Stop/Reset | Authored TON initially off then green; 3D clears request, Stop removes output, Reset clears points/scan; exact native interval unmeasured; selector/plate mismatch open |
-| 55 | `lab-5-02-timed-lamp-off` | 0 | Native FR/FL/RL/RR/T | Static spacing clear; persistent start_pulse, precomputed time_active, ambiguous START plates; timer behavior unverified |
+| 54 | `lab-5-01-delayed-lamp` | 0 | Final native FR/FL/RL/RR/T; readable close selector; physical OFF/ON; held exact TON boundary; Stop/Run/Reset | Existing authored Demo 2 off at ET 1.98 s/on at 2.00 s; Stop resets TON but retains ON; Run requires fresh full delay; OFF clears next scan; final continuous interval not remeasured |
+| 55 | `lab-5-02-timed-lamp-off` | 0 | Final native FR/FL/RL/RR/T; physical START; explicitly opened QA reference; exact TP boundary, Stop/Run/Reset, continuous playback | One accepted-scan raw START; PLC TP owns lamp; original reference preset 3 s; active presses ignored; on at 2.98 s/off at 3.00 s; fresh START after expiry; Stop cancels, Run alone does not fire; empty exercise default |
 | 56 | `lab-5-03-rotary-flasher` | 0 | Native FR/FL/RL/RR/T | Static spacing clear; pushbutton instead of rotary selector, manual flash_tick; flashing/off behavior unverified |
 | 57 | `lab-5-04-alternating-lamps` | 0 | Native FR/FL/RL/RR/T | Static spacing clear; PC phase toggle; timer alternation/exclusivity unverified |
 | 58 | `lab-5-05-variable-flash-rate` | 0 | Native FR/FL/RL/RR/T | Static spacing clear; independent fast/slow toggles, simultaneous selection/timing unverified |

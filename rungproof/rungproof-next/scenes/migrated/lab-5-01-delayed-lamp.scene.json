@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-5-01-delayed-lamp",
   "name": "Lab 5.1 - Delayed Lamp",
-  "description": "A selector request starts an on-delay before a station lamp is energized.",
+  "description": "A maintained OFF/ON selector requests the existing authored two-second PLC TON; only PLC timer completion energizes the lamp.",
   "camera": {
     "position": [
       11,
@@ -20,23 +20,28 @@
   "equipment": [
     {
       "id": "switch_0",
-      "type": "switch",
-      "label": "Delayed Lamp switch",
+      "type": "rotarySwitch",
+      "label": "Timer REQUEST selector OFF / ON",
       "position": [
         -3.3000000000000003,
         0,
         0
       ],
       "config": {
-        "style": "pushbutton",
         "action": "toggle-timer_request",
-        "color": 2204518
+        "positionCount": 2,
+        "initialPosition": 0,
+        "positionLabels": [
+          "OFF",
+          "ON"
+        ],
+        "faceLabel": "REQUEST"
       }
     },
     {
       "id": "indicator_1",
       "type": "indicator",
-      "label": "Delayed Lamp indicator",
+      "label": "PLC timed lamp",
       "position": [
         -1.1,
         0,
@@ -48,7 +53,7 @@
           "amber",
           "green"
         ],
-        "active": "red"
+        "active": null
       }
     }
   ],
@@ -72,7 +77,7 @@
     "actions": [
       {
         "id": "toggle-timer_request",
-        "label": "Toggle timer request",
+        "label": "Turn request OFF / ON",
         "type": "toggle",
         "point": "timer_request"
       }
@@ -83,7 +88,7 @@
       {
         "point": "timer_request",
         "equipmentId": "switch_0",
-        "mode": "switch"
+        "mode": "selector"
       },
       {
         "point": "delayed_lamp",
@@ -95,39 +100,41 @@
   },
   "training": {
     "hints": [
-      "Translate the lesson into explicit state and permissive logic: A Ladder TON holds the lamp off until its preset expires, then energizes it while the request remains active.",
-      "Inputs are simulator feedback (timer_request); PLC logic owns delayed_lamp.",
-      "Test the initial state, the valid condition, and at least one missing permissive."
+      "The maintained selector supplies only raw timer_request; PLC owns timing and delayed_lamp.",
+      "Demo 2 already contains a two-second TON; the training editor uses that authored document.",
+      "There is no manual delay_complete input. Timing uses accepted controller scans, not wall time while stopped."
     ],
     "solution": {
       "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
       "steps": [
-        "Require the documented inputs: timer_request.",
-        "Command the documented outputs: delayed_lamp.",
-        "Remove PLC commands when the permissive is lost."
+        "Select Demo 2, Run, then turn REQUEST ON.",
+        "The authored PLC TON keeps the lamp off for 100 accepted 20 ms scans (2 s), then on while REQUEST remains ON.",
+        "Turning OFF clears the timer and lamp on the next accepted scan; a new ON needs the full delay."
       ],
-      "acceptance": "A Ladder TON holds the lamp off until its preset expires, then energizes it while the request remains active."
+      "acceptance": "Two-second TON in existing Demo 2; OFF resets it, Stop resets it, Run with retained ON starts the full delay again."
     },
     "assetRequirements": [],
     "machineGuide": {
-      "purpose": "A selector request starts an on-delay before a station lamp is energized.",
+      "purpose": "A maintained OFF/ON selector requests the existing authored two-second PLC TON; only PLC timer completion energizes the lamp.",
       "startConditions": [
-        "The common PLC/watchdog foundation is healthy.",
-        "All required simulator inputs are at their documented initial state."
+        "Use the built-in offline controller and the stated authored or explicitly opened reference program.",
+        "Initial input false, timer zero and lamp off."
       ],
       "normalSequence": [
-        "Apply the requested input condition.",
-        "Verify only the documented PLC outputs respond."
+        "Select Demo 2, Run, then turn REQUEST ON.",
+        "The authored PLC TON keeps the lamp off for 100 accepted 20 ms scans (2 s), then on while REQUEST remains ON.",
+        "Turning OFF clears the timer and lamp on the next accepted scan; a new ON needs the full delay."
       ],
       "stopBehavior": [
-        "Removing the permissive removes PLC-owned commands.",
-        "Reset returns the module to its initial state."
+        "Stop removes the lamp command and resets the nonretentive TON while retaining selector position.",
+        "Run with REQUEST ON starts a fresh full two-second delay; elapsed stopped wall time does not count.",
+        "Application Reset returns OFF, zero timer, lamp off and stopped scan zero."
       ],
       "faultBehavior": [
         "A missing or stale input must fail safe and remain diagnosable."
       ],
       "expectedObservations": [
-        "A Ladder TON holds the lamp off until its preset expires, then energizes it while the request remains active."
+        "Two-second TON in existing Demo 2; OFF resets it, Stop resets it, Run with retained ON starts the full delay again."
       ]
     },
     "sequenceNumber": 40,
