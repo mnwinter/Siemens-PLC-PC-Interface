@@ -1,6 +1,37 @@
 # Multi-angle scene review - 2026-10-04
 
-Scene 53 cable-cut repair (2026-10-06, current checkpoint): replaced the
+Demo 5 normal realtime baseline (2026-10-06, current review checkpoint):
+launched the native Windows operator application at 1602x932 with review cameras
+but Hold OFF. Enabled the three existing manual permissives, then normal Run
+loaded the authored Demo 5 program. Running snapshots were inspected in FR
+(scan 43 / 0.86 s / 58.7% stroke), FL (823 / 16.46 s / 99.5%), RL
+(1771 / 35.42 s / 34.6%), RR (2226 / 44.52 s / 25.0%) and Top
+(2730 / 54.60 s / 31.3%). The pallet is inside the support posts; the orange
+tool follows the gantry axes. Rear-left robot occludes the gantry/carton;
+front/rear-right and overhead resolve those areas. These are snapshots during
+continuous playback, not an every-frame recording or complete swept-volume
+acceptance.
+
+The deeper functional finding remains open: the carton stays on the conveyor,
+the pallet stays empty and gantry_home remains manually true while the tool
+is away. The cycle is an illustrative XYZ sweep; its timer/counter does not
+observe an actual completed placement. This is stated in the current scene
+help and does not become a physical palletizer by passing ladder tests.
+Clearing carton input removed both commands. Three further separate carton
+presentations, each held past 750 ms, reached layer_complete. At scan 5630 /
+112.60 s both actuator commands were off; the I/O pane confirmed retained
+layer_complete True at scan 7229 / 144.58 s. Reset cleared outputs and manual
+inputs, restored the pose and stopped at scan 0. Native console exited normally
+with code 0. Log: `.tools/demo5-continuous-native.log` (ignored local evidence).
+
+Next unresolved Demo 5 work: a supported carton route within the gantry's
+reachable envelope, attached pickup/carry/release poses, observed home and
+placement feedback, and a reference whose counter advances from that feedback.
+Preserve the integrated FB/FC/timer/counter lesson and PC/PLC ownership.
+Do not count the current timed manual-input cycle as a pallet-placement pass.
+The whole-program goal remains active; other catalog runtime gaps also remain.
+
+Scene 53 cable-cut repair (2026-10-06, completed repair checkpoint): replaced the
 payoff shutter, dancer/cutter trays and unrelated machine with a connected
 scene-local reel, passive guide/encoder/feed rolls, slotted-anvil cutter and
 grounded receiving table. There are 11 equipment items and 15 symbolic points.
