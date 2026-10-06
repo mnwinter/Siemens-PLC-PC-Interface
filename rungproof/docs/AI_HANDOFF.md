@@ -1,5 +1,25 @@
 # RungProof / PLC Visual Simulator AI handoff
 
+Scene 43 counter/reset baseline (2026-10-06, unresolved next action):
+normal native Windows operator shell (`--shell-scene=lab-4-02-counter-reset-lamp`,
+not standalone `--scene-id`) confirmed the precomputed `count_reached` toggle
+and persistent `reset_pressed` toggle. Both actions latched true while stopped;
+`counter_lamp` stayed false. Normal Run opened the empty ladder editor with
+NO CONTROLLER LOADED. Both rendered button plates say START instead of identifying
+count/reset. No counting workflow is currently established. Window exited code 0;
+log `.tools/counter-reset-baseline-shell-native.log`. The accidentally selected
+standalone preview was closed without running it and is not operator evidence.
+
+Next scoped repair: replace the precomputed result input with raw count pulses,
+make reset momentary, correct button labels and training/help point ownership,
+then exercise a real CTU/reset controller through actions, accepted scans and
+output projection, including coincident count/reset, Stop/Run and Reset. Keep
+the default lab editor empty; an explicit ignored QA project can demonstrate
+operation without inventing a sixth authored demo or automatically solving the
+exercise. Derive the reference preset from Demo 1's three-pulse example and
+label it as the reference value. Inspect final native rendering/workflow before
+calling the repair complete. No Scene 43 source changes made yet.
+
 Scene 74 held transfer inspection (2026-10-06, current checkpoint): added
 scoped offline Hold, Step 0.1 s (five existing 20 ms scans) and Step 20 ms
 (one actual scan), with time/stroke/count readout. The controller/plant path

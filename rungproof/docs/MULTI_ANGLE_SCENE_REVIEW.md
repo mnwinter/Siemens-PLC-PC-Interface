@@ -1,5 +1,25 @@
 # Multi-angle scene review - 2026-10-04
 
+Scene 43 counter/reset baseline (2026-10-06, unresolved next action):
+normal native Windows operator shell (`--shell-scene=lab-4-02-counter-reset-lamp`,
+not standalone `--scene-id`) confirmed the precomputed `count_reached` toggle
+and persistent `reset_pressed` toggle. Both actions latched true while stopped;
+`counter_lamp` stayed false. Normal Run opened the empty ladder editor with
+NO CONTROLLER LOADED. Both rendered button plates say START instead of identifying
+count/reset. No counting workflow is currently established. Window exited code 0;
+log `.tools/counter-reset-baseline-shell-native.log`. The accidentally selected
+standalone preview was closed without running it and is not operator evidence.
+
+Next scoped repair: replace the precomputed result input with raw count pulses,
+make reset momentary, correct button labels and training/help point ownership,
+then exercise a real CTU/reset controller through actions, accepted scans and
+output projection, including coincident count/reset, Stop/Run and Reset. Keep
+the default lab editor empty; an explicit ignored QA project can demonstrate
+operation without inventing a sixth authored demo or automatically solving the
+exercise. Derive the reference preset from Demo 1's three-pulse example and
+label it as the reference value. Inspect final native rendering/workflow before
+calling the repair complete. No Scene 43 source changes made yet.
+
 Scene 74 held transfer inspection (2026-10-06, current checkpoint): added
 scoped offline Hold, Step 0.1 s (five existing 20 ms scans) and Step 20 ms
 (one actual scan), with time/stroke/count readout. The controller/plant path
@@ -2767,7 +2787,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 40 | `lab-3-01-guarded-pallet-transfer` | 20 (historic) | Native FR/FL/RL/RR/T; final carton top/FR close; earlier guard toggle/Reset | Carton support repaired and re-inspected. FAIL/open: sensors/curtain/gate outside conveyor route; transfer/protective behavior unverified |
 | 41 | `lab-3-02-robot-cell-safe-restart` | 1 | FR/FL/RL/RR/T static and commanded sweep; gate/interlock details; final normal operator workflow | Repaired robot/CNC clearance, complete fence/gate, mounted moving actuator and cabinet identity; 35 focused checks plus native offline Reset/Start/permissive-loss/Stop/Run/Reset pass. Remaining bounds pair is intended sensor mounting. Generic robot sweep/static CNC/E-stop reference only; physical/live proof open |
 | 42 | `lab-4-01-press-count-lamp` | 0 | Native FR/FL/RL/RR/T; final FR close PULSE; normal Run, rail/3D pulses, Stop/Run/Reset | Pulse/plate repaired. Three presses light authored CTU lamp, Stop removes output, Run retains count, Reset clears; five integration checks pass |
-| 43 | `lab-4-02-counter-reset-lamp` | 0 | Native FR/FL/RL/RR/T | Static stands clear. Precomputed count_reached and persistent reset toggle; actual counter/reset workflow unverified |
+| 43 | `lab-4-02-counter-reset-lamp` | 0 | Native FR/FL/RL/RR/T | Static stands clear. Native operator baseline confirms latched count_reached/reset inputs, both plates START and normal Run opens empty editor. Actual counter/reset workflow unverified; next scoped repair is raw pulses/momentary reset plus explicit QA CTU controller |
 | 44 | `lab-4-03-repeat-cycle-counter` | 0 | Native FR/FL/RL/RR/T | Static spacing clear. Precomputed cycle_count_complete; outputs only lamps, CNC motion absent; bounded-cycle behavior unverified |
 | 45 | `lab-4-04-sequence-light-tower` | 0 | Repaired FR/FL/RL/RR/T geometry; final FR close/full four colors; normal Open/Start/Step/Stop/Run/Reset | Four physical tiers, independent color bindings, momentary requests and editable offline reference repaired. Native complete cycle/restart/reset inspected; 30 focused checks PASS. Rear details partly occluded. CNC static, sounder uncommanded; live/physical acceptance open |
 | 46 | `lab-4-05-dual-input-count-window` | 0 | Native FR/FL/RL/RR/T | Static stands clear. Precomputed channel-ready toggles; raw counting/window workflow unverified |
