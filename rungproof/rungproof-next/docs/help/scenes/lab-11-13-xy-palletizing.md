@@ -6,48 +6,54 @@ Scene contract: `res://scenes/migrated/lab-11-13-xy-palletizing.scene.json`
 
 ## Purpose
 
-Symbolic palletizing cell: manual carton/home/pallet permissives drive XY gantry
-command motion and a four-pick layer count. Reset starts a new layer. The XYZ
-sweep illustrates the command; it does not place cartons or generate position
-or pick-complete feedback.
+Demo 5 transfers four cartons from a supported pickup table to four separate
+positions on the white pallet. Its ladder has two FBs, two FCs, two DB declaration
+views, a 750 ms pickup timer, a placement counter, comparisons and arithmetic.
+DB/interface members are declarations; project tags hold runtime values.
 
-The white pallet is centered inside the four gantry posts and rests on the base
-slab. The carton rests on the 1.055 m conveyor deck; the carrying belt is 1.4 m wide. The orange tool follows the X/Y/Z
-command offsets with its Z axis; Stop holds that attached pose and Reset
-restores it. The separate vacuum-gripper model remains an illustrative accessory.
+Run enables the offline controller. Start commands one carton transfer. The
+first carton is preloaded; Load stages each subsequent carton at the home
+station. That action is blocked while occupied, moving, faulted, or complete.
 
 ## Expected I/O to operate this scene
 
-All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or hardware addresses. PC-owned points are simulator feedback; PLC-owned points are commands supplied by the controller; SIM points are internal and should not be wired as external I/O.
+All points are symbolic. PC owns plant feedback and operator requests; PLC owns
+actuator commands. No physical I/O addresses or PLC connection are required.
 
 | Point | Type | Owner | Initial value |
 | --- | --- | --- | --- |
-| `carton_at_pick` | `BOOL` | **PC** | `False` |
-| `gantry_home` | `BOOL` | **PC** | `False` |
-| `pallet_position_valid` | `BOOL` | **PC** | `False` |
+| `carton_at_pick` | `BOOL` | **PC** | `True` |
+| `gantry_home` | `BOOL` | **PC** | `True` |
+| `pallet_position_valid` | `BOOL` | **PC** | `True` |
 | `vacuum_pick` | `BOOL` | **PLC** | `False` |
 | `gantry_cycle` | `BOOL` | **PLC** | `False` |
 | `layer_complete` | `BOOL` | **PLC** | `False` |
+| `start_command` | `BOOL` | **PC** | `False` |
+| `at_pickup` | `BOOL` | **PC** | `False` |
+| `at_place` | `BOOL` | **PC** | `False` |
+| `carton_attached` | `BOOL` | **PC** | `False` |
+| `pick_complete` | `BOOL` | **PC** | `False` |
+| `cycle_in_progress` | `BOOL` | **PC** | `False` |
+| `palletizer_fault` | `BOOL` | **PC** | `False` |
+| `placed_cartons` | `DINT` | **PC** | `0` |
 
 ## Operator actions
 
 | Action | Type | Bound point/sequence |
 | --- | --- | --- |
-| `Toggle carton at pick` | `toggle` | `carton_at_pick` |
-| `Toggle gantry home` | `toggle` | `gantry_home` |
-| `Toggle pallet position valid` | `toggle` | `pallet_position_valid` |
+| `Start / resume one carton` | `pulse` | `start_command` |
+| `Load next carton at pickup` | `palletizerLoad` | `` |
+| `Toggle pallet permissive` | `toggle` | `pallet_position_valid` |
 
 ## Equipment bindings
 
 | Symbolic point | Equipment | Mode |
 | --- | --- | --- |
-| `carton_at_pick` | `switch_9` | `switch` |
-| `gantry_home` | `switch_10` | `switch` |
 | `pallet_position_valid` | `switch_11` | `switch` |
 | `vacuum_pick` | `indicator_3` | `indicator` |
 | `gantry_cycle` | `indicator_12` | `indicator` |
-| `gantry_cycle` | `training_accessory_4` | `running` (XYZ command sweep) |
 | `layer_complete` | `indicator_13` | `indicator` |
+| `start_command` | `switch_9` | `switch` |
 
 ## Expected equipment
 
@@ -61,47 +67,44 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | `training_accessory_5` | `trainingAccessory` | XY Palletizing Cell - vacuum gripper |
 | `training_accessory_6` | `trainingAccessory` | XY Palletizing Cell - pallet magazine |
 | `training_accessory_7` | `trainingAccessory` | XY Palletizing Cell - carton load |
-| `training_accessory_8` | `trainingAccessory` | Manual coordinate-permissive sensor pair |
+| `training_accessory_8` | `trainingAccessory` | Conveyor-to-gantry pickup table |
 | `switch_9` | `switch` | XY Palletizing Cell operator input |
 | `switch_10` | `switch` | XY Palletizing Cell operator input |
 | `switch_11` | `switch` | XY Palletizing Cell operator input |
 | `indicator_12` | `indicator` | XY Palletizing Cell output indication |
 | `indicator_13` | `indicator` | XY Palletizing Cell output indication |
 
-## Stop and safety boundary
+## Normal sequence
 
-Stop freezes playback. Loss of a pick permissive removes gantry and vacuum
-commands on the next offline scan. Reset restores the pose, inputs and counters
-without running. This scene has no authored E-stop input; it does not prove a
-safety function, a real E-stop circuit, watchdog, or live commissioning.
+1. Run, then Start. The gantry lowers to the preloaded carton.
+2. At the pickup contact, the ladder waits 750 ms before enabling vacuum.
+3. The attached carton follows the raised tool to its assigned pallet slot.
+4. At the supported placement height, the ladder releases vacuum. The carton
+   remains on the pallet while the gantry lifts and returns home.
+5. `pick_complete` remains latched until the next accepted cycle so Load cannot
+   erase completion between scans. It counts placement and home return. Load then
+   Start cartons 2-4. After the fourth return, `layer_complete` stays on and the
+   four cartons remain visible. Reset restores one pickup carton and an empty pallet.
 
-## Machine guide
+`gantry_home`, `at_pickup`, `at_place`, `carton_attached`, `pick_complete`,
+`cycle_in_progress` and `placed_cartons` come from the plant state. They are
+not manually fabricated switch inputs. Pallet-valid remains an operator
+permissive, not a measured pallet alignment sensor.
 
-Demo 5 uses two FBs, two FCs, two DB declaration views, a 750-ms timer, a
-four-pick counter, comparisons, arithmetic and a parallel actuator-status
-branch. DB/interface fields are declarations; runtime values use project tags.
+## Stop and fault behavior
 
-### Start conditions
+Stop freezes the offline pose and attachment, preserves placed cartons, and
+clears commands. Run alone holds; a fresh Start resumes the held transfer.
+Loss of pallet-valid removes commands. Restoring it also requires Start.
+Vacuum loss during a commanded carry latches `palletizer_fault`; Reset clears it.
 
-- The common PLC/watchdog foundation is healthy.
-- All required simulator inputs are at their documented initial state.
+Pause retains attachment as an offline kinematic policy. This model does not
+simulate vacuum pressure, gravity/drop, force, deforming cartons, collision
+response, automatic conveyor feeding, or a safety function. The surrounding
+robot, separate vacuum-gripper exhibit and loaded-pallet exhibit are static.
 
-### Normal sequence
+## Visual review controls
 
-- Run, enable gantry-home and pallet-position-valid, then present a carton.
-- Hold carton-present for at least 750 ms to count one pick. Clear it before
-  presenting the next carton. A held carton counts once.
-- After four picks, layer-complete stays on and pick commands stop. Reset
-  clears the completed layer and requires a new Run.
-
-### Expected observations
-
-- XYZ nodes move only while gantry-cycle is commanded and playback is running.
-- Stop or loss of a pick permissive holds the command pose; Reset restores it.
-- The manually supplied home permissive does not track the illustrated pose.
-
-When launched with `--visual-scene-review`, the offline scene has optional
-Hold offline gantry clock and Step 0.5 s controls for inspecting held poses.
-Step requires normal Run and permissives and advances the existing scan/gantry
-path. Changing editor, scene or controller source releases hold. The controls
-do not implement carton pickup or automatic home feedback.
+`--visual-scene-review` adds Hold offline plant clock and Step 0.5 s. Each step
+runs 25 actual 20 ms scans through input, ladder, output and plant integration.
+The review controls share the plant clock; no second gantry sweep runs.

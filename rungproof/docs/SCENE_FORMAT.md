@@ -571,3 +571,36 @@ Offline review Hold/Step executes 25 actual 20 ms scans per 0.5 s step.
 `--audit-cable-cut` checks the saved reference and selected installation bounds.
 Neither these checks nor native camera snapshots establish solid/swept-volume
 or physical process acceptance. Shared deliveries and DB14 are unaffected.
+
+
+## Four-carton palletizer plant opt-in
+
+Demo 5 declares `palletizerPlant: { "model": "four-carton-layer-v1" }`.
+Unknown models fail initialization. Required scene IDs are `box_2`,
+`training_accessory_4` (gantry), `training_accessory_6` (pallet), and
+`training_accessory_8` (scene-local `palletizerPickTable` installation).
+`box_2` uses `palletizerCarton`; gantry part prefixes are `KIN_X_BRIDGE`,
+`KIN_Y_CARRIAGE`, `KIN_Z_AXIS` and `GANTRY_GRIPPER`. The adapter changes only
+scene instances; no autonomous gantry command controller runs alongside it.
+
+PC-owned BOOLs: `start_command`, `pallet_position_valid`, `carton_at_pick`,
+`gantry_home`, `at_pickup`, `at_place`, `carton_attached`, `pick_complete`,
+`cycle_in_progress`, `palletizer_fault`. PC-owned DINT: `placed_cartons`.
+PLC-owned BOOLs: `gantry_cycle`, `vacuum_pick`, `layer_complete`. Missing/wrong
+ownership or types fail initialization. `palletizerLoad` stages stock only at
+home with an empty pickup station and fewer than four placements. It preserves
+completion feedback until the next accepted cycle so an operator action between
+scans cannot erase a completed transfer.
+
+Reset preloads one carton at (-0.95, 1.055, -0.4), home tool bottom at Y=1.66,
+and zero placed cartons. The fixed route lowers to pickup, waits for PLC vacuum,
+raises, traverses to one of four X/Z slots (+/-0.26, +/-0.23), lowers to the
+pallet bearing plane Y=0.4505, waits for PLC vacuum release, retains the carton,
+raises and returns home. Four runtime carton copies are hidden until placement;
+these are inventory, not extra catalog equipment. The normal 20 ms controller
+clock drives 10 ms kinematic substeps at 0.3 m/s vertically and 0.4 m/s horizontally.
+The rod telescopes between carriage and tool. Stop retains pose/attachment and
+discards unscanned Start; fresh Start is required after Run. Vacuum loss while
+commanded carrying latches a fault. This is a fixed symbolic lesson: no gravity,
+vacuum pressure, forces, collision response, automatic stock feeding, measured
+pallet alignment, safety function or physical PLC transport.

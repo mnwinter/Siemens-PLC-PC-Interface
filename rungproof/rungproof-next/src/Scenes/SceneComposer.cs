@@ -33,6 +33,7 @@ public static partial class SceneComposer
             {
                 "conveyor" when Text(equipment.Config, "installation", string.Empty) == "chainLiftFeed" => CreateChainLiftFeed(equipment, candidates),
                 "conveyor" => CreateConveyor(equipment, candidates, runCommands),
+                "box" when Text(equipment.Config, "installation", "") == "palletizerCarton" => CreatePalletizerCarton(),
                 "box" => CreateSceneLoad(equipment, candidates),
                 "palletLoad" => CreateMappedAsset(equipment, candidates,
                     "loads.palletized-cases.gma-48x40.v1"),
@@ -281,6 +282,7 @@ public static partial class SceneComposer
 
     private static Node3D? CreateTrainingAccessory(SceneEquipment equipment, AssetCatalogDocument candidates)
     {
+        if (Text(equipment.Config, "installation", "") == "palletizerPickTable") return CreatePalletizerPickTable();
         if (Text(equipment.Config, "installation", "") is "cablePayoff" or "cableGuide" or "cableEncoder" or "cableCutter" or "cableReceiver" or "cableStrand") return CreateCableCutPart(Text(equipment.Config, "installation", ""));
         if (Text(equipment.Config, "installation", string.Empty) is "barrelLoad" or "barrelMeter" or "barrelNozzle") return CreateBarrelFillPart(Text(equipment.Config, "installation", string.Empty));
         if (Text(equipment.Config, "installation", string.Empty) is "cookieTray" or "cookieCounter") return CreateCookiePackagingPart(Text(equipment.Config, "installation", string.Empty));

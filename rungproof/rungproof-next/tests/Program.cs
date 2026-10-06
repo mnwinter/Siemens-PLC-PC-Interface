@@ -148,7 +148,7 @@ internal static class Program
         Test("JMP LBL JSON editor round-trip preserves targets", TestJumpLabelRoundTrip);
         Test("backward JMP loop watchdog stops and drives outputs safe", TestJumpLoopWatchdog);
         Test("offline engineering workflow persists validates loads exchanges monitors and forces", TestOfflineEngineeringWorkflow);
-        Test("authored palletizer removes commands on every lost permissive", TestPalletizerPermissives);
+        Test("authored palletizer enforces phase-specific permissives and explicit resume", TestPalletizerPermissives);
         Test("authored palletizer counts one layer per completion edge", TestPalletizerLayerCount);
         Test("authored demos 1 through 4 execute their documented behavior", TestOtherAuthoredDemos);
         Test("authored batch publishes count through numeric scene I/O and lifecycle", TestBatchCountNumericOutput);
@@ -384,54 +384,42 @@ internal static class Program
 
     private static void TestPalletizerPermissives()
     {
-        foreach (var lostInput in new[] { "gantry_home", "pallet_position_valid", "carton_at_pick" })
-        {
-            var runtime = PalletizerRuntime();
-            var inputs = Inputs(("gantry_home", true), ("pallet_position_valid", true), ("carton_at_pick", true));
-            var enabled = runtime.Scan(inputs);
-            True(enabled.Outputs["gantry_cycle"]);
-            True(enabled.Outputs["vacuum_pick"]);
-            inputs[lostInput] = false;
-            var blocked = runtime.Scan(inputs);
-            False(blocked.Outputs["gantry_cycle"]);
-            False(blocked.Outputs["vacuum_pick"]);
-            // An unavailable carton or permissive cannot finish a pick dwell.
-            for (var scan = 0; scan < 50; scan++) blocked = runtime.Scan(inputs);
-            Equal(0L, blocked.Counters["cycle_count"].Accumulated);
-        }
+        var runtime = PalletizerRuntime();
+        var inputs = Inputs(("gantry_home", true), ("pallet_position_valid", true), ("carton_at_pick", true), ("start_command", false));
+        False(runtime.Scan(inputs).Outputs["gantry_cycle"]);
+        inputs["start_command"] = true; True(runtime.Scan(inputs).Outputs["gantry_cycle"]);
+        inputs["start_command"] = false; inputs["gantry_home"] = false; inputs["carton_at_pick"] = false;
+        True(runtime.Scan(inputs).Outputs["gantry_cycle"]); // Home must go false during travel.
+        for (var scan = 0; scan < 100; scan++) runtime.Scan(inputs);
+        Equal(0L, runtime.Snapshot.Counters["cycle_count"].Accumulated); // Time alone cannot count.
+        inputs["pallet_position_valid"] = false; False(runtime.Scan(inputs).Outputs["gantry_cycle"]);
+        inputs["pallet_position_valid"] = true; False(runtime.Scan(inputs).Outputs["gantry_cycle"]);
+        inputs["cycle_in_progress"] = true; inputs["carton_attached"] = true; inputs["start_command"] = true;
+        True(runtime.Scan(inputs).Outputs["gantry_cycle"]); True(runtime.Snapshot.Outputs["vacuum_pick"]);
+        inputs["at_place"] = true; False(runtime.Scan(inputs).Outputs["vacuum_pick"]);
+        inputs["palletizer_fault"] = true; False(runtime.Scan(inputs).Outputs["gantry_cycle"]);
     }
-
     private static void TestPalletizerLayerCount()
     {
         var runtime = PalletizerRuntime();
-        var inputs = Inputs(("gantry_home", true), ("pallet_position_valid", true), ("carton_at_pick", false));
+        var inputs = Inputs(("gantry_home", true), ("pallet_position_valid", true), ("carton_at_pick", true));
         for (var pick = 0; pick < 4; pick++)
         {
-            runtime.Scan(inputs);
-            inputs["carton_at_pick"] = true;
+            inputs["pick_complete"] = false; inputs["start_command"] = true; runtime.Scan(inputs);
+            inputs["start_command"] = false; inputs["pick_complete"] = true; runtime.Scan(inputs);
             for (var scan = 0; scan < 40; scan++) runtime.Scan(inputs);
-            inputs["carton_at_pick"] = false;
+            Equal((long)pick + 1, runtime.Snapshot.Counters["cycle_count"].Accumulated);
         }
         True(runtime.Snapshot.Outputs["layer_complete"]);
-        var count = runtime.Snapshot.NumericVariables["layer_count"];
-        Equal(1.0, count);
-        for (var scan = 0; scan < 20; scan++) runtime.Scan(inputs);
-        Equal(count, runtime.Snapshot.NumericVariables["layer_count"]);
-        // Completion is a stopped layer, not another pick opportunity. Held
-        // feedback must never add a fifth carton or leave actuator commands on.
-        inputs["carton_at_pick"] = true;
+        Equal(1.0, runtime.Snapshot.NumericVariables["layer_count"]);
+        inputs["pick_complete"] = false; inputs["start_command"] = true;
         for (var scan = 0; scan < 100; scan++) runtime.Scan(inputs);
         Equal(4L, runtime.Snapshot.Counters["cycle_count"].Accumulated);
-        False(runtime.Snapshot.Outputs["gantry_cycle"]);
-        False(runtime.Snapshot.Outputs["vacuum_pick"]);
-        False(runtime.Snapshot.Variables["cell_active"]);
-        Equal(1.0, runtime.Snapshot.NumericVariables["layer_count"]);
-        runtime.Reset();
-        runtime.Run();
-        True(runtime.Scan(inputs).Outputs["gantry_cycle"]);
-        True(runtime.Snapshot.Variables["cell_active"]);
+        False(runtime.Snapshot.Outputs["gantry_cycle"]); False(runtime.Snapshot.Outputs["vacuum_pick"]);
+        runtime.Reset(); runtime.Run(); inputs["start_command"] = false;
+        False(runtime.Scan(inputs).Outputs["gantry_cycle"]);
+        inputs["start_command"] = true; True(runtime.Scan(inputs).Outputs["gantry_cycle"]);
         Equal(0L, runtime.Snapshot.Counters["cycle_count"].Accumulated);
-        Equal(0.0, runtime.Snapshot.NumericVariables["layer_count"]);
     }
 
     private static void Test(string name, Action body)

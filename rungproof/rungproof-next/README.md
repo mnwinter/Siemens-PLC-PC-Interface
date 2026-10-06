@@ -50,12 +50,21 @@ discard leftover time at phase boundaries, so counts are not time acceptance.
 
 For Demo 5's offline operator view, Hold offline plant clock freezes scans and
 equipment motion. Step 0.5 s executes 25 existing 20 ms scan/gantry ticks;
-normal Run and manual permissives are still required. Editor, scene and source
+normal Run and Start are required. Demo 5 begins with one carton on its supported
+pick table. After home return, Load then Start stages cartons 2-4; four actual
+placements complete the layer. Stop holds the pose; Run alone cannot resume.
+Reset restores the preloaded carton and empty pallet. Pallet-valid remains a
+manual permissive; home/attachment/completion are plant feedback. Editor, scene and source
 changes release the hold. Scene 50 uses the same controls with Step 2.0 s
 (100 actual 20 ms scans) for its single-clock carton plant. External PLC stepping
 and other scene clocks are excluded.
-`-- --verify-plant-motion --visual-scene-review` runs 32 offline motion checks,
-including hold, full-sweep stepping, Stop, permissive loss, Reset and release.
+`-- --verify-plant-motion --visual-scene-review` runs 77 offline motion checks,
+including four supported palletizer routes, attachment/release, scan-boundary
+completion retention, hold/step, Stop/resume, permissive loss, Reset and release.
+`-- --audit-palletizer --visual-scene-review` runs 58 focused checks, including
+2,576 executed 20 ms samples across the four normal routes and separate
+completion-boundary, Stop/resume, fault and clock checks. Bounds are sampled,
+not a collision-physics or complete swept-volume proof.
 `-- --verify-carton-static-routes` runs the focused Scene 2 cable and optical
 path checks without the full catalog sweep. It screens 5 mm broad overlaps
 against cable triangle bounds with a 1 mm world allowance; it is offline only.
@@ -63,7 +72,7 @@ against cable triangle bounds with a 1 mm world allowance; it is offline only.
 The Scene 32 standalone `--visual-plant-review` action bar also has a camera-only
 Pallet underside view for inspecting strap returns inside the fork openings.
 
-`-- --verify-scene-geometry` runs 487 focused geometry/workflow checks for Demo 5 clearance/attachment,
+`-- --verify-scene-geometry` runs 528 focused geometry/workflow checks for Demo 5 supported pickup, four-carton placement, moving clearance and attachment,
 the pallet cell's grounded installation, imported robot joints/tool attachment,
 sampled transfer clearance, supported outbound path, receiver landing/count
 agreement, Stop/Reset/restart guard and unreachable-target rejection,

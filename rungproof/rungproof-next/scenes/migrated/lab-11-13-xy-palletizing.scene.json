@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-11-13-xy-palletizing",
   "name": "Lab 11.13 - XY Palletizing Cell",
-  "description": "Symbolic palletizing cell: manual carton/home/pallet permissives drive XY gantry command motion and a four-pick layer count. Reset starts a new layer.",
+  "description": "Four-carton palletizing lesson: supported pickup, PLC-commanded vacuum, carried cartons, placement feedback and home return. Start one carton at a time; Reset starts a new layer.",
   "camera": {
     "position": [
       11,
@@ -38,11 +38,11 @@
       "position": [
         -3.3,
         0,
-        -1.2
+        -0.4
       ],
       "config": {
         "length": 2.8,
-        "width": 1.4,
+        "width": 0.6,
         "deckHeight": 1.055,
         "beltColor": 2568760,
         "running": false
@@ -53,17 +53,17 @@
       "type": "box",
       "label": "XY Palletizing Cell box",
       "position": [
-        -2.5,
+        -0.95,
         1.055,
-        -1.2
+        -0.4
       ],
       "config": {
         "size": [
-          0.85,
-          0.72,
-          0.5
+          0.45,
+          0.4,
+          0.35
         ],
-        "color": 13142603
+        "installation": "palletizerCarton"
       }
     },
     {
@@ -95,8 +95,7 @@
       ],
       "config": {
         "assetName": "XY gantry",
-        "catalogAssetId": "training.accessory.xy_gantry.v1",
-        "motion": "gantryCommandSweep"
+        "catalogAssetId": "training.accessory.xy_gantry.v1"
       }
     },
     {
@@ -144,15 +143,15 @@
     {
       "id": "training_accessory_8",
       "type": "trainingAccessory",
-      "label": "Manual coordinate-permissive sensor pair",
+      "label": "Conveyor-to-gantry pickup table",
       "position": [
-        -1.95,
         0,
-        1.6
+        0,
+        0
       ],
       "config": {
-        "assetName": "coordinate sensors",
-        "catalogAssetId": "sensing.photoelectric.through-beam.v1"
+        "installation": "palletizerPickTable",
+        "assetName": "supported pickup table"
       }
     },
     {
@@ -166,9 +165,9 @@
       ],
       "config": {
         "style": "pushbutton",
-        "action": "toggle-carton_at_pick",
+        "action": "start-palletizer",
         "color": 2204518,
-        "faceLabel": "CARTON"
+        "faceLabel": "START"
       }
     },
     {
@@ -182,9 +181,9 @@
       ],
       "config": {
         "style": "pushbutton",
-        "action": "toggle-gantry_home",
+        "action": "load-carton",
         "color": 2204518,
-        "faceLabel": "HOME"
+        "faceLabel": "LOAD"
       }
     },
     {
@@ -247,19 +246,19 @@
         "name": "carton_at_pick",
         "type": "BOOL",
         "owner": "PC",
-        "initial": false
+        "initial": true
       },
       {
         "name": "gantry_home",
         "type": "BOOL",
         "owner": "PC",
-        "initial": false
+        "initial": true
       },
       {
         "name": "pallet_position_valid",
         "type": "BOOL",
         "owner": "PC",
-        "initial": false
+        "initial": true
       },
       {
         "name": "vacuum_pick",
@@ -281,24 +280,71 @@
         "owner": "PLC",
         "initial": false,
         "role": "output"
+      },
+      {
+        "name": "start_command",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "at_pickup",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "at_place",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "carton_attached",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "pick_complete",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "cycle_in_progress",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "palletizer_fault",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "placed_cartons",
+        "type": "DINT",
+        "owner": "PC",
+        "initial": 0
       }
     ],
     "actions": [
       {
-        "id": "toggle-carton_at_pick",
-        "label": "Toggle carton at pick",
-        "type": "toggle",
-        "point": "carton_at_pick"
+        "id": "start-palletizer",
+        "label": "Start / resume one carton",
+        "type": "pulse",
+        "point": "start_command"
       },
       {
-        "id": "toggle-gantry_home",
-        "label": "Toggle gantry home",
-        "type": "toggle",
-        "point": "gantry_home"
+        "id": "load-carton",
+        "label": "Load next carton at pickup",
+        "type": "palletizerLoad"
       },
       {
         "id": "toggle-pallet_position_valid",
-        "label": "Toggle pallet position valid",
+        "label": "Toggle pallet permissive",
         "type": "toggle",
         "point": "pallet_position_valid"
       }
@@ -306,16 +352,6 @@
     "rules": [],
     "edgeRules": [],
     "pointBindings": [
-      {
-        "point": "carton_at_pick",
-        "equipmentId": "switch_9",
-        "mode": "switch"
-      },
-      {
-        "point": "gantry_home",
-        "equipmentId": "switch_10",
-        "mode": "switch"
-      },
       {
         "point": "pallet_position_valid",
         "equipmentId": "switch_11",
@@ -340,18 +376,21 @@
         "activeColor": "green"
       },
       {
-        "point": "gantry_cycle",
-        "equipmentId": "training_accessory_4",
-        "mode": "running"
+        "point": "start_command",
+        "equipmentId": "switch_9",
+        "mode": "switch"
       }
-    ]
+    ],
+    "palletizerPlant": {
+      "model": "four-carton-layer-v1"
+    }
   },
   "training": {
     "hints": [
-      "Translate the lesson into explicit state and permissive logic: A carton is picked only at home and placed only at a valid pallet position.",
-      "Inputs are simulator feedback (carton_at_pick, gantry_home, pallet_position_valid); PLC logic owns vacuum_pick, gantry_cycle, layer_complete.",
-      "Test the initial state, the valid condition, and at least one missing permissive.",
-      "Demo 5 counts one four-pick layer, then requires Reset. Its XY sweep illustrates the command, not a closed-loop pallet placement model."
+      "Run, then Start the preloaded carton. After home return, Load next carton and Start again.",
+      "Home, attachment, release position and pick completion are plant feedback. The pallet-valid button is an operator permissive.",
+      "A 750 ms pickup dwell enables vacuum. Count only completed placement plus home return, never elapsed time alone.",
+      "Stop freezes the offline plant and clears commands. Run alone stays held; Start resumes. Four placements complete one retained layer."
     ],
     "solution": {
       "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
@@ -367,29 +406,29 @@
       "vacuum gripper",
       "pallet magazine",
       "carton load",
-      "coordinate sensors"
+      "supported pickup table"
     ],
     "machineGuide": {
-      "purpose": "Symbolic palletizing cell: manual carton/home/pallet permissives drive XY gantry command motion and a four-pick layer count. Reset starts a new layer.",
+      "purpose": "Four-carton palletizing lesson: supported pickup, PLC-commanded vacuum, carried cartons, placement feedback and home return. Start one carton at a time; Reset starts a new layer.",
       "startConditions": [
-        "The common PLC/watchdog foundation is healthy.",
-        "All required simulator inputs are at their documented initial state."
+        "Select the built-in offline controller; no PLC connection is required.",
+        "The pickup carton is present, the gantry is home, and the pallet permissive is true."
       ],
       "normalSequence": [
-        "Run the simulator; enable gantry home and pallet-position valid, then present a carton.",
-        "Keep the carton permissive true for at least 750 ms to count one pick. Clear it before presenting the next carton.",
-        "After four picks the layer-complete lamp turns on and gantry/vacuum commands stop. Reset clears the count for a new layer."
+        "Run, then Start the preloaded carton. After home return, Load next carton and Start again.",
+        "The gantry lowers onto the carton, dwells 750 ms, picks up, carries to the next pallet slot, releases on the pallet, and returns home.",
+        "Repeat Load then Start for cartons 2-4. The layer-complete lamp follows the fourth completed home return."
       ],
       "stopBehavior": [
-        "Removing the permissive removes PLC-owned commands.",
-        "Reset returns the module to its initial state."
+        "Stop freezes pose and attachment, clears output commands, and preserves the placed cartons. Run then fresh Start resumes the held carton.",
+        "Removing the pallet permissive freezes the cycle. Restore it and press Start to resume. Reset clears the layer and restores the preloaded pickup carton."
       ],
       "faultBehavior": [
-        "A missing or stale input must fail safe and remain diagnosable."
+        "Vacuum loss during commanded carry latches a fault. Reset restores the initial lesson. Offline pause retains attachment without modelling gravity."
       ],
       "expectedObservations": [
-        "The three gantry axes move only while gantry_cycle is true and playback is running. Stop freezes the pose; Reset restores it.",
-        "Home, carton and pallet inputs are manually supplied permissives. The sweep is a command visualization; it does not generate physical position or pick-complete feedback."
+        "The pickup carton remains on a table until attached. Carried cartons follow the tool; released cartons remain on four separate pallet slots.",
+        "Home is generated from the completed home return. The placement counter advances after actual release and home return."
       ]
     },
     "sequenceNumber": 69,
@@ -408,7 +447,15 @@
       "pallet_position_valid",
       "vacuum_pick",
       "gantry_cycle",
-      "layer_complete"
+      "layer_complete",
+      "start_command",
+      "at_pickup",
+      "at_place",
+      "carton_attached",
+      "pick_complete",
+      "cycle_in_progress",
+      "palletizer_fault",
+      "placed_cartons"
     ],
     "changedTags": [],
     "previousAcceptance": [

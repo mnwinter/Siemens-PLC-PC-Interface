@@ -1,6 +1,60 @@
 # Whole program review - 2026-10-03
 
-Demo 5 normal realtime baseline (2026-10-06, current review checkpoint):
+Demo 5 supported four-carton repair (2026-10-06, current checkpoint):
+replaced the autonomous illustrative sweep with one fixed kinematic plant driven
+by the normal 20 ms ladder clock. A receiving/pick table joins the narrower
+conveyor at Y=1.055 within gantry reach. Cartons attach at pickup, travel with
+the tool, release onto four pallet slots and remain visible. Home, pickup,
+placement, attachment, completion, progress and inventory come from plant state;
+manual home/carton toggles are removed. START / LOAD / PALLET labels match actions.
+Four actual placement/home returns drive CTU and layer completion. Demo-menu
+and saved Demo 5 documents match; two FBs, two FCs, two declaration DBs, TON,
+CTU, comparison, edge and math coverage remain. DB14/shared delivery assets unchanged.
+
+Completion is retained across Load until the next accepted cycle. Regressions
+exercise operator Load with and without fresh Start in the exact one-scan gap
+before CTU sees home-return feedback. Stop discards unscanned Start, freezes
+pose/inventory and clears commands; Run alone holds, fresh Start resumes.
+Rejected Load now shows home/empty-station/layer requirements in native status
+and event history instead of failing silently.
+
+Final deterministic evidence: build 0 warnings/errors; controller 144/144;
+focused palletizer 58/58 including review clock; 2,576 actual 20 ms route samples;
+0 coarse static bounds candidates; general geometry/workflow 528/528; plant
+motion 77/77; shell 77 scenes / 294 assets / 5 demos PASS; help 77/294 valid.
+Moving bridge/carriage/rod/tool are checked against posts, other equipment and
+visible placed stock; carton bounds against fixed solids, pallet bearing,
+tool contact and telescopic-rod/carriage bearing are sampled through four routes.
+These are selected sampled bounds and prescribed kinematics, not full swept
+volume, collision response, force, vacuum-pressure, gravity/drop, automatic
+conveyor feeding, physical PLC, commissioning or safety acceptance.
+
+Native first pass (1602x932, .tools/palletizer-native.log): normal Run/Start and
+three Load/Start actions completed four cartons, home true, commands false and
+layer_complete true. Inspected first release in all FR/FL/RL/RR/Top views,
+attached second carton in FL/FR, and retained four-carton layer in all five views.
+Stop during attached transfer cleared commands; Run plus 25 scans held pose;
+fresh Start resumed and release retained both cartons. Reset restored one pickup
+carton, empty pallet and stopped scan 0. Rear-left robot partially occludes the
+gantry; other views resolve contact/clearance. Overhead bridge partly hides one
+carton in some phases. Native screenshots were individually inspected; no
+claim of every-frame multi-angle capture. This pass preceded completion-latch
+and blocked-Load status fixes; final code was separately retested below.
+
+Final native code pass (.tools/palletizer-native-final.log): Run alone held;
+Start plus three Load/Start actions completed four actual transfers. Home/placed
+snapshots: 1 at scan 1745/34.90 s, 2 at 4295/85.90 s, 3 at 7040/140.80 s,
+4 at 9642/192.84 s. Layer completion true observed at 10099/201.98 s.
+Final layer inspected Top 9642, FR 10443, FL 10894, RL 11285, RR 11757;
+RL robot partially occludes contact. Duplicate and fifth Load displayed the
+rejection reason without changing stock. Reset restored home/preloaded carton,
+empty pallet, all outputs false and stopped scan 0. Native exited code 0.
+
+The whole-program goal remains active. Next recorded gap is Scene 74 continuous
+native stroke review; other catalog process/model/controller gaps remain.
+Older Demo 5 baseline below records superseded behavior and historical evidence.
+
+Demo 5 normal realtime baseline (2026-10-06, superseded pre-repair checkpoint):
 launched the native Windows operator application at 1602x932 with review cameras
 but Hold OFF. Enabled the three existing manual permissives, then normal Run
 loaded the authored Demo 5 program. Running snapshots were inspected in FR

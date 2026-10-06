@@ -145,6 +145,7 @@ public partial class Main : Node3D
         _auditRobotCnc = userArguments.Contains("--audit-robot-cnc", StringComparer.Ordinal);
         _auditRobotRestart = userArguments.Contains("--audit-robot-restart", StringComparer.Ordinal);
         _auditSequenceTower = userArguments.Contains("--audit-sequence-tower", StringComparer.Ordinal);
+        _auditPalletizer = userArguments.Contains("--audit-palletizer", StringComparer.Ordinal);
         _auditCableCut = userArguments.Contains("--audit-cable-cut", StringComparer.Ordinal);
         _auditBarrelFill = userArguments.Contains("--audit-barrel-fill", StringComparer.Ordinal);
         _auditCookiePackaging = userArguments.Contains("--audit-cookie-packaging", StringComparer.Ordinal);
@@ -169,7 +170,7 @@ public partial class Main : Node3D
         _mcpSceneId = userArguments
             .FirstOrDefault(argument => argument.StartsWith("--mcp-scene=", StringComparison.Ordinal))?
             .Substring("--mcp-scene=".Length);
-        _appShellRequested = _reportSceneGeometry || _verifySceneGeometry || _verifyToteFinishing || _auditDualSpindle || _auditRobotCnc || _auditRobotRestart || _auditSequenceTower || _auditChainLiftInstallation || _auditCookiePackaging || _auditBarrelFill || _auditCableCut || _verifyCartonStaticRoutes || (_visualSceneReview && !_visualPlantReview) || _verifyAppShell || _verifyExternalDialog || _verifyExternalPlayback || _verifyPlantMotion || _verifyWorkspace || _verifyHud || _verifyCameraInput || _verifySceneControls
+        _appShellRequested = _reportSceneGeometry || _verifySceneGeometry || _verifyToteFinishing || _auditDualSpindle || _auditRobotCnc || _auditRobotRestart || _auditSequenceTower || _auditChainLiftInstallation || _auditCookiePackaging || _auditBarrelFill || _auditCableCut || _auditPalletizer || _verifyCartonStaticRoutes || (_visualSceneReview && !_visualPlantReview) || _verifyAppShell || _verifyExternalDialog || _verifyExternalPlayback || _verifyPlantMotion || _verifyWorkspace || _verifyHud || _verifyCameraInput || _verifySceneControls
             || _verifyVirtualController || _verifyNumericSceneIo || _verifyLadderEditor || _verifySplitView || _verifyUiDensity || _virtualControllerDemo
             || userArguments.Contains("--app-shell", StringComparer.Ordinal);
         if (_visualPlantReview && (_sceneId is null || _appShellRequested || _verifySceneContract))
@@ -534,6 +535,10 @@ public partial class Main : Node3D
         else if (_auditSequenceTower)
         {
             CallDeferred(nameof(AuditSequenceTower));
+        }
+        else if (_auditPalletizer)
+        {
+            CallDeferred(nameof(AuditPalletizer));
         }
         else if (_auditCableCut)
         {
@@ -4041,7 +4046,9 @@ public partial class Main : Node3D
             _simulatorShell?.SetWorkspaceStatus($"Action blocked · {reason}", isError: true);
             return false;
         }
-        if (!_sceneRuntime.CanExecuteAction(action)) return Block("scene permissives are not satisfied; reset before restarting");
+        if (!_sceneRuntime.CanExecuteAction(action)) return Block(type == "palletizerLoad"
+            ? "Load requires home, an empty pickup station, and space in the layer; Reset after four cartons or a fault"
+            : "scene permissives are not satisfied; reset before restarting");
         if (_simulatorShell?.IsExternalMode == true)
         {
             // Only declared simulator feedback may change here. There is no

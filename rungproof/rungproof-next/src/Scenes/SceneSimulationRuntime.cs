@@ -69,6 +69,7 @@ public partial class SceneSimulationRuntime : Node
         if (selected && !running) PauseCookieClock();
         if (selected && !running) PauseBarrelClock();
         if (selected && !running) PauseCableClock();
+        if (selected && !running) PausePalletizerClock();
         if (selected && running) ApplyBindings();
     }
 
@@ -93,6 +94,7 @@ public partial class SceneSimulationRuntime : Node
         if (!running) PauseCookieClock();
         if (!running) PauseBarrelClock();
         if (!running) PauseCableClock();
+        if (!running) PausePalletizerClock();
         if (RuntimeType == "tank") ProjectTankState();
     }
 
@@ -131,7 +133,8 @@ public partial class SceneSimulationRuntime : Node
         return action.ValueKind == JsonValueKind.Object;
     }
 
-    public bool CanExecuteAction(JsonElement action) => RequirementsSatisfied(action);
+    public bool CanExecuteAction(JsonElement action) => RequirementsSatisfied(action)
+        && (Text(action, "type", "") != "palletizerLoad" || _palletizer?.CanLoadCarton == true);
     public bool IsPlcOwnedPoint(string point) =>
         string.Equals(_pointOwners.GetValueOrDefault(point), "PLC", StringComparison.OrdinalIgnoreCase);
 
@@ -192,6 +195,7 @@ public partial class SceneSimulationRuntime : Node
         if (HasCookiePackagingPlant) { AdvanceCookiePackagingPlant(delta); return; }
         if (HasBarrelFillPlant) { AdvanceBarrelFillPlant(delta); return; }
         if (HasCableCutPlant) { AdvanceCableCutPlant(delta); return; }
+        if (HasPalletizerPlant) { AdvancePalletizerPlant(delta); return; }
 
         if (HasBottleShuttleReference)
         {
@@ -449,6 +453,7 @@ public partial class SceneSimulationRuntime : Node
         ResetCookiePackagingPlant();
         ResetBarrelFillPlant();
         ResetCableCutPlant();
+        ResetPalletizerPlant();
         EvaluateRules();
         ApplyBindings();
         if (RuntimeType == "tank") ProjectTankState();
@@ -475,6 +480,7 @@ public partial class SceneSimulationRuntime : Node
         var point = Text(action, "point", string.Empty);
         var result = type switch
         {
+            "palletizerLoad" => LoadPalletizerCarton(),
             "start" => StartSequence(Text(action, "sequence", string.Empty)),
             "run" => RunDefault(),
             "stop" => StopAction(),

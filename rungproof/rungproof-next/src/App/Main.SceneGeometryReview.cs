@@ -257,97 +257,10 @@ public partial class Main
     {
         try
         {
-            AddMigratedScene("lab-11-13-xy-palletizing", _candidateCatalog!, _mainCamera!, false, false);
-            var root = _sceneCompositionRoot!;
-            var gantry = root.GetNode<Node3D>("training_accessory_4");
-            var pallet = root.GetNode<Node3D>("training_accessory_6");
-            var carton = root.GetNode<Node3D>("box_2");
-            var conveyor = root.GetNode<Node3D>("conveyor_1");
-            var staticCandidates = LogBoundsCandidates(root);
-            var palletBounds = ReviewBounds(pallet);
-            var cartonBounds = ReviewBounds(carton);
-            foreach (var mesh in ReviewMeshes(gantry))
-                GD.Print($"GEOMETRY_MESH {mesh.Name} {ReviewBounds(mesh)}");
-            GD.Print($"GEOMETRY_PALLET {palletBounds}");
-            GD.Print($"GEOMETRY_CARTON {cartonBounds}");
             var passed = true;
             void Check(bool condition, string label)
-            {
-                passed &= condition;
-                GD.Print($"SCENE_GEOMETRY_CHECK {label}={condition}");
-            }
-            Check(staticCandidates == 0, "demo5_static_equipment_clearance_screen");
-            Check(new[] { ("switch_9", "CARTON"), ("switch_10", "HOME"), ("switch_11", "PALLET") }
-                .All(item => root.GetNode<Node3D>(item.Item1).GetNodeOrNull<Label3D>("OperatorFaceLabel")?.Text == item.Item2),
-                "demo5_manual_permissive_button_plates_identify_their_actual_functions");
-            var posts = ReviewMeshes(gantry).Where(mesh => mesh.Name.ToString().StartsWith("GANTRY_POST", StringComparison.Ordinal)).ToArray();
-            Check(posts.Length == 4 && posts.All(post => !ReviewBounds(post).Intersects(palletBounds)), "pallet_clear_of_all_four_gantry_posts");
-            var deck = ReviewMeshes(conveyor).Where(mesh => mesh.Name.ToString().Contains("belt_surface", StringComparison.OrdinalIgnoreCase)).ToArray();
-            foreach (var mesh in ReviewMeshes(conveyor)) GD.Print($"GEOMETRY_CONVEYOR {mesh.Name} {ReviewBounds(mesh)}");
-            Check(deck.Length > 0 && deck.Any(mesh =>
-            {
-                var bounds = ReviewBounds(mesh);
-                return cartonBounds.Position.X >= bounds.Position.X && cartonBounds.End.X <= bounds.End.X
-                    && cartonBounds.Position.Z >= bounds.Position.Z && cartonBounds.End.Z <= bounds.End.Z
-                    && MathF.Abs(cartonBounds.Position.Y - bounds.End.Y) < 0.015f;
-            }), "carton_supported_on_conveyor_deck");
-            var rod = gantry.FindChildren("KIN_Z_AXIS*", "Node3D", true, false).OfType<Node3D>().First();
-            var tool = gantry.FindChildren("GANTRY_GRIPPER*", "Node3D", true, false).OfType<Node3D>().First();
-            var relative = tool.GlobalPosition - rod.GlobalPosition;
-            var authoredTool = tool.Transform;
-            var motion = gantry.GetNode<EquipmentMotionController>("GantryCommandMotion");
-            motion.Run();
-            var sweepClear = true;
-            var attached = true;
-            var toolMoved = false;
-            var moving = ReviewMeshes(gantry).Where(mesh => mesh == rod || mesh == tool
-                || mesh.Name.ToString().StartsWith("KIN_X_BRIDGE", StringComparison.Ordinal)
-                || mesh.Name.ToString().StartsWith("KIN_Y_CARRIAGE", StringComparison.Ordinal)).ToArray();
-            var otherEquipment = root.GetChildren().OfType<Node3D>().Where(node => node != gantry)
-                .SelectMany(ReviewMeshes).ToArray();
-            var allMovingClear = true;
-            var toolAbovePallet = true;
-            var rodSeated = true;
-            var carriageSupported = true;
-            var bridge = moving.Single(mesh => mesh.Name.ToString().StartsWith("KIN_X_BRIDGE", StringComparison.Ordinal));
-            var carriage = moving.Single(mesh => mesh.Name.ToString().StartsWith("KIN_Y_CARRIAGE", StringComparison.Ordinal));
-            for (var step = 0; step < 150; step++)
-            {
-                motion._PhysicsProcess(0.02);
-                attached &= (tool.GlobalPosition - rod.GlobalPosition).IsEqualApprox(relative);
-                toolMoved |= tool.Transform != authoredTool;
-                sweepClear &= posts.All(post => !ReviewBounds(post).Intersects(ReviewBounds(tool)));
-                allMovingClear &= moving.All(part => otherEquipment.Concat(posts).All(other =>
-                {
-                    var overlap = ReviewBounds(part).Intersection(ReviewBounds(other)).Size;
-                    return overlap.X <= 0.005f || overlap.Y <= 0.005f || overlap.Z <= 0.005f
-                        || !OrientedBoxesPenetrate(part, other);
-                }));
-                toolAbovePallet &= ReviewBounds(tool).Position.Y > palletBounds.End.Y + 0.005f;
-                rodSeated &= ReviewBounds(rod).Intersects(ReviewBounds(carriage))
-                    && ReviewBounds(rod).Intersects(ReviewBounds(tool));
-                var carriageBounds = ReviewBounds(carriage);
-                var bridgeBounds = ReviewBounds(bridge);
-                carriageSupported &= carriageBounds.Position.Z >= bridgeBounds.Position.Z
-                    && carriageBounds.End.Z <= bridgeBounds.End.Z
-                    && carriageBounds.GetCenter().X >= bridgeBounds.Position.X
-                    && carriageBounds.GetCenter().X <= bridgeBounds.End.X
-                    && carriageBounds.Intersects(bridgeBounds);
-            }
-            Check(attached && toolMoved, "gripper_follows_z_axis_through_complete_sweep");
-            Check(sweepClear, "gripper_sweep_clear_of_posts");
-            Check(moving.Length == 4 && allMovingClear, "demo5_all_four_moving_parts_clear_posts_and_separate_equipment_through_sweep");
-            Check(toolAbovePallet, "demo5_sweep_tool_stays_above_empty_pallet_surface");
-            Check(rodSeated, "demo5_sweep_rod_remains_seated_in_carriage_and_tool");
-            Check(carriageSupported, "demo5_sweep_carriage_stays_supported_within_bridge_span");
-            motion._PhysicsProcess(0.37);
-            motion.Stop();
-            var heldTool = tool.Transform;
-            motion._PhysicsProcess(0.4);
-            Check(tool.Transform == heldTool, "gripper_holds_with_stopped_axes");
-            motion.ResetMotion();
-            Check(tool.Transform == authoredTool, "gripper_reset_restores_attached_authored_pose");
-
+            { passed &= condition; GD.Print($"SCENE_GEOMETRY_CHECK {label}={condition}"); }
+            VerifyPalletizerWorkflow(Check);
             AddMigratedScene("lab-11-19-powder-batch-mixer", _candidateCatalog!, _mainCamera!, false, false);
             var mixer = _sceneCompositionRoot!;
             Check(LogBoundsCandidates(mixer) == 0, "mixer_static_equipment_clearance_screen");

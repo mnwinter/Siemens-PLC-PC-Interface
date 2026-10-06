@@ -20,8 +20,8 @@ public partial class Main
     private bool _gantryReviewStepping;
     private bool _gantryReviewOperatorView = true;
 
-    // Scoped to reviewed offline clock implementations: the autonomous
-    // gantry adapter and the single-clock chain lift / cookie / barrel / cable plants. Other scenes may
+    // Scoped to reviewed offline clock implementations: the
+    // single-clock palletizer / chain lift / cookie / barrel / cable plants. Other scenes may
     // have separate callbacks; this is not a general external PLC step.
     private bool CanReviewGantryClock => _visualSceneReview && !_visualPlantReview
         && _currentSceneId is "lab-11-13-xy-palletizing" or "lab-4-09-chain-drive-lift" or "lab-4-10-cookie-packaging" or "lab-4-11-barrel-fill-station" or "lab-4-12-cable-cut-length"
@@ -97,19 +97,16 @@ public partial class Main
         if (!CanReviewGantryClock || !GantryReviewClockHeld
             || _virtualController?.Snapshot.State != VirtualControllerState.Running) return;
         var chainLift = _currentSceneId == "lab-4-09-chain-drive-lift";
-        var indexedPlant = _currentSceneId is "lab-4-10-cookie-packaging" or "lab-4-11-barrel-fill-station" or "lab-4-12-cable-cut-length";
-        var motion = indexedPlant ? null : chainLift ? _sceneCompositionRoot!.GetNode<Node3D>("liftTable_1").GetNode<EquipmentMotionController>("ChainLiftMotion")
-            : _sceneCompositionRoot!.GetNode<Node3D>("training_accessory_4").GetNode<EquipmentMotionController>("GantryCommandMotion");
+        var motion = chainLift ? _sceneCompositionRoot!.GetNode<Node3D>("liftTable_1").GetNode<EquipmentMotionController>("ChainLiftMotion") : null;
         _gantryReviewStepping = true;
         try
         {
             // Preserve the existing input -> ladder -> output -> plant path,
             // at the authored 20 ms scan cadence. The disabled parent prevents
             // Godot from also advancing autonomous equipment during inspection.
-            for (var tick = 0; tick < (_currentSceneId == "lab-4-12-cable-cut-length" ? 25 : chainLift || indexedPlant ? 100 : 25); tick++)
+            for (var tick = 0; tick < (_currentSceneId is "lab-4-12-cable-cut-length" or "lab-11-13-xy-palletizing" ? 25 : 100); tick++)
             {
                 _PhysicsProcess(0.02);
-                if (!chainLift && !indexedPlant && motion!.IsPhysicsProcessing()) motion._PhysicsProcess(0.02);
             }
         }
         finally { _gantryReviewStepping = false; }
@@ -125,6 +122,11 @@ public partial class Main
         if (_gantryReviewClockLabel is null) return;
         var motion = _sceneCompositionRoot?.FindChildren("*", string.Empty, true, false)
             .OfType<EquipmentMotionController>().FirstOrDefault(item => item is ChainLiftDriveVisual || item.Kind == EquipmentMotionController.MotionKind.CartesianGantry);
+        if (_currentSceneId == "lab-11-13-xy-palletizing")
+        {
+            _gantryReviewClockLabel.Text = $"QA | {(_virtualController?.Snapshot.SimulatedTime.TotalSeconds ?? 0):F2} s | placed {_sceneRuntime?.Points.GetValueOrDefault("placed_cartons") ?? 0} | home {_sceneRuntime?.Points.GetValueOrDefault("gantry_home") ?? false}";
+            return;
+        }
         if (_currentSceneId == "lab-4-12-cable-cut-length")
         {
             _gantryReviewClockLabel.Text = $"QA | {(_virtualController?.Snapshot.SimulatedTime.TotalSeconds ?? 0):F2} s | length {_sceneRuntime?.Points.GetValueOrDefault("measured_length_m") ?? 0:0.00} m | blade {_sceneRuntime?.Points.GetValueOrDefault("cutter_position") ?? 0:0.00}";
@@ -145,65 +147,18 @@ public partial class Main
 
     private void VerifyGantryReviewClock(Action<bool, string> check)
     {
-        var root = _sceneCompositionRoot!;
-        var runtime = _sceneRuntime!;
-        var rootMode = root.ProcessMode;
-        var runtimeMode = runtime.ProcessMode;
-        var motion = root.GetNode<Node3D>("training_accessory_4").GetNode<EquipmentMotionController>("GantryCommandMotion");
-        var axes = root.GetNode<Node3D>("training_accessory_4").FindChildren("KIN_*", string.Empty, true, false)
-            .OfType<Node3D>().ToArray();
-        var home = axes.Select(axis => axis.Transform).ToArray();
-        SetGantryReviewClockHeld(true);
-        runtime.ExecuteAction("toggle-gantry_home");
-        runtime.ExecuteAction("toggle-pallet_position_valid");
-        runtime.ExecuteAction("toggle-carton_at_pick");
-        RunActiveController();
-        var scans = _virtualController!.Snapshot.ScanNumber;
-        _PhysicsProcess(5);
-        check(GantryReviewClockHeld && !motion.CanProcess()
-            && _virtualController.Snapshot.ScanNumber == scans
-            && axes.Select((axis, index) => axis.Transform == home[index]).All(held => held),
-            "demo5_review_hold_freezes_controller_and_native_equipment_clock");
-        var matches = true;
-        foreach (var expected in new[] { 25f, 75f, 100f, 75f, 25f, 0f })
-        {
-            StepGantryReviewClock();
-            matches &= Math.Abs(motion.PositionPercent - expected) < 0.01f;
-        }
-        check(matches && _virtualController.Snapshot.ScanNumber == scans + 150
-            && Math.Abs(_virtualController.Snapshot.SimulatedTime.TotalSeconds - 3) < 1e-6,
-            "demo5_review_steps_actual_ladder_and_complete_gantry_sweep_at_twenty_ms_cadence");
+        var root = _sceneCompositionRoot!; var runtime = _sceneRuntime!;
+        var rootMode = root.ProcessMode; var runtimeMode = runtime.ProcessMode;
+        SetGantryReviewClockHeld(true); RunActiveController(); StepGantryReviewClock(); runtime.ExecuteAction("start-palletizer");
+        var scans = _virtualController!.Snapshot.ScanNumber; _PhysicsProcess(5);
+        check(GantryReviewClockHeld && _virtualController.Snapshot.ScanNumber == scans, "review_hold_freezes_single_controller_and_plant_clock");
         StepGantryReviewClock();
-        StopActiveController();
-        var stopped = axes.Select(axis => axis.Transform).ToArray();
-        scans = _virtualController.Snapshot.ScanNumber;
-        StepGantryReviewClock();
-        check(_virtualController.Snapshot.ScanNumber == scans
-            && axes.Select((axis, index) => axis.Transform == stopped[index]).All(held => held),
-            "demo5_review_step_cannot_move_stopped_controller");
-        RunActiveController();
-        runtime.ExecuteAction("toggle-gantry_home");
-        StepGantryReviewClock();
-        check(!motion.RunCommand && axes.Select((axis, index) => axis.Transform == stopped[index]).All(held => held),
-            "demo5_review_step_respects_actual_ladder_permissive");
+        check(_virtualController.Snapshot.ScanNumber == scans + 25 && Math.Abs(_virtualController.Snapshot.SimulatedTime.TotalSeconds - 1.0) < 1e-6 && runtime.Points["gantry_home"] is false, "review_step_runs_twenty_five_actual_scans_and_position_feedback");
+        StopActiveController(); scans = _virtualController.Snapshot.ScanNumber; StepGantryReviewClock();
+        check(_virtualController.Snapshot.ScanNumber == scans, "review_step_cannot_advance_stopped_controller");
         ResetActiveController();
-        check(GantryReviewClockHeld && _virtualController.Snapshot.ScanNumber == 0
-            && runtime.Points["gantry_home"] is false
-            && axes.Select((axis, index) => axis.Transform == home[index]).All(reset => reset),
-            "demo5_review_reset_restores_home_and_feedback_while_clock_held");
+        check(GantryReviewClockHeld && runtime.Points["gantry_home"] is true && _virtualController.Snapshot.ScanNumber == 0, "review_reset_restores_actual_home_while_held");
         ReleaseGantryReviewClock();
-        runtime.ExecuteAction("toggle-gantry_home");
-        runtime.ExecuteAction("toggle-pallet_position_valid");
-        runtime.ExecuteAction("toggle-carton_at_pick");
-        RunActiveController();
-        _PhysicsProcess(0.02);
-        check(!GantryReviewClockHeld && root.ProcessMode == rootMode && runtime.ProcessMode == runtimeMode
-            && motion.CanProcess() && _virtualController.Snapshot.ScanNumber == 1,
-            "demo5_review_release_restores_native_processing_and_controller_cadence");
-        SetGantryReviewClockHeld(true);
-        AddMigratedScene("scene-2-conveyor-pusher", _candidateCatalog!, _mainCamera!, false, false);
-        check(!GantryReviewClockHeld && root.ProcessMode == rootMode && runtime.ProcessMode == runtimeMode
-            && _gantryReviewClockBar?.Visible == false,
-            "demo5_review_scene_change_releases_old_clock_and_hides_gantry_controls");
+        check(root.ProcessMode == rootMode && runtime.ProcessMode == runtimeMode, "review_release_restores_native_process_modes");
     }
 }

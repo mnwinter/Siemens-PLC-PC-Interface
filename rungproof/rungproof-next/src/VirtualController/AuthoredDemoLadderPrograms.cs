@@ -141,6 +141,9 @@ public static class AuthoredDemoLadderPrograms
         document.AddTag("vacuum_pick", PlcVariableRole.Output, "vacuum_pick");
         document.AddTag("gantry_cycle", PlcVariableRole.Output, "gantry_cycle");
         document.AddTag("layer_complete", PlcVariableRole.Output, "layer_complete");
+        foreach (var input in new[] { "start_command", "at_pickup", "at_place", "carton_attached", "pick_complete", "cycle_in_progress", "palletizer_fault" })
+            document.AddTag(input, PlcVariableRole.Input, input);
+        document.AddTag("placed_cartons", PlcVariableRole.Input, "placed_cartons", type: PlcVariableType.DInt);
         document.AddTag("cell_permissive", PlcVariableRole.Memory);
         document.AddTag("pick_permissive", PlcVariableRole.Memory);
         document.AddTag("sequence_ready", PlcVariableRole.Memory);
@@ -152,8 +155,8 @@ public static class AuthoredDemoLadderPrograms
         document.AddTag("cycle_count", PlcVariableRole.Memory, type: PlcVariableType.Counter);
         document.WatchVariables.AddRange(["carton_at_pick", "gantry_home", "pallet_position_valid", "vacuum_pick", "gantry_cycle", "layer_complete", "layer_count", "cycle_count", "cell_active", "position_sum"]);
 
-        var safety = document.AddBlock("FB_SafetyInterlock", LadderBlockType.FunctionBlock);
-        document.AddInterfaceParameter(safety.Id, "GantryHome", PlcVariableType.Bool, LadderInterfaceSection.Input);
+        var safety = document.AddBlock("FB_CellPermissive", LadderBlockType.FunctionBlock);
+        document.AddInterfaceParameter(safety.Id, "PlantFault", PlcVariableType.Bool, LadderInterfaceSection.Input);
         document.AddInterfaceParameter(safety.Id, "PalletValid", PlcVariableType.Bool, LadderInterfaceSection.Input);
         document.AddInterfaceParameter(safety.Id, "Permissive", PlcVariableType.Bool, LadderInterfaceSection.Output);
         document.AddInterfaceParameter(safety.Id, "TripLatched", PlcVariableType.Bool, LadderInterfaceSection.Static);
@@ -183,55 +186,63 @@ public static class AuthoredDemoLadderPrograms
         document.AddInterfaceParameter(diagnostics.Id, "layer_complete", PlcVariableType.Bool, LadderInterfaceSection.Static);
 
         document.SelectBlock(1);
-        document.AddRung("Home and pallet permissive", "cell_permissive");
-        document.AddContact(0, 0, "gantry_home", false);
+        // Home gates a new pick, not an entire moving cycle. A genuine home
+        // sensor goes false as soon as the gantry leaves the pickup station.
+        document.AddRung("Pallet and plant permissive", "cell_permissive");
         document.AddContact(0, 0, "pallet_position_valid", false);
+        document.AddContact(0, 0, "palletizer_fault", true);
 
         document.SelectBlock(2);
-        document.AddRung("Pick command", "pick_permissive");
-        document.AddContact(0, 0, "cell_permissive", false);
+        document.AddRung("Accept fresh Start at home or resume held carton", "pick_permissive");
+        document.InsertEdgeContact(0, 0, 0, "start_command", LadderEdgeMode.Rising);
+        document.AddContact(0, 0, "gantry_home", false);
         document.AddContact(0, 0, "carton_at_pick", false);
-        // Finish one four-carton layer and require Reset before another layer.
-        // Held carton feedback must not issue a fifth pick after completion.
+        document.AddContact(0, 0, "cell_permissive", false);
         document.AddComparison(0, 0, "cycle_count.ACC", LadderCompareOperator.LessThan, "4");
+        document.AddParallelBranch(0);
+        document.InsertEdgeContact(0, 1, 0, "start_command", LadderEdgeMode.Rising);
+        document.AddContact(0, 1, "cycle_in_progress", false);
+        document.AddContact(0, 1, "cell_permissive", false);
+        document.AddComparison(0, 1, "cycle_count.ACC", LadderCompareOperator.LessThan, "4");
 
         document.SelectBlock(3);
         document.AddRung("Sequence ready", "sequence_ready");
         document.AddContact(0, 0, "cell_permissive", false);
-
         document.SelectBlock(4);
         document.AddNumericOperationRung("Add layer position", LadderNumericOperationKind.Add, "layer_count", "1", "position_sum");
         document.AddContact(0, 0, "sequence_ready", false);
 
         document.SelectBlock(0);
-        // Scan permissive-producing blocks even when their inputs are false.
-        // Skipping a call retains its previous memory and can leave commands on.
-        document.AddRung("Safety interlock block call", string.Empty);
-        document.AddContact(0, 0, "always_scan", false);
-        document.Rungs[0].IsCall = true;
-        document.Rungs[0].CallTarget = safety.Id;
-        document.AddRung("Pick and place block call", string.Empty);
-        document.AddContact(1, 0, "always_scan", false);
-        document.Rungs[1].IsCall = true;
-        document.Rungs[1].CallTarget = pick.Id;
-        document.AddRung("Sequence supervisor function call", string.Empty);
-        document.AddContact(2, 0, "always_scan", false);
-        document.Rungs[2].IsCall = true;
-        document.Rungs[2].CallTarget = sequence.Id;
-        document.AddRung("Inspection math function call", string.Empty);
-        document.AddContact(3, 0, "always_scan", false);
-        document.Rungs[3].IsCall = true;
-        document.Rungs[3].CallTarget = math.Id;
-        document.AddRung("Gantry cycle command", "gantry_cycle");
-        document.AddContact(4, 0, "pick_permissive", false);
-        document.AddRung("Vacuum pick command", "vacuum_pick");
-        document.AddContact(5, 0, "pick_permissive", false);
+        AddAlwaysScannedCall(document, "Permissive block call", safety.Id);
+        AddAlwaysScannedCall(document, "Pick and place block call", pick.Id);
+        AddAlwaysScannedCall(document, "Sequence supervisor function call", sequence.Id);
+        AddAlwaysScannedCall(document, "Inspection math function call", math.Id);
+        document.AddCounterRung("Count placement and home-return feedback", "cycle_count", 4);
+        document.AddContact(4, 0, "pick_complete", false);
         document.AddRung("Layer completion output", "layer_complete");
-        document.AddComparison(6, 0, "cycle_count.ACC", LadderCompareOperator.GreaterOrEqual, "4");
-        document.AddTimerRung("Pick dwell timer", "pick_timer", TimeSpan.FromMilliseconds(750));
-        document.AddContact(7, 0, "pick_permissive", false);
-        document.AddCounterRung("Count completed picks", "cycle_count", 4);
-        document.AddContact(8, 0, "pick_timer.Q", false);
+        document.AddComparison(5, 0, "cycle_count.ACC", LadderCompareOperator.GreaterOrEqual, "4");
+        document.AddRung("Gantry cycle latch; Stop clears this output", "gantry_cycle");
+        foreach (var (branch, request) in new[] { (0, "pick_permissive"), (1, "gantry_cycle") })
+        {
+            if (branch == 1) document.AddParallelBranch(6);
+            document.AddContact(6, branch, request, false);
+            document.AddContact(6, branch, "cell_permissive", false);
+            // A fresh Start may accept the next staged carton in the same
+            // scan that the earlier CTU consumes the retained completion.
+            if (branch == 1) document.AddContact(6, branch, "pick_complete", true);
+            document.AddContact(6, branch, "layer_complete", true);
+        }
+        document.AddTimerRung("Vacuum pickup dwell", "pick_timer", TimeSpan.FromMilliseconds(750));
+        document.AddContact(7, 0, "gantry_cycle", false);
+        document.AddContact(7, 0, "at_pickup", false);
+        document.AddRung("Vacuum after dwell; release only at supported place", "vacuum_pick");
+        foreach (var (branch, condition) in new[] { (0, "pick_timer.Q"), (1, "carton_attached") })
+        {
+            if (branch == 1) document.AddParallelBranch(8);
+            document.AddContact(8, branch, condition, false);
+            document.AddContact(8, branch, "gantry_cycle", false);
+            document.AddContact(8, branch, "at_place", true);
+        }
         document.AddNumericOperationRung("Advance layer count", LadderNumericOperationKind.Add, "layer_count", "1", "layer_count");
         document.InsertEdgeContact(9, 0, 0, "layer_complete", LadderEdgeMode.Rising);
         document.AddRung("Cell active status: either commanded actuator", "cell_active");
