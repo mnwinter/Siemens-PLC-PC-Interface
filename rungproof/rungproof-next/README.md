@@ -110,7 +110,25 @@ Old projects must rebind removed `channel_*_ready` / `button_*_pattern_ok` input
 to the raw press/reset inputs and new typed PLC count outputs documented in help.
 Both lessons were operated in native Windows and inspected from FR/FL/RL/RR/Top.
 
-`-- --verify-scene-geometry` runs 613 focused geometry/workflow checks with `--visual-scene-review` for Demo 5 supported pickup, four-carton placement, moving clearance and attachment,
+`-- --audit-parking-entry` runs 27 focused Scene 48 checks with 6,366 sampled
+poses and writes ignored `.tools/plant-review-parking-entry.rpproj.json`.
+Open that six-rung QA project explicitly through File -> Open Ladder Agent
+Project. Two CTUs count actual fully parked arrival and fully completed exit
+edges; subtraction publishes PLC-owned DINT occupancy. The original scene uses
+four scoped Blender/glTF models, two supported bays, actual hinged boom and
+position-derived sensors. Capacity two, 1 m/s route and one-second boom stroke
+are declared offline training choices. Cars remain visible after parking or
+departure; REMOVE clears only a fully departed car, and reentry reuses it.
+Enable/path loss holds movement; the occupied-passage boom guard is an offline
+collision constraint. Stop clears the PLC output image/readout while retaining
+the physical lot and CTUs; Run republishes the count. Application Reset empties
+the lot and stays stopped. Old projects must rebind the new points from scene
+help. The default editor remains empty and the demo catalog stays at five.
+Native Windows five-angle and operator checks cover approach, partial boom,
+crossing, parking, full capacity, departure, removal and Stop/Run/Reset.
+This does not establish vehicle physics, barrier safety or live commissioning.
+
+`-- --verify-scene-geometry` runs 637 focused geometry/workflow checks with `--visual-scene-review` for Demo 5 supported pickup, four-carton placement, moving clearance and attachment,
 repeat-cycle actual completion, PLC count ownership, head clearance, permissive loss and held clock,
 raw counter/reset and independent A/B count comparisons with reset priority, pending-pulse discard on Stop, retained counter restart,
 the pallet cell's grounded installation, imported robot joints/tool attachment,

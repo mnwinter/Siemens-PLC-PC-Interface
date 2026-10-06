@@ -147,7 +147,8 @@ public partial class SceneSimulationRuntime : Node
     }
 
     public bool CanExecuteAction(JsonElement action) => RequirementsSatisfied(action)
-        && (Text(action, "type", "") != "palletizerLoad" || _palletizer?.CanLoadCarton == true);
+        && (Text(action, "type", "") != "palletizerLoad" || _palletizer?.CanLoadCarton == true)
+        && ParkingEntryActionAvailable(Text(action, "type", ""));
     public bool IsPlcOwnedPoint(string point) =>
         string.Equals(_pointOwners.GetValueOrDefault(point), "PLC", StringComparison.OrdinalIgnoreCase);
 
@@ -210,6 +211,7 @@ public partial class SceneSimulationRuntime : Node
         if (HasCableCutPlant) { AdvanceCableCutPlant(delta); return; }
         if (HasPalletizerPlant) { AdvancePalletizerPlant(delta); return; }
         if (HasRepeatCyclePlant) { AdvanceRepeatCyclePlant(delta); return; }
+        if (HasParkingEntryPlant) { AdvanceParkingEntryPlant(delta); return; }
 
         if (HasBottleShuttleReference)
         {
@@ -470,6 +472,7 @@ public partial class SceneSimulationRuntime : Node
         ResetCableCutPlant();
         ResetPalletizerPlant();
         ResetRepeatCyclePlant();
+        ResetParkingEntryPlant();
         EvaluateRules();
         ApplyBindings();
         if (RuntimeType == "tank") ProjectTankState();
@@ -497,6 +500,7 @@ public partial class SceneSimulationRuntime : Node
         var result = type switch
         {
             "palletizerLoad" => LoadPalletizerCarton(),
+            "parkingEnter" or "parkingExit" or "parkingClearDeparted" => ParkingEntryAction(type),
             "start" => StartSequence(Text(action, "sequence", string.Empty)),
             "run" => RunDefault(),
             "stop" => StopAction(),

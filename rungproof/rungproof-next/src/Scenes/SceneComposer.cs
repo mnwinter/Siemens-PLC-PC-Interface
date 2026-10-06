@@ -283,6 +283,7 @@ public static partial class SceneComposer
 
     private static Node3D? CreateTrainingAccessory(SceneEquipment equipment, AssetCatalogDocument candidates)
     {
+        if (Text(equipment.Config, "installation", "") is "parkingVehicle" or "parkingBarrier" or "parkingPad") return CreateParkingEntryPart(Text(equipment.Config, "installation", ""));
         if (Text(equipment.Config, "installation", "") == "palletizerPickTable") return CreatePalletizerPickTable();
         if (Text(equipment.Config, "installation", "") is "cablePayoff" or "cableGuide" or "cableEncoder" or "cableCutter" or "cableReceiver" or "cableStrand") return CreateCableCutPart(Text(equipment.Config, "installation", ""));
         if (Text(equipment.Config, "installation", string.Empty) is "barrelLoad" or "barrelMeter" or "barrelNozzle") return CreateBarrelFillPart(Text(equipment.Config, "installation", string.Empty));

@@ -300,6 +300,7 @@ public partial class Main
             VerifyCounterResetWorkflow(Check);
             VerifyRepeatCycleWorkflow(Check);
             VerifyButtonCounterWorkflows(Check);
+            VerifyParkingEntryWorkflow(Check);
             VerifyTransferCartonSupport(Check);
             VerifyBaseConveyorCartonSupport(Check);
             VerifyPusherRodGeometry(Check);

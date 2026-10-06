@@ -149,6 +149,7 @@ public partial class Main : Node3D
         _auditCableCut = userArguments.Contains("--audit-cable-cut", StringComparer.Ordinal);
         _auditRepeatCycle = userArguments.Contains("--audit-repeat-cycle", StringComparer.Ordinal);
         _auditButtonCounters = userArguments.Contains("--audit-button-counters", StringComparer.Ordinal);
+        _auditParkingEntry = userArguments.Contains("--audit-parking-entry", StringComparer.Ordinal);
         _auditBarrelFill = userArguments.Contains("--audit-barrel-fill", StringComparer.Ordinal);
         _auditCookiePackaging = userArguments.Contains("--audit-cookie-packaging", StringComparer.Ordinal);
         _auditChainLiftInstallation = userArguments.Contains("--audit-chain-lift-installation", StringComparer.Ordinal);
@@ -172,7 +173,7 @@ public partial class Main : Node3D
         _mcpSceneId = userArguments
             .FirstOrDefault(argument => argument.StartsWith("--mcp-scene=", StringComparison.Ordinal))?
             .Substring("--mcp-scene=".Length);
-        _appShellRequested = _reportSceneGeometry || _verifySceneGeometry || _verifyToteFinishing || _auditDualSpindle || _auditRobotCnc || _auditRobotRestart || _auditSequenceTower || _auditChainLiftInstallation || _auditCookiePackaging || _auditBarrelFill || _auditCableCut || _auditPalletizer || _auditRepeatCycle || _auditButtonCounters || _verifyCartonStaticRoutes || (_visualSceneReview && !_visualPlantReview) || _verifyAppShell || _verifyExternalDialog || _verifyExternalPlayback || _verifyPlantMotion || _verifyWorkspace || _verifyHud || _verifyCameraInput || _verifySceneControls
+        _appShellRequested = _reportSceneGeometry || _verifySceneGeometry || _verifyToteFinishing || _auditDualSpindle || _auditRobotCnc || _auditRobotRestart || _auditSequenceTower || _auditChainLiftInstallation || _auditCookiePackaging || _auditBarrelFill || _auditCableCut || _auditPalletizer || _auditRepeatCycle || _auditButtonCounters || _auditParkingEntry || _verifyCartonStaticRoutes || (_visualSceneReview && !_visualPlantReview) || _verifyAppShell || _verifyExternalDialog || _verifyExternalPlayback || _verifyPlantMotion || _verifyWorkspace || _verifyHud || _verifyCameraInput || _verifySceneControls
             || _verifyVirtualController || _verifyNumericSceneIo || _verifyLadderEditor || _verifySplitView || _verifyUiDensity || _virtualControllerDemo
             || userArguments.Contains("--app-shell", StringComparer.Ordinal);
         if (_visualPlantReview && (_sceneId is null || _appShellRequested || _verifySceneContract))
@@ -541,6 +542,10 @@ public partial class Main : Node3D
         else if (_auditPalletizer)
         {
             CallDeferred(nameof(AuditPalletizer));
+        }
+        else if (_auditParkingEntry)
+        {
+            CallDeferred(nameof(AuditParkingEntry));
         }
         else if (_auditButtonCounters)
         {
@@ -3529,6 +3534,7 @@ public partial class Main : Node3D
         _sceneRuntime.UsesExternalClock = _simulatorShell is not null;
         _sceneControlInteractor = new SceneControlInteractor(scene, composition.Root);
         _sceneRuntime.StateChanged += ApplyWorkspaceSignalMappings;
+        _sceneRuntime.StateChanged += UpdateGantryReviewClockLabel;
         AddChild(_sceneRuntime);
         _sceneRuntime.SetControllerPlaybackRunning(false);
         SynchronizeExternalPlayback();
@@ -4060,9 +4066,14 @@ public partial class Main : Node3D
             _simulatorShell?.SetWorkspaceStatus($"Action blocked · {reason}", isError: true);
             return false;
         }
-        if (!_sceneRuntime.CanExecuteAction(action)) return Block(type == "palletizerLoad"
-            ? "Load requires home, an empty pickup station, and space in the layer; Reset after four cartons or a fault"
-            : "scene permissives are not satisfied; reset before restarting");
+        if (!_sceneRuntime.CanExecuteAction(action)) return Block(type switch
+        {
+            "palletizerLoad" => "Load requires home, an empty pickup station, and space in the layer; Reset after four cartons or a fault",
+            "parkingEnter" => "Entry needs an idle lane and a free bay; use EXIT when both spaces are occupied",
+            "parkingExit" => "Exit needs an idle lane and a parked vehicle; REMOVE or re-enter any departed vehicle first",
+            "parkingClearDeparted" => "REMOVE applies only after a vehicle has fully departed and the lane is idle",
+            _ => "scene permissives are not satisfied; reset before restarting",
+        });
         if (_simulatorShell?.IsExternalMode == true)
         {
             // Only declared simulator feedback may change here. There is no

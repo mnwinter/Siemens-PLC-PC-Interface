@@ -185,7 +185,6 @@ public partial class Main
     {
         foreach (var (sceneId, displayId) in new[]
         {
-            ("lab-4-07-parking-garage-entry", "training_accessory_6"),
             ("lab-6-08-hand-dryer", "training_accessory_6"),
             ("lab-6-07-luggage-weight-sort", "training_accessory_6")
         })

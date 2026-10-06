@@ -3,203 +3,236 @@
   "version": 1,
   "id": "lab-4-07-parking-garage-entry",
   "name": "Lab 4.7 - Parking Garage Entry",
-  "description": "Manual entry, space-available and exit-clear inputs form a parking barrier logic exercise. The occupancy readout is static; vehicle tracking and an occupancy count are not modeled.",
+  "description": "Original offline two-bay parking exercise: supported vehicle routes, a hinged barrier, actual passage feedback and a PLC-owned occupancy readout. Capacity and timing are declared training choices.",
   "camera": {
     "position": [
-      11,
-      8,
-      12
+      24,
+      19,
+      26
     ],
     "target": [
-      0,
-      1.1,
+      2,
+      1,
       0
     ],
     "fov": 45
   },
   "equipment": [
     {
-      "id": "rollerShutter_0",
-      "type": "rollerShutter",
-      "label": "Parking Garage Entry roller Shutter",
+      "id": "parking_pad",
+      "type": "trainingAccessory",
+      "label": "Supported two-bay parking pad",
       "position": [
-        -3.3000000000000003,
+        0,
         0,
         0
       ],
       "config": {
-        "width": 2.2,
-        "height": 2.8,
-        "initialPosition": 0
+        "installation": "parkingPad"
       }
     },
     {
-      "id": "photoeye_1",
+      "id": "barrier",
+      "type": "trainingAccessory",
+      "label": "Hinged entrance barrier",
+      "position": [
+        -1.85,
+        0.04,
+        0
+      ],
+      "config": {
+        "installation": "parkingBarrier"
+      }
+    },
+    {
+      "id": "vehicle_0",
+      "type": "trainingAccessory",
+      "label": "Parking vehicle 1",
+      "position": [
+        0,
+        0.04,
+        8
+      ],
+      "config": {
+        "installation": "parkingVehicle"
+      }
+    },
+    {
+      "id": "vehicle_1",
+      "type": "trainingAccessory",
+      "label": "Parking vehicle 2",
+      "position": [
+        0,
+        0.04,
+        8
+      ],
+      "config": {
+        "installation": "parkingVehicle"
+      }
+    },
+    {
+      "id": "entry_photoeye",
       "type": "photoeye",
-      "label": "Parking Garage Entry photoeye",
+      "label": "Actual entry beam",
       "position": [
-        -1.1,
         0,
-        0
+        0.04,
+        2.7
       ],
       "config": {
-        "span": 2.05,
-        "height": 0.7,
-        "beamCenterHeightM": 1.1,
+        "span": 4.2,
+        "beamCenterHeightM": 0.8,
         "blocked": false
-      }
+      },
+      "rotation": [
+        0,
+        90,
+        0
+      ]
     },
     {
-      "id": "photoeye_2",
+      "id": "passage_photoeye",
       "type": "photoeye",
-      "label": "Parking Garage Entry photoeye",
+      "label": "Actual passage beam",
       "position": [
-        1.1,
         0,
-        0
+        0.04,
+        -0.7
       ],
       "config": {
-        "span": 2.05,
-        "height": 0.7,
-        "beamCenterHeightM": 1.1,
+        "span": 4.2,
+        "beamCenterHeightM": 0.8,
         "blocked": false
+      },
+      "rotation": [
+        0,
+        90,
+        0
+      ]
+    },
+    {
+      "id": "occupancy_display",
+      "type": "trainingAccessory",
+      "label": "PLC occupancy count",
+      "position": [
+        8.3,
+        0,
+        -6.5
+      ],
+      "config": {
+        "catalogAssetId": "training.accessory.count_display.v1",
+        "assetName": "count display",
+        "display": "numeric",
+        "displayLabel": "OCCUPANCY"
       }
     },
     {
-      "id": "indicator_3",
+      "id": "available_lamp",
       "type": "indicator",
-      "label": "Parking Garage Entry indicator",
+      "label": "PLC space available",
       "position": [
-        3.3000000000000003,
+        8.3,
         0,
-        0
+        -4.3
       ],
       "config": {
+        "active": "red",
         "colors": [
           "red",
           "amber",
           "green"
-        ],
-        "active": "red"
+        ]
       }
     },
     {
-      "id": "training_accessory_4",
-      "type": "trainingAccessory",
-      "label": "Parking Garage Entry - vehicle/load asset",
-      "position": [
-        -3.3000000000000003,
-        0,
-        1.8
-      ],
-      "config": {
-        "assetName": "vehicle/load asset",
-        "catalogAssetId": "training.accessory.vehicle_load_asset.v1"
-      }
-    },
-    {
-      "id": "training_accessory_5",
-      "type": "trainingAccessory",
-      "label": "Parking Garage Entry - parking barrier arm",
-      "position": [
-        -1.1,
-        0,
-        1.8
-      ],
-      "config": {
-        "assetName": "parking barrier arm",
-        "catalogAssetId": "training.accessory.parking_barrier_arm.v1"
-      }
-    },
-    {
-      "id": "training_accessory_6",
-      "type": "trainingAccessory",
-      "label": "Parking Garage Entry - occupancy counter display",
-      "position": [
-        1.1,
-        0,
-        3.1
-      ],
-      "config": {
-        "assetName": "occupancy counter display",
-        "catalogAssetId": "training.accessory.occupancy_counter_display.v1"
-      }
-    },
-    {
-      "id": "switch_7",
+      "id": "enable_switch",
       "type": "switch",
-      "label": "Parking Garage Entry operator input",
+      "label": "Held driver enable",
       "position": [
-        3.7500000000000004,
+        -5,
         0,
-        2.35
+        12.5
       ],
       "config": {
         "style": "pushbutton",
-        "action": "toggle-entry_detected",
-        "color": 2204518
+        "action": "toggle-machine_enabled",
+        "color": 2204518,
+        "faceLabel": "ENABLE"
       }
     },
     {
-      "id": "switch_8",
+      "id": "clear_switch",
       "type": "switch",
-      "label": "Parking Garage Entry operator input",
+      "label": "Held downstream path clear",
       "position": [
-        -2.4000000000000004,
+        -2.5,
         0,
-        4.7
-      ],
-      "config": {
-        "style": "pushbutton",
-        "action": "toggle-space_available",
-        "color": 2204518
-      }
-    },
-    {
-      "id": "switch_9",
-      "type": "switch",
-      "label": "Parking Garage Entry operator input",
-      "position": [
-        -0.20000000000000007,
-        0,
-        4.7
+        12.5
       ],
       "config": {
         "style": "pushbutton",
         "action": "toggle-exit_clear",
-        "color": 2204518
+        "color": 2204518,
+        "faceLabel": "CLEAR"
       }
     },
     {
-      "id": "indicator_10",
-      "type": "indicator",
-      "label": "Parking Garage Entry output indication",
+      "id": "enter_button",
+      "type": "switch",
+      "label": "Introduce or re-enter a vehicle",
       "position": [
-        2,
         0,
-        4.7
+        0,
+        12.5
       ],
       "config": {
-        "colors": [
-          "red",
-          "amber",
-          "green"
-        ],
-        "active": "red"
+        "style": "pushbutton",
+        "action": "enter-vehicle",
+        "color": 2204518,
+        "faceLabel": "ENTER"
+      }
+    },
+    {
+      "id": "exit_button",
+      "type": "switch",
+      "label": "Request one parked vehicle to leave",
+      "position": [
+        2.5,
+        0,
+        12.5
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "exit-vehicle",
+        "color": 2204518,
+        "faceLabel": "EXIT"
+      }
+    },
+    {
+      "id": "remove_button",
+      "type": "switch",
+      "label": "Clear only a fully departed vehicle",
+      "position": [
+        5,
+        0,
+        12.5
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "clear-departed",
+        "color": 16755234,
+        "faceLabel": "REMOVE"
       }
     }
   ],
   "simulation": {
     "type": "booleanPanel",
+    "parkingEntryPlant": {
+      "model": "two-bay-parking-v1"
+    },
     "points": [
       {
-        "name": "entry_detected",
-        "type": "BOOL",
-        "owner": "PC",
-        "initial": false
-      },
-      {
-        "name": "space_available",
+        "name": "machine_enabled",
         "type": "BOOL",
         "owner": "PC",
         "initial": false
@@ -211,7 +244,74 @@
         "initial": false
       },
       {
+        "name": "entry_detected",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "space_available",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": true
+      },
+      {
+        "name": "exit_requested",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "passage_occupied",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "passage_detected",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "entry_passed",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "exit_passed",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "barrier_closed",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": true
+      },
+      {
+        "name": "barrier_raised",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "barrier_position",
+        "type": "REAL",
+        "owner": "PC",
+        "initial": 0
+      },
+      {
         "name": "barrier_open",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "vehicle_run",
         "type": "BOOL",
         "owner": "PLC",
         "initial": false,
@@ -223,100 +323,130 @@
         "owner": "PLC",
         "initial": false,
         "role": "output"
+      },
+      {
+        "name": "occupancy_count",
+        "type": "DINT",
+        "owner": "PLC",
+        "initial": 0,
+        "role": "output"
       }
     ],
     "actions": [
       {
-        "id": "toggle-entry_detected",
-        "label": "Toggle entry detected",
+        "id": "toggle-machine_enabled",
+        "label": "Toggle driver enable",
         "type": "toggle",
-        "point": "entry_detected"
-      },
-      {
-        "id": "toggle-space_available",
-        "label": "Toggle space available",
-        "type": "toggle",
-        "point": "space_available"
+        "point": "machine_enabled"
       },
       {
         "id": "toggle-exit_clear",
-        "label": "Toggle exit clear",
+        "label": "Toggle downstream path clear",
         "type": "toggle",
         "point": "exit_clear"
+      },
+      {
+        "id": "enter-vehicle",
+        "label": "Enter vehicle (free bay)",
+        "type": "parkingEnter"
+      },
+      {
+        "id": "exit-vehicle",
+        "label": "Exit one parked vehicle",
+        "type": "parkingExit"
+      },
+      {
+        "id": "clear-departed",
+        "label": "Clear departed vehicle",
+        "type": "parkingClearDeparted"
       }
     ],
     "rules": [],
     "edgeRules": [],
     "pointBindings": [
       {
-        "point": "entry_detected",
-        "equipmentId": "switch_7",
-        "mode": "switch"
-      },
-      {
-        "point": "space_available",
-        "equipmentId": "switch_8",
+        "point": "machine_enabled",
+        "equipmentId": "enable_switch",
         "mode": "switch"
       },
       {
         "point": "exit_clear",
-        "equipmentId": "switch_9",
+        "equipmentId": "clear_switch",
         "mode": "switch"
       },
       {
-        "point": "barrier_open",
-        "equipmentId": "indicator_3",
+        "point": "entry_detected",
+        "equipmentId": "entry_photoeye",
+        "mode": "photoeye"
+      },
+      {
+        "point": "passage_detected",
+        "equipmentId": "passage_photoeye",
+        "mode": "photoeye"
+      },
+      {
+        "point": "garage_available",
+        "equipmentId": "available_lamp",
         "mode": "indicator",
         "activeColor": "green"
       },
       {
-        "point": "garage_available",
-        "equipmentId": "indicator_10",
-        "mode": "indicator",
-        "activeColor": "green"
+        "point": "occupancy_count",
+        "equipmentId": "occupancy_display",
+        "mode": "numericDisplay",
+        "label": "OCCUPANCY",
+        "format": "F0"
       }
     ]
   },
   "training": {
     "hints": [
-      "Translate the lesson into explicit state and permissive logic: The barrier opens only when a vehicle is detected, a space is available, and the exit path is clear.",
-      "Inputs are simulator feedback (entry_detected, space_available, exit_clear); PLC logic owns barrier_open, garage_available.",
-      "Test the initial state, the valid condition, and at least one missing permissive."
+      "Write PLC logic for raw passage events and actual raised feedback. Space availability comes from the two occupied/reserved bays, not a manual ready switch.",
+      "Count entry_passed and exit_passed once with separate PLC counters; publish arrivals.ACC minus departures.ACC to occupancy_count.",
+      "Open for an arriving vehicle below capacity, or a requested exit. Hold open while passage_occupied. Require driver enable and downstream path clear for vehicle_run.",
+      "Entry remains at the stop mark until barrier_raised. Stop freezes the plant; Run resumes. Application Reset empties both training bays and resets PLC memory."
     ],
     "solution": {
-      "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
+      "summary": "Original offline reference; no numeric source capacity, vehicle dimensions or timing were supplied.",
       "steps": [
-        "Require the documented inputs: entry_detected, space_available, exit_clear.",
-        "Command the documented outputs: barrier_open, garage_available.",
-        "Remove PLC commands when the permissive is lost."
+        "Assume two spaces, 1 m/s vehicle speed and 1 s boom travel through 90 degrees.",
+        "Use independent PLC entry/exit CTUs and subtract their accumulators for occupancy_count.",
+        "Command barrier_open while enabled and either a clear-path arrival below two, a clear-path requested exit, or actual passage occupation.",
+        "Require machine_enabled and exit_clear for vehicle_run. The plant also waits for actual full boom travel before crossing.",
+        "Command garage_available while enabled, below two PLC counted vehicles and actual space_available."
       ],
-      "acceptance": "The barrier opens only when a vehicle is detected, a space is available, and the exit path is clear."
+      "acceptance": "Two entries yield two visible parked vehicles and PLC occupancy 2; a third entry is rejected. Each full departure decrements once and remains visible outside until explicit removal or re-entry."
     },
     "assetRequirements": [
-      "vehicle/load asset",
-      "parking barrier arm",
-      "occupancy counter display"
+      "scene-scoped parking vehicle",
+      "scene-scoped hinged barrier",
+      "supported parking pad",
+      "PLC numeric occupancy display"
     ],
     "machineGuide": {
-      "purpose": "Manual entry, space-available and exit-clear inputs form a parking barrier logic exercise. The occupancy readout is static; vehicle tracking and an occupancy count are not modeled.",
+      "purpose": "Original offline two-bay parking exercise: supported vehicle routes, a hinged barrier, actual passage feedback and a PLC-owned occupancy readout. Capacity and timing are declared training choices.",
       "startConditions": [
-        "The common PLC/watchdog foundation is healthy.",
-        "All required simulator inputs are at their documented initial state."
+        "Open an explicitly authored PLC project; the default exercise editor remains empty.",
+        "Run, then set driver enable and downstream path clear."
       ],
       "normalSequence": [
-        "Apply the requested input condition.",
-        "Verify only the documented PLC outputs respond."
+        "Press ENTER to introduce one vehicle; watch approach, full barrier opening, crossing and parking.",
+        "Repeat for the second bay; the full garage rejects a third entry.",
+        "Press EXIT to reverse one parked vehicle through the raised barrier. REMOVE clears only the fully departed vehicle."
       ],
       "stopBehavior": [
-        "Removing the permissive removes PLC-owned commands.",
-        "Reset returns the module to its initial state."
+        "Stop holds physical vehicles/boom and scan number, clears PLC output image, and retains counter memory.",
+        "Run republishes retained count and resumes the route when enable/path permissives are restored.",
+        "Application Reset empties the simulated lot, clears PLC counters and remains stopped."
       ],
       "faultBehavior": [
-        "A missing or stale input must fail safe and remain diagnosable."
+        "Losing driver enable holds vehicles and boom. Losing path clear holds vehicles; an occupied passage prevents lowering into the vehicle in this offline model.",
+        "No real barrier safety function, collision response, vehicle physics or live PLC acceptance is established."
       ],
       "expectedObservations": [
-        "The barrier opens only when a vehicle is detected, a space is available, and the exit path is clear.",
-        "The readout says NO LIVE VALUE and is not bound to a numeric point."
+        "No unsupported route, disappearing threshold vehicle or substitute motor-starter/wall models.",
+        "PLC readout follows actual accepted arrival/departure edges; parked and fully departed vehicles remain visible.",
+        "The capacity, route and timing are original training assumptions, not a manufacturer installation."
       ]
     },
     "sequenceNumber": 34,
@@ -330,11 +460,22 @@
       "Simulation_Timeout"
     ],
     "addedTags": [
+      "machine_enabled",
+      "exit_clear",
       "entry_detected",
       "space_available",
-      "exit_clear",
+      "exit_requested",
+      "passage_occupied",
+      "passage_detected",
+      "entry_passed",
+      "exit_passed",
+      "barrier_closed",
+      "barrier_raised",
+      "barrier_position",
       "barrier_open",
-      "garage_available"
+      "vehicle_run",
+      "garage_available",
+      "occupancy_count"
     ],
     "changedTags": [],
     "previousAcceptance": [
@@ -393,6 +534,6 @@
     ],
     "visualStatus": "partial",
     "productionApproved": false,
-    "reason": "Production approval requires every reusable asset and the complete scene to pass visual review."
+    "reason": "Scene-scoped original parking models replace substitutes. Native multi-angle and actual-controller acceptance are tracked in the review matrix; reusable substitute catalog assets elsewhere remain unresolved."
   }
 }

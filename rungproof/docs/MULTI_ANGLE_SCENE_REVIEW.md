@@ -1,6 +1,72 @@
 # Multi-angle scene review - 2026-10-04
 
-Scenes 46/47 button-counter repair (2026-10-06, current checkpoint):
+Scene 48 parking-entry repair (2026-10-06, current checkpoint):
+replaced the motor-starter vehicle and substitute barrier/wall with four
+original scene-scoped Blender/glTF models: supported parking pad, wheeled
+vehicle, barrier cabinet and hinged boom. Two vehicles use separate marked
+bays. Five operator buttons are inline outside the approach route; sensor feet,
+barrier, count-display support and available lamp are separated.
+
+The original offline plant has two spaces, a prescribed 1 m/s route and a
+one-second 90-degree boom stroke. These are declared training assumptions,
+not manufacturer dimensions, source-exact ladder logic or vehicle physics.
+The actual accepted controller/plant clock owns all movement. PLC-owned BOOL
+commands drive the boom/vehicle; PC feedback comes from actual positions,
+beam crossings, fully parked arrivals and fully completed departures. PLC
+CTUs and subtraction own occupancy; the PC does not precompute the count.
+The occupied-passage boom guard is an offline collision constraint, not a
+validated barrier safety function. Static wheels do not model steering/traction.
+
+Reproduce with -- --audit-parking-entry: 27 focused checks and 6,366 sampled
+poses pass, including four-wheel pad contact, full route support, moving boom /
+sensor / other-car clearance, permissive loss, partial motion Stop/resume,
+repeat arrival/departure counts, reentry, explicit removal and stopped Reset.
+The audit writes ignored .tools/plant-review-parking-entry.rpproj.json; open
+this six-rung QA project explicitly through File -> Open Ladder Agent Project.
+It never auto-loads: default exercise editors remain empty and there are still
+exactly five authored demos. Old Scene 48 projects need the new raw BOOL
+feedback, typed barrier position and PLC DINT occupancy bindings from help.
+Historical prototype files remain unchanged; migrated JSON/help are current.
+
+Native Windows operator evidence: held scan 200 / 4.00 s showed a waiting
+vehicle and boom 60%, count zero; FR/FL/RL/RR/Top inspected. Stop froze both
+pose and scan; Run resumed. At scan 425 / 8.50 s the actual raised boom cleared
+the crossing vehicle; all five angles inspected. At 14.50 s the turning car
+remained supported; at scan 900 / 18.00 s it was parked and retained, count one.
+Ordinary continuous Run parked the second car, count two; full bays were
+inspected from all five angles and close front OCCUPANCY 2 was readable.
+Stop cleared the PLC output/readout image to zero while both cars and CTU
+memory remained; one accepted Run scan republished two without a new edge.
+This zero is a cleared output image, not an empty physical lot.
+
+Exit at scan 3743 / 74.86 s showed the raised boom, crossing vehicle and
+remaining parked vehicle, count two; all five angles inspected. At scan 4193 /
+83.86 s departure completed, count one, and the outbound car stayed visible.
+Explicit REMOVE cleared only that car, leaving count one and the other bay
+occupied. The second exit completed at scan 5093 / 101.86 s, count zero, with
+the departed car retained. Application Reset emptied the lot and stopped at
+scan zero. Native log parking-entry-final-native exited zero.
+
+The final inline control arrangement was re-inspected in native FR/FL/RL/RR/
+Top. Rebuilt UI showed Approach immediately after ENTER at held scan zero;
+two 18-second cycles gave count two at scan 1800. Third ENTER retained both
+cars and displayed the specific free-bay/EXIT explanation, replacing misleading
+Reset advice. Reset returned empty/stopped/scan zero; final-native-2 exited zero.
+
+Verification: build zero warnings/errors; 144 controller tests; 637 shared
+geometry/workflow checks with the review overlay; final scoped parking checks;
+71 scene contracts; shell 77 scenes / 294 assets / five demos; help 294 / 77;
+virtual-controller UI and rendered scene-control/overlay regression all pass.
+The scene-control verifier requires rendering: its headless pointer run failed,
+then the rendered invocation passed. The final scoped audit and scene contracts
+cover the later control-row move. Catalog aggregate equipment totals were
+refreshed from all 77 actual scene definitions (618); stale totals had also
+predated this repair. No real PLC transport or hardware acceptance occurred.
+Reusable substitute vehicle/road/barrier catalog assets in other scenes remain
+unresolved. Whole-program goal remains active; next Scene 49 box stop/release
+has disconnected stop/sensor/receiver geometry and no accepted motion cycle.
+
+Scenes 46/47 button-counter repair (2026-10-06, previous checkpoint):
 replaced PC precomputed channel-ready/pattern-ok toggles with raw one-accepted-scan
 A/B presses and RESET. Added correctly labeled A/B/RESET physical buttons and
 two PLC-owned DINT accumulated-count readouts; all six props sit in a separate
@@ -2969,7 +3035,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 45 | `lab-4-04-sequence-light-tower` | 0 | Repaired FR/FL/RL/RR/T geometry; final FR close/full four colors; normal Open/Start/Step/Stop/Run/Reset | Four physical tiers, independent color bindings, momentary requests and editable offline reference repaired. Native complete cycle/restart/reset inspected; 30 focused checks PASS. Rear details partly occluded. CNC static, sounder uncommanded; live/physical acceptance open |
 | 46 | `lab-4-05-dual-input-count-window` | 0 | Native FR/FL/RL/RR/T | Raw A/B/reset, PLC count readouts; explicit numeric-window reference and native File/Open/Run/Stop/reset verified. Six stand footprints clear; no elapsed-time window |
 | 47 | `lab-4-06-multi-press-confirmation` | 0 | Native FR/FL/RL/RR/T | Raw A/B/reset, PLC count readouts; explicit exact-count reference and physical 3D button workflow verified. Six stands clear; order unrestricted, no timed-pattern claim |
-| 48 | `lab-4-07-parking-garage-entry` | 20 | Native FR/FL/RL/RR/T; replacement readout five focus views | Readout replaced/repositioned; five native focus views (RL obscured). FAIL/open: motor-starter vehicle, substitute barrier/wall, no occupancy numeric binding or barrier motion acceptance |
+| 48 | `lab-4-07-parking-garage-entry` | 20 (historical baseline) | Native FR/FL/RL/RR/Top at partial boom, crossing, parked/full and exit; final inline layout five views | Original supported two-bay installation and actual hinged boom; explicit PLC reference counts actual arrivals/departures; retained cars, full-bay guard, Stop/resume and Reset exercised; 27 checks / 6,366 poses pass. Offline reference only; reusable substitute assets elsewhere unresolved |
 | 49 | `lab-4-08-package-grouping` | 118 (historic) | Native FR/FL/RL/RR/T; final carton top/FR close | Carton support repaired and re-inspected. FAIL/open: grouping/release outputs only lamps; separated receiver/stop/sensors and transfer behavior unverified |
 | 50 | `lab-4-09-chain-drive-lift` | 3 intended mounts | Native lower bridge/mid-rise/shaft approach/upper bridge/empty return FR/FL/RL/RR/T; Stop/fresh Start/completed HOME/Reset | Supported complete single-carton route and automatic feedback repaired; 36 focused checks pass with 2,897 samples. OPEN every-frame five-angle native coverage, swept-volume/self-collision and broader physical/process acceptance |
 | 51 | `lab-4-10-cookie-packaging` | 3 coarse; cable triangles clear sealer | Native initial/down/first-sealed/complete FR/FL/RL/RR/T; real-time FL/RR | Repaired finite six-cookie cycle: 24 focused checks, 1,252 samples; support/count/seal/retention/Stop/resume/Reset. Top header occludes food; snapshots and bounds only. Physical process acceptance open |
