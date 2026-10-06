@@ -1,6 +1,55 @@
 # Whole program review - 2026-10-03
 
-Scenes 54/55 timer-lesson repair (2026-10-06, current checkpoint):
+Scene 56 rotary-flasher repair (2026-10-06, current checkpoint):
+replaced the mislabeled pushbutton with an actual maintained MODE OFF/FLASH
+selector. Removed the manual flash_tick input/button: PC now supplies only
+raw flash_mode_selected, while PLC owns timing/phase/flash_lamp. The unused
+tower tiers stay dark. Two separated grounded equipment items and two points
+remain. Equipment instances total 616; catalogs still contain 77 scenes,
+294 assets and exactly five authored demos. Historical prototype is unchanged.
+
+-- --audit-rotary-flasher runs 22 checks and writes ignored explicit reference
+.tools/plant-review-rotary-flasher.rpproj.json. Four rungs use two TONs followed
+by a phase coil and lamp coil. A 0.5 s half-period is an original offline
+training choice absent from the source. Both TONs evaluate before the phase
+coil, so each phase lasts 25 accepted 20 ms scans without accumulating an
+extra transition scan. Default exercises remain empty; open the reference
+through File. Old projects must replace manually supplied flash_tick with
+PLC timers/phase. No runtime transport or timer-engine change was made.
+
+OFF clears phase, timers and lamp on the next accepted scan. Stop freezes scan
+and clears lamp/nonretentive timers while retaining selector and PLC phase.
+Run with FLASH retained resumes that phase with a fresh full half-period.
+Application Reset clears selector/phase/timers/lamp and leaves stopped scan zero.
+This is an offline reference behavior, not a live-controller restart guarantee.
+
+Native Windows: explicit reference opened through File -> Open Ladder Agent
+Project. Run held scan zero, physical selector FLASH accepted. Scan 24 / 0.48 s
+was dark; scan 25 / 0.50 s visibly lit green. FR/FL/RL/RR/Top were inspected at
+held scan 25. The equipment-focus FR view showed MODE/OFF/FLASH readable with
+the pointer aimed at FLASH. Full-scene scan 50 / 1.00 s was dark and scan 75 /
+1.50 s lit. Stop at 75 cleared both ET values/lamp and disabled stepping. Run
+held 75; scan 99 showed ON ET 0.48 s/lamp true, and 100 showed 0.50 s/lamp false.
+Releasing Hold showed normal playback dark at scan 103 / OFF ET 0.06 s, still
+dark at 521 / OFF ET 0.42 s and lit at 843 / ON ET 0.36 s. Physical OFF during
+continuous playback cleared both timers/input/lamp. Reset restored stopped
+zero; normal close exited zero. Overhead naturally hides the front labels and
+most lens faces; diagonals and equipment focus cover those surfaces.
+
+Verification: build zero warnings/errors; focused 22/22 and expanded geometry
+727/727 (22 workflow plus five selector checks); 71 scene contracts pass;
+rendered scene controls/review overlay/external-image regression passes;
+app shell 77 scenes/294 assets/five demos/28 diagnostics; help 294 assets/77
+scenes and git diff --check pass. The first contract invocation omitted the
+pinned DOTNET_ROOT/PATH and was cancelled; rerunning with the configured
+runtime completed all 71. Logs are ignored .tools/rotary-flasher-*.log.
+Controller conformance 144/144 was verified in the preceding timer checkpoint.
+These checks do not establish every scene's operational or hardware acceptance.
+
+Whole-program goal remains active. Next: Scene 57 Alternating Lamps and Scene
+58 Variable Flash Rate, then remaining installations recorded in the matrix.
+
+Scenes 54/55 timer-lesson repair (2026-10-06, previous checkpoint):
 Demo 2 retains its actual authored two-second TON program. Scene 54 now has a
 maintained REQUEST OFF/ON selector with correct imported pointer/tick geometry
 and readable white face/detent labels. Only raw timer_request is PC-owned;

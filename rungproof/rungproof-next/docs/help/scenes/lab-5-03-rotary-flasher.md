@@ -2,11 +2,11 @@
 
 Scene ID: `lab-5-03-rotary-flasher`  
 Migrated source: `prototype/scenes/lab-5-03-rotary-flasher.plcscene`  
-Scene contract: `prototype/scenes/lab-5-03-rotary-flasher.plcscene`
+Scene contract: `res://scenes/migrated/lab-5-03-rotary-flasher.scene.json`
 
 ## Purpose
 
-A mode selector enables a periodic lamp flasher with a clear off position.
+A maintained OFF/FLASH selector enables PLC-owned periodic timing. Only raw mode selection is supplied by the PC.
 
 ## Expected I/O to operate this scene
 
@@ -15,31 +15,27 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | Point | Type | Owner | Initial value |
 | --- | --- | --- | --- |
 | `flash_mode_selected` | `BOOL` | **PC** | `False` |
-| `flash_tick` | `BOOL` | **PC** | `False` |
 | `flash_lamp` | `BOOL` | **PLC** | `False` |
 
 ## Operator actions
 
 | Action | Type | Bound point/sequence |
 | --- | --- | --- |
-| `Toggle flash mode selected` | `toggle` | `flash_mode_selected` |
-| `Toggle flash tick` | `toggle` | `flash_tick` |
+| `Turn mode OFF / FLASH` | `toggle` | `flash_mode_selected` |
 
 ## Equipment bindings
 
 | Symbolic point | Equipment | Mode |
 | --- | --- | --- |
-| `flash_mode_selected` | `switch_0` | `switch` |
-| `flash_tick` | `switch_2` | `switch` |
+| `flash_mode_selected` | `switch_0` | `selector` |
 | `flash_lamp` | `indicator_1` | `indicator` |
 
 ## Expected equipment
 
 | ID | Type | Label |
 | --- | --- | --- |
-| `switch_0` | `switch` | Rotary Flasher switch |
-| `indicator_1` | `indicator` | Rotary Flasher indicator |
-| `switch_2` | `switch` | Rotary Flasher operator input |
+| `switch_0` | `rotarySwitch` | Mode selector OFF / FLASH |
+| `indicator_1` | `indicator` | PLC flashing lamp |
 
 ## Stop and safety boundary
 
@@ -47,18 +43,19 @@ A normal Stop removes PLC-owned commands according to the scene runtime. This do
 
 ## Machine guide
 
-A mode selector enables a periodic lamp flasher with a clear off position.
+A maintained OFF/FLASH selector enables PLC-owned periodic timing. Only raw mode selection is supplied by the PC.
 
 ### Start conditions
 
-- The common PLC/watchdog foundation is healthy.
-- All required simulator inputs are at their documented initial state.
+- Built-in offline controller with an explicitly opened reference or user-authored program.
+- Initial selector OFF, timers zero and lamp off.
 
 ### Normal sequence
 
-- Apply the requested input condition.
-- Verify only the documented PLC outputs respond.
+- The default exercise editor is empty. Build PLC flasher logic, or explicitly open .tools/plant-review-rotary-flasher.rpproj.json after --audit-rotary-flasher.
+- Run and turn MODE to FLASH. The original offline reference starts with 0.5 s OFF, then alternates 0.5 s ON / OFF on accepted 20 ms scans.
+- Turn MODE OFF to clear the lamp and phase/timers on the next accepted scan. A new FLASH starts a full OFF half-period.
 
 ### Expected observations
 
-- The lamp flashes only in the selected mode and is off when the selector is cleared.
+- Explicit original reference: 25 scans OFF, 25 ON, repeating only in FLASH. OFF cancels next scan; Stop clears lamp/timers and freezes scan; Reset clears phase.

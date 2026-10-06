@@ -163,7 +163,19 @@ Native Windows five-angle inspection and operator checks cover exact timer
 boundaries, active-pulse rejection, Stop/Run/Reset and Scene 55 continuous playback.
 These are offline checks; no real PLC connection or commissioning is implied.
 
-`-- --verify-scene-geometry` runs 700 focused geometry/workflow checks with `--visual-scene-review` for Demo 5 supported pickup, four-carton placement, moving clearance and attachment,
+`-- --audit-rotary-flasher` runs 22 offline checks for Scene 56 and writes
+ignored `.tools/plant-review-rotary-flasher.rpproj.json`. Open the four-rung
+reference explicitly through File. A maintained MODE OFF/FLASH selector
+supplies only raw selection; two PLC TONs and a phase coil drive the lamp.
+The declared original half-period is 0.5 s: 25 scans OFF, 25 ON, repeating.
+OFF clears phase/timers on the next scan; Stop clears lamp/timers while
+retaining MODE and PLC phase. Run resumes that phase with a fresh half-period.
+Reset clears all state and stays stopped. The default exercise remains empty.
+Native Windows inspection covers all five views, close label readability,
+physical selection, held timer boundaries, Stop/Run/Reset and continuous flashing.
+
+`-- --verify-scene-geometry` runs 727 focused geometry/workflow checks with `--visual-scene-review` for Demo 5 supported pickup, four-carton placement, moving clearance and attachment,
+rotary-flasher periodic scans, phase retention, OFF cancellation and selector alignment,
 timer-lesson actual TON/TP boundaries, maintained selector alignment and pulse consumption,
 package grouping real optical counts, guided stop clearance, retained supported receiver group and Stop/Run/Reset,
 repeat-cycle actual completion, PLC count ownership, head clearance, permissive loss and held clock,

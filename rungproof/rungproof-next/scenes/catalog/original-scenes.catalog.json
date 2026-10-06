@@ -3,7 +3,7 @@
   "catalogId": "rungproof-original-scenes-migrated",
   "sourceRoot": "prototype/scenes",
   "sceneCount": 77,
-  "equipmentInstanceCount": 617,
+  "equipmentInstanceCount": 616,
   "equipmentTypeCounts": {
     "box": 32,
     "containerReceiver": 3,
@@ -24,11 +24,11 @@
     "radarLevelSensor": 1,
     "robotArm": 5,
     "rollerShutter": 3,
-    "rotarySwitch": 6,
+    "rotarySwitch": 7,
     "rotaryTable": 4,
     "sceneInstallation": 4,
     "sizeSensorBank": 1,
-    "switch": 161,
+    "switch": 159,
     "tank": 12,
     "toteCapper": 1,
     "toteFiller": 2,
@@ -927,10 +927,10 @@
       "name": "Lab 5.3 - Rotary Flasher",
       "path": "res://scenes/migrated/lab-5-03-rotary-flasher.scene.json",
       "sourceFile": "prototype/scenes/lab-5-03-rotary-flasher.plcscene",
-      "equipmentCount": 3,
+      "equipmentCount": 2,
       "equipmentTypes": [
         "indicator",
-        "switch"
+        "rotarySwitch"
       ],
       "unresolvedAssetTypes": [],
       "visualStatus": "mapped"

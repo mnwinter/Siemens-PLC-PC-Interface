@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-5-03-rotary-flasher",
   "name": "Lab 5.3 - Rotary Flasher",
-  "description": "A mode selector enables a periodic lamp flasher with a clear off position.",
+  "description": "A maintained OFF/FLASH selector enables PLC-owned periodic timing. Only raw mode selection is supplied by the PC.",
   "camera": {
     "position": [
       11,
@@ -20,23 +20,28 @@
   "equipment": [
     {
       "id": "switch_0",
-      "type": "switch",
-      "label": "Rotary Flasher switch",
+      "type": "rotarySwitch",
+      "label": "Mode selector OFF / FLASH",
       "position": [
         -3.3000000000000003,
         0,
         0
       ],
       "config": {
-        "style": "pushbutton",
         "action": "toggle-flash_mode_selected",
-        "color": 2204518
+        "positionCount": 2,
+        "initialPosition": 0,
+        "positionLabels": [
+          "OFF",
+          "FLASH"
+        ],
+        "faceLabel": "MODE"
       }
     },
     {
       "id": "indicator_1",
       "type": "indicator",
-      "label": "Rotary Flasher indicator",
+      "label": "PLC flashing lamp",
       "position": [
         -1.1,
         0,
@@ -48,22 +53,7 @@
           "amber",
           "green"
         ],
-        "active": "red"
-      }
-    },
-    {
-      "id": "switch_2",
-      "type": "switch",
-      "label": "Rotary Flasher operator input",
-      "position": [
-        1.1,
-        0,
-        0
-      ],
-      "config": {
-        "style": "pushbutton",
-        "action": "toggle-flash_tick",
-        "color": 2204518
+        "active": null
       }
     }
   ],
@@ -72,12 +62,6 @@
     "points": [
       {
         "name": "flash_mode_selected",
-        "type": "BOOL",
-        "owner": "PC",
-        "initial": false
-      },
-      {
-        "name": "flash_tick",
         "type": "BOOL",
         "owner": "PC",
         "initial": false
@@ -93,15 +77,9 @@
     "actions": [
       {
         "id": "toggle-flash_mode_selected",
-        "label": "Toggle flash mode selected",
+        "label": "Turn mode OFF / FLASH",
         "type": "toggle",
         "point": "flash_mode_selected"
-      },
-      {
-        "id": "toggle-flash_tick",
-        "label": "Toggle flash tick",
-        "type": "toggle",
-        "point": "flash_tick"
       }
     ],
     "rules": [],
@@ -110,12 +88,7 @@
       {
         "point": "flash_mode_selected",
         "equipmentId": "switch_0",
-        "mode": "switch"
-      },
-      {
-        "point": "flash_tick",
-        "equipmentId": "switch_2",
-        "mode": "switch"
+        "mode": "selector"
       },
       {
         "point": "flash_lamp",
@@ -127,39 +100,41 @@
   },
   "training": {
     "hints": [
-      "Translate the lesson into explicit state and permissive logic: The lamp flashes only in the selected mode and is off when the selector is cleared.",
-      "Inputs are simulator feedback (flash_mode_selected, flash_tick); PLC logic owns flash_lamp.",
-      "Test the initial state, the valid condition, and at least one missing permissive."
+      "PC supplies only flash_mode_selected; PLC owns phase, timers and flash_lamp.",
+      "Removed flash_tick was a manually precomputed timer result; update older projects to PLC-owned timing.",
+      "The 0.5 s half-period is an original offline training choice, not source-exact timing."
     ],
     "solution": {
       "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
       "steps": [
-        "Require the documented inputs: flash_mode_selected, flash_tick.",
-        "Command the documented outputs: flash_lamp.",
-        "Remove PLC commands when the permissive is lost."
+        "The default exercise editor is empty. Build PLC flasher logic, or explicitly open .tools/plant-review-rotary-flasher.rpproj.json after --audit-rotary-flasher.",
+        "Run and turn MODE to FLASH. The original offline reference starts with 0.5 s OFF, then alternates 0.5 s ON / OFF on accepted 20 ms scans.",
+        "Turn MODE OFF to clear the lamp and phase/timers on the next accepted scan. A new FLASH starts a full OFF half-period."
       ],
-      "acceptance": "The lamp flashes only in the selected mode and is off when the selector is cleared."
+      "acceptance": "Explicit original reference: 25 scans OFF, 25 ON, repeating only in FLASH. OFF cancels next scan; Stop clears lamp/timers and freezes scan; Reset clears phase."
     },
     "assetRequirements": [],
     "machineGuide": {
-      "purpose": "A mode selector enables a periodic lamp flasher with a clear off position.",
+      "purpose": "A maintained OFF/FLASH selector enables PLC-owned periodic timing. Only raw mode selection is supplied by the PC.",
       "startConditions": [
-        "The common PLC/watchdog foundation is healthy.",
-        "All required simulator inputs are at their documented initial state."
+        "Built-in offline controller with an explicitly opened reference or user-authored program.",
+        "Initial selector OFF, timers zero and lamp off."
       ],
       "normalSequence": [
-        "Apply the requested input condition.",
-        "Verify only the documented PLC outputs respond."
+        "The default exercise editor is empty. Build PLC flasher logic, or explicitly open .tools/plant-review-rotary-flasher.rpproj.json after --audit-rotary-flasher.",
+        "Run and turn MODE to FLASH. The original offline reference starts with 0.5 s OFF, then alternates 0.5 s ON / OFF on accepted 20 ms scans.",
+        "Turn MODE OFF to clear the lamp and phase/timers on the next accepted scan. A new FLASH starts a full OFF half-period."
       ],
       "stopBehavior": [
-        "Removing the permissive removes PLC-owned commands.",
-        "Reset returns the module to its initial state."
+        "Stop clears the lamp output and nonretentive timers while retaining the selector and internal PLC phase.",
+        "Run with FLASH retained resumes that phase with a fresh full half-period; stopped wall time does not count. OFF clears phase on an accepted scan.",
+        "Application Reset returns OFF, zero timers/phase and stopped scan zero."
       ],
       "faultBehavior": [
         "A missing or stale input must fail safe and remain diagnosable."
       ],
       "expectedObservations": [
-        "The lamp flashes only in the selected mode and is off when the selector is cleared."
+        "Explicit original reference: 25 scans OFF, 25 ON, repeating only in FLASH. OFF cancels next scan; Stop clears lamp/timers and freezes scan; Reset clears phase."
       ]
     },
     "sequenceNumber": 42,
@@ -174,7 +149,6 @@
     ],
     "addedTags": [
       "flash_mode_selected",
-      "flash_tick",
       "flash_lamp"
     ],
     "changedTags": [],

@@ -1,6 +1,55 @@
 # Multi-angle scene review - 2026-10-04
 
-Scenes 54/55 timer-lesson repair (2026-10-06, current checkpoint):
+Scene 56 rotary-flasher repair (2026-10-06, current checkpoint):
+replaced the mislabeled pushbutton with an actual maintained MODE OFF/FLASH
+selector. Removed the manual flash_tick input/button: PC now supplies only
+raw flash_mode_selected, while PLC owns timing/phase/flash_lamp. The unused
+tower tiers stay dark. Two separated grounded equipment items and two points
+remain. Equipment instances total 616; catalogs still contain 77 scenes,
+294 assets and exactly five authored demos. Historical prototype is unchanged.
+
+-- --audit-rotary-flasher runs 22 checks and writes ignored explicit reference
+.tools/plant-review-rotary-flasher.rpproj.json. Four rungs use two TONs followed
+by a phase coil and lamp coil. A 0.5 s half-period is an original offline
+training choice absent from the source. Both TONs evaluate before the phase
+coil, so each phase lasts 25 accepted 20 ms scans without accumulating an
+extra transition scan. Default exercises remain empty; open the reference
+through File. Old projects must replace manually supplied flash_tick with
+PLC timers/phase. No runtime transport or timer-engine change was made.
+
+OFF clears phase, timers and lamp on the next accepted scan. Stop freezes scan
+and clears lamp/nonretentive timers while retaining selector and PLC phase.
+Run with FLASH retained resumes that phase with a fresh full half-period.
+Application Reset clears selector/phase/timers/lamp and leaves stopped scan zero.
+This is an offline reference behavior, not a live-controller restart guarantee.
+
+Native Windows: explicit reference opened through File -> Open Ladder Agent
+Project. Run held scan zero, physical selector FLASH accepted. Scan 24 / 0.48 s
+was dark; scan 25 / 0.50 s visibly lit green. FR/FL/RL/RR/Top were inspected at
+held scan 25. The equipment-focus FR view showed MODE/OFF/FLASH readable with
+the pointer aimed at FLASH. Full-scene scan 50 / 1.00 s was dark and scan 75 /
+1.50 s lit. Stop at 75 cleared both ET values/lamp and disabled stepping. Run
+held 75; scan 99 showed ON ET 0.48 s/lamp true, and 100 showed 0.50 s/lamp false.
+Releasing Hold showed normal playback dark at scan 103 / OFF ET 0.06 s, still
+dark at 521 / OFF ET 0.42 s and lit at 843 / ON ET 0.36 s. Physical OFF during
+continuous playback cleared both timers/input/lamp. Reset restored stopped
+zero; normal close exited zero. Overhead naturally hides the front labels and
+most lens faces; diagonals and equipment focus cover those surfaces.
+
+Verification: build zero warnings/errors; focused 22/22 and expanded geometry
+727/727 (22 workflow plus five selector checks); 71 scene contracts pass;
+rendered scene controls/review overlay/external-image regression passes;
+app shell 77 scenes/294 assets/five demos/28 diagnostics; help 294 assets/77
+scenes and git diff --check pass. The first contract invocation omitted the
+pinned DOTNET_ROOT/PATH and was cancelled; rerunning with the configured
+runtime completed all 71. Logs are ignored .tools/rotary-flasher-*.log.
+Controller conformance 144/144 was verified in the preceding timer checkpoint.
+These checks do not establish every scene's operational or hardware acceptance.
+
+Whole-program goal remains active. Next: Scene 57 Alternating Lamps and Scene
+58 Variable Flash Rate, then remaining installations recorded in the matrix.
+
+Scenes 54/55 timer-lesson repair (2026-10-06, previous checkpoint):
 Demo 2 retains its actual authored two-second TON program. Scene 54 now has a
 maintained REQUEST OFF/ON selector with correct imported pointer/tick geometry
 and readable white face/detent labels. Only raw timer_request is PC-owned;
@@ -3152,7 +3201,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 53 | `lab-4-12-cable-cut-length` | 0 coarse static candidates | Native initial/feed/partial blade/completed FR/FL/RL/RR/T; wide overhead and cutter focus; normal File/reference/Run/Start; Stop/Run/fresh Start/Reset | Connected reel/rolls/knife/receiver, measured F2 length and 3 m retained cut. 31 focused checks, 581 executed 20 ms samples. Realtime FL initial/feed/completed inspected; brief knife transient not frame-by-frame. Close HUD cropping/header occlusion resolved by other views; small 60 mm gap numerically checked. Prescribed no-slip kinematics and selected bounds only; no solid/swept/physical acceptance |
 | 54 | `lab-5-01-delayed-lamp` | 0 | Final native FR/FL/RL/RR/T; readable close selector; physical OFF/ON; held exact TON boundary; Stop/Run/Reset | Existing authored Demo 2 off at ET 1.98 s/on at 2.00 s; Stop resets TON but retains ON; Run requires fresh full delay; OFF clears next scan; final continuous interval not remeasured |
 | 55 | `lab-5-02-timed-lamp-off` | 0 | Final native FR/FL/RL/RR/T; physical START; explicitly opened QA reference; exact TP boundary, Stop/Run/Reset, continuous playback | One accepted-scan raw START; PLC TP owns lamp; original reference preset 3 s; active presses ignored; on at 2.98 s/off at 3.00 s; fresh START after expiry; Stop cancels, Run alone does not fire; empty exercise default |
-| 56 | `lab-5-03-rotary-flasher` | 0 | Native FR/FL/RL/RR/T | Static spacing clear; pushbutton instead of rotary selector, manual flash_tick; flashing/off behavior unverified |
+| 56 | `lab-5-03-rotary-flasher` | 0 | Final native FR/FL/RL/RR/T; readable MODE/OFF/FLASH focus; physical selector; held boundaries; Stop/Run/Reset; continuous playback | Raw maintained mode replaces manual flash_tick; explicit original PLC reference 0.5 s half-period, on at 25/off at 50/on at 75 scans; Stop clears lamp/timers, Run retains phase with fresh half-period; OFF clears next scan; empty default exercise |
 | 57 | `lab-5-04-alternating-lamps` | 0 | Native FR/FL/RL/RR/T | Static spacing clear; PC phase toggle; timer alternation/exclusivity unverified |
 | 58 | `lab-5-05-variable-flash-rate` | 0 | Native FR/FL/RL/RR/T | Static spacing clear; independent fast/slow toggles, simultaneous selection/timing unverified |
 | 59 | `lab-5-06-running-light-tower` | 0 | Native FR/FL/RL/RR/T | FAIL/open: single green-only output cannot walk tower levels; persistent step_pulse; behavior unverified |
