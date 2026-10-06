@@ -22,11 +22,13 @@ public partial class ConveyorController : Node
 
     private readonly List<(Node3D Node, float RadiusM)> _rotatingParts = [];
     private readonly List<StandardMaterial3D> _beltMaterials = [];
+    private readonly Dictionary<Node3D, Transform3D> _rotatingHomes = [];
     private float _beltTravelM;
 
     public override void _Ready()
     {
         RegisterRotatingParts(GetParent());
+        foreach (var (node, _) in _rotatingParts) _rotatingHomes[node] = node.Transform;
         GD.Print(
             $"Conveyor controller bound {_rotatingParts.Count} rotating nodes "
             + $"and {_beltMaterials.Count} belt material surfaces."
@@ -69,6 +71,15 @@ public partial class ConveyorController : Node
         {
             material.Uv1Offset = new Vector3(-_beltTravelM / 0.18f, 0.0f, 0.0f);
         }
+    }
+
+    // Used by installations with one prescribed plant clock. Restore captured
+    // transforms exactly; inverse rotation can retain accumulated float drift.
+    public void ResetPlantTravel()
+    {
+        _beltTravelM = 0; ActualSpeedMps = 0;
+        foreach (var (node, home) in _rotatingHomes) node.Transform = home;
+        foreach (var material in _beltMaterials) material.Uv1Offset = Vector3.Zero;
     }
 
     private void RegisterRotatingParts(Node root)

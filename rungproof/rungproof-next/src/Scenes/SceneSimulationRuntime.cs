@@ -65,6 +65,7 @@ public partial class SceneSimulationRuntime : Node
         // as well as the plant model, without rewriting the PLC command image.
         RefreshEquipmentClock();
         if (selected && !running) PauseBottleShuttleClock();
+        if (selected && !running) PauseChainLiftClock();
         if (selected && running) ApplyBindings();
     }
 
@@ -85,6 +86,7 @@ public partial class SceneSimulationRuntime : Node
         _controllerPlaybackRunning = running;
         RefreshEquipmentClock();
         if (!running) PauseBottleShuttleClock();
+        if (!running) PauseChainLiftClock();
         if (RuntimeType == "tank") ProjectTankState();
     }
 
@@ -98,6 +100,7 @@ public partial class SceneSimulationRuntime : Node
         // Bottle travel and belt animation share the same prescribed clock.
         // The general conveyor callback must not integrate a second motion.
         _bottleShuttleConveyor?.SetPhysicsProcess(false);
+        FreezeChainLiftAdapters();
     }
 
     public void ConsumeExternalInputPulses(IReadOnlyDictionary<string, object?> sampledPoints)
@@ -176,6 +179,8 @@ public partial class SceneSimulationRuntime : Node
         }
 
         if (UsesExternalClock && !PlantPlaybackRunning) return;
+
+        if (HasChainLiftPlant) { AdvanceChainLiftPlant(delta); return; }
 
         if (HasBottleShuttleReference)
         {
@@ -429,6 +434,7 @@ public partial class SceneSimulationRuntime : Node
         ApplyInitialTankLevels();
         ResetShippingPalletReference();
         ResetBottleShuttleReference();
+        ResetChainLiftPlant();
         EvaluateRules();
         ApplyBindings();
         if (RuntimeType == "tank") ProjectTankState();
@@ -1130,6 +1136,7 @@ public partial class SceneSimulationRuntime : Node
             }
         }
         foreach (var (equipment, state) in indicatorStates) SetIndicator(equipment, state.Active, state.Color);
+        ProjectChainLiftCommands();
     }
 
     private void ApplyInitialTankLevels()

@@ -8,6 +8,7 @@ namespace RungProof.Next.App;
 // integrated clock. Stop/Reset cannot leave the drive and carriage out of phase.
 public partial class ChainLiftDriveVisual : EquipmentMotionController
 {
+    public const float UpperSprocketCenterY = 3.95f;
     private MeshInstance3D[] _links = [];
     private Transform3D _loadHome;
     private readonly System.Collections.Generic.Dictionary<Node3D, Basis> _sprockets = [];
@@ -23,7 +24,7 @@ public partial class ChainLiftDriveVisual : EquipmentMotionController
     public new void ResetMotion() { base.ResetMotion(); ProjectDrive(); }
     public void ProjectDrive()
     {
-        const float straight = 3.25f, radius = .2f;
+        const float straight = UpperSprocketCenterY - .35f, radius = .2f;
         var arc = MathF.PI * radius;
         var length = 2 * (straight + arc);
         var travel = PositionPercent / 100 * TravelM;
@@ -40,9 +41,9 @@ public partial class ChainLiftDriveVisual : EquipmentMotionController
             else if (distance < straight + arc)
             {
                 var a = (distance - straight) / radius;
-                x = .65f - radius * MathF.Cos(a); y = 3.6f + radius * MathF.Sin(a); angle = -a;
+                x = .65f - radius * MathF.Cos(a); y = UpperSprocketCenterY + radius * MathF.Sin(a); angle = -a;
             }
-            else if (distance < 2 * straight + arc) { x = .85f; y = 3.6f - (distance - straight - arc); angle = MathF.PI; }
+            else if (distance < 2 * straight + arc) { x = .85f; y = UpperSprocketCenterY - (distance - straight - arc); angle = MathF.PI; }
             else
             {
                 var a = (distance - 2 * straight - arc) / radius;

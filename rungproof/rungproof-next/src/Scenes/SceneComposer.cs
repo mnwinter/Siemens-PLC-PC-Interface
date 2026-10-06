@@ -146,8 +146,9 @@ public static partial class SceneComposer
             ConfigureCncTendingStock(root, scene);
         if (scene.Equipment.Any(equipment => Text(equipment.Config, "installation", string.Empty) == "robotRestartGuard"))
             ConfigureRobotRestartInterlock(root);
-        if (scene.Equipment.Any(equipment => Text(equipment.Config, "installation", string.Empty) == "guidedChainLift"))
+        if (scene.Equipment.Any(equipment => Text(equipment.Config, "installation", string.Empty) == "guidedChainLift") && !scene.Simulation.TryGetProperty("chainLiftPlant", out _))
             root.GetNode<Node3D>("liftTable_1").GetNode<ChainLiftDriveVisual>("ChainLiftMotion").PositionFollower = root.GetNode<Node3D>("box_2");
+        if (scene.Simulation.TryGetProperty("chainLiftPlant", out _)) ConfigureChainLiftReceiver(root);
         return new SceneComposition(root, rendered, deferred);
     }
 

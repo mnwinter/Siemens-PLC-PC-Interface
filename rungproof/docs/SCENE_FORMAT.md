@@ -400,7 +400,7 @@ that all lab PLC-owned points remain safe under every operator action.
 
 ## Reusable catalog direction
 
-### Chain lift scene installation (Godot migrated scene)
+### Chain lift scene plant (Godot migrated scene)
 
 `lab-4-09-chain-drive-lift` uses the following scene-local equipment config
 selectors. These create installation geometry without registering substitute
@@ -415,12 +415,42 @@ catalog assets or modifying shared deliveries:
 | `sceneInstallation` | `chainLiftLimits` | Two guide-mounted endpoint switches |
 | `sceneInstallation` | `chainLiftStop` | Floor-mounted upper receiving end stop |
 
-An unknown `sceneInstallation` selector fails composition. The current guided
-lift follower targets this scene's `liftTable_1` and `box_2` IDs; it is not a
-generic scene-builder actuator. `running` bindings project `chain_run` and
-`lift_enable` into motion adapters. They do not infer PLC permissives or write
-sensor points. The three existing feedback BOOLs remain manual in this
-installation checkpoint; continuous horizontal load transfer remains open.
+An unknown `sceneInstallation` selector fails composition. The opt-in simulation
+entry `chainLiftPlant: { "model": "single-carton-guided-lift-v1" }` selects the
+scene-local single-carton plant. Unknown plant models fail initialization.
+It requires this scene's fixed equipment IDs (`liftTable_1`, `box_2`,
+`conveyor_0`, `receiving_conveyor`) and authored installation dimensions. Moving
+or resizing them requires corresponding model and audit changes; this is not
+a generic scene-builder actuator or collision-physics implementation.
+
+The plant alone integrates horizontal travel, lift height, carrying attachment
+and discharge. Independent carriage, chain and belt callbacks are disabled.
+PLC-owned BOOLs `chain_run`, `lift_enable` and `lift_lower` request horizontal,
+up and down travel. The same actual displacement projects onto carton pose,
+lift chains, carriage belt and receiving belt. Position and footprint feedback
+is PC-owned: `box_present`, `lift_home`, `destination_clear`,
+`carton_on_infeed`, `carton_on_lift`, `lift_upper`, `carton_at_receiver`,
+`receiver_occupied`, `receiver_beam_blocked`, `transfer_fault`. Entry photoeye
+feedback clears after the carton passes; receiver zone occupancy remains true
+for the parked carton. The runtime validates these types and
+owners. The momentary `lift_start` remains PC-owned; `cycle_active` and
+`cycle_complete` are PLC-owned outputs of the selected ladder program.
+
+Opposing directions, simultaneous horizontal/vertical drive, a straddling
+carton during lift motion or transfer across an absent endpoint latch a plant
+diagnostic and hold position until global Reset. The raw PLC command image is
+preserved for diagnosis. No falling-load, slip, inertia or flexible-chain
+physics is modeled. Reset restores the original infeed carton, home lift,
+feedback, fault state and exact drive phases. External paused playback freezes
+the plant without rewriting PLC commands. Offline Stop removes controller
+authorization; the supplied reference requires a fresh Start to resume any leg.
+
+`--visual-scene-review` exposes Hold offline plant clock and Step 2.0 s for
+this scene's offline operator view. A step executes 100 actual 20 ms controller
+scans through the ordinary input/ladder/output/plant path. Camera changes do
+not advance a held plant. Editor, source and scene transitions release the
+hold. This control is excluded in external PLC mode and is not a general
+simulation-clock facility. DB14 and catalog asset deliveries are unchanged.
 
 Scene equipment instances already reference stable type IDs and type-specific
 configuration. A future scene builder should use the same definitions as its

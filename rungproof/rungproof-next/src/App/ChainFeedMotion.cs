@@ -21,7 +21,11 @@ public partial class ChainFeedMotion : EquipmentMotionController
     public override void _PhysicsProcess(double delta)
     {
         if (!RunCommand) return;
-        _travel += (float)delta * .3f;
+        ApplyPlantTravel((float)delta * .3f);
+    }
+    public void ApplyPlantTravel(float distanceM)
+    {
+        _travel += distanceM;
         foreach (var (slat, home) in _slats)
         {
             // Each authored strand has thirteen links on a 160 mm pitch.

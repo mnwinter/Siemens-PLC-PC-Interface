@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-4-09-chain-drive-lift",
   "name": "Lab 4.9 - Chain-Drive Lift",
-  "description": "A guided chain lift with aligned infeed and upper receiving surfaces. Manual feedback points exercise permissives; the staged carton follows the actual lift carriage. Continuous carton transfer remains under review.",
+  "description": "A PLC-commanded carton cycle: chain infeed, guided lift, upper receiving belt and empty-carriage return. Feedback follows actual load and lift positions.",
   "camera": {
     "position": [
       11,
@@ -49,9 +49,9 @@
     {
       "id": "box_2",
       "type": "box",
-      "label": "Carton staged on the lift platform",
+      "label": "Carton on the chain infeed",
       "position": [
-        0,
+        -2.7,
         0.9675,
         0
       ],
@@ -126,7 +126,7 @@
       "type": "sceneInstallation",
       "label": "Upper receiving conveyor end stop",
       "position": [
-        4.15,
+        4.04,
         3.0675,
         0
       ],
@@ -136,50 +136,50 @@
     },
     {
       "id": "switch_8",
-      "type": "switch",
-      "label": "BOX PRESENT (manual)",
+      "type": "indicator",
+      "label": "Infeed carton feedback",
       "position": [
         -1.5,
         0,
         2.8
       ],
       "config": {
-        "style": "pushbutton",
-        "action": "toggle-box_present",
-        "color": 2204518,
-        "faceLabel": "BOX PRESENT (manual)"
+        "colors": [
+          "green"
+        ],
+        "active": "off"
       }
     },
     {
       "id": "switch_9",
-      "type": "switch",
-      "label": "HOME (manual)",
+      "type": "indicator",
+      "label": "Lift HOME feedback",
       "position": [
         0,
         0,
         2.8
       ],
       "config": {
-        "style": "pushbutton",
-        "action": "toggle-lift_home",
-        "color": 2204518,
-        "faceLabel": "HOME (manual)"
+        "colors": [
+          "green"
+        ],
+        "active": "off"
       }
     },
     {
       "id": "switch_10",
-      "type": "switch",
-      "label": "DEST CLEAR (manual)",
+      "type": "indicator",
+      "label": "Destination CLEAR feedback",
       "position": [
         1.5,
         0,
         2.8
       ],
       "config": {
-        "style": "pushbutton",
-        "action": "toggle-destination_clear",
-        "color": 2204518,
-        "faceLabel": "DEST CLEAR (manual)"
+        "colors": [
+          "green"
+        ],
+        "active": "off"
       }
     },
     {
@@ -219,7 +219,7 @@
     {
       "id": "lift_start_station",
       "type": "switch",
-      "label": "Lift installation Start (momentary)",
+      "label": "Carton cycle Start (momentary)",
       "position": [
         2.5,
         0,
@@ -231,6 +231,34 @@
         "faceLabel": "START",
         "color": 2204518
       }
+    },
+    {
+      "id": "infeed_photoeye",
+      "type": "photoeye",
+      "label": "Infeed carton optical sensor",
+      "position": [
+        -2.7,
+        0,
+        0
+      ],
+      "config": {
+        "beamCenterHeightM": 1.1,
+        "span": 2.8
+      }
+    },
+    {
+      "id": "receiver_photoeye",
+      "type": "photoeye",
+      "label": "Upper receiver entry optical sensor",
+      "position": [
+        1.4,
+        0,
+        0
+      ],
+      "config": {
+        "beamCenterHeightM": 3.2,
+        "span": 3.6
+      }
     }
   ],
   "simulation": {
@@ -240,19 +268,19 @@
         "name": "box_present",
         "type": "BOOL",
         "owner": "PC",
-        "initial": false
+        "initial": true
       },
       {
         "name": "lift_home",
         "type": "BOOL",
         "owner": "PC",
-        "initial": false
+        "initial": true
       },
       {
         "name": "destination_clear",
         "type": "BOOL",
         "owner": "PC",
-        "initial": false
+        "initial": true
       },
       {
         "name": "chain_run",
@@ -273,30 +301,75 @@
         "type": "BOOL",
         "owner": "PC",
         "initial": false
+      },
+      {
+        "name": "carton_on_lift",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "lift_upper",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "carton_at_receiver",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "receiver_occupied",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "receiver_beam_blocked",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "transfer_fault",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "lift_lower",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "cycle_active",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "cycle_complete",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "carton_on_infeed",
+        "owner": "PC",
+        "type": "BOOL",
+        "initial": true
       }
     ],
     "actions": [
       {
-        "id": "toggle-box_present",
-        "label": "Toggle box present",
-        "type": "toggle",
-        "point": "box_present"
-      },
-      {
-        "id": "toggle-lift_home",
-        "label": "Toggle lift home",
-        "type": "toggle",
-        "point": "lift_home"
-      },
-      {
-        "id": "toggle-destination_clear",
-        "label": "Toggle destination clear",
-        "type": "toggle",
-        "point": "destination_clear"
-      },
-      {
         "id": "start-lift-installation",
-        "label": "Start lift installation (momentary)",
+        "label": "Start carton cycle (momentary)",
         "type": "pulse",
         "point": "lift_start"
       }
@@ -307,17 +380,20 @@
       {
         "point": "box_present",
         "equipmentId": "switch_8",
-        "mode": "switch"
+        "mode": "indicator",
+        "activeColor": "green"
       },
       {
         "point": "lift_home",
         "equipmentId": "switch_9",
-        "mode": "switch"
+        "mode": "indicator",
+        "activeColor": "green"
       },
       {
         "point": "destination_clear",
         "equipmentId": "switch_10",
-        "mode": "switch"
+        "mode": "indicator",
+        "activeColor": "green"
       },
       {
         "point": "chain_run",
@@ -345,23 +421,51 @@
         "point": "lift_start",
         "equipmentId": "lift_start_station",
         "mode": "switch"
+      },
+      {
+        "point": "chain_run",
+        "equipmentId": "receiving_conveyor",
+        "mode": "running"
+      },
+      {
+        "point": "box_present",
+        "equipmentId": "infeed_photoeye",
+        "mode": "photoeye"
+      },
+      {
+        "point": "receiver_beam_blocked",
+        "equipmentId": "receiver_photoeye",
+        "mode": "photoeye"
+      }
+    ],
+    "chainLiftPlant": {
+      "model": "single-carton-guided-lift-v1"
+    },
+    "alarmRules": [
+      {
+        "id": "CHAIN_LIFT_TRANSFER",
+        "severity": "fault",
+        "point": "transfer_fault",
+        "operator": "isTrue",
+        "message": "Invalid lift/transfer command combination. Plant held; Reset required.",
+        "check": "Inspect chain_run, lift_enable and lift_lower and the actual carton/platform positions."
       }
     ]
   },
   "training": {
     "hints": [
-      "Translate the lesson into explicit state and permissive logic: The chain and lift are enabled only with a box present, valid home, and clear destination.",
-      "Inputs are simulator feedback (box_present, lift_home, destination_clear); PLC logic owns chain_run, lift_enable.",
-      "Test the initial state, the valid condition, and at least one missing permissive."
+      "Use a fresh Start to load at HOME, raise a fully carried carton, discharge at UPPER, then lower the empty carriage.",
+      "Feedback is PC-owned and position-derived; PLC logic owns chain_run, lift_enable, lift_lower and cycle status.",
+      "Stop holds every load/carriage/belt pose. Run alone must not resume; fresh Start may resume the held cycle."
     ],
     "solution": {
       "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
       "steps": [
-        "Require the documented inputs: box_present, lift_home, destination_clear.",
-        "Command the documented outputs: chain_run, lift_enable.",
-        "Remove PLC commands when the permissive is lost."
+        "Use a fresh Start to load at HOME, raise a fully carried carton, discharge at UPPER, then lower the empty carriage.",
+        "Feedback is PC-owned and position-derived; PLC logic owns chain_run, lift_enable, lift_lower and cycle status.",
+        "Stop holds every load/carriage/belt pose. Run alone must not resume; fresh Start may resume the held cycle."
       ],
-      "acceptance": "The chain and lift are enabled only with a box present, valid home, and clear destination."
+      "acceptance": "One carton remains supported and visible from infeed through upper receiving; the empty lift returns HOME and all drive commands clear."
     },
     "assetRequirements": [
       "chain conveyor",
@@ -370,14 +474,15 @@
       "mechanical stop"
     ],
     "machineGuide": {
-      "purpose": "A chain-driven transfer moves a box only when the lift is at a valid home position.",
+      "purpose": "A PLC-commanded carton cycle: chain infeed, guided lift, upper receiving belt and empty-carriage return. Feedback follows actual load and lift positions.",
       "startConditions": [
         "The common PLC/watchdog foundation is healthy.",
         "All required simulator inputs are at their documented initial state."
       ],
       "normalSequence": [
-        "Apply the requested input condition.",
-        "Verify only the documented PLC outputs respond."
+        "Use a fresh Start to load at HOME, raise a fully carried carton, discharge at UPPER, then lower the empty carriage.",
+        "Feedback is PC-owned and position-derived; PLC logic owns chain_run, lift_enable, lift_lower and cycle status.",
+        "Stop holds every load/carriage/belt pose. Run alone must not resume; fresh Start may resume the held cycle."
       ],
       "stopBehavior": [
         "Removing the permissive removes PLC-owned commands.",
@@ -387,9 +492,10 @@
         "A missing or stale input must fail safe and remain diagnosable."
       ],
       "expectedObservations": [
-        "chain_run animates the installed infeed chain and its drive sprockets.",
-        "lift_enable raises the guided platform and its staged carton through 2.1 m; command loss holds position.",
-        "Feedback toggles remain explicit manual test inputs; automatic home/presence sensing and continuous carton transfer are not yet implemented."
+        "Start commands horizontal loading at HOME until carton_on_lift.",
+        "lift_enable raises the carton and carriage to lift_upper; horizontal drives stop during vertical travel.",
+        "chain_run discharges across the upper bridge to the receiver stop; lift_lower returns the empty carriage.",
+        "cycle_complete is a PLC result after carton_at_receiver and lift_home; invalid transfer commands latch PC transfer_fault without rewriting PLC commands."
       ]
     },
     "sequenceNumber": 36,
@@ -408,7 +514,16 @@
       "destination_clear",
       "chain_run",
       "lift_enable",
-      "lift_start"
+      "lift_start",
+      "carton_on_lift",
+      "lift_upper",
+      "carton_at_receiver",
+      "receiver_occupied",
+      "transfer_fault",
+      "lift_lower",
+      "cycle_active",
+      "cycle_complete",
+      "carton_on_infeed"
     ],
     "changedTags": [],
     "previousAcceptance": [
@@ -421,7 +536,14 @@
         "name": "initial-safe-state",
         "expect": {
           "chain_run": false,
-          "lift_enable": false
+          "lift_enable": false,
+          "lift_lower": false,
+          "cycle_active": false,
+          "cycle_complete": false,
+          "box_present": true,
+          "lift_home": true,
+          "destination_clear": true,
+          "transfer_fault": false
         }
       }
     ]

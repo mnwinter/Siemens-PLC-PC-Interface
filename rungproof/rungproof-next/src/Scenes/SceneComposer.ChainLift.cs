@@ -31,7 +31,19 @@ public static partial class SceneComposer
         }
         var carriage = new Node3D { Name = "KIN_chain_lift_carriage" };
         root.AddChild(carriage);
-        Box(carriage, "LIFT_carrying_deck", new(2.5f, .09f, 1.5f), new(0, .9225f, 0), yellow);
+        Box(carriage, "LIFT_carrying_deck", new(2.5f, .087f, 1.5f), new(0, .921f, 0), yellow);
+        // Recess the supporting plate below the belt. Separate yellow margins
+        // keep the transfer height flush without coplanar overlapping faces.
+        Box(carriage, "KIN_belt_surface", new(2.32f, .003f, 1.3f), new(0, .966f, 0), Material(new Color("202b31"), .05f, .75f));
+        foreach (var x in new[] { -1.205f, 1.205f })
+            Box(carriage, $"LIFT_deck_margin_end_{x}", new(.09f, .003f, 1.5f), new(x, .966f, 0), yellow);
+        foreach (var z in new[] { -.7f, .7f })
+            Box(carriage, $"LIFT_deck_margin_side_{z}", new(2.32f, .003f, .1f), new(0, .966f, z), yellow);
+        foreach (var x in new[] { -1.16f, 1.16f })
+            AddCylinder(carriage, x < 0 ? "KIN_tail_drum" : "KIN_drive_drum", new(x, .91f, 0), .0575f, 1.3f, steel, new(90, 0, 0));
+        Box(carriage, "LIFT_belt_drive", new(.25f, .18f, .19f), new(.9f, .61f, .72f), blue);
+        Box(carriage, "LIFT_belt_drive_mount", new(.18f, .025f, .21f), new(.9f, .71f, .72f), steel);
+        carriage.AddChild(new ConveyorController { Name = "CarryingBelt", EstopOk = true });
         foreach (var x in new[] { -.9f, .9f })
             Box(carriage, $"LIFT_deck_support_{x}", new(.14f, .16f, 2.02f), new(x, .8f, 0), steel);
         foreach (var z in new[] { -.94f, .94f })
@@ -42,7 +54,7 @@ public static partial class SceneComposer
             Box(carriage, $"LIFT_chain_attachment_{z}", new(.12f, .14f, .2f), new(.45f, .8f, MathF.Sign(z) * .995f), steel);
             // The active strand runs up at X=.45; its return runs down at .85.
             // Both attach to the common moving carriage, outside the load path.
-            foreach (var y in new[] { .35f, 3.6f })
+            foreach (var y in new[] { .35f, ChainLiftDriveVisual.UpperSprocketCenterY })
             {
                 Box(root, $"LIFT_bearing_mount_{y}_{z}", new(.62f, .08f, .14f), new(.9f, y, z), steel);
                 AddCylinder(root, $"LIFT_bearing_{y}_{z}", new(.65f, y, z), .065f, .14f, steel, new(90, 0, 0));
@@ -59,10 +71,10 @@ public static partial class SceneComposer
             for (var link = 0; link < 96; link++)
                 Box(root, $"LIFT_chain_link_{z}_{link}", new(.04f, .055f, .065f), Vector3.Zero, steel);
         }
-        AddCylinder(root, "LIFT_drive_shaft", new(.65f, 3.6f, 0), .04f, 2.12f, steel, new(90, 0, 0));
-        Box(root, "LIFT_drive_gearbox", new(.32f, .3f, .28f), new(.65f, 3.6f, -1.15f), blue);
-        AddCylinder(root, "LIFT_drive_motor", new(.65f, 3.6f, -1.49f), .17f, .4f, blue, new(90, 0, 0));
-        Box(root, "LIFT_drive_mount", new(.14f, .5f, .35f), new(.65f, 3.85f, -1.05f), steel);
+        AddCylinder(root, "LIFT_drive_shaft", new(.65f, ChainLiftDriveVisual.UpperSprocketCenterY, 0), .04f, 2.12f, steel, new(90, 0, 0));
+        Box(root, "LIFT_drive_gearbox", new(.32f, .3f, .28f), new(.65f, ChainLiftDriveVisual.UpperSprocketCenterY, -1.15f), blue);
+        AddCylinder(root, "LIFT_drive_motor", new(.65f, ChainLiftDriveVisual.UpperSprocketCenterY, -1.49f), .17f, .4f, blue, new(90, 0, 0));
+        Box(root, "LIFT_drive_mount", new(.14f, .5f, .35f), new(.65f, 4.02f, -1.05f), steel);
         var motion = new ChainLiftDriveVisual
         {
             Name = "ChainLiftMotion", Kind = EquipmentMotionController.MotionKind.LinearY,
@@ -70,6 +82,26 @@ public static partial class SceneComposer
         };
         root.AddChild(motion);
         return root;
+    }
+
+    private static void ConfigureChainLiftReceiver(Node3D sceneRoot)
+    {
+        var receiver = sceneRoot.GetNode<Node3D>("receiving_conveyor");
+        MeshInstance3D Part(string name) => receiver.FindChild(name, true, false) as MeshInstance3D
+            ?? throw new InvalidOperationException($"Chain lift receiver requires '{name}'.");
+        Transform3D InScene(Node3D node)
+        {
+            var transform = node.Transform;
+            for (var parent = node.GetParent() as Node3D; parent is not null && parent != sceneRoot; parent = parent.GetParent() as Node3D)
+                transform = parent.Transform * transform;
+            return transform;
+        }
+        // This delivery's splice witness sits above its belt. Seat it flush
+        // in this installation so a resting carton cannot pass through it.
+        var splice = Part("BELT_vulcanized_splice");
+        var rise = (InScene(splice) * splice.GetAabb()).End.Y
+            - (InScene(Part("KIN_belt_surface")) * Part("KIN_belt_surface").GetAabb()).End.Y;
+        splice.Position -= InScene((Node3D)splice.GetParent()).Basis.Inverse() * (Vector3.Up * rise);
     }
 
     private static Node3D CreateChainLiftFeed(SceneEquipment equipment, AssetCatalogDocument candidates)
@@ -119,10 +151,15 @@ public static partial class SceneComposer
         {
             foreach (var z in new[] { -.82f, .82f })
             {
-                Box($"STOP_ground_post_{z}", new(.09f, 3.1675f, .14f), new(0, -1.48375f, z), dark);
-                Box($"STOP_ground_foot_{z}", new(.28f, .08f, .3f), new(0, -3.0275f, z), steel);
+                Box($"STOP_ground_post_{z}", new(.09f, 3.1675f, .14f), new(.21f, -1.48375f, z), dark);
+                Box($"STOP_ground_foot_{z}", new(.28f, .08f, .3f), new(.21f, -3.0275f, z), steel);
             }
-            Box("STOP_bearing_plate", new(.075f, .11f, 1.8f), new(0, .055f, 0), steel);
+            // Keep the ground posts beyond the receiving conveyor's bearing
+            // housings. A crossbar and center arm carry the stop plate back
+            // over the belt, with a clear carton-bearing surface below it.
+            Box("STOP_crossbar", new(.09f, .08f, 1.8f), new(.21f, .055f, 0), steel);
+            Box("STOP_center_arm", new(.27f, .08f, .12f), new(.105f, .055f, 0), steel);
+            Box("STOP_bearing_plate", new(.075f, .11f, 1.26f), new(0, .055f, 0), steel);
         }
         else throw new InvalidOperationException($"Unknown chain lift scene installation '{installation}'.");
         return root;

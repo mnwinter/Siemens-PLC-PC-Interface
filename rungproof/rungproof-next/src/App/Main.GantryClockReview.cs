@@ -19,11 +19,11 @@ public partial class Main
     private bool _gantryReviewStepping;
     private bool _gantryReviewOperatorView = true;
 
-    // Deliberately scoped to this illustrative command-driven gantry. Other
-    // scenes can have separate motion clocks; stepping only this controller
-    // must not be advertised as a general plant or external PLC step.
+    // Scoped to two reviewed offline clock implementations: the autonomous
+    // gantry adapter and the single-clock chain lift plant. Other scenes may
+    // have separate callbacks; this is not a general external PLC step.
     private bool CanReviewGantryClock => _visualSceneReview && !_visualPlantReview
-        && _currentSceneId == "lab-11-13-xy-palletizing"
+        && _currentSceneId is "lab-11-13-xy-palletizing" or "lab-4-09-chain-drive-lift"
         && _simulatorShell?.IsExternalMode != true;
 
     private bool GantryReviewClockHeld => _gantryReviewHeldRoot is not null
@@ -33,7 +33,7 @@ public partial class Main
     {
         _gantryReviewClockBar = new HBoxContainer { Position = new Vector2(310, 162) };
         layer.AddChild(_gantryReviewClockBar);
-        _gantryReviewHold = new CheckButton { Text = "Hold offline gantry clock" };
+        _gantryReviewHold = new CheckButton { Text = "Hold offline plant clock" };
         _gantryReviewStep = new Button { Text = "Step 0.5 s", Disabled = true };
         _gantryReviewClockLabel = new Label();
         _gantryReviewClockBar.AddChild(_gantryReviewHold);
@@ -55,6 +55,8 @@ public partial class Main
         if (!CanReviewGantryClock) ReleaseGantryReviewClock();
         if (_gantryReviewClockBar is not null)
             _gantryReviewClockBar.Visible = CanReviewGantryClock && _gantryReviewOperatorView;
+        if (_gantryReviewStep is not null)
+            _gantryReviewStep.Text = _currentSceneId == "lab-4-09-chain-drive-lift" ? "Step 2.0 s" : "Step 0.5 s";
         UpdateGantryReviewClockLabel();
     }
 
@@ -93,18 +95,19 @@ public partial class Main
     {
         if (!CanReviewGantryClock || !GantryReviewClockHeld
             || _virtualController?.Snapshot.State != VirtualControllerState.Running) return;
-        var motion = _sceneCompositionRoot!.GetNode<Node3D>("training_accessory_4")
-            .GetNode<EquipmentMotionController>("GantryCommandMotion");
+        var chainLift = _currentSceneId == "lab-4-09-chain-drive-lift";
+        var motion = chainLift ? _sceneCompositionRoot!.GetNode<Node3D>("liftTable_1").GetNode<EquipmentMotionController>("ChainLiftMotion")
+            : _sceneCompositionRoot!.GetNode<Node3D>("training_accessory_4").GetNode<EquipmentMotionController>("GantryCommandMotion");
         _gantryReviewStepping = true;
         try
         {
             // Preserve the existing input -> ladder -> output -> plant path,
             // at the authored 20 ms scan cadence. The disabled parent prevents
             // Godot from also advancing autonomous equipment during inspection.
-            for (var tick = 0; tick < 25; tick++)
+            for (var tick = 0; tick < (chainLift ? 100 : 25); tick++)
             {
                 _PhysicsProcess(0.02);
-                if (motion.IsPhysicsProcessing()) motion._PhysicsProcess(0.02);
+                if (!chainLift && motion.IsPhysicsProcessing()) motion._PhysicsProcess(0.02);
             }
         }
         finally { _gantryReviewStepping = false; }
@@ -119,7 +122,7 @@ public partial class Main
                 || _virtualController?.Snapshot.State != VirtualControllerState.Running;
         if (_gantryReviewClockLabel is null) return;
         var motion = _sceneCompositionRoot?.FindChildren("*", string.Empty, true, false)
-            .OfType<EquipmentMotionController>().FirstOrDefault(item => item.Kind == EquipmentMotionController.MotionKind.CartesianGantry);
+            .OfType<EquipmentMotionController>().FirstOrDefault(item => item is ChainLiftDriveVisual || item.Kind == EquipmentMotionController.MotionKind.CartesianGantry);
         _gantryReviewClockLabel.Text = $"QA · {(_virtualController?.Snapshot.SimulatedTime.TotalSeconds ?? 0):F2} s · stroke {motion?.PositionPercent ?? 0:F1}%";
     }
 

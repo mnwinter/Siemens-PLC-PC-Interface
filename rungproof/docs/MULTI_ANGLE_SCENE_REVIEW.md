@@ -1,6 +1,65 @@
 # Multi-angle scene review - 2026-10-04
 
-Scene 50 installation repair (2026-10-05, current checkpoint): replaced the
+Scene 50 carton-cycle repair (2026-10-05, current checkpoint): the carton now
+loads from the chain infeed, crosses a supported lower bridge, rises on the
+powered carrying deck, crosses the upper bridge to the receiving belt, stops
+at its plate, and remains there while the empty carriage returns HOME. The
+scene has 16 equipment items, 16 symbolic points and one momentary Start.
+The opt-in single-carton plant owns position feedback, with separate upper
+entry-beam and occupied-zone feedback; PLC commands retain PLC ownership.
+One clock projects load, carriage, chains and belt travel. Shared deliveries
+and DB14 remain unchanged. The retained saved reference filename now contains
+Chain_Lift_Carton_Cycle, a seven-rung 20 ms editable offline sequence. Default
+generated ladder remains an exercise; use File -> Open Ladder Agent Project.
+
+A strengthened audit selected the actual CARTON_BODY by mesh volume instead
+of import order (which selected a barcode), and exposed a real shaft conflict.
+Moved the upper shaft/sprockets/gearbox to Y=3.95, above the carton's upper
+body envelope, and derived chain-loop length from that shared center height.
+Recessed the supporting deck below its belt to remove coplanar face flicker.
+Seated the receiver's raised splice witness flush. Rotating curved meshes use
+transformed surface-vertex bounds before the oriented-box screen, preventing
+rotating bounding cubes from falsely growing into a resting carton.
+
+Final focused audit: 36/36 pass, 2,897 cycle samples at 10 ms; all four route
+legs, bearing-contact envelopes, carton visibility/selected obstacle clearance,
+actual optical centerlines/rendered beams, endpoint feedback, completion,
+occupied-receiver restart rejection, Stop/Run/fresh Start in every leg, exact
+chain/drum Reset, conflicting-command diagnostics and held-clock QA checks.
+Carriage screen covers 211 heights, excluding intended guide/chain/limit
+interfaces. Bounds screens are not swept-volume, solid-contact, load-rating,
+falling-load, slip, flexible-chain or full self-collision acceptance.
+
+Final native Windows build opened the saved reference through the normal File
+route and was visually inspected at 1602x932. Held actual 20 ms controller
+steps produced lower-bridge crossing (6 s), mid-rise (10 s, 43.5%), upper
+shaft approach (20 s), upper-bridge crossing (22 s), and empty return (30 s,
+73.5%) in FR/FL/RL/RR/Top views. Stop at 43.5% cleared commands; Run plus
+2 s of scans held that pose; fresh Start resumed. The upper entry beam hid
+while crossed and returned after the carton passed, while receiver CLEAR
+stayed false. At 34 s the empty lift reached HOME with the carton retained;
+Reset restored the infeed carton and stopped scans. Some close Top views
+crop the stop/carton behind QA controls; front/rear-right views show them.
+These are inspected controller-driven snapshots, not every-frame five-angle
+native coverage. After Reset, released the hold and ran a normal real-time
+cycle: initial travel and the completed HOME/retained-carton endpoint were
+observed in RR, at scan 2261 / simulated 45.22 s (Start around 10.28 s).
+Intermediate real-time frames were not individually inspected. The owned
+native process closed normally and its console session exited 0.
+
+Final build: zero warnings/errors. Controller tests: 144 pass, 0 fail; native
+controller UI regression passes without PLC transport. Geometry: 487 pass;
+shared plant-motion/QA scope: 32 pass; shell: 77 scenes/3 groups/5 demos/294
+assets; scene contract: 16 points/1 action/16 rendered/0 deferred; help passes.
+Logs: rungproof-next/.tools/chain-lift-cycle-{build,audit,controller-tests,
+controller,geometry,motion-regression,shell,contract,help,clearance-native}.log.
+
+Whole-program goal ACTIVE and incomplete. Continue the remaining findings,
+including Scene 51's incorrect cookie/CNC belt installation and load placement;
+Demo 5 and Scene 74 continuous native multi-angle acceptance also remain open.
+No live PLC connection or hardware acceptance is claimed.
+
+Scene 50 installation repair (2026-10-05, previous checkpoint): replaced the
 overlapping conveyor/scissor-table installation and incorrect mill/scissor/
 E-stop accessories with a scene-local guided chain lift, separate chain
 infeed, two transfer bridges, frame-mounted endpoint switches, an upper
@@ -2427,7 +2486,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 47 | `lab-4-06-multi-press-confirmation` | 0 | Native FR/FL/RL/RR/T | Static stands clear. Precomputed pattern-ok toggles; raw press order/timing workflow unverified |
 | 48 | `lab-4-07-parking-garage-entry` | 20 | Native FR/FL/RL/RR/T; replacement readout five focus views | Readout replaced/repositioned; five native focus views (RL obscured). FAIL/open: motor-starter vehicle, substitute barrier/wall, no occupancy numeric binding or barrier motion acceptance |
 | 49 | `lab-4-08-package-grouping` | 118 (historic) | Native FR/FL/RL/RR/T; final carton top/FR close | Carton support repaired and re-inspected. FAIL/open: grouping/release outputs only lamps; separated receiver/stop/sensors and transfer behavior unverified |
-| 50 | `lab-4-09-chain-drive-lift` | 3 intended mounts | Native home/upper FR/FL/RL/RR/T; final deck FR/RL | Installation/drive checkpoint: guided lift, supported staged carton, aligned receiving surface; 28 focused checks pass. OPEN continuous carton transfer, automatic feedback, lowering and every-frame native motion |
+| 50 | `lab-4-09-chain-drive-lift` | 3 intended mounts | Native lower bridge/mid-rise/shaft approach/upper bridge/empty return FR/FL/RL/RR/T; Stop/fresh Start/completed HOME/Reset | Supported complete single-carton route and automatic feedback repaired; 36 focused checks pass with 2,897 samples. OPEN every-frame five-angle native coverage, swept-volume/self-collision and broader physical/process acceptance |
 | 51 | `lab-4-10-cookie-packaging` | 146 | Native FR/FL/RL/RR/T; food top/FR close | FAIL/open: CNC occupies belt, packaged meat below indexing conveyor; lamp-only outputs, cookie count/transfer/packaging unverified |
 | 52 | `lab-4-11-barrel-fill-station` | 143 | Native FR/FL/RL/RR/T; barrel top/FR close | FAIL/open: tank occupies conveyor, barrel is motor starter; disconnected fill route; lamp-only outputs, fill/transfer unverified |
 | 53 | `lab-4-12-cable-cut-length` | 21 (prior inventory) | Native FR/FL/RL/RR/T; repaired readout five focus views; 3D inputs/Reset | Readout now grounded LENGTH / NO MEASUREMENT, front readable/Top clear; rear details blocked. CABLE/LENGTH/HOME plates and matching PC points verified. FAIL/open: payoff shutter, dancer/cutter trays, unbound encoder, no continuous cable measurement/cut route; outputs only lamps |

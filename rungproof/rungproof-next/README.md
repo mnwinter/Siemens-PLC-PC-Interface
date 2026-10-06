@@ -48,10 +48,12 @@ explicit joint/access motions; generic autonomous adapters such as the spindle
 remain frozen. Release the clock to observe those animations. Held steps also
 discard leftover time at phase boundaries, so counts are not time acceptance.
 
-For Demo 5's offline operator view, Hold offline gantry clock freezes scans and
+For Demo 5's offline operator view, Hold offline plant clock freezes scans and
 equipment motion. Step 0.5 s executes 25 existing 20 ms scan/gantry ticks;
 normal Run and manual permissives are still required. Editor, scene and source
-changes release the hold. These controls are scoped to the illustrative gantry.
+changes release the hold. Scene 50 uses the same controls with Step 2.0 s
+(100 actual 20 ms scans) for its single-clock carton plant. External PLC stepping
+and other scene clocks are excluded.
 `-- --verify-plant-motion --visual-scene-review` runs 32 offline motion checks,
 including hold, full-sweep stepping, Stop, permissive loss, Reset and release.
 `-- --verify-carton-static-routes` runs the focused Scene 2 cable and optical
@@ -495,19 +497,24 @@ reference, actual controller sequencing, independent lamp channels and tier
 clearance. The CNC remains static and the sounder is uncommanded. These are
 offline checks; no physical or live PLC acceptance is implied.
 
-### Chain lift installation reference
+### Chain lift carton cycle reference
 
-Scene `lab-4-09-chain-drive-lift` includes an editable installation test:
+Scene `lab-4-09-chain-drive-lift` includes an editable offline carton cycle:
 `programs/examples/chain-lift-installation-reference.rpproj.json`. Open it with
-**File -> Open Ladder Agent Project**, Run scans, assert the three manual
-BOX PRESENT/HOME/DEST CLEAR inputs, then press Start Lift Installation. The
-staged carton rises on the carriage to the upper receiving height. Stop holds
-the position; Run requires a fresh Start. Global Reset restores the home pose
-and clears the manual inputs. See
+**File -> Open Ladder Agent Project**, Run scans, then press **Start carton
+cycle (momentary)**. The carton moves from the chain infeed across the lower
+bridge, rises on the lift belt, transfers across the upper bridge onto the
+receiving conveyor and stops at its end stop. The empty lift returns home.
+Feedback follows actual carton/carriage positions. Stop holds the position;
+Run requires a fresh Start to resume. Global Reset restores the carton to the
+infeed, the lift home and both belt/chain drive phases. The completed carton
+stays on the receiver until Reset. See
 [`the scene guide`](docs/help/scenes/lab-4-09-chain-drive-lift.md).
 
-Use `--audit-chain-lift-installation` after building for 28 focused offline
-checks of support, selected clearance at 211 heights, actual command adapters,
-saved reference/controller behavior and drive Reset. This checkpoint does not
-implement continuous carton loading/discharge, automatic feedback or lowering.
-The receiving belt is static; the infeed animates its upper chain run only.
+Use `--audit-chain-lift-installation` after building for 36 focused offline
+checks of bearing contacts, selected clearance at 211 heights and the full
+actual-controller cycle at 10 ms plant samples. It checks automatic feedback,
+four-leg Stop/resume, invalid-command diagnostics, exact drive Reset and the
+native review clock path. This fixed-geometry, single-carton model excludes
+falling loads, slip, inertia and flexible-chain physics. Sampled bounds and
+native snapshots do not establish mechanical or live PLC acceptance.

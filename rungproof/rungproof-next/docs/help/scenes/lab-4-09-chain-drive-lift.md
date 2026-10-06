@@ -1,117 +1,123 @@
 # Lab 4.9 - Chain-Drive Lift help
 
 Scene ID: `lab-4-09-chain-drive-lift`  
-Migrated source: `prototype/scenes/lab-4-09-chain-drive-lift.plcscene`  
 Scene contract: `res://scenes/migrated/lab-4-09-chain-drive-lift.scene.json`
 
-## Current installation
+## Carton route
 
-A two-strand chain infeed meets the lower bridge at **0.9675 m**. A guided
-chain-driven platform raises its staged carton **2.1 m** to the upper bridge
-and receiving belt at **3.0675 m**. Two carriage crossmembers support the deck.
-Lower and upper limit-switch bodies are mounted on a fixed guide post; the
-moving guide shoe contacts their rollers at the endpoints. A floor-mounted
-stop stands beyond the upper receiver. The old milling-machine, duplicate
-scissor-table, E-stop-as-mechanical-stop and separate pallet/load props are
-removed from this scene. Shared catalog packages remain unchanged.
+A carton starts on the two-strand chain infeed. At HOME, horizontal drive moves
+it across the lower bridge onto the lift's powered carrying deck. The fully
+carried carton rises 2.1 m to the 3.0675 m upper carrying height, crosses the
+upper bridge onto the receiving belt, and stops against the receiver plate.
+The empty carriage then returns HOME. The carton remains visible on the
+receiver until global Reset; it is never deleted or silently recycled.
 
-This checkpoint verifies installation and commanded drive motion. **Continuous
-carton feeding, discharge, return travel and automatic feedback remain open.**
-The carton starts on the lift and follows its carriage; it does not yet travel
-from the infeed onto the receiving conveyor. The receiving belt remains static.
-The infeed animation shows its upper chain run, not a complete flexible-chain
-physics model. Reset restores home; command loss holds the current lift height.
+Two crossmembers support the deck. Fixed lower/upper switches meet the moving
+guide shoe at the endpoints. The receiver stop has posts beyond its conveyor
+bearings, a crossbar and a center support arm. Shared catalog deliveries remain
+unchanged. This is a bounded single-carton simulator, without falling-load,
+slip, inertia or flexible-chain dynamics.
 
 ## Expected I/O to operate this scene
 
-These points have no hardware addresses. The three legacy feedback points are
-**manual test inputs**, identified by the operator plates. They are not driven
-by the installed limit switches or carton position in this checkpoint. For
-example, `lift_home=True` can remain manually asserted with the platform raised.
-Do not treat these toggles as verified automatic sensing.
+All points are symbolic, without hardware addresses. PC feedback now comes
+from actual modeled load/carriage positions. The previous manual feedback
+toggle actions are removed; the three former pushbutton props are feedback
+lamps. HOME goes false as the carriage leaves the lower endpoint. An infeed
+photoeye shows `box_present`; an upper entry photoeye shows
+`receiver_beam_blocked`. Each beam clears when the carton passes it.
+`receiver_occupied` describes the occupied receiver zone and stays true while
+the completed carton remains there; it is distinct from an entry photoeye.
 
 | Point | Type | Owner | Initial |
 | --- | --- | --- | --- |
-| `box_present` | `BOOL` | **PC** | `False` |
-| `lift_home` | `BOOL` | **PC** | `False` |
-| `destination_clear` | `BOOL` | **PC** | `False` |
-| `lift_start` | `BOOL` | **PC** | `False` |
+| `box_present` | `BOOL` | **PC** | `True` |
+| `lift_home` | `BOOL` | **PC** | `True` |
+| `destination_clear` | `BOOL` | **PC** | `True` |
 | `chain_run` | `BOOL` | **PLC** | `False` |
 | `lift_enable` | `BOOL` | **PLC** | `False` |
+| `lift_start` | `BOOL` | **PC** | `False` |
+| `carton_on_lift` | `BOOL` | **PC** | `False` |
+| `lift_upper` | `BOOL` | **PC** | `False` |
+| `carton_at_receiver` | `BOOL` | **PC** | `False` |
+| `receiver_occupied` | `BOOL` | **PC** | `False` |
+| `receiver_beam_blocked` | `BOOL` | **PC** | `False` |
+| `transfer_fault` | `BOOL` | **PC** | `False` |
+| `lift_lower` | `BOOL` | **PLC** | `False` |
+| `cycle_active` | `BOOL` | **PLC** | `False` |
+| `cycle_complete` | `BOOL` | **PLC** | `False` |
+| `carton_on_infeed` | `BOOL` | **PC** | `True` |
 
-`chain_run` drives the infeed chain adapter and its status tower. `lift_enable`
-drives the vertical carriage, its chain/sprockets and its status tower. False
-commands freeze the drive poses. The scene projects the PLC command image;
-it does not manufacture permissives or automatically interlock raw commands.
+`carton_on_infeed` stays true through lower bridge loading until the complete
+carton footprint enters the deck. `carton_on_lift` is true only when the whole
+carton fits on the carriage. `carton_at_receiver` indicates the fully received
+carton reaching the stop. `destination_clear` clears when the carton enters the receiver zone and
+stays false after it passes the entry beam. These are ideal symbolic position/occupancy sensors.
 
-## Operator actions and bindings
+`chain_run` commands horizontal travel and carrying-surface animation.
+`lift_enable` raises; `lift_lower` lowers. Neither command is inferred by a
+plant timer. The PLC reference owns sequencing, `cycle_active` and completion.
+The plant never writes PLC-owned commands. Conflicting directions, simultaneous
+horizontal/vertical commands, or a transfer across an absent platform/surface
+latch `transfer_fault`, hold the plant and raise an alarm. Reset is required.
+This explicit fault boundary does not simulate collision or falling dynamics.
 
-| Action | Type | Point | Equipment/mode |
-| --- | --- | --- | --- |
-| Toggle box present | toggle | `box_present` | `switch_8` / switch |
-| Toggle lift home | toggle | `lift_home` | `switch_9` / switch |
-| Toggle destination clear | toggle | `destination_clear` | `switch_10` / switch |
-| Start lift installation (momentary) | pulse | `lift_start` | `lift_start_station` / switch |
+## Run the editable reference
 
-Legacy toggle action IDs are retained. The new Start action ID is
-`start-lift-installation`; its pulse is consumed by an offline controller scan.
-Additional output bindings are `chain_run -> conveyor_0 / running` and
-`lift_enable -> liftTable_1 / running`; both existing green indicator bindings
-are retained. An old two-output program still binds, but may restart immediately
-if its logic remains true. The optional reference supplies a fresh-Start seal.
+1. Select Built-in Simulator and this scene. Open
+   `programs/examples/chain-lift-installation-reference.rpproj.json` through
+   **File -> Open Ladder Agent Project...**. Its retained filename now contains
+   the complete `Chain_Lift_Carton_Cycle` reference.
+2. Return to Scene and press bottom **Run**. Scans advance; all drives stay off.
+3. Press **Start carton cycle (momentary)**. Observe loading, raising, discharge
+   and empty-carriage return. The reference scans at 20 ms. The bounded model
+   uses 0.3 m/s horizontal travel and a four-second vertical stroke.
+4. Completion clears all drive outputs and leaves the carton on the receiver.
+   Another Start cannot recycle that carton. Global Reset restores the initial
+   infeed carton and HOME/CLEAR feedback and stops scans.
+5. During any leg, **Stop** holds every pose. **Run** alone cannot resume; press
+   a fresh Start to continue the held route. A fault requires global Reset.
+
+The default generated ladder project remains an exercise. If nothing moves,
+first check the loaded reference name, increasing scan number, and a fresh
+Start. If `transfer_fault` appears, inspect the three drive commands and the
+carton/platform positions before resetting.
 
 ## Expected equipment
 
 | ID | Type | Installed purpose |
 | --- | --- | --- |
 | `conveyor_0` | conveyor | Two-strand chain infeed |
-| `liftTable_1` | liftTable | Guided vertical chain lift (scene opt-in) |
-| `box_2` | box | Carton staged on the lift platform |
+| `liftTable_1` | liftTable | Guided chain-driven vertical lift |
+| `box_2` | box | Carton on the chain infeed |
 | `indicator_3` | indicator | Chain run status |
-| `training_accessory_4` | sceneInstallation | Lower transfer bridge |
-| `training_accessory_5` | sceneInstallation | Upper receiving bridge |
-| `training_accessory_6` | sceneInstallation | Mounted limit-switch pair |
-| `training_accessory_7` | sceneInstallation | Floor-mounted receiver stop |
-| `switch_8` | switch | BOX PRESENT manual input |
-| `switch_9` | switch | HOME manual input |
-| `switch_10` | switch | DEST CLEAR manual input |
+| `training_accessory_4` | sceneInstallation | Fixed infeed transfer bridge |
+| `training_accessory_5` | sceneInstallation | Fixed upper receiving bridge |
+| `training_accessory_6` | sceneInstallation | Frame-mounted lower and upper limit switches |
+| `training_accessory_7` | sceneInstallation | Upper receiving conveyor end stop |
+| `switch_8` | indicator | Infeed carton feedback |
+| `switch_9` | indicator | Lift HOME feedback |
+| `switch_10` | indicator | Destination CLEAR feedback |
 | `indicator_11` | indicator | Lift enable status |
-| `receiving_conveyor` | conveyor | Upper receiving belt |
-| `lift_start_station` | switch | Momentary START |
-
-The four sceneInstallation objects are composed scene props; they do not claim
-an unrelated reusable catalog delivery as their source.
-
-## Run the installation reference
-
-1. In Built-in Simulator mode, select this scene and open
-   `programs/examples/chain-lift-installation-reference.rpproj.json` through
-   **File -> Open Ladder Agent Project...**.
-2. Return to the scene and press bottom **Run**. Both commands remain false.
-   Start with a missing manual permissive is rejected.
-3. Set all three manual feedback toggles true. Restoring inputs alone does not
-   reuse an earlier Start. Press the separate **Start lift installation**.
-4. Both green status lamps light, the infeed chain moves, and the supported
-   carton/platform rise to the upper carrying height. Travel is four seconds
-   in this illustrative installation; no physical drive rating is implied.
-5. Bottom **Stop** clears both commands and holds position. **Run** alone cannot
-   resume. A fresh Start reasserts commands at the held height. Losing a manual
-   permissive clears the seal; recovery also needs a fresh Start.
-6. Bottom **Reset** restores the lower platform/carton/chain poses, clears all
-   manual points and commands, and stops scans.
-
-The default template remains an exercise. If nothing moves, first check that
-the saved reference is loaded, scans are increasing, all three manual inputs
-are true, and a fresh Start was pressed. If lamps light without carriage motion,
-check the `running` binding and the `ChainLiftMotion` adapter.
+| `receiving_conveyor` | conveyor | Upper receiving belt conveyor |
+| `lift_start_station` | switch | Carton cycle Start (momentary) |
+| `infeed_photoeye` | photoeye | Infeed carton optical sensor |
+| `receiver_photoeye` | photoeye | Upper receiver entry optical sensor |
 
 ## Verification boundary
 
-`--audit-chain-lift-installation` checks the saved reference, actual symbolic
-controller scans, command projection, Stop/Run/Reset, deck and carton support,
-limit mounting/contact and 211 sampled positions over the full lift stroke.
-The clearance screen excludes fixed guide posts, chain links and the limit
-assembly's intended contacts. Native camera views provide separate visual evidence. Neither proves
-complete chain mechanics, continuous swept-volume clearance, physical safety,
-automatic sensing, wiring, a live PLC or complete carton-transfer behavior.
+`--audit-chain-lift-installation` retains its flag name but checks the complete
+saved reference, actual offline controller scans, all four route legs,
+Stop/Run/fresh Start in each leg, automatic endpoint feedback, drive Reset,
+invalid commands and 211 sampled carriage heights. The full cycle is sampled
+at 10 ms for bearing-contact envelopes and selected carton/equipment clearance.
+Intended guide, chain and optical-beam contacts are excluded from the relevant
+clearance screens. These bounds checks are not continuous collision or physical
+load/stability proof.
+
+Native QA adds **Hold offline plant clock** and **Step 2.0 s** only with
+`--visual-scene-review`. A step runs 100 actual 20 ms controller scans and their
+plant steps; it does not assign a fabricated pose. Normal real-time operation
+and held multi-angle inspections provide separate rendered evidence. Neither
+establishes hardware safety, wiring, live PLC behavior or mechanical ratings.
 DB14 remains unchanged.
