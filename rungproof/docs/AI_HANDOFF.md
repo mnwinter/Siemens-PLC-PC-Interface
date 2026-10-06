@@ -1,5 +1,24 @@
 # RungProof / PLC Visual Simulator AI handoff
 
+Scene 44 repeat-cycle baseline (2026-10-06, next unresolved repair): normal
+native Windows operator shell opened the unchanged lab-4-03-repeat-cycle-counter.
+Both sidebar actions latch PC cycle_request/cycle_count_complete true while Stopped;
+PLC cycle_active/cycle_complete remain false. Normal Run opens the intentionally
+empty editor with NO CONTROLLER LOADED. Returned to Scene and inspected FR/FL/RL/RR/Top.
+The CNC is a static generic prop: the scene has only switch/indicator bindings, no
+machine command, motion, completion sensor, plant model or counter. The two manual
+switches inherit generic START plates. Front-left hides the near request station
+behind the CNC panel; rear-left hides the near completion beacon behind the enclosure.
+Top shows separate footprints; this baseline does not establish any running cycle.
+Native exited 0; .tools/repeat-cycle-counter-baseline-native.log. No Scene 44 source
+changes made. The original prototype has the same incomplete four-point contract;
+it does not supply a count preset, machine cycle or motion timing. Preserve the
+empty training editor and distinguish a chosen, documented offline reference from
+a source-derived machine specification. Repair the completion feedback/command
+path and exercise the bounded count with an explicit QA controller, including
+Stop/Run, Reset, held inputs, missing permissives and actual native moving poses.
+The whole-program goal remains active; last repair commit is 222211f.
+
 Scene 43 counter/reset repair and catalog preflight (2026-10-06, current checkpoint):
 replaced the PC-computed count_reached toggle with raw pulse_received; reset_pressed
 is now a one-scan momentary action. Corrected physical plates COUNT/RESET and

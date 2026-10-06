@@ -1,5 +1,24 @@
 # Multi-angle scene review - 2026-10-04
 
+Scene 44 repeat-cycle baseline (2026-10-06, next unresolved repair): normal
+native Windows operator shell opened the unchanged lab-4-03-repeat-cycle-counter.
+Both sidebar actions latch PC cycle_request/cycle_count_complete true while Stopped;
+PLC cycle_active/cycle_complete remain false. Normal Run opens the intentionally
+empty editor with NO CONTROLLER LOADED. Returned to Scene and inspected FR/FL/RL/RR/Top.
+The CNC is a static generic prop: the scene has only switch/indicator bindings, no
+machine command, motion, completion sensor, plant model or counter. The two manual
+switches inherit generic START plates. Front-left hides the near request station
+behind the CNC panel; rear-left hides the near completion beacon behind the enclosure.
+Top shows separate footprints; this baseline does not establish any running cycle.
+Native exited 0; .tools/repeat-cycle-counter-baseline-native.log. No Scene 44 source
+changes made. The original prototype has the same incomplete four-point contract;
+it does not supply a count preset, machine cycle or motion timing. Preserve the
+empty training editor and distinguish a chosen, documented offline reference from
+a source-derived machine specification. Repair the completion feedback/command
+path and exercise the bounded count with an explicit QA controller, including
+Stop/Run, Reset, held inputs, missing permissives and actual native moving poses.
+The whole-program goal remains active; last repair commit is 222211f.
+
 Scene 43 counter/reset repair and catalog preflight (2026-10-06, current checkpoint):
 replaced the PC-computed count_reached toggle with raw pulse_received; reset_pressed
 is now a one-scan momentary action. Corrected physical plates COUNT/RESET and
@@ -2843,7 +2862,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 41 | `lab-3-02-robot-cell-safe-restart` | 1 | FR/FL/RL/RR/T static and commanded sweep; gate/interlock details; final normal operator workflow | Repaired robot/CNC clearance, complete fence/gate, mounted moving actuator and cabinet identity; 35 focused checks plus native offline Reset/Start/permissive-loss/Stop/Run/Reset pass. Remaining bounds pair is intended sensor mounting. Generic robot sweep/static CNC/E-stop reference only; physical/live proof open |
 | 42 | `lab-4-01-press-count-lamp` | 0 | Native FR/FL/RL/RR/T; final FR close PULSE; normal Run, rail/3D pulses, Stop/Run/Reset | Pulse/plate repaired. Three presses light authored CTU lamp, Stop removes output, Run retains count, Reset clears; five integration checks pass |
 | 43 | `lab-4-02-counter-reset-lamp` | 0 | Native FR/FL/RL/RR/T; normal project Open/Run; physical COUNT/RESET; Stop/Run/application Reset | Raw momentary pulse/reset, corrected plates; explicit three-count CTU reference native lamp off after 1/2 and on after 3. Reset clears; restart retains count; pending pulses discarded. Eleven exact workflow checks pass. Empty exercise editor remains intentional; hardware/external behavior unverified |
-| 44 | `lab-4-03-repeat-cycle-counter` | 0 | Native FR/FL/RL/RR/T | Static spacing clear. Precomputed cycle_count_complete; outputs only lamps, CNC motion absent; bounded-cycle behavior unverified |
+| 44 | `lab-4-03-repeat-cycle-counter` | 0 (historical) | Native FR/FL/RL/RR/T; normal request/completion toggles and Run baseline | Manual PC count-complete can be latched, outputs false with intentional empty editor. Static CNC has no command/motion/feedback binding. Front-left hides request station; rear-left hides near beacon. Actual counted cycle remains unresolved; next scoped repair must establish actual completion feedback plus explicit QA controller |
 | 45 | `lab-4-04-sequence-light-tower` | 0 | Repaired FR/FL/RL/RR/T geometry; final FR close/full four colors; normal Open/Start/Step/Stop/Run/Reset | Four physical tiers, independent color bindings, momentary requests and editable offline reference repaired. Native complete cycle/restart/reset inspected; 30 focused checks PASS. Rear details partly occluded. CNC static, sounder uncommanded; live/physical acceptance open |
 | 46 | `lab-4-05-dual-input-count-window` | 0 | Native FR/FL/RL/RR/T | Static stands clear. Precomputed channel-ready toggles; raw counting/window workflow unverified |
 | 47 | `lab-4-06-multi-press-confirmation` | 0 | Native FR/FL/RL/RR/T | Static stands clear. Precomputed pattern-ok toggles; raw press order/timing workflow unverified |
