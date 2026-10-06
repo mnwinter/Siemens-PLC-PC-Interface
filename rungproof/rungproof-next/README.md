@@ -188,7 +188,22 @@ a full fresh interval in that phase. Reset clears all state and stays stopped.
 Native Windows checks cover five angles, physical selectors, exact thresholds,
 conflict/no-rate behavior, Stop/Run/Reset and normal continuous playback.
 
-`-- --verify-scene-geometry` runs 788 focused geometry/workflow checks with `--visual-scene-review` for Demo 5 supported pickup, four-carton placement, moving clearance and attachment,
+`-- --audit-running-tower` runs 29 offline checks for Scene 59 and writes
+ignored `.tools/plant-review-running-light-tower.rpproj.json` (seven rungs).
+Open explicitly through File; the default exercise remains empty. PC supplies
+raw ENABLE through an OFF/RUN selector and a momentary STEP request. Replace
+obsolete `tower_step_active` in older projects with separate PLC-owned
+`tower_red`, `tower_amber`, `tower_green` outputs. The original reference starts
+red, then steps amber, green, red on separate rising edges, without idle advance.
+Wrap is a declared training choice absent from the source. An accepted low scan
+rearms Step; unsampled repeated clicks coalesce. OFF clears phase/colors on the
+next accepted scan. Stop discards pending Step/clears lamps and retains enable/
+phase; Run restores that phase without a startup edge. Reset clears all state
+and stays stopped. Native Windows checks cover five angles, close labels,
+physical controls, pulse consumption, Stop/Run/Reset and continuous playback.
+
+`-- --verify-scene-geometry` runs 830 focused geometry/workflow checks with `--visual-scene-review` for Demo 5 supported pickup, four-carton placement, moving clearance and attachment,
+running-tower separate color channels, raw Step edges, wrap, disabled/held/repeated pulses and retained-phase restart,
 alternating/variable-rate periodic scans, lamp exclusivity, rate conflicts and all configured selector alignment,
 rotary-flasher periodic scans, phase retention, OFF cancellation and selector alignment,
 timer-lesson actual TON/TP boundaries, maintained selector alignment and pulse consumption,

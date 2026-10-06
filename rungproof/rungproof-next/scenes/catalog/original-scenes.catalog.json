@@ -969,6 +969,7 @@
       "equipmentCount": 3,
       "equipmentTypes": [
         "indicator",
+        "rotarySwitch",
         "switch"
       ],
       "unresolvedAssetTypes": [],

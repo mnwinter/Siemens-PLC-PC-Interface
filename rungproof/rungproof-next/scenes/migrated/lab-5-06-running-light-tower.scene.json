@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-5-06-running-light-tower",
   "name": "Lab 5.6 - Running-Light Tower",
-  "description": "A pulse-driven sequence walks a signal through a multi-level tower.",
+  "description": "A maintained ENABLE selector and momentary STEP request drive a PLC-owned red -> amber -> green running-light sequence.",
   "camera": {
     "position": [
       11,
@@ -20,23 +20,28 @@
   "equipment": [
     {
       "id": "switch_0",
-      "type": "switch",
-      "label": "Running-Light Tower switch",
+      "type": "rotarySwitch",
+      "label": "ENABLE maintained selector OFF / RUN",
       "position": [
         -3.3000000000000003,
         0,
         0
       ],
       "config": {
-        "style": "pushbutton",
         "action": "toggle-tower_enable",
-        "color": 2204518
+        "positionCount": 2,
+        "initialPosition": 0,
+        "positionLabels": [
+          "OFF",
+          "RUN"
+        ],
+        "faceLabel": "ENABLE"
       }
     },
     {
       "id": "indicator_1",
       "type": "indicator",
-      "label": "Running-Light Tower indicator",
+      "label": "PLC three-color running-light tower",
       "position": [
         -1.1,
         0,
@@ -48,13 +53,13 @@
           "amber",
           "green"
         ],
-        "active": "red"
+        "active": ""
       }
     },
     {
       "id": "switch_2",
       "type": "switch",
-      "label": "Running-Light Tower operator input",
+      "label": "Momentary sequence Step",
       "position": [
         1.1,
         0,
@@ -63,7 +68,8 @@
       "config": {
         "style": "pushbutton",
         "action": "toggle-step_pulse",
-        "color": 2204518
+        "color": 2204518,
+        "faceLabel": "STEP"
       }
     }
   ],
@@ -83,7 +89,21 @@
         "initial": false
       },
       {
-        "name": "tower_step_active",
+        "name": "tower_red",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "tower_amber",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "tower_green",
         "type": "BOOL",
         "owner": "PLC",
         "initial": false,
@@ -93,14 +113,14 @@
     "actions": [
       {
         "id": "toggle-tower_enable",
-        "label": "Toggle tower enable",
+        "label": "Turn ENABLE OFF / RUN",
         "type": "toggle",
         "point": "tower_enable"
       },
       {
         "id": "toggle-step_pulse",
-        "label": "Toggle step pulse",
-        "type": "toggle",
+        "label": "Press STEP (momentary)",
+        "type": "pulse",
         "point": "step_pulse"
       }
     ],
@@ -110,7 +130,7 @@
       {
         "point": "tower_enable",
         "equipmentId": "switch_0",
-        "mode": "switch"
+        "mode": "selector"
       },
       {
         "point": "step_pulse",
@@ -118,48 +138,62 @@
         "mode": "switch"
       },
       {
-        "point": "tower_step_active",
+        "point": "tower_red",
         "equipmentId": "indicator_1",
-        "mode": "indicator",
+        "mode": "indicatorChannel",
+        "activeColor": "red"
+      },
+      {
+        "point": "tower_amber",
+        "equipmentId": "indicator_1",
+        "mode": "indicatorChannel",
+        "activeColor": "amber"
+      },
+      {
+        "point": "tower_green",
+        "equipmentId": "indicator_1",
+        "mode": "indicatorChannel",
         "activeColor": "green"
       }
     ]
   },
   "training": {
     "hints": [
-      "Translate the lesson into explicit state and permissive logic: Each step advances in order and reset returns the tower to its first state.",
-      "Inputs are simulator feedback (tower_enable, step_pulse); PLC logic owns tower_step_active.",
-      "Test the initial state, the valid condition, and at least one missing permissive."
+      "PC supplies only raw tower_enable and momentary step_pulse; PLC owns sequence phase and all three color outputs.",
+      "Replace obsolete tower_step_active with tower_red, tower_amber and tower_green in older projects; one green output cannot walk three tiers.",
+      "The explicit original reference wraps green to red. Source specifies a pulse-driven sequence, without numeric timing or wrap detail. Separate Step presses need a released-input scan."
     ],
     "solution": {
       "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
       "steps": [
-        "Require the documented inputs: tower_enable, step_pulse.",
-        "Command the documented outputs: tower_step_active.",
-        "Remove PLC commands when the permissive is lost."
+        "Default exercise editor is empty. Build PLC sequence logic or explicitly open .tools/plant-review-running-light-tower.rpproj.json after --audit-running-tower.",
+        "Run, then turn ENABLE to RUN. The first enabled accepted scan selects red; each fresh STEP edge advances amber, green, red.",
+        "Idle scans never advance. OFF clears lamps and phase on the next accepted scan; re-enable starts red. A simultaneous first-enable STEP is discarded."
       ],
-      "acceptance": "Each step advances in order and reset returns the tower to its first state."
+      "acceptance": "Exactly one PLC color while enabled: red -> amber -> green -> red on separate Step edges. Disabled, held and unsampled repeated clicks cannot accumulate deferred advances."
     },
     "assetRequirements": [],
     "machineGuide": {
-      "purpose": "A pulse-driven sequence walks a signal through a multi-level tower.",
+      "purpose": "A maintained ENABLE selector and momentary STEP request drive a PLC-owned red -> amber -> green running-light sequence.",
       "startConditions": [
-        "The common PLC/watchdog foundation is healthy.",
-        "All required simulator inputs are at their documented initial state."
+        "Built-in offline controller with user-authored or explicitly opened reference logic.",
+        "Initial ENABLE OFF, STEP released, phase zero and all lenses dark."
       ],
       "normalSequence": [
-        "Apply the requested input condition.",
-        "Verify only the documented PLC outputs respond."
+        "Default exercise editor is empty. Build PLC sequence logic or explicitly open .tools/plant-review-running-light-tower.rpproj.json after --audit-running-tower.",
+        "Run, then turn ENABLE to RUN. The first enabled accepted scan selects red; each fresh STEP edge advances amber, green, red.",
+        "Idle scans never advance. OFF clears lamps and phase on the next accepted scan; re-enable starts red. A simultaneous first-enable STEP is discarded."
       ],
       "stopBehavior": [
-        "Removing the permissive removes PLC-owned commands.",
-        "Reset returns the module to its initial state."
+        "Stop clears PLC color commands and discards pending Step, retaining ENABLE and internal phase.",
+        "Run republishes the retained color; its first scan establishes a new Step edge baseline without advancing.",
+        "Application Reset clears requests and phase, returns ENABLE to OFF and leaves stopped scan zero; the next enable selects red."
       ],
       "faultBehavior": [
         "A missing or stale input must fail safe and remain diagnosable."
       ],
       "expectedObservations": [
-        "Each step advances in order and reset returns the tower to its first state."
+        "Exactly one PLC color while enabled: red -> amber -> green -> red on separate Step edges. Disabled, held and unsampled repeated clicks cannot accumulate deferred advances."
       ]
     },
     "sequenceNumber": 45,
@@ -175,9 +209,13 @@
     "addedTags": [
       "tower_enable",
       "step_pulse",
+      "tower_red",
+      "tower_amber",
+      "tower_green"
+    ],
+    "changedTags": [
       "tower_step_active"
     ],
-    "changedTags": [],
     "previousAcceptance": [
       "lab-5-05-variable-flash-rate"
     ]
@@ -187,7 +225,9 @@
       {
         "name": "initial-safe-state",
         "expect": {
-          "tower_step_active": false
+          "tower_red": false,
+          "tower_amber": false,
+          "tower_green": false
         }
       }
     ]

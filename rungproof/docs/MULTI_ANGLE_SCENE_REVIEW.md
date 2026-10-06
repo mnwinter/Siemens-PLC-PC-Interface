@@ -1,6 +1,50 @@
 # Multi-angle scene review - 2026-10-04
 
-Scenes 57/58 flashing-lesson repair (2026-10-06, current checkpoint):
+Scene 59 running-light-tower repair (2026-10-06, current checkpoint):
+Replaced the fake held-input pushbutton with an actual ENABLE OFF/RUN selector.
+STEP now supplies a momentary PC-owned pulse, consumed on one accepted scan.
+Replaced obsolete single green-only tower_step_active with independent PLC-owned
+BOOL tower_red/tower_amber/tower_green channels. All three imported lenses render
+independently, including conflicting commands. Update older projects to the new
+outputs. Three grounded separated equipment items remain; equipment instances
+615, scenes 77, assets 294 and authored demos five. Historical prototype, default
+empty exercise editor and validated real transport remain unchanged.
+
+-- --audit-running-tower runs 29 offline controller/scene checks and writes
+ignored .tools/plant-review-running-light-tower.rpproj.json. Open this seven-rung
+original reference explicitly through File -> Open Ladder Agent Project. It uses
+PLC rising-edge sampling, DINT phase increment/wrap and three exclusive color
+coils. Source specifies manual pulse-driven steps, without timing or wrap detail;
+green-to-red wrap is a declared original training choice, not source parity.
+First enabled scan selects red and discards simultaneous Step. Subsequent fresh
+edges select amber, green, red. No idle advance. One accepted low scan rearms an
+edge; unsampled repeated clicks coalesce. OFF clears phase/commands next scan.
+Stop clears color commands/pending Step, retaining ENABLE/phase. Run restores
+retained color and establishes a fresh edge baseline without startup advance.
+Reset clears requests/phase, returns OFF and leaves stopped scan zero.
+
+Native Windows: normal File Open, Return to Scene, held Run scan zero. Physical
+ENABLE selected red at scan 2; physical STEP selected amber at 4 and green at 6.
+Three unsampled physical STEP clicks coalesced, selecting red at 8. Idle through
+33 stayed red. Pending STEP then Stop at 33 cleared input/all lenses; Run at 35
+restored red without advancing. Physical OFF cleared at 36; disabled STEP was
+consumed without commands at 38; re-enable selected red at 39. FR/FL/RL/RR/Top
+inspected, plus readable ENABLE/OFF/RUN and STEP close views. Top confirms layout;
+the tower cap naturally hides lateral lenses overhead. All three color lenses
+are distinguishable in side views; no intersections or floating bases observed.
+Continuous playback: amber at 653 remained amber at 1001; next physical STEP
+green at 1418; physical OFF cleared at 1818. Reset stopped scan zero with all
+five points false. Owned reviewer closed normally, exit zero. These are sampled
+native observations, not every-frame, mechanical, hardware or PLC parity proof.
+
+Verification: build zero warnings/errors, focused 29/29, rendered geometry/
+workflow 830/830, scene contracts 71/71, controller conformance 144/144. Rendered
+scene controls, overlay input, external image and virtual-controller UI pass.
+Shell 77 scenes/294 assets/five demos/28 diagnostics; help and diff whitespace
+checks pass. Ignored evidence: .tools/running-tower-*.log. Whole-program goal
+remains active. Next: Scene 60 Pedestrian Crossing, then remaining matrix issues.
+
+Scenes 57/58 flashing-lesson repair (2026-10-06, previous checkpoint):
 Scene 57 has one maintained ENABLE OFF/RUN selector and separate amber A / green
 B lamps. Removed alternate_phase and its fake PC phase button: PC supplies raw
 alternate_enable; PLC owns timing and both outputs. Old projects must move phase
@@ -3261,7 +3305,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 56 | `lab-5-03-rotary-flasher` | 0 | Final native FR/FL/RL/RR/T; readable MODE/OFF/FLASH focus; physical selector; held boundaries; Stop/Run/Reset; continuous playback | Raw maintained mode replaces manual flash_tick; explicit original PLC reference 0.5 s half-period, on at 25/off at 50/on at 75 scans; Stop clears lamp/timers, Run retains phase with fresh half-period; OFF clears next scan; empty default exercise |
 | 57 | `lab-5-04-alternating-lamps` | 0 | Final native FR/FL/RL/RR/T; readable ENABLE focus; physical OFF/RUN; held boundaries; Stop/Run/Reset; continuous playback | Raw enable replaces fake PC phase; explicit PLC reference alternates amber A/green B every 25 scans; exactly one lamp per enabled scan; Run resumes retained phase with fresh interval; Reset zero/stopped; empty default exercise |
 | 58 | `lab-5-05-variable-flash-rate` | 0 | Final native FR/FL/RL/RR/T; readable FAST/SLOW focus; physical three selectors; held boundaries; conflict/no-rate; Stop/Run/Reset; both rates continuous playback | Three raw maintained requests; explicit PLC reference FAST 10 scans/SLOW 25 per half-period; both/neither selections inhibit/clear timing; direct valid rate change retains phase only without accepted intermediate invalid scan; Reset all selectors OFF; empty default exercise |
-| 59 | `lab-5-06-running-light-tower` | 0 | Native FR/FL/RL/RR/T | FAIL/open: single green-only output cannot walk tower levels; persistent step_pulse; behavior unverified |
+| 59 | `lab-5-06-running-light-tower` | 0 | Final native FR/FL/RL/RR/T; readable ENABLE and STEP focus; physical controls; explicit reference Open; held and continuous playback; Stop/Run/Reset | Three PLC color channels replace single green-only output; raw ENABLE maintained selector and momentary STEP; explicit original reference red -> amber -> green -> red, no idle advance; disabled/pending-stop pulses discarded; Run restores retained color; Reset OFF/stopped zero; default exercise empty; independent asset/hardware acceptance remains open |
 | 60 | `lab-5-07-pedestrian-crossing` | 26 | Native FR/FL/RL/RR/T | FAIL/open: vertical wall instead of road, amber beacons instead of signal heads; vehicle_stop green binding; timed crossing unverified |
 | 61 | `lab-5-08-drawbridge-control` | 43 | Native FR/FL/RL/RR/T | FAIL/open: scissor table, guard and shutter instead of bridge route; only lamp outputs, no bridge motion |
 | 62 | `lab-5-09-bag-indexing-conveyor` | 37 (historic) | Repaired native FR/FL/RL/RR/T; carton top/FR close | Carton belt support repaired. FAIL/open: carton/bag identity, outside sensors, only lamp outputs; indexing/reversal unverified |
