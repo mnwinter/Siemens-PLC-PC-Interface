@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-5-04-alternating-lamps",
   "name": "Lab 5.4 - Alternating Lamps",
-  "description": "A running timer alternates two lamps so exactly one output is active at a time.",
+  "description": "A maintained OFF/RUN selector enables PLC-timed alternation of lamp A (amber) and lamp B (green). Only raw enable comes from the PC.",
   "camera": {
     "position": [
       11,
@@ -20,23 +20,28 @@
   "equipment": [
     {
       "id": "switch_0",
-      "type": "switch",
-      "label": "Alternating Lamps switch",
+      "type": "rotarySwitch",
+      "label": "ENABLE maintained selector OFF / RUN",
       "position": [
         -3.3000000000000003,
         0,
         0
       ],
       "config": {
-        "style": "pushbutton",
         "action": "toggle-alternate_enable",
-        "color": 2204518
+        "positionCount": 2,
+        "initialPosition": 0,
+        "positionLabels": [
+          "OFF",
+          "RUN"
+        ],
+        "faceLabel": "ENABLE"
       }
     },
     {
       "id": "indicator_1",
       "type": "indicator",
-      "label": "Alternating Lamps indicator",
+      "label": "Lamp A - amber",
       "position": [
         -1.1,
         0,
@@ -44,17 +49,15 @@
       ],
       "config": {
         "colors": [
-          "red",
-          "amber",
-          "green"
+          "amber"
         ],
-        "active": "red"
+        "active": null
       }
     },
     {
       "id": "indicator_2",
       "type": "indicator",
-      "label": "Alternating Lamps indicator",
+      "label": "Lamp B - green",
       "position": [
         1.1,
         0,
@@ -62,26 +65,9 @@
       ],
       "config": {
         "colors": [
-          "red",
-          "amber",
           "green"
         ],
-        "active": "red"
-      }
-    },
-    {
-      "id": "switch_3",
-      "type": "switch",
-      "label": "Alternating Lamps operator input",
-      "position": [
-        3.3000000000000003,
-        0,
-        0
-      ],
-      "config": {
-        "style": "pushbutton",
-        "action": "toggle-alternate_phase",
-        "color": 2204518
+        "active": null
       }
     }
   ],
@@ -90,12 +76,6 @@
     "points": [
       {
         "name": "alternate_enable",
-        "type": "BOOL",
-        "owner": "PC",
-        "initial": false
-      },
-      {
-        "name": "alternate_phase",
         "type": "BOOL",
         "owner": "PC",
         "initial": false
@@ -118,15 +98,9 @@
     "actions": [
       {
         "id": "toggle-alternate_enable",
-        "label": "Toggle alternate enable",
+        "label": "Turn ENABLE OFF / RUN",
         "type": "toggle",
         "point": "alternate_enable"
-      },
-      {
-        "id": "toggle-alternate_phase",
-        "label": "Toggle alternate phase",
-        "type": "toggle",
-        "point": "alternate_phase"
       }
     ],
     "rules": [],
@@ -135,18 +109,13 @@
       {
         "point": "alternate_enable",
         "equipmentId": "switch_0",
-        "mode": "switch"
-      },
-      {
-        "point": "alternate_phase",
-        "equipmentId": "switch_3",
-        "mode": "switch"
+        "mode": "selector"
       },
       {
         "point": "lamp_a",
         "equipmentId": "indicator_1",
         "mode": "indicator",
-        "activeColor": "green"
+        "activeColor": "amber"
       },
       {
         "point": "lamp_b",
@@ -158,39 +127,41 @@
   },
   "training": {
     "hints": [
-      "Translate the lesson into explicit state and permissive logic: The two lamps alternate without overlapping and both turn off when disabled.",
-      "Inputs are simulator feedback (alternate_enable, alternate_phase); PLC logic owns lamp_a, lamp_b.",
-      "Test the initial state, the valid condition, and at least one missing permissive."
+      "PC supplies only raw alternate_enable; PLC owns phase, timers and both lamps.",
+      "Removed alternate_phase was a manually precomputed sequence state; migrate older projects to PLC phase memory.",
+      "The 0.5 s phase duration is an original offline choice absent from the source. A is amber; B is green."
     ],
     "solution": {
       "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
       "steps": [
-        "Require the documented inputs: alternate_enable, alternate_phase.",
-        "Command the documented outputs: lamp_a, lamp_b.",
-        "Remove PLC commands when the permissive is lost."
+        "Default exercise editor is empty. Build PLC timer logic or explicitly open .tools/plant-review-alternating-lamps.rpproj.json after --audit-flash-pair.",
+        "Run and turn ENABLE to RUN. PLC starts with A amber and alternates A/B every 0.5 s of accepted 20 ms scans.",
+        "Exactly one lamp is commanded on after each enabled scan. OFF clears lamps, phase and timers on the next scan; RUN starts with A again."
       ],
-      "acceptance": "The two lamps alternate without overlapping and both turn off when disabled."
+      "acceptance": "Explicit original reference: A at first enabled scan through scan 24, B at scan 25, A at 50, B at 75. Enabled accepted scans command exactly one lamp; disabled scans command neither."
     },
     "assetRequirements": [],
     "machineGuide": {
-      "purpose": "A running timer alternates two lamps so exactly one output is active at a time.",
+      "purpose": "A maintained OFF/RUN selector enables PLC-timed alternation of lamp A (amber) and lamp B (green). Only raw enable comes from the PC.",
       "startConditions": [
-        "The common PLC/watchdog foundation is healthy.",
-        "All required simulator inputs are at their documented initial state."
+        "Built-in offline controller with user-authored or explicitly opened reference logic.",
+        "Initial selectors OFF, timers/phase zero and lamps off."
       ],
       "normalSequence": [
-        "Apply the requested input condition.",
-        "Verify only the documented PLC outputs respond."
+        "Default exercise editor is empty. Build PLC timer logic or explicitly open .tools/plant-review-alternating-lamps.rpproj.json after --audit-flash-pair.",
+        "Run and turn ENABLE to RUN. PLC starts with A amber and alternates A/B every 0.5 s of accepted 20 ms scans.",
+        "Exactly one lamp is commanded on after each enabled scan. OFF clears lamps, phase and timers on the next scan; RUN starts with A again."
       ],
       "stopBehavior": [
-        "Removing the permissive removes PLC-owned commands.",
-        "Reset returns the module to its initial state."
+        "Stop clears PLC lamp commands and nonretentive timers, retaining selectors and internal PLC phase.",
+        "Run with a valid retained request resumes that phase with a fresh full phase interval; stopped wall time is excluded.",
+        "Application Reset clears selectors, phase, timers and lamps, leaving stopped scan zero."
       ],
       "faultBehavior": [
         "A missing or stale input must fail safe and remain diagnosable."
       ],
       "expectedObservations": [
-        "The two lamps alternate without overlapping and both turn off when disabled."
+        "Explicit original reference: A at first enabled scan through scan 24, B at scan 25, A at 50, B at 75. Enabled accepted scans command exactly one lamp; disabled scans command neither."
       ]
     },
     "sequenceNumber": 43,
@@ -205,7 +176,6 @@
     ],
     "addedTags": [
       "alternate_enable",
-      "alternate_phase",
       "lamp_a",
       "lamp_b"
     ],

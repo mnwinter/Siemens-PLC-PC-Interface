@@ -174,7 +174,22 @@ Reset clears all state and stays stopped. The default exercise remains empty.
 Native Windows inspection covers all five views, close label readability,
 physical selection, held timer boundaries, Stop/Run/Reset and continuous flashing.
 
-`-- --verify-scene-geometry` runs 727 focused geometry/workflow checks with `--visual-scene-review` for Demo 5 supported pickup, four-carton placement, moving clearance and attachment,
+`-- --audit-flash-pair` runs 49 offline checks for Scenes 57/58 and writes
+ignored `.tools/plant-review-alternating-lamps.rpproj.json` (five rungs) and
+`.tools/plant-review-variable-flash-rate.rpproj.json` (nine rungs). Open them
+explicitly through File; exercise editors remain empty and authored demos total
+five. Alternation uses raw ENABLE and PLC-owned amber A / green B outputs with
+a declared 0.5 s half-period. Variable flashing retains raw ENABLE/FAST/SLOW
+requests; exactly one selected rate runs, using declared 0.2 s FAST / 0.5 s SLOW
+half-periods. Both/neither selected clears phase/timers/lamp on the next scan.
+These presets are original training choices, absent from the historical source.
+Stop clears lamps/nonretentive timers and retains requests/PLC phase; Run starts
+a full fresh interval in that phase. Reset clears all state and stays stopped.
+Native Windows checks cover five angles, physical selectors, exact thresholds,
+conflict/no-rate behavior, Stop/Run/Reset and normal continuous playback.
+
+`-- --verify-scene-geometry` runs 788 focused geometry/workflow checks with `--visual-scene-review` for Demo 5 supported pickup, four-carton placement, moving clearance and attachment,
+alternating/variable-rate periodic scans, lamp exclusivity, rate conflicts and all configured selector alignment,
 rotary-flasher periodic scans, phase retention, OFF cancellation and selector alignment,
 timer-lesson actual TON/TP boundaries, maintained selector alignment and pulse consumption,
 package grouping real optical counts, guided stop clearance, retained supported receiver group and Stop/Run/Reset,

@@ -25,7 +25,7 @@ public partial class Main
     // single-clock palletizer / conveyor-pusher / chain lift / cookie / barrel / cable / repeat-cycle plants. Other scenes may
     // have separate callbacks; this is not a general external PLC step.
     private bool CanReviewGantryClock => _visualSceneReview && !_visualPlantReview
-        && _currentSceneId is "scene-2-conveyor-pusher" or "lab-11-13-xy-palletizing" or "lab-4-09-chain-drive-lift" or "lab-4-10-cookie-packaging" or "lab-4-11-barrel-fill-station" or "lab-4-12-cable-cut-length" or "lab-4-03-repeat-cycle-counter" or "lab-4-07-parking-garage-entry" or "lab-4-08-package-grouping" or "lab-5-01-delayed-lamp" or "lab-5-02-timed-lamp-off" or "lab-5-03-rotary-flasher"
+        && _currentSceneId is "scene-2-conveyor-pusher" or "lab-11-13-xy-palletizing" or "lab-4-09-chain-drive-lift" or "lab-4-10-cookie-packaging" or "lab-4-11-barrel-fill-station" or "lab-4-12-cable-cut-length" or "lab-4-03-repeat-cycle-counter" or "lab-4-07-parking-garage-entry" or "lab-4-08-package-grouping" or "lab-5-01-delayed-lamp" or "lab-5-02-timed-lamp-off" or "lab-5-03-rotary-flasher" or "lab-5-04-alternating-lamps" or "lab-5-05-variable-flash-rate"
         && _simulatorShell?.IsExternalMode != true;
 
     private bool GantryReviewClockHeld => _gantryReviewHeldRoot is not null
@@ -62,7 +62,7 @@ public partial class Main
             _gantryReviewClockBar.Visible = CanReviewGantryClock && _gantryReviewOperatorView;
         if (_gantryReviewStep is not null)
             _gantryReviewStep.Text = _currentSceneId == "scene-2-conveyor-pusher" ? "Step 0.1 s" : _currentSceneId is "lab-4-09-chain-drive-lift" or "lab-4-10-cookie-packaging" or "lab-4-11-barrel-fill-station" ? "Step 2.0 s" : "Step 0.5 s";
-        if (_gantryReviewFineStep is not null) _gantryReviewFineStep.Visible = _currentSceneId is "scene-2-conveyor-pusher" or "lab-4-03-repeat-cycle-counter" or "lab-4-07-parking-garage-entry" or "lab-4-08-package-grouping" or "lab-5-01-delayed-lamp" or "lab-5-02-timed-lamp-off" or "lab-5-03-rotary-flasher";
+        if (_gantryReviewFineStep is not null) _gantryReviewFineStep.Visible = _currentSceneId is "scene-2-conveyor-pusher" or "lab-4-03-repeat-cycle-counter" or "lab-4-07-parking-garage-entry" or "lab-4-08-package-grouping" or "lab-5-01-delayed-lamp" or "lab-5-02-timed-lamp-off" or "lab-5-03-rotary-flasher" or "lab-5-04-alternating-lamps" or "lab-5-05-variable-flash-rate";
         UpdateGantryReviewClockLabel();
     }
 
@@ -99,7 +99,7 @@ public partial class Main
 
     private void StepGantryReviewClock() => AdvanceGantryReviewClock(
         _currentSceneId == "scene-2-conveyor-pusher" ? 5 :
-        _currentSceneId is "lab-4-12-cable-cut-length" or "lab-11-13-xy-palletizing" or "lab-4-03-repeat-cycle-counter" or "lab-4-07-parking-garage-entry" or "lab-4-08-package-grouping" or "lab-5-01-delayed-lamp" or "lab-5-02-timed-lamp-off" or "lab-5-03-rotary-flasher" ? 25 : 100);
+        _currentSceneId is "lab-4-12-cable-cut-length" or "lab-11-13-xy-palletizing" or "lab-4-03-repeat-cycle-counter" or "lab-4-07-parking-garage-entry" or "lab-4-08-package-grouping" or "lab-5-01-delayed-lamp" or "lab-5-02-timed-lamp-off" or "lab-5-03-rotary-flasher" or "lab-5-04-alternating-lamps" or "lab-5-05-variable-flash-rate" ? 25 : 100);
 
     private void AdvanceGantryReviewClock(int ticks)
     {
@@ -136,7 +136,21 @@ public partial class Main
             _gantryReviewClockLabel.Text = $"QA | {(_virtualController?.Snapshot.SimulatedTime.TotalSeconds ?? 0):F2} s | stroke {_sceneRuntime?.Points.GetValueOrDefault("pusher_position") ?? 0:0.0}% | count {_sceneRuntime?.Points.GetValueOrDefault("parts_completed") ?? 0}";
             return;
         }
-
+        if (_currentSceneId == "lab-5-04-alternating-lamps")
+        {
+            var timers = _virtualController?.Snapshot.Timers;
+            _gantryReviewClockLabel.Text = $"QA | {(_virtualController?.Snapshot.SimulatedTime.TotalSeconds ?? 0):F2} s | A ET {timers?.GetValueOrDefault("a_timer")?.Accumulated.TotalSeconds ?? 0:F2} | B ET {timers?.GetValueOrDefault("b_timer")?.Accumulated.TotalSeconds ?? 0:F2} | A {_sceneRuntime?.Points.GetValueOrDefault("lamp_a") ?? false} | B {_sceneRuntime?.Points.GetValueOrDefault("lamp_b") ?? false}";
+            return;
+        }
+        if (_currentSceneId == "lab-5-05-variable-flash-rate")
+        {
+            var enabled = _sceneRuntime?.Points.GetValueOrDefault("flash_enable") is true;
+            var fast = _sceneRuntime?.Points.GetValueOrDefault("fast_rate_selected") is true;
+            var slow = _sceneRuntime?.Points.GetValueOrDefault("slow_rate_selected") is true;
+            var mode = !enabled ? "DISABLED" : fast && slow ? "CONFLICT" : !fast && !slow ? "NO RATE" : fast ? "FAST" : "SLOW";
+            _gantryReviewClockLabel.Text = $"QA | {(_virtualController?.Snapshot.SimulatedTime.TotalSeconds ?? 0):F2} s | {mode} | lamp {_sceneRuntime?.Points.GetValueOrDefault("rate_lamp") ?? false}";
+            return;
+        }
         if (_currentSceneId == "lab-5-03-rotary-flasher")
         {
             var timers = _virtualController?.Snapshot.Timers;

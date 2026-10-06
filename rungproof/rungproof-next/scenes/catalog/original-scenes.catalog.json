@@ -3,7 +3,7 @@
   "catalogId": "rungproof-original-scenes-migrated",
   "sourceRoot": "prototype/scenes",
   "sceneCount": 77,
-  "equipmentInstanceCount": 616,
+  "equipmentInstanceCount": 615,
   "equipmentTypeCounts": {
     "box": 32,
     "containerReceiver": 3,
@@ -24,11 +24,11 @@
     "radarLevelSensor": 1,
     "robotArm": 5,
     "rollerShutter": 3,
-    "rotarySwitch": 7,
+    "rotarySwitch": 11,
     "rotaryTable": 4,
     "sceneInstallation": 4,
     "sizeSensorBank": 1,
-    "switch": 159,
+    "switch": 154,
     "tank": 12,
     "toteCapper": 1,
     "toteFiller": 2,
@@ -940,10 +940,10 @@
       "name": "Lab 5.4 - Alternating Lamps",
       "path": "res://scenes/migrated/lab-5-04-alternating-lamps.scene.json",
       "sourceFile": "prototype/scenes/lab-5-04-alternating-lamps.plcscene",
-      "equipmentCount": 4,
+      "equipmentCount": 3,
       "equipmentTypes": [
         "indicator",
-        "switch"
+        "rotarySwitch"
       ],
       "unresolvedAssetTypes": [],
       "visualStatus": "mapped"
@@ -956,7 +956,7 @@
       "equipmentCount": 4,
       "equipmentTypes": [
         "indicator",
-        "switch"
+        "rotarySwitch"
       ],
       "unresolvedAssetTypes": [],
       "visualStatus": "mapped"

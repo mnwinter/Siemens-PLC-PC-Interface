@@ -46,7 +46,9 @@ public partial class Main
         Button("Front left", () => SetVisualReviewAngle(new Vector3(-11, 7, 12), "front-left"));
         Button("Rear left", () => SetVisualReviewAngle(new Vector3(-11, 7, -12), "rear-left"));
         Button("Rear right", () => SetVisualReviewAngle(new Vector3(11, 7, -12), "rear-right"));
-        Button("Top", () => SetVisualReviewAngle(new Vector3(0.01f, 20, 0.01f), "top"));
+        // Keep the overhead azimuth aligned with the equipment row. Equal X/Z
+        // offsets rotated a straight row 45 degrees into the review toolbar.
+        Button("Top", () => SetVisualReviewAngle(new Vector3(0, 20, 0.01f), "top"));
         Button("Wide / close", () =>
         {
             _visualReviewClose = !_visualReviewClose;
@@ -304,6 +306,7 @@ public partial class Main
             VerifyPackageGroupingWorkflow(Check);
             VerifyTimerLessonWorkflows(Check);
             VerifyRotaryFlasherWorkflow(Check);
+            VerifyFlashPairWorkflows(Check);
             VerifyTransferCartonSupport(Check);
             VerifyBaseConveyorCartonSupport(Check);
             VerifyPusherRodGeometry(Check);
@@ -1106,52 +1109,58 @@ public partial class Main
         // Inspect actual imported pointer/tick geometry through each declared
         // action, including the BOOL mode selector and a four-position dial.
         foreach (var sceneId in new[] { "lab-2-05-bay-light-selector", "lab-2-09-maintenance-beacon",
-            "lab-2-15-fume-extractor", "lab-2-18-pallet-pickup", "lab-5-01-delayed-lamp", "lab-5-03-rotary-flasher" })
+            "lab-2-15-fume-extractor", "lab-2-18-pallet-pickup", "lab-5-01-delayed-lamp", "lab-5-03-rotary-flasher", "lab-5-04-alternating-lamps", "lab-5-05-variable-flash-rate" })
         {
             AddMigratedScene(sceneId, _candidateCatalog!, _mainCamera!, false, false);
-            var equipment = _sceneCompositionRoot!.GetChildren().OfType<Node3D>()
-                .Single(node => node.FindChild("KIN_selector_handle", true, false) is not null);
             var runtime = _sceneRuntime!;
             var definition = SceneCatalogLoader.LoadScene(_sceneCatalog!.Scenes.Single(scene => scene.Id == sceneId));
-            var config = definition.Equipment.Single(item => item.Type == "rotarySwitch").Config;
-            var count = config.GetProperty("positionCount").GetInt32();
-            var action = config.GetProperty("action").GetString()!;
-            var binding = definition.Simulation.GetProperty("pointBindings").EnumerateArray()
-                .Single(item => item.GetProperty("mode").GetString() == "selector");
-            var point = binding.GetProperty("point").GetString()!;
-            var pivot = (Node3D)equipment.FindChild("KIN_selector_handle", true, false)!;
-            var inlay = (Node3D)equipment.FindChild("SELECTOR_direction_inlay", true, false)!;
-            var ticks = ReviewMeshes(equipment).Where(mesh => mesh.Name.ToString().StartsWith("POSITION_tick_", StringComparison.Ordinal)).ToArray();
-            check(ticks.Length == count, $"{sceneId}_only_configured_detents_visible");
-            var dialFace = ReviewBounds((MeshInstance3D)equipment.FindChild("SELECTOR_dial_plate", true, false)!).End.Z;
-            check(ticks.All(tick => MathF.Abs(ReviewBounds(tick).Position.Z - dialFace) < 0.001f),
-                $"{sceneId}_tick_solids_rest_on_dial_face");
-            var initial = inlay.GlobalTransform;
-            var aligned = true;
-            var onFace = true;
-            var actionsAccepted = true;
-            for (var step = 0; step <= count; step++)
+            // Match each selector to its own raw input and action. Scenes may
+            // have several independent selectors; every dial must be checked.
+            foreach (var item in definition.Equipment.Where(item => item.Type == "rotarySwitch"))
             {
-                var ordinal = Convert.ToInt32(runtime.Points[point]);
-                var center = equipment.ToLocal(pivot.GlobalPosition);
-                var tip = equipment.ToLocal(inlay.GlobalPosition);
-                var direction = new Vector2(tip.X - center.X, tip.Y - center.Y).Normalized();
-                var tick = ticks.SingleOrDefault(mesh => mesh.Name == $"POSITION_tick_{ordinal}");
-                if (tick is null) aligned = false;
-                else
+                var equipment = _sceneCompositionRoot!.GetNode<Node3D>(item.Id);
+                var config = item.Config;
+                var selectorId = $"{sceneId}_{item.Id}";
+                var count = config.GetProperty("positionCount").GetInt32();
+                var action = config.GetProperty("action").GetString()!;
+                var binding = definition.Simulation.GetProperty("pointBindings").EnumerateArray()
+                    .Single(binding => binding.GetProperty("mode").GetString() == "selector"
+                        && binding.GetProperty("equipmentId").GetString() == item.Id);
+                var point = binding.GetProperty("point").GetString()!;
+                var pivot = (Node3D)equipment.FindChild("KIN_selector_handle", true, false)!;
+                var inlay = (Node3D)equipment.FindChild("SELECTOR_direction_inlay", true, false)!;
+                var ticks = ReviewMeshes(equipment).Where(mesh => mesh.Name.ToString().StartsWith("POSITION_tick_", StringComparison.Ordinal)).ToArray();
+                check(ticks.Length == count, $"{selectorId}_only_configured_detents_visible");
+                var dialFace = ReviewBounds((MeshInstance3D)equipment.FindChild("SELECTOR_dial_plate", true, false)!).End.Z;
+                check(ticks.All(tick => MathF.Abs(ReviewBounds(tick).Position.Z - dialFace) < 0.001f),
+                    $"{selectorId}_tick_solids_rest_on_dial_face");
+                var initial = inlay.GlobalTransform;
+                var aligned = true;
+                var onFace = true;
+                var actionsAccepted = true;
+                for (var step = 0; step <= count; step++)
                 {
-                    var target = equipment.ToLocal(tick.GlobalPosition) - center;
-                    aligned &= direction.Dot(new Vector2(target.X, target.Y).Normalized()) > 0.999f;
+                    var ordinal = Convert.ToInt32(runtime.Points[point]);
+                    var center = equipment.ToLocal(pivot.GlobalPosition);
+                    var tip = equipment.ToLocal(inlay.GlobalPosition);
+                    var direction = new Vector2(tip.X - center.X, tip.Y - center.Y).Normalized();
+                    var tick = ticks.SingleOrDefault(mesh => mesh.Name == $"POSITION_tick_{ordinal}");
+                    if (tick is null) aligned = false;
+                    else
+                    {
+                        var target = equipment.ToLocal(tick.GlobalPosition) - center;
+                        aligned &= direction.Dot(new Vector2(target.X, target.Y).Normalized()) > 0.999f;
+                    }
+                    // Authored inlay lies 51 mm forward of the pivot. The old Y
+                    // rotation changed this depth and swung the handle off the face.
+                    onFace &= MathF.Abs(tip.Z - center.Z - 0.051f) < 0.001f;
+                    actionsAccepted &= runtime.ExecuteAction(action);
                 }
-                // Authored inlay lies 51 mm forward of the pivot. The old Y
-                // rotation changed this depth and swung the handle off the face.
-                onFace &= MathF.Abs(tip.Z - center.Z - 0.051f) < 0.001f;
-                actionsAccepted &= runtime.ExecuteAction(action);
+                check(actionsAccepted && aligned, $"{selectorId}_pointer_aligns_with_current_input_detent");
+                check(onFace, $"{selectorId}_pointer_stays_in_dial_plane");
+                runtime.ResetSimulation();
+                check(inlay.GlobalTransform.IsEqualApprox(initial), $"{selectorId}_reset_restores_initial_pointer");
             }
-            check(actionsAccepted && aligned, $"{sceneId}_pointer_aligns_with_current_input_detent");
-            check(onFace, $"{sceneId}_pointer_stays_in_dial_plane");
-            runtime.ResetSimulation();
-            check(inlay.GlobalTransform.IsEqualApprox(initial), $"{sceneId}_reset_restores_initial_pointer");
         }
     }
 

@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-5-05-variable-flash-rate",
   "name": "Lab 5.5 - Variable Flash Rate",
-  "description": "Two operator inputs select a faster or slower flashing rate while a lamp is active.",
+  "description": "Maintained ENABLE, FAST and SLOW selectors supply raw requests. PLC timing runs exactly one selected rate; both or neither selected leaves the lamp off.",
   "camera": {
     "position": [
       11,
@@ -20,65 +20,78 @@
   "equipment": [
     {
       "id": "switch_0",
-      "type": "switch",
-      "label": "Variable Flash Rate switch",
+      "type": "rotarySwitch",
+      "label": "ENABLE maintained selector OFF / RUN",
       "position": [
-        -3.3000000000000003,
+        -3.3,
         0,
         0
       ],
       "config": {
-        "style": "pushbutton",
         "action": "toggle-flash_enable",
-        "color": 2204518
+        "positionCount": 2,
+        "initialPosition": 0,
+        "positionLabels": [
+          "OFF",
+          "RUN"
+        ],
+        "faceLabel": "ENABLE"
       }
     },
     {
       "id": "switch_1",
-      "type": "switch",
-      "label": "Variable Flash Rate switch",
+      "type": "rotarySwitch",
+      "label": "FAST maintained selector OFF / FAST",
       "position": [
         -1.1,
         0,
         0
       ],
       "config": {
-        "style": "pushbutton",
         "action": "toggle-fast_rate_selected",
-        "color": 2204518
+        "positionCount": 2,
+        "initialPosition": 0,
+        "positionLabels": [
+          "OFF",
+          "FAST"
+        ],
+        "faceLabel": "FAST"
       }
     },
     {
       "id": "indicator_2",
       "type": "indicator",
-      "label": "Variable Flash Rate indicator",
+      "label": "PLC rate lamp - green",
+      "position": [
+        3.3,
+        0,
+        0
+      ],
+      "config": {
+        "colors": [
+          "green"
+        ],
+        "active": null
+      }
+    },
+    {
+      "id": "switch_3",
+      "type": "rotarySwitch",
+      "label": "SLOW maintained selector OFF / SLOW",
       "position": [
         1.1,
         0,
         0
       ],
       "config": {
-        "colors": [
-          "red",
-          "amber",
-          "green"
-        ],
-        "active": "red"
-      }
-    },
-    {
-      "id": "switch_3",
-      "type": "switch",
-      "label": "Variable Flash Rate operator input",
-      "position": [
-        3.3000000000000003,
-        0,
-        0
-      ],
-      "config": {
-        "style": "pushbutton",
         "action": "toggle-slow_rate_selected",
-        "color": 2204518
+        "positionCount": 2,
+        "initialPosition": 0,
+        "positionLabels": [
+          "OFF",
+          "SLOW"
+        ],
+        "faceLabel": "SLOW"
       }
     }
   ],
@@ -114,19 +127,19 @@
     "actions": [
       {
         "id": "toggle-flash_enable",
-        "label": "Toggle flash enable",
+        "label": "Turn ENABLE OFF / RUN",
         "type": "toggle",
         "point": "flash_enable"
       },
       {
         "id": "toggle-fast_rate_selected",
-        "label": "Toggle fast rate selected",
+        "label": "Turn FAST OFF / FAST",
         "type": "toggle",
         "point": "fast_rate_selected"
       },
       {
         "id": "toggle-slow_rate_selected",
-        "label": "Toggle slow rate selected",
+        "label": "Turn SLOW OFF / SLOW",
         "type": "toggle",
         "point": "slow_rate_selected"
       }
@@ -137,17 +150,17 @@
       {
         "point": "flash_enable",
         "equipmentId": "switch_0",
-        "mode": "switch"
+        "mode": "selector"
       },
       {
         "point": "fast_rate_selected",
         "equipmentId": "switch_1",
-        "mode": "switch"
+        "mode": "selector"
       },
       {
         "point": "slow_rate_selected",
         "equipmentId": "switch_3",
-        "mode": "switch"
+        "mode": "selector"
       },
       {
         "point": "rate_lamp",
@@ -159,39 +172,43 @@
   },
   "training": {
     "hints": [
-      "Translate the lesson into explicit state and permissive logic: The lamp uses exactly one selected rate and turns off when flash_enable is removed.",
-      "Inputs are simulator feedback (flash_enable, fast_rate_selected, slow_rate_selected); PLC logic owns rate_lamp.",
-      "Test the initial state, the valid condition, and at least one missing permissive."
+      "PC supplies raw flash_enable, fast_rate_selected and slow_rate_selected. PLC owns all timing and rate_lamp.",
+      "Neither rate or conflicting simultaneous rates inhibits the reference, with no implicit priority.",
+      "FAST 0.2 s and SLOW 0.5 s half-periods are declared original offline choices, not source-exact timing."
     ],
     "solution": {
       "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
       "steps": [
-        "Require the documented inputs: flash_enable, fast_rate_selected, slow_rate_selected.",
-        "Command the documented outputs: rate_lamp.",
-        "Remove PLC commands when the permissive is lost."
+        "Default exercise editor is empty. Build PLC timer logic or explicitly open .tools/plant-review-variable-flash-rate.rpproj.json after --audit-flash-pair.",
+        "Run with ENABLE RUN and exactly one of FAST/SLOW selected. The original offline reference uses FAST 0.2 s and SLOW 0.5 s half-periods, starting with the lamp off.",
+        "Both selected or neither selected clears the lamp, phase and timers on the next accepted scan; correcting the selection starts a full OFF half-period.",
+        "A direct valid rate change between accepted scans retains the current phase and starts a full half-period at the new rate. ENABLE OFF clears phase/timers."
       ],
-      "acceptance": "The lamp uses exactly one selected rate and turns off when flash_enable is removed."
+      "acceptance": "Explicit original reference: FAST turns on at scan 10, off at 20; SLOW on at 25, off at 50. Both/neither/disabled are dark; correcting the request starts fresh OFF timing."
     },
     "assetRequirements": [],
     "machineGuide": {
-      "purpose": "Two operator inputs select a faster or slower flashing rate while a lamp is active.",
+      "purpose": "Maintained ENABLE, FAST and SLOW selectors supply raw requests. PLC timing runs exactly one selected rate; both or neither selected leaves the lamp off.",
       "startConditions": [
-        "The common PLC/watchdog foundation is healthy.",
-        "All required simulator inputs are at their documented initial state."
+        "Built-in offline controller with user-authored or explicitly opened reference logic.",
+        "Initial selectors OFF, timers/phase zero and lamps off."
       ],
       "normalSequence": [
-        "Apply the requested input condition.",
-        "Verify only the documented PLC outputs respond."
+        "Default exercise editor is empty. Build PLC timer logic or explicitly open .tools/plant-review-variable-flash-rate.rpproj.json after --audit-flash-pair.",
+        "Run with ENABLE RUN and exactly one of FAST/SLOW selected. The original offline reference uses FAST 0.2 s and SLOW 0.5 s half-periods, starting with the lamp off.",
+        "Both selected or neither selected clears the lamp, phase and timers on the next accepted scan; correcting the selection starts a full OFF half-period.",
+        "A direct valid rate change between accepted scans retains the current phase and starts a full half-period at the new rate. ENABLE OFF clears phase/timers."
       ],
       "stopBehavior": [
-        "Removing the permissive removes PLC-owned commands.",
-        "Reset returns the module to its initial state."
+        "Stop clears PLC lamp commands and nonretentive timers, retaining selectors and internal PLC phase.",
+        "Run with a valid retained request resumes that phase with a fresh full phase interval; stopped wall time is excluded.",
+        "Application Reset clears selectors, phase, timers and lamps, leaving stopped scan zero."
       ],
       "faultBehavior": [
-        "A missing or stale input must fail safe and remain diagnosable."
+        "Both FAST and SLOW selected, neither selected, or ENABLE OFF: PLC reference clears lamp/phase/timers on the next accepted scan."
       ],
       "expectedObservations": [
-        "The lamp uses exactly one selected rate and turns off when flash_enable is removed."
+        "Explicit original reference: FAST turns on at scan 10, off at 20; SLOW on at 25, off at 50. Both/neither/disabled are dark; correcting the request starts fresh OFF timing."
       ]
     },
     "sequenceNumber": 44,

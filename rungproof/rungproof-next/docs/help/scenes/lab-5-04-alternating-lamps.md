@@ -2,11 +2,11 @@
 
 Scene ID: `lab-5-04-alternating-lamps`  
 Migrated source: `prototype/scenes/lab-5-04-alternating-lamps.plcscene`  
-Scene contract: `prototype/scenes/lab-5-04-alternating-lamps.plcscene`
+Scene contract: `res://scenes/migrated/lab-5-04-alternating-lamps.scene.json`
 
 ## Purpose
 
-A running timer alternates two lamps so exactly one output is active at a time.
+A maintained OFF/RUN selector enables PLC-timed alternation of lamp A (amber) and lamp B (green). Only raw enable comes from the PC.
 
 ## Expected I/O to operate this scene
 
@@ -15,7 +15,6 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | Point | Type | Owner | Initial value |
 | --- | --- | --- | --- |
 | `alternate_enable` | `BOOL` | **PC** | `False` |
-| `alternate_phase` | `BOOL` | **PC** | `False` |
 | `lamp_a` | `BOOL` | **PLC** | `False` |
 | `lamp_b` | `BOOL` | **PLC** | `False` |
 
@@ -23,15 +22,13 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 
 | Action | Type | Bound point/sequence |
 | --- | --- | --- |
-| `Toggle alternate enable` | `toggle` | `alternate_enable` |
-| `Toggle alternate phase` | `toggle` | `alternate_phase` |
+| `Turn ENABLE OFF / RUN` | `toggle` | `alternate_enable` |
 
 ## Equipment bindings
 
 | Symbolic point | Equipment | Mode |
 | --- | --- | --- |
-| `alternate_enable` | `switch_0` | `switch` |
-| `alternate_phase` | `switch_3` | `switch` |
+| `alternate_enable` | `switch_0` | `selector` |
 | `lamp_a` | `indicator_1` | `indicator` |
 | `lamp_b` | `indicator_2` | `indicator` |
 
@@ -39,10 +36,9 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 
 | ID | Type | Label |
 | --- | --- | --- |
-| `switch_0` | `switch` | Alternating Lamps switch |
-| `indicator_1` | `indicator` | Alternating Lamps indicator |
-| `indicator_2` | `indicator` | Alternating Lamps indicator |
-| `switch_3` | `switch` | Alternating Lamps operator input |
+| `switch_0` | `rotarySwitch` | ENABLE maintained selector OFF / RUN |
+| `indicator_1` | `indicator` | Lamp A - amber |
+| `indicator_2` | `indicator` | Lamp B - green |
 
 ## Stop and safety boundary
 
@@ -50,18 +46,25 @@ A normal Stop removes PLC-owned commands according to the scene runtime. This do
 
 ## Machine guide
 
-A running timer alternates two lamps so exactly one output is active at a time.
+A maintained OFF/RUN selector enables PLC-timed alternation of lamp A (amber) and lamp B (green). Only raw enable comes from the PC.
 
 ### Start conditions
 
-- The common PLC/watchdog foundation is healthy.
-- All required simulator inputs are at their documented initial state.
+- Built-in offline controller with user-authored or explicitly opened reference logic.
+- Initial selectors OFF, timers/phase zero and lamps off.
 
 ### Normal sequence
 
-- Apply the requested input condition.
-- Verify only the documented PLC outputs respond.
+- Default exercise editor is empty. Build PLC timer logic or explicitly open .tools/plant-review-alternating-lamps.rpproj.json after --audit-flash-pair.
+- Run and turn ENABLE to RUN. PLC starts with A amber and alternates A/B every 0.5 s of accepted 20 ms scans.
+- Exactly one lamp is commanded on after each enabled scan. OFF clears lamps, phase and timers on the next scan; RUN starts with A again.
 
 ### Expected observations
 
-- The two lamps alternate without overlapping and both turn off when disabled.
+- Explicit original reference: A at first enabled scan through scan 24, B at scan 25, A at 50, B at 75. Enabled accepted scans command exactly one lamp; disabled scans command neither.
+### Stop, Run and Reset
+
+- Stop clears lamp commands and nonretentive timers, while retaining operator requests and PLC phase.
+- Run with a valid retained request resumes that phase with a fresh full half-period; stopped wall time does not count.
+- Application Reset clears selectors, phase, timers and lamp commands, and leaves stopped scan zero.
+- Timing choices belong to the explicitly opened original training reference. They are not numeric presets recovered from the historical source.

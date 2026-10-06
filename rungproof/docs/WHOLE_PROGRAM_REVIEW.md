@@ -1,6 +1,63 @@
 # Whole program review - 2026-10-03
 
-Scene 56 rotary-flasher repair (2026-10-06, current checkpoint):
+Scenes 57/58 flashing-lesson repair (2026-10-06, current checkpoint):
+Scene 57 has one maintained ENABLE OFF/RUN selector and separate amber A / green
+B lamps. Removed alternate_phase and its fake PC phase button: PC supplies raw
+alternate_enable; PLC owns timing and both outputs. Old projects must move phase
+into PLC memory. Scene 58 retains all three original raw BOOL requests through
+actual ENABLE/FAST/SLOW selectors, followed by a single green lamp in a grounded
+row. Both/neither rate selections inhibit the explicit reference without priority.
+Equipment instances total 615; 77 scenes, 294 assets and five authored demos.
+Historical source, default empty exercises and real transport remain unchanged.
+
+-- --audit-flash-pair executes 49 controller/scene checks, generating ignored
+.tools/plant-review-alternating-lamps.rpproj.json (five rungs) and
+.tools/plant-review-variable-flash-rate.rpproj.json (nine rungs). Open explicitly
+through File -> Open Ladder Agent Project. Half-periods 0.5 s for alternation,
+0.2 s FAST and 0.5 s SLOW are original training choices, absent from the source.
+Timers precede phase/output coils, avoiding one extra scan per transition.
+OFF/invalid selection clears lamps, phase and timers next accepted scan.
+Alternation starts A; variable rate starts OFF. Direct valid rate change wholly
+between accepted scans retains phase and starts the new full interval; separate
+accepted changes can pass through invalid selection and reset phase. Stop clears
+outputs/nonretentive timers but retains requests/PLC phase. Run resumes that phase
+with a fresh interval. Reset clears all state and leaves stopped scan zero.
+
+Native Windows references opened through File. Scene 57: physical ENABLE;
+A at scan 1/24, B at 25, A at 50, B at 75. Stop at 75 dark; Run 99 B true /
+ET 0.48 s, 100 A true / B ET 0.50 s. OFF cleared at 101. Continuous A at 111,
+B at 341; physical OFF cleared both lamps; Reset stopped zero. FR/FL/RL/RR and
+readable ENABLE/OFF/RUN focus inspected. Initial diagonal Top put an end selector
+under the QA toolbar; aligned overhead azimuth rebuilt and visually verified with
+all three items clearly visible. These QA camera changes do not move equipment.
+
+Scene 58: physical ENABLE/FAST; dark 9, green 10/19, dark 20, green 30. Physical
+SLOW while FAST selected made a pending conflict at held 30; accepted 31 dark.
+FAST OFF left SLOW: 55 dark after 24 new scans, 56 green, 81 dark, 106 green.
+Stop 106 dark; Run 130 green, 131 dark. SLOW OFF remained dark through 156 NO RATE.
+Five full-scene angles inspected at held 10; focused FAST/SLOW labels/detents
+readable. Normal I/O scrollbar exposes all three raw inputs. Continuous SLOW:
+dark 166, lit 491; ENABLE OFF cleared lamp with SLOW retained. Continuous FAST:
+dark 2306/3370/3828, lit 4431. Reset all three raw inputs/lamp false and stopped
+scan zero. Owned native windows closed normally, exit zero. These are snapshots
+and accepted-scan observations, not frame-by-frame or real-controller parity.
+
+Verification: build zero warnings/errors; focused 49/49, geometry/workflow 788/788,
+scene contracts 71/71 and controller conformance 144/144. Rendered scene controls,
+review-overlay/external-image and virtual-controller UI pass. Shell 77 scenes /
+294 assets / five demos / 28 diagnostics; help 294 assets / 77 scenes and diff
+whitespace check pass. First geometry attempt exposed a verifier-only single
+selector assumption; every configured dial now matches its equipment/raw input,
+preserving all five alignment/reset checks per selector. Reset checks actual
+pointer restoration, rather than fixed OFF label text. Logs: ignored
+.tools/flash-pair-*.log, alternating-lamps-native.log, alternating-top-native.log
+and variable-flash-rate-native.log.
+
+Whole-program goal remains active. Next: Scene 59 Running Light Tower, then
+remaining operational/installation issues recorded in this review matrix.
+This checkpoint does not establish every scene's mechanical or hardware acceptance.
+
+Scene 56 rotary-flasher repair (2026-10-06, previous checkpoint):
 replaced the mislabeled pushbutton with an actual maintained MODE OFF/FLASH
 selector. Removed the manual flash_tick input/button: PC now supplies only
 raw flash_mode_selected, while PLC owns timing/phase/flash_lamp. The unused
