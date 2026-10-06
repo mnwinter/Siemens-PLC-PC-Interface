@@ -141,6 +141,8 @@ public partial class Main
                 Networks = program.Networks.Where(network => network.Id != "reset-extend").ToArray() },
                 "scene-2-conveyor-pusher", "scene2-held-transfer");
 
+            if (_visualSceneReview) VerifyConveyorReviewClock(Check);
+
             AddMigratedScene("tank-level", _candidateCatalog!, _mainCamera!, false, false);
             var tankProgram = new LadderProgram(1, "review-tank", "Tank plant exercise", "LD", TimeSpan.FromMilliseconds(20),
                 [new("permit", PlcVariableType.Bool, PlcVariableRole.Memory, true), Tag("inlet_pump_run", PlcVariableRole.Output),

@@ -57,8 +57,11 @@ Reset restores the preloaded carton and empty pallet. Pallet-valid remains a
 manual permissive; home/attachment/completion are plant feedback. Editor, scene and source
 changes release the hold. Scene 50 uses the same controls with Step 2.0 s
 (100 actual 20 ms scans) for its single-clock carton plant. External PLC stepping
-and other scene clocks are excluded.
-`-- --verify-plant-motion --visual-scene-review` runs 77 offline motion checks,
+and other scene clocks are excluded. Scene 74 adds Step 0.1 s (five actual
+20 ms scans) and Step 20 ms (one scan) to hold its fast carton transfer for
+inspection. Its QA label shows elapsed time, actual stroke and completed count.
+Both steps require Hold plus a running local controller and are disabled on Stop.
+`-- --verify-plant-motion --visual-scene-review` runs 85 offline motion checks,
 including four supported palletizer routes, attachment/release, scan-boundary
 completion retention, hold/step, Stop/resume, permissive loss, Reset and release.
 `-- --audit-palletizer --visual-scene-review` runs 58 focused checks, including

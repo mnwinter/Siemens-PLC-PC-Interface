@@ -1,5 +1,50 @@
 # Whole program review - 2026-10-03
 
+Scene 74 held transfer inspection (2026-10-06, current checkpoint): added
+scoped offline Hold, Step 0.1 s (five existing 20 ms scans) and Step 20 ms
+(one actual scan), with time/stroke/count readout. The controller/plant path
+remains single-clock; held native callbacks cannot advance a second time.
+Stop disables both steps. Reset preserves the hold and restores initial state;
+release restores original process modes. Other existing clock increments
+remain unchanged. Eight clock regressions pass; full plant motion is now 85/85,
+including the existing Demo 5 routes and 2,576 executed route samples. Build
+has zero warnings/errors. Shell PASS (77 scenes / 294 assets / five demos),
+rendered controls/overlay PASS and help validation 77/294 PASS. Logs:
+`.tools/carton-clock-{shell,rendered-controls}.log`. No scene geometry, shared delivery assets or DB14
+contract changed in this checkpoint.
+
+Native 1602x932 final code: normal File -> Open Ladder Agent Project loaded
+`.tools/plant-review-scene2.rpproj.json`; Return to Scene, Hold and normal Run.
+Ten coarse presses advanced exactly 50 scans / 1.00 s. Fine presses held
+scan 58 / 1.16 s / 53.3% extension; 63 / 1.26 s / 86.7% actual release /
+count 1; 65 / 1.30 s / full extension; 72 / 1.44 s / 53.3% retraction.
+Each of these four poses was individually inspected in FR/FL/RL/RR/Top close
+full-scene views. Plate contact and connected yoke remain visible on extension;
+carton stays supported on the table at transfer/full extension and stays put
+while the plate retracts. Rear views hide the low sensor; close views crop
+outer equipment ends/feet. These observations cover the central transfer,
+not every frame or a complete collision sweep.
+
+At scan 62 the rounded label reads 80.0% with count 0; the unchanged canonical
+strict floating-point threshold crosses on scan 63. Stop at 72 cleared both
+commands and held pose; clicks on both disabled step buttons kept scan 72.
+Run while held stayed at 72; eight fine scans returned home at 80 / 1.60 s
+with the carton still on the table (RR/Top). It remained there through scan
+180 / 3.60 s and recycled to infeed at scan 188 / 3.76 s, the canonical
+next-load boundary. Reset restored staged carton, empty receiver, commands
+false, count 0 and stopped scan 0. Release plus normal Run restored real-time
+scan 38 / 0.76 s with visible infeed motion. Native exited normally, code 0.
+Evidence: `.tools/carton-review-clock-native.log` and
+`.tools/carton-review-clock-motion.log`; screenshots inspected through the
+Windows Computer Use skill, without saving duplicate captures.
+
+The generated three-rung file remains ignored QA evidence, not a shipped
+solution. Arbitrary command sequences, physical force/pressure/gravity and
+commissioning remain unverified. The whole-program goal stays active; continue
+with other recorded gaps, starting with Scene 43's precomputed counter/reset
+feedback and actual operator workflow. The preceding continuous-playback gap
+for intermediate native poses is resolved by this bounded held-pose pass.
+
 Scene 74 native continuous playback checkpoint (2026-10-06): normal
 File -> Open Ladder Agent Project loaded the generated offline reference
 `.tools/plant-review-scene2.rpproj.json` (three rungs with limit-triggered
