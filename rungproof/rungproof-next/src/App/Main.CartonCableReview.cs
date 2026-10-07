@@ -82,20 +82,37 @@ public partial class Main
             if(part==deck && (other==surface || other==platter))continue;
             var overlap=ReviewBounds(part).Intersection(ReviewBounds(other)).Size;
             if(overlap.X<=.001f || overlap.Y<=.001f || overlap.Z<=.001f || !OrientedBoxesPenetrate(part,other))continue;
-            if(part==deck && other.Name=="KIN_drive_drum" && VisionSorterDrumProfileClear(deck,other))continue;
+            if(part==deck && other.Name=="KIN_drive_drum" && VisionSorterContactProfileClear(deck,other))continue;
             candidates++;
             if(candidates<=8) GD.Print($"VISION_SORTER_BRIDGE_INTERFERENCE {part.Name}/{peer.Name}/{other.Name} overlap={overlap}");
             bridgeClear=false;
         }
         check(bridgeClear,"vision_sorter_bridge_other_equipment_clear_at_one_mm_obb_screen_excluding_two_mating_surfaces");
+        check(VisionSorterContactProfileClear(deck,surface),
+            "vision_sorter_bridge_clears_actual_belt_nose_profile_with_one_mm_allowance");
+        check(VisionSorterContactProfileClear(deck,platter,true),
+            "vision_sorter_curved_bridge_nose_clears_actual_platter_profile_with_one_mm_allowance");
         var drum=(MeshInstance3D)root.GetNode<Node3D>("conveyor_0").FindChild("KIN_drive_drum",true,false);
         var deckHome=deck.Transform;
         var detected=false;
         GD.Print("VISION_SORTER_DRUM_PROFILE_NEGATIVE_CONTROL_BEGIN lowered_deck_mm=50");
-        try { deck.Position+=Vector3.Down*.05f;detected=!VisionSorterDrumProfileClear(deck,drum); }
+        try { deck.Position+=Vector3.Down*.05f;detected=!VisionSorterContactProfileClear(deck,drum); }
         finally { deck.Transform=deckHome; }
         GD.Print("VISION_SORTER_DRUM_PROFILE_NEGATIVE_CONTROL_END restored=True");
         check(detected,"vision_sorter_drum_profile_screen_detects_deliberately_lowered_deck");
+        var beltProbe=false;var platterProbe=false;
+        GD.Print("VISION_SORTER_MATING_NEGATIVE_CONTROLS_BEGIN");
+        try
+        {
+            deck.Position+=Vector3.Down*.05f;
+            beltProbe=!VisionSorterContactProfileClear(deck,surface);
+            deck.Transform=deckHome;deck.Position+=Vector3.Right*.05f;
+            platterProbe=!VisionSorterContactProfileClear(deck,platter,true);
+        }
+        finally { deck.Transform=deckHome; }
+        GD.Print("VISION_SORTER_MATING_NEGATIVE_CONTROLS_END restored=True");
+        check(beltProbe,"vision_sorter_belt_profile_screen_detects_deliberately_lowered_deck");
+        check(platterProbe,"vision_sorter_platter_profile_screen_detects_deliberately_shifted_nose");
         var beltBearingEnd=surface.Mesh.GetFaces().Select(v=>surface.GlobalTransform*v)
             .Where(v=>MathF.Abs(v.Y-belt.End.Y)<.002f).Max(v=>v.X);
         GD.Print($"VISION_SORTER_BELT_BEARING_END {beltBearingEnd}");
@@ -142,13 +159,16 @@ public partial class Main
             "vision_sorter_initial_carton_full_footprint_is_supported");
     }
 
-    // Conservative drum silhouette test for this installation: clip every
-    // bridge triangle's XY projection against the actual drum vertex hull,
-    // eroded by a declared 1 mm allowance. No blanket drum exclusion.
-    private static bool VisionSorterDrumProfileClear(MeshInstance3D deck, MeshInstance3D drum)
+    // Conservative contact silhouette test: clip actual bridge triangles
+    // against an obstacle vertex hull (XY for belt/drum, XZ for platter),
+    // eroded by a declared 1 mm allowance. These projections are bounded
+    // geometry evidence, not general concave-mesh or swept-volume proof.
+    private static bool VisionSorterContactProfileClear(MeshInstance3D deck, MeshInstance3D drum, bool horizontal = false)
     {
+        Vector2 Project(Vector3 v)=>horizontal ? new Vector2(v.X,v.Z) : new Vector2(v.X,v.Y);
+        float Depth(Vector3 v)=>horizontal ? v.Y : v.Z;
         var points=drum.Mesh.GetFaces().Select(v=>drum.GlobalTransform*v)
-            .Select(v=>new Vector2(v.X,v.Y)).Distinct().OrderBy(v=>v.X).ThenBy(v=>v.Y).ToArray();
+            .Select(Project).Distinct().OrderBy(v=>v.X).ThenBy(v=>v.Y).ToArray();
         float Cross(Vector2 a,Vector2 b)=>a.X*b.Y-a.Y*b.X;
         var hull=new System.Collections.Generic.List<Vector2>();
         foreach(var p in points)
@@ -169,8 +189,8 @@ public partial class Main
         for(var i=0;i<faces.Length;i+=3)
         {
             var triangle=new[]{deck.GlobalTransform*faces[i],deck.GlobalTransform*faces[i+1],deck.GlobalTransform*faces[i+2]};
-            if(triangle.All(v=>v.Z<drumBounds.Position.Z) || triangle.All(v=>v.Z>drumBounds.End.Z))continue;
-            var clipped=triangle.Select(v=>new Vector2(v.X,v.Y)).ToList();
+            if(triangle.All(v=>Depth(v)<Depth(drumBounds.Position)) || triangle.All(v=>Depth(v)>Depth(drumBounds.End)))continue;
+            var clipped=triangle.Select(Project).ToList();
             for(var edge=0;edge<hull.Count && clipped.Count>0;edge++)
             {
                 var origin=hull[edge];var direction=hull[(edge+1)%hull.Count]-origin;
@@ -188,10 +208,10 @@ public partial class Main
             }
             if(clipped.Count>0)
             {
-                GD.Print($"VISION_SORTER_DRUM_PROFILE_INTERFERENCE triangle={i/3}");return false;
+                GD.Print($"VISION_SORTER_CONTACT_PROFILE_INTERFERENCE obstacle={drum.Name} triangle={i/3}");return false;
             }
         }
-        GD.Print("VISION_SORTER_DRUM_PROFILE_CLEAR declared_allowance_mm=1");
+        GD.Print($"VISION_SORTER_CONTACT_PROFILE_CLEAR obstacle={drum.Name} declared_allowance_mm=1");
         return true;
     }
 

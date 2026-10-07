@@ -4100,3 +4100,17 @@ excluded from this peer screen and need separate contact/collision review.
 All 12 sorter checks pass, including the retained 2,225 support samples
 (.tools/sorter-drum-screen-final.log); build succeeds. Native views and four
 outgoing lanes/controller transfer remain OPEN.
+
+Sorter bridge mating-profile checkpoint (2026-10-06; native review OPEN):
+The previously excluded belt-surface/platter interfaces now have separate
+profile tests. Every actual bridge triangle is projected and clipped against
+the transformed obstacle vertex hull: XY for rounded belt/drum and XZ for
+platter, with a declared 1 mm interior allowance and depth-range rejection.
+Current belt, drum and platter profiles clear. Lowering the deck 50 mm is
+detected against belt/drum; shifting the nose 50 mm into the platter is
+detected. Each negative control restores the original transform in finally.
+All 16 sorter checks pass, preserving 2,225 footprint support samples, in
+.tools/sorter-mating-screen-final.log; build succeeds. These are conservative
+profile/OBB screens, not general concave-mesh, swept-volume, fabrication or
+native visual proof. Four outgoing lanes, correct routing/diverter mechanics,
+class feedback and fresh static/full-motion camera inspection remain OPEN.
