@@ -6,7 +6,7 @@ Scene contract: `prototype/scenes/lab-10-06-ten-motor-array-startup.plcscene`
 
 ## Purpose
 
-An array-based startup sequence starts ten motors with a staggered delay and stops the group on alarm.
+The intended lesson is staggered startup of ten motors with group alarm handling. The current scene exposes one shared `motor_array_run` BOOL, which starts or stops all ten visible motors together. Per-motor array commands and staggered timing remain unimplemented. Load or author controller logic before Run; the scene does not supply a completed lesson controller.
 
 ## Expected I/O to operate this scene
 
@@ -38,6 +38,8 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | `motor_array_run` | `indicator_5` | `indicator` |
 | `startup_sequence_active` | `indicator_12` | `indicator` |
 
+`motor_array_run` also binds to the running animation of each motor, `motor_0` through `motor_9`. `startup_sequence_active` is an indicator command; it does not create a timed startup sequence.
+
 ## Expected equipment
 
 | ID | Type | Label |
@@ -47,6 +49,11 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | `motor_2` | `motor` | Ten-Motor Array Startup motor |
 | `motor_3` | `motor` | Ten-Motor Array Startup motor |
 | `motor_4` | `motor` | Ten-Motor Array Startup motor |
+| `motor_5` | `motor` | Ten-Motor Array Startup motor |
+| `motor_6` | `motor` | Ten-Motor Array Startup motor |
+| `motor_7` | `motor` | Ten-Motor Array Startup motor |
+| `motor_8` | `motor` | Ten-Motor Array Startup motor |
+| `motor_9` | `motor` | Ten-Motor Array Startup motor |
 | `indicator_5` | `indicator` | Ten-Motor Array Startup indicator |
 | `training_accessory_6` | `trainingAccessory` | Ten-Motor Array Startup - ten-motor lineup asset |
 | `training_accessory_7` | `trainingAccessory` | Ten-Motor Array Startup - group motor status panel |
@@ -62,7 +69,7 @@ A normal Stop removes PLC-owned commands according to the scene runtime. This do
 
 ## Machine guide
 
-An array-based startup sequence starts ten motors with a staggered delay and stops the group on alarm.
+Current behavior is group command projection. The intended array/staggered-start lesson is still open and cannot be demonstrated using the shared BOOL alone.
 
 ### Start conditions
 
@@ -76,4 +83,6 @@ An array-based startup sequence starts ten motors with a staggered delay and sto
 
 ### Expected observations
 
-- The array starts in order with a delay between motors and stops safely on a group alarm.
+- A loaded controller commanding `motor_array_run=True` animates all ten motors together; `False` stops their animations.
+- Alarm handling depends on the authored controller removing its command when `group_alarm_clear` is false. The scene binding does not enforce that interlock itself.
+- Individual startup order and delays cannot currently be observed. Both status displays remain `NO DATA`; they do not report measured array or timer values.
