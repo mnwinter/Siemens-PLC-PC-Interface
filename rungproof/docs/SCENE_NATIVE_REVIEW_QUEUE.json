@@ -85,7 +85,7 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Repaired carton seating, four receiving belts and supported handoffs freshly inspected in native Windows window 8389926. CLASS / NO RESULT readable on grounded display stand; carton bottom visibly seated inside belt deck. Class fixture/display and driven routing implemented (a601080/38d5088). Four integrated routes pass continuous motion, class retention, endpoint/Stop/Reset checks. Native loaded QA lane1 route, class change, Stop/resume, endpoint in five directions and Reset verified in window204276. FAIL/open: native completed routes2-4 and complete moving-solid clearance remain unverified.",
+      "recordedResult": "Repaired carton seating, four receiving belts and supported handoffs freshly inspected in native Windows window 8389926. CLASS / NO RESULT readable on grounded display stand; carton bottom visibly seated inside belt deck. Class fixture/display and driven routing implemented (a601080/38d5088). Four integrated routes pass continuous motion, class retention, endpoint/Stop/Reset checks. Native loaded QA lane1 route, class change, Stop/resume, endpoint in five directions and Reset verified in window204276. Native routes2-4 now observed with all receiving endpoints in five directions and Stop/Reset. FAIL/open: complete moving-solid clearance remains unverified.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": true,
       "disposition": "REPAIR_RECORDED_FAILURE",
