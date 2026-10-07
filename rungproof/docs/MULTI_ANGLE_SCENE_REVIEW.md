@@ -1,5 +1,11 @@
 # Multi-angle scene review - 2026-10-04
 
+## Demo 5 native startup ordering issue reproduced - 2026-10-06
+
+Opened Demo 5 through normal Scenario menu in Windows, focused training_accessory_4. Home/front-right view shows the empty pallet clear of the front gantry post. Held the offline plant clock, pressed Run (scan 0), then Start / resume one carton (accepted in event history), then Step 0.5 s. At scan 25 / elapsed .50 s, home remained True, gantry_cycle False, placed 0 and no visible movement. Pressed Start again and Step 0.5 s: scan 50 / elapsed 1.00 s, home False and gantry_cycle True; tool approached the carton. Front-right and front-left observations recorded this moving approach.
+
+The deterministic --audit-palletizer --visual-scene-review command completed with failures=0, 2,576 route samples and zero static candidates (.tools/demo5-resumed-audit.log). Its workflow warms the controller with .1 s before Start; this does not cover the newly observed Run-at-scan-zero/Start ordering. VirtualControllerRuntime edge contacts initialize their first sampled input as the baseline, suppressing that first edge. Pending momentary operator Start before the initial baseline is therefore a specific unresolved workflow case; do not change global edge semantics without examining existing tests. Next action: reproduce in a focused automated regression and repair the operator pulse/startup sequencing, then continue native pickup/placement/return inspections. Native window session 57157 remains held at scan 50, elapsed 1.00 s with zero placements. Full native motion acceptance remains incomplete.
+
 ## Sorter operator button interference corrected - 2026-10-06
 
 Focused native before views (overhead/front left) placed switch_11 against lane 4's services. Added a 1 mm AABB plus oriented-box screen for all three operator switches against all four receiving conveyors. Before repair this reported switch_11 enclosure/junction-box overlap of approximately 198x137x116 mm and additional pedestal/foot/cable intersections; focused command exited 1. Shifted only switch_11 from X 4.2 m to 3.6 m, retaining Y 0 and Z 4.7, its action and authored style. After repair the focused command exits 0 and operator controls are clear under the bounded screen. Logs: .tools/sorter-operator-before.log and .tools/sorter-operator-after.log.
