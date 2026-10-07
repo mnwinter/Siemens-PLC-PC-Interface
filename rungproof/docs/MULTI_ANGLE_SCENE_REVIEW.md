@@ -1,5 +1,19 @@
 # Multi-angle scene review - 2026-10-04
 
+Vision sorter parcel-table repair checkpoint (2026-10-06; native review OPEN):
+The scene now opts into the existing parcelTransfer table variant, omitting
+visible machining fixtures/raised index markers and matching the platter to
+the actual 0.9 m infeed deck. Explicit radius 1.28 preserves its previously
+delivered 2.56 m diameter; the old config radius 1.2 was ignored by the
+machining-table mapping. Both fixture/deck checks failed before and pass after
+repair (.tools/sorter-parcel-table-after.log); all seven current sorter support/
+identity checks pass. Its initial-state contract passes separately. The
+2.0645833 m horizontal gap, cabinet diverter surrogate, single destination
+belt at Y=1.055, class feedback and native static/motion review remain OPEN.
+The parcel variant provides a position-controlled adapter; controller-owned
+indexing/routing has not yet been connected or verified in this lesson.
+
+
 Sorter display support regression checkpoint (2026-10-06; native review OPEN):
 Five actual scene checks pass for display mesh identity, grounded base with
 attached mast/housing, explicit CLASS / NO RESULT text with hidden stale COUNT

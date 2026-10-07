@@ -53,6 +53,11 @@ public partial class Main
         var belt = ReviewBounds(surface);
         var table = root.GetNode<Node3D>("rotaryTable_3");
         var platter = (MeshInstance3D)table.FindChild("TABLE_rotating_platter", true, false);
+        check(!ReviewMeshes(table).Any(mesh => mesh.Name.ToString().StartsWith("TABLE_fixture_", StringComparison.Ordinal)
+            || mesh.Name.ToString().StartsWith("TABLE_index_", StringComparison.Ordinal) || mesh.Name == "TABLE_center_register"),
+            "vision_sorter_parcel_platter_has_no_visible_machining_fixture_or_raised_index_markers");
+        check(MathF.Abs(ReviewBounds(platter).End.Y - belt.End.Y) < .001f,
+            "vision_sorter_parcel_platter_matches_actual_infeed_bearing_plane");
         var receiver = root.GetNode<Node3D>("training_accessory_8");
         var receivingBelt = (MeshInstance3D)receiver.FindChild("KIN_belt_surface", true, false);
         GD.Print($"VISION_SORTER_RECEIVING infeed={belt} platter={ReviewBounds(platter)} bank={ReviewBounds(receivingBelt)}");

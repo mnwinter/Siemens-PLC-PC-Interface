@@ -79,9 +79,11 @@
         0
       ],
       "config": {
-        "radius": 1.2,
+        "radius": 1.28,
         "angleRangeDeg": 360,
-        "initialPosition": 0
+        "initialPosition": 0,
+        "parcelTransfer": true,
+        "deckHeight": 0.9
       }
     },
     {
