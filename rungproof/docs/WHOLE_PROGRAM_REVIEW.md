@@ -1,5 +1,10 @@
 # Whole program review - 2026-10-03
 
+## 2026-10-06 tote filling geometry diagnosis
+
+Inspected both the source Blend and actual exported IBC GLB. Separate downward centre rays hit the fill cap at Z 1.56 m and the solid tank roof at Z 1.49 m. The filling lane therefore needs an actual roof aperture/cavity and separable cap before fill quantity or cap application can credibly be connected. See TOTE_FINISHING_FILL_PORT_FINDING.md. This new mesh evidence changes the next repair from adding a quantity counter to repairing the fill interface first. Existing travel checks remain bounded; no new native or filling acceptance is claimed.
+
+
 ## 2026-10-06 tote-finishing controller-clocked travel
 
 A direct plant probe reproduced the next gap: four seconds of PLC conveyor_run left the tote stationary because all load translation existed only in the standalone sequence. Added a renderer-neutral ToteTransferPlantModel and an opted-in adapter for controller operation. Accepted ticks up to 20 ms now drive both belt and tote at prescribed 0.75 m/s; the general conveyor callback is disabled for that clock. Six PC points publish position, four installed station windows and retained exit arrival. Home and endpoint are checked against the delivered belt footprint. Command withdrawal and Stop hold position; Run continues the retained load; held Run cannot wrap or discard it at the exit; Reset reloads the infeed.
