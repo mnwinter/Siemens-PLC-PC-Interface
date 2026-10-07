@@ -20,14 +20,25 @@ public partial class Main
         document.AddTag("auto_start_request", PlcVariableRole.Input, "auto_start_request");
         document.AddTag("manual_jog_request", PlcVariableRole.Input, "manual_jog_request");
         document.AddTag("conveyor_run", PlcVariableRole.Output, "conveyor_run");
-        document.AddRung("Automatic travel until actual pickup beam", "conveyor_run");
-        document.AddContact(0, 0, "auto_mode", false);
+        // QA example: one nonretriggerable two-second jog (1.5 m at .75 m/s).
+        // Mode and the physical pickup beam also gate the final command.
+        document.AddTag("qa_jog", PlcVariableRole.Memory, type: PlcVariableType.Timer);
+        document.AddTimerRung("Bounded manual jog", "qa_jog", TimeSpan.FromSeconds(2), LadderTimerKind.Pulse);
+        document.AddContact(0, 0, "auto_mode", true);
         document.AddContact(0, 0, "pickup_sensor", true);
-        document.AddContact(0, 0, "auto_start_request", false);
-        document.AddParallelBranch(0);
-        document.AddContact(0, 1, "auto_mode", false);
-        document.AddContact(0, 1, "pickup_sensor", true);
-        document.AddContact(0, 1, "conveyor_run", false);
+        document.AddContact(0, 0, "manual_jog_request", false);
+        document.AddRung("Automatic travel until actual pickup beam", "conveyor_run");
+        document.AddContact(1, 0, "auto_mode", false);
+        document.AddContact(1, 0, "pickup_sensor", true);
+        document.AddContact(1, 0, "auto_start_request", false);
+        document.AddParallelBranch(1);
+        document.AddContact(1, 1, "auto_mode", false);
+        document.AddContact(1, 1, "pickup_sensor", true);
+        document.AddContact(1, 1, "conveyor_run", false);
+        document.AddParallelBranch(1);
+        document.AddContact(1, 2, "auto_mode", true);
+        document.AddContact(1, 2, "pickup_sensor", true);
+        document.AddContact(1, 2, "qa_jog.Q", false);
         var program = document.BuildProgram();
         var compiled = LadderCompiler.Compile(program);
         check(compiled.IsValid, "shipping_pallet_qa_compiles");
@@ -60,6 +71,26 @@ public partial class Main
             ResetActiveController();
             check(pallet.Position.IsEqualApprox(home) && runtime.Points["pickup_sensor"] is false,
                 "shipping_pallet_loaded_ladder_reset_restores_home");
+            RunActiveController();
+            check(ExecuteSelectedControllerAction("set-auto"), "shipping_pallet_manual_mode_selected");
+            Tick(5);
+            check(!ExecuteSelectedControllerAction("start-auto"), "shipping_pallet_manual_blocks_auto_start");
+            check(ExecuteSelectedControllerAction("manual-jog"), "shipping_pallet_manual_request_accepted");
+            Tick(50);
+            check(pallet.Position.X > home.X + .7f && runtime.Points["conveyor_run"] is true,
+                "shipping_pallet_manual_jog_moves_under_controller");
+            Tick(75);
+            var jogEnd = pallet.Position;
+            check(jogEnd.X > home.X + 1.4f && jogEnd.X < home.X + 1.6f && runtime.Points["conveyor_run"] is false,
+                "shipping_pallet_manual_jog_is_bounded");
+            Tick(100);
+            check(pallet.Position.IsEqualApprox(jogEnd), "shipping_pallet_manual_jog_does_not_repeat");
+            check(ExecuteSelectedControllerAction("manual-jog"), "shipping_pallet_second_manual_jog_accepted");
+            Tick(25); StopActiveController(); var jogStop = pallet.Position;
+            RunActiveController(); Tick(125);
+            check(pallet.Position.IsEqualApprox(jogStop) && runtime.Points["conveyor_run"] is false,
+                "shipping_pallet_stopped_jog_requires_new_request");
+            ResetActiveController();
         }
         finally { DisableVirtualController(); }
     }
