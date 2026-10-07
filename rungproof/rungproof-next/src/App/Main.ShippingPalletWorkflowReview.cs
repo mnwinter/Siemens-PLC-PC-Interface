@@ -91,6 +91,37 @@ public partial class Main
             check(pallet.Position.IsEqualApprox(jogStop) && runtime.Points["conveyor_run"] is false,
                 "shipping_pallet_stopped_jog_requires_new_request");
             ResetActiveController();
+            // Exercise the same diagnostic clock used by the native operator
+            // view. The TP advances on its triggering scan, so its last active
+            // scan is 99 (1.98 s), followed by expiry at scan 100 (2.00 s).
+            var reviewWasEnabled = _visualSceneReview;
+            _visualSceneReview = true;
+            try
+            {
+                SetGantryReviewClockHeld(true); RunActiveController();
+                check(GantryReviewClockHeld && _virtualController!.Snapshot.ScanNumber == 0
+                    && pallet.Position.IsEqualApprox(home), "shipping_review_hold_freezes_home");
+                check(ExecuteSelectedControllerAction("set-auto"), "shipping_review_manual_mode_selected");
+                check(ExecuteSelectedControllerAction("manual-jog"), "shipping_review_actual_jog_button_accepted");
+                AdvanceGantryReviewClock(99);
+                check(_virtualController!.Snapshot.ScanNumber == 99 && runtime.Points["conveyor_run"] is true
+                    && MathF.Abs(pallet.Position.X - home.X - 1.485f) < .001f,
+                    "shipping_review_TP_last_active_scan_moves_supported_load");
+                var lastActive = pallet.Position;
+                AdvanceGantryReviewClock(1);
+                check(_virtualController.Snapshot.ScanNumber == 100 && runtime.Points["conveyor_run"] is false
+                    && pallet.Position.IsEqualApprox(lastActive), "shipping_review_TP_expiry_scan_holds_load");
+                StepGantryReviewClock();
+                check(_virtualController.Snapshot.ScanNumber == 125 && pallet.Position.IsEqualApprox(lastActive),
+                    "shipping_review_coarse_step_does_not_retrigger_jog");
+                StopActiveController(); AdvanceGantryReviewClock(1);
+                check(_virtualController.Snapshot.ScanNumber == 125 && pallet.Position.IsEqualApprox(lastActive),
+                    "shipping_review_Stop_blocks_manual_step");
+                ResetActiveController();
+                check(_virtualController.Snapshot.ScanNumber == 0 && pallet.Position.IsEqualApprox(home)
+                    && runtime.Points["conveyor_run"] is false, "shipping_review_Reset_restores_home_while_held");
+            }
+            finally { ReleaseGantryReviewClock(); _visualSceneReview = reviewWasEnabled; }
         }
         finally { DisableVirtualController(); }
     }
