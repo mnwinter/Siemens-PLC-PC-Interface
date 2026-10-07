@@ -288,6 +288,36 @@
         "type": "BOOL",
         "owner": "PC",
         "initial": false
+      },
+      {
+        "name": "cap_extension_percent",
+        "type": "REAL",
+        "owner": "PC",
+        "initial": 0
+      },
+      {
+        "name": "cap_applied",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "cap_busy",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "cap_inhibited",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "cap_home",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": true
       }
     ],
     "actions": [
@@ -500,7 +530,9 @@
     "conveyorSpeedMps": 0.75,
     "controllerToteTransfer": true,
     "toteExitX": 6.4,
-    "fillRateFractionPerSecond": 0.2
+    "fillRateFractionPerSecond": 0.2,
+    "capTravelSeconds": 0.35,
+    "capSeatingSeconds": 0.8
   },
   "training": {
     "hints": [

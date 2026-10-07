@@ -32,6 +32,7 @@ public partial class SceneSimulationRuntime
         _toteTransfer = new ToteTransferPlantModel(home, exit, Number(_definition, "conveyorSpeedMps", .75));
         _toteTransferDrive.ResetPlantTravel();
         ResetToteFill();
+        ResetToteCap();
         FreezeToteTransferAdapter();
         ProjectToteTransfer();
     }
@@ -42,6 +43,7 @@ public partial class SceneSimulationRuntime
         // Controller operation uses one accepted plant tick for belt and load.
         if (_toteTransferDrive is not null) _toteTransferDrive.SetPhysicsProcess(!UsesExternalClock);
         _toteFillNozzleController?.SetPhysicsProcess(!UsesExternalClock);
+        _toteCapController?.SetPhysicsProcess(!UsesExternalClock);
     }
 
     private void PauseToteTransfer()
@@ -49,6 +51,7 @@ public partial class SceneSimulationRuntime
         if (!HasToteTransfer || !UsesExternalClock || _toteTransfer is null) return;
         _toteTransfer.Pause(); _toteTransferDrive!.ApplyPlantTravel(0, 0);
         if (_toteFill is not null) { _toteFill.Pause(); ProjectToteFill(); }
+        if (_toteCap is not null) { _toteCap.Pause(); ProjectToteCap(); }
     }
 
     private void AdvanceToteTransfer(double seconds)
@@ -58,7 +61,7 @@ public partial class SceneSimulationRuntime
         var state = _toteTransfer.State;
         _transferTote!.Position = new Vector3((float)state.Position, _transferTote.Position.Y, _transferTote.Position.Z);
         _toteTransferDrive!.ApplyPlantTravel((float)(state.Position - old), (float)state.Speed);
-        ProjectToteTransfer(); ApplyBindings(); AdvanceToteFill(seconds); StateChanged?.Invoke();
+        ProjectToteTransfer(); ApplyBindings(); AdvanceToteFill(seconds); AdvanceToteCap(seconds); StateChanged?.Invoke();
     }
 
     private void ProjectToteTransfer()

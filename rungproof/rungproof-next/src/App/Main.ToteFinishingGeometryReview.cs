@@ -26,6 +26,12 @@ public partial class Main
                 GD.Print($"TOTE_FILL_CHECK {label}={condition}");
             });
             if (!passed) { GetTree().Quit(1); return; }
+            VerifyToteCap((condition, label) =>
+            {
+                passed &= condition;
+                GD.Print($"TOTE_CAP_CHECK {label}={condition}");
+            });
+            if (!passed) { GetTree().Quit(1); return; }
             VerifyToteFinishingPlacement((condition, label) =>
             {
                 passed &= condition;

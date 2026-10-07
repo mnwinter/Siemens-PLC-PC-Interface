@@ -101,3 +101,22 @@ The model is NOT connected to scene meshes or PC feedback yet. The remaining
 adapter must derive the stroke from actual seating geometry, move the chuck
 assembly, exchange held/retained cap visibility at release, project feedback,
 and check full stroke/capped discharge before native multi-angle acceptance.
+
+## Axial adapter checkpoint - full motion acceptance OPEN
+
+The external-clock adapter now derives axial stroke from delivered held and
+seated cap top heights, moves the spindle/chuck assembly, hides the held cap
+and reveals the tote-parented cap at modeled release, then retracts. Five
+PC-owned points report extension, applied, busy, inhibited and home. Eligibility
+requires actual completed normalized fill, stopped conveyor, open tote and
+actual neck vertices within the held cap lower-wall bore with 1 mm margin.
+Eight new scene tests pass; all 50 focused checks pass in
+.tools/tote-cap-integration.log. Model tests remain 15 PASS. Stop retains partial
+stroke; withdrawal before application retracts without release; Reset restores
+the open tote. An applied cap remains visible at the retained exit. The older
+standalone preview is preserved. Full axial stroke/capped-route collision
+screening and native static/motion views remain OPEN. The external-clock
+adapter currently projects axial motion only: rotating seated dwell/thread
+engagement, torque and sealing are not proved. Concurrent conveyor commands
+during an extended chuck still require explicit conflict testing; no protective
+hardware behavior is claimed. Labeling and inspection remain unfinished.
