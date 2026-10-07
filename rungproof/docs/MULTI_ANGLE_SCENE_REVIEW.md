@@ -1,3 +1,9 @@
+## Pallet robot native controller blocker - 2026-10-06
+
+Native Windows session 45504/window 2497778: opened aaa-pallet-robot-native-qa.rpproj.json through the normal editor, used Online > Verify + load offline, and observed verification complete: 1 block, 1 task, 3 rungs, 7 tags. Run advanced the controller scan and asserted robot_run=true while conveyor_run=false, placed_count=0. Clicking Start pallet unload was rejected with 'this scene action has no command binding in the loaded ladder program'. Robot remained at home; no native transfer or release was verified.
+
+Cause located in Main.TryExecuteSelectedControllerAction: start actions require an explicitly authored controllerStartBinding to a BOOL input. This scene's start-robot action has no such binding or start input; its reference sequence is only started through the direct runtime path used in the bounded verifier. The previously passing command-boundary checks therefore do not prove a working normal UI workflow. Repair must connect a real operator request and controller command to reference-cycle entry without forcing outputs or silently bypassing loaded ladder logic. Row 31 remains FAIL/open.
+
 ## Pallet-robot PLC interface and outbound command gate - 2026-10-06
 
 Row 31 inspection found placed_count and cycle_complete internal SIM ownership, preventing controller input bindings, and no completed-park feedback. These two existing point names now have PC ownership; added PC BOOL robot_at_park, derived from the actual robot adapter after a completed park solve (not early proximity). Authored sequences, routes, loads and default blank exercise are preserved. The outbound translate motion now explicitly requires conveyor_run; while false, sequence elapsed time and pose hold. Configured command gates validate declared PLC BOOL ownership. No PLC output is manufactured by feedback projection.
