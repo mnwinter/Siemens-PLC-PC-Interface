@@ -1275,7 +1275,7 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Probe/piping/valve installations repaired; 365 checks PASS. Native full-scene five-angle framing, external sight-glass fill/drain phases and Stop/settled Reset verified. FAIL/open: uninterrupted threshold transition visualization and broader operator/process acceptance",
+      "recordedResult": "Probe/piping/valve installations repaired; 365 checks PASS. Native full-scene five-angle framing, external sight-glass fill/drain phases and Stop/settled Reset verified. Retained Windows1842540 ran without pause through sampled fill86/63.76%, drain186/71.64% to566/26.04%, refill620/32.16%; FR/FL/RL/RR/Top inspected during run, Stop693/43.84% both commandsFalse, Reset0/50%. FAIL/open: exact switch transition frames, fresh-current-source deferred Start reproduction and broader operator/process acceptance",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": true,
       "disposition": "REPAIR_RECORDED_FAILURE",
