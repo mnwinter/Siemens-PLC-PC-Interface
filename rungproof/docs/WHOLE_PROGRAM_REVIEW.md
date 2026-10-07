@@ -2,7 +2,7 @@
 
 ## 2026-10-06 guarded-transfer offline PLC reference
 
-The explicit `--audit-guarded-layout` command now generates `.tools/plant-review-guarded-transfer.rpproj.json`, a compatible 20 ms ladder document. Its PLC evaluates the three manual permissives and removes transfer_run at supported exit completion. Thirty-three focused checks pass, including all eight input combinations, individual permissive losses during motion, normal scan-driven transfer across both optical routes, Stop/Run retention, completion without held-input restart and Reset. Build and app-shell validation pass (77 scenes, five demos, 294 assets, disconnected). Default exercise programs remain blank. Current full geometry and all scene contracts remain running; fresh native views and physical/protective acceptance remain pending.
+The explicit `--audit-guarded-layout` command now generates `.tools/plant-review-guarded-transfer.rpproj.json`, a compatible 20 ms ladder document. Its PLC evaluates the three manual permissives and removes transfer_run at supported exit completion. Thirty-three focused checks pass, including all eight input combinations, individual permissive losses during motion, normal scan-driven transfer across both optical routes, Stop/Run retention, completion without held-input restart and Reset. Build and app-shell validation pass (77 scenes, five demos, 294 assets, disconnected). Default exercise programs remain blank. Current carton-runtime full geometry exited 0 with no failed geometry checks; all 71 scene contracts passed with zero failures. The later reference audit is separately proved by 33 focused checks. Fresh native views and physical/protective acceptance remain pending.
 
 
 ## 2026-10-06 guarded-transfer retained carton runtime
