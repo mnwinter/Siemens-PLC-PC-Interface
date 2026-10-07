@@ -90,8 +90,12 @@ public static partial class SceneComposer
                 foreach (var hangerX in new[] { -.35f,.35f })
                     Box(leaf,$"ELEVATOR_door_hanger_{hangerX}_{x}_{y}",new(.04f,.17f,.1f),new(hangerX,.975f,.05f),steel);
             }
-            Box(root,$"ELEVATOR_call_plate_{y}",new(.15f,.3f,.05f),new(1.34f,y+1.2f,1.1f),dark);
-            AddCylinder(root,$"ELEVATOR_call_button_{y}",new(1.34f,y+1.2f,1.135f),.035f,.025f,blue,new(90,0,0));
+            // Landing-mounted station stays outside the sliding-leaf sweep.
+            // The former jamb button penetrated the fully open leaf.
+            Box(root,$"ELEVATOR_call_foot_{y}",new(.18f,.04f,.18f),new(.95f,y+.02f,2.42f),steel);
+            Box(root,$"ELEVATOR_call_post_{y}",new(.06f,1.2f,.06f),new(.95f,y+.6f,2.42f),steel);
+            Box(root,$"ELEVATOR_call_plate_{y}",new(.15f,.3f,.05f),new(.95f,y+1.2f,2.455f),dark);
+            AddCylinder(root,$"ELEVATOR_call_button_{y}",new(.95f,y+1.2f,2.49f),.035f,.025f,blue,new(90,0,0));
             Box(root,$"ELEVATOR_position_sensor_{y}",new(.1f,.08f,.12f),new(-1.12f,y+.04f,-.65f),dark);
             Label($"ELEVATOR_landing_label_{y}", y < 1 ? "LOWER LANDING" : "UPPER LANDING",new(-4.5f,y+.3f,y < 1 ? 4.0f : 1.86f));
         }

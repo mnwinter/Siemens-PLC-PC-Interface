@@ -121,6 +121,26 @@ public partial class Main
             }
         }
         check(doorTravelClear,"elevator_11_door_by_101_car_poses_clear_sliding_envelope");
+        // Check leaf bodies against permanent installation parts separately.
+        // Attached hangers intentionally join their own leaf and track, so
+        // their mounting contacts are not classified as body-path collisions.
+        var permanentParts=fixedParts.Where(part=>!leaves.Any(leaf=>
+            leaf==part || leaf.IsAncestorOf(part))).ToArray();
+        var leafPathClear=true;
+        for(var doorPose=0;doorPose<=100;doorPose++)
+        {
+            foreach(var leaf in leaves)
+                leaf.Position=new Vector3(MathF.Sign(leaf.Position.X)
+                    *(1.72f-(1.72f-.55f)*doorPose/100f),leaf.Position.Y,leaf.Position.Z);
+            foreach(var leaf in leaves)
+            foreach(var part in permanentParts.Concat(leaves.Where(other=>other!=leaf)))
+            {
+                if(!Penetrates(ReviewBounds(leaf),ReviewBounds(part))) continue;
+                if(leafPathClear) GD.Print($"ELEVATOR_LEAF_PATH_INTERFERENCE pose={doorPose} leaf={leaf.Name} part={part.Name}");
+                leafPathClear=false;
+            }
+        }
+        check(leafPathClear,"elevator_101_leaf_poses_clear_fixed_installation_and_other_leaves");
         foreach(var leaf in leaves)
             leaf.Position=new Vector3(MathF.Sign(leaf.Position.X)*1.72f,leaf.Position.Y,leaf.Position.Z);
         var deck=car.GetNode<MeshInstance3D>("ELEVATOR_car_floor");
