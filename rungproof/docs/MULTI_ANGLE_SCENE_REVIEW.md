@@ -1,3 +1,8 @@
+## Native endpoint outputs, Stop and Reset - source 591d599
+
+Window 400788 reobserved held scan 1934 / X 12.30 / complete True, retained endpoint load. Scrolled the actual I/O panes: all three zone_run outputs True; handoff_1_blocked, zone_2_blocked and receiver_entry_blocked False after the load passed their beams (infeed False observed in prior pane). Stop at the same held scan immediately displayed all three zone_run outputs False, tower greens off, load retained unchanged. Reset restored scan/time zero, X -9.30, complete False and empty receiver. All three commands remained False and the visible downstream sensors False.
+
+Clicked Top to refit receiver-plus-pallet camera: restored load visible on the first infeed belt. Selected route_pallet then front-right: whole pallet/cases and visible runners seated on black belt, no gross frame intersection. Focused Top overlays part of the load with QA controls; front-right resolves home readability. No claim of every intermediate scan, exact bearing measurement, or near-transfer five-angle completion. Left stopped/reset at home with offline ladder loaded, Hold still selected; normal Run cannot advance until Hold is released or explicitly stepped.
 ## Native repaired receiver framing and five-angle endpoint - source 591d599
 
 Fresh native window 400788 loaded .tools/aaa-multi-conveyor-native-qa.rpproj.json through Logic Editor / Project Open / Online Verify + load offline: one block, one task, three rungs, seven tags. PLC remained disconnected. Run at scan 15; requested zones 1, 2, 3 separately. Observed zone 1 True / infeed blocked True at scan 338 X -8.88; both visible zone commands True and handoff_1 blocked True at 772 X -3.58; scan 1136 X 1.88 retained load.
