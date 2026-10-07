@@ -1,3 +1,10 @@
+## Native motor display timed stages 1-3
+
+Window 335262 / session 41118, production change e86684d (running binary predates test-only additions): Project Open .tools/aaa-motor-array-native-qa.rpproj.json, Online Verify + load offline accepted one block/one task/21 rungs/25 tags. Returned scene, held clock before Run at scan zero, asserted group_start_request, all_motors_ready and group_alarm_clear through declared scene controls. No physical PLC connection.
+
+Three separate Step 0.5 s actions observed: scan25/time.50 M0..9 1000000000 and COMMANDS ON 1/10; scan50/time1.00 1100000000 and 2/10; scan75/time1.50 1110000000 and 3/10. SEQUENCE CMD ACTIVE readable throughout, matching visible startup_sequence_active True; retained motor_array_run False. Count display is smaller/partly behind review toolbar in sequence-display focus, but numeric values readable at these stages. Exact shaft speed not measured.
+
+Attempted fourth step reported user input detected; immediate reobservation confirmed scan75 still held and camera changed to a wider view. No fourth-step advance claimed. Left held at1.50 with inputs asserted, awaiting continuation. Stages4-10 and display Stop/Reset still pending. This changes the next action to refocus/read current native state before continuing, rather than restarting the loaded controller.
 ## Ten-motor command displays repaired and initial native readability
 
 Opt-in motorCommandDisplays projects retained group OR independent motor requests to COMMANDS ON n/10, and startup_sequence_active to SEQUENCE CMD ACTIVE/OFF. These are command-image labels, not measured motor or ARRAY/STRUCT feedback. Other scene readouts unchanged. Native window 335262 / session 41118: fresh shell, stopped/unloaded; focused training_accessory_7 and _8 views show readable 0/10 and OFF, supported display stands unchanged. Full-scene legends remain too distant for reading. Dynamic native loaded timed-cycle display changes remain pending.
