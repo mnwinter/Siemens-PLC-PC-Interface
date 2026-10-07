@@ -1,5 +1,11 @@
 # Whole-program completion ledger
 
+## 2026-10-07 queue triage update
+
+At source0f94a16, the eleven literal FAIL/open rows were reviewed against their full recorded results. Five contain missing implementation (typed STRUCT/ARRAY interfaces, wastewater process, elevator hoist/access/door travel, traffic timing/vehicle feedback); six contain verification gaps (sorter/robot between-sample clearance, sump visual/process limits, shipping last-active scan/intermediate poses, two tank operator/threshold checks). Generator58ddf72 now distinguishes IMPLEMENT_RECORDED_GAP from VERIFY_RECORDED_GAP and sends unknown FAIL records to TRIAGE_RECORDED_FAILURE. Original result text and failure flags remain; no row changed to PASS.
+
+This triage covers only those eleven records. Other OPEN rows, including tote label/inspection and EV charging/connector/readout, still need reconciliation. Counts do not close them or establish current-build acceptance. Recent radar cycle/nonzero withdrawal evidence is recorded in the matrix and whole-program log. Next inspect the actual motor data model or elevator door mechanism before choosing an implementation repair. Full visual and product/editor requirements remain active.
+
 Audit checkpoint: 2026-10-07, source `8b34a57`. This ledger separates the requested visual review from broader product requirements in the supplied migration handoff. It does not certify release readiness or live PLC operation.
 
 ## Evidence inspected at this checkpoint
