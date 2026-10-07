@@ -278,6 +278,12 @@
     "type": "booleanPanel",
     "points": [
       {
+        "name": "common_stop_request",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
         "name": "zone_1_clear",
         "type": "BOOL",
         "owner": "PC",
@@ -318,6 +324,12 @@
       }
     ],
     "actions": [
+      {
+        "id": "toggle-common-stop",
+        "label": "Toggle common stop request",
+        "type": "toggle",
+        "point": "common_stop_request"
+      },
       {
         "id": "toggle-zone_1_clear",
         "label": "Toggle zone 1 clear",
@@ -394,6 +406,7 @@
     "hints": [
       "Translate the lesson into explicit state and permissive logic: A blocked zone removes the affected run command while preserving a diagnosable handoff state.",
       "Inputs are simulator feedback (zone_1_clear, zone_2_clear, zone_3_clear); PLC logic owns zone_1_run, zone_2_run, zone_3_run.",
+      "common_stop_request is a simulator-to-PLC input. Remove all three run commands while it is true; releasing it must wait for a new clear leading edge.",
       "Test the initial state, the valid condition, and at least one missing permissive."
     ],
     "solution": {
@@ -442,6 +455,7 @@
       "Simulation_Timeout"
     ],
     "addedTags": [
+      "common_stop_request",
       "zone_1_clear",
       "zone_2_clear",
       "zone_3_clear",

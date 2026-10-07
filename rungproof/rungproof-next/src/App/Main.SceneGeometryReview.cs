@@ -299,6 +299,13 @@ public partial class Main
                 GetTree().Quit(passed ? 0 : 1);
                 return;
             }
+            if (OS.GetCmdlineUserArgs().Contains("--verify-multi-conveyor", StringComparer.Ordinal))
+            {
+                VerifyMultiConveyorControllerWorkflow(Check);
+                GD.Print($"MULTI_CONVEYOR_VERIFY {(passed ? "PASS" : "FAIL")} loaded-controller command workflow; native and pallet travel review pending");
+                GetTree().Quit(passed ? 0 : 1);
+                return;
+            }
             if (OS.GetCmdlineUserArgs().Contains("--verify-motor-array", StringComparer.Ordinal))
             {
                 VerifyMotorArrayGeometry(Check);
