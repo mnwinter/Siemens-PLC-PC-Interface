@@ -24,8 +24,9 @@ public partial class Main
             Check(shell.GlobalTransform==transform && Equals(_sceneRuntime.Points["radar_distance"],distance),"inspection_view_preserves_geometry_and_range");
             Check(_sceneRuntime.ExecuteAction("toggle-inspection") && shell.MaterialOverride==original && roof.MaterialOverride==originalRoof,
                 "inspection_view_restores_authored_opaque_materials");
+            AuditRadarReference(Check);
         } catch(Exception ex) {failures++;GD.PushError(ex.ToString());}
-        GD.Print($"RADAR_LAYOUT_VERIFY {(failures==0?"PASS":"FAIL")} bounds and existing feedback only; native piping and radar reference pending");
+        GD.Print($"RADAR_LAYOUT_VERIFY {(failures==0?"PASS":"FAIL")} geometry and offline PLC reference; native piping, inspection view and full cycle pending");
         GetTree().Quit(failures==0?0:1);
     }
 }

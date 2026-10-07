@@ -1,5 +1,26 @@
 # Cumulative Lab Progression
 
+Radar REAL-feedback PLC reference checkpoint (2026-10-06, native review OPEN):
+--audit-radar-layout explicitly generates ignored .tools/plant-review-radar.rpproj.json.
+Default exercise remains blank. Local stations now publish PC-owned cycle_request
+and manual_drain_request; PLC ladder owns pump/drain commands. The illustrative
+reference fills to 80% REAL radar level and drains to 20%, retaining hysteresis
+phase across Stop/Run. Manual drain request requires cycle enable and excludes
+filling. Echo health remains idealized true; no echo-loss/noise process is proved.
+Thirty-two geometry/inspection/PLC-reference checks PASS in
+.tools/radar-reference-audit.log, including three drain/fill transitions with the
+actual valve pointer, idealized current/level agreement, idle without request,
+Stop holding surface/range/scan with closed pointer, retained-phase Run, request
+removal, manual drain and Reset to 35% with requests cleared. Source exercises
+are not silently filled. Full scene contracts 71 PASS/0 FAIL in
+.tools/radar-reference-contracts.log; build zero warnings/errors, help 294/77 valid.
+The piping/inspection geometry regression completed 1001 checks PASS in
+.tools/radar-piping-geometry-regression.log. That broad run and the focused
+reference together provide bounded offline evidence; neither proves native
+appearance or hydraulic/physical behavior. New piping, inspection view, operator
+request behavior and full native REAL-feedback cycle remain uninspected while
+Windows input is stopped after physical Escape. Scene 77 and the full goal stay OPEN.
+
 Radar tank piping/inspection checkpoint (2026-10-06, native review OPEN):
 Scene 77 now opts into the existing tank-piping installation used by the other
 tank lessons: measured pump discharge/inlet spool faces, diagonal tank nozzle,

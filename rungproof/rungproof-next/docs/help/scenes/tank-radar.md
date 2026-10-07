@@ -22,14 +22,16 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | `radar_signal` | `REAL` | **PC** | `9.6` |
 | `radar_echo_ok` | `BOOL` | **PC** | `True` |
 | `tank_inspection_view` | `BOOL` | **SIM** | `False` |
+| `cycle_request` | `BOOL` | **PC** | `False` |
+| `manual_drain_request` | `BOOL` | **PC** | `False` |
 
 ## Operator actions
 
 | Action | Type | Bound point/sequence |
 | --- | --- | --- |
 | `Run simulated process` | `run` | `` |
-| `Toggle inlet pump (simulated)` | `toggle` | `inlet_pump_run` |
-| `Toggle drain valve (simulated)` | `toggle` | `drain_valve_open` |
+| `Toggle automatic cycle request` | `toggle` | `cycle_request` |
+| `Toggle manual drain request` | `toggle` | `manual_drain_request` |
 | `Stop simulated process` | `stop` | `` |
 | `Inspection view: ghost shell and roof` | `toggle` | `tank_inspection_view` |
 
@@ -38,6 +40,8 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | Symbolic point | Equipment | Mode |
 | --- | --- | --- |
 | `drain_valve_open` | `radar_drain_valve` | `position` |
+| `cycle_request` | `radar_pump_station` | `switch` |
+| `manual_drain_request` | `radar_drain_station` | `switch` |
 
 ## Expected equipment
 
@@ -48,8 +52,8 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | `radar_inlet_pipe` | `pipe` | Tank inlet pipe |
 | `radar_outlet_pipe` | `pipe` | Tank outlet pipe |
 | `radar_transmitter` | `radarLevelSensor` | Radar level transmitter LT-301 |
-| `radar_pump_station` | `switch` | Pump local station |
-| `radar_drain_station` | `switch` | Drain valve local station |
+| `radar_pump_station` | `switch` | Automatic fill/drain cycle request |
+| `radar_drain_station` | `switch` | Manual drain request (requires enabled cycle) |
 | `radar_stacklight` | `indicator` | Tank status light |
 | `radar_drain_valve` | `valve` | Radar tank grounded drain valve |
 

@@ -821,7 +821,8 @@ electrical ratings, calibration or native visual acceptance.
 
 `-- --audit-radar-layout` checks the radar tank's connected supply/inlet/outlet
 installation, grounded drain valve, antenna/surface datums and explicit
-presentation inspection toggle (24 checks). The inspection view ghosts the
+presentation inspection toggle plus its explicit REAL-threshold PLC reference (32 checks). The inspection view ghosts the
 shell and roof without changing geometry or process measurements. It is a SIM
-view flag, not a PLC command or physical opening. Native inspection of this
-change and a REAL-threshold PLC reference remain pending.
+view flag, not a PLC command or physical opening. The review command writes ignored `.tools/plant-review-radar.rpproj.json`: PC
+operator requests drive a PLC-owned 20/80% fill/drain policy. Native inspection
+of this change and its full cycle remains pending.

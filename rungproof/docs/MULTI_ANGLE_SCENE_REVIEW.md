@@ -1,5 +1,26 @@
 # Multi-angle scene review - 2026-10-04
 
+Radar REAL-feedback PLC reference checkpoint (2026-10-06, native review OPEN):
+--audit-radar-layout explicitly generates ignored .tools/plant-review-radar.rpproj.json.
+Default exercise remains blank. Local stations now publish PC-owned cycle_request
+and manual_drain_request; PLC ladder owns pump/drain commands. The illustrative
+reference fills to 80% REAL radar level and drains to 20%, retaining hysteresis
+phase across Stop/Run. Manual drain request requires cycle enable and excludes
+filling. Echo health remains idealized true; no echo-loss/noise process is proved.
+Thirty-two geometry/inspection/PLC-reference checks PASS in
+.tools/radar-reference-audit.log, including three drain/fill transitions with the
+actual valve pointer, idealized current/level agreement, idle without request,
+Stop holding surface/range/scan with closed pointer, retained-phase Run, request
+removal, manual drain and Reset to 35% with requests cleared. Source exercises
+are not silently filled. Full scene contracts 71 PASS/0 FAIL in
+.tools/radar-reference-contracts.log; build zero warnings/errors, help 294/77 valid.
+The piping/inspection geometry regression completed 1001 checks PASS in
+.tools/radar-piping-geometry-regression.log. That broad run and the focused
+reference together provide bounded offline evidence; neither proves native
+appearance or hydraulic/physical behavior. New piping, inspection view, operator
+request behavior and full native REAL-feedback cycle remain uninspected while
+Windows input is stopped after physical Escape. Scene 77 and the full goal stay OPEN.
+
 Radar tank piping/inspection checkpoint (2026-10-06, native review OPEN):
 Scene 77 now opts into the existing tank-piping installation used by the other
 tank lessons: measured pump discharge/inlet spool faces, diagonal tank nozzle,
@@ -3885,7 +3906,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 74 | `scene-2-conveyor-pusher` | 88 initial; 9 current home enclosing-bound candidates, all excluded by cable triangle screen | Native final staged/received FR/FL/RL/RR/T; close pusher RR/Top; normal Open/Verify/Run/Stop/Reset; earlier receiver Top/FR | Receiving surface, retention, plate contact, reference optical path and static stand/base installation repaired. RX stand Z=-1.55; pusher X=-0.4/Z=-2.4; connected yoke extension 879.73 mm. Geometry 392 and motion 25 PASS. Cable screen uses 5 mm broad candidates and 1 mm world allowance. Native held-solenoid endpoint fixture; lower sensor hidden in rear views, close Top crops carton edges. Normal three-rung reference continuous playback inspected FR/FL/RL/RR/Top, with received retention, Stop and Reset. Held final scan 58 extending, 63 actual release, 65 full, 72 retracting: each FR/FL/RL/RR/Top; Stop/disabled steps, home retention, canonical reload, Reset/release confirmed. Clock regressions 8/8; motion 85/85. Open: arbitrary output sequences and physical transfer |
 | 75 | `tank-high-low` | 60 initial; probe/piping/valve-specific screens pass | Native FR/FL/RL/RR/T; valve Top/FL close; normal offline QA Run/Stop/Reset | Probe/piping/valve installations repaired; 365 checks PASS. QA ladder cycle and pointer commands verified. FAIL/open: opaque vessel and broader operator/process acceptance |
 | 76 | `tank-level` | 52 initial; probe/analog/piping/valve-specific screens pass | Native FR/FL/RL/RR/T; valve Top/FL close; normal offline QA Run/Stop/Reset | Installations repaired; QA drain pointer and reset 42% / 10.72 mA observed. 365 checks PASS. FAIL/open: opaque vessel and broader operator/process acceptance |
-| 77 | `tank-radar` | 80 | Native FR/FL/RL/RR/T; repaired radar five focus views | Radar flange/head mounting and antenna-to-surface distance/beam repaired (sampled checks); 35% native range 3.10036. OPEN: piping/grounded drain valve and explicit inspection view added; 24 focused checks PASS. New geometry/view native inspection and REAL-threshold PLC reference pending; no physical acceptance |
+| 77 | `tank-radar` | 80 | Native FR/FL/RL/RR/T; repaired radar five focus views | Radar flange/head mounting and antenna-to-surface distance/beam repaired (sampled checks); 35% native range 3.10036. OPEN: piping/grounded drain valve and explicit inspection view added; 24 focused checks PASS. 32 focused geometry/offline PLC reference checks PASS; new geometry/view/operator requests and full native cycle review pending; no physical acceptance |
 
 Drive-alarm follow-up evidence: `.tools/drive-alarm-{props-build,build,import,geometry,inventory,scene-contracts,rendered-controls,plant-regression}.log`, `catalog-next-shell-native.log` (baseline), `drive-alarm-native-supported.log` (support and plates), and `drive-alarm-native-final-complete.log` (final five views, keypad detail, failed normal Run). Build zero warnings/errors; 38 focused geometry, 19 plant, rendered scene controls and 71 authored cases pass. These do not approve uninspected scenes, missing controllers, string functionality or hardware.
 

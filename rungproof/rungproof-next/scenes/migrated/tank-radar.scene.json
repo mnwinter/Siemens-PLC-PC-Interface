@@ -7,9 +7,9 @@
       "Both pump and drain commands are FALSE; initial level is 35%."
     ],
     "normalSequence": [
-      "PLC commands the inlet pump or drain valve.",
-      "The liquid surface moves.",
-      "Radar level rises with the surface, distance falls, and radar_signal follows the idealized range."
+      "Operator enables the cycle request; PLC owns inlet_pump_run and drain_valve_open.",
+      "Explicit offline review reference fills to an illustrative 80% REAL radar level, drains to 20%, then repeats. Manual drain request excludes filling.",
+      "The liquid surface moves; radar distance, engineering level and idealized current share that surface."
     ],
     "stopBehavior": [
       "Removing both commands stops level movement while feedback holds the measured state."
@@ -23,7 +23,8 @@
       "The internal beam ends at the simulated liquid surface; the opaque shell/roof hide it in normal views.",
       "Distance uses the antenna lens datum; echo health remains an idealized true feedback, without an echo-loss model.",
       "Inlet route joins the pump discharge to the tank nozzle; outlet flange joins the tank to a supported drain valve and labeled drain boundary. These are illustrative routes, not hydraulic ratings.",
-      "Use the explicit inspection view to ghost the shell/roof and inspect the internal beam and liquid surface; toggle again to restore opaque materials. This view does not simulate a physical opening."
+      "Use the explicit inspection view to ghost the shell/roof and inspect the internal beam and liquid surface; toggle again to restore opaque materials. This view does not simulate a physical opening.",
+      "Generate the review reference explicitly with --audit-radar-layout and open .tools/plant-review-radar.rpproj.json through File. Default exercise stays blank; thresholds are illustrative, not hardware limits."
     ]
   },
   "id": "tank-radar",
@@ -130,7 +131,7 @@
     {
       "id": "radar_pump_station",
       "type": "switch",
-      "label": "Pump local station",
+      "label": "Automatic fill/drain cycle request",
       "position": [
         -3.15,
         0,
@@ -149,7 +150,7 @@
     {
       "id": "radar_drain_station",
       "type": "switch",
-      "label": "Drain valve local station",
+      "label": "Manual drain request (requires enabled cycle)",
       "position": [
         -2.15,
         0,
@@ -208,15 +209,15 @@
       },
       {
         "id": "toggle-pump",
-        "label": "Toggle inlet pump (simulated)",
+        "label": "Toggle automatic cycle request",
         "type": "toggle",
-        "point": "inlet_pump_run"
+        "point": "cycle_request"
       },
       {
         "id": "toggle-drain",
-        "label": "Toggle drain valve (simulated)",
+        "label": "Toggle manual drain request",
         "type": "toggle",
-        "point": "drain_valve_open"
+        "point": "manual_drain_request"
       },
       {
         "id": "stop-simulation",
@@ -292,6 +293,20 @@
         "owner": "SIM",
         "initial": false,
         "purpose": "Presentation-only ghost shell/roof to inspect the radar beam and liquid surface. Not a PLC command or physical opening."
+      },
+      {
+        "name": "cycle_request",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false,
+        "purpose": "Offline operator request; PLC owns actual pump/drain commands."
+      },
+      {
+        "name": "manual_drain_request",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false,
+        "purpose": "Offline operator request; PLC owns actual pump/drain commands."
       }
     ],
     "tankId": "water_tank_radar",
@@ -306,6 +321,16 @@
         "point": "drain_valve_open",
         "equipmentId": "radar_drain_valve",
         "mode": "position"
+      },
+      {
+        "point": "cycle_request",
+        "equipmentId": "radar_pump_station",
+        "mode": "switch"
+      },
+      {
+        "point": "manual_drain_request",
+        "equipmentId": "radar_drain_station",
+        "mode": "switch"
       }
     ]
   },
