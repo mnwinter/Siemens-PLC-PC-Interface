@@ -1,5 +1,35 @@
 # Multi-angle scene review - 2026-10-04
 
+## Wastewater native diagnosis checkpoint (2026-10-06)
+
+Re-inspected current lab-11-06-wastewater-collection in the normal Windows shell,
+window 5774044, catalog 9/77, stopped with no controller loaded and PLC disconnected.
+Actual front-right, front-left, rear-left, rear-right and top views were inspected.
+Top confirms intersecting cylindrical tanks and fourth oversized tank; front/rear
+views confirm an unmounted transmitter, disconnected process equipment and the
+pneumatic manifold. This is a failing pre-repair checkpoint, not acceptance.
+
+Authoritative scene/source evidence:
+- tank_0/1/2 shell diameters are 2.6 m, centers X=-3.3/-1.1/1.1 m: adjacent
+  center distance 2.2 m produces 0.4 m shell penetration before attachments.
+- collection_tank_bank independent_recognition identifies a single generic
+  vertical-3000x5000 tank; CreateTrainingAccessory bypasses CreateTankAsset
+  config sizing, explaining the oversized fourth vessel in the native view.
+- level_transmitters identifies one flange-mounted insertion-probe transmitter,
+  not a mounted multi-tank sensing system.
+- pipe_manifold identifies a seven-station pneumatic solenoid manifold, not
+  wastewater process piping. Moving this prop cannot repair the process route.
+- pointBindings transfer_pump_run/outlet_valve_open target indicator_5/13 only;
+  the actual pump_3 and valve_4 have no output bindings. No native driven
+  pump/valve or liquid-transfer result is established.
+
+Next repair must space the actual vessel/attachment envelopes, remove redundant
+misidentified props, mount the insertion probe using measured roof/flange bounds,
+and connect real process ports. Existing tankPiping uses a fixed 4.6 m inlet and
+full-size tank dimensions, so it cannot be applied unchanged to these 2.5 m
+shells. Preserve symbolic BOOL ownership and distinguish manual level feedback
+from any later process model. Retest actual native geometry after the repair.
+
 ## Ten-motor array scene equipment repair - 2026-10-06
 
 Normal Windows session 2907 before FR/Top confirmed only five motors with two overlapping roller-shutter accessories and a parking-display prop. Source review files identify both lineup/status assets as roller shutters and sequence-display asset as a parking sign; those catalog identities remain unchanged and receive no new approval. Removed only scene's fake lineup accessory, added five actual motors, and arranged ten declared motor models in two separated rows (2.6 m column spacing, 2.5 m row spacing). Replaced status/sequence props with supported count-display housings, explicit GROUP STATUS / START SEQUENCE and NO DATA. Moved display/operator/indicator row to Z=5.5 m; distinct operator face labels preserved original three input actions. Added retained motor_array_run BOOL projection to all ten motors. Description/purpose now disclose absent per-motor array values and staggered timing; group projection is not staggered startup.
