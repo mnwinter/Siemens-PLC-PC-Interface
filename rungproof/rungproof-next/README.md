@@ -806,3 +806,14 @@ these are not airport/OEM rules or a calibrated scale. Category and counters
 remain in PLC memory across Stop; public numeric output images clear while stopped
 and are republished on Run. Five demos and blank default exercises are retained.
 Candidate assets, contact dynamics and physical acceptance remain unapproved.
+
+
+`-- --audit-ev-layout` checks the illustrated two-bay EV installation and its
+offline plant/controller reference (45 checks). It explicitly writes the review
+project to ignored `.tools/plant-review-ev.rpproj.json`; default exercises remain
+blank. The illustrative policy grants 6 kW to one eligible bay or 3 kW each to
+two. A .001 kWh/pulse fixture ledger lets PLC memory acknowledge meter events
+once across Stop/Run; the installed meters display PLC accumulated kWh.
+`tests/RungProof.Next.EvPlant.Tests.csproj` separately checks the renderer-neutral
+energy fixture (21 checks). Neither check establishes charging protocol,
+electrical ratings, calibration or native visual acceptance.

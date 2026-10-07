@@ -71,6 +71,8 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | `bay_b_customer_authorized` | `fixture_bay_b_customer_authorized` | `switch` |
 | `bay_b_charger_ready` | `fixture_bay_b_charger_ready` | `switch` |
 | `bay_b_connector_inserted` | `fixture_bay_b_connector_inserted` | `switch` |
+| `energy_kwh` | `training_accessory_5` | `numericDisplay` |
+| `bay_b_energy_kwh` | `ev_meter_b` | `numericDisplay` |
 
 ## Expected equipment
 
@@ -80,7 +82,7 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | `indicator_2` | `indicator` | EV Charging Manager indicator |
 | `training_accessory_3` | `trainingAccessory` | Bay A vehicle and illustrative charger |
 | `training_accessory_4` | `trainingAccessory` | Bay A connector at vehicle inlet |
-| `training_accessory_5` | `trainingAccessory` | Bay A energy display (static until connected) |
+| `training_accessory_5` | `trainingAccessory` | Bay A energy display - PLC accumulated kWh |
 | `training_accessory_6` | `trainingAccessory` | Bay A pulse module (static until connected) |
 | `training_accessory_7` | `trainingAccessory` | Bay A authorization reader |
 | `switch_8` | `switch` | Bay A authorization fixture |
@@ -88,7 +90,7 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | `indicator_10` | `indicator` | EV Charging Manager output indication |
 | `ev_bay_b` | `trainingAccessory` | Bay B vehicle and illustrative charger |
 | `ev_connector_b` | `trainingAccessory` | Bay B connector at vehicle inlet |
-| `ev_meter_b` | `trainingAccessory` | Bay B energy display (static until connected) |
+| `ev_meter_b` | `trainingAccessory` | Bay B energy display - PLC accumulated kWh |
 | `ev_pulse_b` | `trainingAccessory` | Bay B pulse module (static until connected) |
 | `ev_reader_b` | `trainingAccessory` | Bay B authorization reader |
 | `fixture_connector_inserted` | `switch` | A connector fixture |

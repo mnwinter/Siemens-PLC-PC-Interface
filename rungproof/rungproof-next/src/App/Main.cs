@@ -4134,6 +4134,7 @@ public partial class Main : Node3D
         }
         if (!_sceneRuntime.CanExecuteAction(action)) return Block(type switch
         {
+            "toggle" when _sceneRuntime.RuntimeType == "evCharging" => "Unplug before vehicle removal; insert only in an occupied bay, with the charge command and allocation off",
             "luggageLoad" => "Finish the current bag at an exit and remove both travel commands before loading the next bag",
             "cycle" when _sceneRuntime.RuntimeType == "luggageWeightSort" && point == "fixture_mass_kg" => "Select fixture mass with travel commands off, while the bag is at home or has finished",
             "palletizerLoad" => "Load requires home, an empty pickup station, and space in the layer; Reset after four cartons or a fault",

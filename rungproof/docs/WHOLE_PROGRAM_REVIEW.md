@@ -1,5 +1,30 @@
 # Whole program review - 2026-10-03
 
+EV PLC reference/readout checkpoint (2026-10-06, native review OPEN):
+--audit-ev-layout now explicitly generates ignored .tools/plant-review-ev.rpproj.json.
+The blank default exercise and five-demo catalog are preserved. The reference
+uses PLC ladder eligibility and allocation: 6 kW to one eligible bay or 3+3 kW
+to two; these are illustrative policy choices, not charging hardware claims.
+The plant reports independent energy pulses and a retained cumulative meter-event
+ledger. PLC memory acknowledges ledger differences, accumulates each event once,
+and publishes DINT event count plus REAL kWh. A Stop precisely after meter pulse
+publication is tested: resume acknowledges that pending event once, with no lost
+or duplicated pulse. Actual energy integration remains PC-owned, separate from
+PLC accumulated count and displayed output.
+Forty-five focused geometry/adapter/reference checks PASS in
+.tools/ev-reference-final-audit.log, including two-bay sharing, readiness-loss
+reallocation, independent counts/.001 kWh, both readout text values, eight 3D
+action bindings, pulse-boundary Stop/Run and Reset. The installed meters opt into
+explicit numeric displays; their reusable standalone assets keep NO LIVE VALUE.
+Blocked EV actions now explain occupied/plug/command conditions instead of
+suggesting Reset. Build zero warnings/errors; help 294/77 valid; app-shell PASS
+with 77 scenes, exactly five demos, 294 assets and transport disconnected.
+Full geometry regression is running (.tools/ev-reference-geometry-regression.log).
+NEW controls, empty/occupied vehicle visibility, numeric readout readability,
+blocked message rendering and full two-bay native cycle have not been inspected.
+Windows input remains stopped after physical Escape. Scene 72 remains OPEN;
+o broad visual or electrical acceptance is claimed for this checkpoint.
+
 EV contract follow-up (2026-10-06): controller regression 144 PASS/0 FAIL
 (.tools/ev-controller-regression.log), no real PLC transport constructed or
 attempted. Scene contract preflight found two operator controls stacked in depth;

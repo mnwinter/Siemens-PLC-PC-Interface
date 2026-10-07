@@ -302,18 +302,18 @@ public static partial class SceneComposer
             return AddDrawbridgePivot(model, installation);
         if (model is not null && installation == "drawbridgeSignal") return CreateDrawbridgeSignal(model);
         var display = Text(equipment.Config, "display", string.Empty);
-        if (model is not null && display is "palletCount" or "numeric" or "lengthNumeric" or "remainingSeconds" or "weightKg")
+        if (model is not null && display is "palletCount" or "numeric" or "lengthNumeric" or "remainingSeconds" or "weightKg" or "energyKwh")
         {
             // Only explicitly configured equipment opts into a live readout. The reusable
             // asset retains its honest NO LIVE VALUE legend when used alone.
-            var legend = model.FindChild(display is "remainingSeconds" or "weightKg" ? "STATIC_READOUT_static_legend" : display == "lengthNumeric" ? "LENGTH_DISPLAY_static_legend" : "COUNT_DISPLAY_static_legend", true, false) as MeshInstance3D
+            var legend = model.FindChild(display == "energyKwh" ? "METER_static_legend" : display is "remainingSeconds" or "weightKg" ? "STATIC_READOUT_static_legend" : display == "lengthNumeric" ? "LENGTH_DISPLAY_static_legend" : "COUNT_DISPLAY_static_legend", true, false) as MeshInstance3D
                 ?? throw new InvalidOperationException($"Count display '{equipment.Id}' is missing its authored legend.");
             legend.Visible = false;
             model.AddChild(new Label3D
             {
                 Name = "NumericReadout", Text = Text(equipment.Config, "displayLabel", "COUNT") + "\n0",
-                Position = new Vector3(0, 1.51f, 0.09f),
-                FontSize = 48, PixelSize = 0.0014f, OutlineSize = 0, Modulate = Colors.White,
+                Position = display == "energyKwh" ? new Vector3(0,1.42f,.135f) : new Vector3(0, 1.51f, 0.09f),
+                FontSize = display == "energyKwh" ? 30 : 48, PixelSize = display == "energyKwh" ? .001f : .0014f, OutlineSize = 0, Modulate = Colors.White,
             });
         }
         if (model is not null && Text(equipment.Config, "motion", string.Empty) == "gantryCommandSweep")

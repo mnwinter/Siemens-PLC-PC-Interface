@@ -64,8 +64,9 @@ public partial class Main
             Check(Number("delivered_kw")==0,"authorization_loss_stops_energy_delivery");
             runtime.ResetSimulation();runtime.SetControllerPlaybackRunning(false);
             Check(Number("meter_energy_kwh")==0 && Number("meter_pulse_count")==0 && !On("connector_connected"),"reset_clears_meter_and_fixture_state");
+            AuditEvReference(Check);
         } catch(Exception ex) { failures++;GD.PushError(ex.ToString()); }
-        GD.Print($"EV_LAYOUT_VERIFY {(failures==0?"PASS":"FAIL")} geometry and offline adapter only; PLC reference and native runtime pending");
+        GD.Print($"EV_LAYOUT_VERIFY {(failures==0?"PASS":"FAIL")} geometry, offline adapter and PLC reference; native runtime pending");
         GetTree().Quit(failures==0?0:1);
     }
 }

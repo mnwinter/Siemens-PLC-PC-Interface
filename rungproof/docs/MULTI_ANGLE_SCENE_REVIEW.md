@@ -1,5 +1,30 @@
 # Multi-angle scene review - 2026-10-04
 
+EV PLC reference/readout checkpoint (2026-10-06, native review OPEN):
+--audit-ev-layout now explicitly generates ignored .tools/plant-review-ev.rpproj.json.
+The blank default exercise and five-demo catalog are preserved. The reference
+uses PLC ladder eligibility and allocation: 6 kW to one eligible bay or 3+3 kW
+to two; these are illustrative policy choices, not charging hardware claims.
+The plant reports independent energy pulses and a retained cumulative meter-event
+ledger. PLC memory acknowledges ledger differences, accumulates each event once,
+and publishes DINT event count plus REAL kWh. A Stop precisely after meter pulse
+publication is tested: resume acknowledges that pending event once, with no lost
+or duplicated pulse. Actual energy integration remains PC-owned, separate from
+PLC accumulated count and displayed output.
+Forty-five focused geometry/adapter/reference checks PASS in
+.tools/ev-reference-final-audit.log, including two-bay sharing, readiness-loss
+reallocation, independent counts/.001 kWh, both readout text values, eight 3D
+action bindings, pulse-boundary Stop/Run and Reset. The installed meters opt into
+explicit numeric displays; their reusable standalone assets keep NO LIVE VALUE.
+Blocked EV actions now explain occupied/plug/command conditions instead of
+suggesting Reset. Build zero warnings/errors; help 294/77 valid; app-shell PASS
+with 77 scenes, exactly five demos, 294 assets and transport disconnected.
+Full geometry regression is running (.tools/ev-reference-geometry-regression.log).
+NEW controls, empty/occupied vehicle visibility, numeric readout readability,
+blocked message rendering and full two-bay native cycle have not been inspected.
+Windows input remains stopped after physical Escape. Scene 72 remains OPEN;
+o broad visual or electrical acceptance is claimed for this checkpoint.
+
 EV contract follow-up (2026-10-06): controller regression 144 PASS/0 FAIL
 (.tools/ev-controller-regression.log), no real PLC transport constructed or
 attempted. Scene contract preflight found two operator controls stacked in depth;
@@ -3831,7 +3856,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 69 | `lab-9-04-function-selector` | 0 (historical) | Final native FR/FL/RL/RR/Top, close FL; actual six 3D inputs; Project Open, Run, invalid choice, Stop/Reset | Live DINT A/B/choice/RESULT and opt-in FB routing to SUM/PRODUCT; observed 7/10 and invalid 99 clears validity. Native picking conflict repaired by moving readouts behind buttons; supports and separate-equipment clearance pass. Open: source-selector parity and FB instance/parameter semantics unverified; QA close/top cropping documented |
 | 70 | `lab-9-10-box-volume` | 46 (historical) | Updated native FR/FL/RL/RR/Top and close FL; all six 3D inputs; actual reference Open/Verify + Load/Run; invalid value/flag; Stop/Reset | Static supported fixture/carton and four live DINT readouts; observed 850*720*720=440640000 mm3 and maximum 1000000000. Missing validity/zero dimensions invalidate retained result. Readouts grounded/clear; 17 new checks pass. Open: automatic acquisition, source parity, FB instance/parameter semantics and independent asset approval; close-view cropping documented |
 | 71 | `lab-9-11-pallet-counting` | 86 | Native FR/FL/RL/RR/T | Carton/fixture/readout geometry repaired and five views/details inspected. Live DINT count/readout FR/FL and invalid/five-edge/held/permissive/Stop/Run/Reset native checks pass. Optical classification/pallet travel/CNC integration open |
-| 72 | `lab-9-12-ev-charging-manager` | 95 | Native FR/FL/RL/RR/T | Geometry repaired with original two-bay EV layout; native FR/FL/RL/RR/T inspected. FAIL/open: independent bay/connector/allocation and energy pulse/accumulation runtime unfinished; 16 focused installation checks and 987 geometry regression PASS |
+| 72 | `lab-9-12-ev-charging-manager` | 95 | Native FR/FL/RL/RR/T | Geometry repaired with original two-bay EV layout; native FR/FL/RL/RR/T inspected. OPEN: 45 geometry/offline adapter/PLC reference checks PASS; two-bay allocation, meter events and PLC kWh provided. Latest controls, vehicle visibility, readouts and native runtime review pending after Escape stop |
 | 73 | `scene-1-conveyor-stop` | 34 | Native FR/FL/RL/RR/T | Carton belt contact/load-end footprint repaired; native five wide/Top/FL close and Demo 3 Run/Start/photoeye/Stop/Reset rechecked; full clearance open |
 | 74 | `scene-2-conveyor-pusher` | 88 initial; 9 current home enclosing-bound candidates, all excluded by cable triangle screen | Native final staged/received FR/FL/RL/RR/T; close pusher RR/Top; normal Open/Verify/Run/Stop/Reset; earlier receiver Top/FR | Receiving surface, retention, plate contact, reference optical path and static stand/base installation repaired. RX stand Z=-1.55; pusher X=-0.4/Z=-2.4; connected yoke extension 879.73 mm. Geometry 392 and motion 25 PASS. Cable screen uses 5 mm broad candidates and 1 mm world allowance. Native held-solenoid endpoint fixture; lower sensor hidden in rear views, close Top crops carton edges. Normal three-rung reference continuous playback inspected FR/FL/RL/RR/Top, with received retention, Stop and Reset. Held final scan 58 extending, 63 actual release, 65 full, 72 retracting: each FR/FL/RL/RR/Top; Stop/disabled steps, home retention, canonical reload, Reset/release confirmed. Clock regressions 8/8; motion 85/85. Open: arbitrary output sequences and physical transfer |
 | 75 | `tank-high-low` | 60 initial; probe/piping/valve-specific screens pass | Native FR/FL/RL/RR/T; valve Top/FL close; normal offline QA Run/Stop/Reset | Probe/piping/valve installations repaired; 365 checks PASS. QA ladder cycle and pointer commands verified. FAIL/open: opaque vessel and broader operator/process acceptance |
