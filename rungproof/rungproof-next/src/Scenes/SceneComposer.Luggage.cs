@@ -68,4 +68,3 @@ public static partial class SceneComposer
         }
     }
 }
-
