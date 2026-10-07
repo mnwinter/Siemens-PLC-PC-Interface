@@ -62,6 +62,54 @@ public partial class Main
         var receivingBelt = (MeshInstance3D)receiver.FindChild("KIN_belt_surface", true, false);
         GD.Print($"VISION_SORTER_RECEIVING infeed={belt} platter={ReviewBounds(platter)} bank={ReviewBounds(receivingBelt)}");
         GD.Print($"VISION_SORTER_RECEIVING_GAP x={ReviewBounds(platter).Position.X-belt.End.X} deckDelta={ReviewBounds(platter).End.Y-belt.End.Y} bankBeltCount={receiver.FindChildren("KIN_belt_surface", "MeshInstance3D", true, false).Count}");
+        var bridge = root.GetNode<Node3D>("sorter_handoff_bridge");
+        var deck = (MeshInstance3D)bridge.FindChild("SORTER_handoff_deck", true, false);
+        check(MathF.Abs(ReviewBounds(deck).End.Y-belt.End.Y)<.001f,
+            "vision_sorter_handoff_bridge_matches_infeed_and_platter_height");
+        var feet=ReviewMeshes(bridge).Where(m=>m.Name.ToString().StartsWith("SORTER_bridge_foot_",StringComparison.Ordinal)).ToArray();
+        var legs=ReviewMeshes(bridge).Where(m=>m.Name.ToString().StartsWith("SORTER_bridge_leg_",StringComparison.Ordinal)).ToArray();
+        check(feet.Length==4 && legs.Length==4 && feet.All(f=>MathF.Abs(ReviewBounds(f).Position.Y)<.001f)
+            && legs.All(l=>feet.Any(f=>ReviewBounds(f).Grow(.001f).Intersects(ReviewBounds(l)))
+                && ReviewBounds(l).Grow(.001f).Intersects(ReviewBounds(deck))),
+            "vision_sorter_handoff_has_four_grounded_attached_supports");
+        var beltBearingEnd=surface.Mesh.GetFaces().Select(v=>surface.GlobalTransform*v)
+            .Where(v=>MathF.Abs(v.Y-belt.End.Y)<.002f).Max(v=>v.X);
+        GD.Print($"VISION_SORTER_BELT_BEARING_END {beltBearingEnd}");
+        var topTriangles = new[] {surface,deck,platter}.SelectMany(mesh=>
+        {
+            var vertices=mesh.Mesh.GetFaces().Select(v=>mesh.GlobalTransform*v).ToArray();
+            return Enumerable.Range(0,vertices.Length/3).Select(i=>new[]{vertices[i*3],vertices[i*3+1],vertices[i*3+2]})
+                .Where(t=>t.All(v=>MathF.Abs(v.Y-belt.End.Y)<.002f));
+        }).ToArray();
+        bool Supported(Vector2 p)
+        {
+            foreach(var t in topTriangles)
+            {
+                var x0=t[0].X;var z0=t[0].Z;var x1=t[1].X;var z1=t[1].Z;var x2=t[2].X;var z2=t[2].Z;
+                var denominator=(z1-z2)*(x0-x2)+(x2-x1)*(z0-z2);
+                if(MathF.Abs(denominator)<1e-9f)continue;
+                var u=((z1-z2)*(p.X-x2)+(x2-x1)*(p.Y-z2))/denominator;
+                var v=((z2-z0)*(p.X-x2)+(x0-x2)*(p.Y-z2))/denominator;
+                if(u>=-.00001f && v>=-.00001f && u+v<=1.00001f)return true;
+            }
+            return false;
+        }
+        var routeSupported=true;var samples=0;
+        for(var step=0;step<=88;step++)
+        for(var along=0;along<=4;along++)
+        for(var across=0;across<=4;across++)
+        {
+            var x=-1.1f+step*.05f-carton.Size.X/2+carton.Size.X*along/4;
+            var z=carton.Position.Z+carton.Size.Z*across/4;
+            if(!Supported(new Vector2(x,z)))
+            {
+                if(routeSupported) GD.Print($"VISION_SORTER_UNSUPPORTED x={x} z={z}");
+                routeSupported=false;
+            }
+            samples++;
+        }
+        GD.Print($"VISION_SORTER_SUPPORT_SAMPLES {samples}");
+        check(routeSupported,"vision_sorter_infeed_bridge_and_platter_support_sampled_full_carton_footprint");
         GD.Print($"VISION_SORTER_CARTON_SUPPORT carton={carton} belt={belt}");
         check(MathF.Abs(carton.Position.Y - belt.End.Y) < .001f,
             "vision_sorter_carton_bottom_contacts_actual_delivered_belt_top");

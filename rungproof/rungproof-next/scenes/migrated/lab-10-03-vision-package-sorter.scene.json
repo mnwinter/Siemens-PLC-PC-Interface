@@ -224,6 +224,25 @@
         ],
         "active": "red"
       }
+    },
+    {
+      "id": "sorter_handoff_bridge",
+      "type": "trainingAccessory",
+      "label": "Supported infeed-to-parcel-table bridge",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "config": {
+        "installation": "visionSorterHandoffBridge",
+        "startX": -0.1105583,
+        "tableCenterX": 3.3,
+        "tableRadius": 1.28,
+        "width": 1.4,
+        "deckHeight": 0.9,
+        "beltNoseEndX": -0.0445833
+      }
     }
   ],
   "simulation": {

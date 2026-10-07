@@ -1,5 +1,22 @@
 # Multi-angle scene review - 2026-10-04
 
+Vision sorter infeed bridge checkpoint (2026-10-06; native review OPEN):
+A scene-specific four-leg steel handoff bridge now connects the infeed to
+the circular parcel platter at deck Y=0.9. Its 64-segment curved nose follows
+the platter edge. The first bearing-plane footprint check failed at the
+rounded belt nose; the actual near-level bearing edge is X=-0.11055827,
+66 mm behind the belt bounding edge. The revised leading transition uses
+a quadratic thin underside over that nose and starts at the measured edge.
+Ten current sorter geometry/identity checks pass, including 2,225 sampled
+footprint points across infeed/bridge/platter (.tools/sorter-bridge-final.log).
+Build succeeds and all 71 scene contracts pass/0 fail in
+.tools/sorter-bridge-contracts.log. This proves sampled planar support, not
+full 3D nose/frame self-collision or every-frame/native visual acceptance.
+The scene has 14 equipment items. Four outgoing receiving lanes, cabinet
+diverter replacement, class feedback and controller-owned transfer remain
+OPEN, together with native static/moving multi-angle inspection.
+
+
 Vision sorter parcel-table repair checkpoint (2026-10-06; native review OPEN):
 The scene now opts into the existing parcelTransfer table variant, omitting
 visible machining fixtures/raised index markers and matching the platter to
