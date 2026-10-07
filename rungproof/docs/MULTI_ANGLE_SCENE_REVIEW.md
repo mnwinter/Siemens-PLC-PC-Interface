@@ -1,5 +1,13 @@
 # Multi-angle scene review - 2026-10-04
 
+## Demo 5 first native carton pickup and return checkpoints - 2026-10-06
+
+Continued the rebuilt normal Demo 5 operator shell (session 77702). Focused training_accessory_4. Held ticks at .50,1.00,1.50,2.00 s showed tool approach, vacuum True/carton_at_pick False and carton lifting clear of the supported pickup table. Inspected pickup/attached state from front right and front left. Released the native clock at 2.00 s; immediate capture was 2.48 s. Next held capture was 8.80 s/scan 440, placed 1, home False, vacuum False, gantry_cycle True: first carton visibly on the pallet and tool withdrawn above it. Rear right clearly shows supported carton inside pallet footprint. Rear left is partly occluded by the nearby robot; overhead is obscured by the gantry bridge, so neither alone proves carton footprint clearance.
+
+Released return clock; rear-right capture at 16.60 s/scan 830 showed home True, placed 1, gantry_cycle False and vacuum False. Held again at 26.22 s/scan 1311 and observed unchanged retained first carton with tool at home. This verifies these native first-carton checkpoints and retention. Horizontal carry and exact release passed between continuous captures and still require finer held inspection; cartons 2-4 and their intermediate native views remain open. Do not describe the first carton as every-frame or full multi-angle motion certification. Existing audit still has failures=0 with 2,576 executed samples.
+
+Next native state: Demo 5, training_accessory_4 focus, rear right, held clock, running controller, home True, placed 1, pickup empty. Load next carton then Start, and use held .5 s steps to inspect horizontal carry. No physical PLC transport.
+
 ## Demo 5 first-scan operator Start repaired and verified - 2026-10-06
 
 Explicit BOOL operator pulses now establish a released baseline only for previously unobserved edge contacts referencing that declared input. Existing edge memory, startup held inputs and forces retain their prior semantics. Session PulseInput uses this for deliberate presses; normal scene pulse actions establish the same baseline when the controller is running and the scene point was false. No scan, output, elapsed time or plant motion is executed by this preparation. Stop continues to discard unscanned commands.
