@@ -1,4 +1,10 @@
 
+## 2026-10-07 - General full-scene Top reserve and powder mixer native recheck
+
+Continued native session 58871 to scene 14. Powder mixer inspected home front-right, front-left, rear-left, rear-right and Top; visible equipment remains separated and supports grounded. Rear views occlude some central equipment; full-scene views do not prove every solid interface. Top exposed tank rims behind toolbar. Replaced the growing scene-ID whitelist with the same 1.30 distance reserve for every nearly vertical full-scene visual-review view; equipment focus and oblique fit remain unchanged. Previously drawbridge used 1.15, now 1.30; wider framing there is not a new geometry claim.
+
+Build passed zero warnings/errors. Fresh native session 47897: front-right home and repaired Top inspected; all three complete tank rims below toolbar, all station/prop footprints visible. This verifies this camera correction on the mixer, not every catalog frame. Normal Run opened empty Main/OB1 exercise editor, reported NO CONTROLLER LOADED, and remained stopped with false output image. Process dose/mix/discharge behavior remains unverified. App-shell verifier PASS (77 scenes/five demos/295 assets), expected missing-saved-workspace diagnostic. No physical PLC connection. Current native window is at mixer empty editor for next normal-workflow checks.
+
 ## 2026-10-07 - Demo 5 full-scene Top framing and queue reconciliation
 
 Fresh native session 2919: normal Next navigation from scene 12 loaded XY palletizing / Demo 5 home. Top showed robot partly behind review toolbar, although receiver/gantry footprints remained separate. Added this scene to the existing vertical full-scene framing reserve. Build passed zero warnings/errors. Fresh native session 58871 inspected home front-right and Top: entire robot below clock text, with pickup, receiver, gantry posts and separate prop/station footprints visible. This corrects the static full-scene Top inspection limit; it does not replace previously documented four-carton cycle evidence or prove new full-frame motion coverage. No motion/geometry change.
