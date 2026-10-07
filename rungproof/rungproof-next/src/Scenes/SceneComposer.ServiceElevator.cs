@@ -47,6 +47,25 @@ public static partial class SceneComposer
         foreach (var y in new[] { .6f, 2.7f })
         {
             Box(root,$"ELEVATOR_landing_deck_{y}",new(2.6f,.12f,1.6f),new(0,y-.06f,1.86f),floor);
+            if (y > 1)
+            {
+                // Fixed landing edge guards stay outside the car entrance
+                // and the sliding-door fixture. Rear centre remains an access
+                // opening; stairs and its gate need a separate installation.
+                foreach (var x in new[] { -1.25f, 1.25f })
+                {
+                    foreach (var z in new[] { 1.35f, 2.60f })
+                        Box(root,$"ELEVATOR_guard_post_{x}_{z}",new(.06f,1.1f,.06f),new(x,y+.55f,z),blue);
+                    foreach (var height in new[] { .55f, 1.07f })
+                        Box(root,$"ELEVATOR_guard_side_{x}_{height}",new(.06f,.06f,1.31f),new(x,y+height,1.975f),blue);
+                    Box(root,$"ELEVATOR_guard_toeboard_{x}",new(.04f,.15f,1.31f),new(x,y+.075f,1.975f),steel);
+                }
+                foreach (var x in new[] { -.46f, .46f })
+                    Box(root,$"ELEVATOR_guard_access_post_{x}",new(.06f,1.1f,.06f),new(x,y+.55f,2.60f),blue);
+                foreach (var x in new[] { -.855f, .855f })
+                foreach (var height in new[] { .55f, 1.07f })
+                    Box(root,$"ELEVATOR_guard_rear_{x}_{height}",new(.85f,.06f,.06f),new(x,y+height,2.60f),blue);
+            }
             foreach (var x in new[] { -1.23f,1.23f })
             {
                 if (y > 1)
