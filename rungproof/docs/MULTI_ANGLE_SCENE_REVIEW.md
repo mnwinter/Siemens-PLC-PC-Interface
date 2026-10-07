@@ -1,3 +1,9 @@
+
+## 2026-10-07 - Service elevator door support and closed-door clearance
+
+Added continuous overhead door tracks and leaf-owned hangers; both open and closed fixture poses retain the visible supports. Build passed with zero warnings/errors. Focused elevator verifier passed 16 checks, including 101 positions against fixed shaft/landing/door/hanger bounds with doors open and another 101 with doors closed. These are sampled bounds checks, not mechanical acceptance.
+
+Native Windows session 67733: revised home geometry inspected front right (wide and close), front left, rear left, rear right, and top. Tracks/hangers are visible; no obvious new car/track penetration at home. Close views crop some scene extents; landing legends remain partially occluded/mirrored. Full normal-editor-driven travel and native closed-door motion remain pending. Hoist, guarding, access depiction, and remaining catalog findings remain open; this does not close scene 11 acceptance.
 ## Service elevator controller-command plant boundary
 
 Added opt-in serviceElevator installation to the existing boolean-panel runtime. Retained original inputs/actions and PLC-owned up/down outputs; added PC-owned car_position_pct, at_lower_landing, at_upper_landing and direction_conflict. Car traverses 2.1 m in six modeled seconds, only on accepted controller/external clock ticks with one direction and all three manual permissives. It holds on opposing directions, missing call/door/landing permissive or stopped clock, without overwriting the controller output image. Endpoints clamp; floor flags derive from modeled position. Reset restores lower landing and initial command/feedback image. No standalone preview clock fabricates a running elevator.

@@ -14,8 +14,8 @@ public static partial class SceneComposer
         var blue = Material(new Color("147eaf"), .3f, .4f);
         var floor = Material(new Color("c5cbd0"), .4f, .55f);
         var dark = Material(new Color("26343d"), .25f, .5f);
-        void Box(Node3D parent, string name, Vector3 size, Vector3 at, Material material)
-        { var mesh = AddBox(parent, size, at, material); mesh.Name = name; }
+        MeshInstance3D Box(Node3D parent, string name, Vector3 size, Vector3 at, Material material)
+        { var mesh = AddBox(parent, size, at, material); mesh.Name = name; return mesh; }
         void Label(string name, string text, Vector3 at)
         { root.AddChild(new Label3D { Name = name, Text = text, Position = at,
             FontSize = 36, PixelSize = .003f, OutlineSize = 0, Modulate = Colors.White }); }
@@ -57,10 +57,17 @@ public static partial class SceneComposer
                 Box(root,$"ELEVATOR_door_jamb_{x}_{y}",new(.12f,1.9f,.12f),new(x,y+.95f,1.07f),steel);
             }
             Box(root,$"ELEVATOR_door_header_{y}",new(2.58f,.12f,.12f),new(0,y+1.96f,1.17f),steel);
+            // A continuous overhead track supports the leaves at either pose.
+            // Hangers belong to each leaf so fixture changes carry them along.
+            Box(root,$"ELEVATOR_door_track_{y}",new(4.65f,.08f,.08f),new(0,y+1.98f,1.27f),steel);
             // Open leaves make the landing/car relationship inspectable.
             // Their pose is visual only; doors_closed remains a manual input.
             foreach (var x in new[] { -1.72f,1.72f })
-                Box(root,$"ELEVATOR_open_door_leaf_{x}_{y}",new(1.1f,1.8f,.05f),new(x,y+.94f,1.17f),dark);
+            {
+                var leaf = Box(root,$"ELEVATOR_open_door_leaf_{x}_{y}",new(1.1f,1.8f,.05f),new(x,y+.94f,1.17f),dark);
+                foreach (var hangerX in new[] { -.35f,.35f })
+                    Box(leaf,$"ELEVATOR_door_hanger_{hangerX}_{x}_{y}",new(.04f,.17f,.1f),new(hangerX,.975f,.05f),steel);
+            }
             Box(root,$"ELEVATOR_call_plate_{y}",new(.15f,.3f,.05f),new(1.34f,y+1.2f,1.1f),dark);
             AddCylinder(root,$"ELEVATOR_call_button_{y}",new(1.34f,y+1.2f,1.135f),.035f,.025f,blue,new(90,0,0));
             Box(root,$"ELEVATOR_position_sensor_{y}",new(.1f,.08f,.12f),new(-1.12f,y+.04f,-.65f),dark);

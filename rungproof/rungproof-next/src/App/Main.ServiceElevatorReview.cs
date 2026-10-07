@@ -36,6 +36,24 @@ public partial class Main
             }
         }
         check(clear,"elevator_101_car_poses_clear_fixed_shaft_and_landings");
+        var leaves = fixedParts.Where(p=>p.Name.ToString().StartsWith("ELEVATOR_open_door_leaf_")).ToArray();
+        foreach(var leaf in leaves)
+            leaf.Position=new Vector3(MathF.Sign(leaf.Position.X)*.55f,leaf.Position.Y,leaf.Position.Z);
+        clear=true;
+        for(var i=0;i<=100;i++)
+        {
+            motion.SetPositionNormalized(i/100f);
+            foreach(var c in ReviewMeshes(car))
+            foreach(var p in fixedParts)
+            {
+                if(!Penetrates(ReviewBounds(c),ReviewBounds(p))) continue;
+                if(clear) GD.Print($"ELEVATOR_CLOSED_DOOR_INTERFERENCE pose={i} car={c.Name} fixed={p.Name}");
+                clear=false;
+            }
+        }
+        check(clear,"elevator_101_car_poses_clear_with_closed_doors_and_hangers");
+        foreach(var leaf in leaves)
+            leaf.Position=new Vector3(MathF.Sign(leaf.Position.X)*1.72f,leaf.Position.Y,leaf.Position.Z);
         var deck=car.GetNode<MeshInstance3D>("ELEVATOR_car_floor");
         check(MathF.Abs(ReviewBounds(deck).End.Y-2.7f)<.001f,"elevator_upper_car_floor_matches_upper_landing");
         motion.SetPositionNormalized(0);
