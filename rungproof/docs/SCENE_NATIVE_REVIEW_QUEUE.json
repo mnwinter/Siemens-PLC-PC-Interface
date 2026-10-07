@@ -179,7 +179,7 @@
     {
       "index": 11,
       "sceneId": "lab-11-11-service-elevator",
-      "recordedNativeViews": "Current car/shaft home FR/FL/RL/RR/T; focused assembly and full scene; repeated after header fix",
+      "recordedNativeViews": "Revised home FR/FL/RL/RR/T; upward endpoints all five views; Top ascent and RL/RR descent every 0.5 s",
       "recordedAngles": {
         "FR": true,
         "FL": true,
@@ -187,7 +187,7 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Bucket-elevator and cabinet proxies replaced with car/shaft, two landings, open door frames, mounted illustrative call plates/sensors. Six focused checks PASS; native five-angle home inspection. FAIL/open: hoist/guard/access depiction, legend readability, door/floor feedback, PLC-owned travel and complete native moving/controller cycle.",
+      "recordedResult": "Car/shaft and two landings repaired. Door tracks/hangers supported, controller-owned car position and landing flags implemented. Normal editor audit cycle completed native round trip, upper reversal, held-call home, Stop/resume, Reset; all three manual permissive losses held ascent. Changing QA label and raised Top framing inspected. FAIL/open: hoist/guard/access depiction, landing legend readability, instantaneous door fixture rather than modeled door travel; default exercise remains unloaded.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": true,
       "disposition": "REPAIR_RECORDED_FAILURE",
@@ -196,7 +196,7 @@
     {
       "index": 12,
       "sceneId": "lab-11-12-mobile-traffic-lights",
-      "recordedNativeViews": "Final repaired FR/FL/RL/RR/T",
+      "recordedNativeViews": "Wheeled-base geometry FR/FL/RL/RR/T; fresh Top after framing correction",
       "recordedAngles": {
         "FR": true,
         "FL": true,
@@ -204,7 +204,7 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Horizontal road and two opposing three-color heads replace wall/beacon proxies; stations clear of roadway. Existing green bindings preserved; 145 controller tests/app shell pass. FAIL/open: portable bases, synchronization link, red/amber command timing, vehicle motion and automatic clear feedback; default exercise unloaded.",
+      "recordedResult": "Horizontal road, two opposing three-color heads and separate wheeled cart bases on shoulders. Cart footprints clear asphalt/crosswalk/stations; corrected Top contains raised heads. Existing green bindings retained. FAIL/open: synchronization link, red/amber command timing, native command cycle, vehicle motion and automatic clear feedback; default exercise unloaded.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": true,
       "disposition": "REPAIR_RECORDED_FAILURE",

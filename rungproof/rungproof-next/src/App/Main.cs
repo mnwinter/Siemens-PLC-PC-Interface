@@ -3789,7 +3789,7 @@ public partial class Main : Node3D
         distance = (distance + halfDepth) * 1.16f;
         // Reserve space below the review clock for barrier tips and sensor heads
         // in nearly vertical full-scene views. Equipment focus views keep their fit.
-        if (_visualSceneReview && (_currentSceneId is "lab-5-08-drawbridge-control" or "lab-5-09-bag-indexing-conveyor" or "lab-5-10-coating-line" or "lab-6-08-hand-dryer" or "lab-6-07-luggage-weight-sort" or "lab-10-03-vision-package-sorter" or "lab-10-05-motor-struct-data" or "lab-11-06-wastewater-collection" or "lab-11-11-service-elevator" or "lab-11-12-mobile-traffic-lights")
+        if (_visualSceneReview && (_currentSceneId is "lab-5-08-drawbridge-control" or "lab-5-09-bag-indexing-conveyor" or "lab-5-10-coating-line" or "lab-6-08-hand-dryer" or "lab-6-07-luggage-weight-sort" or "lab-10-03-vision-package-sorter" or "lab-10-05-motor-struct-data" or "lab-11-06-wastewater-collection" or "lab-11-11-service-elevator" or "lab-11-12-mobile-traffic-lights" or "lab-11-13-xy-palletizing")
             && ReferenceEquals(root, _sceneCompositionRoot) && MathF.Abs(direction.Y) > 0.99f)
             distance *= _currentSceneId == "lab-5-08-drawbridge-control" ? 1.15f : 1.30f;
         camera.Position = center + direction * MathF.Max(distance, 2.5f);
