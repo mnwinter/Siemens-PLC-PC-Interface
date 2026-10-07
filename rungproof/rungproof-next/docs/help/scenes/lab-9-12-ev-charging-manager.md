@@ -2,7 +2,7 @@
 
 Scene ID: `lab-9-12-ev-charging-manager`  
 Migrated source: `prototype/scenes/lab-9-12-ev-charging-manager.plcscene`  
-Scene contract: `prototype/scenes/lab-9-12-ev-charging-manager.plcscene`
+Scene contract: `res://scenes/migrated/lab-9-12-ev-charging-manager.scene.json`
 
 ## Purpose
 
@@ -42,17 +42,21 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 
 | ID | Type | Label |
 | --- | --- | --- |
-| `machine_0` | `machine` | EV Charging Manager machine |
-| `switch_1` | `switch` | EV Charging Manager switch |
+| `switch_1` | `switch` | Bay A occupancy fixture |
 | `indicator_2` | `indicator` | EV Charging Manager indicator |
-| `training_accessory_3` | `trainingAccessory` | EV Charging Manager - EV/charger bay |
-| `training_accessory_4` | `trainingAccessory` | EV Charging Manager - connector latch |
-| `training_accessory_5` | `trainingAccessory` | EV Charging Manager - energy meter |
-| `training_accessory_6` | `trainingAccessory` | EV Charging Manager - pulse-output meter |
-| `training_accessory_7` | `trainingAccessory` | EV Charging Manager - authorization reader |
-| `switch_8` | `switch` | EV Charging Manager operator input |
-| `switch_9` | `switch` | EV Charging Manager operator input |
+| `training_accessory_3` | `trainingAccessory` | Bay A vehicle and illustrative charger |
+| `training_accessory_4` | `trainingAccessory` | Bay A connector at vehicle inlet |
+| `training_accessory_5` | `trainingAccessory` | Bay A energy display (static until connected) |
+| `training_accessory_6` | `trainingAccessory` | Bay A pulse module (static until connected) |
+| `training_accessory_7` | `trainingAccessory` | Bay A authorization reader |
+| `switch_8` | `switch` | Bay A authorization fixture |
+| `switch_9` | `switch` | Bay A charger-ready fixture |
 | `indicator_10` | `indicator` | EV Charging Manager output indication |
+| `ev_bay_b` | `trainingAccessory` | Bay B vehicle and illustrative charger |
+| `ev_connector_b` | `trainingAccessory` | Bay B connector at vehicle inlet |
+| `ev_meter_b` | `trainingAccessory` | Bay B energy display (static until connected) |
+| `ev_pulse_b` | `trainingAccessory` | Bay B pulse module (static until connected) |
+| `ev_reader_b` | `trainingAccessory` | Bay B authorization reader |
 
 ## Stop and safety boundary
 

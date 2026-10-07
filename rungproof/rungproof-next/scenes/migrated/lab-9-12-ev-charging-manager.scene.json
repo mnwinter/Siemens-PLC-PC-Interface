@@ -19,32 +19,13 @@
   },
   "equipment": [
     {
-      "id": "machine_0",
-      "type": "machine",
-      "label": "EV Charging Manager machine",
-      "position": [
-        -3.3000000000000003,
-        0,
-        0
-      ],
-      "config": {
-        "size": [
-          2.1,
-          2.7,
-          1.7
-        ],
-        "color": 5466227,
-        "running": false
-      }
-    },
-    {
       "id": "switch_1",
       "type": "switch",
-      "label": "EV Charging Manager switch",
+      "label": "Bay A occupancy fixture",
       "position": [
-        -1.1,
+        -3,
         0,
-        0
+        4.1
       ],
       "config": {
         "style": "pushbutton",
@@ -57,9 +38,9 @@
       "type": "indicator",
       "label": "EV Charging Manager indicator",
       "position": [
-        1.1,
+        -0.45,
         0,
-        0
+        2.7
       ],
       "config": {
         "colors": [
@@ -67,15 +48,15 @@
           "amber",
           "green"
         ],
-        "active": "red"
+        "active": "off"
       }
     },
     {
       "id": "training_accessory_3",
       "type": "trainingAccessory",
-      "label": "EV Charging Manager - EV/charger bay",
+      "label": "Bay A vehicle and illustrative charger",
       "position": [
-        3.3000000000000003,
+        -3,
         0,
         0
       ],
@@ -87,11 +68,11 @@
     {
       "id": "training_accessory_4",
       "type": "trainingAccessory",
-      "label": "EV Charging Manager - connector latch",
+      "label": "Bay A connector at vehicle inlet",
       "position": [
-        -3.3000000000000003,
-        0,
-        1.8
+        -3.8,
+        1.05,
+        1.04
       ],
       "config": {
         "assetName": "connector latch",
@@ -101,11 +82,11 @@
     {
       "id": "training_accessory_5",
       "type": "trainingAccessory",
-      "label": "EV Charging Manager - energy meter",
+      "label": "Bay A energy display (static until connected)",
       "position": [
-        -1.1,
+        -3.4,
         0,
-        1.8
+        2.9
       ],
       "config": {
         "assetName": "energy meter",
@@ -115,11 +96,11 @@
     {
       "id": "training_accessory_6",
       "type": "trainingAccessory",
-      "label": "EV Charging Manager - pulse-output meter",
+      "label": "Bay A pulse module (static until connected)",
       "position": [
-        1.1,
-        0,
-        1.8
+        -3.4,
+        1.23,
+        3.0375
       ],
       "config": {
         "assetName": "pulse-output meter",
@@ -129,11 +110,11 @@
     {
       "id": "training_accessory_7",
       "type": "trainingAccessory",
-      "label": "EV Charging Manager - authorization reader",
+      "label": "Bay A authorization reader",
       "position": [
-        3.3000000000000003,
+        -2.3,
         0,
-        1.8
+        2.9
       ],
       "config": {
         "assetName": "authorization reader",
@@ -143,11 +124,11 @@
     {
       "id": "switch_8",
       "type": "switch",
-      "label": "EV Charging Manager operator input",
+      "label": "Bay A authorization fixture",
       "position": [
-        -2.4000000000000004,
+        -0.8,
         0,
-        4.7
+        4.1
       ],
       "config": {
         "style": "pushbutton",
@@ -158,11 +139,11 @@
     {
       "id": "switch_9",
       "type": "switch",
-      "label": "EV Charging Manager operator input",
+      "label": "Bay A charger-ready fixture",
       "position": [
-        -0.20000000000000007,
+        1.4,
         0,
-        4.7
+        4.1
       ],
       "config": {
         "style": "pushbutton",
@@ -175,9 +156,9 @@
       "type": "indicator",
       "label": "EV Charging Manager output indication",
       "position": [
-        2,
+        0.45,
         0,
-        4.7
+        2.7
       ],
       "config": {
         "colors": [
@@ -185,7 +166,77 @@
           "amber",
           "green"
         ],
-        "active": "red"
+        "active": "off"
+      }
+    },
+    {
+      "id": "ev_bay_b",
+      "type": "trainingAccessory",
+      "label": "Bay B vehicle and illustrative charger",
+      "position": [
+        3,
+        0,
+        0
+      ],
+      "config": {
+        "assetName": "EV/charger bay",
+        "catalogAssetId": "training.accessory.ev_charger_bay.v1"
+      }
+    },
+    {
+      "id": "ev_connector_b",
+      "type": "trainingAccessory",
+      "label": "Bay B connector at vehicle inlet",
+      "position": [
+        2.2,
+        1.05,
+        1.04
+      ],
+      "config": {
+        "assetName": "connector latch",
+        "catalogAssetId": "training.accessory.connector_latch.v1"
+      }
+    },
+    {
+      "id": "ev_meter_b",
+      "type": "trainingAccessory",
+      "label": "Bay B energy display (static until connected)",
+      "position": [
+        2.6,
+        0,
+        2.9
+      ],
+      "config": {
+        "assetName": "energy meter",
+        "catalogAssetId": "training.accessory.energy_meter.v1"
+      }
+    },
+    {
+      "id": "ev_pulse_b",
+      "type": "trainingAccessory",
+      "label": "Bay B pulse module (static until connected)",
+      "position": [
+        2.6,
+        1.23,
+        3.0375
+      ],
+      "config": {
+        "assetName": "pulse-output meter",
+        "catalogAssetId": "training.accessory.pulse_output_meter.v1"
+      }
+    },
+    {
+      "id": "ev_reader_b",
+      "type": "trainingAccessory",
+      "label": "Bay B authorization reader",
+      "position": [
+        3.7,
+        0,
+        2.9
+      ],
+      "config": {
+        "assetName": "authorization reader",
+        "catalogAssetId": "training.accessory.authorization_reader.v1"
       }
     }
   ],
@@ -281,7 +332,8 @@
     "hints": [
       "Translate the lesson into explicit state and permissive logic: Charging is enabled only for an occupied, authorized, ready bay.",
       "Inputs are simulator feedback (bay_occupied, customer_authorized, charger_ready); PLC logic owns charge_enable, energy_session_active.",
-      "Test the initial state, the valid condition, and at least one missing permissive."
+      "Test the initial state, the valid condition, and at least one missing permissive.",
+      "Geometry repair in progress: both EV bays are illustrative. Current Boolean inputs address Bay A only; pulse/energy and shared allocation runtime remain unfinished. Static meters do not represent measured energy."
     ],
     "solution": {
       "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",

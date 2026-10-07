@@ -5169,33 +5169,6 @@
       ]
     },
     {
-      "assetId": "training.accessory.ev_charger_bay.v1",
-      "status": "referenced",
-      "comparisonStatus": "reference-identified",
-      "comparisonNotes": "Generic family reference inherited for candidate package review; the training accessory must be independently compared before promotion.",
-      "referenceFamily": "industrial coiling steel service door",
-      "sources": [
-        {
-          "publisher": "Clopay",
-          "title": "Roll-Up Sheet Doors product page",
-          "url": "https://www.clopaydoor.com/coiling-sheet-doors",
-          "sourceType": "oem-product-page",
-          "accessed": "2026-09-22"
-        }
-      ],
-      "modeledFeatures": [
-        "interlocking horizontal curtain slats",
-        "vertical guide tracks",
-        "header coil/shaft zone",
-        "bottom bar",
-        "side-mounted operator context"
-      ],
-      "intentionallyGeneric": [
-        "No Clopay mark, slat gauge, curtain material, door size, drive voltage, cycle count, weather sealing, or safety edge is reproduced.",
-        "Simulator travel is not a real door safety or commissioning claim."
-      ]
-    },
-    {
       "assetId": "training.accessory.xy_gantry.v1",
       "status": "referenced",
       "comparisonStatus": "reference-identified",
@@ -5248,33 +5221,6 @@
       "intentionallyGeneric": [
         "No WERMA mark, part number, color code, voltage, connection, ingress rating, optical performance, or signaling standard is reproduced.",
         "The beacon state is symbolic simulator output only and does not signal a real plant condition."
-      ]
-    },
-    {
-      "assetId": "training.accessory.authorization_reader.v1",
-      "status": "referenced",
-      "comparisonStatus": "reference-identified",
-      "comparisonNotes": "Generic family reference inherited for candidate package review; the training accessory must be independently compared before promotion.",
-      "referenceFamily": "industrial coiling steel service door",
-      "sources": [
-        {
-          "publisher": "Clopay",
-          "title": "Roll-Up Sheet Doors product page",
-          "url": "https://www.clopaydoor.com/coiling-sheet-doors",
-          "sourceType": "oem-product-page",
-          "accessed": "2026-09-22"
-        }
-      ],
-      "modeledFeatures": [
-        "interlocking horizontal curtain slats",
-        "vertical guide tracks",
-        "header coil/shaft zone",
-        "bottom bar",
-        "side-mounted operator context"
-      ],
-      "intentionallyGeneric": [
-        "No Clopay mark, slat gauge, curtain material, door size, drive voltage, cycle count, weather sealing, or safety edge is reproduced.",
-        "Simulator travel is not a real door safety or commissioning claim."
       ]
     },
     {
@@ -5550,33 +5496,6 @@
       ]
     },
     {
-      "assetId": "training.accessory.connector_latch.v1",
-      "status": "referenced",
-      "comparisonStatus": "reference-identified",
-      "comparisonNotes": "Generic family reference inherited for candidate package review; the training accessory must be independently compared before promotion.",
-      "referenceFamily": "industrial coiling steel service door",
-      "sources": [
-        {
-          "publisher": "Clopay",
-          "title": "Roll-Up Sheet Doors product page",
-          "url": "https://www.clopaydoor.com/coiling-sheet-doors",
-          "sourceType": "oem-product-page",
-          "accessed": "2026-09-22"
-        }
-      ],
-      "modeledFeatures": [
-        "interlocking horizontal curtain slats",
-        "vertical guide tracks",
-        "header coil/shaft zone",
-        "bottom bar",
-        "side-mounted operator context"
-      ],
-      "intentionallyGeneric": [
-        "No Clopay mark, slat gauge, curtain material, door size, drive voltage, cycle count, weather sealing, or safety edge is reproduced.",
-        "Simulator travel is not a real door safety or commissioning claim."
-      ]
-    },
-    {
       "assetId": "training.accessory.coordinate_sensors.v1",
       "status": "referenced",
       "comparisonStatus": "reference-identified",
@@ -5682,35 +5601,6 @@
       "intentionallyGeneric": [
         "No Schneider mark, part number, contact arrangement, rating, stop category, safety function, wiring, reset sequence, or enclosure rating is reproduced.",
         "The station remains symbolic-only simulator I/O and does not provide personnel protection or control physical equipment."
-      ]
-    },
-    {
-      "assetId": "training.accessory.energy_meter.v1",
-      "status": "referenced",
-      "comparisonStatus": "reference-identified",
-      "comparisonNotes": "Generic family reference inherited for candidate package review; the training accessory must be independently compared before promotion.",
-      "referenceFamily": "diaphragm liquid-metering skid",
-      "sources": [
-        {
-          "publisher": "Milton Roy",
-          "title": "Series Process Diaphragm Pump",
-          "url": "https://www.miltonroy.com/api/get-file?id=CONT05B4D727AFCC4FE9B73AF6B907AF68A1",
-          "sourceType": "oem-datasheet",
-          "accessed": "2026-09-22"
-        }
-      ],
-      "modeledFeatures": [
-        "motor/reducer",
-        "diaphragm pump head",
-        "dampener",
-        "calibration column",
-        "suction/discharge piping",
-        "gauge",
-        "local panel"
-      ],
-      "intentionallyGeneric": [
-        "No Milton Roy mark, capacity, pressure, chemistry, materials, calibration, controls, containment, or certification is reproduced.",
-        "The visual does not pump, meter, or contain a process chemical."
       ]
     },
     {
@@ -6636,34 +6526,6 @@
       "intentionallyGeneric": [
         "No SMC mark, bore, stroke rating, pressure, cushioning, switch type, port thread, mounting load, or pneumatic circuit is reproduced.",
         "Pusher motion remains symbolic simulator kinematics."
-      ]
-    },
-    {
-      "assetId": "training.accessory.pulse_output_meter.v1",
-      "status": "referenced",
-      "comparisonStatus": "reference-identified",
-      "comparisonNotes": "Generic family reference inherited for candidate package review; the training accessory must be independently compared before promotion.",
-      "referenceFamily": "right-angle helical-worm industrial gearmotor",
-      "sources": [
-        {
-          "publisher": "SEW-EURODRIVE",
-          "title": "S..DR.. helical-worm gearmotors",
-          "url": "https://www.seweurodrive.com/products/gearmotors/standard-gearmotors/helical-worm-gearmotors-sdr/helical-worm-gearmotors-sdr.html",
-          "sourceType": "oem-product-page",
-          "accessed": "2026-09-22"
-        }
-      ],
-      "modeledFeatures": [
-        "input motor",
-        "orthogonal reduction housing",
-        "flanged output/hub",
-        "output shaft/key context",
-        "terminal housing",
-        "base mount"
-      ],
-      "intentionallyGeneric": [
-        "No SEW-EURODRIVE mark, ratio, torque, motor power, output speed, hollow-shaft size, lubricant, brake, or electrical rating is reproduced.",
-        "The geometry is a simulator representation only, not a machine-design or physical-drive claim."
       ]
     },
     {

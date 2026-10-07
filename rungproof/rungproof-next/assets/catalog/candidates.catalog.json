@@ -9452,29 +9452,13 @@
         "thumbnailFile": "res://assets/training_accessories/ev_charger_bay/thumbnail.png"
       },
       "bounds": {
-        "widthM": 5.3,
-        "heightM": 4.2,
-        "depthM": 0.8
+        "widthM": 4.900000095367432,
+        "heightM": 1.690000057220459,
+        "depthM": 3.299999952316284
       },
       "connectors": [],
-      "kinematics": [
-        {
-          "id": "door_position",
-          "kind": "linear",
-          "nodePath": "KIN_bottom_bar",
-          "minimum": 0,
-          "maximum": 3.2,
-          "unit": "m",
-          "maximumRate": 1.2
-        }
-      ],
-      "animationTags": [
-        {
-          "id": "door_position",
-          "nodePath": "KIN_bottom_bar",
-          "kind": "linear"
-        }
-      ],
+      "kinematics": [],
+      "animationTags": [],
       "signals": [],
       "quality": {
         "status": "candidate",
@@ -9483,10 +9467,9 @@
         "topologyReviewed": false,
         "materialReviewed": false,
         "scaleReviewed": false,
-        "animationReviewed": true
+        "animationReviewed": false
       },
       "trainingRequirement": "EV/charger bay",
-      "genericBasisAssetId": "access-control.door.roller-shutter.v1",
       "copyrightBoundary": "Generic training visual; no logo, trade dress, product number, or exact OEM claim."
     },
     {
@@ -9700,29 +9683,13 @@
         "thumbnailFile": "res://assets/training_accessories/authorization_reader/thumbnail.png"
       },
       "bounds": {
-        "widthM": 5.3,
-        "heightM": 4.2,
-        "depthM": 0.8
+        "widthM": 0.3799999952316284,
+        "heightM": 1.3899999856948853,
+        "depthM": 0.3400000035762787
       },
       "connectors": [],
-      "kinematics": [
-        {
-          "id": "door_position",
-          "kind": "linear",
-          "nodePath": "KIN_bottom_bar",
-          "minimum": 0,
-          "maximum": 3.2,
-          "unit": "m",
-          "maximumRate": 1.2
-        }
-      ],
-      "animationTags": [
-        {
-          "id": "door_position",
-          "nodePath": "KIN_bottom_bar",
-          "kind": "linear"
-        }
-      ],
+      "kinematics": [],
+      "animationTags": [],
       "signals": [],
       "quality": {
         "status": "candidate",
@@ -9731,10 +9698,9 @@
         "topologyReviewed": false,
         "materialReviewed": false,
         "scaleReviewed": false,
-        "animationReviewed": true
+        "animationReviewed": false
       },
       "trainingRequirement": "authorization reader",
-      "genericBasisAssetId": "access-control.door.roller-shutter.v1",
       "copyrightBoundary": "Generic training visual; no logo, trade dress, product number, or exact OEM claim."
     },
     {
@@ -10360,29 +10326,13 @@
         "thumbnailFile": "res://assets/training_accessories/connector_latch/thumbnail.png"
       },
       "bounds": {
-        "widthM": 5.3,
-        "heightM": 4.2,
-        "depthM": 0.8
+        "widthM": 0.164000004529953,
+        "heightM": 0.2580000013113022,
+        "depthM": 0.27900000661611557
       },
       "connectors": [],
-      "kinematics": [
-        {
-          "id": "door_position",
-          "kind": "linear",
-          "nodePath": "KIN_bottom_bar",
-          "minimum": 0,
-          "maximum": 3.2,
-          "unit": "m",
-          "maximumRate": 1.2
-        }
-      ],
-      "animationTags": [
-        {
-          "id": "door_position",
-          "nodePath": "KIN_bottom_bar",
-          "kind": "linear"
-        }
-      ],
+      "kinematics": [],
+      "animationTags": [],
       "signals": [],
       "quality": {
         "status": "candidate",
@@ -10391,10 +10341,9 @@
         "topologyReviewed": false,
         "materialReviewed": false,
         "scaleReviewed": false,
-        "animationReviewed": true
+        "animationReviewed": false
       },
       "trainingRequirement": "connector latch",
-      "genericBasisAssetId": "access-control.door.roller-shutter.v1",
       "copyrightBoundary": "Generic training visual; no logo, trade dress, product number, or exact OEM claim."
     },
     {
@@ -10852,29 +10801,13 @@
         "thumbnailFile": "res://assets/training_accessories/energy_meter/thumbnail.png"
       },
       "bounds": {
-        "widthM": 2.3,
-        "heightM": 1.9,
-        "depthM": 1.5
+        "widthM": 0.5,
+        "heightM": 1.5700000524520874,
+        "depthM": 0.41999998688697815
       },
       "connectors": [],
-      "kinematics": [
-        {
-          "id": "pump_rotation",
-          "kind": "continuous",
-          "nodePath": "KIN_metering_pump_shaft",
-          "minimum": 0,
-          "maximum": 360,
-          "unit": "deg",
-          "maximumRate": 1750
-        }
-      ],
-      "animationTags": [
-        {
-          "id": "pump_rotation",
-          "nodePath": "KIN_metering_pump_shaft",
-          "kind": "continuous"
-        }
-      ],
+      "kinematics": [],
+      "animationTags": [],
       "signals": [],
       "quality": {
         "status": "candidate",
@@ -10883,10 +10816,9 @@
         "topologyReviewed": false,
         "materialReviewed": false,
         "scaleReviewed": false,
-        "animationReviewed": true
+        "animationReviewed": false
       },
       "trainingRequirement": "energy meter",
-      "genericBasisAssetId": "process.dosing.skid.liquid-metering.v1",
       "copyrightBoundary": "Generic training visual; no logo, trade dress, product number, or exact OEM claim."
     },
     {
@@ -13039,29 +12971,13 @@
         "thumbnailFile": "res://assets/training_accessories/pulse_output_meter/thumbnail.png"
       },
       "bounds": {
-        "widthM": 1.25,
-        "heightM": 1.28,
-        "depthM": 1.02
+        "widthM": 0.1599999964237213,
+        "heightM": 0.13100000098347664,
+        "depthM": 0.06849999725818634
       },
       "connectors": [],
-      "kinematics": [
-        {
-          "id": "output_rotation",
-          "kind": "angular_continuous",
-          "nodePath": "KIN_OUTPUT_HUB",
-          "minimum": -250,
-          "maximum": 250,
-          "unit": "rpm",
-          "maximumRate": 500
-        }
-      ],
-      "animationTags": [
-        {
-          "id": "output_rotation",
-          "nodePath": "KIN_OUTPUT_HUB",
-          "kind": "angular_continuous"
-        }
-      ],
+      "kinematics": [],
+      "animationTags": [],
       "signals": [],
       "quality": {
         "status": "candidate",
@@ -13070,10 +12986,9 @@
         "topologyReviewed": false,
         "materialReviewed": false,
         "scaleReviewed": false,
-        "animationReviewed": true
+        "animationReviewed": false
       },
       "trainingRequirement": "pulse-output meter",
-      "genericBasisAssetId": "drives.gearmotor.right-angle-worm.v1",
       "copyrightBoundary": "Generic training visual; no logo, trade dress, product number, or exact OEM claim."
     },
     {

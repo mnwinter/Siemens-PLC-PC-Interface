@@ -3,7 +3,7 @@
   "catalogId": "rungproof-original-scenes-migrated",
   "sourceRoot": "prototype/scenes",
   "sceneCount": 77,
-  "equipmentInstanceCount": 611,
+  "equipmentInstanceCount": 615,
   "equipmentTypeCounts": {
     "box": 30,
     "containerReceiver": 3,
@@ -13,7 +13,7 @@
     "indicator": 114,
     "levelSensor": 9,
     "liftTable": 4,
-    "machine": 11,
+    "machine": 10,
     "meteringSkid": 1,
     "motor": 10,
     "palletLoad": 1,
@@ -34,7 +34,7 @@
     "toteFiller": 2,
     "toteLabeler": 1,
     "toteVision": 1,
-    "trainingAccessory": 132,
+    "trainingAccessory": 137,
     "valve": 7
   },
   "scenes": [
@@ -1186,10 +1186,9 @@
       "name": "Lab 9.12 - EV Charging Manager",
       "path": "res://scenes/migrated/lab-9-12-ev-charging-manager.scene.json",
       "sourceFile": "prototype/scenes/lab-9-12-ev-charging-manager.plcscene",
-      "equipmentCount": 11,
+      "equipmentCount": 15,
       "equipmentTypes": [
         "indicator",
-        "machine",
         "switch",
         "trainingAccessory"
       ],

@@ -1,5 +1,39 @@
 # Whole program review - 2026-10-03
 
+EV geometry verification follow-up (2026-10-06):
+--audit-ev-layout: 16 focused installation checks PASS, covering actual pad/tire
+and charger bearing, plug/inlet engagement, cable/gland continuity, grounded
+meter/reader bases and pulse-module mounting for both bays. A 12.5 mm gap behind
+the pulse modules was corrected. Final current native FR/FL/RL/RR/Top repeated
+in .tools/ev-native-pulse-mount-final.log; preview closed normally. Build zero
+warnings/errors, .tools/ev-focused-layout.log PASS; full scene geometry regression
+in .tools/ev-geometry-regression.log PASS (987 checks). These are bounds/visual
+checks, not electrical or mechanical approval. Updated five owned asset help
+pages and Scene 72 help; help validates 294 assets/77 scenes. Two-bay permissions,
+connector state, pulse generation and PLC energy accumulation remain OPEN.
+
+Scene 72 original EV geometry checkpoint (2026-10-06, runtime OPEN):
+Replaced five incorrectly cloned accessory types with original EV vehicle/charger,
+connector latch, energy display, pulse module and authorization reader models.
+Inherited recognition evidence is retained in each review/historical_invalid_identity_20261006
+folder; candidate quality resets and corresponding industrial-register entries are
+removed, so shutter/skid recognition is not inherited by the EV replacements.
+Added two separated vehicle/charger bays, connected illustrated cable/plug/inlet
+geometry, grounded charger pedestals and meter/reader supports. Removed unrelated
+machine cabinet. Fifteen equipment items; aggregate catalog count 615. Initial
+Windows inspection exposed tire/body overlap; real Boolean wheel-arch cutouts now
+clear those envelopes. Final native FR/FL/RL/RR/Top inspected after rebuilding
+and importing (.tools/ev-native-layout-final.log); owned preview closed normally.
+The reusable energy readout says NO LIVE VALUE. Geometry is illustrative and
+unapproved; no charging protocol, rating, wiring, energy calibration or physical
+acceptance. Help validates 294 assets/77 scenes; no C# behavior changed this pass.
+Shared allocation, independent bay feedback/controls, connector state, pulse and
+numeric energy accumulation remain unfinished. Existing Boolean-panel behavior
+and blank default ladder are preserved pending that connected-runtime repair.
+Detailed connector/feet checks and full geometry regression still required.
+Scene 72 remains FAIL/open for process behavior; this checkpoint replaces the
+incorrect-prop baseline only. Whole-scene goal remains active.
+
 Scene 72 EV charging refreshed native baseline (2026-10-06):
 Opened the current scene in the normal Windows shell, dismissed the simulator
 notice, and inspected FR/FL/RL/RR/Top. Three motorized shutters, a liquid
