@@ -1,3 +1,10 @@
+## Native receiver approach and focus framing - source d23cde1
+
+Continued window 138608/session 22211, reobserved held 2325/time 46.50 s. Four separate observed 0.5 s steps reached 2350, 2375, 2400, 2425 in full-scene Top: load remained visible on third belt. Opened the review focus selector and selected training_accessory_6 (actual receiver). Focus Top at 2425 showed the empty roller bed, inter-roller spaces, carrying frame and gray transfer deck. Close toggle enlarged it enough to clip the bed; restored the wider focused view. Focused front-right showed both the receiver and incoming pallet, improving inspection over the clipped full-scene end.
+
+Seven separate observed 0.5 s steps reached 2450, 2475, 2500, 2525, 2550, 2575 and 2600/time 52.00 s. Each focused front-right image showed retained load translating toward the gray receiver deck; at 2600 the leading runner reaches its vicinity. Review controls overlay the upper part of the carton in this focus view; runner/deck region remains visible. Roller drive yellow witness changed orientation across stepped frames, consistent with the explicitly advanced child callback, without a separate speed measurement. Exact deck contact and beam threshold have not been established by these approach frames.
+
+Window left RUNNING but held at 2600/time 52.00 s, receiver-focused front-right wide. Next: five-angle receiver entry/straddled/exit poses and Stop/Reset after arrival on this build. Whole-program review remains open.
 ## Native held second-deck crossing - source d23cde1
 
 Continued window 138608/session 22211. Reobserved scan 2224/time 44.48 s, then inspected second-transfer entry from rear-left, front-left, front-right, rear-right and Top without scan advancement. The load remained visible and the repaired deck was present below the leading edge. One 0.5 s step reached 2249; one fine 20 ms step reached 2250/time 45.00 s. Inspected this middle/straddled pose from all five angles; no gross visible structural penetration or disappearance appeared. Carrying contact is partly occluded by the pallet and exact submillimetre clearance is not visually resolved.
