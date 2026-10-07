@@ -99,6 +99,28 @@ public partial class Main
             }
         }
         check(clear,"elevator_101_car_poses_clear_with_closed_doors_and_hangers");
+        // Before introducing door travel, screen intermediate leaf positions
+        // against the car at every sampled elevation. Endpoint-only checks
+        // cannot establish the clearance of the future sliding envelope.
+        var doorTravelClear=true;
+        for(var doorPose=0;doorPose<=10;doorPose++)
+        {
+            foreach(var leaf in leaves)
+                leaf.Position=new Vector3(MathF.Sign(leaf.Position.X)
+                    *(1.72f-(1.72f-.55f)*doorPose/10f),leaf.Position.Y,leaf.Position.Z);
+            for(var carPose=0;carPose<=100;carPose++)
+            {
+                motion.SetPositionNormalized(carPose/100f);
+                foreach(var c in ReviewMeshes(car))
+                foreach(var p in fixedParts)
+                {
+                    if(!Penetrates(ReviewBounds(c),ReviewBounds(p))) continue;
+                    if(doorTravelClear) GD.Print($"ELEVATOR_DOOR_ENVELOPE_INTERFERENCE door={doorPose} car={carPose} moving={c.Name} fixed={p.Name}");
+                    doorTravelClear=false;
+                }
+            }
+        }
+        check(doorTravelClear,"elevator_11_door_by_101_car_poses_clear_sliding_envelope");
         foreach(var leaf in leaves)
             leaf.Position=new Vector3(MathF.Sign(leaf.Position.X)*1.72f,leaf.Position.Y,leaf.Position.Z);
         var deck=car.GetNode<MeshInstance3D>("ELEVATOR_car_floor");
