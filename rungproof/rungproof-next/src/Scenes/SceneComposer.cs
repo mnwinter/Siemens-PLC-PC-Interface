@@ -109,6 +109,7 @@ public static partial class SceneComposer
                     ? CreateHandDryerAsset()
                     : CreateControlledAsset(equipment, candidates, "machining.machine.enclosed-center.v1", runCommands,
                         EquipmentMotionController.MotionKind.ContinuousRotation, "KIN_spindle", speedRpm: 3200.0f),
+                "sceneInstallation" when Text(equipment.Config, "installation", string.Empty) == "wastewaterCollector" => new Node3D(),
                 "sceneInstallation" => CreateChainLiftAccessory(Text(equipment.Config, "installation", string.Empty)),
                 "trainingAccessory" => CreateTrainingAccessory(equipment, candidates),
                 _ => null,
@@ -134,6 +135,8 @@ public static partial class SceneComposer
             rendered.Add(equipment.Id);
         }
 
+        if (scene.Equipment.Any(equipment => Text(equipment.Config, "installation", string.Empty) == "wastewaterCollector"))
+            ConfigureWastewaterPiping(root);
         if (scene.Equipment.Any(equipment => Text(equipment.Config, "installation", string.Empty) == "sumpPiping"))
             ConfigureSumpPiping(root);
         if (scene.Equipment.Any(equipment => Text(equipment.Config, "installation", string.Empty) == "fixtureDrill"))

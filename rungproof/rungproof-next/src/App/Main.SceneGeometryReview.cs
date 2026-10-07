@@ -778,6 +778,41 @@ public partial class Main
         var shells = ReviewMeshes(root).Where(mesh => mesh.Name == "TANK_shell").ToArray();
         check(shells.Length == 4 && !shells.Where((a, i) => shells.Skip(i + 1).Any(b => ReviewBounds(a).Intersects(ReviewBounds(b)))).Any(),
             "wastewater_four_tank_shells_have_separate_bounds");
+        var piping = root.GetNode<Node3D>("training_accessory_8");
+        check(piping.FindChild("WASTEWATER_collector", true, false) is MeshInstance3D
+            && piping.FindChildren("WASTEWATER_branch_?", "MeshInstance3D", true, false).Count == 3
+            && piping.FindChild("WASTEWATER_discharge", true, false) is MeshInstance3D
+            && piping.FindChild("WASTEWATER_treatment_boundary", true, false) is MeshInstance3D,
+            "wastewater_actual_process_routes_replace_pneumatic_manifold");
+        Vector3 RingCenter(string name)
+        {
+            var mesh = (MeshInstance3D)piping.FindChild(name, true, false);
+            var vertices = mesh.Mesh.SurfaceGetArrays(0)[(int)Mesh.ArrayType.Vertex].AsVector3Array();
+            return mesh.GlobalTransform * (vertices.Aggregate(Vector3.Zero, (sum, vertex) => sum + vertex) / vertices.Length);
+        }
+        Vector3 PortFace(Node equipment, string name, float sign)
+        {
+            var mesh = Part(equipment, name);
+            return mesh.GlobalTransform * (mesh.GetAabb().GetCenter() + Vector3.Up * (sign * mesh.GetAabb().Size.Y / 2));
+        }
+        var vesselIds = new[] { "tank_0", "tank_1", "tank_2", "training_accessory_6" };
+        for (var index = 0; index < vesselIds.Length; index++)
+            check(RingCenter(index == 0 ? "WASTEWATER_collector_start_ring" : $"WASTEWATER_branch_{index}_start_ring")
+                .DistanceTo(PortFace(root.GetNode<Node3D>(vesselIds[index]), "NOZZLE_outlet_flange", 1)) < .001f,
+                $"wastewater_vessel_{index}_branch_starts_at_actual_outlet_face");
+        var pumpNode = root.GetNode<Node3D>("pump_3"); var valveNode = root.GetNode<Node3D>("valve_4");
+        check(RingCenter("WASTEWATER_collector_end_ring").DistanceTo(PortFace(pumpNode, "PUMP_suction_flange", 1)) < .001f,
+            "wastewater_collector_meets_actual_pump_suction");
+        check(RingCenter("WASTEWATER_discharge_start_ring").DistanceTo(PortFace(pumpNode, "PUMP_discharge_flange", 1)) < .001f
+            && RingCenter("WASTEWATER_discharge_end_ring").DistanceTo(PortFace(valveNode, "PROCESS_bore_liner", -1)) < .001f,
+            "wastewater_discharge_meets_pump_and_valve_faces");
+        check(RingCenter("WASTEWATER_treatment_boundary_start_ring").DistanceTo(PortFace(valveNode, "PROCESS_bore_liner", 1)) < .001f,
+            "wastewater_treatment_outlet_meets_actual_valve_face");
+        var feet = ReviewMeshes(root).Where(mesh => mesh.Name.ToString().StartsWith("WASTEWATER_header_foot_", StringComparison.Ordinal)
+            || (valveNode.IsAncestorOf(mesh) && mesh.Name.ToString().StartsWith("PIPE_foot", StringComparison.Ordinal))).ToArray();
+        foreach (var foot in feet) GD.Print($"WASTEWATER_FOOT {foot.Name} bottom={ReviewBounds(foot).Position.Y}");
+        check(feet.Length >= 5 && feet.All(mesh => MathF.Abs(ReviewBounds(mesh).Position.Y) < .001f),
+            "wastewater_header_and_raised_valve_feet_rest_on_floor");
         var pump = root.GetNode<Node3D>("pump_3").FindChildren("*", string.Empty, true, false).OfType<EquipmentMotionController>().Single();
         _sceneRuntime!.CommitExternalPlcOutputs(new Dictionary<string, object?> { ["transfer_pump_run"] = true });
         check(pump.Running, "wastewater_output_command_runs_actual_pump_controller");

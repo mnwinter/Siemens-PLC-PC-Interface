@@ -1,5 +1,71 @@
 # Multi-angle scene review - 2026-10-04
 
+## Wastewater piping native checkpoint (2026-10-06)
+
+Owned current piping build session 78708/window 10880540, normal shell startup
+and Scenario menu -> Lab 11.6. FR/FL/RL/RR/Top full-scene native views inspected,
+stopped and disconnected. Front-left and Top clearly show four outlet branches,
+common collector, pump and raised valve/discharge connection; rear views show
+valve feet on floor. Pneumatic prop is absent. No physical or full component
+clearance acceptance is inferred from these views or the endpoint checks.
+
+Top exposed the large tank guardrail behind inspection toolbar. Added this
+scene to the existing opt-in 1.30 overhead review fit; that final camera change
+requires restart and native Top recheck. Updated scene description to connected
+visual piping while explicitly stating no liquid-transfer/analog measurement
+simulation; gave the three manual input stations distinct face labels. These
+final label changes also need native focused readability review.
+
+Final current build zero warnings/errors; focused 18 checks PASS; controller
+tests 145 PASS/0 FAIL; app-shell PASS 77 scenes/5 demos/295 assets. Checkpoint
+preserves piping geometry and tests. Native loaded-controller pump/valve motion,
+flange/tee bore/diameter continuity and all-component clearance remain open.
+Window 10880540 still uses the prior camera/label DLL. Scene remains FAIL/open.
+
+## Wastewater joint/support verification WIP (2026-10-06)
+
+Expanded focused assertions to compare actual mesh endpoint-ring centers
+against four delivered tank outlet faces, pump suction, pump discharge, valve
+inlet and treatment outlet. All port centers agree within 1 mm. This is center
+continuity, not matched flange diameters, bore union or pressure compatibility.
+
+Support assertion first failed: both PIPE_foot_L/R bottoms were 0.25 m above
+floor after lowering by only the raised valve offset. Corrected to the actual
+minimum delivered foot bottom, retaining ground anchors and extending posts.
+Now all six feet (four header/two valve) rest on floor within 1 mm. Current
+focused verifier has 18 checks, all True, exit 0. Build zero warnings/errors.
+Log .tools/wastewater-piping-focused.log. Post/foot contact and full component
+clearance still need stronger verification/native inspection.
+
+Closed owned native session 53628 normally, exit 0. Started current piping
+build normal Windows shell, live exec session 78708, initial Conveyor Inspection
+Cell startup notice. Select returned current window via sky.list_windows then
+dismiss notice and choose Wastewater through Scenario menu; native piping
+inspection remains pending. Changes remain uncommitted WIP.
+
+## Wastewater connected process geometry WIP (2026-10-06)
+
+Replaced training_accessory_8 pneumatic asset with a scene-local collector
+installation in SceneComposer.Wastewater.cs. Uses delivered tank outlet flange,
+pump suction/discharge flange and valve bore endpoint transforms before the
+scene enters the tree. Four vessel outlet branches feed a common header; pump
+rotated 180 degrees faces its +X suction toward the header. Pump discharge
+rises through a 450 mm elbow to a Z-oriented valve and explicit TO TREATMENT
+boundary. Header feet/posts added; raised valve feet/anchors lowered to floor
+and existing shoe posts extended. Other scenes do not opt into this assembly.
+
+Build zero warnings/errors. Focused --verify-wastewater-installation ten checks
+PASS, exit 0; .tools/wastewater-piping-focused.log. 145 tests PASS/0 FAIL; app
+shell PASS 77 scenes/5 demos/295 assets. Added assertion confirms process route
+meshes replace the pneumatic prop, NOT hydraulic or all-joint proof. Further
+endpoint/tee continuity, support contact, bends, component clearance and actual
+Windows views are pending. Branch-to-header visual tees do not establish a
+verified watertight boolean-unioned bore or flow model.
+
+Native session 53628/window 6095772 has the preceding DLL. Restart is required
+before native inspection of the new piping. Keep scene FAIL/open. Changes
+remain uncommitted WIP pending stronger geometry and native verification.
+
 ## Wastewater current-build native offset inspection (2026-10-06)
 
 Started current aa5cbf0 build through normal Windows shell, owned exec session

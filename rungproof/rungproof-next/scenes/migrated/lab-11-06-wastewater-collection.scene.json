@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-11-06-wastewater-collection",
   "name": "Lab 11.6 - Wastewater Collection",
-  "description": "Wastewater command exercise with manually toggled BOOL feedback, a roof-mounted probe, and pump/valve command projection. Connected process piping remains incomplete.",
+  "description": "Wastewater BOOL command exercise with manually toggled feedback, a mounted probe and connected visual piping. Liquid transfer and analog measurement are not simulated.",
   "camera": {
     "position": [
       11,
@@ -114,7 +114,7 @@
     {
       "id": "training_accessory_6",
       "type": "trainingAccessory",
-      "label": "Wastewater Collection - collection tank bank",
+      "label": "Collection vessel 4 - full-size tank",
       "position": [
         6,
         0,
@@ -143,16 +143,15 @@
     },
     {
       "id": "training_accessory_8",
-      "type": "trainingAccessory",
-      "label": "Wastewater Collection - pipe manifold",
+      "type": "sceneInstallation",
+      "label": "Wastewater process collector and discharge piping",
       "position": [
-        -6,
         0,
-        7
+        0,
+        0
       ],
       "config": {
-        "assetName": "pipe manifold",
-        "catalogAssetId": "training.accessory.pipe_manifold.v1"
+        "installation": "wastewaterCollector"
       }
     },
     {
@@ -181,7 +180,8 @@
       "config": {
         "style": "pushbutton",
         "action": "toggle-source_level_high",
-        "color": 2204518
+        "color": 2204518,
+        "faceLabel": "SOURCE HIGH"
       }
     },
     {
@@ -196,7 +196,8 @@
       "config": {
         "style": "pushbutton",
         "action": "toggle-treatment_ready",
-        "color": 2204518
+        "color": 2204518,
+        "faceLabel": "TREAT READY"
       }
     },
     {
@@ -211,7 +212,8 @@
       "config": {
         "style": "pushbutton",
         "action": "toggle-outlet_clear",
-        "color": 2204518
+        "color": 2204518,
+        "faceLabel": "OUTLET CLEAR"
       }
     },
     {
@@ -355,7 +357,7 @@
       "alarm beacon"
     ],
     "machineGuide": {
-      "purpose": "Wastewater command exercise with manually toggled BOOL feedback, a roof-mounted probe, and pump/valve command projection. Connected process piping remains incomplete.",
+      "purpose": "Wastewater BOOL command exercise with manually toggled feedback, a mounted probe and connected visual piping. Liquid transfer and analog measurement are not simulated.",
       "startConditions": [
         "The common PLC/watchdog foundation is healthy.",
         "All required simulator inputs are at their documented initial state."
