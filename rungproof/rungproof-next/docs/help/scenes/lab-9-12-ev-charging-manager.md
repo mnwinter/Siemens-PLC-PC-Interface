@@ -19,6 +19,30 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | `charger_ready` | `BOOL` | **PC** | `False` |
 | `charge_enable` | `BOOL` | **PLC** | `False` |
 | `energy_session_active` | `BOOL` | **PLC** | `False` |
+| `connector_inserted` | `BOOL` | **PC** | `False` |
+| `connector_connected` | `BOOL` | **PC** | `False` |
+| `energy_pulse` | `BOOL` | **PC** | `False` |
+| `delivered_kw` | `REAL` | **PC** | `0` |
+| `meter_energy_kwh` | `REAL` | **PC** | `0` |
+| `meter_pulse_count` | `DINT` | **PC** | `0` |
+| `allocated_kw` | `REAL` | **PLC** | `0` |
+| `energy_count` | `DINT` | **PLC** | `0` |
+| `energy_kwh` | `REAL` | **PLC** | `0` |
+| `bay_b_occupied` | `BOOL` | **PC** | `False` |
+| `bay_b_customer_authorized` | `BOOL` | **PC** | `False` |
+| `bay_b_charger_ready` | `BOOL` | **PC** | `False` |
+| `bay_b_charge_enable` | `BOOL` | **PLC** | `False` |
+| `bay_b_energy_session_active` | `BOOL` | **PLC** | `False` |
+| `bay_b_connector_inserted` | `BOOL` | **PC** | `False` |
+| `bay_b_connector_connected` | `BOOL` | **PC** | `False` |
+| `bay_b_energy_pulse` | `BOOL` | **PC** | `False` |
+| `bay_b_delivered_kw` | `REAL` | **PC** | `0` |
+| `bay_b_meter_energy_kwh` | `REAL` | **PC** | `0` |
+| `bay_b_meter_pulse_count` | `DINT` | **PC** | `0` |
+| `bay_b_allocated_kw` | `REAL` | **PLC** | `0` |
+| `bay_b_energy_count` | `DINT` | **PLC** | `0` |
+| `bay_b_energy_kwh` | `REAL` | **PLC** | `0` |
+| `allocation_inhibited` | `BOOL` | **PC** | `False` |
 
 ## Operator actions
 
@@ -27,6 +51,11 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | `Toggle bay occupied` | `toggle` | `bay_occupied` |
 | `Toggle customer authorized` | `toggle` | `customer_authorized` |
 | `Toggle charger ready` | `toggle` | `charger_ready` |
+| `A connector fixture` | `toggle` | `connector_inserted` |
+| `B occupancy fixture` | `toggle` | `bay_b_occupied` |
+| `B authorization fixture` | `toggle` | `bay_b_customer_authorized` |
+| `B ready fixture` | `toggle` | `bay_b_charger_ready` |
+| `B connector fixture` | `toggle` | `bay_b_connector_inserted` |
 
 ## Equipment bindings
 
@@ -37,6 +66,11 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | `charger_ready` | `switch_9` | `switch` |
 | `charge_enable` | `indicator_2` | `indicator` |
 | `energy_session_active` | `indicator_10` | `indicator` |
+| `connector_inserted` | `fixture_connector_inserted` | `switch` |
+| `bay_b_occupied` | `fixture_bay_b_occupied` | `switch` |
+| `bay_b_customer_authorized` | `fixture_bay_b_customer_authorized` | `switch` |
+| `bay_b_charger_ready` | `fixture_bay_b_charger_ready` | `switch` |
+| `bay_b_connector_inserted` | `fixture_bay_b_connector_inserted` | `switch` |
 
 ## Expected equipment
 
@@ -57,6 +91,11 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | `ev_meter_b` | `trainingAccessory` | Bay B energy display (static until connected) |
 | `ev_pulse_b` | `trainingAccessory` | Bay B pulse module (static until connected) |
 | `ev_reader_b` | `trainingAccessory` | Bay B authorization reader |
+| `fixture_connector_inserted` | `switch` | A connector fixture |
+| `fixture_bay_b_occupied` | `switch` | B occupancy fixture |
+| `fixture_bay_b_customer_authorized` | `switch` | B authorization fixture |
+| `fixture_bay_b_charger_ready` | `switch` | B ready fixture |
+| `fixture_bay_b_connector_inserted` | `switch` | B connector fixture |
 
 ## Stop and safety boundary
 

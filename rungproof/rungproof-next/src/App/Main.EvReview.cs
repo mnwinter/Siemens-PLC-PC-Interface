@@ -18,7 +18,7 @@ public partial class Main
                 var bay=root.GetNode<Node3D>(ids[0]);
                 MeshInstance3D Mesh(Node3D n,string name)=>(MeshInstance3D)n.FindChild(name,true,false);
                 var pad=ReviewBounds(Mesh(bay,"EV_BAY_ground_pad"));
-                var tires=ReviewMeshes(bay).Where(m=>m.Name.ToString().StartsWith("EV_tire_")).ToArray();
+                var tires=bay.FindChildren("*","MeshInstance3D",true,false).OfType<MeshInstance3D>().Where(m=>m.Name.ToString().StartsWith("EV_tire_")).ToArray();
                 Check(tires.Length==4 && tires.All(t=>Math.Abs(ReviewBounds(t).Position.Y-pad.End.Y)<.003),ids[0]+"_four_tires_bear_on_pad");
                 var pedestal=ReviewBounds(Mesh(bay,"EVSE_base"));
                 Check(Math.Abs(pedestal.Position.Y-pad.End.Y)<.003,ids[0]+"_charger_base_bears_on_pad");
@@ -40,8 +40,32 @@ public partial class Main
             }
             Check(!ReviewMeshes(root).Any(m=>m.Name.ToString().StartsWith("KIN_slat_") || m.Name.ToString().StartsWith("PROCESS_flange")),"no_inherited_shutter_or_fluid_identity");
             Check(!root.HasNode("machine_0"),"unrelated_cabinet_removed");
+            var runtime=_sceneRuntime!;
+            runtime.UsesExternalClock=true;runtime.SetControllerPlaybackRunning(true);
+            bool On(string n)=>Convert.ToBoolean(runtime.Points[n]);
+            double Number(string n)=>Convert.ToDouble(runtime.Points[n]);
+            void Tick(int count=1) {for(var i=0;i<count;i++)runtime.AdvanceSimulation(.02);}
+            Check(!On("connector_connected") && !On("bay_b_connector_connected"),"empty_bays_have_no_connector_feedback");
+            Check(!runtime.ExecuteAction("toggle-connector_inserted"),"cannot_insert_without_vehicle");
+            runtime.ExecuteAction("toggle-bay_occupied");runtime.ExecuteAction("toggle-connector_inserted");
+            runtime.ExecuteAction("toggle-customer_authorized");runtime.ExecuteAction("toggle-charger_ready");
+            Check(On("connector_connected"),"occupied_inserted_actual_meshes_report_connected");
+            Check(!runtime.ExecuteAction("toggle-bay_occupied"),"cannot_remove_connected_vehicle");
+            runtime.CommitVirtualControllerOutputs(new System.Collections.Generic.Dictionary<string,bool>{{"charge_enable",true},{"bay_b_charge_enable",false}});
+            runtime.CommitVirtualControllerNumericOutputs(new System.Collections.Generic.Dictionary<string,double>{{"allocated_kw",6},{"bay_b_allocated_kw",0}});
+            Tick(30);
+            Check(Number("delivered_kw")==6 && Number("meter_pulse_count")==1 && On("energy_pulse"),"accepted_ticks_generate_actual_fixture_meter_pulse");
+            Check(!runtime.ExecuteAction("toggle-connector_inserted"),"connector_changes_rejected_with_charge_command");
+            var energy=Number("meter_energy_kwh");runtime.SetControllerPlaybackRunning(false);Tick(30);
+            Check(Number("meter_energy_kwh")==energy && !On("energy_pulse") && Number("delivered_kw")==0,"stopped_clock_retains_energy_without_pulse_or_delivery");
+            runtime.SetControllerPlaybackRunning(true);Tick();
+            Check(Number("meter_energy_kwh")>energy && Number("meter_pulse_count")==1,"resumed_tick_retains_meter_count");
+            runtime.ExecuteAction("toggle-customer_authorized");Tick();
+            Check(Number("delivered_kw")==0,"authorization_loss_stops_energy_delivery");
+            runtime.ResetSimulation();runtime.SetControllerPlaybackRunning(false);
+            Check(Number("meter_energy_kwh")==0 && Number("meter_pulse_count")==0 && !On("connector_connected"),"reset_clears_meter_and_fixture_state");
         } catch(Exception ex) { failures++;GD.PushError(ex.ToString()); }
-        GD.Print($"EV_LAYOUT_VERIFY {(failures==0?"PASS":"FAIL")} installation bounds only; charging and energy behavior unfinished");
+        GD.Print($"EV_LAYOUT_VERIFY {(failures==0?"PASS":"FAIL")} geometry and offline adapter only; PLC reference and native runtime pending");
         GetTree().Quit(failures==0?0:1);
     }
 }

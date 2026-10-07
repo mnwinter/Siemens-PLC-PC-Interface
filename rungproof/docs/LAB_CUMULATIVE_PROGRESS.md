@@ -1,11 +1,36 @@
 # Cumulative Lab Progression
 
+EV offline plant/adapter checkpoint (2026-10-06, native runtime OPEN):
+Added renderer-neutral two-bay energy fixture: PLC grants/allocations are retained
+as commands; valid occupied/authorized/ready/connected bays receive allocated
+power. Illustrative shared budget 6 kW, pulse scale .001 kWh; invalid or over-budget
+allocation inhibits delivery rather than silently selecting a scheduling policy.
+Energy and fractional pulse residue survive Pause; Reset clears them. The model
+accepts ticks up to 20 ms and exposes one-scan pulses. Twenty-one pure model
+checks PASS (.tools/ev-plant-model-tests.log), including 10-minute 1 kWh/1000 pulse
+agreement, independent sharing, malformed commands and permissive loss.
+The scene adapter derives connected feedback from visible installed plug/inlet
+meshes, rejects insertion without a vehicle, rejects vehicle removal with plug
+inserted, and rejects plug changes while a charge command/allocation is present.
+Runtime has 29 symbolic points and eight fixture actions/20 equipment; aggregate
+catalog count 620. Twenty-six geometry/adapter checks PASS in
+.tools/ev-connected-adapter-audit.log; connected A-bay pulse and Stop/Run/Reset
+proved offline. Corrected meter count representation to the editor's long-backed
+DINT boundary. Static geometry checks include hidden empty-bay tire meshes.
+Build zero warnings/errors; help validates 294 assets/77 scenes. New controls,
+empty-bay visibility and pulse feedback have NOT been visually inspected; Windows
+input remains stopped after physical Escape. Last close was interrupted, contrary
+to the original closed-window wording (now corrected). PLC scheduling/counting
+reference, live readout bindings and native runtime review remain unfinished.
+The scene stays OPEN and no electrical, protocol or calibrated-energy claim is made.
+
 EV geometry verification follow-up (2026-10-06):
 --audit-ev-layout: 16 focused installation checks PASS, covering actual pad/tire
 and charger bearing, plug/inlet engagement, cable/gland continuity, grounded
 meter/reader bases and pulse-module mounting for both bays. A 12.5 mm gap behind
 the pulse modules was corrected. Final current native FR/FL/RL/RR/Top repeated
-in .tools/ev-native-pulse-mount-final.log; preview closed normally. Build zero
+in .tools/ev-native-pulse-mount-final.log. The close attempt was interrupted by
+physical Escape; window closure was not confirmed and Windows input stopped. Build zero
 warnings/errors, .tools/ev-focused-layout.log PASS; full scene geometry regression
 in .tools/ev-geometry-regression.log PASS (987 checks). These are bounds/visual
 checks, not electrical or mechanical approval. Updated five owned asset help

@@ -238,10 +238,85 @@
         "assetName": "authorization reader",
         "catalogAssetId": "training.accessory.authorization_reader.v1"
       }
+    },
+    {
+      "id": "fixture_connector_inserted",
+      "type": "switch",
+      "label": "A connector fixture",
+      "position": [
+        -5.2,
+        0,
+        4.1
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-connector_inserted",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "fixture_bay_b_occupied",
+      "type": "switch",
+      "label": "B occupancy fixture",
+      "position": [
+        3.6,
+        0,
+        5.7
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-bay_b_occupied",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "fixture_bay_b_customer_authorized",
+      "type": "switch",
+      "label": "B authorization fixture",
+      "position": [
+        5.8,
+        0,
+        5.7
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-bay_b_customer_authorized",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "fixture_bay_b_charger_ready",
+      "type": "switch",
+      "label": "B ready fixture",
+      "position": [
+        1.4,
+        0,
+        5.7
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-bay_b_charger_ready",
+        "color": 2204518
+      }
+    },
+    {
+      "id": "fixture_bay_b_connector_inserted",
+      "type": "switch",
+      "label": "B connector fixture",
+      "position": [
+        -5.2,
+        0,
+        5.7
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "toggle-bay_b_connector_inserted",
+        "color": 2204518
+      }
     }
   ],
   "simulation": {
-    "type": "booleanPanel",
+    "type": "evCharging",
     "points": [
       {
         "name": "bay_occupied",
@@ -274,6 +349,150 @@
         "owner": "PLC",
         "initial": false,
         "role": "output"
+      },
+      {
+        "name": "connector_inserted",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "connector_connected",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "energy_pulse",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "delivered_kw",
+        "type": "REAL",
+        "owner": "PC",
+        "initial": 0
+      },
+      {
+        "name": "meter_energy_kwh",
+        "type": "REAL",
+        "owner": "PC",
+        "initial": 0
+      },
+      {
+        "name": "meter_pulse_count",
+        "type": "DINT",
+        "owner": "PC",
+        "initial": 0
+      },
+      {
+        "name": "allocated_kw",
+        "type": "REAL",
+        "owner": "PLC",
+        "initial": 0
+      },
+      {
+        "name": "energy_count",
+        "type": "DINT",
+        "owner": "PLC",
+        "initial": 0
+      },
+      {
+        "name": "energy_kwh",
+        "type": "REAL",
+        "owner": "PLC",
+        "initial": 0
+      },
+      {
+        "name": "bay_b_occupied",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "bay_b_customer_authorized",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "bay_b_charger_ready",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "bay_b_charge_enable",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false
+      },
+      {
+        "name": "bay_b_energy_session_active",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false
+      },
+      {
+        "name": "bay_b_connector_inserted",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "bay_b_connector_connected",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "bay_b_energy_pulse",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "bay_b_delivered_kw",
+        "type": "REAL",
+        "owner": "PC",
+        "initial": 0
+      },
+      {
+        "name": "bay_b_meter_energy_kwh",
+        "type": "REAL",
+        "owner": "PC",
+        "initial": 0
+      },
+      {
+        "name": "bay_b_meter_pulse_count",
+        "type": "DINT",
+        "owner": "PC",
+        "initial": 0
+      },
+      {
+        "name": "bay_b_allocated_kw",
+        "type": "REAL",
+        "owner": "PLC",
+        "initial": 0
+      },
+      {
+        "name": "bay_b_energy_count",
+        "type": "DINT",
+        "owner": "PLC",
+        "initial": 0
+      },
+      {
+        "name": "bay_b_energy_kwh",
+        "type": "REAL",
+        "owner": "PLC",
+        "initial": 0
+      },
+      {
+        "name": "allocation_inhibited",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
       }
     ],
     "actions": [
@@ -294,6 +513,41 @@
         "label": "Toggle charger ready",
         "type": "toggle",
         "point": "charger_ready"
+      },
+      {
+        "id": "toggle-connector_inserted",
+        "label": "A connector fixture",
+        "type": "toggle",
+        "point": "connector_inserted",
+        "blockedMessage": "Unplug before removing the vehicle; insert only with an occupied bay and no charging command or allocation."
+      },
+      {
+        "id": "toggle-bay_b_occupied",
+        "label": "B occupancy fixture",
+        "type": "toggle",
+        "point": "bay_b_occupied",
+        "blockedMessage": "Unplug before removing the vehicle; insert only with an occupied bay and no charging command or allocation."
+      },
+      {
+        "id": "toggle-bay_b_customer_authorized",
+        "label": "B authorization fixture",
+        "type": "toggle",
+        "point": "bay_b_customer_authorized",
+        "blockedMessage": "Unplug before removing the vehicle; insert only with an occupied bay and no charging command or allocation."
+      },
+      {
+        "id": "toggle-bay_b_charger_ready",
+        "label": "B ready fixture",
+        "type": "toggle",
+        "point": "bay_b_charger_ready",
+        "blockedMessage": "Unplug before removing the vehicle; insert only with an occupied bay and no charging command or allocation."
+      },
+      {
+        "id": "toggle-bay_b_connector_inserted",
+        "label": "B connector fixture",
+        "type": "toggle",
+        "point": "bay_b_connector_inserted",
+        "blockedMessage": "Unplug before removing the vehicle; insert only with an occupied bay and no charging command or allocation."
       }
     ],
     "rules": [],
@@ -325,6 +579,31 @@
         "equipmentId": "indicator_10",
         "mode": "indicator",
         "activeColor": "green"
+      },
+      {
+        "point": "connector_inserted",
+        "equipmentId": "fixture_connector_inserted",
+        "mode": "switch"
+      },
+      {
+        "point": "bay_b_occupied",
+        "equipmentId": "fixture_bay_b_occupied",
+        "mode": "switch"
+      },
+      {
+        "point": "bay_b_customer_authorized",
+        "equipmentId": "fixture_bay_b_customer_authorized",
+        "mode": "switch"
+      },
+      {
+        "point": "bay_b_charger_ready",
+        "equipmentId": "fixture_bay_b_charger_ready",
+        "mode": "switch"
+      },
+      {
+        "point": "bay_b_connector_inserted",
+        "equipmentId": "fixture_bay_b_connector_inserted",
+        "mode": "switch"
       }
     ]
   },
@@ -333,7 +612,8 @@
       "Translate the lesson into explicit state and permissive logic: Charging is enabled only for an occupied, authorized, ready bay.",
       "Inputs are simulator feedback (bay_occupied, customer_authorized, charger_ready); PLC logic owns charge_enable, energy_session_active.",
       "Test the initial state, the valid condition, and at least one missing permissive.",
-      "Geometry repair in progress: both EV bays are illustrative. Current Boolean inputs address Bay A only; pulse/energy and shared allocation runtime remain unfinished. Static meters do not represent measured energy."
+      "Illustrative offline fixture: 6 kW shared allocation budget; .001 kWh per meter pulse. PLC owns bay grants, allocated_kw and energy_count/energy_kwh. No charging protocol, calibration or electrical approval. Controller/reference and native runtime verification remain pending.",
+      "Unplug before vehicle removal. Connector fixture changes require charge_enable false and allocation zero. Energy integrates accepted ticks only; Stop retains meter energy and fractional pulse state, while Reset clears them."
     ],
     "solution": {
       "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",

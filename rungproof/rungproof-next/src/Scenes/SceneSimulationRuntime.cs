@@ -74,6 +74,7 @@ public partial class SceneSimulationRuntime : Node
         if (selected && !running) PauseCoatingClock();
         if (selected && !running) PauseHandDryer();
         if (selected && !running) PauseLuggagePlant();
+        if(selected && !running && HasEvPlant) PauseEvPlant();
         if (selected && running) ApplyBindings();
     }
 
@@ -103,6 +104,7 @@ public partial class SceneSimulationRuntime : Node
         if (!running) PauseCoatingClock();
         if (!running) PauseHandDryer();
         if (!running) PauseLuggagePlant();
+        if(!running && HasEvPlant) PauseEvPlant();
         if (RuntimeType == "tank") ProjectTankState();
     }
 
@@ -158,7 +160,7 @@ public partial class SceneSimulationRuntime : Node
         return action.ValueKind == JsonValueKind.Object;
     }
 
-    public bool CanExecuteAction(JsonElement action) => RequirementsSatisfied(action)
+    public bool CanExecuteAction(JsonElement action) => RequirementsSatisfied(action) && EvActionAvailable(action)
         && (Text(action, "type", "") != "palletizerLoad" || _palletizer?.CanLoadCarton == true)
         && (Text(action, "type", "") != "groupingLoad" || PackageGroupingPlant?.CanLoad == true)
         && (!HasLuggagePlant || (Text(action,"type","") != "luggageLoad" || (LuggageFinished && LuggageCommandsOff)))
@@ -231,6 +233,7 @@ public partial class SceneSimulationRuntime : Node
         if (HasCoatingPlant) { AdvanceCoatingPlant(delta); return; }
         if (HasHandDryer) { AdvanceHandDryer(delta); return; }
         if (HasLuggagePlant) { AdvanceLuggagePlant(delta); return; }
+        if (HasEvPlant) { AdvanceEvPlant(delta); return; }
         if (HasParkingEntryPlant) { AdvanceParkingEntryPlant(delta); return; }
         if (HasPackageGroupingPlant) { AdvancePackageGroupingPlant(delta); return; }
 
@@ -410,6 +413,7 @@ public partial class SceneSimulationRuntime : Node
         PauseCoatingClock();
         PauseHandDryer();
         PauseLuggagePlant();
+        if(HasEvPlant) PauseEvPlant();
         _shippingPalletReferenceActive = false;
         if (!UsesExternalClock && RuntimeType == "booleanPanel") _booleanPreviewStopped = true;
         _activeStepIndex = -1;
@@ -502,6 +506,7 @@ public partial class SceneSimulationRuntime : Node
         ResetCoatingPlant();
         ResetHandDryer();
         ResetLuggagePlant();
+        ResetEvPlant();
         ResetParkingEntryPlant();
         ResetPackageGroupingPlant();
         EvaluateRules();
@@ -520,7 +525,7 @@ public partial class SceneSimulationRuntime : Node
             GD.PushWarning($"Unknown scene action '{actionId}'.");
             return false;
         }
-        if (!RequirementsSatisfied(action) || (HasLuggagePlant && !CanExecuteAction(action)))
+        if (!RequirementsSatisfied(action) || ((HasLuggagePlant || HasEvPlant) && !CanExecuteAction(action)))
         {
             GD.Print($"SCENE_ACTION_BLOCKED {actionId} {Text(action, "blockedMessage", "requirements not met")}");
             return false;
@@ -1087,6 +1092,7 @@ public partial class SceneSimulationRuntime : Node
     private void EvaluateRules()
     {
         if(HasLuggagePlant) ProjectLuggagePlant();
+        if(HasEvPlant) ProjectEvGeometry();
         if (HasHandDryer) { ProjectDryerHands(); if (_dryerFan is not null) ProjectDryerCommands(PlantPlaybackRunning); }
         if (UsesExternalClock)
         {
