@@ -1,0 +1,10 @@
+{
+  "scope": "Nominal installed ellipse envelopes at 0 and 90 degrees; threads/seal/native view unverified",
+  "scaleX": 0.8154506704780896,
+  "scaleZ": 0.8154506704780896,
+  "homeClearanceX_M": 0.004077261615180531,
+  "homeClearanceZ_M": 0.004077261615180531,
+  "quarterTurnClearanceX_M": 0.00407726161518053,
+  "quarterTurnClearanceZ_M": 0.00407726161518053,
+  "quarterTurnFits": true
+}

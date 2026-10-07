@@ -11,6 +11,27 @@ public static partial class SceneComposer
     // The catalog masters surround a floor-standing reference tote. This
     // installation adapts their mounting geometry to a 900 mm conveyor.
     // Only the finishing-line scene opts in; the masters remain unchanged.
+    // A training load may have a resized rectangular footprint, but its mating
+    // round neck/cap must share one horizontal scale to remain rotationally fit.
+    private static void PreserveFinishingCircularPorts(Node3D model)
+    {
+        var diameterScale = MathF.Max(model.Scale.X, model.Scale.Z);
+        var correction = Basis.FromScale(new Vector3(diameterScale / model.Scale.X, 1,
+            diameterScale / model.Scale.Z));
+        foreach (var name in new[] { "IBC_open_fill_neck", "IBC_fill_cap" })
+        {
+            var part = (MeshInstance3D)model.FindChild(name, true, false);
+            var parentTransform = Transform3D.Identity;
+            for (var parent = part.GetParent(); parent != model; parent = parent.GetParent())
+                if (parent is Node3D spatial) parentTransform = spatial.Transform * parentTransform;
+            var pose = parentTransform * part.Transform;
+            var center = (pose * part.GetAabb()).GetCenter();
+            var basis = correction * pose.Basis;
+            part.Transform = parentTransform.AffineInverse() * new Transform3D(basis,
+                center - basis * part.GetAabb().GetCenter());
+        }
+    }
+
     private static Node3D CreateToteFinishingStation(SceneEquipment equipment,
         AssetCatalogDocument candidates, bool runCommand)
     {
@@ -122,6 +143,8 @@ public static partial class SceneComposer
             var toteSize = NumberArray(equipment.Config, "heldCapToteSize", new[] { .95, 1.35, .9 });
             var capScale = new Vector3((float)(toteSize[0] / capAsset.Bounds.WidthM),
                 (float)(toteSize[1] / capAsset.Bounds.HeightM), (float)(toteSize[2] / capAsset.Bounds.DepthM));
+            var roundScale = MathF.Max(capScale.X, capScale.Z);
+            capScale.X = roundScale; capScale.Z = roundScale;
             var heldCap = Part("CAP_UNDER_CHUCK");
             heldCap.Mesh = sourceCap.Mesh;
             heldCap.MaterialOverride = sourceCap.MaterialOverride;

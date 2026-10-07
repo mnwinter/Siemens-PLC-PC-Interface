@@ -727,6 +727,9 @@ public static partial class SceneComposer
             (float)(size[1] / asset.Bounds.HeightM),
             (float)(size[2] / asset.Bounds.DepthM)
         );
+        if (equipment.Id == "finishing_tote" && equipment.Config.TryGetProperty("preserveCircularFillPort", out var circular)
+            && circular.ValueKind == JsonValueKind.True)
+            PreserveFinishingCircularPorts(model);
         return model;
     }
 

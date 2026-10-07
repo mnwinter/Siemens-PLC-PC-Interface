@@ -62,3 +62,16 @@ This repairs the held shape and indexing clearance only. Axial application,
 release, retained capped travel and native multi-angle acceptance remain OPEN.
 The prior 152 mm finding records the earlier geometry and is superseded by
 the repaired held pose; it must not be used as the new actuator stroke.
+
+## Installed cap rotation repair
+
+An analytic check of the old horizontal installation scales (X 0.81545,
+Z 0.59840) found a 27.394 mm negative envelope clearance after a 90-degree
+cap turn. The finishing installation now opts into preserving circular neck
+and cap geometry, using the larger common horizontal scale while preserving
+their centers and vertical seating geometry. The held cap uses the same scale.
+Forty focused actual-scene checks still pass (.tools/circular-cap-audit.log),
+including bore engagement, fill inhibition and full supported preview route.
+The reproducible nominal envelope check is tools/modeling/verify_installed_tote_cap_rotation.py.
+This is not a thread/seal fit, swept triangle proof or native acceptance.
+Axial application and the latest native multi-angle review remain OPEN.
