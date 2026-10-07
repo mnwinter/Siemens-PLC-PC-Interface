@@ -1,5 +1,10 @@
 # Whole program review - 2026-10-03
 
+## 2026-10-06 guarded-transfer layout repair (native pending)
+
+Scene 40 used a foot-switch surrogate for its access gate, with both photoeyes and the curtain outside the conveyor route. Replaced the scene gate mapping with the existing mesh swing gate at the access side, rotated the existing light-curtain pair across the belt, and placed both photoeyes within its X extent. Retained the supported home carton and the manual boolean fixture inputs. Added delivered-mesh checks for beam height/span and gate identity/clearance. Build and help validation pass; full geometry regression in progress. New Windows multi-angle views remain pending after the native Escape stop. No carton transport, physical interlocking or safety-rated detection is claimed.
+
+
 Radar REAL-feedback PLC reference checkpoint (2026-10-06, native review OPEN):
 --audit-radar-layout explicitly generates ignored .tools/plant-review-radar.rpproj.json.
 Default exercise remains blank. Local stations now publish PC-owned cycle_request

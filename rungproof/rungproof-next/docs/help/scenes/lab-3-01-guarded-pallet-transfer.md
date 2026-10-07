@@ -2,7 +2,7 @@
 
 Scene ID: `lab-3-01-guarded-pallet-transfer`  
 Migrated source: `prototype/scenes/lab-3-01-guarded-pallet-transfer.plcscene`  
-Scene contract: `prototype/scenes/lab-3-01-guarded-pallet-transfer.plcscene`
+Scene contract: `res://scenes/migrated/lab-3-01-guarded-pallet-transfer.scene.json`
 
 ## Purpose
 

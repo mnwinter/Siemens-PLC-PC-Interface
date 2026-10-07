@@ -58,7 +58,7 @@
       "type": "photoeye",
       "label": "Guarded Pallet Transfer photoeye",
       "position": [
-        1.1,
+        -4.8,
         0,
         0
       ],
@@ -74,7 +74,7 @@
       "type": "photoeye",
       "label": "Guarded Pallet Transfer photoeye",
       "position": [
-        3.3000000000000003,
+        -0.8,
         0,
         0
       ],
@@ -123,27 +123,32 @@
       "type": "trainingAccessory",
       "label": "Guarded Pallet Transfer - safety light-curtain pair",
       "position": [
-        1.1,
+        -5.5,
         0,
-        1.8
+        0
       ],
       "config": {
         "assetName": "safety light-curtain pair",
-        "catalogAssetId": "training.accessory.safety_light_curtain_pair.v1"
-      }
+        "catalogAssetId": "safety.light-curtain.1800mm.v1"
+      },
+      "rotation": [
+        0,
+        90,
+        0
+      ]
     },
     {
       "id": "training_accessory_7",
       "type": "trainingAccessory",
       "label": "Guarded Pallet Transfer - guarded access gate",
       "position": [
-        3.3000000000000003,
+        -3.3,
         0,
-        1.8
+        1.6
       ],
       "config": {
         "assetName": "guarded access gate",
-        "catalogAssetId": "training.accessory.guarded_access_gate.v1"
+        "catalogAssetId": "safety.gate.mesh-swing-2m.v1"
       }
     },
     {
@@ -301,7 +306,8 @@
     "hints": [
       "Translate the lesson into explicit state and permissive logic: The transfer runs only with protection closed and both path sensors clear.",
       "Inputs are simulator feedback (guard_closed, entry_clear, exit_clear); PLC logic owns transfer_run, transfer_permissive.",
-      "Test the initial state, the valid condition, and at least one missing permissive."
+      "Test the initial state, the valid condition, and at least one missing permissive.",
+      "The gate and curtain are layout fixtures. Manual guard/path inputs do not prove gate interlocking, curtain detection, or a safety-rated stop. Carton transport is not yet modeled in this lesson."
     ],
     "solution": {
       "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",

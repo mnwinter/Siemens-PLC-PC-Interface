@@ -1051,6 +1051,35 @@ public partial class Main
                 && load.Position.X >= belt.Position.X && load.End.X <= belt.End.X
                 && load.Position.Z >= belt.Position.Z && load.End.Z <= belt.End.Z,
                 $"{sceneId}_carton_resting_within_carrying_belt");
+            if (sceneId == "lab-3-01-guarded-pallet-transfer")
+            {
+                // Prove placement from delivered meshes, rather than equipment
+                // origins. This does not establish protective-field behavior.
+                foreach (var sensorId in new[] { "photoeye_2", "photoeye_3" })
+                {
+                    var sensor = root.GetNode<Node3D>(sensorId);
+                    var beams = ReviewMeshes(sensor).Where(mesh => mesh.Name.ToString().StartsWith("KIN_beam")).ToArray();
+                    check(beams.Length > 0 && beams.All(mesh =>
+                    {
+                        var beam = ReviewBounds(mesh);
+                        return beam.Position.X >= belt.Position.X && beam.End.X <= belt.End.X
+                            && beam.Position.Z <= belt.Position.Z && beam.End.Z >= belt.End.Z
+                            && beam.Position.Y > belt.End.Y && beam.Position.Y < load.End.Y;
+                    }), $"{sceneId}_{sensorId}_beam_crosses_carrying_route_at_carton_height");
+                }
+                var curtain = root.GetNode<Node3D>("training_accessory_6");
+                var field = ReviewMeshes(curtain).Where(mesh => mesh.Name.ToString().StartsWith("BEAM_")).ToArray();
+                check(field.Length > 0 && field.All(mesh =>
+                {
+                    var beam = ReviewBounds(mesh);
+                    return beam.Position.X >= belt.Position.X && beam.End.X <= belt.End.X
+                        && beam.Position.Z <= belt.Position.Z && beam.End.Z >= belt.End.Z;
+                }), $"{sceneId}_curtain_field_spans_conveyor_width");
+                var gate = root.GetNode<Node3D>("training_accessory_7");
+                check(ReviewMeshes(gate).Any(mesh => mesh.Name.ToString().StartsWith("GATE_frame"))
+                    && ReviewBounds(gate).Position.Z > belt.End.Z,
+                    $"{sceneId}_mesh_gate_is_beside_carrying_route");
+            }
             var cartonParts = ReviewMeshes(carton);
             var solids = root.GetChildren().OfType<Node3D>().Where(node => node != carton)
                 .SelectMany(ReviewMeshes).Where(mesh => !mesh.Name.ToString().StartsWith("KIN_beam")).ToArray();
