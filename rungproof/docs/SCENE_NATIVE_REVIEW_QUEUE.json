@@ -145,7 +145,7 @@
     {
       "index": 9,
       "sceneId": "lab-11-06-wastewater-collection",
-      "recordedNativeViews": "FR/FL/RL/RR/T + transmitter T/FR",
+      "recordedNativeViews": "Final repaired FR/FL/RL/RR/T + valve/pump details",
       "recordedAngles": {
         "FR": true,
         "FL": true,
@@ -153,7 +153,7 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "FAIL: overlapping tanks, unmounted probe, pneumatic manifold instead of process piping; empty editor on Run",
+      "recordedResult": "Tank spacing, roof probe mounting, measured collector/discharge pipes and grounded supports repaired; 18 focused checks pass. Native QA project load/Run, each permissive loss, Stop/Reset and valve endpoints inspected. FAIL/open: no fluid/analog process model or full continuous-motion proof; default exercise unloaded.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": true,
       "disposition": "REPAIR_RECORDED_FAILURE",
@@ -162,7 +162,7 @@
     {
       "index": 10,
       "sceneId": "lab-11-07-multi-conveyor-pallet-route",
-      "recordedNativeViews": "FR/FL/RL/RR/T + conveyor T/FR",
+      "recordedNativeViews": "Final repaired FR/FL/RL/RR/T + receiver/first seam/middle belt details",
       "recordedAngles": {
         "FR": true,
         "FL": true,
@@ -170,7 +170,7 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "FAIL: three superimposed belts, disconnected roller zone, vibration/bearing prop instead of handoff sensor, no pallet; empty editor on Run",
+      "recordedResult": "Three separated belts, level supported handoffs, inline grounded receiver and actual handoff photoeye repaired. Native independent zone commands, loss, Stop/Reset checked with QA program; actual conveyor Reset internals verified. FAIL/open: missing pallet travel, common-stop/edge control, automatic beam feedback and bearing traversal; receiver static.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": true,
       "disposition": "REPAIR_RECORDED_FAILURE",
@@ -179,7 +179,7 @@
     {
       "index": 11,
       "sceneId": "lab-11-11-service-elevator",
-      "recordedNativeViews": "FR/FL/RL/RR/T",
+      "recordedNativeViews": "Final placement FR/FL/RL/RR/T",
       "recordedAngles": {
         "FR": true,
         "FL": true,
@@ -187,7 +187,7 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "FAIL: shutter intersects scissor platform, bucket elevator instead of car/shaft, cabinets instead of call station/position sensor; empty editor on Run",
+      "recordedResult": "Shutter/lift separated by measured 0.175 m; cabinet/landing-door overlaps and cabinet grounding repaired and natively re-inspected. FAIL/open: bucket elevator instead of car/shaft, cabinets instead of call station/position sensor, two-landings geometry and full-motion controller workflow absent/unverified.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": true,
       "disposition": "REPAIR_RECORDED_FAILURE",
@@ -196,7 +196,7 @@
     {
       "index": 12,
       "sceneId": "lab-11-12-mobile-traffic-lights",
-      "recordedNativeViews": "FR/FL/RL/RR/T",
+      "recordedNativeViews": "Final repaired FR/FL/RL/RR/T",
       "recordedAngles": {
         "FR": true,
         "FL": true,
@@ -204,7 +204,7 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "FAIL: vertical guard/window wall instead of roadway, single amber beacons instead of traffic head/link; empty editor on Run",
+      "recordedResult": "Horizontal road and two opposing three-color heads replace wall/beacon proxies; stations clear of roadway. Existing green bindings preserved; 145 controller tests/app shell pass. FAIL/open: portable bases, synchronization link, red/amber command timing, vehicle motion and automatic clear feedback; default exercise unloaded.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": true,
       "disposition": "REPAIR_RECORDED_FAILURE",
@@ -468,7 +468,7 @@
     {
       "index": 28,
       "sceneId": "lab-2-14-sump-pump",
-      "recordedNativeViews": "Final repaired FR/FL/RL/RR/T wide + top/FL/RL/FR pump close",
+      "recordedNativeViews": "Final mount FR/FL/RL/RR/T + low-fitting FR close; earlier pump details",
       "recordedAngles": {
         "FR": true,
         "FL": true,
@@ -476,7 +476,7 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Partial piping repair: joined measured ports, aligned valve/spool and grounded supports; still FAIL: buried low probe, float fitting/identity and sump vessel open; normal Run unloaded; full level motion pending",
+      "recordedResult": "Joined pipes, aligned valve/spool and grounded supports repaired. Low/high switches now seated at actual modeled thresholds on clear side, above floor and clear of ladder/sight glass; 24 three-scene mount checks pass, native re-inspected. FAIL/open: closed vertical vessel instead of sump, tuning forks instead of floats, full controller-owned level cycle and complete native motion unverified.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": true,
       "disposition": "REPAIR_RECORDED_FAILURE",
