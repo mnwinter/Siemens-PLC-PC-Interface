@@ -21,6 +21,7 @@ public partial class Main
             VerifyCartonStaticCableRoutes(Check);
             VerifyInclinedPhotoeyeGeometry(Check);
             VerifyVisionSorterCartonSupport(Check);
+            VerifyVisionSorterRuntime(Check);
         }
         catch (Exception error)
         {
@@ -28,6 +29,53 @@ public partial class Main
             GD.PushError($"CARTON_STATIC_CHECK exception: {error}");
         }
         GetTree().Quit(passed ? 0 : 1);
+    }
+
+    private void VerifyVisionSorterRuntime(Action<bool, string> check)
+    {
+        for (var lane = 1; lane <= 4; lane++)
+        {
+            AddMigratedScene("lab-10-03-vision-package-sorter", _candidateCatalog!, _mainCamera!, false, false);
+            var runtime = _sceneRuntime!;
+            var carton = _sceneCompositionRoot!.GetNode<Node3D>("box_1");
+            for (var selection = 1; selection < lane; selection++) runtime.ExecuteAction("cycle-vision_class");
+            runtime.ExecuteAction("toggle-package_present");
+            runtime.ExecuteAction("toggle-vision_result_valid");
+            runtime.ExecuteAction("toggle-destination_clear");
+            runtime.UsesExternalClock = true;
+            runtime.SetControllerPlaybackRunning(true);
+            runtime.CommitVirtualControllerOutputs(new System.Collections.Generic.Dictionary<string, bool>
+            { ["sort_conveyor_run"] = true, ["diverter_enable"] = true });
+            runtime.AdvanceSimulation(.02);
+            var latched = Convert.ToInt32(runtime.Points["sort_latched_class"]);
+            runtime.ExecuteAction("cycle-vision_class");
+            var continuous = true;
+            var scans = 0;
+            while (runtime.Points["sort_complete"] is not true && scans++ < 2000)
+            {
+                var before = carton.Position;
+                runtime.AdvanceSimulation(.02);
+                continuous &= carton.Position.DistanceTo(before) <= .00901f;
+            }
+            var target = _sceneCompositionRoot.GetNode<Node3D>($"destination_lane_{lane}");
+            var belt = (MeshInstance3D)target.FindChild("KIN_belt_surface", true, false);
+            var load = ReviewBounds(carton);
+            var support = ReviewBounds(belt);
+            check(runtime.Points["sort_complete"] is true && latched == lane
+                && Convert.ToInt32(runtime.Points["sort_latched_class"]) == lane && continuous,
+                $"vision_sorter_runtime_lane_{lane}_continuous_complete_retains_latched_class");
+            check(MathF.Abs(load.Position.Y-support.End.Y) < .001f && load.Intersects(support.Grow(.001f)),
+                $"vision_sorter_runtime_lane_{lane}_endpoint_bearing_height_and_broad_overlap");
+            var endpoint = carton.Transform;
+            runtime.SetControllerPlaybackRunning(false);
+            runtime.AdvanceSimulation(.02);
+            check(carton.Transform == endpoint && carton.Visible,
+                $"vision_sorter_runtime_lane_{lane}_stopped_retains_visible_endpoint");
+            runtime.ResetSimulation();
+            check(MathF.Abs(carton.Position.X + 1.1f) < .00001f && carton.Position.Z == 0
+                && runtime.Points["sort_complete"] is false && Convert.ToInt32(runtime.Points["sort_latched_class"]) == 0,
+                $"vision_sorter_runtime_lane_{lane}_reset_home_and_feedback");
+        }
     }
 
     private void VerifyVisionSorterCartonSupport(Action<bool, string> check)
@@ -45,7 +93,7 @@ public partial class Main
             && ReviewBounds(foot).Grow(.001f).Intersects(ReviewBounds(mast))
             && ReviewBounds(mast).Grow(.001f).Intersects(ReviewBounds(housing)),
             "vision_sorter_display_has_grounded_base_and_attached_mast_housing");
-        check(display.FindChild("StaticReadout", true, false) is Label3D label && label.Text == "CLASS\nNO RESULT"
+        check(display.FindChild("NumericReadout", true, false) is Label3D label && label.Text == "SIM CLASS\n—"
             && display.FindChild("COUNT_DISPLAY_static_legend", true, false) is MeshInstance3D legend && !legend.Visible,
             "vision_sorter_display_states_no_result_and_hides_stale_count_legend");
         var carton = ReviewBounds(root.GetNode<Node3D>("box_1"));

@@ -133,6 +133,7 @@ public partial class SceneSimulationRuntime : Node
         _guardedDrive?.SetPhysicsProcess(false);
         FreezeToteTransferAdapter();
         FreezeLuggageAdapters();
+        FreezeVisionSorterAdapters();
     }
 
     public void ConsumeExternalInputPulses(IReadOnlyDictionary<string, object?> sampledPoints)
@@ -246,6 +247,7 @@ public partial class SceneSimulationRuntime : Node
                 && StartSequence(sequence)) _commandSequenceStarted = true;
         }
 
+        if (HasVisionSorter) { AdvanceVisionSorter(delta); return; }
         if (HasChainLiftPlant) { AdvanceChainLiftPlant(delta); return; }
         if (HasCookiePackagingPlant) { AdvanceCookiePackagingPlant(delta); return; }
         if (HasBarrelFillPlant) { AdvanceBarrelFillPlant(delta); return; }
@@ -561,6 +563,7 @@ public partial class SceneSimulationRuntime : Node
         ResetEvPlant();
         ResetParkingEntryPlant();
         ResetPackageGroupingPlant();
+        ResetVisionSorter();
         EvaluateRules();
         ApplyBindings();
         if (RuntimeType == "tank") ProjectTankState();

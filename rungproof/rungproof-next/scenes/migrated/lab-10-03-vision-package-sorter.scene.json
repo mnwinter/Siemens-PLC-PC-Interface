@@ -423,6 +423,7 @@
   ],
   "simulation": {
     "type": "booleanPanel",
+    "plantModel": "visionSorter",
     "points": [
       {
         "name": "package_present",
@@ -463,6 +464,10 @@
         "owner": "PC",
         "initial": 1
       }
+,
+      { "name": "sort_complete", "type": "BOOL", "owner": "PC", "initial": false },
+      { "name": "sort_latched_class", "type": "INT", "owner": "SIM", "initial": 0 },
+      { "name": "sort_phase", "type": "STRING", "owner": "SIM", "initial": "Awaiting" }
     ],
     "actions": [
       {
@@ -536,6 +541,7 @@
       "Translate the lesson into explicit state and permissive logic: Sorting is enabled only for a present package with a valid vision result and clear destination.",
       "Inputs are simulator feedback (package_present, vision_result_valid, destination_clear, vision_class); PLC logic owns sort_conveyor_run, diverter_enable.",
       "Select simulated vision_class 1-4; the class display is hidden until vision_result_valid. This is a fixture, not camera image recognition.",
+      "Travel latches the class until Reset. Conveyor moves infeed/discharge; diverter indexes the table. Keep package, result and destination permissives true. Completion retains the carton on its receiving lane.",
       "Test the initial state, the valid condition, and at least one missing permissive."
     ],
     "solution": {
@@ -587,6 +593,9 @@
     "addedTags": [
       "package_present",
       "vision_class",
+      "sort_complete",
+      "sort_latched_class",
+      "sort_phase",
       "vision_result_valid",
       "destination_clear",
       "sort_conveyor_run",
