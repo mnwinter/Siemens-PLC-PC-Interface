@@ -26,7 +26,7 @@ public partial class Main
     // single-clock palletizer / conveyor-pusher / chain lift / cookie / barrel / cable / repeat-cycle plants. Other scenes may
     // have separate callbacks; this is not a general external PLC step.
     private bool CanReviewGantryClock => _visualSceneReview && !_visualPlantReview
-        && _currentSceneId is "scene-2-conveyor-pusher" or "lab-11-13-xy-palletizing" or "lab-4-09-chain-drive-lift" or "lab-4-10-cookie-packaging" or "lab-4-11-barrel-fill-station" or "lab-4-12-cable-cut-length" or "lab-4-03-repeat-cycle-counter" or "lab-4-07-parking-garage-entry" or "lab-4-08-package-grouping" or "lab-5-01-delayed-lamp" or "lab-5-02-timed-lamp-off" or "lab-5-03-rotary-flasher" or "lab-5-04-alternating-lamps" or "lab-5-05-variable-flash-rate" or "lab-5-06-running-light-tower" or "lab-5-07-pedestrian-crossing" or "lab-5-08-drawbridge-control" or "lab-5-09-bag-indexing-conveyor" or "lab-5-10-coating-line" or "lab-6-08-hand-dryer" or "lab-6-07-luggage-weight-sort" or "lab-11-11-service-elevator" or "lab-2-14-sump-pump" or "lab-2-17-pallet-robot" or "lab-10-06-ten-motor-array-startup" or "lab-11-07-multi-conveyor-pallet-route" or "lab-2-22-dual-spindle" or "tank-high-low" or "tank-level"
+        && _currentSceneId is "scene-1-conveyor-stop" or "scene-2-conveyor-pusher" or "lab-11-13-xy-palletizing" or "lab-4-09-chain-drive-lift" or "lab-4-10-cookie-packaging" or "lab-4-11-barrel-fill-station" or "lab-4-12-cable-cut-length" or "lab-4-03-repeat-cycle-counter" or "lab-4-07-parking-garage-entry" or "lab-4-08-package-grouping" or "lab-5-01-delayed-lamp" or "lab-5-02-timed-lamp-off" or "lab-5-03-rotary-flasher" or "lab-5-04-alternating-lamps" or "lab-5-05-variable-flash-rate" or "lab-5-06-running-light-tower" or "lab-5-07-pedestrian-crossing" or "lab-5-08-drawbridge-control" or "lab-5-09-bag-indexing-conveyor" or "lab-5-10-coating-line" or "lab-6-08-hand-dryer" or "lab-6-07-luggage-weight-sort" or "lab-11-11-service-elevator" or "lab-2-14-sump-pump" or "lab-2-17-pallet-robot" or "lab-10-06-ten-motor-array-startup" or "lab-11-07-multi-conveyor-pallet-route" or "lab-2-22-dual-spindle" or "tank-high-low" or "tank-level"
         && _simulatorShell?.IsExternalMode != true;
 
     private bool GantryReviewClockHeld => _gantryReviewHeldRoot is not null
@@ -97,7 +97,7 @@ public partial class Main
             _gantryReviewClockBar.Visible = CanReviewGantryClock && _gantryReviewOperatorView;
         if (_gantryReviewStep is not null)
             _gantryReviewStep.Text = _currentSceneId == "scene-2-conveyor-pusher" ? "Step 0.1 s" : _currentSceneId is "lab-4-09-chain-drive-lift" or "lab-4-10-cookie-packaging" or "lab-4-11-barrel-fill-station" or "lab-2-17-pallet-robot" ? "Step 2.0 s" : "Step 0.5 s";
-        if (_gantryReviewFineStep is not null) _gantryReviewFineStep.Visible = _currentSceneId is "scene-2-conveyor-pusher" or "lab-4-03-repeat-cycle-counter" or "lab-4-07-parking-garage-entry" or "lab-4-08-package-grouping" or "lab-5-01-delayed-lamp" or "lab-5-02-timed-lamp-off" or "lab-5-03-rotary-flasher" or "lab-5-04-alternating-lamps" or "lab-5-05-variable-flash-rate" or "lab-5-06-running-light-tower" or "lab-5-07-pedestrian-crossing" or "lab-5-08-drawbridge-control" or "lab-5-09-bag-indexing-conveyor" or "lab-5-10-coating-line" or "lab-6-08-hand-dryer" or "lab-6-07-luggage-weight-sort" or "lab-11-11-service-elevator" or "lab-2-14-sump-pump" or "lab-2-17-pallet-robot" or "lab-10-06-ten-motor-array-startup" or "lab-11-07-multi-conveyor-pallet-route" or "lab-2-22-dual-spindle" or "tank-high-low" or "tank-level";
+        if (_gantryReviewFineStep is not null) _gantryReviewFineStep.Visible = _currentSceneId is "scene-1-conveyor-stop" or "scene-2-conveyor-pusher" or "lab-4-03-repeat-cycle-counter" or "lab-4-07-parking-garage-entry" or "lab-4-08-package-grouping" or "lab-5-01-delayed-lamp" or "lab-5-02-timed-lamp-off" or "lab-5-03-rotary-flasher" or "lab-5-04-alternating-lamps" or "lab-5-05-variable-flash-rate" or "lab-5-06-running-light-tower" or "lab-5-07-pedestrian-crossing" or "lab-5-08-drawbridge-control" or "lab-5-09-bag-indexing-conveyor" or "lab-5-10-coating-line" or "lab-6-08-hand-dryer" or "lab-6-07-luggage-weight-sort" or "lab-11-11-service-elevator" or "lab-2-14-sump-pump" or "lab-2-17-pallet-robot" or "lab-10-06-ten-motor-array-startup" or "lab-11-07-multi-conveyor-pallet-route" or "lab-2-22-dual-spindle" or "tank-high-low" or "tank-level";
         UpdateGantryReviewClockLabel();
     }
 
@@ -134,7 +134,7 @@ public partial class Main
 
     private void StepGantryReviewClock() => AdvanceGantryReviewClock(
         _currentSceneId == "scene-2-conveyor-pusher" ? 5 :
-        _currentSceneId is "lab-4-12-cable-cut-length" or "lab-11-13-xy-palletizing" or "lab-4-03-repeat-cycle-counter" or "lab-4-07-parking-garage-entry" or "lab-4-08-package-grouping" or "lab-5-01-delayed-lamp" or "lab-5-02-timed-lamp-off" or "lab-5-03-rotary-flasher" or "lab-5-04-alternating-lamps" or "lab-5-05-variable-flash-rate" or "lab-5-06-running-light-tower" or "lab-5-07-pedestrian-crossing" or "lab-5-08-drawbridge-control" or "lab-5-09-bag-indexing-conveyor" or "lab-5-10-coating-line" or "lab-6-08-hand-dryer" or "lab-6-07-luggage-weight-sort" or "lab-11-11-service-elevator" or "lab-2-14-sump-pump" or "lab-10-06-ten-motor-array-startup" or "lab-11-07-multi-conveyor-pallet-route" or "lab-2-22-dual-spindle" or "tank-high-low" or "tank-level" ? 25 : 100);
+        _currentSceneId is "scene-1-conveyor-stop" or "lab-4-12-cable-cut-length" or "lab-11-13-xy-palletizing" or "lab-4-03-repeat-cycle-counter" or "lab-4-07-parking-garage-entry" or "lab-4-08-package-grouping" or "lab-5-01-delayed-lamp" or "lab-5-02-timed-lamp-off" or "lab-5-03-rotary-flasher" or "lab-5-04-alternating-lamps" or "lab-5-05-variable-flash-rate" or "lab-5-06-running-light-tower" or "lab-5-07-pedestrian-crossing" or "lab-5-08-drawbridge-control" or "lab-5-09-bag-indexing-conveyor" or "lab-5-10-coating-line" or "lab-6-08-hand-dryer" or "lab-6-07-luggage-weight-sort" or "lab-11-11-service-elevator" or "lab-2-14-sump-pump" or "lab-10-06-ten-motor-array-startup" or "lab-11-07-multi-conveyor-pallet-route" or "lab-2-22-dual-spindle" or "tank-high-low" or "tank-level" ? 25 : 100);
 
     private void AdvanceGantryReviewClock(int ticks)
     {
@@ -181,6 +181,11 @@ public partial class Main
         if (_gantryReviewFineStep is not null) _gantryReviewFineStep.Disabled = !GantryReviewClockHeld
             || _virtualController?.Snapshot.State != VirtualControllerState.Running;
         if (_gantryReviewClockLabel is null) return;
+        if (_currentSceneId == "scene-1-conveyor-stop")
+        {
+            _gantryReviewClockLabel.Text = $"QA | {(_virtualController?.Snapshot.SimulatedTime.TotalSeconds ?? 0):F2} s | position {_sceneRuntime?.Points.GetValueOrDefault("object_position") ?? 0:0.000} | eye {_sceneRuntime?.Points.GetValueOrDefault("simulated_photoeye") ?? false}";
+            return;
+        }
         if (_currentSceneId is "tank-high-low" or "tank-level")
         {
             _gantryReviewClockLabel.Text = $"QA | {(_virtualController?.Snapshot.SimulatedTime.TotalSeconds ?? 0):F2} s | level {_sceneRuntime?.Points.GetValueOrDefault("tank_level") ?? 0:0.00}% | low {_sceneRuntime?.Points.GetValueOrDefault("low_level_switch") ?? false} | high {_sceneRuntime?.Points.GetValueOrDefault("high_level_switch") ?? false}";
@@ -345,6 +350,49 @@ public partial class Main
         ReleaseGantryReviewClock();
         check(root.ProcessMode == rootMode && runtime.ProcessMode == runtimeMode, "review_release_restores_native_process_modes");
     }
+    private void VerifyBaseConveyorReviewClock(Action<bool, string> check)
+    {
+        AddMigratedScene("scene-1-conveyor-stop", _candidateCatalog!, _mainCamera!, false, false);
+        var loaded = LadderEditorProjectJson.Load(FileAccess.GetFileAsString("res://programs/demos/03-conveyor-sequence.rpproj.json"));
+        if (!loaded.IsReadable || loaded.Document is null) throw new InvalidOperationException("Demo 3 review program cannot be read.");
+        EnableVirtualControllerProgram(loaded.Document.BuildProgram());
+        var root = _sceneCompositionRoot!;
+        var runtime = _sceneRuntime!;
+        var carton = root.GetNode<Node3D>("scene1_product");
+        var staged = carton.Transform;
+        var rootMode = root.ProcessMode;
+        var runtimeMode = runtime.ProcessMode;
+        SetGantryReviewClockHeld(true);
+        RunActiveController();
+        _PhysicsProcess(5);
+        check(GantryReviewClockHeld && _virtualController!.Snapshot.ScanNumber == 0 && carton.Transform == staged,
+            "base_conveyor_review_hold_freezes_actual_demo_and_carton");
+        StepGantryReviewClock();
+        check(_virtualController!.Snapshot.ScanNumber == 25 && carton.Transform == staged,
+            "base_conveyor_review_half_second_step_preserves_run_without_start");
+        check(ExecuteSelectedControllerAction("scene-toggle"), "base_conveyor_review_operator_start_accepted");
+        AdvanceGantryReviewClock(1);
+        check(_virtualController.Snapshot.ScanNumber == 26
+            && Convert.ToDouble(runtime.Points["object_position"]) is > 0 and < .5
+            && runtime.Points["conveyor_running"] is true && carton.Transform != staged,
+            "base_conveyor_review_fine_step_exposes_real_mid_travel_pose");
+        StopActiveController();
+        var stopped = carton.Transform;
+        var scans = _virtualController.Snapshot.ScanNumber;
+        StepGantryReviewClock();
+        AdvanceGantryReviewClock(1);
+        check(_virtualController.Snapshot.ScanNumber == scans && carton.Transform == stopped
+            && runtime.Points["conveyor_running"] is false,
+            "base_conveyor_review_stop_retains_mid_travel_and_blocks_steps");
+        ResetActiveController();
+        check(GantryReviewClockHeld && _virtualController.Snapshot.ScanNumber == 0 && carton.Transform == staged
+            && runtime.Points["simulated_photoeye"] is false,
+            "base_conveyor_review_reset_restores_load_end_while_held");
+        ReleaseGantryReviewClock();
+        check(root.ProcessMode == rootMode && runtime.ProcessMode == runtimeMode,
+            "base_conveyor_review_release_restores_process_modes");
+    }
+
     private void VerifyConveyorReviewClock(Action<bool, string> check)
     {
         var root = _sceneCompositionRoot!; var runtime = _sceneRuntime!;

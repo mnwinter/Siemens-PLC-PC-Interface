@@ -1241,7 +1241,7 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Carton belt contact/load-end footprint repaired; native five wide/Top/FL close and Demo 3 Run/Start/photoeye/Stop/Reset rechecked; full clearance open 2026-10-07 native794268 supplied Demo3 Run144 idle, Start accepted/830 photoeyeTrue atposition0.5 with conveyorFalse, Stop1749 retains supported carton. Endpoint inspected initial diagonal/FL/RL/RR/Top, Reset0 restores load end and clears feedback/output. Intermediate travel/mid-travel Stop/full clearance still open.",
+      "recordedResult": "Carton belt contact/load-end footprint repaired; native five wide/Top/FL close and Demo 3 Run/Start/photoeye/Stop/Reset rechecked; full clearance open 2026-10-07 native794268 supplied Demo3 Run144 idle, Start accepted/830 photoeyeTrue atposition0.5 with conveyorFalse, Stop1749 retains supported carton. Endpoint inspected initial diagonal/FL/RL/RR/Top, Reset0 restores load end and clears feedback/output. 2026-10-07 native2498006 held real Start/fine scan1 position0.01, coarse26 position0.26 eyeFalse/driveTrue; mid-travel diagonal/FL/RL/RR/Top visible carton within belt, Stop26 retains position/clears drive, Reset0 restores load end. Reset Top shows apparent small load-end overhang requiring investigation; historical full-footprint acceptance not reaffirmed. Continuous clearance open.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",

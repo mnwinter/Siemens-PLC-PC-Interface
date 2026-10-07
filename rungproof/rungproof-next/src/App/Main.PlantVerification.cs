@@ -33,6 +33,7 @@ public partial class Main
         LadderNode Series(string id, params LadderNode[] nodes) => new(id, LadderNodeKind.Series, Children: nodes);
         try
         {
+            if (_visualSceneReview) VerifyBaseConveyorReviewClock(Check);
             AddMigratedScene("conveyor-cell", _candidateCatalog!, _mainCamera!, false, false);
             var resetDrive = _sceneCompositionRoot!.FindChildren("*", "", true, false).OfType<ConveyorController>().Single();
             var resetDrum = (Node3D)_sceneCompositionRoot.FindChild("KIN_drive_drum", true, false);
