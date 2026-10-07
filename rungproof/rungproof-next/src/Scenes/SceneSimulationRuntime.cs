@@ -496,6 +496,7 @@ public partial class SceneSimulationRuntime : Node
                     break;
                 case ConveyorController conveyor:
                     conveyor.RunCommand = false;
+                    conveyor.ResetPlantTravel();
                     break;
                 case RollerConveyorController rollers:
                     rollers.RunCommand = false;

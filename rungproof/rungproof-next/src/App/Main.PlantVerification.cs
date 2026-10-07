@@ -33,6 +33,20 @@ public partial class Main
         LadderNode Series(string id, params LadderNode[] nodes) => new(id, LadderNodeKind.Series, Children: nodes);
         try
         {
+            AddMigratedScene("conveyor-cell", _candidateCatalog!, _mainCamera!, false, false);
+            var resetDrive = _sceneCompositionRoot!.FindChildren("*", "", true, false).OfType<ConveyorController>().Single();
+            var resetDrum = (Node3D)_sceneCompositionRoot.FindChild("KIN_drive_drum", true, false);
+            var resetDrumHome = resetDrum.Transform;
+            var resetBelt = (MeshInstance3D)_sceneCompositionRoot.FindChild("KIN_belt_surface", true, false);
+            var resetMaterial = (StandardMaterial3D)resetBelt.GetSurfaceOverrideMaterial(0);
+            resetDrive.RunCommand = true;
+            resetDrive.ApplyPlantTravel(1.3f, .65f);
+            Check(resetDrive.Running && !resetDrum.Transform.IsEqualApprox(resetDrumHome)
+                && resetMaterial.Uv1Offset.Length() > .1f, "conveyor_reset_fixture_has_actual_integrated_travel");
+            _sceneRuntime!.ResetSimulation();
+            Check(!resetDrive.RunCommand && !resetDrive.Running && resetDrive.ActualSpeedMps == 0
+                && resetDrum.Transform.IsEqualApprox(resetDrumHome) && resetMaterial.Uv1Offset == Vector3.Zero,
+                "conveyor_reset_restores_speed_drum_transform_and_belt_travel_immediately");
             AddMigratedScene("scene-2-conveyor-pusher", _candidateCatalog!, _mainCamera!, false, false);
             PlcVariable Tag(string name, PlcVariableRole role, bool initial = false) =>
                 new(name, PlcVariableType.Bool, role, initial, name);

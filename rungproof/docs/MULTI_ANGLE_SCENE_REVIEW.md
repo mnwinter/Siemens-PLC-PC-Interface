@@ -1,3 +1,7 @@
+## Conveyor Reset regression - 2026-10-06
+
+Reset now calls ConveyorController.ResetPlantTravel after clearing its run command. The real Godot plant verifier first applies nonzero conveyor travel and confirms speed, drum transform, and belt UV changed, then verifies Reset restores zero speed/travel and the home transform immediately. Both checks and the complete plant-motion verifier passed. Virtual controller suite: 145 passed, 0 failed. Updated native Windows build launched and startup inspected; native running-to-reset visual confirmation remains pending. No PLC transport used. Whole-program and catalog acceptance remain open.
+
 ## Multi-conveyor native QA command lifecycle (2026-10-06)
 
 Owned session 35484/window 3933478. Loaded multizone-native-qa.rpproj.json by
