@@ -1,5 +1,24 @@
 # Whole program review - 2026-10-03
 
+Scene 72 EV charging refreshed native baseline (2026-10-06):
+Opened the current scene in the normal Windows shell, dismissed the simulator
+notice, and inspected FR/FL/RL/RR/Top. Three motorized shutters, a liquid
+metering skid, an electric pump and a generic cabinet still replace the intended
+charging installation. Source review confirms ev_charger_bay and connector_latch
+visual_review.md identify roller shutters; energy_meter identifies a liquid skid.
+These inherited recognition records cannot establish EV-component identity.
+The booleanPanel contract has only bay_occupied/customer_authorized/charger_ready
+feedback and charge_enable/energy_session_active commands. No connector feedback,
+energy pulse, pulse scale, numeric accumulation or allocation contract exists.
+Normal Run routes to the empty editor with no controller loaded, as expected for
+an exercise; this is not evidence of a working charging sequence. Preserve that
+blank default and create any reference only through an explicit review command.
+Owned native window closed normally; .tools/ev-native-refresh.log. Scene remains
+FAIL/open. Next repair must replace misidentified props with coherent vehicle,
+charger/cable/connector/reader/meter geometry and supply a bounded offline energy
+and permission contract before claiming process verification. No EV electrical
+protocol, power delivery, calibration or installation certification is established.
+
 Scene 64 luggage-sort connected reference/native checkpoint (2026-10-06):
 The delivered suitcase now travels on an accepted 20 ms plant clock, with actual
 finite suitcase-body beam feedback at entry, weighing station and both exits.
