@@ -294,6 +294,7 @@ public partial class Main
             if (OS.GetCmdlineUserArgs().Contains("--verify-motor-array", StringComparer.Ordinal))
             {
                 VerifyMotorArrayGeometry(Check);
+                VerifyMotorArrayControllerWorkflow(Check);
                 GD.Print($"MOTOR_ARRAY_VERIFY {(passed ? "PASS" : "FAIL")} independent/group command projection; native timed-controller cycle pending");
                 GetTree().Quit(passed ? 0 : 1);
                 return;

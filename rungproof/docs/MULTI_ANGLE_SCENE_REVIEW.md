@@ -1,3 +1,9 @@
+## Ten-motor integrated timed QA fixture - 2026-10-07
+
+Added a verifier-only normal-editor QA project generator: .tools/aaa-motor-array-native-qa.rpproj.json. It uses the actual 20 ms Main controller scan path, ten parallel nonretentive TONs with explicit QA presets 0.5 through 5.0 s, and individual motor outputs. All timers require group_start_request, all_motors_ready and group_alarm_clear; the legacy group output has no rung and remains false. The fixture is not auto-installed as the exercise solution and does not implement an array-value interface.
+
+Focused integrated checks PASS: compilation, idle/no alarm permissive hold, off at 480 ms, motor 0 at 500 ms, each successive prefix through all ten at 5 s, startup-active false at completion, group output false, alarm-loss next-scan clearing, restored permissive nonretentive restart, Stop output clearing and Reset requests/scan clearing. Build zero warnings/errors. Generated fixture is ready for explicit native Project > Open and Online > Verify + load; native window 6561010 remains the earlier independent-command build at stopped home. No native timed startup, alarm or Stop/Reset acceptance is claimed by this preparation pass.
+
 ## Native released-tote receiver support review - 2026-10-07
 
 Source f76ef30, native session 39686/window 13304086. Continued the same loaded 8-tag QA controller from 14 s. Individually inspected cutaway front-left screenshots at 16, 18, 20, 22, 24, 26 and 28 s, then 28.02 s. The first tote stayed seated while the second was picked from the pallet and carried toward the empty bay. Equipment focus clips portions of the robot at some poses; these views supplement rather than replace the previous full-scene motion review.
