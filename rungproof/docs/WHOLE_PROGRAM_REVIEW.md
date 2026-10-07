@@ -1,3 +1,10 @@
+## 2026-10-07 - current tote fill/cap integration revalidated
+
+Current source at4bdfe05 was inspected before rerunning the focused verifier. ToteCapPlantModel and SceneSimulationRuntime.ToteCap implement an illustrative measured axial stroke, seated rotation, retained/released cap projection and conveyor inhibition while the chuck is extended. VerifyToteFinishingOnly actually invokes Start/travel, fill, cap and standalone placement checks; these are separate from normal editor-loaded PLC sequencing.
+
+Fresh verification: --verify-tote-finishing exited0, 55 checks True and none False, including all12 cap checks. Log rungproof-next/.tools/tote-current-cap-review.log. The separate RungProof.Next.ToteCap.Tests.csproj run exited0 with20 model checks PASS. Covered: off-station rejection, normalized-fill eligibility, partial stroke Stop retention, conflicting conveyor request retaining the tote while aborting cap application without rewriting the PLC command, retained-cap retraction, accepted release/retraction, seated rotation, applied-cap retention through supported discharge, sampled cross-solid screens and Reset.
+
+The matrix's earlier blanket cap-application-unverified wording is superseded only for this bounded simulator evidence. No fresh native cap-cycle observation was performed in this checkpoint. Normal Windows controller-driven filling/capping and intermediate multi-angle inspection remain required, as do label application, inspection and complete station sequencing. No litre calibration, thread/torque/seal simulation, continuous mechanical clearance or live PLC proof is claimed. Goal remains active.
 ## 2026-10-07 - sorter Top rotation framing repaired
 
 Sorter box_1 Top focus now frames a conservative full-yaw envelope and reserves toolbar space before following carton translation. Other camera directions retain their existing fit. The screen regression checks every carton mesh corner against the usable shell aperture on each 20 ms scan for all four routes. The headless verifier now establishes a 1600x900 shell layout before those assertions; its original dummy window was too small for valid screen-space checks.
