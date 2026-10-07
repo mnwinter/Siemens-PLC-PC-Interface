@@ -1,0 +1,30 @@
+{
+  "centre_body_hit": [
+    0.0,
+    0.0,
+    0.10999977588653564
+  ],
+  "roof_wall_hit": [
+    0.25,
+    0.0,
+    1.4900000095367432
+  ],
+  "centre_neck_hit": null,
+  "neck_rim_hit": [
+    0.125,
+    0.0,
+    1.5600000619888306
+  ],
+  "separate_cap_hit": [
+    0.0,
+    0.0,
+    1.559999942779541
+  ],
+  "checks": {
+    "centre_reaches_cavity_floor": true,
+    "roof_remains_around_aperture": true,
+    "neck_has_open_bore": true,
+    "neck_has_solid_rim": true,
+    "separate_cap_retained": true
+  }
+}

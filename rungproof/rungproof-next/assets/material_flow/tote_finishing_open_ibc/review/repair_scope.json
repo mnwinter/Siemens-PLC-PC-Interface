@@ -1,0 +1,9 @@
+{
+  "assetId": "loads.ibc.open-finishing.v1",
+  "status": "candidate-unapproved",
+  "scope": "Scene-specific cavity and fill aperture; separate cap retained in delivery.",
+  "sourceBasis": "Generic closed IBC master remains unchanged.",
+  "nativeSceneReview": "pending",
+  "fillVolume": "not implemented",
+  "capApplication": "not implemented"
+}

@@ -701,7 +701,7 @@ public static partial class SceneComposer
             "lift_fixture" => "tooling.fixture.modular-two-clamp.v1",
             "robot_pallet" => "loads.pallet.gma-48x40.v1",
             "shuttle_bottle" => "loads.container.process-bottle.v1",
-            "finishing_tote" => "loads.ibc.1000l.v1",
+            "finishing_tote" => Text(equipment.Config, "catalogAssetId", "loads.ibc.1000l.v1"),
             "drill_workpiece" or "metal_plate" => "tooling.fixture.clamped-plate.v1",
             "cnc_workpiece" => "tooling.workholding.machine-vise-stock.v1",
             _ => "loads.carton.corrugated-rsc.v1",
@@ -711,6 +711,13 @@ public static partial class SceneComposer
         var asset = candidates.Assets.FirstOrDefault(item => item.Id == assetId)
             ?? throw new InvalidOperationException($"Required scene asset is missing: {assetId}");
         var model = CreateMappedAsset(equipment, candidates, assetId);
+        if (equipment.Id == "finishing_tote" && equipment.Config.TryGetProperty("openForFill", out var openTote)
+            && openTote.ValueKind == JsonValueKind.True)
+        {
+            var cap = model.FindChild("IBC_fill_cap", true, false) as MeshInstance3D
+                ?? throw new InvalidOperationException("Open finishing tote requires a separate delivered fill cap.");
+            cap.Visible = false;
+        }
         if (equipment.Id == "coolant_jug" && equipment.Config.TryGetProperty("openForFill", out var open)
             && open.ValueKind == JsonValueKind.True)
             OpenJugForFilling(model);

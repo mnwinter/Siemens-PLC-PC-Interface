@@ -14021,6 +14021,41 @@
         "scaleReviewed": false,
         "animationReviewed": false
       }
+    },
+    {
+      "id": "loads.ibc.open-finishing.v1",
+      "displayName": "Open-fill IBC - finishing installation candidate",
+      "category": "loads/containers",
+      "tags": [
+        "ibc tote",
+        "open fill port",
+        "finishing installation"
+      ],
+      "model": {
+        "sourceBlend": "res://assets/material_flow/tote_finishing_open_ibc/source/tote_finishing_open_ibc.blend",
+        "deliveryGltf": "res://assets/material_flow/tote_finishing_open_ibc/delivery/tote_finishing_open_ibc.glb",
+        "lodFiles": [],
+        "collisionFile": "res://assets/material_flow/tote_finishing_open_ibc/collision/tote_finishing_open_ibc_collision.glb",
+        "thumbnailFile": "res://assets/material_flow/tote_finishing_open_ibc/thumbnail.png"
+      },
+      "bounds": {
+        "widthM": 1.1649999618530273,
+        "heightM": 1.5600000619888306,
+        "depthM": 1.5040000081062317
+      },
+      "connectors": [],
+      "kinematics": [],
+      "animationTags": [],
+      "signals": [],
+      "quality": {
+        "status": "candidate",
+        "blindReviewId": null,
+        "recognitionConfidence": null,
+        "topologyReviewed": false,
+        "materialReviewed": false,
+        "scaleReviewed": false,
+        "animationReviewed": false
+      }
     }
   ]
 }

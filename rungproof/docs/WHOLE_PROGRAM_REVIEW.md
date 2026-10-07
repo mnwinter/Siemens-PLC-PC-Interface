@@ -1,5 +1,12 @@
 # Whole program review - 2026-10-03
 
+## 2026-10-06 tote fill-aperture geometry repair
+
+Added the scene-specific unapproved candidate loads.ibc.open-finishing.v1, derived from the generic IBC master with a Boolean inner cavity, roof aperture and open neck. Its delivery retains a separate cap; the finishing installation initially hides that cap. The generic closed master is unchanged. Five actual exported-GLB ray checks pass: centre reaches the cavity floor at Z 0.11 m, surrounding roof remains at Z 1.49 m, neck centre is open, rim remains solid and the cap remains separately available. Visually inspected the top and four corner open-port Blender renders; these are asset views, not native scene acceptance.
+
+All 25 focused tote command/travel/geometry checks pass. The first scene audit treated the hollow neck's bounding box as solid; the corrected screen accepts the fill nozzle only when every delivered vertex fits inside measured bore meridians with 2 mm radial clearance. The 5,000-sample preview remains supported and clear under that bounded screen. Build and help validation pass (295 assets, 77 scenes); current app shell and all-scene contract checks are running. Fill quantity, cap/label application, inspection and complete PLC station sequencing remain open. Fresh native Windows views remain pending after the Escape stop.
+
+
 ## 2026-10-06 tote filling geometry diagnosis
 
 Inspected both the source Blend and actual exported IBC GLB. Separate downward centre rays hit the fill cap at Z 1.56 m and the solid tank roof at Z 1.49 m. The filling lane therefore needs an actual roof aperture/cavity and separable cap before fill quantity or cap application can credibly be connected. See TOTE_FINISHING_FILL_PORT_FINDING.md. This new mesh evidence changes the next repair from adding a quantity counter to repairing the fill interface first. Existing travel checks remain bounded; no new native or filling acceptance is claimed.

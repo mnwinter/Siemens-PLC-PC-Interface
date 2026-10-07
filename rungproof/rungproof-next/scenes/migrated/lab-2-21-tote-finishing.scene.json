@@ -50,7 +50,9 @@
           1.35,
           0.9
         ],
-        "color": 15332085
+        "color": 15332085,
+        "catalogAssetId": "loads.ibc.open-finishing.v1",
+        "openForFill": true
       }
     },
     {
@@ -472,7 +474,8 @@
       "Treat inspection_ok as simulator-to-PLC inputs. The PLC should command only conveyor_run, fill_valve_open, capper_run, labeler_run, inspection_run.",
       "Use a step/state approach and prove the transition order: index to fill \u2192 fill \u2192 index to cap \u2192 cap \u2192 index to label \u2192 label \u2192 index to inspect \u2192 inspect \u2192 discharge \u2192 ready.",
       "The 3D Start button pulses the explicit BOOL ladder input binding operator.start while the controller is running. A compatible PLC program must implement the station sequence; this binding alone does not provide controller-driven tote travel or a validated finishing process.",
-      "Under a controller clock, conveyor_run now moves the tote at a prescribed 0.75 m/s with supported exit retention. PC tote_position and station-window feedback are available to PLC logic. The PLC must sequence its own station stops and commands. Fill quantity, cap/label application and inspection are not yet modeled."
+      "Under a controller clock, conveyor_run now moves the tote at a prescribed 0.75 m/s with supported exit retention. PC tote_position and station-window feedback are available to PLC logic. The PLC must sequence its own station stops and commands. Fill quantity, cap/label application and inspection are not yet modeled.",
+      "The finishing tote now uses an unapproved scene-specific hollow/open-port candidate. Its separate fill cap is initially hidden; cap application is not yet implemented. The generic closed IBC remains a separate catalog asset."
     ],
     "solution": {
       "summary": "This is one valid functional reference. The same behavior may be implemented in LAD, FBD, or SCL; the rung layout is not prescribed.",

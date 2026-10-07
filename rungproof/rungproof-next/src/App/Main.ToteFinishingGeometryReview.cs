@@ -48,6 +48,9 @@ public partial class Main
         var solids = root.GetChildren().OfType<Node3D>().Where(node => node != tote
             && node.Name != "finishing_conveyor").SelectMany(ReviewMeshes).ToArray();
         var initial = tote.Transform;
+        check(tote.FindChild("IBC_open_fill_neck", true, false) is MeshInstance3D
+            && tote.FindChild("IBC_fill_cap", true, false) is MeshInstance3D cap && !cap.Visible,
+            "tote_finishing_open_port_candidate_has_separate_initially_hidden_cap");
         // A frame has one transform image. Avoid recomputing the same mesh's
         // eight transformed corners for every possible component pair.
         var boundsCache = new Dictionary<MeshInstance3D, Aabb>();
@@ -62,6 +65,36 @@ public partial class Main
             var overlap = Bounds(a).Intersection(Bounds(b)).Size;
             if (overlap.X <= 0.002f || overlap.Y <= 0.002f || overlap.Z <= 0.002f) return true;
             if (!OrientedBoxesPenetrate(a, b)) return true;
+            // A hollow neck's enclosing box includes its empty bore. Accept
+            // the fill tool only when every delivered vertex fits within the
+            // measured inner meridians with 2 mm radial clearance. All other
+            // neck contacts continue through the ordinary collision screen.
+            var neck = a.Name == "IBC_open_fill_neck" ? a : b.Name == "IBC_open_fill_neck" ? b : null;
+            if (neck is not null)
+            {
+                var tool = neck == a ? b : a;
+                if (tool.Name.ToString() is "NOZZLE_TIP" or "KIN_fill_nozzle")
+                {
+                    var center = Bounds(neck).GetCenter();
+                    var vertices = neck.Mesh.GetFaces().Select(vertex => neck.GlobalTransform * vertex).ToArray();
+                    var xMeridian = vertices.Where(vertex => MathF.Abs(vertex.Z - center.Z) < .00001f
+                        && MathF.Abs(vertex.X - center.X) > .00001f).Select(vertex => MathF.Abs(vertex.X - center.X)).ToArray();
+                    var zMeridian = vertices.Where(vertex => MathF.Abs(vertex.X - center.X) < .00001f
+                        && MathF.Abs(vertex.Z - center.Z) > .00001f).Select(vertex => MathF.Abs(vertex.Z - center.Z)).ToArray();
+                    if (xMeridian.Length > 0 && zMeridian.Length > 0)
+                    {
+                        var radiusX = xMeridian.Min() - .002f;
+                        var radiusZ = zMeridian.Min() - .002f;
+                        if (radiusX > 0 && radiusZ > 0 && tool.Mesh.GetFaces().All(vertex =>
+                        {
+                            var world = tool.GlobalTransform * vertex;
+                            var x = (world.X - center.X) / radiusX;
+                            var z = (world.Z - center.Z) / radiusZ;
+                            return x*x + z*z < 1;
+                        })) return true;
+                    }
+                }
+            }
             // A cable's overall route box includes empty space. Screen its
             // transformed surface triangles rather than treating it as solid.
             var cable = a.Name.ToString().Contains("cable", StringComparison.OrdinalIgnoreCase) ? a

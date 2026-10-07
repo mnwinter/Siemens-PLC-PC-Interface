@@ -833,4 +833,4 @@ Run `--audit-guarded-layout` with the pinned Godot executable after building. Th
 
 ### Tote-finishing command and placement verification
 
-Run `--verify-tote-finishing` after building. Twelve checks exercise the actual 3D Start action and controller-clocked prescribed tote travel; twelve checks cover the existing station geometry and standalone sequence preview. The explicit Start binding is `operator.start`. Controller travel reports six PC position/station-window/exit points. Fill quantity, cap and label application, inspection, complete PLC sequencing and latest native inspection remain pending.
+Run `--verify-tote-finishing` after building. Twelve checks exercise the actual 3D Start action and controller-clocked prescribed tote travel; thirteen checks cover the station geometry and standalone sequence preview, including the open-fill candidate and separate initially hidden cap. The explicit Start binding is `operator.start`. Controller travel reports six PC position/station-window/exit points. Fill quantity, cap and label application, inspection, complete PLC sequencing and latest native inspection remain pending.

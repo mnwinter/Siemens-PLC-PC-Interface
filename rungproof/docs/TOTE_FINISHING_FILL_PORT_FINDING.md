@@ -16,3 +16,7 @@ The source Blend independently produces the same two hit heights. Evidence logs 
 ## Required repair and verification
 
 Create a scene-specific open-fill tote installation with an actual roof aperture and inner cavity. Retain a separate cap for later application; preserve the existing generic closed IBC used elsewhere. Any derived catalog candidate must receive its own review status rather than inherit the source asset's approval. Verify the exported aperture and cap interface from multiple views, recheck belt support and station clearance, then connect a bounded fill quantity and station-presence checks to the existing PLC valve command. Filling, cap/label application and inspection remain unimplemented.
+
+## Repair checkpoint
+
+The scene now selects loads.ibc.open-finishing.v1, an unapproved derived candidate with actual cavity and aperture. Its original generic basis is unchanged. Exported ray evidence is saved at assets/material_flow/tote_finishing_open_ibc/review/exported_aperture_checks.json: centre hits the cavity floor at Z 0.11 m, the surrounding roof still hits at Z 1.49 m, the bore is open and the rim/cap remain solid. The cap is separately retained in delivery and hidden by the initial finishing installation. The top and four corner open-port Blender views were inspected, and 25 focused scene checks pass with bore-aware nozzle clearance. Native scene inspection, bounded fill quantity and cap application remain pending.
