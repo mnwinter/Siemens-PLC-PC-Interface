@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-10-06-ten-motor-array-startup",
   "name": "Lab 10.6 - Ten-Motor Array Startup",
-  "description": "Ten visible motors with group BOOL commands and validity inputs. Per-motor array values and staggered-start timing are not implemented; author or load controller logic before Run.",
+  "description": "Ten motors accept independent BOOL commands for controller-timed startup. The retained motor_array_run BOOL requests all motors together; keep it false when sequencing individual outputs. Author or load controller logic before Run.",
   "camera": {
     "position": [
       11,
@@ -299,6 +299,76 @@
         "owner": "PLC",
         "initial": false,
         "role": "output"
+      },
+      {
+        "name": "motor_0_run",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "motor_1_run",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "motor_2_run",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "motor_3_run",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "motor_4_run",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "motor_5_run",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "motor_6_run",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "motor_7_run",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "motor_8_run",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "motor_9_run",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
       }
     ],
     "actions": [
@@ -400,8 +470,59 @@
         "point": "motor_array_run",
         "equipmentId": "motor_9",
         "mode": "running"
+      },
+      {
+        "point": "motor_0_run",
+        "equipmentId": "motor_0",
+        "mode": "running"
+      },
+      {
+        "point": "motor_1_run",
+        "equipmentId": "motor_1",
+        "mode": "running"
+      },
+      {
+        "point": "motor_2_run",
+        "equipmentId": "motor_2",
+        "mode": "running"
+      },
+      {
+        "point": "motor_3_run",
+        "equipmentId": "motor_3",
+        "mode": "running"
+      },
+      {
+        "point": "motor_4_run",
+        "equipmentId": "motor_4",
+        "mode": "running"
+      },
+      {
+        "point": "motor_5_run",
+        "equipmentId": "motor_5",
+        "mode": "running"
+      },
+      {
+        "point": "motor_6_run",
+        "equipmentId": "motor_6",
+        "mode": "running"
+      },
+      {
+        "point": "motor_7_run",
+        "equipmentId": "motor_7",
+        "mode": "running"
+      },
+      {
+        "point": "motor_8_run",
+        "equipmentId": "motor_8",
+        "mode": "running"
+      },
+      {
+        "point": "motor_9_run",
+        "equipmentId": "motor_9",
+        "mode": "running"
       }
-    ]
+    ],
+    "combineRunningCommands": true
   },
   "training": {
     "hints": [
@@ -424,7 +545,7 @@
       "staggered-start sequence display"
     ],
     "machineGuide": {
-      "purpose": "Ten visible motors with group BOOL commands and validity inputs. Per-motor array values and staggered-start timing are not implemented; author or load controller logic before Run.",
+      "purpose": "Ten motors accept independent BOOL commands for controller-timed startup. The retained motor_array_run BOOL requests all motors together; keep it false when sequencing individual outputs. Author or load controller logic before Run.",
       "startConditions": [
         "The common PLC/watchdog foundation is healthy.",
         "All required simulator inputs are at their documented initial state."
@@ -459,7 +580,17 @@
       "all_motors_ready",
       "group_alarm_clear",
       "motor_array_run",
-      "startup_sequence_active"
+      "startup_sequence_active",
+      "motor_0_run",
+      "motor_1_run",
+      "motor_2_run",
+      "motor_3_run",
+      "motor_4_run",
+      "motor_5_run",
+      "motor_6_run",
+      "motor_7_run",
+      "motor_8_run",
+      "motor_9_run"
     ],
     "changedTags": [],
     "previousAcceptance": [

@@ -6,7 +6,7 @@ Scene contract: `prototype/scenes/lab-10-06-ten-motor-array-startup.plcscene`
 
 ## Purpose
 
-The intended lesson is staggered startup of ten motors with group alarm handling. The current scene exposes one shared `motor_array_run` BOOL, which starts or stops all ten visible motors together. Per-motor array commands and staggered timing remain unimplemented. Load or author controller logic before Run; the scene does not supply a completed lesson controller.
+The intended lesson is staggered startup of ten motors with group alarm handling. Each motor now accepts its own PLC-owned BOOL, `motor_0_run` through `motor_9_run`. A loaded controller can time these independently. The retained `motor_array_run` BOOL requests all ten motors together; keep it false during independent sequencing. Load or author controller logic before Run; a complete timed lesson controller and array-value interface remain open.
 
 ## Expected I/O to operate this scene
 
@@ -19,6 +19,7 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | `group_alarm_clear` | `BOOL` | **PC** | `False` |
 | `motor_array_run` | `BOOL` | **PLC** | `False` |
 | `startup_sequence_active` | `BOOL` | **PLC** | `False` |
+| `motor_0_run` through `motor_9_run` | `BOOL` each | **PLC** | `False` each |
 
 ## Operator actions
 
@@ -39,6 +40,8 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | `startup_sequence_active` | `indicator_12` | `indicator` |
 
 `motor_array_run` also binds to the running animation of each motor, `motor_0` through `motor_9`. `startup_sequence_active` is an indicator command; it does not create a timed startup sequence.
+
+Each `motor_N_run` binds to `motor_N`. Running bindings are combined with logical OR for this scene: a motor stops only when both its individual command and the group command are false. Reset clears both command sets. Other scenes retain their existing binding behavior.
 
 ## Expected equipment
 
@@ -69,7 +72,7 @@ A normal Stop removes PLC-owned commands according to the scene runtime. This do
 
 ## Machine guide
 
-Current behavior is group command projection. The intended array/staggered-start lesson is still open and cannot be demonstrated using the shared BOOL alone.
+Current behavior supports individual and group command projection. To stagger startup, the controller must time `motor_0_run` through `motor_9_run` while keeping `motor_array_run=False`. The renderer does not generate delays or command outputs.
 
 ### Start conditions
 
@@ -85,4 +88,4 @@ Current behavior is group command projection. The intended array/staggered-start
 
 - A loaded controller commanding `motor_array_run=True` animates all ten motors together; `False` stops their animations.
 - Alarm handling depends on the authored controller removing its command when `group_alarm_clear` is false. The scene binding does not enforce that interlock itself.
-- Individual startup order and delays cannot currently be observed. Both status displays remain `NO DATA`; they do not report measured array or timer values.
+- Individual commands animate their corresponding motors independently. A complete native timed-controller cycle is still pending verification. Both status displays remain `NO DATA`; they do not report measured array or timer values.

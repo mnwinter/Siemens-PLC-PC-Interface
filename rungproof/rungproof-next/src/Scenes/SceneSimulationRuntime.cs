@@ -1235,6 +1235,12 @@ public partial class SceneSimulationRuntime : Node
             return;
         }
         var indicatorStates = new Dictionary<Node3D, (bool Active, string Color)>();
+        // Opt-in compatibility: a legacy group command and an individual
+        // command may each request the same motor. Resolve once per image,
+        // rather than letting JSON binding order overwrite an active command.
+        var combineRunning = _definition.TryGetProperty("combineRunningCommands", out var combine)
+            && combine.ValueKind == JsonValueKind.True;
+        var runningStates = new Dictionary<Node3D, bool>();
         foreach (var binding in bindings.EnumerateArray())
         {
             var point = Text(binding, "point", string.Empty);
@@ -1246,7 +1252,10 @@ public partial class SceneSimulationRuntime : Node
             switch (Text(binding, "mode", string.Empty))
             {
                 case "running":
-                    foreach (var controller in Controllers(equipment)) SetControllerRunning(controller, AsBool(value));
+                    if (combineRunning)
+                        runningStates[equipment] = runningStates.GetValueOrDefault(equipment) || AsBool(value);
+                    else
+                        foreach (var controller in Controllers(equipment)) SetControllerRunning(controller, AsBool(value));
                     break;
                 case "speedPercent":
                     // Project the declared command image without manufacturing
@@ -1310,6 +1319,8 @@ public partial class SceneSimulationRuntime : Node
             }
         }
         foreach (var (equipment, state) in indicatorStates) SetIndicator(equipment, state.Active, state.Color);
+        foreach (var (equipment, running) in runningStates)
+            foreach (var controller in Controllers(equipment)) SetControllerRunning(controller, running);
         ProjectToteFillVisibility();
         ProjectChainLiftCommands();
     }

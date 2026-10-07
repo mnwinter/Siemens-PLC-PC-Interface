@@ -291,6 +291,13 @@ public partial class Main
                 GetTree().Quit(passed ? 0 : 1);
                 return;
             }
+            if (OS.GetCmdlineUserArgs().Contains("--verify-motor-array", StringComparer.Ordinal))
+            {
+                VerifyMotorArrayGeometry(Check);
+                GD.Print($"MOTOR_ARRAY_VERIFY {(passed ? "PASS" : "FAIL")} independent/group command projection; native timed-controller cycle pending");
+                GetTree().Quit(passed ? 0 : 1);
+                return;
+            }
             VerifyPalletizerWorkflow(Check);
             AddMigratedScene("lab-11-19-powder-batch-mixer", _candidateCatalog!, _mainCamera!, false, false);
             var mixer = _sceneCompositionRoot!;
@@ -749,12 +756,34 @@ public partial class Main
                 && ReviewBounds(mast).Grow(.001f).Intersects(ReviewBounds(housing)), $"motor_array_{id}_grounded_supported_display");
         }
         var motions = motors.SelectMany(node => node.FindChildren("*", string.Empty, true, false).OfType<EquipmentMotionController>()).ToArray();
-        // The retained BOOL is a group command. This is projection, not proof
-        // of per-motor array execution or staggered startup timing.
+        // Preserve the existing group command alongside independent outputs.
+        // Projection checks do not prove a timed loaded-controller sequence.
         _sceneRuntime!.CommitExternalPlcOutputs(new Dictionary<string, object?> { ["motor_array_run"] = true });
         check(motions.Length == 10 && motions.All(motion => motion.Running), "motor_array_group_command_projects_to_all_ten_motors");
         _sceneRuntime.CommitExternalPlcOutputs(new Dictionary<string, object?> { ["motor_array_run"] = false });
         check(motions.All(motion => !motion.Running), "motor_array_group_command_off_stops_all_ten_motors");
+        // Exercise independent requests with the legacy group command false.
+        // An active individual output must neither start its neighbours nor
+        // disappear because the group binding occurs earlier in the JSON.
+        for (var index = 0; index < 10; index++)
+        {
+            _sceneRuntime.CommitExternalPlcOutputs(new Dictionary<string, object?> { [$"motor_{index}_run"] = true });
+            check(motors.All(motor => ControllersForReview(motor).Single().Running ==
+                (motor.Name.ToString() == $"motor_{index}")), $"motor_array_independent_{index}_only");
+            _sceneRuntime.CommitExternalPlcOutputs(new Dictionary<string, object?> { [$"motor_{index}_run"] = false });
+        }
+        _sceneRuntime.CommitExternalPlcOutputs(new Dictionary<string, object?> { ["motor_3_run"] = true, ["motor_array_run"] = true });
+        check(motions.All(motion => motion.Running), "motor_array_legacy_group_overrides_individual_off");
+        _sceneRuntime.CommitExternalPlcOutputs(new Dictionary<string, object?> { ["motor_array_run"] = false });
+        check(motors.All(motor => ControllersForReview(motor).Single().Running == (motor.Name.ToString() == "motor_3")),
+            "motor_array_group_release_preserves_individual_request");
+        _sceneRuntime.ResetSimulation();
+        check(motions.All(motion => !motion.Running)
+            && Enumerable.Range(0, 10).All(index => _sceneRuntime.Points[$"motor_{index}_run"] is false),
+            "motor_array_reset_clears_all_individual_requests");
+
+        static IEnumerable<EquipmentMotionController> ControllersForReview(Node3D motor) =>
+            motor.FindChildren("*", string.Empty, true, false).OfType<EquipmentMotionController>();
     }
 
     private void VerifyWastewaterProbeGeometry(Action<bool, string> check)

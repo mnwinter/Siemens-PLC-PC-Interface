@@ -136,7 +136,7 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Ten actual motors and display/control spacing repaired; 8 focused checks pass, native five-angle reinspection. FAIL/open: no per-motor array/staggered timing; native loaded-controller workflow unverified",
+      "recordedResult": "Ten actual motors and display/control spacing repaired; 8 focused checks pass, native five-angle reinspection. Independent motor_0_run through motor_9_run BOOL commands now added with opt-in OR aggregation alongside retained group command. 21 focused geometry/projection checks PASS including independence, legacy compatibility and Reset; build zero warnings/errors, 145 controller tests PASS. Fresh native session 41751/window 6561010 shows readable description and new PLC command rows; geometry unchanged. FAIL/open: array-value interface, timed native loaded-controller workflow and populated status displays unverified",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": true,
       "disposition": "REPAIR_RECORDED_FAILURE",
