@@ -950,6 +950,20 @@ public partial class Main
         runtime.ResetSimulation();
     }
 
+    // The continuous belt wraps around its drums. Its overall AABB includes
+    // curved ends below the carrying plane and cannot prove full load support.
+    // These scenes use an unrotated rectangular deck: derive that plane from
+    // actual delivered mesh vertices rather than hard-coded conveyor lengths.
+    private static Aabb FlatConveyorCarryingSurface(MeshInstance3D mesh)
+    {
+        var vertices = mesh.Mesh.GetFaces().Select(vertex => mesh.GlobalTransform * vertex).ToArray();
+        var top = vertices.Max(vertex => vertex.Y);
+        var carrying = vertices.Where(vertex => MathF.Abs(vertex.Y - top) < 0.00001f).ToArray();
+        if (carrying.Length < 4) throw new InvalidOperationException("Conveyor has no rectangular carrying plane.");
+        var bounds = new Aabb(carrying[0], Vector3.Zero);
+        foreach (var vertex in carrying) bounds = bounds.Expand(vertex);
+        return bounds;
+    }
     private void VerifyBaseConveyorCartonSupport(Action<bool, string> check)
     {
         foreach (var number in new[] { 1, 2 })
@@ -961,7 +975,8 @@ public partial class Main
             var carton = root.GetNode<Node3D>($"scene{number}_product");
             var initial = carton.Transform;
             var conveyor = root.GetNode<Node3D>($"scene{number}_conveyor");
-            var belt = ReviewBounds((MeshInstance3D)conveyor.FindChild("KIN_belt_surface", true, false));
+            var beltMesh = (MeshInstance3D)conveyor.FindChild("KIN_belt_surface", true, false);
+            var belt = FlatConveyorCarryingSurface(beltMesh);
             bool Supported()
             {
                 var load = ReviewBounds(carton);

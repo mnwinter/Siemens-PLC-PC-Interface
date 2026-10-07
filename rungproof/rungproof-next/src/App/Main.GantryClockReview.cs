@@ -360,6 +360,13 @@ public partial class Main
         var runtime = _sceneRuntime!;
         var carton = root.GetNode<Node3D>("scene1_product");
         var staged = carton.Transform;
+        var deck = FlatConveyorCarryingSurface((MeshInstance3D)root.GetNode<Node3D>("scene1_conveyor").FindChild("KIN_belt_surface", true, false));
+        var load = ReviewBounds(carton);
+        GD.Print($"BASE_CONVEYOR_FLAT_SUPPORT carton={load} carrying={deck}");
+        check(MathF.Abs(load.Position.Y - deck.End.Y) < .001f
+            && load.Position.X >= deck.Position.X && load.End.X <= deck.End.X
+            && load.Position.Z >= deck.Position.Z && load.End.Z <= deck.End.Z,
+            "base_conveyor_native_mesh_initial_full_flat_deck_support");
         var rootMode = root.ProcessMode;
         var runtimeMode = runtime.ProcessMode;
         SetGantryReviewClockHeld(true);
