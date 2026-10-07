@@ -29,6 +29,7 @@ public partial class Main
                 && bounds.Position.Z >= belt.Position.Z && bounds.End.Z <= belt.End.Z;
         }), "multi_conveyor_home_pallet_runners_seated_inside_flat_belt");
         GD.Print($"MULTI_CONVEYOR_HOME pallet={ReviewBounds(pallet)} belt={belt} flat={tailX}..{driveX}");
+        VerifyMultiConveyorBearing(check, root, pallet);
         var document = new LadderEditorDocument();
         document.ResetProject("review-multi-conveyor", "Multi_Conveyor_QA", TimeSpan.FromMilliseconds(20));
         document.SourceSceneId = "lab-11-07-multi-conveyor-pallet-route";

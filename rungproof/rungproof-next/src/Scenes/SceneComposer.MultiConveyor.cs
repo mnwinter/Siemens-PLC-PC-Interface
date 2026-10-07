@@ -26,6 +26,9 @@ public static partial class SceneComposer
         {
             var feed = root.GetNode<Node3D>($"conveyor_{zone}");
             var belt = Bounds(Part(feed, "KIN_belt_surface"));
+            var splice = Part(feed, "BELT_vulcanized_splice");
+            splice.Position += InScene((Node3D)splice.GetParent()).Basis.Inverse()
+                * new Vector3(0, belt.End.Y - Bounds(splice).End.Y, 0);
             // Clear the complete curved belt envelope; the remaining small gap
             // requires load-bearing verification with the actual pallet runners.
             var left = belt.End.X + .005f;
