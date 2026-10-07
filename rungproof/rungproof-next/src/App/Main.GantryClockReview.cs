@@ -163,6 +163,12 @@ public partial class Main
             }
         }
         finally { _gantryReviewStepping = false; }
+        // Refit only explicit conveyor-transfer inspection targets after a
+        // manual step. A fixed close camera otherwise loses the pallet as it
+        // crosses the receiver. Preserve the selected angle and zoom mode.
+        if (_currentSceneId == "lab-11-07-multi-conveyor-pallet-route"
+            && _visualReviewFocusId is "route_pallet" or "training_accessory_6")
+            SetVisualReviewAngle(_sceneCameraDirection, "stepped-transfer-focus");
         UpdateGantryReviewClockLabel();
         GD.Print($"GANTRY_REVIEW_STEP time={_virtualController.Snapshot.SimulatedTime.TotalSeconds:F2} scan={_virtualController.Snapshot.ScanNumber} position={(_currentSceneId == "scene-2-conveyor-pusher" ? Convert.ToDouble(_sceneRuntime?.Points.GetValueOrDefault("pusher_position") ?? 0) : motion?.PositionPercent ?? 0):F3}%");
     }

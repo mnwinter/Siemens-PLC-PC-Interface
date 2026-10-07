@@ -121,14 +121,20 @@ public partial class Main
             check(_virtualController.Snapshot.ScanNumber == heldScans + 25,
                 "multi_conveyor_review_coarse_step_executes_25_scans");
             Action("toggle-zone_1_clear"); var beforeFine = pallet.Position.X;
+            _visualReviewFocusId = "route_pallet";
+            SetVisualReviewAngle(new Vector3(11, 7, 12), "verify-moving-focus");
+            var cameraBeforeFine = _mainCamera!.Position;
             AdvanceGantryReviewClock(1);
             check(MathF.Abs(pallet.Position.X - beforeFine - .015f) < .0001f,
                 "multi_conveyor_review_fine_step_moves_actual_pallet_one_scan");
+            check((_mainCamera.Position - cameraBeforeFine).IsEqualApprox(new Vector3(.015f, 0, 0)),
+                "multi_conveyor_review_step_refits_selected_moving_pallet");
             StopActiveController(); heldScans = _virtualController.Snapshot.ScanNumber;
             AdvanceGantryReviewClock(1);
             check(_virtualController.Snapshot.ScanNumber == heldScans,
                 "multi_conveyor_review_stopped_clock_cannot_step");
             ResetActiveController(); ReleaseGantryReviewClock();
+            _visualReviewFocusId = null;
         }
         finally { DisableVirtualController(); }
     }
