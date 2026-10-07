@@ -1,5 +1,55 @@
 # Cumulative Lab Progression
 
+Scene 64 luggage-sort connected reference/native checkpoint (2026-10-06):
+The delivered suitcase now travels on an accepted 20 ms plant clock, with actual
+finite suitcase-body beam feedback at entry, weighing station and both exits.
+PC numeric weight is a latched illustrative fixture mass (12/22/32 kg), valid
+only on the actual weighing deck with scale ready, weigh command and no travel.
+The installed readout shows a dash when invalid; its reusable asset remains static
+without this explicit binding. PLC owns motion, weighing, route, category and
+three numeric class counters. Three modeled operator controls bind load-next,
+scale-ready and fixture selection. Conflicting motion/weigh commands and changed
+routes are inhibited while preserving the command image. Loads remain visible at
+both exits; only explicit load-next or Reset relocates a completed actor.
+
+Original reference generated explicitly by --audit-luggage-layout into ignored
+.tools/plant-review-luggage.rpproj.json: 41 focused geometry/adapter/controller
+checks PASS. All three masses produce one category and only its counter increment;
+held exits cannot recount. Example dwell .5 s and 15/25 kg limits are illustrative.
+Category/counts retained in PLC memory survive Stop; public numeric outputs clear
+while stopped and restore on Run. No default exercise ladder is filled in.
+
+Native File-menu reference opening, 12 kg weighing and normal exit demonstrated;
+scale pose FR/FL/RL/RR/Top at scan 325. That first cycle exposed incorrect roller
+animation axis. Corrected local-axis rotation and added actual transformed mesh
+crown check (rotated box bounds are too conservative for round rollers).
+Final-axis 32 kg reference: 32.00 kg at scan 325; class 3/counts 0/0/1 at scan 525,
+X 1.80/Z -.21 reject transfer inspected FR/FL/RL/RR/Top. Stop holds scan 525 and
+pose; first resumed scan 526 restores result/route/count without recounting.
+At scan 576, X 2.30/Z -.93, visible bag crosses the receiving bridge. Scan 826
+stops discharge at X 2.30/Z -2.76 with the bag retained on outfeed, inspected Top
+and RR. Native Reset restores home and zero counters/scan. Final 3D fixture-mass
+and scale-ready controls accepted; early 3D load request blocked. Result-available
+lamp now follows numeric class_result instead of an unbound decorative state.
+All owned native previews closed normally. Logs: .tools/luggage-final-audit.log,
+.tools/luggage-native-axis-final.log and .tools/luggage-native-final-controls.log.
+Build zero warnings/errors, controller 144 PASS, scene contracts 71 PASS, help
+294 assets/77 scenes, app shell PASS with five demos and transport disconnected.
+Final full geometry regression: 987 checks PASS in .tools/luggage-geometry-verified.log,
+with no exception or failed check. Its historical box_1 support check now uses
+the delivered suitcase. The regression also exposed a scene-transition read of
+luggage fields after the runtime had changed; a runtime-type guard fixes that
+exception. A weight-display base/sensor-foot overlap was corrected by moving
+the readout to Z 1.6, with a focused clearance check and final native
+FR/FL/RL/RR/Top inspection in .tools/luggage-native-display-clearance-final.log.
+The early-load rejection message now explains the exit/commands-off condition
+instead of suggesting Reset; native message inspection passed. Latest focused
+proof: .tools/luggage-final-verified-audit.log, 41 checks PASS.
+This is bounded prescribed geometry and offline behavior, not calibrated
+weighing, rated drives or contact dynamics.
+The full multi-scene goal remains open, including scenes 72/77 and other matrix gaps.
+
+
 Scene 64 luggage-sort geometry checkpoint (2026-10-06, process still OPEN):
 Replaced the electrical-starter copy with an original suitcase and the bare
 load-cell copy with a grounded four-cell weighing platform. Archived inherited

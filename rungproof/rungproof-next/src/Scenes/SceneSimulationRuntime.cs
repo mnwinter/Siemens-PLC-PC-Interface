@@ -73,6 +73,7 @@ public partial class SceneSimulationRuntime : Node
         if (selected && !running) PauseBagIndexClock();
         if (selected && !running) PauseCoatingClock();
         if (selected && !running) PauseHandDryer();
+        if (selected && !running) PauseLuggagePlant();
         if (selected && running) ApplyBindings();
     }
 
@@ -101,6 +102,7 @@ public partial class SceneSimulationRuntime : Node
         if (!running) PauseBagIndexClock();
         if (!running) PauseCoatingClock();
         if (!running) PauseHandDryer();
+        if (!running) PauseLuggagePlant();
         if (RuntimeType == "tank") ProjectTankState();
     }
 
@@ -121,6 +123,7 @@ public partial class SceneSimulationRuntime : Node
         FreezeBagIndexAdapter();
         FreezeCoatingAdapters();
         FreezeHandDryerAdapter();
+        FreezeLuggageAdapters();
     }
 
     public void ConsumeExternalInputPulses(IReadOnlyDictionary<string, object?> sampledPoints)
@@ -158,6 +161,8 @@ public partial class SceneSimulationRuntime : Node
     public bool CanExecuteAction(JsonElement action) => RequirementsSatisfied(action)
         && (Text(action, "type", "") != "palletizerLoad" || _palletizer?.CanLoadCarton == true)
         && (Text(action, "type", "") != "groupingLoad" || PackageGroupingPlant?.CanLoad == true)
+        && (!HasLuggagePlant || (Text(action,"type","") != "luggageLoad" || (LuggageFinished && LuggageCommandsOff)))
+        && (!HasLuggagePlant || Text(action,"point","") != "fixture_mass_kg" || (LuggageFixtureAvailable && LuggageCommandsOff))
         && ParkingEntryActionAvailable(Text(action, "type", ""));
     public bool IsPlcOwnedPoint(string point) =>
         string.Equals(_pointOwners.GetValueOrDefault(point), "PLC", StringComparison.OrdinalIgnoreCase);
@@ -225,6 +230,7 @@ public partial class SceneSimulationRuntime : Node
         if (HasBagIndexPlant) { AdvanceBagIndexPlant(delta); return; }
         if (HasCoatingPlant) { AdvanceCoatingPlant(delta); return; }
         if (HasHandDryer) { AdvanceHandDryer(delta); return; }
+        if (HasLuggagePlant) { AdvanceLuggagePlant(delta); return; }
         if (HasParkingEntryPlant) { AdvanceParkingEntryPlant(delta); return; }
         if (HasPackageGroupingPlant) { AdvancePackageGroupingPlant(delta); return; }
 
@@ -403,6 +409,7 @@ public partial class SceneSimulationRuntime : Node
         PauseBagIndexClock();
         PauseCoatingClock();
         PauseHandDryer();
+        PauseLuggagePlant();
         _shippingPalletReferenceActive = false;
         if (!UsesExternalClock && RuntimeType == "booleanPanel") _booleanPreviewStopped = true;
         _activeStepIndex = -1;
@@ -494,6 +501,7 @@ public partial class SceneSimulationRuntime : Node
         ResetBagIndexPlant();
         ResetCoatingPlant();
         ResetHandDryer();
+        ResetLuggagePlant();
         ResetParkingEntryPlant();
         ResetPackageGroupingPlant();
         EvaluateRules();
@@ -512,7 +520,7 @@ public partial class SceneSimulationRuntime : Node
             GD.PushWarning($"Unknown scene action '{actionId}'.");
             return false;
         }
-        if (!RequirementsSatisfied(action))
+        if (!RequirementsSatisfied(action) || (HasLuggagePlant && !CanExecuteAction(action)))
         {
             GD.Print($"SCENE_ACTION_BLOCKED {actionId} {Text(action, "blockedMessage", "requirements not met")}");
             return false;
@@ -532,6 +540,7 @@ public partial class SceneSimulationRuntime : Node
             "reset" => ResetAction(),
             "toggle" or "togglePoint" => TogglePoint(point),
             "cycle" => CyclePoint(point, action),
+            "luggageLoad" => LoadNextLuggage(),
             "pulse" => PulsePoint(point),
             _ => false,
         };
@@ -1077,6 +1086,7 @@ public partial class SceneSimulationRuntime : Node
 
     private void EvaluateRules()
     {
+        if(HasLuggagePlant) ProjectLuggagePlant();
         if (HasHandDryer) { ProjectDryerHands(); if (_dryerFan is not null) ProjectDryerCommands(PlantPlaybackRunning); }
         if (UsesExternalClock)
         {
@@ -1173,8 +1183,9 @@ public partial class SceneSimulationRuntime : Node
                         var format = Text(binding, "format", "G");
                         if (format is not ("G" or "F0" or "F1" or "F2" or "F3"))
                             throw new InvalidOperationException($"Numeric display '{equipmentId}' requires G or F0 through F3 format.");
+                        var validPoint=Text(binding,"validPoint",string.Empty);
                         readout.Text = Text(binding, "label", string.Empty) + "\n"
-                            + Convert.ToDouble(value, CultureInfo.InvariantCulture).ToString(format, CultureInfo.InvariantCulture);
+                            + (validPoint.Length>0 && !AsBool(_points.GetValueOrDefault(validPoint)) ? "—" : Convert.ToDouble(value, CultureInfo.InvariantCulture).ToString(format, CultureInfo.InvariantCulture));
                     }
                     break;
                 case "indicator":

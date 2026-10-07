@@ -302,11 +302,11 @@ public static partial class SceneComposer
             return AddDrawbridgePivot(model, installation);
         if (model is not null && installation == "drawbridgeSignal") return CreateDrawbridgeSignal(model);
         var display = Text(equipment.Config, "display", string.Empty);
-        if (model is not null && display is "palletCount" or "numeric" or "lengthNumeric" or "remainingSeconds")
+        if (model is not null && display is "palletCount" or "numeric" or "lengthNumeric" or "remainingSeconds" or "weightKg")
         {
             // Only explicitly configured equipment opts into a live readout. The reusable
             // asset retains its honest NO LIVE VALUE legend when used alone.
-            var legend = model.FindChild(display == "remainingSeconds" ? "STATIC_READOUT_static_legend" : display == "lengthNumeric" ? "LENGTH_DISPLAY_static_legend" : "COUNT_DISPLAY_static_legend", true, false) as MeshInstance3D
+            var legend = model.FindChild(display is "remainingSeconds" or "weightKg" ? "STATIC_READOUT_static_legend" : display == "lengthNumeric" ? "LENGTH_DISPLAY_static_legend" : "COUNT_DISPLAY_static_legend", true, false) as MeshInstance3D
                 ?? throw new InvalidOperationException($"Count display '{equipment.Id}' is missing its authored legend.");
             legend.Visible = false;
             model.AddChild(new Label3D

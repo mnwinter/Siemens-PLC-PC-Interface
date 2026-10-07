@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Godot;
+using RungProof.Next.App;
 
 namespace RungProof.Next.Scenes;
 
@@ -33,6 +34,7 @@ public static partial class SceneComposer
     private static void ConfigureLuggageInstallation(Node3D root)
     {
         var diverter=root.GetNode<Node3D>("training_accessory_7");
+        diverter.AddChild(new EquipmentMotionController {Name="LuggageRollerMotion",Kind=EquipmentMotionController.MotionKind.ContinuousRotation,TargetPrefix="ROLLER_",RotationAxis=Vector3.Up,SpeedRpm=106.1f});
         // Omit only the presentation carton in this installation. Luggage is
         // represented by the independently addressable delivered suitcase.
         ((MeshInstance3D)diverter.FindChild("CARTON",true,false)).Visible=false;

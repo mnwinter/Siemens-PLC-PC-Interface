@@ -794,3 +794,15 @@ withdraws hands and returns idle. Defaults remain blank and the demo count is fi
 Hand presence is derived from the finite sensor segment and delivered hand mesh.
 Heater/air effects project eligible commands; no measured heat/flow, protective
 function, electrical design or physical acceptance is implied.
+
+
+`-- --audit-luggage-layout` runs 41 focused offline luggage checks and creates
+`.tools/plant-review-luggage.rpproj.json` for explicit opening via File > Open
+Ladder Agent Project. It tests delivered geometry, finite suitcase-body beams,
+single-clock prescribed transport, supported fixture-weight validity, route
+inhibition, exit retention, all three example category counts, and Stop/Run/Reset.
+The reference uses an illustrative 0.5-second dwell and 15/25 kg category limits;
+these are not airport/OEM rules or a calibrated scale. Category and counters
+remain in PLC memory across Stop; public numeric output images clear while stopped
+and are republished on Run. Five demos and blank default exercises are retained.
+Candidate assets, contact dynamics and physical acceptance remain unapproved.

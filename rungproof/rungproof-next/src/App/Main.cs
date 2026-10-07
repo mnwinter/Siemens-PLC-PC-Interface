@@ -4129,6 +4129,8 @@ public partial class Main : Node3D
         }
         if (!_sceneRuntime.CanExecuteAction(action)) return Block(type switch
         {
+            "luggageLoad" => "Finish the current bag at an exit and remove both travel commands before loading the next bag",
+            "cycle" when _sceneRuntime.RuntimeType == "luggageWeightSort" && point == "fixture_mass_kg" => "Select fixture mass with travel commands off, while the bag is at home or has finished",
             "palletizerLoad" => "Load requires home, an empty pickup station, and space in the layer; Reset after four cartons or a fault",
             "parkingEnter" => "Entry needs an idle lane and a free bay; use EXIT when both spaces are occupied",
             "parkingExit" => "Exit needs an idle lane and a parked vehicle; REMOVE or re-enter any departed vehicle first",

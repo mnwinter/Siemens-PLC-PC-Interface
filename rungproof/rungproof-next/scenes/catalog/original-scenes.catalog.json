@@ -3,7 +3,7 @@
   "catalogId": "rungproof-original-scenes-migrated",
   "sourceRoot": "prototype/scenes",
   "sceneCount": 77,
-  "equipmentInstanceCount": 607,
+  "equipmentInstanceCount": 611,
   "equipmentTypeCounts": {
     "box": 30,
     "containerReceiver": 3,
@@ -17,7 +17,7 @@
     "meteringSkid": 1,
     "motor": 10,
     "palletLoad": 1,
-    "photoeye": 30,
+    "photoeye": 34,
     "pipe": 8,
     "pump": 6,
     "pusher": 2,
@@ -1053,10 +1053,11 @@
       "name": "Lab 6.7 - Luggage Weight Sort",
       "path": "res://scenes/migrated/lab-6-07-luggage-weight-sort.scene.json",
       "sourceFile": "prototype/scenes/lab-6-07-luggage-weight-sort.plcscene",
-      "equipmentCount": 12,
+      "equipmentCount": 16,
       "equipmentTypes": [
         "conveyor",
         "indicator",
+        "photoeye",
         "switch",
         "trainingAccessory"
       ],

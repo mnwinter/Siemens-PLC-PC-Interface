@@ -1039,7 +1039,8 @@ public partial class Main
         {
             AddMigratedScene(sceneId, _candidateCatalog!, _mainCamera!, false, false);
             var root = _sceneCompositionRoot!;
-            var carton = root.GetNode<Node3D>("box_1");
+            // Luggage now uses its delivered suitcase actor, not a duplicate carton.
+            var carton = root.GetNode<Node3D>(sceneId == "lab-6-07-luggage-weight-sort" ? "training_accessory_5" : "box_1");
             var load = ReviewBounds(carton);
             var conveyor = root.GetNode<Node3D>("conveyor_0");
             var belt = ReviewBounds((MeshInstance3D)conveyor.FindChild("KIN_belt_surface", true, false));
@@ -1052,7 +1053,7 @@ public partial class Main
                 $"{sceneId}_carton_resting_within_carrying_belt");
             var cartonParts = ReviewMeshes(carton);
             var solids = root.GetChildren().OfType<Node3D>().Where(node => node != carton)
-                .SelectMany(ReviewMeshes).ToArray();
+                .SelectMany(ReviewMeshes).Where(mesh => !mesh.Name.ToString().StartsWith("KIN_beam")).ToArray();
             check(cartonParts.All(part => solids.All(solid =>
             {
                 var overlap = ReviewBounds(part).Intersection(ReviewBounds(solid)).Size;

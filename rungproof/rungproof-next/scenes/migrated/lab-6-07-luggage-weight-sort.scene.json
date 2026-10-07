@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-6-07-luggage-weight-sort",
   "name": "Lab 6.7 - Luggage Weight Sort",
-  "description": "Symbolic luggage routing logic exercise. The WEIGHT readout is static; numeric weight measurement is not modeled.",
+  "description": "Supported luggage transport and illustrative fixture-weight feedback. Write PLC logic to weigh each bag, classify it once and increment only its category counter.",
   "camera": {
     "position": [
       11,
@@ -88,11 +88,13 @@
       "position": [
         -0.05,
         0,
-        1.4
+        1.6
       ],
       "config": {
         "assetName": "weight display",
-        "catalogAssetId": "training.accessory.weight_display.v1"
+        "catalogAssetId": "training.accessory.weight_display.v1",
+        "display": "weightKg",
+        "displayLabel": "WEIGHT kg"
       }
     },
     {
@@ -112,7 +114,7 @@
     {
       "id": "switch_8",
       "type": "switch",
-      "label": "Luggage Weight Sort operator input",
+      "label": "Load next fixture bag after exit",
       "position": [
         -2.4,
         0,
@@ -120,14 +122,14 @@
       ],
       "config": {
         "style": "pushbutton",
-        "action": "toggle-bag_present",
+        "action": "load-next-bag",
         "color": 2204518
       }
     },
     {
       "id": "switch_9",
       "type": "switch",
-      "label": "Luggage Weight Sort operator input",
+      "label": "Manual scale ready permissive",
       "position": [
         -0.2,
         0,
@@ -135,14 +137,14 @@
       ],
       "config": {
         "style": "pushbutton",
-        "action": "toggle-weight_valid",
+        "action": "toggle-scale_ready",
         "color": 2204518
       }
     },
     {
       "id": "switch_10",
       "type": "switch",
-      "label": "Luggage Weight Sort operator input",
+      "label": "Select next fixture mass (12 / 22 / 32 kg)",
       "position": [
         2.0,
         0,
@@ -150,14 +152,14 @@
       ],
       "config": {
         "style": "pushbutton",
-        "action": "toggle-class_selected",
+        "action": "cycle-fixture_mass_kg",
         "color": 2204518
       }
     },
     {
       "id": "indicator_11",
       "type": "indicator",
-      "label": "Luggage Weight Sort output indication",
+      "label": "Category result available lamp",
       "position": [
         3.7,
         0,
@@ -205,13 +207,107 @@
         "deckHeight": 0.9,
         "running": false
       }
+    },
+    {
+      "id": "luggage_entry",
+      "type": "photoeye",
+      "label": "LUGGAGE ENTRY actual mesh beam",
+      "position": [
+        -3.2,
+        0,
+        0
+      ],
+      "config": {
+        "span": 2.0,
+        "beamCenterHeightM": 1.15
+      },
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "luggage_station",
+      "type": "photoeye",
+      "label": "LUGGAGE STATION actual mesh beam",
+      "position": [
+        0.32,
+        0,
+        0
+      ],
+      "config": {
+        "span": 2.0,
+        "beamCenterHeightM": 1.15
+      },
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "luggage_normal_exit",
+      "type": "photoeye",
+      "label": "LUGGAGE NORMAL EXIT actual mesh beam",
+      "position": [
+        2.94,
+        0,
+        0
+      ],
+      "config": {
+        "span": 1.8,
+        "beamCenterHeightM": 1.15
+      },
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "luggage_reject_exit",
+      "type": "photoeye",
+      "label": "LUGGAGE REJECT EXIT actual mesh beam",
+      "position": [
+        2.3,
+        0,
+        -3
+      ],
+      "config": {
+        "span": 1.7,
+        "beamCenterHeightM": 1.15
+      },
+      "rotation": [
+        0,
+        90,
+        0
+      ]
     }
   ],
   "simulation": {
-    "type": "booleanPanel",
+    "type": "luggageWeightSort",
     "points": [
       {
-        "name": "bag_present",
+        "name": "bag_at_entry",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "bag_at_scale",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "bag_at_normal_exit",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "bag_at_reject_exit",
         "type": "BOOL",
         "owner": "PC",
         "initial": false
@@ -223,10 +319,72 @@
         "initial": false
       },
       {
-        "name": "class_selected",
+        "name": "motion_inhibited",
         "type": "BOOL",
         "owner": "PC",
         "initial": false
+      },
+      {
+        "name": "travel_limited",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "diverter_ready",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "scale_ready",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": true
+      },
+      {
+        "name": "fixture_mass_kg",
+        "type": "REAL",
+        "owner": "PC",
+        "initial": 12
+      },
+      {
+        "name": "weight_kg",
+        "type": "REAL",
+        "owner": "PC",
+        "initial": 0
+      },
+      {
+        "name": "bag_x",
+        "type": "REAL",
+        "owner": "PC",
+        "initial": -3.2
+      },
+      {
+        "name": "bag_z",
+        "type": "REAL",
+        "owner": "PC",
+        "initial": 0
+      },
+      {
+        "name": "bag_speed",
+        "type": "REAL",
+        "owner": "PC",
+        "initial": 0
+      },
+      {
+        "name": "infeed_run",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "discharge_run",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
       },
       {
         "name": "weigh_cycle",
@@ -236,49 +394,79 @@
         "role": "output"
       },
       {
-        "name": "class_result",
+        "name": "reject_select",
         "type": "BOOL",
         "owner": "PLC",
         "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "class_result",
+        "type": "DINT",
+        "owner": "PLC",
+        "initial": 0,
+        "role": "output"
+      },
+      {
+        "name": "class_1_count",
+        "type": "DINT",
+        "owner": "PLC",
+        "initial": 0,
+        "role": "output"
+      },
+      {
+        "name": "class_2_count",
+        "type": "DINT",
+        "owner": "PLC",
+        "initial": 0,
+        "role": "output"
+      },
+      {
+        "name": "class_3_count",
+        "type": "DINT",
+        "owner": "PLC",
+        "initial": 0,
         "role": "output"
       }
     ],
     "actions": [
       {
-        "id": "toggle-bag_present",
-        "label": "Toggle bag present",
-        "type": "toggle",
-        "point": "bag_present"
+        "id": "load-next-bag",
+        "label": "Load next bag after exit",
+        "type": "luggageLoad"
       },
       {
-        "id": "toggle-weight_valid",
-        "label": "Toggle weight valid",
+        "id": "toggle-scale_ready",
+        "label": "Toggle scale ready",
         "type": "toggle",
-        "point": "weight_valid"
+        "point": "scale_ready"
       },
       {
-        "id": "toggle-class_selected",
-        "label": "Toggle class selected",
-        "type": "toggle",
-        "point": "class_selected"
+        "id": "cycle-fixture_mass_kg",
+        "label": "Next fixture mass: 12 / 22 / 32 kg",
+        "type": "cycle",
+        "point": "fixture_mass_kg",
+        "values": [
+          12,
+          22,
+          32
+        ]
       }
     ],
     "rules": [],
     "edgeRules": [],
     "pointBindings": [
       {
-        "point": "bag_present",
-        "equipmentId": "switch_8",
-        "mode": "switch"
+        "point": "weight_kg",
+        "equipmentId": "training_accessory_6",
+        "mode": "numericDisplay",
+        "label": "WEIGHT kg",
+        "format": "F2",
+        "validPoint": "weight_valid"
       },
       {
-        "point": "weight_valid",
+        "point": "scale_ready",
         "equipmentId": "switch_9",
-        "mode": "switch"
-      },
-      {
-        "point": "class_selected",
-        "equipmentId": "switch_10",
         "mode": "switch"
       },
       {
@@ -297,16 +485,18 @@
   },
   "training": {
     "hints": [
-      "Translate the lesson into explicit state and permissive logic: A valid bag produces one category result and increments only its class counter.",
-      "Inputs are simulator feedback (bag_present, weight_valid, class_selected); PLC logic owns weigh_cycle, class_result.",
-      "Test the initial state, the valid condition, and at least one missing permissive."
+      "Fixture masses 12, 22 and 32 kg are illustrative simulated bag properties, not force measurements or a calibrated scale.",
+      "The suitcase follows prescribed supported routes. PC derives finite-beam feedback from the actual mesh; PLC owns travel, weighing, route, category result and counters.",
+      "Write an infeed / stop-and-weigh / classify-once / discharge sequence. Read weight only with weight_valid. Category thresholds belong in your PLC program.",
+      "Stop freezes accepted plant travel and removes local commands. Route changes during discharge are inhibited; the command image remains available for diagnosis.",
+      "Load next bag is available only after an exit and with both travel commands off. Change fixture mass before departure. Default ladder remains blank."
     ],
     "solution": {
       "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
       "steps": [
-        "Require the documented inputs: bag_present, weight_valid, class_selected.",
-        "Command the documented outputs: weigh_cycle, class_result.",
-        "Remove PLC commands when the permissive is lost."
+        "Index to bag_at_scale, stop travel and command weigh_cycle with scale_ready.",
+        "Classify weight_kg once while weight_valid; increment only the selected category counter.",
+        "End weigh_cycle, select the route, discharge to the appropriate exit and stop."
       ],
       "acceptance": "A valid bag produces one category result and increments only its class counter."
     },
@@ -317,25 +507,28 @@
       "reject diverter"
     ],
     "machineGuide": {
-      "purpose": "Symbolic luggage routing logic exercise. The WEIGHT readout is static; numeric weight measurement is not modeled.",
+      "purpose": "Supported luggage transport and illustrative fixture-weight feedback. Write PLC logic to weigh each bag, classify it once and increment only its category counter.",
       "startConditions": [
         "The common PLC/watchdog foundation is healthy.",
         "All required simulator inputs are at their documented initial state."
       ],
       "normalSequence": [
-        "Apply the requested input condition.",
-        "Verify only the documented PLC outputs respond."
+        "Index to bag_at_scale, stop travel and command weigh_cycle with scale_ready.",
+        "Classify weight_kg once while weight_valid; increment only the selected category counter.",
+        "End weigh_cycle, select the route, discharge to the appropriate exit and stop."
       ],
       "stopBehavior": [
-        "Removing the permissive removes PLC-owned commands.",
-        "Reset returns the module to its initial state."
+        "Stop freezes accepted travel and removes actuator commands. Numeric output images clear; the reference keeps category/counts in PLC memory and republishes them on Run.",
+        "Reset restores the home bag, fixture mass and counters."
       ],
       "faultBehavior": [
-        "A missing or stale input must fail safe and remain diagnosable."
+        "Scale ready false invalidates weight; classification waits for a valid dwell.",
+        "Conflicting travel/weigh commands and mid-transfer route changes are inhibited without rewriting the PLC image."
       ],
       "expectedObservations": [
-        "A valid bag produces one category result and increments only its class counter.",
-        "The readout says NO LIVE VALUE and is not bound to a numeric point."
+        "One valid bag yields one category and increments only that class counter when your loaded PLC program implements this logic.",
+        "Live weight is the latched fixture mass only while the base is wholly on the weighing deck, weighing is commanded and no travel is commanded.",
+        "A completed bag remains visibly on its receiving surface. No contact, calibrated weight or rated mechanism is simulated."
       ]
     },
     "sequenceNumber": 50,
@@ -349,11 +542,28 @@
       "Simulation_Timeout"
     ],
     "addedTags": [
-      "bag_present",
+      "bag_at_entry",
+      "bag_at_scale",
+      "bag_at_normal_exit",
+      "bag_at_reject_exit",
       "weight_valid",
-      "class_selected",
+      "motion_inhibited",
+      "travel_limited",
+      "diverter_ready",
+      "scale_ready",
+      "fixture_mass_kg",
+      "weight_kg",
+      "bag_x",
+      "bag_z",
+      "bag_speed",
+      "infeed_run",
+      "discharge_run",
       "weigh_cycle",
-      "class_result"
+      "reject_select",
+      "class_result",
+      "class_1_count",
+      "class_2_count",
+      "class_3_count"
     ],
     "changedTags": [],
     "previousAcceptance": [
@@ -365,8 +575,11 @@
       {
         "name": "initial-safe-state",
         "expect": {
+          "infeed_run": false,
+          "discharge_run": false,
           "weigh_cycle": false,
-          "class_result": false
+          "weight_valid": false,
+          "class_result": 0
         }
       }
     ]
