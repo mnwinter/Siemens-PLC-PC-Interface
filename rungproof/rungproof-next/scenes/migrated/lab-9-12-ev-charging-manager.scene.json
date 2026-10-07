@@ -23,7 +23,7 @@
       "type": "switch",
       "label": "Bay A occupancy fixture",
       "position": [
-        -3,
+        -6.3,
         0,
         4.1
       ],
@@ -126,7 +126,7 @@
       "type": "switch",
       "label": "Bay A authorization fixture",
       "position": [
-        -0.8,
+        -4.5,
         0,
         4.1
       ],
@@ -141,7 +141,7 @@
       "type": "switch",
       "label": "Bay A charger-ready fixture",
       "position": [
-        1.4,
+        -2.6999999999999997,
         0,
         4.1
       ],
@@ -244,7 +244,7 @@
       "type": "switch",
       "label": "A connector fixture",
       "position": [
-        -5.2,
+        -0.8999999999999995,
         0,
         4.1
       ],
@@ -259,9 +259,9 @@
       "type": "switch",
       "label": "B occupancy fixture",
       "position": [
-        3.6,
+        0.9000000000000004,
         0,
-        5.7
+        4.1
       ],
       "config": {
         "style": "pushbutton",
@@ -274,9 +274,9 @@
       "type": "switch",
       "label": "B authorization fixture",
       "position": [
-        5.8,
+        2.7,
         0,
-        5.7
+        4.1
       ],
       "config": {
         "style": "pushbutton",
@@ -289,9 +289,9 @@
       "type": "switch",
       "label": "B ready fixture",
       "position": [
-        1.4,
+        4.500000000000001,
         0,
-        5.7
+        4.1
       ],
       "config": {
         "style": "pushbutton",
@@ -304,9 +304,9 @@
       "type": "switch",
       "label": "B connector fixture",
       "position": [
-        -5.2,
+        6.3,
         0,
-        5.7
+        4.1
       ],
       "config": {
         "style": "pushbutton",

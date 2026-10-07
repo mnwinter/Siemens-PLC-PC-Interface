@@ -1,5 +1,14 @@
 # Multi-angle scene review - 2026-10-04
 
+EV contract follow-up (2026-10-06): controller regression 144 PASS/0 FAIL
+(.tools/ev-controller-regression.log), no real PLC transport constructed or
+attempted. Scene contract preflight found two operator controls stacked in depth;
+all eight fixture buttons now form one X row at Z 4.1 with 1.8 m spacing. Full
+scene contracts 71 PASS/0 FAIL in .tools/ev-contracts-connected.log. This proves
+catalog/point preflight and authored verification cases, not the new scheduling
+or pulse-counting ladder, which has not yet been supplied. New control-row
+appearance remains unverified because Windows input was stopped with Escape.
+
 EV offline plant/adapter checkpoint (2026-10-06, native runtime OPEN):
 Added renderer-neutral two-bay energy fixture: PLC grants/allocations are retained
 as commands; valid occupied/authorized/ready/connected bays receive allocated
