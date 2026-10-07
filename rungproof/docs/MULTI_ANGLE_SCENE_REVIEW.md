@@ -4042,3 +4042,15 @@ review-overlay-{red,green}.log. Camera logs record navigation; screenshots were
 inspected separately. Isolated native windows closed cleanly; the user's Demo 1
 window was preserved. Coverage stays 14/77 inspected, 63 pending, with recorded
 failures still open. Goal active.
+
+Vision sorter receiving-geometry measurements (2026-10-06; repair OPEN):
+.tools/sorter-receiving-measurement.log records actual Godot transformed
+meshes: infeed ends at X=-0.0445833 and top Y=0.9; rotary platter starts
+at X=2.02 and top Y=0.93, leaving a 2.0645833 m unsupported horizontal gap
+and 30 mm deck mismatch. The destination bank contains one KIN_belt_surface,
+not four lanes; its top is Y=1.055 and Z range 3.3..3.9. Source table still
+uses the machining-fixture master, not the existing parcelTransfer variant.
+The next repair must provide a flat parcel table and connected, level receiving
+paths with full footprint support, remove the cabinet diverter surrogate,
+and check frames/controls/supports before native multi-angle inspection.
+Existing support/display checks pass but do not validate this missing route.

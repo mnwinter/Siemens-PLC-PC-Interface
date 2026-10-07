@@ -51,6 +51,12 @@ public partial class Main
         var carton = ReviewBounds(root.GetNode<Node3D>("box_1"));
         var surface = (MeshInstance3D)root.GetNode<Node3D>("conveyor_0").FindChild("KIN_belt_surface", true, false);
         var belt = ReviewBounds(surface);
+        var table = root.GetNode<Node3D>("rotaryTable_3");
+        var platter = (MeshInstance3D)table.FindChild("TABLE_rotating_platter", true, false);
+        var receiver = root.GetNode<Node3D>("training_accessory_8");
+        var receivingBelt = (MeshInstance3D)receiver.FindChild("KIN_belt_surface", true, false);
+        GD.Print($"VISION_SORTER_RECEIVING infeed={belt} platter={ReviewBounds(platter)} bank={ReviewBounds(receivingBelt)}");
+        GD.Print($"VISION_SORTER_RECEIVING_GAP x={ReviewBounds(platter).Position.X-belt.End.X} deckDelta={ReviewBounds(platter).End.Y-belt.End.Y} bankBeltCount={receiver.FindChildren("KIN_belt_surface", "MeshInstance3D", true, false).Count}");
         GD.Print($"VISION_SORTER_CARTON_SUPPORT carton={carton} belt={belt}");
         check(MathF.Abs(carton.Position.Y - belt.End.Y) < .001f,
             "vision_sorter_carton_bottom_contacts_actual_delivered_belt_top");
