@@ -280,7 +280,7 @@ public partial class Main
             {
                 VerifyTankSwitchMountGeometry(Check);
                 VerifySumpLevelMotionGeometry(Check);
-                GD.Print($"TANK_SWITCH_INSTALLATION_VERIFY {(passed ? "PASS" : "FAIL")} geometry only; native/process acceptance pending");
+                GD.Print($"TANK_SWITCH_INSTALLATION_VERIFY {(passed ? "PASS" : "FAIL")} geometry and offline sump QA; native/process acceptance pending");
                 GetTree().Quit(passed ? 0 : 1);
                 return;
             }

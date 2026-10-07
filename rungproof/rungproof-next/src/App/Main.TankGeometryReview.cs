@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Godot;
+using RungProof.Next.VirtualController;
 
 namespace RungProof.Next.App;
 
@@ -56,6 +57,57 @@ public partial class Main
             "sump_reset_restores_level_and_float_input_image");
         // This drives the existing reference trajectory for geometry only.
         // It does not establish a PLC-owned pump latch or float mechanics.
+        VerifySumpControllerCycle(check);
+    }
+
+    private void VerifySumpControllerCycle(Action<bool,string> check)
+    {
+        var qa=new LadderEditorDocument();
+        qa.ResetProject("review-sump-latch","Sump_Latch_QA",TimeSpan.FromMilliseconds(20));
+        qa.SourceSceneId="lab-2-14-sump-pump";
+        foreach(var name in new[]{"start_sump","high_float_active","low_float_active"}) qa.AddTag(name,PlcVariableRole.Input,name);
+        foreach(var name in new[]{"cycle_enable","pump_run"}) qa.AddTag(name,PlcVariableRole.Output,name);
+        foreach(var name in new[]{"qa_cycle_requested","qa_pump_latched"}) qa.AddTag(name,PlcVariableRole.Memory);
+        qa.AddRung("QA: remember Start until Reset","qa_cycle_requested").CoilMode=LadderCoilMode.Set;
+        qa.AddContact(0,0,"start_sump",false);
+        qa.AddRung("QA: latch pump at high float","qa_pump_latched").CoilMode=LadderCoilMode.Set;
+        qa.AddContact(1,0,"high_float_active",false);
+        qa.AddRung("QA: reset latch at low float","qa_pump_latched").CoilMode=LadderCoilMode.Reset;
+        qa.AddContact(2,0,"low_float_active",false);
+        qa.AddRung("QA: project cycle enable","cycle_enable");qa.AddContact(3,0,"qa_cycle_requested",false);
+        qa.AddRung("QA: project pump command","pump_run");qa.AddContact(4,0,"qa_pump_latched",false);
+        qa.WatchVariables.AddRange(qa.Tags.Select(tag=>tag.Name));
+        var compiled=LadderCompiler.Compile(qa.BuildProgram());
+        check(compiled.IsValid,"sump_native_qa_latch_program_compiles");
+        if(!compiled.IsValid) throw new InvalidOperationException(string.Join(";",compiled.Issues));
+        System.IO.File.WriteAllText(ProjectSettings.GlobalizePath("res://.tools/aaa-a-a-sump-latch-native-qa.rpproj.json"),LadderEditorProjectJson.Save(qa));
+        var runtime=_sceneRuntime!;
+        EnableVirtualControllerProgram(qa.BuildProgram());
+        try
+        {
+            void Scans(int n) { for(var i=0;i<n;i++) _PhysicsProcess(.02); }
+            RunActiveController();Scans(10);
+            check(Math.Abs(Convert.ToDouble(runtime.Points["sump_level"])-22)<.001 && runtime.Points["pump_run"] is false,
+                "sump_normal_Run_without_Start_holds_initial_level");
+            check(ExecuteSelectedControllerAction("start-sump"),"sump_normal_Start_pulses_loaded_ladder_input");
+            Scans(150);
+            check(runtime.Points["pump_run"] is true && runtime.Points["high_float_active"] is false
+                && Convert.ToDouble(runtime.Points["sump_level"])>20 && Convert.ToDouble(runtime.Points["sump_level"])<78,
+                "sump_normal_controller_latches_pump_through_deadband");
+            StopActiveController();var held=Convert.ToDouble(runtime.Points["sump_level"]);var scan=_virtualController!.Snapshot.ScanNumber;
+            Scans(25);
+            check(Convert.ToDouble(runtime.Points["sump_level"])==held && runtime.Points["pump_run"] is false
+                && _virtualController.Snapshot.ScanNumber==scan,"sump_Stop_holds_water_and_clears_pump_command");
+            RunActiveController();Scans(200);
+            check(Math.Abs(Convert.ToDouble(runtime.Points["sump_level"])-20)<.001 && runtime.Points["low_float_active"] is true
+                && runtime.Points["pump_run"] is false,"sump_resume_finishes_at_low_float_with_pump_off");
+            Scans(30);
+            check(Math.Abs(Convert.ToDouble(runtime.Points["sump_level"])-20)<.001,"sump_held_cycle_enable_does_not_repeat_without_Reset");
+            ResetActiveController();
+            check(_virtualController.Snapshot.ScanNumber==0 && Math.Abs(Convert.ToDouble(runtime.Points["sump_level"])-22)<.001
+                && runtime.Points["cycle_enable"] is false && runtime.Points["pump_run"] is false,"sump_controller_Reset_restores_water_and_commands");
+        }
+        finally { DisableVirtualController(); }
     }
 
     private void VerifyTankAnalogMountGeometry(Action<bool, string> check)
