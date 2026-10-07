@@ -19,6 +19,12 @@ public partial class Main
         check(MathF.Abs(initial.Position.Y-.12f)<.001f && MathF.Abs(initial.End.Y-(.12f+1.65f*.22f))<.001f,
             "sump_liquid_initial_22_percent_matches_open_basin_datum");
         check(runtime.ExecuteAction("start-sump"), "sump_reference_level_motion_starts_for_geometry_audit");
+        runtime.AdvanceSimulation(1);
+        var actualFraction = (ReviewBounds(liquid).End.Y-.12f)/1.65f;
+        var reportedPercent = Convert.ToDouble(runtime.Points["sump_level"]);
+        GD.Print($"SUMP_LEVEL_COHERENCE after=1s renderedPercent={actualFraction*100} reportedPercent={reportedPercent}");
+        check(Math.Abs(reportedPercent-actualFraction*100)<.01,
+            "sump_mid_rise_reported_level_matches_actual_liquid_surface");
         var contained = true;
         var peak = initial.End.Y;
         for (var tick=0;tick<350;tick++)
