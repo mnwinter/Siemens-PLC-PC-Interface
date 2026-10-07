@@ -1,3 +1,8 @@
+## 2026-10-07 - Five-angle tote camera world-transform regression
+
+Added an actual scene-runtime travel check for each FR/FL/RL/RR/Top direction: 850 accepted 20 ms plant steps with conveyor commanded, checking rendered tote center travel equals camera translation and target translation, camera rotation preserved, and exit reached. Build zero warnings/errors; --verify-tote-finishing exit0, all five TOTE_CAMERA_CHECK results True (.tools/tote-follow-regression-build.log, .tools/tote-follow-regression.log). These establish world-transform following, not projected visibility/occlusion or native user workflow.
+
+Current-build native session25754/window139198 reached the actual scene and was visually observed at its Simulator mode startup dialog; Continue still pending. Native motion/zoom/Reset verification remains open. Retired only old unloaded layout windows1056662/PID29936 and335778/PID41496 after matching executable path and handles; preserved prior runtime poses. No restart of the slow current-build process.
 ## 2026-10-07 - Tote focus-follow implementation, native validation pending
 
 Extended the existing sorter camera translation follower to finishing_tote in lab-2-21-tote-finishing. The selected target center initializes on angle selection; later motion translates camera and captured target together, preserving angle/pan/zoom. Full-scene and stationary-equipment selections retain their existing behavior. No scene/plant geometry or ladder commands changed.

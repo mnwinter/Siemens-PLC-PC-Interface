@@ -38,6 +38,12 @@ public partial class Main
                 GD.Print($"TOTE_LADDER_CHECK {label}={condition}");
             });
             if (!passed) { GetTree().Quit(1); return; }
+            VerifyToteCameraFollow((condition, label) =>
+            {
+                passed &= condition;
+                GD.Print($"TOTE_CAMERA_CHECK {label}={condition}");
+            });
+            if (!passed) { GetTree().Quit(1); return; }
             VerifyToteFinishingPlacement((condition, label) =>
             {
                 passed &= condition;
@@ -53,6 +59,49 @@ public partial class Main
         GetTree().Quit(passed ? 0 : 1);
     }
 
+    private void VerifyToteCameraFollow(Action<bool, string> check)
+    {
+        var previousReview = _visualSceneReview;
+        var previousFocus = _visualReviewFocusId;
+        try
+        {
+            _visualSceneReview = true;
+            foreach (var direction in new[] { new Vector3(11, 7, 12), new Vector3(-11, 7, 12),
+                         new Vector3(-11, 7, -12), new Vector3(11, 7, -12), new Vector3(0, 20, .01f) })
+            {
+                AddMigratedScene("lab-2-21-tote-finishing", _candidateCatalog!, _mainCamera!, false, false);
+                _visualReviewFocusId = "finishing_tote";
+                SetVisualReviewAngle(direction, "tote-follow-regression");
+                var tote = _sceneCompositionRoot!.GetNode<Node3D>("finishing_tote");
+                var runtime = _sceneRuntime!;
+                runtime.UsesExternalClock = true;
+                runtime.SetControllerPlaybackRunning(true);
+                runtime.CommitVirtualControllerOutputs(new Dictionary<string, bool> { ["conveyor_run"] = true });
+                var follows = true;
+                var initialRotation = _mainCamera!.GlobalBasis;
+                for (var step = 0; step < 850; step++)
+                {
+                    var beforeCenter = ReviewBounds(tote).GetCenter();
+                    var beforeCamera = _mainCamera.Position;
+                    var beforeTarget = _cameraController!.ViewTarget;
+                    runtime.AdvanceSimulation(.02);
+                    FollowVisualReviewCarton();
+                    var travel = ReviewBounds(tote).GetCenter() - beforeCenter;
+                    follows &= (_mainCamera.Position - beforeCamera).IsEqualApprox(travel)
+                        && (_cameraController.ViewTarget - beforeTarget).IsEqualApprox(travel)
+                        && _mainCamera.GlobalBasis.IsEqualApprox(initialRotation);
+                }
+                check(follows && runtime.Points["tote_at_exit"] is true,
+                    $"full_travel_preserves_camera_offset_target_and_rotation_{direction}");
+            }
+        }
+        finally
+        {
+            _visualSceneReview = previousReview;
+            _visualReviewFocusId = previousFocus;
+            _visualReviewFollowCenter = null;
+        }
+    }
     private void VerifyToteFinishingPlacement(Action<bool, string> check)
     {
         AddMigratedScene("lab-2-21-tote-finishing", _candidateCatalog!, _mainCamera!, false, false);
