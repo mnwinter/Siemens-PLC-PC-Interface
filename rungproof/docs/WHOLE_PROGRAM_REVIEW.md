@@ -1,3 +1,8 @@
+## 2026-10-07 - Native watch dock row visibility
+
+Fixed the diagnostics dock minimum height from 120 to 180 px, reduced its title and page padding, and reduced the initial editor split offset. Native Windows inspection at 1602 x 932 with Scene I/O expanded now exposes a complete watch row and all six columns without overlapping Scene I/O or the playback footer. The initially tried 260 px minimum caused overlap and was rejected. The intermediate 180 px layout without compact padding exposed only column titles and was also rejected.
+
+In fresh window 1253240, Watch table 1 showed conveyor_run, BOOL, an unavailable value, OUTPUT, NOT LOADED, and its scene binding. Down-arrow navigation exposed the complete fill_valve_open row. This is unloaded-table layout/navigation evidence only; loaded running feedback, other window sizes, and divider resizing remain unverified. Build completed with zero warnings/errors and --verify-app-shell passed (.tools/watch-dock-build-final.log and .tools/watch-dock-shell-final.log). Full scene/runtime review remains open.
 ## 2026-10-07 - corrected tote fill/cap native discharge and focused Reset
 
 Native window270216/session33392, current plant implementation unchanged by subsequent QA/verifier edits. Reloaded corrected b11c7aa fixture through Project/Open and Online/Verify+load. Visible10ms scan and4-rung14-tag verification complete. Run123 leaves tote home; Start873 accepted and tote moving toward filler. Later2978 shows tote at downstream discharge rather than stalled at cap. Stop3512 retains delivered pose.

@@ -4500,9 +4500,9 @@ public partial class SimulatorShell : CanvasLayer
         var editorAndInspector = new VSplitContainer { Name = "EditorAndInspector" };
         editorAndInspector.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         editorAndInspector.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
-        editorAndInspector.SplitOffsets = [400];
+        editorAndInspector.SplitOffsets = [280];
         ConfigureDockSplit(editorAndInspector);
-        var bottomDockSplitOffset = 400;
+        var bottomDockSplitOffset = 280;
         editorAndTasks.AddChild(editorAndInspector);
 
         var projectPanel = PanelContainer("ProjectOrganization", new Color("eef0f2"), new Color("9aa7ad"));
@@ -5745,7 +5745,12 @@ public partial class SimulatorShell : CanvasLayer
         reopenBottomDock.Visible = false;
         bottomDockHost.AddChild(reopenBottomDock);
         var bottomPanel = PanelContainer("InspectorOutputDock", new Color("eef1f3"), new Color("9aa7ad"));
-        bottomPanel.CustomMinimumSize = new Vector2(0, 120);
+        // Title, tabs and watch controls consume most of a 120 px dock,
+        // leaving the actual feedback table below the visible aperture.
+        bottomPanel.CustomMinimumSize = new Vector2(0, 180);
+        var dockStyle = BoxStyle(new Color("eef1f3"), new Color("9aa7ad"));
+        dockStyle.ContentMarginTop = dockStyle.ContentMarginBottom = 2;
+        bottomPanel.AddThemeStyleboxOverride("panel", dockStyle);
         bottomPanel.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
         bottomPanel.TooltipText = "Drag the divider above this dock to resize Error List, Output, and Watch data.";
         var bottomBody = new VBoxContainer { Name = "InspectorOutputBody" };
@@ -5756,6 +5761,13 @@ public partial class SimulatorShell : CanvasLayer
         bottomHeading.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         bottomTitle.AddChild(bottomHeading);
         var collapseBottomDock = ToolbarButton("CollapseBottomDock", "▼", new Color("637985"), 32);
+        collapseBottomDock.CustomMinimumSize = new Vector2(32, 24);
+        foreach (var state in new[] { "normal", "hover", "pressed" })
+        {
+            var compactStyle = (StyleBoxFlat)collapseBottomDock.GetThemeStylebox(state).Duplicate();
+            compactStyle.ContentMarginTop = compactStyle.ContentMarginBottom = 2;
+            collapseBottomDock.AddThemeStyleboxOverride(state, compactStyle);
+        }
         collapseBottomDock.TooltipText = "Hide errors, output, and watch data";
         bottomTitle.AddChild(collapseBottomDock);
         bottomBody.AddChild(bottomTitle);
@@ -5763,7 +5775,9 @@ public partial class SimulatorShell : CanvasLayer
         bottomTabs.AddThemeFontSizeOverride("font_size", 11);
         bottomTabs.AddThemeColorOverride("font_selected_color", new Color("263943"));
         bottomTabs.AddThemeColorOverride("font_unselected_color", new Color("4f6874"));
-        bottomTabs.AddThemeStyleboxOverride("panel", BoxStyle(new Color("f8f9fa"), new Color("b7c0c5")));
+        var dockPageStyle = BoxStyle(new Color("f8f9fa"), new Color("b7c0c5"));
+        dockPageStyle.ContentMarginTop = dockPageStyle.ContentMarginBottom = 2;
+        bottomTabs.AddThemeStyleboxOverride("panel", dockPageStyle);
         bottomTabs.AddThemeStyleboxOverride("tab_selected", BoxStyle(new Color("ffffff"), accent));
         bottomTabs.AddThemeStyleboxOverride("tab_unselected", BoxStyle(new Color("d9dfe2"), new Color("aeb8bd")));
         bottomBody.AddChild(bottomTabs);
