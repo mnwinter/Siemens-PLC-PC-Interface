@@ -1027,7 +1027,23 @@ public partial class Main
         }
     }
 
-    private void VerifyTransferCartonSupport(Action<bool, string> check)
+    private bool _auditGuardedLayout;
+
+    private void AuditGuardedLayout()
+    {
+        var failures = 0;
+        void Check(bool ok, string name)
+        {
+            if (!ok) failures++;
+            GD.Print($"GUARDED_LAYOUT_CHECK {name}={ok}");
+        }
+        try { VerifyTransferCartonSupport(Check, "lab-3-01-guarded-pallet-transfer"); }
+        catch (Exception exception) { failures++; GD.PushError(exception.ToString()); }
+        GD.Print($"GUARDED_LAYOUT_VERIFY {(failures == 0 ? "PASS" : "FAIL")} static geometry only; native views and transfer behavior pending");
+        GetTree().Quit(failures == 0 ? 0 : 1);
+    }
+
+    private void VerifyTransferCartonSupport(Action<bool, string> check, string? onlySceneId = null)
     {
         foreach (var sceneId in new[]
         {
@@ -1037,6 +1053,7 @@ public partial class Main
             "lab-9-11-pallet-counting"
         })
         {
+            if (onlySceneId is not null && sceneId != onlySceneId) continue;
             AddMigratedScene(sceneId, _candidateCatalog!, _mainCamera!, false, false);
             var root = _sceneCompositionRoot!;
             // Luggage now uses its delivered suitcase actor, not a duplicate carton.
@@ -1059,13 +1076,15 @@ public partial class Main
                 {
                     var sensor = root.GetNode<Node3D>(sensorId);
                     var beams = ReviewMeshes(sensor).Where(mesh => mesh.Name.ToString().StartsWith("KIN_beam")).ToArray();
-                    check(beams.Length > 0 && beams.All(mesh =>
-                    {
-                        var beam = ReviewBounds(mesh);
-                        return beam.Position.X >= belt.Position.X && beam.End.X <= belt.End.X
-                            && beam.Position.Z <= belt.Position.Z && beam.End.Z >= belt.End.Z
-                            && beam.Position.Y > belt.End.Y && beam.Position.Y < load.End.Y;
-                    }), $"{sceneId}_{sensorId}_beam_crosses_carrying_route_at_carton_height");
+                    // Imported witness beams are dashed; their combined bounds
+                    // describe the lens-to-lens route, not each individual dash.
+                    var beam = beams.Length > 0 ? ReviewBounds(beams[0]) : new Aabb();
+                    foreach (var dash in beams.Skip(1)) beam = beam.Merge(ReviewBounds(dash));
+                    GD.Print($"GUARDED_SENSOR_ROUTE {sensorId} beam={beam}");
+                    check(beams.Length > 0 && beam.Position.X >= belt.Position.X && beam.End.X <= belt.End.X
+                        && beam.Position.Z <= belt.Position.Z && beam.End.Z >= belt.End.Z
+                        && beam.Position.Y > belt.End.Y && beam.End.Y < load.End.Y,
+                        $"{sceneId}_{sensorId}_beam_crosses_carrying_route_at_carton_height");
                 }
                 var curtain = root.GetNode<Node3D>("training_accessory_6");
                 var field = ReviewMeshes(curtain).Where(mesh => mesh.Name.ToString().StartsWith("BEAM_")).ToArray();

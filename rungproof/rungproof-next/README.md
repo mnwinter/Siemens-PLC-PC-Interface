@@ -826,3 +826,7 @@ shell and roof without changing geometry or process measurements. It is a SIM
 view flag, not a PLC command or physical opening. The review command writes ignored `.tools/plant-review-radar.rpproj.json`: PC
 operator requests drive a PLC-owned 20/80% fill/drain policy. Native inspection
 of this change and its full cycle remains pending.
+
+### Guarded-transfer static layout audit
+
+Run `--audit-guarded-layout` with the pinned Godot executable after building. Six focused checks cover supported home carton, photoeye routes at carton height, curtain width, mesh-gate placement and carton clearance. This command does not verify carton transport, protective-field detection or native visual appearance.

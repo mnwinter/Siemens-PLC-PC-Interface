@@ -152,6 +152,7 @@ public partial class Main : Node3D
         _auditParkingEntry = userArguments.Contains("--audit-parking-entry", StringComparer.Ordinal);
         _auditFlashPair = userArguments.Contains("--audit-flash-pair", StringComparer.Ordinal);
         _auditDrawbridge = userArguments.Contains("--audit-drawbridge", StringComparer.Ordinal);
+        _auditGuardedLayout = userArguments.Contains("--audit-guarded-layout", StringComparer.Ordinal);
         _auditRadarLayout = userArguments.Contains("--audit-radar-layout", StringComparer.Ordinal);
         _auditEvLayout = userArguments.Contains("--audit-ev-layout", StringComparer.Ordinal);
         _auditLuggageLayout = userArguments.Contains("--audit-luggage-layout", StringComparer.Ordinal);
@@ -186,7 +187,7 @@ public partial class Main : Node3D
         _mcpSceneId = userArguments
             .FirstOrDefault(argument => argument.StartsWith("--mcp-scene=", StringComparison.Ordinal))?
             .Substring("--mcp-scene=".Length);
-        _appShellRequested = _reportSceneGeometry || _verifySceneGeometry || _verifyToteFinishing || _auditDualSpindle || _auditRobotCnc || _auditRobotRestart || _auditSequenceTower || _auditChainLiftInstallation || _auditCookiePackaging || _auditBarrelFill || _auditCableCut || _auditPalletizer || _auditRepeatCycle || _auditButtonCounters || _auditParkingEntry || _auditPackageGrouping || _auditTimerLessons || _auditRotaryFlasher || _auditFlashPair || _auditRunningTower || _auditPedestrianCrossing || _auditDrawbridge || _auditBagIndex || _auditCoating || _auditHandDryer || _auditLuggageLayout || _auditEvLayout || _auditRadarLayout || _verifyCartonStaticRoutes || (_visualSceneReview && !_visualPlantReview) || _verifyAppShell || _verifyExternalDialog || _verifyExternalPlayback || _verifyPlantMotion || _verifyWorkspace || _verifyHud || _verifyCameraInput || _verifySceneControls
+        _appShellRequested = _reportSceneGeometry || _verifySceneGeometry || _verifyToteFinishing || _auditDualSpindle || _auditRobotCnc || _auditRobotRestart || _auditSequenceTower || _auditChainLiftInstallation || _auditCookiePackaging || _auditBarrelFill || _auditCableCut || _auditPalletizer || _auditRepeatCycle || _auditButtonCounters || _auditParkingEntry || _auditPackageGrouping || _auditTimerLessons || _auditRotaryFlasher || _auditFlashPair || _auditRunningTower || _auditPedestrianCrossing || _auditDrawbridge || _auditBagIndex || _auditCoating || _auditHandDryer || _auditLuggageLayout || _auditEvLayout || _auditRadarLayout || _auditGuardedLayout || _verifyCartonStaticRoutes || (_visualSceneReview && !_visualPlantReview) || _verifyAppShell || _verifyExternalDialog || _verifyExternalPlayback || _verifyPlantMotion || _verifyWorkspace || _verifyHud || _verifyCameraInput || _verifySceneControls
             || _verifyVirtualController || _verifyNumericSceneIo || _verifyLadderEditor || _verifySplitView || _verifyUiDensity || _virtualControllerDemo
             || userArguments.Contains("--app-shell", StringComparer.Ordinal);
         if (_visualPlantReview && (_sceneId is null || _appShellRequested || _verifySceneContract))
@@ -555,6 +556,10 @@ public partial class Main : Node3D
         else if (_auditPalletizer)
         {
             CallDeferred(nameof(AuditPalletizer));
+        }
+        else if (_auditGuardedLayout)
+        {
+            CallDeferred(nameof(AuditGuardedLayout));
         }
         else if (_auditRadarLayout)
         {
