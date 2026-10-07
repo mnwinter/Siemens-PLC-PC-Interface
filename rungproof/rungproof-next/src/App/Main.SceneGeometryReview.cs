@@ -262,6 +262,13 @@ public partial class Main
             var passed = true;
             void Check(bool condition, string label)
             { passed &= condition; GD.Print($"SCENE_GEOMETRY_CHECK {label}={condition}"); }
+            if (OS.GetCmdlineUserArgs().Contains("--verify-service-elevator-installation", StringComparer.Ordinal))
+            {
+                VerifyServiceElevatorInstallation(Check);
+                GD.Print($"SERVICE_ELEVATOR_INSTALLATION_VERIFY {(passed ? "PASS" : "FAIL")} modeled bounds only; controller and native motion pending");
+                GetTree().Quit(passed ? 0 : 1);
+                return;
+            }
             if (OS.GetCmdlineUserArgs().Contains("--verify-wastewater-installation", StringComparer.Ordinal))
             {
                 VerifyWastewaterProbeGeometry(Check);
@@ -322,6 +329,7 @@ public partial class Main
             VerifyDrillStartPermissives(Check);
             VerifyDrillFeedGeometry(Check);
             VerifyServiceDoorPlacement(Check);
+            VerifyServiceElevatorInstallation(Check);
             VerifyPressCountWorkflow(Check);
             VerifyCounterResetWorkflow(Check);
             VerifyRepeatCycleWorkflow(Check);

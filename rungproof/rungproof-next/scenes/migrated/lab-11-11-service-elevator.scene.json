@@ -21,32 +21,15 @@
     {
       "id": "liftTable_0",
       "type": "liftTable",
-      "label": "Service Elevator lift Table",
+      "label": "Service Elevator - two-landing car and shaft",
       "position": [
-        -3.3000000000000003,
+        0,
         0,
         0
       ],
       "config": {
-        "width": 2.3,
-        "depth": 1.8,
-        "minimumHeight": 0.6,
+        "installation": "serviceElevator",
         "travel": 2.1,
-        "initialPosition": 0
-      }
-    },
-    {
-      "id": "rollerShutter_1",
-      "type": "rollerShutter",
-      "label": "Service Elevator roller Shutter",
-      "position": [
-        -3.3,
-        0,
-        -1.6
-      ],
-      "config": {
-        "width": 2.2,
-        "height": 2.8,
         "initialPosition": 0
       }
     },
@@ -55,9 +38,9 @@
       "type": "switch",
       "label": "Service Elevator switch",
       "position": [
-        1.1,
+        -3.2,
         0,
-        0
+        2.8
       ],
       "config": {
         "style": "pushbutton",
@@ -70,9 +53,9 @@
       "type": "indicator",
       "label": "Service Elevator indicator",
       "position": [
-        3.3000000000000003,
+        3.2,
         0,
-        0
+        2.8
       ],
       "config": {
         "colors": [
@@ -84,67 +67,11 @@
       }
     },
     {
-      "id": "training_accessory_4",
-      "type": "trainingAccessory",
-      "label": "Service Elevator - elevator car/shaft",
-      "position": [
-        -3.3000000000000003,
-        0,
-        1.8
-      ],
-      "config": {
-        "assetName": "elevator car/shaft",
-        "catalogAssetId": "training.accessory.elevator_car_shaft.v1"
-      }
-    },
-    {
-      "id": "training_accessory_5",
-      "type": "trainingAccessory",
-      "label": "Service Elevator - floor call station",
-      "position": [
-        -6.6,
-        0.025,
-        2.5
-      ],
-      "config": {
-        "assetName": "floor call station",
-        "catalogAssetId": "training.accessory.floor_call_station.v1"
-      }
-    },
-    {
-      "id": "training_accessory_6",
-      "type": "trainingAccessory",
-      "label": "Service Elevator - landing door",
-      "position": [
-        1.1,
-        0,
-        1.8
-      ],
-      "config": {
-        "assetName": "landing door",
-        "catalogAssetId": "training.accessory.landing_door.v1"
-      }
-    },
-    {
-      "id": "training_accessory_7",
-      "type": "trainingAccessory",
-      "label": "Service Elevator - floor-position sensor",
-      "position": [
-        5.1,
-        0.025,
-        1.8
-      ],
-      "config": {
-        "assetName": "floor-position sensor",
-        "catalogAssetId": "training.accessory.floor_position_sensor.v1"
-      }
-    },
-    {
       "id": "switch_8",
       "type": "switch",
       "label": "Service Elevator operator input",
       "position": [
-        -2.4000000000000004,
+        -3.2,
         0,
         4.7
       ],
@@ -159,7 +86,7 @@
       "type": "switch",
       "label": "Service Elevator operator input",
       "position": [
-        -0.20000000000000007,
+        0,
         0,
         4.7
       ],
@@ -174,7 +101,7 @@
       "type": "indicator",
       "label": "Service Elevator output indication",
       "position": [
-        2,
+        3.2,
         0,
         4.7
       ],
@@ -280,7 +207,8 @@
     "hints": [
       "Translate the lesson into explicit state and permissive logic: The elevator receives one direction command only when the doors are closed and the landing is clear.",
       "Inputs are simulator feedback (call_valid, doors_closed, landing_clear); PLC logic owns lift_up_cmd, lift_down_cmd.",
-      "Test the initial state, the valid condition, and at least one missing permissive."
+      "Test the initial state, the valid condition, and at least one missing permissive.",
+      "The car and two landing doors are a scene-local visual installation. Call plates and rail sensors are illustrative; manual inputs do not prove automatic floor or door feedback. Car motion is not connected to the direction commands yet."
     ],
     "solution": {
       "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
@@ -387,11 +315,9 @@
     "scenePropTypes": [
       "box"
     ],
-    "unresolvedAssetTypes": [
-      "trainingAccessory"
-    ],
+    "unresolvedAssetTypes": [],
     "visualStatus": "partial",
     "productionApproved": false,
-    "reason": "Production approval requires every reusable asset and the complete scene to pass visual review."
+    "reason": "Two-landing visual installation under native review; elevator direction, door and floor-feedback runtime remains unverified."
   }
 }

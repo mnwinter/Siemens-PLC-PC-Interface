@@ -179,7 +179,7 @@
     {
       "index": 11,
       "sceneId": "lab-11-11-service-elevator",
-      "recordedNativeViews": "Final placement FR/FL/RL/RR/T",
+      "recordedNativeViews": "Current car/shaft home FR/FL/RL/RR/T; focused assembly and full scene; repeated after header fix",
       "recordedAngles": {
         "FR": true,
         "FL": true,
@@ -187,7 +187,7 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Shutter/lift separated by measured 0.175 m; cabinet/landing-door overlaps and cabinet grounding repaired and natively re-inspected. FAIL/open: bucket elevator instead of car/shaft, cabinets instead of call station/position sensor, two-landings geometry and full-motion controller workflow absent/unverified.",
+      "recordedResult": "Bucket-elevator and cabinet proxies replaced with car/shaft, two landings, open door frames, mounted illustrative call plates/sensors. Six focused checks PASS; native five-angle home inspection. FAIL/open: hoist/guard/access depiction, legend readability, door/floor feedback, PLC-owned travel and complete native moving/controller cycle.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": true,
       "disposition": "REPAIR_RECORDED_FAILURE",

@@ -1,0 +1,77 @@
+using Godot;
+using RungProof.Next.App;
+
+namespace RungProof.Next.Scenes;
+
+public static partial class SceneComposer
+{
+    // Scene-local visual installation. Position is deliberately setpoint-owned:
+    // a generic Run command must not fabricate a working elevator sequence.
+    private static Node3D CreateServiceElevator()
+    {
+        var root = new Node3D();
+        var steel = Material(new Color("677b86"), .6f, .35f);
+        var blue = Material(new Color("147eaf"), .3f, .4f);
+        var floor = Material(new Color("c5cbd0"), .4f, .55f);
+        var dark = Material(new Color("26343d"), .25f, .5f);
+        void Box(Node3D parent, string name, Vector3 size, Vector3 at, Material material)
+        { var mesh = AddBox(parent, size, at, material); mesh.Name = name; }
+        void Label(string name, string text, Vector3 at)
+        { root.AddChild(new Label3D { Name = name, Text = text, Position = at,
+            FontSize = 36, PixelSize = .003f, OutlineSize = 0, Modulate = Colors.White }); }
+
+        // The car envelope is wholly inside four shaft columns. The two
+        // landing surfaces meet the car floor at 0.6 and 2.7 metres.
+        foreach (var x in new[] { -1.3f, 1.3f })
+        foreach (var z in new[] { -1.05f, 1.05f })
+        {
+            Box(root, $"ELEVATOR_foot_{x}_{z}", new(.34f,.12f,.34f), new(x,.06f,z), steel);
+            Box(root, $"ELEVATOR_column_{x}_{z}", new(.14f,5.1f,.14f), new(x,2.67f,z), blue);
+        }
+        foreach (var z in new[] { -1.05f, 1.05f })
+            Box(root, $"ELEVATOR_header_{z}", new(2.74f,.16f,.14f), new(0,5.2f,z), steel);
+        foreach (var x in new[] { -1.3f, 1.3f })
+        {
+            Box(root, $"ELEVATOR_top_side_{x}", new(.14f,.16f,2.1f), new(x,5.2f,0), steel);
+            Box(root, $"ELEVATOR_guide_rail_{x}", new(.06f,4.65f,.1f), new(x*.86f,2.65f,-.65f), steel);
+        }
+        var car = new Node3D { Name = "KIN_service_elevator_car" };
+        root.AddChild(car);
+        Box(car,"ELEVATOR_car_floor",new(2.0f,.12f,1.8f),new(0,.54f,0),floor);
+        Box(car,"ELEVATOR_car_back",new(2.0f,1.84f,.08f),new(0,1.52f,-.86f),blue);
+        foreach (var x in new[] { - .96f,.96f })
+            Box(car,$"ELEVATOR_car_side_{x}",new(.08f,1.84f,1.72f),new(x,1.52f,0),blue);
+        Box(car,"ELEVATOR_car_roof",new(2.0f,.10f,1.8f),new(0,2.49f,0),steel);
+        Box(car,"ELEVATOR_car_threshold",new(1.84f,.04f,.16f),new(0,.58f,.98f),steel);
+
+        foreach (var y in new[] { .6f, 2.7f })
+        {
+            Box(root,$"ELEVATOR_landing_deck_{y}",new(2.6f,.12f,1.6f),new(0,y-.06f,1.86f),floor);
+            foreach (var x in new[] { -1.23f,1.23f })
+            {
+                if (y > 1)
+                {
+                    Box(root,$"ELEVATOR_landing_support_{x}",new(.12f,y-.12f,.12f),new(x,(y-.12f)/2,2.55f),steel);
+                    Box(root,$"ELEVATOR_landing_foot_{x}",new(.28f,.08f,.28f),new(x,.04f,2.55f),steel);
+                }
+                Box(root,$"ELEVATOR_door_jamb_{x}_{y}",new(.12f,1.9f,.12f),new(x,y+.95f,1.07f),steel);
+            }
+            Box(root,$"ELEVATOR_door_header_{y}",new(2.58f,.12f,.12f),new(0,y+1.96f,1.17f),steel);
+            // Open leaves make the landing/car relationship inspectable.
+            // Their pose is visual only; doors_closed remains a manual input.
+            foreach (var x in new[] { -1.03f,1.03f })
+                Box(root,$"ELEVATOR_open_door_leaf_{x}_{y}",new(.28f,1.8f,.05f),new(x,y+.94f,1.13f),dark);
+            Box(root,$"ELEVATOR_call_plate_{y}",new(.15f,.3f,.05f),new(1.34f,y+1.2f,1.1f),dark);
+            AddCylinder(root,$"ELEVATOR_call_button_{y}",new(1.34f,y+1.2f,1.135f),.035f,.025f,blue,new(90,0,0));
+            Box(root,$"ELEVATOR_position_sensor_{y}",new(.1f,.08f,.12f),new(-1.12f,y+.04f,-.65f),dark);
+            Label($"ELEVATOR_landing_label_{y}", y < 1 ? "LOWER LANDING" : "UPPER LANDING",new(0,y+2.12f,1.15f));
+        }
+        // Upper deck support continues to ground; its feet must not duplicate
+        // the lower deck feet at the same position.
+        root.AddChild(new EquipmentMotionController { Name = "ServiceElevatorPosition",
+            Kind = EquipmentMotionController.MotionKind.LinearY,
+            TargetPrefix = "KIN_service_elevator_car", TravelM = 2.1f,
+            AutonomousPositionTravel = false });
+        return root;
+    }
+}

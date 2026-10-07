@@ -142,7 +142,8 @@ public partial class Main : Node3D
         _verifySceneGeometry = userArguments.Contains("--verify-scene-geometry", StringComparer.Ordinal)
             || userArguments.Contains("--verify-wastewater-installation", StringComparer.Ordinal)
             || userArguments.Contains("--verify-tank-switch-mounts", StringComparer.Ordinal)
-            || userArguments.Contains("--verify-pallet-robot-controller", StringComparer.Ordinal);
+            || userArguments.Contains("--verify-pallet-robot-controller", StringComparer.Ordinal)
+            || userArguments.Contains("--verify-service-elevator-installation", StringComparer.Ordinal);
         _verifyToteFinishing = userArguments.Contains("--verify-tote-finishing", StringComparer.Ordinal);
         _auditDualSpindle = userArguments.Contains("--audit-dual-spindle", StringComparer.Ordinal);
         _auditRobotCnc = userArguments.Contains("--audit-robot-cnc", StringComparer.Ordinal);

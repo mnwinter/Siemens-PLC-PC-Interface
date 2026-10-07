@@ -85,6 +85,7 @@ public static partial class SceneComposer
                 "fan" => CreateControlledAsset(equipment, candidates, "air-handling.fan.axial-1900.v1", runCommands,
                     EquipmentMotionController.MotionKind.FanRotor, "KIN_", speedRpm: 720.0f),
                 "liftTable" when Text(equipment.Config, "installation", string.Empty) == "guidedChainLift" => CreateGuidedChainLift(),
+                "liftTable" when Text(equipment.Config, "installation", string.Empty) == "serviceElevator" => CreateServiceElevator(),
                 "liftTable" => CreateLiftAsset(equipment, candidates, runCommands),
                 "drillPress" when Text(equipment.Config, "installation", string.Empty) == "fixtureDrill" =>
                     CreateControlledAsset(equipment, candidates, "machining.drill-press.pedestal.v1", runCommands,
