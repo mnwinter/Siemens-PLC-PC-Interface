@@ -1,3 +1,40 @@
+## Multi-conveyor native QA command lifecycle (2026-10-06)
+
+Owned session 35484/window 3933478. Loaded multizone-native-qa.rpproj.json by
+Logic Editor > Project > Open project, selected .tools folder with Return,
+selected actual fixture icon and Open. Online > Verify + load offline reports
+1 block, 1 task, 3 networks/rungs, 6 tags. Returned to scene and Run.
+Zone 1 clear true -> zone 1 run true while visible zone 2 remained false;
+zone 1 loss -> false. Zone 2 independently true then false on clear loss.
+Zone 3 enabled alone; scrolled output panel shows outputs [false,false,true].
+Stop changes outputs to [false,false,false], state STOPPED. Reset scan 0,
+outputs false, visible zone 1/2 inputs false. Zone 3 input reset not exposed.
+
+These prove native project-load/compile/operator command lifecycle for the
+isolated QA fixture. Captures do not establish actual shaft/belt animation,
+all-on Stop, source-edge sequencing, common-stop behavior or pallet motion.
+Scene remains FAIL/open for those missing route functions. No PLC connected.
+Current app remains stopped at Reset with QA project loaded and first handoff
+focused FL; next verify actual drive visuals and remaining second seam detail.
+
+## Multi-conveyor close details and drive QA preparation (2026-10-06)
+
+Native session 35484/window 3933478 current final geometry: focused receiving
+roller Top and FL inspected, showing narrowed transfer deck and grounded posts.
+Focused first-handoff photoeye FL inspected, exposing level belt-to-belt deck,
+post and foot, separated photoeye stand/cable and adjoining belt noses. No
+obvious solid intersection in these views; this does not prove pallet bearing
+or intermediate motion. Second handoff close detail still pending.
+
+Created ignored .tools/multizone-native-qa.rpproj.json from established project
+schema: three independent assignment rungs, each zone_clear -> corresponding
+zone_run. Six BOOL tags, all initially false, 20 ms scan. This is drive binding
+QA only, not the lesson's common-stop/edge/handoff-state control reference.
+Offline validation PASS zero issues, .tools/multizone-native-qa-validation.log.
+Next load through native Logic Editor > Project > Open project, Verify + load
+offline, then observe each motor/belt and indicator independently plus Stop
+and Reset. Native QA fixture not loaded yet; runtime results remain unproven.
+
 ## Multi-conveyor corrected installation native checkpoint (2026-10-06)
 
 Widened four photoeye stand spans from 2.05 to 3.2 m and raised optical centers
