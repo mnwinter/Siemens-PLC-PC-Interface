@@ -49,6 +49,11 @@ public partial class Main
         var loaded = LadderEditorProjectJson.Load(FileAccess.GetFileAsString("res://programs/demos/05-integrated-cell-multi-fb-fc.rpproj.json"));
         check(loaded.IsReadable && loaded.Document is not null, "normal_saved_demo_document_is_editable");
         check(LadderEditorProjectJson.Save(loaded.Document!) == LadderEditorProjectJson.Save(AuthoredDemoLadderPrograms.TryCreate("lab-11-13-xy-palletizing", out var authored) ? authored : throw new InvalidOperationException("Missing Demo 5")), "saved_file_matches_demo_menu_document");
+        RunActiveController();
+        check(ExecuteSelectedControllerAction("start-palletizer"), "operator_start_accepted_before_first_controller_scan");
+        _PhysicsProcess(.02);
+        check(runtime.Points["gantry_cycle"] is true, "operator_start_before_first_scan_is_not_lost");
+        ResetActiveController();
         RunActiveController(); _PhysicsProcess(.1);
         check(runtime.Points["gantry_cycle"] is false && moving.Select((part, i) => part.Transform == home[i]).All(same => same), "normal_run_alone_does_not_start_machine");
         var contacts = new HashSet<string>(); var samples = 0; var geometry = true; var bearing = true; var rodSeated = true; var bridgeSupported = true; var attachment = true; var feedback = true; var counts = true;

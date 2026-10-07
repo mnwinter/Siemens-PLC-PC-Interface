@@ -17,6 +17,7 @@ internal static class Program
         Test("rising edge contact pulses for exactly one scan", TestRisingEdgeContact);
         Test("falling edge contact pulses for exactly one scan", TestFallingEdgeContact);
         Test("edge contacts suppress startup and restart pulses", TestEdgeLifecycle);
+        Test("explicit operator pulse before first scan fires once without held startup edges", TestFirstScanOperatorPulse);
         Test("edge memory is isolated by stable instruction ID", TestEdgeIsolation);
         Test("edge contacts survive JSON and editor round-trip", TestEdgeRoundTrip);
         Test("series logic is AND", TestSeries);
@@ -490,6 +491,23 @@ internal static class Program
         runtime.Reset();
         runtime.Run();
         False(runtime.Scan(Inputs(("input", true))).Outputs["output"]);
+    }
+
+    private static void TestFirstScanOperatorPulse()
+    {
+        var runtime = Runtime(SimpleProgram(new LadderNode("edge", LadderNodeKind.Contact, "input", EdgeMode: LadderEdgeMode.Rising)));
+        var session = new VirtualControllerSession(runtime);
+        session.Run();
+        session.PulseInput("input");
+        session.Advance(.020, () => Inputs(("input", false)), outputs => True(outputs["output"]), _ => { });
+        session.Advance(.020, () => Inputs(("input", false)), outputs => False(outputs["output"]), _ => { });
+        session.Reset(); session.Run();
+        session.Advance(.020, () => Inputs(("input", true)), outputs => False(outputs["output"]), _ => { });
+        session.Reset(); session.Run();
+        session.SetBoolForce("input", true); session.PulseInput("input");
+        session.Advance(.020, () => Inputs(("input", false)), outputs => False(outputs["output"]), _ => { });
+        session.Reset(); session.Run(); session.PulseInput("input"); session.Stop(); session.Run();
+        session.Advance(.020, () => Inputs(("input", false)), outputs => False(outputs["output"]), _ => { });
     }
 
     private static void TestEdgeIsolation()

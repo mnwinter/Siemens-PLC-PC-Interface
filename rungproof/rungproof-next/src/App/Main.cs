@@ -4201,6 +4201,15 @@ public partial class Main : Node3D
             _virtualController.PulseInput(variable.Name);
             return true;
         }
+        // A scene pulse is an explicit press, unlike an input already held at
+        // startup. Capture its released baseline before the first scan.
+        if (type == "pulse" && _virtualController.Snapshot.State == VirtualControllerState.Running
+            && _sceneRuntime.Points.GetValueOrDefault(point) is false)
+        {
+            var pulseVariable = _virtualProgram?.Variables.FirstOrDefault(item =>
+                item.Role == PlcVariableRole.Input && item.Type == PlcVariableType.Bool && item.Binding == point);
+            if (pulseVariable is not null) _virtualController.PrepareExplicitInputPulse(pulseVariable.Name);
+        }
         return _sceneRuntime.ExecuteAction(actionId);
     }
 

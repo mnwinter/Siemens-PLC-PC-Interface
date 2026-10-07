@@ -1,5 +1,13 @@
 # Multi-angle scene review - 2026-10-04
 
+## Demo 5 first-scan operator Start repaired and verified - 2026-10-06
+
+Explicit BOOL operator pulses now establish a released baseline only for previously unobserved edge contacts referencing that declared input. Existing edge memory, startup held inputs and forces retain their prior semantics. Session PulseInput uses this for deliberate presses; normal scene pulse actions establish the same baseline when the controller is running and the scene point was false. No scan, output, elapsed time or plant motion is executed by this preparation. Stop continues to discard unscanned commands.
+
+Added a focused test for first-scan pulse firing once, held-high startup suppression, force preservation and Stop cancellation, plus two Demo 5 integration assertions using the normal operator action before any warm-up scan. Build zero warnings/errors; 145 controller tests PASS/0 FAIL; --audit-palletizer --visual-scene-review failures=0 across 2,576 route samples and zero static candidates; --verify-app-shell PASS (77 scenes/5 demos). Logs: .tools/demo5-first-pulse-tests.log, .tools/demo5-first-pulse-audit.log, .tools/demo5-first-pulse-shell.log.
+
+Rebuilt and opened the real Windows shell, selected Demo 5 through Scenario menu, held the clock before Run, pressed Run at scan 0, pressed Start once, then Step 0.5 s. At scan 25/time .50 s, home False and gantry_cycle True, with visible tool approach: the prior lost-first-Start case is corrected. Native session 77702 remains held there, Full scene/front right. This verifies startup behavior; remaining multi-angle pickup/carry/placement/home and four-carton native acceptance are still open. Goal remains active.
+
 ## Demo 5 native startup ordering issue reproduced - 2026-10-06
 
 Opened Demo 5 through normal Scenario menu in Windows, focused training_accessory_4. Home/front-right view shows the empty pallet clear of the front gantry post. Held the offline plant clock, pressed Run (scan 0), then Start / resume one carton (accepted in event history), then Step 0.5 s. At scan 25 / elapsed .50 s, home remained True, gantry_cycle False, placed 0 and no visible movement. Pressed Start again and Step 0.5 s: scan 50 / elapsed 1.00 s, home False and gantry_cycle True; tool approached the carton. Front-right and front-left observations recorded this moving approach.

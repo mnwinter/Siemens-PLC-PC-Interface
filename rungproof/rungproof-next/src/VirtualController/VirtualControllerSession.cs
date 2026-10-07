@@ -56,9 +56,13 @@ public sealed class VirtualControllerSession
 
     public void PulseInput(string name)
     {
+        if (!_operatorInputs.GetValueOrDefault(name, _runtime.Snapshot.Variables.GetValueOrDefault(name)))
+            _runtime.PrepareExplicitInputPulse(name);
         _operatorInputs[name] = true;
         _pulseInputs.Add(name);
     }
+
+    public void PrepareExplicitInputPulse(string name) => _runtime.PrepareExplicitInputPulse(name);
 
     public VirtualControllerSnapshot SetBoolForce(string variableName, bool value)
     {

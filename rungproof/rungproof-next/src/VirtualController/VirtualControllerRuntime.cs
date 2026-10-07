@@ -111,6 +111,23 @@ public sealed class VirtualControllerRuntime
 
     public void Run() => State = VirtualControllerState.Running;
 
+    // A deliberate momentary press has an observed released state before it.
+    // Seed only unobserved edge contacts for that BOOL input. Held startup
+    // inputs, existing edge memory, and forced inputs retain their semantics.
+    public void PrepareExplicitInputPulse(string name)
+    {
+        if (State != VirtualControllerState.Running || _forces.ContainsKey(name)
+            || !_program.Variables.TryGetValue(name, out var variable)
+            || variable.Role != PlcVariableRole.Input || variable.Type != PlcVariableType.Bool) return;
+        void Visit(LadderNode node)
+        {
+            if (node.Kind == LadderNodeKind.Contact && node.EdgeMode != LadderEdgeMode.None && node.Variable == name)
+                _edgeInputs.TryAdd(node.Id, false);
+            foreach (var child in node.Children ?? []) Visit(child);
+        }
+        foreach (var network in _blocks.Values.SelectMany(block => block.Networks)) Visit(network.Logic);
+    }
+
     /// <summary>
     /// Applies an offline-simulator force to a declared BOOL input or output.
     /// Memory tags and non-BOOL values are deliberately excluded so forcing
