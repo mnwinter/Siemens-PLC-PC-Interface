@@ -1,5 +1,18 @@
 # Whole program review - 2026-10-03
 
+Tote cap geometry checkpoint (2026-10-06; native review OPEN):
+The finishing candidate now has a hollow cap underside. Actual exported GLB
+rays verify its inner roof seats at the neck rim within floating-point tolerance,
+with nominal 5 mm radial clearance and a 20 mm roof above the rim. Four cap-fit
+checks and five aperture checks pass. The underside asset render was inspected;
+this is not native Windows scene acceptance or a thread, gasket or seal design.
+The taller candidate uses a scene-configured 140 mm nozzle stroke, preserving
+bore engagement. Build and 38 focused Start/travel/fill/geometry checks pass;
+71 scene contracts pass with zero failures (.tools/tote-cap-cup-contracts.log).
+Cap application, labeling, inspection and the full PLC station sequence remain
+open, together with native static and moving multi-angle scene checks.
+
+
 ## 2026-10-06 tote normalized fill model
 
 Added a renderer-neutral normalized fill model, illustrative 20 percent/second, bounded to 0–100 percent. Controller-clocked fill requires the stopped tote at the fill station, hidden/open cap and delivered nozzle vertices fitting the measured bore with 2 mm radial clearance and the tip entering its vertical range. Ineligible/full commands produce PC fill_inhibited without rewriting the PLC valve command. Four PC points publish percentage, effective percentage/second, inhibition and full completion. A visible level witness remains inside the cavity with its bottom fixed; stream visibility follows effective delivery rather than raw valve animation. The nozzle's general callback is disabled under the accepted controller clock.

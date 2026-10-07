@@ -1,5 +1,18 @@
 # Multi-angle scene review - 2026-10-04
 
+Tote cap geometry checkpoint (2026-10-06; native review OPEN):
+The finishing candidate now has a hollow cap underside. Actual exported GLB
+rays verify its inner roof seats at the neck rim within floating-point tolerance,
+with nominal 5 mm radial clearance and a 20 mm roof above the rim. Four cap-fit
+checks and five aperture checks pass. The underside asset render was inspected;
+this is not native Windows scene acceptance or a thread, gasket or seal design.
+The taller candidate uses a scene-configured 140 mm nozzle stroke, preserving
+bore engagement. Build and 38 focused Start/travel/fill/geometry checks pass;
+71 scene contracts pass with zero failures (.tools/tote-cap-cup-contracts.log).
+Cap application, labeling, inspection and the full PLC station sequence remain
+open, together with native static and moving multi-angle scene checks.
+
+
 Radar REAL-feedback PLC reference checkpoint (2026-10-06, native review OPEN):
 --audit-radar-layout explicitly generates ignored .tools/plant-review-radar.rpproj.json.
 Default exercise remains blank. Local stations now publish PC-owned cycle_request
