@@ -817,3 +817,11 @@ once across Stop/Run; the installed meters display PLC accumulated kWh.
 `tests/RungProof.Next.EvPlant.Tests.csproj` separately checks the renderer-neutral
 energy fixture (21 checks). Neither check establishes charging protocol,
 electrical ratings, calibration or native visual acceptance.
+
+
+`-- --audit-radar-layout` checks the radar tank's connected supply/inlet/outlet
+installation, grounded drain valve, antenna/surface datums and explicit
+presentation inspection toggle (24 checks). The inspection view ghosts the
+shell and roof without changing geometry or process measurements. It is a SIM
+view flag, not a PLC command or physical opening. Native inspection of this
+change and a REAL-threshold PLC reference remain pending.

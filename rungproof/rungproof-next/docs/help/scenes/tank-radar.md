@@ -21,6 +21,7 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | `radar_distance` | `REAL` | **PC** | `3.1003565788269043` |
 | `radar_signal` | `REAL` | **PC** | `9.6` |
 | `radar_echo_ok` | `BOOL` | **PC** | `True` |
+| `tank_inspection_view` | `BOOL` | **SIM** | `False` |
 
 ## Operator actions
 
@@ -30,10 +31,13 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | `Toggle inlet pump (simulated)` | `toggle` | `inlet_pump_run` |
 | `Toggle drain valve (simulated)` | `toggle` | `drain_valve_open` |
 | `Stop simulated process` | `stop` | `` |
+| `Inspection view: ghost shell and roof` | `toggle` | `tank_inspection_view` |
 
 ## Equipment bindings
 
-No point-to-equipment bindings are declared.
+| Symbolic point | Equipment | Mode |
+| --- | --- | --- |
+| `drain_valve_open` | `radar_drain_valve` | `position` |
 
 ## Expected equipment
 
@@ -47,6 +51,7 @@ No point-to-equipment bindings are declared.
 | `radar_pump_station` | `switch` | Pump local station |
 | `radar_drain_station` | `switch` | Drain valve local station |
 | `radar_stacklight` | `indicator` | Tank status light |
+| `radar_drain_valve` | `valve` | Radar tank grounded drain valve |
 
 ## Stop and safety boundary
 

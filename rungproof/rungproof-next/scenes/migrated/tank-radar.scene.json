@@ -21,7 +21,9 @@
     "expectedObservations": [
       "The transmitter electronics sit above the roof, away from the manway.",
       "The internal beam ends at the simulated liquid surface; the opaque shell/roof hide it in normal views.",
-      "Distance uses the antenna lens datum; echo health remains an idealized true feedback, without an echo-loss model."
+      "Distance uses the antenna lens datum; echo health remains an idealized true feedback, without an echo-loss model.",
+      "Inlet route joins the pump discharge to the tank nozzle; outlet flange joins the tank to a supported drain valve and labeled drain boundary. These are illustrative routes, not hydraulic ratings.",
+      "Use the explicit inspection view to ghost the shell/roof and inspect the internal beam and liquid surface; toggle again to restore opaque materials. This view does not simulate a physical opening."
     ]
   },
   "id": "tank-radar",
@@ -84,7 +86,9 @@
         "length": 4.2,
         "diameter": 0.28,
         "axis": "x",
-        "color": 7109504
+        "color": 7109504,
+        "installation": "tankPiping",
+        "role": "inlet"
       }
     },
     {
@@ -100,7 +104,9 @@
         "length": 1.8,
         "diameter": 0.3,
         "axis": "x",
-        "color": 7109504
+        "color": 7109504,
+        "installation": "tankPiping",
+        "role": "outlet"
       }
     },
     {
@@ -177,6 +183,19 @@
         ],
         "active": "amber"
       }
+    },
+    {
+      "id": "radar_drain_valve",
+      "type": "valve",
+      "label": "Radar tank grounded drain valve",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "config": {
+        "installation": "tankDrainValve"
+      }
     }
   ],
   "simulation": {
@@ -203,6 +222,12 @@
         "id": "stop-simulation",
         "label": "Stop simulated process",
         "type": "stop"
+      },
+      {
+        "id": "toggle-inspection",
+        "label": "Inspection view: ghost shell and roof",
+        "type": "toggle",
+        "point": "tank_inspection_view"
       }
     ],
     "points": [
@@ -260,6 +285,13 @@
         "owner": "PC",
         "initial": true,
         "purpose": "Simulator radar echo-health feedback read by the PLC."
+      },
+      {
+        "name": "tank_inspection_view",
+        "type": "BOOL",
+        "owner": "SIM",
+        "initial": false,
+        "purpose": "Presentation-only ghost shell/roof to inspect the radar beam and liquid surface. Not a PLC command or physical opening."
       }
     ],
     "tankId": "water_tank_radar",
@@ -268,7 +300,14 @@
     "indicatorId": "radar_stacklight",
     "initialLevel": 0.35,
     "inletRatePerSecond": 0.07,
-    "outletRatePerSecond": 0.045
+    "outletRatePerSecond": 0.045,
+    "pointBindings": [
+      {
+        "point": "drain_valve_open",
+        "equipmentId": "radar_drain_valve",
+        "mode": "position"
+      }
+    ]
   },
   "migration": {
     "sourceFile": "prototype/scenes/tank-radar.json",

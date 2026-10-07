@@ -1014,6 +1014,7 @@ public partial class SceneSimulationRuntime : Node
         var tankId = SafeNodeName(Text(_definition, "tankId", string.Empty));
         var tank = _sceneRoot.GetNodeOrNull<Node3D>(tankId);
         if (tank is not null) ApplyTankLevel(tank, (float)level);
+        ProjectRadarInspectionView(tank);
 
         var pumpId = SafeNodeName(Text(_definition, "pumpId", string.Empty));
         if (_sceneRoot.GetNodeOrNull<Node3D>(pumpId) is { } pump)

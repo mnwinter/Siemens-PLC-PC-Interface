@@ -9,7 +9,7 @@ public partial class Main
 {
     private void VerifyTankDrainValve(string sceneId, Node3D root, Node3D outlet, Action<bool, string> check)
     {
-        var valve = root.GetNodeOrNull<Node3D>(sceneId == "tank-high-low" ? "hl_drain_valve" : "drain_valve");
+        var valve = root.GetNodeOrNull<Node3D>(sceneId == "tank-high-low" ? "hl_drain_valve" : sceneId == "tank-radar" ? "radar_drain_valve" : "drain_valve");
         check(valve is not null, $"{sceneId}_drain_command_has_visible_valve");
         if (valve is null) return;
         MeshInstance3D Part(string name) => (MeshInstance3D)valve.FindChild(name, true, false);
@@ -63,6 +63,9 @@ public partial class Main
         }
         controller.SetPositionNormalized(0);
         check(pointerClear, $"{sceneId}_pointer_full_quarter_turn_sweep_clear_of_fixed_valve_parts");
+        // Radar has REAL feedback, rather than these lessons' two level switches.
+        // Its own reference must verify the REAL thresholds and controller path.
+        if (sceneId == "tank-radar") return;
 
         // A real offline scan session cycles on the scene's actual switch
         // feedback. This catches missing/wrong bindings, inversion, creeping

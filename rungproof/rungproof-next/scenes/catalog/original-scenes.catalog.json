@@ -3,7 +3,7 @@
   "catalogId": "rungproof-original-scenes-migrated",
   "sourceRoot": "prototype/scenes",
   "sceneCount": 77,
-  "equipmentInstanceCount": 620,
+  "equipmentInstanceCount": 621,
   "equipmentTypeCounts": {
     "box": 30,
     "containerReceiver": 3,
@@ -35,7 +35,7 @@
     "toteLabeler": 1,
     "toteVision": 1,
     "trainingAccessory": 137,
-    "valve": 7
+    "valve": 8
   },
   "scenes": [
     {
@@ -1272,14 +1272,15 @@
       "name": "Water Tank \u2014 Radar Level",
       "path": "res://scenes/migrated/tank-radar.scene.json",
       "sourceFile": "prototype/scenes/tank-radar.json",
-      "equipmentCount": 8,
+      "equipmentCount": 9,
       "equipmentTypes": [
         "indicator",
         "pipe",
         "pump",
         "radarLevelSensor",
         "switch",
-        "tank"
+        "tank",
+        "valve"
       ],
       "unresolvedAssetTypes": [],
       "visualStatus": "mapped"

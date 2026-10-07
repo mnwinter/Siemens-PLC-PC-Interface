@@ -6,14 +6,16 @@ namespace RungProof.Next.App;
 
 public partial class Main
 {
-    private void VerifyTankPipingGeometry(Action<bool, string> check)
+    private void VerifyTankPipingGeometry(Action<bool, string> check, string? onlySceneId = null)
     {
         foreach (var (sceneId, tankId, pumpId, inletId, outletId) in new[]
         {
             ("tank-high-low", "water_tank_hl", "hl_inlet_pump", "hl_inlet_pipe", "hl_outlet_pipe"),
             ("tank-level", "process_tank", "inlet_pump", "inlet_pipe", "outlet_pipe"),
+            ("tank-radar", "water_tank_radar", "radar_inlet_pump", "radar_inlet_pipe", "radar_outlet_pipe"),
         })
         {
+            if (onlySceneId is not null && sceneId != onlySceneId) continue;
             AddMigratedScene(sceneId, _candidateCatalog!, _mainCamera!, false, false);
             var root = _sceneCompositionRoot!;
             var tank = root.GetNode<Node3D>(tankId);
