@@ -1,5 +1,10 @@
 # Whole program review - 2026-10-03
 
+## 2026-10-06 guarded-transfer offline PLC reference
+
+The explicit `--audit-guarded-layout` command now generates `.tools/plant-review-guarded-transfer.rpproj.json`, a compatible 20 ms ladder document. Its PLC evaluates the three manual permissives and removes transfer_run at supported exit completion. Thirty-three focused checks pass, including all eight input combinations, individual permissive losses during motion, normal scan-driven transfer across both optical routes, Stop/Run retention, completion without held-input restart and Reset. Build and app-shell validation pass (77 scenes, five demos, 294 assets, disconnected). Default exercise programs remain blank. Current full geometry and all scene contracts remain running; fresh native views and physical/protective acceptance remain pending.
+
+
 ## 2026-10-06 guarded-transfer retained carton runtime
 
 Scene 40 now uses a dedicated `guardedTransfer` runtime with nine symbolic points. The carton starts fully supported at the infeed, travels at a prescribed 0.45 m/s only under the PLC transfer_run command, and clamps with its complete footprint 10 mm inside the delivered belt exit. It stays visible instead of wrapping or disappearing. PC feedback reports carton position, overlap with each installed optical route and retained completion; manual path-clear and guard fixtures remain separate. Belt and carton share accepted ticks up to 20 ms, with the ordinary conveyor physics callback disabled to avoid duplicate travel. Stop retains pose and zeros modeled speed; Reset restores home and completion.

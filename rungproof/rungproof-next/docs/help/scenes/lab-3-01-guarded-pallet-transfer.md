@@ -72,14 +72,16 @@ A pallet transfer lane runs only while the access protection and clear-path inpu
 
 ### Start conditions
 
-- The common PLC/watchdog foundation is healthy.
-- All required simulator inputs are at their documented initial state.
+- Load or create a compatible offline controller program; Run alone does not supply lesson logic.
+- Set the manual guard_closed, entry_clear and exit_clear fixtures true to permit the review transfer.
 
 ### Normal sequence
 
-- Apply the requested input condition.
-- Verify only the documented PLC outputs respond.
+- PLC logic evaluates the three manual permissive inputs and owns transfer_permissive and transfer_run.
+- The prescribed carton crosses the entry and exit optical routes, reporting separate PC occupancy feedback.
+- At the supported exit, transfer_complete becomes true; the explicit review PLC removes transfer_run.
 
 ### Expected observations
 
-- The transfer runs only with protection closed and both path sensors clear.
+- The carton remains supported and visible throughout travel and at completion.
+- Only all three manual permissives allow the review PLC transfer; completed travel remains stopped until Reset.

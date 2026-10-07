@@ -1096,9 +1096,10 @@ public partial class Main
             Check(carton.Transform == home && runtime.Points["transfer_complete"] is false,
                 "reset_restores_supported_infeed_and_clears_completion");
             runtime.SetControllerPlaybackRunning(false);
+            AuditGuardedTransferReference(Check);
         }
         catch (Exception exception) { failures++; GD.PushError(exception.ToString()); }
-        GD.Print($"GUARDED_LAYOUT_VERIFY {(failures == 0 ? "PASS" : "FAIL")} geometry, drive binding and offline retained carton travel; native views and PLC-controlled transfer pending");
+        GD.Print($"GUARDED_LAYOUT_VERIFY {(failures == 0 ? "PASS" : "FAIL")} geometry, retained carton travel and offline ladder reference; native views pending");
         GetTree().Quit(failures == 0 ? 0 : 1);
     }
 

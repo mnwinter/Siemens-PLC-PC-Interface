@@ -348,7 +348,8 @@
       "Inputs are simulator feedback (guard_closed, entry_clear, exit_clear); PLC logic owns transfer_run, transfer_permissive.",
       "Test the initial state, the valid condition, and at least one missing permissive.",
       "The gate and curtain remain layout fixtures; guard_closed, entry_clear and exit_clear are manual test inputs, not safety-rated detection.",
-      "transfer_run commands prescribed 0.45 m/s carton travel on the belt. transfer_complete retains at the supported exit; Reset reloads the infeed. Stop retains position. entry_carton_present and exit_carton_present report carton overlap with the installed optical routes; they are separate from manual path-clear fixtures."
+      "transfer_run commands prescribed 0.45 m/s carton travel on the belt. transfer_complete retains at the supported exit; Reset reloads the infeed. Stop retains position. entry_carton_present and exit_carton_present report carton overlap with the installed optical routes; they are separate from manual path-clear fixtures.",
+      "The explicit --audit-guarded-layout command writes .tools/plant-review-guarded-transfer.rpproj.json: a 20 ms ladder review reference that ANDs the three manual permissives and removes transfer_run at transfer_complete. Default lesson programs remain blank."
     ],
     "solution": {
       "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
@@ -367,22 +368,25 @@
     "machineGuide": {
       "purpose": "A pallet transfer lane runs only while the access protection and clear-path inputs agree.",
       "startConditions": [
-        "The common PLC/watchdog foundation is healthy.",
-        "All required simulator inputs are at their documented initial state."
+        "Load or create a compatible offline controller program; Run alone does not supply lesson logic.",
+        "Set the manual guard_closed, entry_clear and exit_clear fixtures true to permit the review transfer."
       ],
       "normalSequence": [
-        "Apply the requested input condition.",
-        "Verify only the documented PLC outputs respond."
+        "PLC logic evaluates the three manual permissive inputs and owns transfer_permissive and transfer_run.",
+        "The prescribed carton crosses the entry and exit optical routes, reporting separate PC occupancy feedback.",
+        "At the supported exit, transfer_complete becomes true; the explicit review PLC removes transfer_run."
       ],
       "stopBehavior": [
-        "Removing the permissive removes PLC-owned commands.",
-        "Reset returns the module to its initial state."
+        "The review PLC removes transfer_run when any manual permissive is withdrawn.",
+        "Stop freezes scans and carton position. Run resumes the retained transfer when permissives agree.",
+        "Reset restores the supported infeed carton, clears completion and resets manual fixtures."
       ],
       "faultBehavior": [
-        "A missing or stale input must fail safe and remain diagnosable."
+        "Manual fixture inputs and visual gate/curtain equipment do not establish safety-rated detection or physical interlocking."
       ],
       "expectedObservations": [
-        "The transfer runs only with protection closed and both path sensors clear."
+        "The carton remains supported and visible throughout travel and at completion.",
+        "Only all three manual permissives allow the review PLC transfer; completed travel remains stopped until Reset."
       ]
     },
     "sequenceNumber": 26,
