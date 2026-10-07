@@ -1,5 +1,21 @@
 # Multi-angle scene review - 2026-10-04
 
+Coverage inventory checkpoint (2026-10-06):
+The canonical 77-row matrix records FR/FL/RL/RR/Top for all 77 scenes. Older
+chronological statements of 18/59 or 30/47 are historical checkpoint counts,
+not current totals. This does NOT certify current geometry or runtime: twelve
+rows retain explicit FAIL text, and at least four scenes have changed since
+their last native review (tote finishing, guarded transfer, EV charging, radar).
+SCENE_NATIVE_REVIEW_QUEUE.json extracts every row and labels acceptance as
+NOT_CERTIFIED_BY_THIS_INVENTORY. tools/audit_native_review_queue.py regenerates
+it; failure labels include unresolved runtime findings and must be examined
+before calling them current visual failures. Current source confirms the
+Vision Package Sorter carton remains at Y=0 beside a conveyor deck at Y=0.9,
+so the historical carton-under-belt finding still needs repair and rendered
+verification. Native control remains stopped after Escape; no new native
+acceptance is claimed.
+
+
 Axial cap motion checkpoint (2026-10-06; native review OPEN):
 The tote finishing adapter now has a measured axial stroke, release to the
 tote-parented cap, retraction, and five PC cap feedback points. Concurrent
