@@ -834,3 +834,11 @@ Run `--audit-guarded-layout` with the pinned Godot executable after building. Th
 ### Tote-finishing command and placement verification
 
 Run `--verify-tote-finishing` after building. Twelve checks exercise the actual 3D Start action and controller-clocked prescribed tote travel; seventeen checks cover the station geometry and standalone sequence preview, including the open-fill candidate and separate initially hidden cap. The explicit Start binding is `operator.start`. Controller travel reports six PC position/station-window/exit points. Thirteen additional checks cover normalized 0–100 percent fill at an illustrative 20 percent/second, geometry eligibility, inhibition, Stop/Run, saturation and Reset. Litre/flow calibration, cap and label application, inspection, complete PLC sequencing and latest native inspection remain pending.
+
+Tote cap follow-up: eleven additional focused adapter/motion checks bring
+--verify-tote-finishing to 53 checks. Scene now exposes 25 points, including
+PC cap extension/applied/busy/inhibited/home and tote_transfer_inhibited.
+The controller-clocked axial adapter releases the tote-parented cap and
+returns the chuck. Latest evidence: .tools/cap-motion-screen.log (53 PASS)
+and .tools/cap-motion-contracts.log (71 PASS/0 FAIL). Seated rotation, labeling,
+inspection, complete PLC sequencing and latest native review remain open.

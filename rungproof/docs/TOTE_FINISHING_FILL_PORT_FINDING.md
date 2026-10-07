@@ -133,3 +133,19 @@ simulation interlock, not evidence of protective hardware or a rated safety
 function. The failing regression passes after repair; all 51 focused checks
 pass in .tools/cap-conflict-after.log. Full stroke collision screening,
 latest capped-route geometry and native multi-angle inspection remain OPEN.
+
+## Sampled axial and capped-discharge clearance checkpoint
+
+Axial cap motion checkpoint (2026-10-06; native review OPEN):
+The tote finishing adapter now has a measured axial stroke, release to the
+tote-parented cap, retraction, and five PC cap feedback points. Concurrent
+travel is explicitly inhibited while the chuck is extended, preserving the
+raw PLC request and publishing a separate PC inhibition. Fifty-three focused
+checks pass in .tools/cap-motion-screen.log, including actual mesh screens
+through the sampled axial cycle and capped discharge. The hollow neck/cap
+exception requires measured radial clearance and the inner roof above the rim;
+it is not a blanket collision exclusion. Full scene contracts pass 71/0 in
+.tools/cap-motion-contracts.log. Fifteen pure cap-model checks also pass.
+Native static/moving multi-angle inspection is still OPEN after Escape stop.
+Seated rotation/thread/torque/seal behavior, every-frame swept-volume proof,
+labeling, inspection and complete PLC station sequencing remain unverified.

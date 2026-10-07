@@ -1,5 +1,20 @@
 # Multi-angle scene review - 2026-10-04
 
+Axial cap motion checkpoint (2026-10-06; native review OPEN):
+The tote finishing adapter now has a measured axial stroke, release to the
+tote-parented cap, retraction, and five PC cap feedback points. Concurrent
+travel is explicitly inhibited while the chuck is extended, preserving the
+raw PLC request and publishing a separate PC inhibition. Fifty-three focused
+checks pass in .tools/cap-motion-screen.log, including actual mesh screens
+through the sampled axial cycle and capped discharge. The hollow neck/cap
+exception requires measured radial clearance and the inner roof above the rim;
+it is not a blanket collision exclusion. Full scene contracts pass 71/0 in
+.tools/cap-motion-contracts.log. Fifteen pure cap-model checks also pass.
+Native static/moving multi-angle inspection is still OPEN after Escape stop.
+Seated rotation/thread/torque/seal behavior, every-frame swept-volume proof,
+labeling, inspection and complete PLC station sequencing remain unverified.
+
+
 Held-cap regression checkpoint (2026-10-06; native review OPEN):
 Commit d06fcaf reuses the finishing tote's exported hollow cap at matching
 installation scale, seats its roof against the chuck lower face, and raises
