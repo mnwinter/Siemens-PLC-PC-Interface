@@ -1292,7 +1292,7 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Installations repaired; QA drain pointer and reset 42% / 10.72 mA observed. 365 checks PASS. FAIL/open: opaque vessel and broader operator/process acceptance",
+      "recordedResult": "Installations repaired; external sight-glass fill changes natively; Stop holds and settled Reset restores 42% / 10.72 mA. 365 checks PASS. FAIL/open: uninterrupted threshold-cycle and broader operator/process acceptance; tank-focused views crop peripheral piping",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": true,
       "disposition": "REPAIR_RECORDED_FAILURE",
