@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-11-12-mobile-traffic-lights",
   "name": "Lab 11.12 - Mobile Traffic Lights",
-  "description": "Two synchronized mobile signal heads coordinate a safe alternating vehicle-flow state.",
+  "description": "Two opposing signal heads display PLC-owned road-green commands. Road-clear and controller-ready inputs are manual; synchronization and red/amber timing remain controller work.",
   "camera": {
     "position": [
       11,
@@ -20,125 +20,102 @@
   "equipment": [
     {
       "id": "indicator_0",
-      "type": "indicator",
-      "label": "Mobile Traffic Lights indicator",
+      "type": "trainingAccessory",
+      "label": "Road A red / amber / green signal head",
       "position": [
-        -3.3000000000000003,
-        0,
-        0
+        -3.3,
+        0.15,
+        3.8
       ],
       "config": {
-        "colors": [
-          "red",
-          "amber",
-          "green"
-        ],
-        "active": "red"
-      }
+        "assetName": "Opposing traffic signal head",
+        "catalogAssetId": "training.accessory.traffic_signal_head.v1"
+      },
+      "rotation": [
+        0,
+        -90,
+        0
+      ]
     },
     {
       "id": "indicator_1",
-      "type": "indicator",
-      "label": "Mobile Traffic Lights indicator",
+      "type": "trainingAccessory",
+      "label": "Road B red / amber / green signal head",
       "position": [
-        -1.1,
-        0,
-        0
+        3.3,
+        0.15,
+        -3.8
       ],
       "config": {
-        "colors": [
-          "red",
-          "amber",
-          "green"
-        ],
-        "active": "red"
-      }
+        "assetName": "Opposing traffic signal head",
+        "catalogAssetId": "training.accessory.traffic_signal_head.v1"
+      },
+      "rotation": [
+        0,
+        90,
+        0
+      ]
     },
     {
       "id": "switch_2",
       "type": "switch",
-      "label": "Mobile Traffic Lights switch",
+      "label": "Manual READY",
       "position": [
-        1.1,
+        6.0,
         0,
-        0
+        2.0
       ],
       "config": {
         "style": "pushbutton",
         "action": "toggle-controller_ready",
-        "color": 2204518
-      }
-    },
-    {
-      "id": "training_accessory_3",
-      "type": "trainingAccessory",
-      "label": "Mobile Traffic Lights - mobile traffic signal head",
-      "position": [
-        3.3000000000000003,
-        0,
-        0
-      ],
-      "config": {
-        "assetName": "mobile traffic signal head",
-        "catalogAssetId": "training.accessory.mobile_traffic_signal_head.v1"
+        "color": 2204518,
+        "faceLabel": "READY"
       }
     },
     {
       "id": "training_accessory_4",
       "type": "trainingAccessory",
-      "label": "Mobile Traffic Lights - roadway module",
+      "label": "Horizontal roadway with raised shoulders and crossing",
       "position": [
-        -3.3000000000000003,
         0,
-        1.8
+        0,
+        0
       ],
       "config": {
-        "assetName": "roadway module",
-        "catalogAssetId": "training.accessory.roadway_module.v1"
-      }
-    },
-    {
-      "id": "training_accessory_5",
-      "type": "trainingAccessory",
-      "label": "Mobile Traffic Lights - signal synchronization link",
-      "position": [
-        -1.1,
-        0,
-        1.8
-      ],
-      "config": {
-        "assetName": "signal synchronization link",
-        "catalogAssetId": "training.accessory.signal_synchronization_link.v1"
+        "assetName": "Horizontal roadway",
+        "catalogAssetId": "training.accessory.crosswalk_road_module.v1"
       }
     },
     {
       "id": "switch_6",
       "type": "switch",
-      "label": "Mobile Traffic Lights operator input",
+      "label": "Manual A CLEAR",
       "position": [
-        1.55,
+        6.0,
         0,
-        2.35
+        0.0
       ],
       "config": {
         "style": "pushbutton",
         "action": "toggle-road_a_clear",
-        "color": 2204518
+        "color": 2204518,
+        "faceLabel": "A CLEAR"
       }
     },
     {
       "id": "switch_7",
       "type": "switch",
-      "label": "Mobile Traffic Lights operator input",
+      "label": "Manual B CLEAR",
       "position": [
-        3.7500000000000004,
+        6.0,
         0,
-        2.35
+        -2.0
       ],
       "config": {
         "style": "pushbutton",
         "action": "toggle-road_b_clear",
-        "color": 2204518
+        "color": 2204518,
+        "faceLabel": "B CLEAR"
       }
     }
   ],
