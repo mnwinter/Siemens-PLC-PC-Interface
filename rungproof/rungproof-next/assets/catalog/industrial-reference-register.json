@@ -6180,34 +6180,6 @@
       ]
     },
     {
-      "assetId": "training.accessory.luggage_load.v1",
-      "status": "referenced",
-      "comparisonStatus": "reference-identified",
-      "comparisonNotes": "Generic family reference inherited for candidate package review; the training accessory must be independently compared before promotion.",
-      "referenceFamily": "three-pole contactor and thermal-overload motor starter",
-      "sources": [
-        {
-          "publisher": "ABB",
-          "title": "AF three-pole contactors and overload relays",
-          "url": "https://new.abb.com/low-voltage/products/motor-protection/3-pole-contactors-and-overload-relays-for-motor-starting/afcontactors",
-          "sourceType": "oem-product-page",
-          "accessed": "2026-09-22"
-        }
-      ],
-      "modeledFeatures": [
-        "stacked contactor/overload body",
-        "three line lugs",
-        "three load lugs",
-        "reset treatment",
-        "adjustment treatment",
-        "motor-starter face"
-      ],
-      "intentionallyGeneric": [
-        "No ABB mark, coil voltage, contact rating, overload class/range, auxiliary contacts, motor rating, coordination type, enclosure, or wiring is reproduced.",
-        "The visual does not energize a coil, switch motor power, or provide overload protection."
-      ]
-    },
-    {
       "assetId": "training.accessory.machine_guarding_fence.v1",
       "status": "referenced",
       "comparisonStatus": "reference-identified",
@@ -6882,34 +6854,6 @@
       "intentionallyGeneric": [
         "No Pilz mark, safety category, performance level, SIL, wiring diagram, reset mode, output contacts, response time, proof test, or certification is reproduced.",
         "This simulator visual does not implement a safety function and must never be treated as a safety device."
-      ]
-    },
-    {
-      "assetId": "training.accessory.scale_load_cell_platform.v1",
-      "status": "referenced",
-      "comparisonStatus": "reference-identified",
-      "comparisonNotes": "Generic family reference inherited for candidate package review; the training accessory must be independently compared before promotion.",
-      "referenceFamily": "single-ended shear-beam industrial load cell",
-      "sources": [
-        {
-          "publisher": "Rice Lake Weighing Systems",
-          "title": "VPG Sensortronics 65023A single-ended shear-beam load cell",
-          "url": "https://www.ricelake.com/products/vpg-sensortronics-65023a-alloy-steel-single-ended-beam-load-cell/?part=17159",
-          "sourceType": "oem-product-page",
-          "accessed": "2026-09-22"
-        }
-      ],
-      "modeledFeatures": [
-        "rectangular beam body",
-        "fixed-end mount",
-        "load feature",
-        "machined relief",
-        "cable treatment",
-        "nameplate context"
-      ],
-      "intentionallyGeneric": [
-        "No Rice Lake, VPG, or Sensortronics mark, capacity, calibration, cable, accuracy, legal-for-trade status, or load rating is reproduced.",
-        "The object does not sense force or produce real/safety I/O."
       ]
     },
     {

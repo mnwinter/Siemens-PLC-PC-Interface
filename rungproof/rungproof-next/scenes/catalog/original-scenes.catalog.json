@@ -5,15 +5,15 @@
   "sceneCount": 77,
   "equipmentInstanceCount": 607,
   "equipmentTypeCounts": {
-    "box": 31,
+    "box": 30,
     "containerReceiver": 3,
-    "conveyor": 33,
+    "conveyor": 34,
     "drillPress": 4,
     "fan": 5,
     "indicator": 114,
     "levelSensor": 9,
     "liftTable": 4,
-    "machine": 12,
+    "machine": 11,
     "meteringSkid": 1,
     "motor": 10,
     "palletLoad": 1,
@@ -34,7 +34,7 @@
     "toteFiller": 2,
     "toteLabeler": 1,
     "toteVision": 1,
-    "trainingAccessory": 131,
+    "trainingAccessory": 132,
     "valve": 7
   },
   "scenes": [
@@ -1055,10 +1055,8 @@
       "sourceFile": "prototype/scenes/lab-6-07-luggage-weight-sort.plcscene",
       "equipmentCount": 12,
       "equipmentTypes": [
-        "box",
         "conveyor",
         "indicator",
-        "machine",
         "switch",
         "trainingAccessory"
       ],

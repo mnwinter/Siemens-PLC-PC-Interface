@@ -159,6 +159,7 @@ public static partial class SceneComposer
         if (scene.Simulation.TryGetProperty("barrelFillPlant", out _)) ConfigureBarrelConveyor(root);
         if (scene.Id == "lab-5-10-coating-line") ConfigureCoatingInstallation(root);
         if (scene.Id == "lab-6-08-hand-dryer") ConfigureHandDryerInstallation(root);
+        if (scene.Id == "lab-6-07-luggage-weight-sort") ConfigureLuggageInstallation(root);
         return new SceneComposition(root, rendered, deferred);
     }
 
@@ -285,6 +286,7 @@ public static partial class SceneComposer
 
     private static Node3D? CreateTrainingAccessory(SceneEquipment equipment, AssetCatalogDocument candidates)
     {
+        if (Text(equipment.Config, "installation", "") == "luggageTransferBridge") return CreateLuggageTransferBridge();
         if (Text(equipment.Config, "installation", "") is "groupingLine" or "groupingStop") return CreatePackageGroupingPart(Text(equipment.Config, "installation", ""));
         if (Text(equipment.Config, "installation", "") is "parkingVehicle" or "parkingBarrier" or "parkingPad") return CreateParkingEntryPart(Text(equipment.Config, "installation", ""));
         if (Text(equipment.Config, "installation", "") == "palletizerPickTable") return CreatePalletizerPickTable();

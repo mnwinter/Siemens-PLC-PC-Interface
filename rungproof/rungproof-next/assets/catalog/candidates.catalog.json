@@ -11918,9 +11918,9 @@
         "thumbnailFile": "res://assets/training_accessories/luggage_load/thumbnail.png"
       },
       "bounds": {
-        "widthM": 0.65,
-        "heightM": 0.5,
-        "depthM": 1.1
+        "widthM": 0.7200000286102295,
+        "heightM": 0.6024999618530273,
+        "depthM": 0.5464999675750732
       },
       "connectors": [],
       "kinematics": [],
@@ -11933,10 +11933,9 @@
         "topologyReviewed": false,
         "materialReviewed": false,
         "scaleReviewed": false,
-        "animationReviewed": true
+        "animationReviewed": false
       },
       "trainingRequirement": "luggage load",
-      "genericBasisAssetId": "electrical.starter.contactor-overload-three-pole.v1",
       "copyrightBoundary": "Generic training visual; no logo, trade dress, product number, or exact OEM claim."
     },
     {
@@ -13459,9 +13458,9 @@
         "thumbnailFile": "res://assets/training_accessories/scale_load_cell_platform/thumbnail.png"
       },
       "bounds": {
-        "widthM": 1.45,
-        "heightM": 0.55,
-        "depthM": 0.55
+        "widthM": 2.0,
+        "heightM": 0.8999999761581421,
+        "depthM": 1.1290000081062317
       },
       "connectors": [],
       "kinematics": [],
@@ -13474,10 +13473,9 @@
         "topologyReviewed": false,
         "materialReviewed": false,
         "scaleReviewed": false,
-        "animationReviewed": true
+        "animationReviewed": false
       },
       "trainingRequirement": "scale/load-cell platform",
-      "genericBasisAssetId": "sensing.force.shear-beam-load-cell.v1",
       "copyrightBoundary": "Generic training visual; no logo, trade dress, product number, or exact OEM claim."
     },
     {

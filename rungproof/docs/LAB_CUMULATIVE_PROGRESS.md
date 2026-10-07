@@ -1,5 +1,30 @@
 # Cumulative Lab Progression
 
+Scene 64 luggage-sort geometry checkpoint (2026-10-06, process still OPEN):
+Replaced the electrical-starter copy with an original suitcase and the bare
+load-cell copy with a grounded four-cell weighing platform. Archived inherited
+family evidence; both replacements remain unapproved candidates. Removed CNC
+and duplicate carton; joined the 0.90 m deck, retained rollers, side bridge and
+reject outfeed. The installation parks the swing arm beside the normal lane on
+an illustrative direct-drive bearing; disconnected presentation pneumatics are
+omitted explicitly. This is not a rated/mechanically qualified drive assembly.
+
+--audit-luggage-layout: nine checks PASS. Actual mesh bearing at home/scale and
+reject end, four deck/cell contacts, common transfer plane and receiver joining
+are checked. 301 normal and 452 reject prescribed poses pass visible-solid
+bounds/OBB penetration screens. These manually posed routes do not establish
+runtime movement, friction/contact dynamics or continuous structural support.
+Native final parked layout inspected FR/FL/RL/RR/Top; overhead receiver no longer
+clips under the toolbar. Owned previews closed normally with exit zero.
+Build zero warnings/errors. Logs: .tools/luggage-layout-sweep.log and
+.tools/luggage-native-gate-review.log. Five demos/default blank exercises retained.
+
+The old five-BOOL panel is still the scene runtime. Numeric weight, one-result
+classification, class counters, sensor-derived feedback, scan-clock transport,
+Stop/Run/Reset and native moving-cycle review remain unfinished. Scene 64 stays
+FAIL/open; this checkpoint does not supersede that requirement.
+
+
 Lab 2.1 is the starting point for the PLC/watchdog foundation. Every later
 lab retains that foundation and adds the next control concept. The simulator
 scene files describe the required contract and acceptance behavior; the actual
