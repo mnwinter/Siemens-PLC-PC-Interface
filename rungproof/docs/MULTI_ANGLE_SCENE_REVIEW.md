@@ -1,3 +1,10 @@
+## Native receiver crossing continuation - source d23cde1
+
+Window 138608, loaded local QA project, PLC disconnected. Held scan 2676 / 53.52 s: rear-right view retained the incoming load across the entry deck/first rollers without an obvious frame intersection. Top focus clipped most of the incoming pallet at the left viewport edge; this is not a readable five-angle bearing proof. Prior approach views likewise had clipping/overlay limitations. Exact millimetre contact and every intermediate frame remain unverified.
+
+Separately observed half-second advances to scans 2701 / 54.02 s and 2726 / 54.52 s showed the pallet progressing across the deck, still visible. Released Hold; scan 2756 / 55.12 s showed the trailing pallet advancing onto the receiving rollers. Scan 3073 / 61.46 s showed the complete retained load on the receiver. Stop at scan 3436 / 68.72 s retained the same visible load pose and displayed zone_1_run and zone_2_run False. Zone 3 output row was not visible. Reset returned scan/time to zero and emptied the focused receiver; the home pallet was outside this focused viewport, so this observation alone does not prove its exact home position.
+
+No code changed in this continuation. Remaining: readable endpoint views from all five angles, home-pose verification, and review-camera framing/clock-label defects. Native observations are sampled, not continuous collision certification.
 ## Native receiver approach and focus framing - source d23cde1
 
 Continued window 138608/session 22211, reobserved held 2325/time 46.50 s. Four separate observed 0.5 s steps reached 2350, 2375, 2400, 2425 in full-scene Top: load remained visible on third belt. Opened the review focus selector and selected training_accessory_6 (actual receiver). Focus Top at 2425 showed the empty roller bed, inter-roller spaces, carrying frame and gray transfer deck. Close toggle enlarged it enough to clip the bed; restored the wider focused view. Focused front-right showed both the receiver and incoming pallet, improving inspection over the clipped full-scene end.
