@@ -59,7 +59,21 @@ public partial class Main
             check(Motors(0), "motor_array_missing_alarm_permissive_stays_off");
             Toggle("group_alarm_clear"); Tick(24);
             check(Motors(0) && runtime.Points["startup_sequence_active"] is true, "motor_array_before_first_delay_off");
-            Tick(1);
+            var reviewWasEnabled = _visualSceneReview;
+            _visualSceneReview = true;
+            try
+            {
+                SetGantryReviewClockHeld(true);
+                var shaftNodes = _sceneCompositionRoot!.GetNode<Node3D>("motor_0")
+                    .FindChildren("KIN_motor_*", "", true, false).OfType<Node3D>().ToArray();
+                var before = shaftNodes.Select(node => node.Transform).ToArray();
+                var scans = _virtualController!.Snapshot.ScanNumber;
+                AdvanceGantryReviewClock(1);
+                check(_virtualController.Snapshot.ScanNumber == scans + 1
+                    && shaftNodes.Where((node, i) => node.Transform != before[i]).Any(),
+                    "motor_array_held_step_accepts_one_scan_and_advances_motor_visual");
+            }
+            finally { ReleaseGantryReviewClock(); _visualSceneReview = reviewWasEnabled; }
             check(Motors(1), "motor_array_first_motor_at_500ms");
             for (var count = 2; count <= 10; count++)
             {
