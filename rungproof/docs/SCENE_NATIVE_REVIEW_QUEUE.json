@@ -4,6 +4,8 @@
   "sceneCount": 77,
   "allFiveAnglesRecordedCount": 77,
   "explicitFailureCount": 11,
+  "triagedImplementationGapCount": 5,
+  "triagedVerificationGapCount": 6,
   "knownChangedSceneCount": 0,
   "scenes": [
     {
@@ -20,6 +22,8 @@
       "recordedResult": "Repaired support/sensor clearance; normal offline Run/Start/Stop/Reset and E-stop inspected",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -37,6 +41,8 @@
       "recordedResult": "Repaired floor/display support; normal Run opens blank editor, animation workflow open",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -54,6 +60,8 @@
       "recordedResult": "Repaired prop identity, spacing and supports; normal Run opens blank editor; string processing absent",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -71,6 +79,8 @@
       "recordedResult": "Repaired static identity/support/spacing; actual weighing/formatting/printing/controller absent; normal Run opens empty editor",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -88,7 +98,9 @@
       "recordedResult": "Repaired carton seating, four receiving belts and supported handoffs freshly inspected in native Windows window 8389926. CLASS / NO RESULT readable on grounded display stand; carton bottom visibly seated inside belt deck. Class fixture/display and driven routing implemented (a601080/38d5088). Four integrated routes pass continuous motion, class retention, endpoint/Stop/Reset checks. Native loaded QA lane1 route, class change, Stop/resume, endpoint in five directions and Reset verified in window204276. Native routes2-4 now observed with all receiving endpoints in five directions and Stop/Reset. Raised receiving splices repaired in e582ca2; all four scan-pose carton triangle screens pass at1mm allowance and post-fix native lane1 endpoint/Stop/Reset inspected. 2026-10-07 native window269882 class2 infeed/table/outgoing travel and Stop1060 delivered-carton five-angle inspection observed; post-fix native lanes3-4 now observed in window401258 with receiver five-angle checks, Stop1411/class3 and Stop1286/class4, then Reset0 for each. Lane4 Top rotation framing repaired with full-yaw envelope and toolbar reserve: four-route per-scan screen assertions PASS; fresh native window139154 unchanged Top focus shows complete carton at326/506/760/3164, Stop3284 and Reset0 without manual zoom. Moving box_1 focus repaired in26c0403: four-route camera/Reset checks PASS; native rebuilt window401258 FR focus remains centered without re-click at210 infeed,519 table and1030 outgoing; Stop1220 and Reset0 also retain/recover focus. Sampled native evidence only. FAIL/open: continuous clearance between sampled poses remains unverified.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": true,
-      "disposition": "REPAIR_RECORDED_FAILURE",
+      "gapKind": "VERIFICATION_GAP",
+      "gapSummary": "Continuous clearance between sampled poses",
+      "disposition": "VERIFY_RECORDED_GAP",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
     {
@@ -105,6 +117,8 @@
       "recordedResult": "Repaired plates and symbolic shaft binding; enum state/controller absent, normal Run opens empty editor",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -122,7 +136,9 @@
       "recordedResult": "Display identity/support/spacing and motor command projection repaired; 9 checks PASS, native five-angle reinspection. Native window 400814 at source 0a3864a: separate two-rung/five-BOOL QA loaded through Project/Open and verified in both TIA and Studio presentations. Run, initial/missing inputs, all three permissives, separate loss/restoration of each, Stop and Reset inspected; both outputs and green indicators follow QA condition. Complete BOOL command workflow verified; measured shaft motion not established by these full-scene screenshots. FAIL/open: no STRUCT record or power/temperature data; three NO DATA displays remain. QA is not the user exercise solution",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": true,
-      "disposition": "REPAIR_RECORDED_FAILURE",
+      "gapKind": "IMPLEMENTATION_GAP",
+      "gapSummary": "STRUCT record and power/temperature data",
+      "disposition": "IMPLEMENT_RECORDED_GAP",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
     {
@@ -139,7 +155,9 @@
       "recordedResult": "Ten actual motors and display/control spacing repaired; 8 focused checks pass, native five-angle reinspection. Independent motor_0_run through motor_9_run BOOL commands now added with opt-in OR aggregation alongside retained group command. 21 focused geometry/projection checks PASS including independence, legacy compatibility and Reset; build zero warnings/errors, 145 controller tests PASS. Fresh native session 41751/window 6561010 shows readable description and new PLC command rows; geometry unchanged. Native session 24462/window 7019226 at source 919c8ac: normal Open/Verify+load of QA ladder (1 block, 1 task, 21 rungs, 25 tags), held before Run; every 500 ms stage from 0.50 through 5.00 s inspected with actual M0..9 commands, one additional motor per stage, group command false; startup active clears at 5.00 s. Completed state inspected FR/FL/RL/RR/Top at scan 250; separated motor/control footprints, no visible gross overlap. Alarm-clear loss clears all ten commands on next 20 ms scan; Stop and Reset inspected, scan zero and home shafts. Native window 335262 on production change e86684d: command displays verified through all ten 500 ms startup stages, ending 10/10 and sequence OFF at scan 250/time 5.00 s. Stop clears commands to 0/10 at scan 250; Reset returns scan/time zero, inputs false and sequence OFF. FAIL/open: array-value interface remains unresolved; these displays report commands, not measured motor feedback; QA ladder is separate from the user exercise solution.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": true,
-      "disposition": "REPAIR_RECORDED_FAILURE",
+      "gapKind": "IMPLEMENTATION_GAP",
+      "gapSummary": "Typed array-value interface",
+      "disposition": "IMPLEMENT_RECORDED_GAP",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
     {
@@ -156,7 +174,9 @@
       "recordedResult": "Tank spacing, roof probe mounting, measured collector/discharge pipes and grounded supports repaired; 18 focused checks pass. Native QA project load/Run, each permissive loss, Stop/Reset and valve endpoints inspected. FAIL/open: no fluid/analog process model or full continuous-motion proof; default exercise unloaded.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": true,
-      "disposition": "REPAIR_RECORDED_FAILURE",
+      "gapKind": "IMPLEMENTATION_GAP",
+      "gapSummary": "Fluid and analog process model",
+      "disposition": "IMPLEMENT_RECORDED_GAP",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
     {
@@ -173,6 +193,8 @@
       "recordedResult": "Three belts, supported handoffs, loaded pallet, powered receiver and four geometric beams. Common-stop/fresh-edge QA, native two handoff holds, arrival/Stop/Reset verified. 4322-position bearing sweep: nine rollers per runner at endpoint, .128 m maximum uncovered span. Continuous translated envelopes clear at 1 mm overlap tolerance; 360 roller phases stable using delivered vertices. Held post-splice straddled transfer inspected natively in five views at X 9.95 m, then every 0.5 s through X 12.30 m with opposing contact views. No disappearance or gross frame intrusion in these observations; Stop removes all three commands and Reset clears receiver. Exact submillimetre solids and intervening frames remain unverified. Native receiver-focus stepped handoff now inspected at X10.24 in FR/FL/RL/RR/Top; Top step X10.61, FR steps X10.99/11.36 and FL steps X11.74/12.11/12.30 retain whole load without refit. Sampled framing gap closed; continuous contact remains unverified.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -190,7 +212,9 @@
       "recordedResult": "Car/shaft and two landings repaired. Door tracks/hangers supported, controller-owned car position and landing flags implemented. Normal editor audit cycle completed native round trip, upper reversal, held-call home, Stop/resume, Reset; all three manual permissive losses held ascent. Changing QA label and raised Top framing inspected. Upper landing side/rear rails and toe boards added; separated control row freshly inspected in native window204592 FR/FL/RL/RR/Top; new home FR/FL/RL/RR/Top inspected and101 open/101 closed car-pose bounds checks pass including guards. FAIL/open: hoist, access stair/gate, instantaneous door fixture rather than modeled door travel; default exercise remains unloaded.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": true,
-      "disposition": "REPAIR_RECORDED_FAILURE",
+      "gapKind": "IMPLEMENTATION_GAP",
+      "gapSummary": "Hoist/access depiction and modeled door travel",
+      "disposition": "IMPLEMENT_RECORDED_GAP",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
     {
@@ -207,7 +231,9 @@
       "recordedResult": "Horizontal road, two opposing three-color heads and separate wheeled cart bases on shoulders. Cart footprints clear asphalt/crosswalk/stations; corrected Top contains raised heads. Existing green bindings retained. Six independent PLC-owned lamp commands now available; 64 command combinations match actual lenses including conflicts. Separated READY/A CLEAR/B CLEAR row freshly inspected in native window204592 FR/FL/RL/RR/Top. Native six-rung QA verifies red/amber/green on both heads, opposing-green visibility, five views, Stop and Reset. FAIL/open: synchronization depiction, timed alternating reference cycle, vehicle motion and automatic clear feedback; default exercise unloaded.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": true,
-      "disposition": "REPAIR_RECORDED_FAILURE",
+      "gapKind": "IMPLEMENTATION_GAP",
+      "gapSummary": "Timed reference cycle, vehicle motion and clear feedback",
+      "disposition": "IMPLEMENT_RECORDED_GAP",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
     {
@@ -224,6 +250,8 @@
       "recordedResult": "Supported reachable pick table; four carried/released retained cartons; actual home/completion/inventory; native normal Run/Start/Load, attached Stop/Run/fresh Start and Reset. 58 focused checks / 2576 route samples; moving-peer and bearing screens pass. Partial RL robot/Top bridge occlusion resolved by other views. Fixed symbolic kinematics; forces/automatic feed/safety/full swept-volume unverified",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -241,6 +269,8 @@
       "recordedResult": "Repaired static layout/chute and Top framing; normal native six-point I/O, Stop/resume and Reset checked; powder batch process unverified",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -258,6 +288,8 @@
       "recordedResult": "Clear supports/spacing; MATERIAL CALL plate repaired; normal Run opens empty exercise editor",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -275,6 +307,8 @@
       "recordedResult": "Clear supports/spacing; OPERATOR OK / QUALITY OK plates repaired; normal Run opens empty exercise editor",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -292,6 +326,8 @@
       "recordedResult": "Clear supports/spacing; INHIBIT plate repaired; normal Run opens empty exercise editor",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -309,6 +345,8 @@
       "recordedResult": "Static clear; NORTH/SOUTH CALL repaired. Independent PC actions/Reset checked; Run empty controller.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -326,6 +364,8 @@
       "recordedResult": "Static clear; 2-position dial/axis repaired; native 0/1/Reset. Post indicators only; Run empty controller.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -343,6 +383,8 @@
       "recordedResult": "Static clear; ATTENTION repaired; 3D request/Reset checked. Persistent toggle vs spring-return description open; Run empty controller.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -360,6 +402,8 @@
       "recordedResult": "Static clear; RESET NO/TEST NC repaired; 3D PC inputs/Reset checked. No physical contact proof; Run empty controller.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -377,6 +421,8 @@
       "recordedResult": "Static clear; VOTE A/B repaired; 3D PC inputs/Reset checked. No conflict output sequence accepted; Run empty controller.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -394,6 +440,8 @@
       "recordedResult": "Static clear; 4-position dial/axis repaired; native 0-3/wrap/Reset. No beacon sequence or lockout proof; Run empty controller.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -411,6 +459,8 @@
       "recordedResult": "Static clear; STOP repaired; 3D PC requests/Reset checked. Fan schematic only; Run empty controller.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -428,6 +478,8 @@
       "recordedResult": "Tote support, sensor clearance and cycle endpoint repaired; six focused checks pass. Native completion/Reset and endpoint Stop checked; Run empty controller. Cable AABB candidates remain.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -445,6 +497,8 @@
       "recordedResult": "Fixture support, rollers/washers, travel framing and hydraulic attachment repaired; historical bellows approval stale; blank editor on normal Run; shared scenes need follow-up",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -462,6 +516,8 @@
       "recordedResult": "Lane/support/nozzle repaired; sampled sweep clear. Open: external service pipe absent, Run blank controller editor; native Stop endpoint-only",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -479,7 +535,9 @@
       "recordedResult": "Joined pipes, aligned valve/spool and grounded supports repaired. Low/high switches now seated at actual modeled thresholds on clear side, above floor and clear of ladder/sight glass; 24 three-scene mount checks pass, native re-inspected. Open collection basin and rim-mounted float switch depiction now replace closed vessel/forks; final five native views inspected. Normal editor-loaded 5-rung/7-tag QA cycle sampled natively in five views: rise, deadband latch, drain to 20%, Stop/resume/Reset. Stale stopped-green tower repaired and native stopped-red/completed-amber rechecked. 2026-10-07 float spheres now project water level on bounded +/-80mm captive stem travel; fixed switching datums unchanged. Focused46checks PASS. Native2170334 loaded/verified QA through editor, stepped rise125 at75.8461% and drain150 at73.8571%/pumpTrue; closeFL shows high sphere lift/return, Stop150 holds and Reset0 restores22%/initial pose. Low sphere submerged during rise, upper portion visible afterReset. Fresh native139234 after exclusive-lamp emission repair shows stopped red, first-scan amber and pumpTrue green distinguishably. QA rise26-126 and drain151 captured; pumping pose151 inspected explicit FR/FL/RL/RR/T, normal playback reaches20%/pumpFalse/amber at1026, Stop1361 red/commandsFalse and Reset0 restores22%. Native139234 collapsed I/O/low_floatFL exposes low upper hemisphere at22%; Stop1410 endpoint20% visibly lowers it, Reset0 restores higher22% pose in unchanged view. Endpoint/restoration observed; uninterrupted low motion and continuous five-angle cycle remain open. Walls and opaque water conceal low sphere in other views. FAIL/open: physical buoyancy/contact calibration and discharge/process acceptance are not simulated or certified.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": true,
-      "disposition": "REPAIR_RECORDED_FAILURE",
+      "gapKind": "VERIFICATION_GAP",
+      "gapSummary": "Continuous float visualization and physical/process limits",
+      "disposition": "VERIFY_RECORDED_GAP",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
     {
@@ -496,6 +554,8 @@
       "recordedResult": "LIGHT REQUEST, speed binding and preview Stop repaired; six-blade transform checks pass. Open: beacon substitutes light, hood/duct absent, normal Run unloaded; reference preview is not controller lesson acceptance",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -513,6 +573,8 @@
       "recordedResult": "Fixture/feed and honest Stop-hold semantics repaired; normal cycle blocks without controller. Top stock view occluded by head; guard/two-hand safety behavior is not modeled",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -530,7 +592,9 @@
       "recordedResult": "Imported robot/tool attachment, grounded installation, routes and roller landing repaired; 29 pallet-cell checks PASS within 406 total. Reference sampled at 10 ms; both totes land before count/release, empty pallet fully outbound. Loaded QA ladder normal cycle, outbound gating, Stop/blocked Start and Reset recovery verified in native Windows (17785af, 346da40). Second descent 28.00-28.40 s sampled each 20 ms; held landing and 30.40 s return inspected FR/FL/RL/RR/T in native aad8736. Park True 32.50, output release next scan 32.52, outbound complete by 42.52. Released-load support views now inspected with visual-only cutaway at 30.02 s in native f76ef30: FR/FL/RL/RR/T show separate seated totes; restored Top shows guide clearance. Previous bearing-view occlusion finding closed at visible scale. FAIL/open: continuous solid clearance between sampled poses remains unverified. Physical/rated handling is outside offline visual proof.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": true,
-      "disposition": "REPAIR_RECORDED_FAILURE",
+      "gapKind": "VERIFICATION_GAP",
+      "gapSummary": "Continuous clearance between sampled poses",
+      "disposition": "VERIFY_RECORDED_GAP",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
     {
@@ -547,7 +611,9 @@
       "recordedResult": "Pallet/case bearing planes, closed strap route, belt support, sensor mounting and bounded reference repaired; 434 checks pass. Home/pickup underside views added. Fresh native reference session 50830/window 17302630 at 8bc504a: held before automatic Run, every 0.5 s through 8.5 s inspected; FR early, FL early/middle, RL middle, RR later, Top approach; completed pickup FR/FL/RL/RR/Top. Pallet stays visibly seated, cases/straps move together, no gross overlap at viewed scale. Pickup False at 97.3615 percent then True at 100 percent, conveyor False, amber, complete True; Reset returns clear sensor/home/zero. Loaded-controller motion repaired in 8fb40d4; focused geometry and integrated QA workflow PASS, build zero warnings/errors, 145 controller tests PASS. Native session 80675/window 531616 normal Open/Verify+load accepted 1 block/1 task/1 rung/3 tags. Run moved pallet; pickup sensor True stops PLC conveyor command; stable endpoint inspected Top/FR/FL/RL/RR while scans advanced, Stop and Reset verified. Start/manual-jog request integration repaired in 64ba0ca/02150cf. Native window 269574 normally opened/verified the two-rung/six-tag QA: manual Run idle, two Jog requests each moved then stopped, first stopped pose retained through scan 1667; automatic Start, mid-travel Stop, Run-alone hold and Reset separately observed. 2026-10-07 opt-in shipping review clock now provides0.5s/20ms steps; focused verifier passes held scan99 active/1.485m and100 expired/no motion, nonretrigger/Stop/Reset checks. Native139262 normal Open/Verify+load2rungs6tags, held manual Jog shows25/50/75 conveyorTrue and100 exactly2.00s conveyorFalse/pallet24.10%;101 retains same load. Endpoint101 inspected explicit FR/FL/RL/RR/T;126 nonretrigger, Stop red/retained load, Reset0 home verified. Exact native expiry100 observed;99 remains test-only. FAIL/open: not every intermediate loaded-controller pose or last-active native99 scan captured; complete solid-contact/mechanical acceptance unverified",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": true,
-      "disposition": "REPAIR_RECORDED_FAILURE",
+      "gapKind": "VERIFICATION_GAP",
+      "gapSummary": "Last-active native scan and intermediate-pose coverage",
+      "disposition": "VERIFY_RECORDED_GAP",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
     {
@@ -564,6 +630,8 @@
       "recordedResult": "Layout/plates and reference reversal/position feedback repaired; raw NC signal displays explicit. Physical limit/cable behavior, compressed slat geometry and loaded-controller operation unaccepted",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -581,6 +649,8 @@
       "recordedResult": "INT direction contract and editable reference repair normal offline round trip. Eight placement, thirteen reference and twenty controller integration/contract checks pass within 475. Open: first contact not captured as held native frame, continuous native motion coverage, dynamic stability, external profile/live acceptance",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -598,6 +668,8 @@
       "recordedResult": "Placement/reference repaired: grounded outside-belt stations, seated tote, supported discharge and attached tools. Missing Start binding and controller-clocked tote travel repaired; 38 Start/travel/normalized-fill/standalone geometry checks pass. Six new PC position/station-window/exit points; Stop/command withdrawal retain load and Reset reloads it. Normal editor-loaded one-rung/seven-tag travel QA now verifies Run-alone idle, Start, sampled Top travel, retained discharge FR/FL/RL/RR/Top plus close support views, Stop and Reset (window 597660). FL/RL occluded, FR/RR resolve bearing. OPEN: intermediate-pose and full station-sequence review. New open-fill candidate has exported cavity/aperture and separate initially hidden cap; five mesh ray checks pass, and top/four corner asset renders inspected. Bounded normalized fill and effective stream are connected; moving/off-station/capped/misaligned commands inhibited. Current55-check integrated verifier and20-check cap model PASS: measured axial/seated cap application, Stop/abort/retraction, retained discharge and Reset verified in simulator. Corrected10ms four-rung QA reaches capped discharge in native window270216: Stop3512 retains cap, inherited diagonal and explicit FL/RL/RR/Top inspected; Reset0 restores centered open tote. Current follow implementation6d2d222 verified natively in window139198: unchanged inherited diagonal through active fill696/870/1056, lowered chuck1520, released cap1653, discharge2640, Stop2893 and Reset0. Separate unchanged explicit FL run shows active fill746/973, capper engagement1506 and separate retained cap1653; camera remains centered at observed poses. Actual runtime camera translation/rotation checks pass all five preset directions (8a9130b). Remaining intermediate cap directions, user-adjusted pan/zoom and litre/flow calibration remain open. Label application, inspection and complete PLC station sequencing remain open; no complete finishing model",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -615,6 +687,8 @@
       "recordedResult": "Placement/reference repaired: one shared stock, grounded supporting bed, 330 mm axial feeds with reference home flags, contacted matching 2.2 m slide/fixture travel; 18 focused checks PASS. Start binding repaired and native watch verified (00eec88/window 138990); Controller axial feed/independent retract/shared-fixture transfer repaired with 43 focused checks; native QA full-feed/independent-retract/partial-transfer/endpoint five-view review completed (window 139020). Native round-trip QA returned to home with qa_return TRUE and transfer_home TRUE (window139020); held return38.3% and returned home now inspected FR/FL/RL/RR/Top, return80% four distinct views, Stop/Reset verified. Open: exact transition frames, unsampled intermediate motion poses, material removal/dynamics and continuous native motion; reference completion remains timed",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -632,6 +706,8 @@
       "recordedResult": "Repaired static/declared plant path; normal Run lacks controller",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -649,6 +725,8 @@
       "recordedResult": "Actual joints/tool carry stock through open access onto supported vise and outfeed. Sampled other-equipment clearance passes; self-collision/full sweep, feedback interlocks, normal controller and cutting remain open.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -666,6 +744,8 @@
       "recordedResult": "TOGGLE plate repaired, clear stands. Loaded one-network SET test lights beacon; discarded test is not odd/even lesson acceptance",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -683,6 +763,8 @@
       "recordedResult": "Carton support repaired and re-inspected. Latest offline layout moves both sensors and the curtain onto the carrying route and replaces the foot-switch surrogate with the mesh swing gate beside the belt. Build/help, thirty-three focused mesh/drive/travel/offline ladder-reference checks, initial-state contract, controller regression and app shell pass. Dedicated nine-point runtime retains the carton at the supported exit after crossing both optical routes; Stop/command withdrawal retain pose and Reset reloads infeed. Current carton-runtime full geometry and all 71 scene contracts pass. Offline normal PLC scan-driven transfer is verified with the explicit review program; fresh native home views FR/FL/RL/RR/Top inspected in window 6823104; native moving transfer and protective behavior remain unverified.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -700,6 +782,8 @@
       "recordedResult": "Repaired robot/CNC clearance, complete fence/gate, mounted moving actuator and cabinet identity; 35 focused checks plus native offline Reset/Start/permissive-loss/Stop/Run/Reset pass. Remaining bounds pair is intended sensor mounting. Generic robot sweep/static CNC/E-stop reference only; physical/live proof open",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -717,6 +801,8 @@
       "recordedResult": "Pulse/plate repaired. Three presses light authored CTU lamp, Stop removes output, Run retains count, Reset clears; five integration checks pass",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -734,6 +820,8 @@
       "recordedResult": "Raw momentary pulse/reset, corrected plates; explicit three-count CTU reference native lamp off after 1/2 and on after 3. Reset clears; restart retains count; pending pulses discarded. Eleven exact workflow checks pass. Empty exercise editor remains intentional; hardware/external behavior unverified",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -751,6 +839,8 @@
       "recordedResult": "Actual scoped CNC dry stroke with connected head/spindle and PLC CTU preset three. 23 checks, 618 sampled route poses; repaired roof, front bay, coolant and stock support. Count 1/2/3 observed; no early/idle fourth count. Default editor stays empty. Rear panels obscure internal motion/near stands; Top needs wheel adjustment. Offline prescribed motion and sampled bounds only; OEM dynamics/material removal/live PLC acceptance open",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -768,6 +858,8 @@
       "recordedResult": "Four physical tiers, independent color bindings, momentary requests and editable offline reference repaired. Native complete cycle/restart/reset inspected; 30 focused checks PASS. Rear details partly occluded. CNC static, sounder uncommanded; live/physical acceptance open",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -785,6 +877,8 @@
       "recordedResult": "Raw A/B/reset, PLC count readouts; explicit numeric-window reference and native File/Open/Run/Stop/reset verified. Six stand footprints clear; no elapsed-time window",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -802,6 +896,8 @@
       "recordedResult": "Raw A/B/reset, PLC count readouts; explicit exact-count reference and physical 3D button workflow verified. Six stands clear; order unrestricted, no timed-pattern claim",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -819,6 +915,8 @@
       "recordedResult": "Original supported two-bay installation and actual hinged boom; explicit PLC reference counts actual arrivals/departures; retained cars, full-bay guard, Stop/resume and Reset exercised; 27 checks / 6,366 poses pass. Offline reference only; reusable substitute assets elsewhere unresolved",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -836,6 +934,8 @@
       "recordedResult": "Original supported roller line/receiver and guided stop; explicit PLC reference counts real incoming beams and releases three retained cartons; 27 checks / 3,847 poses pass. Top infeed HUD cropping resolved by diagonal views. Offline prescribed accumulation; swept-solid/roller mechanics/hardware safety and reusable assets elsewhere unaccepted",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -853,6 +953,8 @@
       "recordedResult": "Supported complete single-carton route and automatic feedback repaired; 36 focused checks pass with 2,897 samples. OPEN every-frame five-angle native coverage, swept-volume/self-collision and broader physical/process acceptance",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -870,6 +972,8 @@
       "recordedResult": "Repaired finite six-cookie cycle: 24 focused checks, 1,252 samples; support/count/seal/retention/Stop/resume/Reset. Top header occludes food; snapshots and bounds only. Physical process acceptance open",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -887,6 +991,8 @@
       "recordedResult": "Repaired finite 150 L fill/retained barrel cycle: 29 focused checks, 1,344 samples; inventory/support/optics/Stop/resume/Reset. Meter formatted F1. Rear-left occlusion and Top cropping resolved by other views; snapshots and bounds only. Physical process acceptance open",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -904,6 +1010,8 @@
       "recordedResult": "Connected reel/rolls/knife/receiver, measured F2 length and 3 m retained cut. 31 focused checks, 581 executed 20 ms samples. Realtime FL initial/feed/completed inspected; brief knife transient not frame-by-frame. Close HUD cropping/header occlusion resolved by other views; small 60 mm gap numerically checked. Prescribed no-slip kinematics and selected bounds only; no solid/swept/physical acceptance",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -921,6 +1029,8 @@
       "recordedResult": "Existing authored Demo 2 off at ET 1.98 s/on at 2.00 s; Stop resets TON but retains ON; Run requires fresh full delay; OFF clears next scan; 2026-10-07 native1187724 normal Demo2 browser/Run workflow refreshed: Run59 idle, selector ON285/ET0.96/lampFalse, running485/ET2.00/lampTrue with visible green lamp. Stop754 clears lamp and ET but retains ON; FL/RL/RR/Top support/spacing reinspection, then Reset0 clears request/output/ET. Unheld sampled interval; exact threshold frame not recaptured",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -938,6 +1048,8 @@
       "recordedResult": "One accepted-scan raw START; PLC TP owns lamp; original reference preset 3 s; active presses ignored; on at 2.98 s/off at 3.00 s; fresh START after expiry; Stop cancels, Run alone does not fire; empty exercise default",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -955,6 +1067,8 @@
       "recordedResult": "Raw maintained mode replaces manual flash_tick; explicit original PLC reference 0.5 s half-period, on at 25/off at 50/on at 75 scans; Stop clears lamp/timers, Run retains phase with fresh half-period; OFF clears next scan; empty default exercise",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -972,6 +1086,8 @@
       "recordedResult": "Raw enable replaces fake PC phase; explicit PLC reference alternates amber A/green B every 25 scans; exactly one lamp per enabled scan; Run resumes retained phase with fresh interval; Reset zero/stopped; empty default exercise",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -989,6 +1105,8 @@
       "recordedResult": "Three raw maintained requests; explicit PLC reference FAST 10 scans/SLOW 25 per half-period; both/neither selections inhibit/clear timing; direct valid rate change retains phase only without accepted intermediate invalid scan; Reset all selectors OFF; empty default exercise",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -1006,6 +1124,8 @@
       "recordedResult": "Three PLC color channels replace single green-only output; raw ENABLE maintained selector and momentary STEP; explicit original reference red -> amber -> green -> red, no idle advance; disabled/pending-stop pulses discarded; Run restores retained color; Reset OFF/stopped zero; default exercise empty; independent asset/hardware acceptance remains open",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -1023,6 +1143,8 @@
       "recordedResult": "Repaired horizontal road/sidewalks, two opposing vehicle and pedestrian heads, independent channels, momentary request, PLC-owned timed reference and startup restart. 30 offline checks pass. Declared simplified timings; no traffic/people motion or public-road compliance; independent asset approval open",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -1040,6 +1162,8 @@
       "recordedResult": "Reviewed / bounded: actual hinged deck and two supported barriers; angle-derived limits, moving cam, independent red/green, no false manual HOME. 35 focused checks PASS. Explicit six-rung reference, default exercise blank. Candidate shaft/mount contact intentional; sampled rail bounds and native views only, no solid collision/road/hardware acceptance",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -1057,6 +1181,8 @@
       "recordedResult": "Reviewed / bounded: original supported sack, actual optical entry/exit and single-clock travel; explicit six-rung reference, manual CLEAR + fresh START return, Stop/Run/Reset. 30 focused checks / 1203 samples pass. Default exercise blank; independent asset approval, flexible-body physics and hardware acceptance open",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -1074,6 +1200,8 @@
       "recordedResult": "Connected original tunnel/load/duct; retained mounted gun/fan; actual optical feedback and explicit timed PLC reference. 23 checks; 574 healthy scans, 100 spray / 50 purge ticks. Candidate assets and sampled installation only; airflow/coating/physical acceptance unverified",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -1091,6 +1219,8 @@
       "recordedResult": "REPAIRED bounded layout/reference: suitcase, four-cell deck, retained diverter with direct-drive installation, receiving bridge/outfeed; 41 focused checks PASS. Numeric fixture weighing and one count/category verified offline; native reject cycle verified. Candidate approval/contact dynamics/calibration remain open",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -1108,6 +1238,8 @@
       "recordedResult": "Connected original dryer/sensor/hand/heater assembly and PLC countdown repaired; 19 offline checks PASS. Source defaults remain blank; explicit reference required. Candidate/physical approval remains open.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -1125,6 +1257,8 @@
       "recordedResult": "Two PC DINT inputs and live SUM result; 2+5=7 observed. Seven grounded, clear props. Global-tag reference FB supplied; exercise remains opt-in; FB parameter/instance semantics and independent asset approval open",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -1142,6 +1276,8 @@
       "recordedResult": "Two PC DINT factors and live PRODUCT; 2*5=10 observed. Seven grounded, clear props. Shared-picker follow-up correctly targets all five controls and Reset clears them. Global-tag FB reference opt-in; FB parameter/instance semantics and independent asset approval open",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -1159,6 +1295,8 @@
       "recordedResult": "CNC removed; typed DINT operands/sum/count and live readouts added. Opt-in reference displays 2+5=7 and one held completion count, Stop zeros image, Run republishes retained count, Reset clears. Eleven integration/clearance checks pass. 2026-10-06: indicator peers moved inline; final native five angles and full top wheel-zoom inspected; eleven existing integration/clearance checks pass. Historical default-top crop superseded by 2026-10-07 native inspection at source 47cd859: freshly launched window 270158, full scene, 1602x932, I/O expanded; selected Top/FL/RL/RR/FR individually. All nine equipment items fit inside the viewport without wheel zoom. Front views resolve readouts; rear views show backs, Top shows separated footprints. STOP, PLC disconnected, no logic loaded; this check does not reverify arithmetic or controller behavior. Open: independent reusable-asset approval; manual call-complete feedback; exercise requires authored/explicit reference logic",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -1176,6 +1314,8 @@
       "recordedResult": "Live DINT A/B/choice/RESULT and opt-in FB routing to SUM/PRODUCT; observed 7/10 and invalid 99 clears validity. Native picking conflict repaired by moving readouts behind buttons; supports and separate-equipment clearance pass. Open: source-selector parity and FB instance/parameter semantics unverified; Historical QA close/top cropping reconciled 2026-10-07 at source ac76abe, native window 270158: Next navigation loaded scene 69 normally; home FR, Top, FL, RL, RR inspected at 1602x932 with I/O expanded. All eight equipment items fit in wide full-scene views. FL Wide/close deliberately magnifies the center: A readout crops at left and the nearest switch crops at bottom; toggling back restores both. Close-up cropping remains a limitation for whole-scene inspection, not evidence of a placement intersection. STOP, PLC disconnected; arithmetic/FB semantics not reverified",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -1193,6 +1333,8 @@
       "recordedResult": "Static supported fixture/carton and four live DINT readouts; observed 850*720*720=440640000 mm3 and maximum 1000000000. Missing validity/zero dimensions invalidate retained result. Readouts grounded/clear; 17 new checks pass. Open: automatic acquisition, source parity, FB instance/parameter semantics and independent asset approval; 2026-10-07 native framing reconciliation at source 685b470, window 270158: normal Next navigation loaded scene 70; Top, FL, RL, RR and explicit FR inspected with I/O expanded at 1602x932. All ten equipment items fit in wide views, carton rests on carrying bench, fixture crossbar projects over carton in Top but diagonals show vertical separation. FL close view crops volume-display base at bottom; wide restores complete base. No new gross placement intersection observed at this scale; continuous solid clearance, automatic acquisition and runtime math not reverified",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -1210,6 +1352,8 @@
       "recordedResult": "Carton/fixture/readout geometry repaired and five views/details inspected. Live DINT count/readout FR/FL and invalid/five-edge/held/permissive/Stop/Run/Reset native checks pass. Optical classification/pallet travel/CNC integration open 2026-10-07 native794268 supplied Demo4 Run/rail inputs refresh: invalid/held detection stays0, five fresh edges visibly produce DINT1-5 and validity only at5. Close grounded COUNT5 display read, Stop12529 shows published COUNT0, Run12542 restores retained5, Reset0 clears shown values. Full installation refreshed initial diagonal/FL/RL/RR/Top, RR machine occlusion resolved opposing views. Static/manual count lesson; process motion and stopped-zero presentation concern remain open.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -1227,6 +1371,8 @@
       "recordedResult": "Geometry repaired with original two-bay EV layout; native FR/FL/RL/RR/T inspected. OPEN: 45 geometry/offline adapter/PLC reference checks PASS; two-bay allocation, meter events and PLC kWh provided. Fresh current-build native home and occupied-bay FR/FL/RL/RR/Top inspected: two vehicles retained inside separate bays, charger/display/reader/control stands separate. Runtime charging, allocation, connector attachment and close readout checks remain pending",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -1244,6 +1390,8 @@
       "recordedResult": "Carton belt contact/load-end footprint repaired; native five wide/Top/FL close and Demo 3 Run/Start/photoeye/Stop/Reset rechecked; full clearance open 2026-10-07 native794268 supplied Demo3 Run144 idle, Start accepted/830 photoeyeTrue atposition0.5 with conveyorFalse, Stop1749 retains supported carton. Endpoint inspected initial diagonal/FL/RL/RR/Top, Reset0 restores load end and clears feedback/output. 2026-10-07 native2498006 held real Start/fine scan1 position0.01, coarse26 position0.26 eyeFalse/driveTrue; mid-travel diagonal/FL/RL/RR/Top visible carton within belt, Stop26 retains position/clears drive, Reset0 restores load end. Flat carrying-plane check confirms0.8336mm original overhang; corrected cartonX=-2.9 gives99.17mm margin. Native8068290 updated home diagonal/FL/RL/RR/Top, normalRun196 idle/Start739 photoeyeTrue at0.5/Reset0 restored corrected load. Flat-top support/travel/optical/Stop/Reset checks pass. Continuous clearance open.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -1261,6 +1409,8 @@
       "recordedResult": "Receiving surface, retention, plate contact, reference optical path and static stand/base installation repaired. RX stand Z=-1.55; pusher X=-0.4/Z=-2.4; connected yoke extension 879.73 mm. Geometry 392 and motion 25 PASS. Cable screen uses 5 mm broad candidates and 1 mm world allowance. Native held-solenoid endpoint fixture; lower sensor hidden in rear views, close Top crops carton edges. Normal three-rung reference continuous playback inspected FR/FL/RL/RR/Top, with received retention, Stop and Reset. Held final scan 58 extending, 63 actual release, 65 full, 72 retracting: each FR/FL/RL/RR/Top; Stop/disabled steps, home retention, canonical reload, Reset/release confirmed. Clock regressions 8/8; motion 85/85. 2026-10-07 staged cartonX=-2.9 corrects flat-plane overhang; native8068290 updated home diagonal/FL/RL/RR/Top and delivered-flat-top support/travel/optical/Stop/Reset/off-station checks pass. Updated native process refresh open. Open: arbitrary output sequences and physical transfer",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
@@ -1278,7 +1428,9 @@
       "recordedResult": "Probe/piping/valve installations repaired; 365 checks PASS. Native full-scene five-angle framing, external sight-glass fill/drain phases and Stop/settled Reset verified. Retained Windows1842540 ran without pause through sampled fill86/63.76%, drain186/71.64% to566/26.04%, refill620/32.16%; FR/FL/RL/RR/Top inspected during run, Stop693/43.84% both commandsFalse, Reset0/50%. FAIL/open: exact switch transition frames, fresh-current-source deferred Start reproduction and broader operator/process acceptance",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": true,
-      "disposition": "REPAIR_RECORDED_FAILURE",
+      "gapKind": "VERIFICATION_GAP",
+      "gapSummary": "Exact switch frames and current-source operator checks",
+      "disposition": "VERIFY_RECORDED_GAP",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
     {
@@ -1295,7 +1447,9 @@
       "recordedResult": "Installations repaired; external sight-glass fill changes natively; Stop holds and settled Reset restores 42% / 10.72 mA. 365 checks PASS. FAIL/open: uninterrupted threshold-cycle and broader operator/process acceptance; tank-focused views crop peripheral piping",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": true,
-      "disposition": "REPAIR_RECORDED_FAILURE",
+      "gapKind": "VERIFICATION_GAP",
+      "gapSummary": "Native threshold-cycle and operator coverage",
+      "disposition": "VERIFY_RECORDED_GAP",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
     {
@@ -1312,6 +1466,8 @@
       "recordedResult": "Radar flange/head mounting and antenna-to-surface distance/beam repaired (sampled checks); 35% native range 3.10036. OPEN: piping/grounded drain valve and explicit inspection view added; 24 focused checks PASS. 32 focused geometry/offline PLC reference checks PASS; Fresh current-build native FR/FL/RL/RR/Top home views inspected: supported inlet/drain piping, external drain valve, roof radar and separate operator stations visible; ghost-shell FL reveals internal cone and liquid. Native reference Open/Verify/Run and automatic cycle request snapshots now observed; inspection-only interior surface added and initial 35% viewed FR/FL/RL/RR/Top. Revised native moving-phase surface/beam alignment inspected in five angles, Stop retains 35.50% and Reset restores 35%/opaque view. Native manual drain gated by enabled cycle, withdrawal at zero clears both commands, Stop and Reset verified. Fresh single-window394914 normal Open/Verify loaded4rungs9tags; ghost-shell FR250/40.46% and FL499/75.32% fill, RL768/58.93% and RR1020/36.25% drain, Top1264/28.78% refill; Stop1503/62.24% clears commands, Reset0/35% restores opaque shell. Native nonzero request withdrawal738/77.7% clears commands and FR1245 retains77.7%/bothFalse; Reset0/35%. Exact threshold scans and physical acceptance remain unverified",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
+      "gapKind": "NOT_TRIAGED",
+      "gapSummary": null,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     }
