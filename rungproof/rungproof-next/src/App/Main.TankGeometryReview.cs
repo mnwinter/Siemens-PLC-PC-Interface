@@ -6,6 +6,43 @@ namespace RungProof.Next.App;
 
 public partial class Main
 {
+    private void VerifySumpLevelMotionGeometry(Action<bool, string> check)
+    {
+        AddMigratedScene("lab-2-14-sump-pump", _candidateCatalog!, _mainCamera!, false, false);
+        var tank = _sceneCompositionRoot!.GetNode<Node3D>("sump_tank");
+        var liquid = (MeshInstance3D)tank.FindChild("KIN_liquid", true, false);
+        var shell = ReviewBounds((MeshInstance3D)tank.FindChild("TANK_shell", true, false));
+        var runtime = _sceneRuntime!;
+        runtime.UsesExternalClock = false;
+        runtime.ResetSimulation();
+        var initial = ReviewBounds(liquid);
+        check(MathF.Abs(initial.Position.Y-.12f)<.001f && MathF.Abs(initial.End.Y-(.12f+1.65f*.22f))<.001f,
+            "sump_liquid_initial_22_percent_matches_open_basin_datum");
+        check(runtime.ExecuteAction("start-sump"), "sump_reference_level_motion_starts_for_geometry_audit");
+        var contained = true;
+        var peak = initial.End.Y;
+        for (var tick=0;tick<350;tick++)
+        {
+            runtime.AdvanceSimulation(.02);
+            var bounds=ReviewBounds(liquid);
+            contained &= MathF.Abs(bounds.Position.Y-.12f)<.001f
+                && bounds.End.Y<shell.End.Y
+                && bounds.Position.X>shell.Position.X+.14f && bounds.End.X<shell.End.X-.14f
+                && bounds.Position.Z>shell.Position.Z+.14f && bounds.End.Z<shell.End.Z-.14f;
+            peak=MathF.Max(peak,bounds.End.Y);
+        }
+        check(contained,"sump_350_reference_level_samples_remain_inside_open_basin");
+        check(MathF.Abs(peak-(.12f+1.65f*.78f))<.001f,
+            "sump_reference_motion_reaches_78_percent_high_level");
+        check(MathF.Abs(ReviewBounds(liquid).End.Y-(.12f+1.65f*.18f))<.001f,
+            "sump_reference_motion_finishes_at_18_percent_low_level");
+        runtime.ResetSimulation();
+        check(MathF.Abs(ReviewBounds(liquid).End.Y-initial.End.Y)<.001f,
+            "sump_reset_restores_initial_liquid_surface");
+        // This drives the existing reference trajectory for geometry only.
+        // It does not establish a PLC-owned pump latch or float mechanics.
+    }
+
     private void VerifyTankAnalogMountGeometry(Action<bool, string> check)
     {
         AddMigratedScene("tank-level", _candidateCatalog!, _mainCamera!, false, false);

@@ -279,6 +279,7 @@ public partial class Main
             if (OS.GetCmdlineUserArgs().Contains("--verify-tank-switch-mounts", StringComparer.Ordinal))
             {
                 VerifyTankSwitchMountGeometry(Check);
+                VerifySumpLevelMotionGeometry(Check);
                 GD.Print($"TANK_SWITCH_INSTALLATION_VERIFY {(passed ? "PASS" : "FAIL")} geometry only; native/process acceptance pending");
                 GetTree().Quit(passed ? 0 : 1);
                 return;
