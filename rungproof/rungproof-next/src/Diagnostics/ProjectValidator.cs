@@ -134,6 +134,17 @@ public static class ProjectValidator
                 "Regenerate the scene catalog and resolve missing scene resources.");
         }
         var assetIds = assets.Assets.Select(asset => asset.Id).ToHashSet(StringComparer.Ordinal);
+        bool AccessoryResolved(SceneEquipment item, SceneDefinition scene)
+        {
+            var configuredAsset = Text(item.Config, "catalogAssetId");
+            return configuredAsset.Length > 0 ? assetIds.Contains(configuredAsset)
+                : SceneComposer.IsProceduralTrainingAccessory(item)
+                    || (Text(item.Config, "installation") == "palletTransferBridge"
+                        && item.Id == "robot_pallet_transfer_bridge"
+                        && scene.Equipment.Any(part => part.Id == "robot_pallet_outbound"
+                            && Text(part.Config, "installation") == "palletOutbound")
+                        && scene.Equipment.Any(part => part.Id == "robot_pallet_conveyor"));
+        }
         foreach (var scene in scenes)
         {
             var scope = $"Scene: {scene.Name}";
@@ -144,7 +155,7 @@ public static class ProjectValidator
             // than reporting a stale type-level failure for mapped equipment.
             var unresolvedTypes = scene.Migration.UnresolvedAssetTypes.Where(type =>
                 type != "trainingAccessory" || scene.Equipment.Where(item => item.Type == type)
-                    .Any(item => !assetIds.Contains(Text(item.Config, "catalogAssetId"))))
+                    .Any(item => !AccessoryResolved(item, scene)))
                 .ToArray();
             if (unresolvedTypes.Length > 0)
             {
@@ -155,7 +166,7 @@ public static class ProjectValidator
             foreach (var equipment in scene.Equipment.Where(item => item.Type == "trainingAccessory"))
             {
                 var assetId = Text(equipment.Config, "catalogAssetId");
-                if (!assetIds.Contains(assetId))
+                if (!AccessoryResolved(equipment, scene))
                     AddError(issues, "SCN-ACCESSORY-MISSING", scope,
                         $"Equipment '{equipment.Id}' references unavailable accessory '{assetId}'.",
                         "Configure an existing catalog asset ID for this equipment.");

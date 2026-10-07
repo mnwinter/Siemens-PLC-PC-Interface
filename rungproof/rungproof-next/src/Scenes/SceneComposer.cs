@@ -295,6 +295,19 @@ public static partial class SceneComposer
         return model;
     }
 
+    // These installations have their own scene-local geometry constructors;
+    // they do not require an imported catalog asset. Keep this explicit so a
+    // misspelled or unsupported installation still produces a diagnostic.
+    public static bool IsProceduralTrainingAccessory(SceneEquipment equipment)
+        => equipment.Type == "trainingAccessory" && Text(equipment.Config, "installation", string.Empty) is
+            "visionSorterHandoffBridge" or "luggageTransferBridge" or
+            "groupingLine" or "groupingStop" or
+            "parkingVehicle" or "parkingBarrier" or "parkingPad" or
+            "palletizerPickTable" or
+            "cablePayoff" or "cableGuide" or "cableEncoder" or "cableCutter" or "cableReceiver" or "cableStrand" or
+            "barrelLoad" or "barrelMeter" or "barrelNozzle" or
+            "cookieTray" or "cookieCounter" or "robotRestartGuard" or "robotRestartPanel";
+
     private static Node3D? CreateTrainingAccessory(SceneEquipment equipment, AssetCatalogDocument candidates)
     {
         if (Text(equipment.Config, "installation", "") == "visionSorterHandoffBridge") return CreateVisionSorterBridge(equipment);

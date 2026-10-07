@@ -1310,8 +1310,31 @@ public partial class Main : Node3D
     private bool VerifyRendererBindingModes()
     {
         var scenes = _sceneCatalog!.Scenes.Select(SceneCatalogLoader.LoadScene).ToArray();
+        foreach (var issue in ProjectValidator.Validate(_candidateCatalog!, _sceneCatalog, scenes))
+            GD.Print($"CATALOG_DIAGNOSTIC {issue.Code}: {issue.Message}");
         var actualSupported = !ProjectValidator.Validate(_candidateCatalog!, _sceneCatalog, scenes)
             .Any(issue => issue.Code == "SCN-BINDING-MODE");
+        // The sorter bridge is constructed by SceneComposer rather than loaded
+        // from the asset catalog. It must not appear as a missing asset in the
+        // normal scenario browser's diagnostics.
+        var proceduralBridgeRecognized = !ProjectValidator.Validate(_candidateCatalog!, _sceneCatalog, scenes)
+            .Any(issue => issue.Code == "SCN-ACCESSORY-MISSING"
+                && issue.Message.Contains("'sorter_handoff_bridge'", StringComparison.Ordinal));
+        var sorter = scenes.Single(scene => scene.Id == "lab-10-03-vision-package-sorter");
+        var bridge = sorter.Equipment.Single(item => item.Id == "sorter_handoff_bridge");
+        using var unknownInstallation = JsonDocument.Parse("{\"installation\":\"unsupported-review-probe\"}");
+        using var badAsset = JsonDocument.Parse("{\"installation\":\"visionSorterHandoffBridge\",\"catalogAssetId\":\"missing-review-probe\"}");
+        bool RejectsAccessory(JsonElement config) => ProjectValidator.Validate(_candidateCatalog!, _sceneCatalog,
+            new[] { sorter with { Equipment = new[] { bridge with { Config = config } } } })
+            .Any(issue => issue.Code == "SCN-ACCESSORY-MISSING");
+        var invalidAccessoryRejected = RejectsAccessory(unknownInstallation.RootElement) && RejectsAccessory(badAsset.RootElement);
+        var palletScene = scenes.Single(scene => scene.Id == "lab-2-17-pallet-robot");
+        var palletBridge = palletScene.Equipment.Single(item => item.Id == "robot_pallet_transfer_bridge");
+        var orphanBridgeRejected = ProjectValidator.Validate(_candidateCatalog!, _sceneCatalog,
+            new[] { palletScene with { Equipment = new[] { palletBridge } } })
+            .Any(issue => issue.Code == "SCN-ACCESSORY-MISSING");
+        var allAccessoriesResolved = !ProjectValidator.Validate(_candidateCatalog!, _sceneCatalog, scenes)
+            .Any(issue => issue.Code is "SCN-ACCESSORY-MISSING" or "SCN-ASSET-UNRESOLVED");
         // Keep unknown modes rejected while exercising the actual catalog modes.
         // This fixture changes no loaded scene and constructs no PLC transport.
         using var fixture = JsonDocument.Parse(JsonSerializer.Serialize(new
@@ -1326,7 +1349,11 @@ public partial class Main : Node3D
         var unknownRejected = ProjectValidator.Validate(_candidateCatalog!, _sceneCatalog, new[] { unknownScene })
             .Count(issue => issue.Code == "SCN-BINDING-MODE") == 1;
         GD.Print($"RENDER_BINDING_VALIDATION_VERIFY {(actualSupported && unknownRejected ? "PASS" : "FAIL")} actualSupported={actualSupported} unknownRejected={unknownRejected}");
-        return actualSupported && unknownRejected;
+        GD.Print($"PROCEDURAL_ACCESSORY_VALIDATION_VERIFY {(proceduralBridgeRecognized ? "PASS" : "FAIL")} sorterBridgeRecognized={proceduralBridgeRecognized}");
+        GD.Print($"PROCEDURAL_ACCESSORY_REJECTION_VERIFY {(invalidAccessoryRejected ? "PASS" : "FAIL")}");
+        GD.Print($"PROCEDURAL_ACCESSORY_CATALOG_VERIFY {(allAccessoriesResolved && orphanBridgeRejected ? "PASS" : "FAIL")} allResolved={allAccessoriesResolved} orphanBridgeRejected={orphanBridgeRejected}");
+        return actualSupported && unknownRejected && proceduralBridgeRecognized && invalidAccessoryRejected
+            && allAccessoriesResolved && orphanBridgeRejected;
     }
 
     private void VerifyAppShell()
