@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-10-05-motor-struct-data",
   "name": "Lab 10.5 - Motor STRUCT Data",
-  "description": "A structured motor record combines command, power, temperature, and alarm fields for one motor.",
+  "description": "Motor validity exercise with BOOL inputs and motor/status outputs. No STRUCT-valued record, power or temperature measurement is supplied; author or load controller logic before Run.",
   "camera": {
     "position": [
       11,
@@ -21,9 +21,9 @@
     {
       "id": "motor_0",
       "type": "motor",
-      "label": "Motor STRUCT Data motor",
+      "label": "Motor commanded by motor_enable",
       "position": [
-        -3.3000000000000003,
+        -3.8,
         0,
         0
       ],
@@ -71,49 +71,55 @@
     {
       "id": "training_accessory_3",
       "type": "trainingAccessory",
-      "label": "Motor STRUCT Data - motor diagnostic faceplate",
+      "label": "Motor Record display - no live value",
       "position": [
-        3.3000000000000003,
+        3.3,
         0,
         0
       ],
       "config": {
-        "assetName": "motor diagnostic faceplate",
-        "catalogAssetId": "training.accessory.motor_diagnostic_faceplate.v1"
+        "assetName": "supported diagnostic display",
+        "catalogAssetId": "training.accessory.count_display.v1",
+        "display": "staticText",
+        "displayText": "MOTOR RECORD\nNO DATA"
       }
     },
     {
       "id": "training_accessory_4",
       "type": "trainingAccessory",
-      "label": "Motor STRUCT Data - temperature display",
+      "label": "Temperature display - no live value",
       "position": [
-        -3.3000000000000003,
+        -3.3,
         0,
-        1.8
+        2.0
       ],
       "config": {
-        "assetName": "temperature display",
-        "catalogAssetId": "training.accessory.temperature_display.v1"
+        "assetName": "supported diagnostic display",
+        "catalogAssetId": "training.accessory.count_display.v1",
+        "display": "staticText",
+        "displayText": "TEMPERATURE\nNO DATA"
       }
     },
     {
       "id": "training_accessory_5",
       "type": "trainingAccessory",
-      "label": "Motor STRUCT Data - structured-data monitor",
+      "label": "Struct Data display - no live value",
       "position": [
         -1.1,
         0,
-        1.8
+        2.0
       ],
       "config": {
-        "assetName": "structured-data monitor",
-        "catalogAssetId": "training.accessory.structured_data_monitor.v1"
+        "assetName": "supported diagnostic display",
+        "catalogAssetId": "training.accessory.count_display.v1",
+        "display": "staticText",
+        "displayText": "STRUCT DATA\nNO DATA"
       }
     },
     {
       "id": "switch_6",
       "type": "switch",
-      "label": "Motor STRUCT Data operator input",
+      "label": "Record Valid",
       "position": [
         1.55,
         0,
@@ -122,13 +128,14 @@
       "config": {
         "style": "pushbutton",
         "action": "toggle-motor_record_valid",
-        "color": 2204518
+        "color": 2204518,
+        "faceLabel": "RECORD VALID"
       }
     },
     {
       "id": "switch_7",
       "type": "switch",
-      "label": "Motor STRUCT Data operator input",
+      "label": "Temp Valid",
       "position": [
         3.7500000000000004,
         0,
@@ -137,13 +144,14 @@
       "config": {
         "style": "pushbutton",
         "action": "toggle-temperature_valid",
-        "color": 2204518
+        "color": 2204518,
+        "faceLabel": "TEMP VALID"
       }
     },
     {
       "id": "switch_8",
       "type": "switch",
-      "label": "Motor STRUCT Data operator input",
+      "label": "Alarm Clear",
       "position": [
         -2.4000000000000004,
         0,
@@ -152,7 +160,8 @@
       "config": {
         "style": "pushbutton",
         "action": "toggle-alarm_clear",
-        "color": 2204518
+        "color": 2204518,
+        "faceLabel": "ALARM CLEAR"
       }
     },
     {
@@ -259,6 +268,11 @@
         "equipmentId": "indicator_9",
         "mode": "indicator",
         "activeColor": "green"
+      },
+      {
+        "point": "motor_enable",
+        "equipmentId": "motor_0",
+        "mode": "running"
       }
     ]
   },
@@ -283,7 +297,7 @@
       "structured-data monitor"
     ],
     "machineGuide": {
-      "purpose": "A structured motor record combines command, power, temperature, and alarm fields for one motor.",
+      "purpose": "Motor validity exercise with BOOL inputs and motor/status outputs. No STRUCT-valued record, power or temperature measurement is supplied; author or load controller logic before Run.",
       "startConditions": [
         "The common PLC/watchdog foundation is healthy.",
         "All required simulator inputs are at their documented initial state."

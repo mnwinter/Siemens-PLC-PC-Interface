@@ -111,7 +111,7 @@
     {
       "index": 7,
       "sceneId": "lab-10-05-motor-struct-data",
-      "recordedNativeViews": "FR/FL/RL/RR/T",
+      "recordedNativeViews": "FR/FL/RL/RR/T; supported display focus; corrected Top repeated",
       "recordedAngles": {
         "FR": true,
         "FL": true,
@@ -119,7 +119,7 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "FAIL: shutter copies instead of displays, interference, no STRUCT data, empty editor on Run",
+      "recordedResult": "Display identity/support/spacing and motor command projection repaired; 9 checks PASS, native five-angle reinspection. FAIL/open: no STRUCT record or power/temperature data; normal Run opens blank exercise editor; complete loaded-controller workflow unverified",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": true,
       "disposition": "REPAIR_RECORDED_FAILURE",

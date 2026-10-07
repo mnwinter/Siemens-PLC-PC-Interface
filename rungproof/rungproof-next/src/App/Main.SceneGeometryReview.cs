@@ -288,6 +288,7 @@ public partial class Main
             VerifyGalleryGeometry(Check);
             VerifyDriveAlarmGeometry(Check);
             VerifyMotorStateProjection(Check);
+            VerifyMotorRecordGeometry(Check);
             VerifyLabelPrintGeometry(Check);
             VerifySelectorProjection(Check);
             VerifyInboundToteGeometry(Check);
@@ -662,6 +663,36 @@ public partial class Main
         runtime.ResetSimulation();
         check(!motion.Running && shaft.Transform == authored && runtime.Points["motor_running"] is false,
             "motor_state_reset_restores_shaft_and_output");
+    }
+
+    private void VerifyMotorRecordGeometry(Action<bool, string> check)
+    {
+        AddMigratedScene("lab-10-05-motor-struct-data", _candidateCatalog!, _mainCamera!, false, false);
+        var root = _sceneCompositionRoot!;
+        check(LogBoundsCandidates(root) == 0, "motor_record_separate_equipment_bounds_clear");
+        foreach (var id in new[] { "training_accessory_3", "training_accessory_4", "training_accessory_5" })
+        {
+            var display = root.GetNode<Node3D>(id);
+            check(display.FindChild("COUNT_DISPLAY_screen", true, false) is MeshInstance3D
+                && display.FindChild("StaticReadout", true, false) is Label3D label && label.Text.EndsWith("\nNO DATA", StringComparison.Ordinal)
+                && !ReviewMeshes(display).Any(mesh => mesh.Name.ToString().Contains("SHUTTER", StringComparison.Ordinal)),
+                $"motor_record_{id}_actual_display_without_shutter_or_fabricated_measurement");
+            var foot = (MeshInstance3D)display.FindChild("COUNT_DISPLAY_base", true, false);
+            var mast = (MeshInstance3D)display.FindChild("COUNT_DISPLAY_mast", true, false);
+            var housing = (MeshInstance3D)display.FindChild("COUNT_DISPLAY_housing", true, false);
+            check(MathF.Abs(ReviewBounds(foot).Position.Y) < .001f
+                && ReviewBounds(foot).Grow(.001f).Intersects(ReviewBounds(mast))
+                && ReviewBounds(mast).Grow(.001f).Intersects(ReviewBounds(housing)), $"motor_record_{id}_grounded_supported_display");
+        }
+        // Verify projection of an explicit symbolic command, without supplying
+        // a lesson controller or claiming STRUCT/temperature simulation.
+        var runtime = _sceneRuntime!;
+        var motion = root.GetNode<Node3D>("motor_0").FindChildren("*", string.Empty, true, false)
+            .OfType<EquipmentMotionController>().Single();
+        runtime.CommitExternalPlcOutputs(new Dictionary<string, object?> { ["motor_enable"] = true });
+        check(motion.Running, "motor_record_declared_enable_projects_to_motor");
+        runtime.CommitExternalPlcOutputs(new Dictionary<string, object?> { ["motor_enable"] = false });
+        check(!motion.Running, "motor_record_removed_enable_stops_motor");
     }
 
     private void VerifyDrillStartPermissives(Action<bool, string> check)
