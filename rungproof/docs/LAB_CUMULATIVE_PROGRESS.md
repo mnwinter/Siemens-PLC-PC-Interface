@@ -1,5 +1,17 @@
 # Cumulative Lab Progression
 
+Held-cap regression checkpoint (2026-10-06; native review OPEN):
+Commit d06fcaf reuses the finishing tote's exported hollow cap at matching
+installation scale, seats its roof against the chuck lower face, and raises
+the held assembly together by 100 mm to clear the indexing neck. Forty focused
+checks pass in .tools/capper-cap-raised.log; the two new held-shape/pose checks
+failed before repair. Full scene contracts pass 71/0 in
+.tools/capper-held-contracts.log. App shell passes 77 scenes / 5 demos / 295
+assets with connection DISCONNECTED in .tools/capper-held-shell.log. These
+headless checks do not add native visual acceptance. Axial motion, oriented
+cap seating, release, capped discharge, labeling and inspection remain OPEN.
+
+
 Tote cap geometry checkpoint (2026-10-06; native review OPEN):
 The finishing candidate now has a hollow cap underside. Actual exported GLB
 rays verify its inner roof seats at the neck rim within floating-point tolerance,
