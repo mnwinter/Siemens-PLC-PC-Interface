@@ -29,7 +29,8 @@
       ],
       "config": {
         "assetName": "Opposing traffic signal head",
-        "catalogAssetId": "training.accessory.traffic_signal_head.v1"
+        "catalogAssetId": "training.accessory.traffic_signal_head.v1",
+        "installation": "mobileTrafficSignal"
       },
       "rotation": [
         0,
@@ -48,7 +49,8 @@
       ],
       "config": {
         "assetName": "Opposing traffic signal head",
-        "catalogAssetId": "training.accessory.traffic_signal_head.v1"
+        "catalogAssetId": "training.accessory.traffic_signal_head.v1",
+        "installation": "mobileTrafficSignal"
       },
       "rotation": [
         0,

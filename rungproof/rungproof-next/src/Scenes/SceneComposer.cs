@@ -306,6 +306,7 @@ public static partial class SceneComposer
         if (Text(equipment.Config, "installation", string.Empty) == "palletTransferBridge") return new Node3D();
         var model = CreateOptionalMappedAsset(equipment, candidates, Text(equipment.Config, "catalogAssetId", string.Empty));
         var installation = Text(equipment.Config, "installation", string.Empty);
+        if (model is not null && installation == "mobileTrafficSignal") return CreateMobileTrafficSignalBase(model);
         if (model is not null && installation is "drawbridgeDeck" or "drawbridgeGate" or "drawbridgeLimits")
             return AddDrawbridgePivot(model, installation);
         if (model is not null && installation == "drawbridgeSignal") return CreateDrawbridgeSignal(model);

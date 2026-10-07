@@ -1,4 +1,16 @@
 
+## 2026-10-07 - Mobile traffic signal portable bases and framing
+
+Native session 81849 scene 12 still showed fixed mast plates on shoulders. Added scene-local mobileTrafficSignal installation around the existing authored signal models: wheeled cart deck, enclosure, four wheels; original mast base rests on deck top. Equipment elevation keeps wheel bottoms on the 0.15 m sidewalk. No reusable asset replacement or I/O change. Illustrative cart only; no mechanical stability certification.
+
+Fresh native session 75813 / window 12781004 inspected front-right, front-left, rear-left, rear-right and top. Both bases visibly seated on their separate shoulders, clear of asphalt/crosswalk and operator stations; mast-to-cart joint visible. Top view exposed a signal-head toolbar clip. Added this scene to the existing nearly vertical full-scene camera reserve. Rebuilt and restarted session 2919; fresh top view now shows both complete heads/bases below toolbar with footprint separation. Four oblique views belong to the same geometry before this top-only framing correction. No obvious new penetration in the inspected portions.
+
+Build zero warnings/errors; 145 virtual-controller tests pass, zero failures; app-shell verifier PASS (77 scenes, five demos, 295 assets), expected missing-saved-workspace diagnostic. Native signal command cycle, synchronization, red/amber timing, and remaining catalog findings remain open. This is a static installation repair, not whole-scene acceptance. Physical PLC disconnected.
+
+## 2026-10-07 - Native elevator manual permissive-loss checks
+
+Session 81849, retained normal-editor audit cycle project, held clock, rear-right view. After Reset and Run, enabled call/doors/landing. At 0.50 s / scan 25 car 8.3%, up True/down False. Removed doors_closed; stepped to 1.00 s / scan 50: car retained 8.3%, both commands False, open fixture panels. Restored doors and stepped to 1.50 s / scan 75: car 16.7%, up True/down False, closed panels. Removed landing_clear; stepped to 2.00 s / scan 100: retained 16.7%, both commands False. Restored landing and stepped to 2.50 s / scan 125: car 25.0%, up True/down False. Removed call_valid; stepped to 3.00 s / scan 150: retained 25.0%, both commands False. Native evidence now covers each manual permissive loss during ascent and restoration of door/landing inputs. Descent-phase losses/conflict UI injection remain untested; headless coverage is separate. Door fixture pose changes instantly on accepted ticks, not a modeled door mechanism. No physical PLC connection. Remaining catalog/depiction issues are still open.
+
 ## 2026-10-07 - Native service elevator round trip and Reset
 
 Continued session 81849 with the audit-only cycle project loaded through normal Project > Open and Online > Verify + load (10 tags, three rungs, 20 ms). Top view inspected every 0.5 s from home through 6.0 s / scan 300: changing car percentage tracked travel and reached 100.0%, upper True/lower False. Full shaft remained below toolbar through the raised endpoint. Roof appeared within shaft in these top samples; this is bounded visual evidence, not every-frame clearance proof.
