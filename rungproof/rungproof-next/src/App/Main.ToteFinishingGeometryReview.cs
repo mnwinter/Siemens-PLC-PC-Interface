@@ -32,6 +32,12 @@ public partial class Main
                 GD.Print($"TOTE_CAP_CHECK {label}={condition}");
             });
             if (!passed) { GetTree().Quit(1); return; }
+            VerifyToteFillCapLadder((condition, label) =>
+            {
+                passed &= condition;
+                GD.Print($"TOTE_LADDER_CHECK {label}={condition}");
+            });
+            if (!passed) { GetTree().Quit(1); return; }
             VerifyToteFinishingPlacement((condition, label) =>
             {
                 passed &= condition;

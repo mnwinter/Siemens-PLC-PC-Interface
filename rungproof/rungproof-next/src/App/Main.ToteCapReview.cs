@@ -2,11 +2,36 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
+using RungProof.Next.VirtualController;
 
 namespace RungProof.Next.App;
 
 public partial class Main
 {
+    private void VerifyToteFillCapLadder(Action<bool, string> check)
+    {
+        AddMigratedScene("lab-2-21-tote-finishing", _candidateCatalog!, _mainCamera!, false, false);
+        var project = LadderEditorProjectJson.Load(System.IO.File.ReadAllText(
+            "programs/examples/tote-fill-cap-review.rpproj.json"));
+        if (project.Document is null) throw new InvalidOperationException("Tote fill/cap QA could not be loaded.");
+        EnableVirtualControllerProgram(project.Document.BuildProgram());
+        try
+        {
+            RunActiveController();
+            ExecuteSelectedControllerAction("start-line");
+            for (var scan = 0; scan < 1500; scan++) _PhysicsProcess(.02);
+            GD.Print($"TOTE_QA_FINAL position={_sceneRuntime!.Points["tote_position"]} fill={_sceneRuntime.Points["fill_complete"]} applied={_sceneRuntime.Points["cap_applied"]} home={_sceneRuntime.Points["cap_home"]} inhibited={_sceneRuntime.Points["cap_inhibited"]}");
+            // Reproduction of the native failure, not acceptance of a finished
+            // cycle. Keep this explicit until controller/plant timing is repaired.
+            check(_sceneRuntime.Points["fill_complete"] is true
+                && _sceneRuntime.Points["cap_applied"] is false
+                && _sceneRuntime.Points["cap_inhibited"] is true
+                && Math.Abs(Convert.ToDouble(_sceneRuntime.Points["tote_position"]) - .005) < .00001,
+                "known_20ms_ladder_stop_quantization_reproduces_native_cap_inhibition");
+        }
+        finally { DisableVirtualController(); }
+    }
+
     private void VerifyToteCap(Action<bool, string> check)
     {
         AddMigratedScene("lab-2-21-tote-finishing", _candidateCatalog!, _mainCamera!, false, false);
