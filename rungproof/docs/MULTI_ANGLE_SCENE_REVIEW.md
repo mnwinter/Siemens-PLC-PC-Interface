@@ -1,3 +1,7 @@
+## Tote-finishing revised home-layout native inspection - 2026-10-06
+
+Native Windows window 7079456/build 0de1262: explicitly inspected full-scene FR/FL/RL/RR/Top, then capper focus Top and FL. Filler frame, capper frame, labeler and vision frame are separately visible; supports sit alongside the belt rather than crossing the tote deck at the home pose. Tote is visibly on the infeed deck. Close FL view shows the filler supply column/pipe, raised capper and separate labeler/inspection station without obvious independent-equipment overlap. This is home-layout visual evidence only; no moving-tool contact, fill/cap/label sequence or controller scan was exercised. Fresh static native inspection is now recorded. Full loaded-controller travel and continuous geometry review remain pending.
+
 ## Sorter repaired static layout native reinspection - 2026-10-06
 
 Native Windows window 8389926/build 0de1262: explicitly inspected FR, FL, RL, RR and Top at home. Four receiving belts, hub and supported handoffs are present, with no independent equipment visibly crossing the lanes in these views. Focus training_accessory_6 FL shows grounded display stand with readable CLASS / NO RESULT, clear of the vision camera and belt. Focus box_1 FL shows carton bottom seated on the belt and its footprint inside the deck. Top display focus only shows the housing back; readable face was checked from FL. These observations supplement measured support/bearing checks, not continuous collision proof.
