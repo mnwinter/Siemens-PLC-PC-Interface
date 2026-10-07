@@ -190,7 +190,7 @@
         "owner": "SIM",
         "initial": 0,
         "unit": "%",
-        "purpose": "Reference spindle axial position, not a PLC command."
+        "purpose": "Actual simulated axial position in controller mode; timed reference position in preview."
       },
       {
         "name": "drill_b_position",
@@ -198,7 +198,74 @@
         "owner": "SIM",
         "initial": 0,
         "unit": "%",
-        "purpose": "Reference spindle axial position, not a PLC command."
+        "purpose": "Actual simulated axial position in controller mode; timed reference position in preview."
+      },
+      {
+        "name": "drill_a_feed",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false
+      },
+      {
+        "name": "drill_a_retract",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false
+      },
+      {
+        "name": "drill_b_feed",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false
+      },
+      {
+        "name": "drill_b_retract",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false
+      },
+      {
+        "name": "transfer_retract",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false
+      },
+      {
+        "name": "drill_a_at_depth",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "drill_b_at_depth",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "transfer_home",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": true
+      },
+      {
+        "name": "transfer_at_end",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "transfer_inhibited",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "transfer_position",
+        "type": "REAL",
+        "owner": "SIM",
+        "initial": 0,
+        "unit": "%"
       }
     ],
     "actions": [
@@ -351,28 +418,33 @@
       "drill_a_run": false,
       "drill_b_run": false,
       "transfer_extend": false,
-      "status_color": "red"
+      "status_color": "red",
+      "drill_a_feed": false,
+      "drill_a_retract": false,
+      "drill_b_feed": false,
+      "drill_b_retract": false,
+      "transfer_retract": false
     },
     "completionState": {},
     "conveyorSpeedMps": 0.75,
     "pusherStrokeTimeS": 1.2,
-    "requireHomeForReferenceStart": true
+    "requireHomeForReferenceStart": true,
+    "controllerDualSpindle": true
   },
   "training": {
     "hints": [
       "Define the required result before writing logic: Transfer begins only after both spindles are home; all motion commands finish off.",
-      "Treat drill_a_home, drill_b_home as simulator-to-PLC inputs. The PLC should command only drill_a_run, drill_b_run, transfer_extend.",
+      "Rotation uses drill_a_run/drill_b_run. Independently command each drill_*_feed or drill_*_retract; simultaneous feed/retract holds position. Feed requires rotation and the fixture at home. Read drill_*_home and drill_*_at_depth from actual simulated travel. Transfer requires both heads home and both rotation commands off.",
       "Use a step/state approach and prove the transition order: parallel drilling \u2192 spindle dwell \u2192 retracting \u2192 both home \u2192 transfer plate \u2192 complete."
     ],
     "solution": {
       "summary": "This is one valid functional reference. The same behavior may be implemented in LAD, FBD, or SCL; the rung layout is not prescribed.",
       "steps": [
-        "parallel drilling: drill_a_run = true, drill_b_run = true, transfer_extend = false.",
-        "spindle dwell: no PLC command changes.",
-        "retracting: no PLC command changes.",
-        "both home: drill_a_run = false, drill_b_run = false.",
-        "transfer plate: transfer_extend = true.",
-        "complete: transfer_extend = false."
+        "Command both rotation outputs and both feed outputs; wait for both at_depth inputs.",
+        "Remove feed requests and dwell as required by the exercise.",
+        "Command each retract independently; wait for both home inputs.",
+        "Remove retract and rotation commands, then extend transfer; wait for transfer_at_end.",
+        "Remove transfer_extend to hold the supported endpoint. Command transfer_retract only when a return is required; contradictory transfer requests hold."
       ],
       "acceptance": "Transfer begins only after both spindles are home; all motion commands finish off."
     },
@@ -381,7 +453,7 @@
       "startConditions": [
         "The common PLC/watchdog foundation is healthy.",
         "All required simulator inputs are at their documented initial state.",
-        "The PLC is ready to command drill_a_run, drill_b_run, transfer_extend."
+        "The PLC commands rotation, feed/retract and transfer separately. Native feed/return durations are 1.7/1.6 s for 330 mm travel; transfer is 1.2 s for 2.2 m travel. These are simulator settings, not physical machine specifications."
       ],
       "normalSequence": [
         "parallel drilling",
@@ -420,7 +492,18 @@
       "drill_b_run",
       "drill_a_home",
       "drill_b_home",
-      "transfer_extend"
+      "transfer_extend",
+      "drill_a_feed",
+      "drill_a_retract",
+      "drill_b_feed",
+      "drill_b_retract",
+      "drill_a_at_depth",
+      "drill_b_at_depth",
+      "transfer_retract",
+      "transfer_home",
+      "transfer_at_end",
+      "transfer_inhibited",
+      "transfer_position"
     ],
     "changedTags": [],
     "previousAcceptance": [

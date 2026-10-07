@@ -50,6 +50,88 @@ public partial class Main
                 Check(!_virtualController.Snapshot.Variables.GetValueOrDefault("start_seen"), "reset_clears_start_probe");
             }
             finally { DisableVirtualController(); }
+            runtime.ResetSimulation(); runtime.UsesExternalClock = true;
+            runtime.SetControllerPlaybackRunning(true);
+            var feedA = root.GetNode<Node3D>("drill_a").FindChildren("*", "", true, false).OfType<EquipmentMotionController>().Single();
+            runtime.CommitVirtualControllerOutputs(new Dictionary<string, bool> { ["drill_a_run"] = true });
+            for (var tick = 0; tick < 25; tick++) runtime.AdvanceSimulation(.02);
+            Check(feedA.PositionPercent == 0, "rotation_command_alone_does_not_feed");
+            runtime.CommitVirtualControllerOutputs(new Dictionary<string, bool> { ["drill_a_feed"] = true });
+            for (var tick = 0; tick < 25; tick++) runtime.AdvanceSimulation(.02);
+            Check(feedA.PositionPercent > 25 && feedA.PositionPercent < 35 && runtime.Points["drill_a_home"] is false
+                && runtime.Points["drill_b_home"] is true, "controller_feed_moves_only_requested_head_and_updates_home");
+            var feedB = root.GetNode<Node3D>("drill_b").FindChildren("*", "", true, false).OfType<EquipmentMotionController>().Single();
+            var movingPlate = root.GetNode<Node3D>("metal_plate");
+            var plateOrigin = movingPlate.Position;
+            void Commands(params string[] requested)
+            {
+                var names = new[] { "drill_a_run", "drill_b_run", "drill_a_feed", "drill_b_feed", "drill_a_retract", "drill_b_retract", "transfer_extend", "transfer_retract" };
+                runtime.CommitVirtualControllerOutputs(names.ToDictionary(name => name, name => requested.Contains(name)));
+            }
+            void Ticks(int count) { for (var tick = 0; tick < count; tick++) runtime.AdvanceSimulation(.02); }
+            runtime.SetControllerPlaybackRunning(false);
+            var pausedHead = root.GetNode<Node3D>("drill_a").FindChild("KIN_spindle", true, false) as Node3D;
+            var pausedHeadPose = pausedHead!.Transform; Ticks(25);
+            Check(pausedHead.Transform == pausedHeadPose, "stopped_clock_holds_partial_axial_feed_and_rotation");
+            runtime.SetControllerPlaybackRunning(true);
+            Commands(); var retained = feedA.PositionPercent; Ticks(25);
+            Check(feedA.PositionPercent == retained, "withdrawn_feed_holds_actual_position");
+            Commands("drill_a_run", "drill_a_feed", "drill_a_retract"); Ticks(25);
+            Check(feedA.PositionPercent == retained, "opposed_feed_retract_requests_hold");
+            Commands("transfer_extend"); Ticks(25);
+            Check(movingPlate.Position == plateOrigin && runtime.Points["transfer_inhibited"] is true,
+                "partial_head_inhibits_transfer_without_rewriting_request");
+            Check(runtime.Points["transfer_extend"] is true, "transfer_inhibition_preserves_plc_command_image");
+            Commands("drill_a_run", "drill_b_run", "drill_a_feed", "drill_b_feed"); Ticks(100);
+            Check(feedA.PositionPercent == 100 && feedB.PositionPercent == 100
+                && runtime.Points["drill_a_at_depth"] is true && runtime.Points["drill_b_at_depth"] is true,
+                "both_heads_reach_actual_depth_limits");
+            Commands("drill_a_retract"); Ticks(80);
+            Check(feedA.PositionPercent == 0 && feedB.PositionPercent == 100 && runtime.Points["drill_b_home"] is false,
+                "first_head_retracts_independently_without_rotation");
+            Commands("transfer_extend"); Ticks(25);
+            Check(movingPlate.Position == plateOrigin, "second_head_not_home_blocks_transfer");
+            Commands("drill_b_retract"); Ticks(81);
+            Check(runtime.Points["drill_a_home"] is true && runtime.Points["drill_b_home"] is true,
+                "both_homes_follow_independent_retractions");
+            Commands("drill_a_run", "transfer_extend"); Ticks(25);
+            Check(movingPlate.Position == plateOrigin && runtime.Points["transfer_inhibited"] is true,
+                "rotating_head_inhibits_transfer_even_when_home");
+            Commands("transfer_extend", "transfer_retract"); Ticks(25);
+            Check(movingPlate.Position == plateOrigin && runtime.Points["transfer_inhibited"] is true,
+                "opposed_transfer_requests_hold_fixture");
+            Commands("transfer_extend");
+            var supportTop = ReviewBounds((MeshInstance3D)root.GetNode<Node3D>("plate_bed").FindChild("BENCH_top", true, false));
+            var supportedTransfer = true;
+            void SupportedTicks(int count)
+            {
+                for (var tick = 0; tick < count; tick++)
+                {
+                    runtime.AdvanceSimulation(.02);
+                    var underside = ReviewBounds((MeshInstance3D)movingPlate.FindChild("FIXTURE_SUBPLATE", true, false));
+                    supportedTransfer &= MathF.Abs(underside.Position.Y - supportTop.End.Y) < .002f
+                        && underside.Position.X >= supportTop.Position.X && underside.End.X <= supportTop.End.X
+                        && underside.Position.Z >= supportTop.Position.Z && underside.End.Z <= supportTop.End.Z;
+                }
+            }
+            SupportedTicks(30);
+            Check(MathF.Abs(movingPlate.Position.X - plateOrigin.X - 1.1f) < .001f
+                && runtime.Points["transfer_home"] is false, "controller_slide_moves_shared_fixture_at_declared_speed");
+            var stoppedPlate = movingPlate.Transform;
+            runtime.SetControllerPlaybackRunning(false); Ticks(25);
+            Check(movingPlate.Transform == stoppedPlate, "stopped_clock_holds_mid_transfer");
+            runtime.SetControllerPlaybackRunning(true); SupportedTicks(31);
+            Check(MathF.Abs(movingPlate.Position.X - plateOrigin.X - 2.2f) < .001f
+                && runtime.Points["transfer_at_end"] is true, "controller_transfer_retains_supported_endpoint");
+            Check(supportedTransfer, "controller_transfer_fixture_supported_at_all_20ms_samples");
+            Commands("drill_a_run", "drill_a_feed"); Ticks(25);
+            Check(feedA.PositionPercent == 0, "displaced_fixture_blocks_axial_feed");
+            Commands("transfer_retract"); Ticks(61);
+            Check(movingPlate.Position.IsEqualApprox(plateOrigin) && runtime.Points["transfer_home"] is true,
+                "explicit_transfer_retract_restores_fixture_home");
+            runtime.ResetSimulation();
+            Check(feedA.PositionPercent == 0 && feedB.PositionPercent == 0 && runtime.Points["transfer_inhibited"] is false,
+                "controller_reset_restores_heads_fixture_and_feedback");
             runtime.UsesExternalClock = false; // Explicit reference preview only.
             var fixture = root.GetNode<Node3D>("metal_plate");
             var slide = root.GetNode<Node3D>("plate_transfer");

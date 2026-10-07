@@ -123,6 +123,7 @@ public partial class SceneSimulationRuntime : Node
         // Bottle travel and belt animation share the same prescribed clock.
         // The general conveyor callback must not integrate a second motion.
         _bottleShuttleConveyor?.SetPhysicsProcess(false);
+        FreezeDualSpindleAdapters();
         FreezeChainLiftAdapters();
         FreezeCookieAdapters();
         FreezeBarrelAdapters();
@@ -260,6 +261,7 @@ public partial class SceneSimulationRuntime : Node
         if (HasHandDryer) { AdvanceHandDryer(delta); return; }
         if (HasGuardedTransfer) { AdvanceGuardedTransfer(delta); return; }
         if (HasServiceElevator) { AdvanceServiceElevator(delta); return; }
+        if (HasDualSpindlePlant && UsesExternalClock) { AdvanceDualSpindlePlant(delta); return; }
         if (HasToteTransfer && UsesExternalClock) { AdvanceToteTransfer(delta); return; }
         if (HasLuggagePlant) { AdvanceLuggagePlant(delta); return; }
         if (HasEvPlant) { AdvanceEvPlant(delta); return; }
@@ -558,6 +560,7 @@ public partial class SceneSimulationRuntime : Node
         ResetHandDryer();
         ResetGuardedTransfer();
         ResetServiceElevator();
+        ResetDualSpindlePlant();
         ResetToteTransfer();
         ResetLuggagePlant();
         ResetEvPlant();

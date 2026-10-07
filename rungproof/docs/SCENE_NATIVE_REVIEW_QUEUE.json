@@ -612,7 +612,7 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Placement/reference repaired: one shared stock, grounded supporting bed, 330 mm axial feeds with reference home flags, contacted matching 2.2 m slide/fixture travel; 18 focused checks PASS. Start binding repaired and native watch verified (00eec88/window 138990); open: normal controller axial feed/transfer, independent retraction, material removal/dynamics and continuous native motion; reference completion remains timed",
+      "recordedResult": "Placement/reference repaired: one shared stock, grounded supporting bed, 330 mm axial feeds with reference home flags, contacted matching 2.2 m slide/fixture travel; 18 focused checks PASS. Start binding repaired and native watch verified (00eec88/window 138990); Controller axial feed/independent retract/shared-fixture transfer repaired with 43 focused checks; current native home only, controller motion multi-angle QA pending. Open: integrated ladder cycle/dwell, material removal/dynamics and continuous native motion; reference completion remains timed",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
