@@ -1,5 +1,29 @@
 # Multi-angle scene review - 2026-10-04
 
+Scene 65 timed hand-dryer baseline (2026-10-06, next repair):
+Repeated native FR/FL/RL/RR/Top and normal Run after the Scene 63 checkpoint.
+Both air_outlet and heating_element are byte-identical full industrial roller
+shutters; hand_presence_sensor is a 20-litre dispensing container. These three
+accessory IDs occur only in this scene. Their inherited recognition passes
+identify the copied families and do not validate the declared lesson identities.
+Two substituted shutter models dominate/overlap the view, hiding the disconnected
+fan and housing. Main machine is a procedural unsupported housing, rather than a
+connected dryer assembly. The original PROGRESS / NO LIVE VALUE asset is honest
+but static and disconnected; preserve its replacement identity while adding an
+explicit numeric interface, rather than restoring an invalid inherited model.
+
+Source prototype purpose: hand presence starts a blower/heater cycle with visible
+remaining time. The current migration narrowed that to manual hands_present and
+manual dryer_timer_active; booleanPanel has four BOOL points, two lamp-only
+outputs, no actual blower/heater bindings, and no numeric countdown. Normal Run
+opened the blank unauthored editor with NO CONTROLLER LOADED, as expected; it did
+not prove a working timed process. Repair actual connected dryer/nozzle/heater/
+sensor/hand layout, remove manual timer-result input, and supply an explicitly
+opened original timed PLC reference with readable remaining-time output. Preserve
+five demos and blank default exercises. No physical appliance/heater/airflow
+acceptance is implied. Baseline window closed normally, exit zero; evidence
+.tools/hand-dryer-native-before.log. Scene 65 remains FAIL/open.
+
 Scene 63 coating-line repair (2026-10-06, current checkpoint):
 Replaced the electrical-cabinet/motor-starter/roller-shutter copies with an
 original open-ended spray tunnel, flat workpiece fixture and hollow exhaust duct
