@@ -21,9 +21,11 @@ animation not tested in this checkpoint.
 Build zero warnings/errors; 145 controller tests PASS/0 FAIL; app shell PASS
 77 scenes/5 demos/295 assets. Six new geometry assertions check socket/roof/flange,
 tip/liquid zero and rod attachment, separate shells, pump running true/false and
-unchanged manual feedback. Full --verify-scene-geometry is live in exec session
-59906, log .tools/wastewater-probe-geometry.log; all six new wastewater assertions are True; overall outcome pending. Do not restart
-solely because observation times out. Checkpoint commit preserves the repair; overall audit result remains pending.
+unchanged manual feedback. Full --verify-scene-geometry exec session 59906 completed exit 0. Log
+.tools/wastewater-probe-geometry.log ends SCENE_GEOMETRY_VERIFY PASS bounds
+screen only; no mechanical or live acceptance. All six new wastewater assertions
+are True. Checkpoint commit f965e77 preserves the repair. Scene acceptance
+remains open for process piping, valve projection and native controller motion.
 
 ## Wastewater spacing repair checkpoint (2026-10-06)
 
