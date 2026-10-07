@@ -34,3 +34,17 @@ bore engagement. Build and 38 focused Start/travel/fill/geometry checks pass;
 71 scene contracts pass with zero failures (.tools/tote-cap-cup-contracts.log).
 Cap application, labeling, inspection and the full PLC station sequence remain
 open, together with native static and moving multi-angle scene checks.
+
+## Capper application gap - OPEN
+
+The current delivered installation places the neck rim at world Y 2.232912 m,
+and the retained CAP_UNDER_CHUCK lower face at Y 2.385000 m: a 0.152088 m
+vertical separation. These bounds come from .tools/tote-cap-cup-audit.log and
+are captured in review/capper_application_gap.json beside the candidate asset.
+SceneComposer.ToteFinishing.cs still supplies ContinuousRotation only. This
+is a confirmed missing axial application motion, not a successful capping step.
+The 152 mm separation is not a prescribed actuator stroke: the held cap and
+tote cap differ in dimensions, and the seating plane, chuck retention, extension,
+release and return must be resolved before setting travel. Use the repaired
+hollow cap geometry consistently, measure the seat/chuck interface, then screen
+the full axial stroke and retained capped tote route. Native views remain open.
