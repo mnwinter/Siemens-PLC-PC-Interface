@@ -4085,3 +4085,18 @@ The next repair must provide a flat parcel table and connected, level receiving
 paths with full footprint support, remove the cabinet diverter surrogate,
 and check frames/controls/supports before native multi-angle inspection.
 Existing support/display checks pass but do not validate this missing route.
+
+Sorter bridge peer/drum screen checkpoint (2026-10-06; native review OPEN):
+The 1 mm bounding/OBB screen found one candidate: the new deck against
+KIN_drive_drum (enclosing overlap roughly 54 x 20 x 1400 mm). Every bridge
+triangle XY projection was then clipped against the convex hull of actual
+transformed drum vertices with a declared 1 mm interior allowance. No
+projected penetration remains in the current pose. A 50 mm deliberately
+lowered-deck negative control is detected; the deck is restored in finally.
+This is a bounded conservative drum-profile screen, not arbitrary exclusion
+or complete 3D collision proof. Other bridge/peer equipment screens pass.
+The deck/belt-surface and deck/platter mating interfaces remain explicitly
+excluded from this peer screen and need separate contact/collision review.
+All 12 sorter checks pass, including the retained 2,225 support samples
+(.tools/sorter-drum-screen-final.log); build succeeds. Native views and four
+outgoing lanes/controller transfer remain OPEN.
