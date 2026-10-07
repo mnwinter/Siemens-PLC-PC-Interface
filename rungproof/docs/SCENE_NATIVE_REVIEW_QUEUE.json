@@ -918,7 +918,7 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Existing authored Demo 2 off at ET 1.98 s/on at 2.00 s; Stop resets TON but retains ON; Run requires fresh full delay; OFF clears next scan; final continuous interval not remeasured",
+      "recordedResult": "Existing authored Demo 2 off at ET 1.98 s/on at 2.00 s; Stop resets TON but retains ON; Run requires fresh full delay; OFF clears next scan; 2026-10-07 native1187724 normal Demo2 browser/Run workflow refreshed: Run59 idle, selector ON285/ET0.96/lampFalse, running485/ET2.00/lampTrue with visible green lamp. Stop754 clears lamp and ET but retains ON; FL/RL/RR/Top support/spacing reinspection, then Reset0 clears request/output/ET. Unheld sampled interval; exact threshold frame not recaptured",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",

@@ -7818,7 +7818,7 @@ public partial class SimulatorShell : CanvasLayer
         };
         var visibleValidationIssues = new List<LadderValidationIssue>();
 
-        void ShowValidationIssues(IReadOnlyList<LadderValidationIssue> issues)
+        void ShowValidationIssues(IReadOnlyList<LadderValidationIssue> issues, bool openDock)
         {
             visibleValidationIssues.Clear();
             visibleValidationIssues.AddRange(issues);
@@ -7836,9 +7836,12 @@ public partial class SimulatorShell : CanvasLayer
                 : $"{issues.Count} ERROR{(issues.Count == 1 ? string.Empty : "S")} · edit not loaded · double-click to navigate";
             validationSummary.AddThemeColorOverride("font_color",
                 issues.Count == 0 ? new Color("18864b") : new Color("b3261e"));
-            bottomPanel.Visible = true;
-            reopenBottomDock.Visible = false;
-            bottomTabs.CurrentTab = issues.Count == 0 ? 1 : 0;
+            if (openDock)
+            {
+                bottomPanel.Visible = true;
+                reopenBottomDock.Visible = false;
+                bottomTabs.CurrentTab = issues.Count == 0 ? 1 : 0;
+            }
         }
 
         static int ValidationPathIndex(string path, string collection)
@@ -7898,7 +7901,7 @@ public partial class SimulatorShell : CanvasLayer
         apply.Pressed += () =>
         {
             var valid = TryBuildCurrentLadderProgram(out var program, out var issues);
-            ShowValidationIssues(issues);
+            ShowValidationIssues(issues, openDock: true);
             if (!valid)
             {
                 output.Text = $"[color=#d64545]Verification failed.[/color] {issues.Count} error(s). Open Error List and double-click an item to navigate.";
@@ -8193,11 +8196,11 @@ public partial class SimulatorShell : CanvasLayer
         _ladderEditorRefreshers.Add(RefreshEditor);
         _ladderSceneDiagnosticResetters.Add(() =>
         {
-            ShowValidationIssues([]);
+            ShowValidationIssues([], openDock: false);
             output.Text = "Scene ready. Run loads its supplied ladder; verify and load after editing.";
         });
         _ladderWatchRefreshers.Add(RefreshWatchTable);
-        _ladderValidationRefreshers.Add(ShowValidationIssues);
+        _ladderValidationRefreshers.Add(issues => ShowValidationIssues(issues, openDock: true));
         RefreshEditor();
         static void AddVisibleSplitGrip(SplitContainer split, string text)
         {
