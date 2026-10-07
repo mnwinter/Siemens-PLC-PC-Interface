@@ -86,7 +86,7 @@ public static partial class SceneComposer
             model.AddChild(new EquipmentMotionController
             {
                 Name = "FinishingNozzleController", Kind = EquipmentMotionController.MotionKind.LinearY,
-                TargetPrefix = "KIN_fill_nozzle", TravelM = -0.12f, TravelTimeSeconds = 0.35f,
+                TargetPrefix = "KIN_fill_nozzle", TravelM = (float)Number(equipment.Config, "nozzleTravelM", -0.12), TravelTimeSeconds = 0.35f,
                 RunCommand = runCommand, PositionVisibilityChildName = "FINISHING_stream",
             });
         }

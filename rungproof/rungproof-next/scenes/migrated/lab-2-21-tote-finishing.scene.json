@@ -66,7 +66,8 @@
       ],
       "config": {
         "initialPosition": 0,
-        "installation": "toteFinishingLine"
+        "installation": "toteFinishingLine",
+        "nozzleTravelM": -0.14
       }
     },
     {
@@ -501,7 +502,8 @@
       "The 3D Start button pulses the explicit BOOL ladder input binding operator.start while the controller is running. A compatible PLC program must implement the station sequence; this binding alone does not provide controller-driven tote travel or a validated finishing process.",
       "Under a controller clock, conveyor_run now moves the tote at a prescribed 0.75 m/s with supported exit retention. PC tote_position and station-window feedback are available to PLC logic. The PLC must sequence its own station stops and commands. Normalized fill is now modeled; cap/label application and inspection remain open, and litre/flow calibration is unverified.",
       "The finishing tote now uses an unapproved scene-specific hollow/open-port candidate. Its separate fill cap is initially hidden; cap application is not yet implemented. The generic closed IBC remains a separate catalog asset.",
-      "Controller-clocked fill is an illustrative normalized quantity, 20 percent per second, bounded to 0\u2013100 percent. It requires a stationary tote at the fill station, an open cap and actual nozzle-to-bore eligibility. PC fill_percent, fill_complete, fill_inhibited and actual_fill_percent_per_second report this model; litres and flow calibration remain unverified. Stop retains fill; Reset empties it."
+      "Controller-clocked fill is an illustrative normalized quantity, 20 percent per second, bounded to 0\u2013100 percent. It requires a stationary tote at the fill station, an open cap and actual nozzle-to-bore eligibility. PC fill_percent, fill_complete, fill_inhibited and actual_fill_percent_per_second report this model; litres and flow calibration remain unverified. Stop retains fill; Reset empties it.",
+      "The candidate cap now has an open underside and seats at the neck rim. It remains initially hidden; cap application is not yet connected. The finishing installation uses a prescribed 140 mm nozzle stroke to retain bore engagement with this candidate scale."
     ],
     "solution": {
       "summary": "This is one valid functional reference. The same behavior may be implemented in LAD, FBD, or SCL; the rung layout is not prescribed.",

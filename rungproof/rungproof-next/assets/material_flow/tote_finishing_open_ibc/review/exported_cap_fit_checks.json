@@ -1,0 +1,25 @@
+{
+  "inner_roof_hit": [
+    0.0,
+    0.0,
+    1.559999942779541
+  ],
+  "inner_wall_hit": [
+    0.14500001072883606,
+    0.0,
+    1.5299999713897705
+  ],
+  "neck_outer_wall_hit": [
+    0.14000000059604645,
+    0.0,
+    1.5299999713897705
+  ],
+  "seat_gap_m": -1.1920928955078125e-07,
+  "radial_gap_m": 0.005000010132789612,
+  "checks": {
+    "open_underside_reaches_roof": true,
+    "inner_roof_seats_without_axial_penetration": true,
+    "cap_wall_clears_neck": true,
+    "roof_remains_above_neck": true
+  }
+}

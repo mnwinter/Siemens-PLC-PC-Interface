@@ -205,7 +205,7 @@ public partial class Main
             sampleClear &= ReviewMeshes(tote).All(part => stationSolids.All(other => Clear(part, other)));
             followers &= tip.GetParent() == nozzle && tip.Transform.IsEqualApprox(tipLocal)
                 && chuck.GetParent() == spindle && chuck.Transform.IsEqualApprox(chuckLocal);
-            nozzleTravel |= MathF.Abs(nozzle.Position.Y - nozzleStart.Y + 0.12f) < 0.001f;
+            nozzleTravel |= MathF.Abs(nozzle.Position.Y - nozzleStart.Y + 0.14f) < 0.001f;
             chuckRotated |= !chuck.GlobalBasis.IsEqualApprox(chuckInitialBasis);
             var commands = new[] { "fill_valve_open", "capper_run", "labeler_run", "inspection_run" };
             for (var index = 0; index < commands.Length; index++) allActuatorsObserved[index] |= runtime.Points[commands[index]] is true;

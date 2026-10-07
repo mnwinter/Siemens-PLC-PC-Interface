@@ -54,6 +54,13 @@ def build(materials):
     apply_difference(body, f.cyl('PORT_CUTTER', (0, 0, 1.51), .11, .30, None, 'Z', 96))
     neck = f.cyl('IBC_open_fill_neck', (0, 0, 1.5125), .14, .095, body.data.materials[0], 'Z', 96)
     apply_difference(neck, f.cyl('NECK_BORE_CUTTER', (0, 0, 1.5125), .11, .14, None, 'Z', 96))
+    original_cap = bpy.data.objects['IBC_fill_cap']
+    cap_material = original_cap.data.materials[0]
+    bpy.data.objects.remove(original_cap, do_unlink=True)
+    cap = f.cyl('IBC_fill_cap', (0, 0, 1.54), .16, .08, cap_material, 'Z', 96)
+    # The open underside clears the .14 m neck radius by 5 mm. Its inner
+    # roof seats at Z 1.56; the .02 m roof remains above the neck, not in it.
+    apply_difference(cap, f.cyl('CAP_CAVITY_CUTTER', (0, 0, 1.50), .145, .12, None, 'Z', 96))
     f.box('IBC_fill_witness', (0, 0, .75), (.90, .85, 1.20),
         f.mat('Illustrative fill witness', (.03, .22, .58), 0, .20), 0, False)
     body['candidate_scope'] = 'Illustrative hollow fill geometry; no seal, capacity, chemical or mechanical approval.'

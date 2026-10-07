@@ -5,5 +5,7 @@
   "sourceBasis": "Generic closed IBC master remains unchanged.",
   "nativeSceneReview": "pending",
   "fillVolume": "uncalibrated; normalized percentage only",
-  "capApplication": "not implemented"
+  "capApplication": "not implemented",
+  "capGeometry": "Hollow underside seats nominally at neck rim; 5 mm radial clearance and 20 mm roof. Exported ray checks only; threads, gasket and sealing not modeled.",
+  "nozzleTravelM": -0.14
 }
