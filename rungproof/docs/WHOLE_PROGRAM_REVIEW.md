@@ -1,3 +1,7 @@
+## 2026-10-07 - Native sorter camera-follow regression observed
+
+Rebuilt window401258/session28080, implementation26c0403 with later documentation-only addf55a. Existing QA ladder loaded normally as recorded below. Set three fixture permissives, selected box_1 home focus (FR), then normal Run without further angle/focus/zoom clicks. Scan210 shows carton centered and fully visible crossing photoeye/infeed; scan519 shows centered carton on rotating table; scan1030 shows centered carton on outgoing receiving belt. Fixed equipment moves relative to frame while carton stays centered, confirming native camera translation. Stop1220 cleared both outputs and retained centered receiving carton. Reset0 restored input/output False and carton home, still centered in the same FR focus. These are sampled native observations, not continuous video/every-frame clearance proof. Other native lanes3-4 and the larger catalog/runtime review remain open; goal active.
+
 ## 2026-10-07 - Sorter follow regression completed; native QA loaded
 
 Focused verifier session89724 completed EXIT0, log .tools/sorter-follow-regression.log. All four route camera-follow and Reset-target checks True, with no CARTON_STATIC_CHECK False; existing actual triangle-pose/support/class-retention/Stop/Reset and traffic checks also passed. This supersedes the in-progress status below. Build, 145 controller tests and app-shell PASS remain recorded separately.
