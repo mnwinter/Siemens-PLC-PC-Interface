@@ -73,6 +73,7 @@ public partial class SceneSimulationRuntime : Node
         if (selected && !running) PauseBagIndexClock();
         if (selected && !running) PauseCoatingClock();
         if (selected && !running) PauseHandDryer();
+        if (selected && !running) PauseGuardedTransfer();
         if (selected && !running) PauseLuggagePlant();
         if(selected && !running && HasEvPlant) PauseEvPlant();
         if (selected && running) ApplyBindings();
@@ -103,6 +104,7 @@ public partial class SceneSimulationRuntime : Node
         if (!running) PauseBagIndexClock();
         if (!running) PauseCoatingClock();
         if (!running) PauseHandDryer();
+        if (!running) PauseGuardedTransfer();
         if (!running) PauseLuggagePlant();
         if(!running && HasEvPlant) PauseEvPlant();
         if (RuntimeType == "tank") ProjectTankState();
@@ -125,6 +127,7 @@ public partial class SceneSimulationRuntime : Node
         FreezeBagIndexAdapter();
         FreezeCoatingAdapters();
         FreezeHandDryerAdapter();
+        _guardedDrive?.SetPhysicsProcess(false);
         FreezeLuggageAdapters();
     }
 
@@ -232,6 +235,7 @@ public partial class SceneSimulationRuntime : Node
         if (HasBagIndexPlant) { AdvanceBagIndexPlant(delta); return; }
         if (HasCoatingPlant) { AdvanceCoatingPlant(delta); return; }
         if (HasHandDryer) { AdvanceHandDryer(delta); return; }
+        if (HasGuardedTransfer) { AdvanceGuardedTransfer(delta); return; }
         if (HasLuggagePlant) { AdvanceLuggagePlant(delta); return; }
         if (HasEvPlant) { AdvanceEvPlant(delta); return; }
         if (HasParkingEntryPlant) { AdvanceParkingEntryPlant(delta); return; }
@@ -412,6 +416,7 @@ public partial class SceneSimulationRuntime : Node
         PauseBagIndexClock();
         PauseCoatingClock();
         PauseHandDryer();
+        PauseGuardedTransfer();
         PauseLuggagePlant();
         if(HasEvPlant) PauseEvPlant();
         _shippingPalletReferenceActive = false;
@@ -505,6 +510,7 @@ public partial class SceneSimulationRuntime : Node
         ResetBagIndexPlant();
         ResetCoatingPlant();
         ResetHandDryer();
+        ResetGuardedTransfer();
         ResetLuggagePlant();
         ResetEvPlant();
         ResetParkingEntryPlant();

@@ -1055,10 +1055,50 @@ public partial class Main
             runtime.ResetSimulation();
             Check(!drive.RunCommand && runtime.Points["transfer_run"] is false,
                 "reset_removes_transfer_command_and_drive_command");
+            var carton = _sceneCompositionRoot.GetNode<Node3D>("box_1");
+            var home = carton.Transform;
+            runtime.CommitVirtualControllerOutputs(new Dictionary<string, bool> { ["transfer_run"] = true });
+            var sawEntry = false;
+            var sawExit = false;
+            var supported = true;
+            var belt = ReviewBounds((MeshInstance3D)_sceneCompositionRoot.GetNode<Node3D>("conveyor_0").FindChild("KIN_belt_surface", true, false));
+            for (var tick = 0; tick < 700; tick++)
+            {
+                runtime.AdvanceSimulation(.02);
+                sawEntry |= runtime.Points["entry_carton_present"] is true;
+                sawExit |= runtime.Points["exit_carton_present"] is true;
+                var load = ReviewBounds(carton);
+                supported &= carton.Visible && MathF.Abs(load.Position.Y - belt.End.Y) < .001f
+                    && load.Position.X >= belt.Position.X && load.End.X <= belt.End.X
+                    && load.Position.Z >= belt.Position.Z && load.End.Z <= belt.End.Z;
+                if (tick == 100)
+                {
+                    var commandHeld = carton.Transform;
+                    runtime.CommitVirtualControllerOutputs(new Dictionary<string, bool> { ["transfer_run"] = false });
+                    for (var held = 0; held < 25; held++) runtime.AdvanceSimulation(.02);
+                    Check(carton.Transform == commandHeld && drive.ActualSpeedMps == 0,
+                        "withdrawn_plc_run_holds_carton_during_transfer");
+                    runtime.CommitVirtualControllerOutputs(new Dictionary<string, bool> { ["transfer_run"] = true });
+                    var paused = carton.Transform;
+                    runtime.SetControllerPlaybackRunning(false);
+                    for (var held = 0; held < 25; held++) runtime.AdvanceSimulation(.02);
+                    Check(carton.Transform == paused && drive.ActualSpeedMps == 0, "stop_retains_supported_carton_and_zero_drive_speed");
+                    runtime.SetControllerPlaybackRunning(true);
+                }
+            }
+            Check(supported, "entire_transfer_retains_carton_on_delivered_belt");
+            Check(sawEntry && sawExit, "moving_carton_crosses_both_installed_optical_routes");
+            Check(runtime.Points["transfer_complete"] is true && carton.Visible, "exit_completion_retains_visible_carton");
+            var exit = carton.Transform;
+            for (var tick = 0; tick < 100; tick++) runtime.AdvanceSimulation(.02);
+            Check(carton.Transform == exit && drive.ActualSpeedMps == 0, "held_run_at_exit_does_not_wrap_or_disappear");
+            runtime.ResetSimulation();
+            Check(carton.Transform == home && runtime.Points["transfer_complete"] is false,
+                "reset_restores_supported_infeed_and_clears_completion");
             runtime.SetControllerPlaybackRunning(false);
         }
         catch (Exception exception) { failures++; GD.PushError(exception.ToString()); }
-        GD.Print($"GUARDED_LAYOUT_VERIFY {(failures == 0 ? "PASS" : "FAIL")} static geometry and drive-command binding only; native views and carton transfer pending");
+        GD.Print($"GUARDED_LAYOUT_VERIFY {(failures == 0 ? "PASS" : "FAIL")} geometry, drive binding and offline retained carton travel; native views and PLC-controlled transfer pending");
         GetTree().Quit(failures == 0 ? 0 : 1);
     }
 

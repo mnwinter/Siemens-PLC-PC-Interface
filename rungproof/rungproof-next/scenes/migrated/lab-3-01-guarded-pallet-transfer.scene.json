@@ -40,7 +40,7 @@
       "type": "box",
       "label": "Guarded Pallet Transfer box",
       "position": [
-        -1.1,
+        -5.9,
         0.9,
         0
       ],
@@ -215,7 +215,7 @@
     }
   ],
   "simulation": {
-    "type": "booleanPanel",
+    "type": "guardedTransfer",
     "points": [
       {
         "name": "guard_closed",
@@ -248,6 +248,30 @@
         "owner": "PLC",
         "initial": false,
         "role": "output"
+      },
+      {
+        "name": "carton_position",
+        "type": "REAL",
+        "owner": "PC",
+        "initial": -5.9
+      },
+      {
+        "name": "entry_carton_present",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "exit_carton_present",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "transfer_complete",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
       }
     ],
     "actions": [
@@ -304,16 +328,27 @@
         "point": "transfer_run",
         "equipmentId": "conveyor_0",
         "mode": "running"
+      },
+      {
+        "point": "entry_carton_present",
+        "equipmentId": "photoeye_2",
+        "mode": "photoeye"
+      },
+      {
+        "point": "exit_carton_present",
+        "equipmentId": "photoeye_3",
+        "mode": "photoeye"
       }
-    ]
+    ],
+    "speedMps": 0.45
   },
   "training": {
     "hints": [
       "Translate the lesson into explicit state and permissive logic: The transfer runs only with protection closed and both path sensors clear.",
       "Inputs are simulator feedback (guard_closed, entry_clear, exit_clear); PLC logic owns transfer_run, transfer_permissive.",
       "Test the initial state, the valid condition, and at least one missing permissive.",
-      "The gate and curtain are layout fixtures. Manual guard/path inputs do not prove gate interlocking, curtain detection, or a safety-rated stop. Carton transport is not yet modeled in this lesson.",
-      "transfer_run now commands the conveyor drive and its indicator. The carton is still a retained static fixture; drive animation alone does not prove a completed transfer."
+      "The gate and curtain remain layout fixtures; guard_closed, entry_clear and exit_clear are manual test inputs, not safety-rated detection.",
+      "transfer_run commands prescribed 0.45 m/s carton travel on the belt. transfer_complete retains at the supported exit; Reset reloads the infeed. Stop retains position. entry_carton_present and exit_carton_present report carton overlap with the installed optical routes; they are separate from manual path-clear fixtures."
     ],
     "solution": {
       "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
@@ -365,7 +400,11 @@
       "entry_clear",
       "exit_clear",
       "transfer_run",
-      "transfer_permissive"
+      "transfer_permissive",
+      "carton_position",
+      "entry_carton_present",
+      "exit_carton_present",
+      "transfer_complete"
     ],
     "changedTags": [],
     "previousAcceptance": [

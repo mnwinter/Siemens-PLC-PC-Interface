@@ -829,4 +829,4 @@ of this change and its full cycle remains pending.
 
 ### Guarded-transfer static layout audit
 
-Run `--audit-guarded-layout` with the pinned Godot executable after building. Ten focused checks cover supported home carton, photoeye routes at carton height, curtain width, mesh-gate placement, carton clearance and PLC drive-command on/off/Reset binding. This command does not verify carton transport, protective-field detection or native visual appearance.
+Run `--audit-guarded-layout` with the pinned Godot executable after building. Seventeen focused checks cover supported home carton, photoeye routes at carton height, curtain width, mesh-gate placement, carton clearance, PLC drive-command binding and prescribed retained carton travel. Travel checks sample the complete belt route, both optical crossings, command withdrawal, Stop/Run, endpoint retention and Reset. This command does not verify normal PLC-program-driven operation, protective-field detection or native visual appearance.

@@ -1,5 +1,12 @@
 # Whole program review - 2026-10-03
 
+## 2026-10-06 guarded-transfer retained carton runtime
+
+Scene 40 now uses a dedicated `guardedTransfer` runtime with nine symbolic points. The carton starts fully supported at the infeed, travels at a prescribed 0.45 m/s only under the PLC transfer_run command, and clamps with its complete footprint 10 mm inside the delivered belt exit. It stays visible instead of wrapping or disappearing. PC feedback reports carton position, overlap with each installed optical route and retained completion; manual path-clear and guard fixtures remain separate. Belt and carton share accepted ticks up to 20 ms, with the ordinary conveyor physics callback disabled to avoid duplicate travel. Stop retains pose and zeros modeled speed; Reset restores home and completion.
+
+Build, seventeen focused checks, initial-state scene contract, controller regression and help validation pass. The prior full geometry run exited 0 before this runtime change. Current-build full geometry is running in `.tools/guarded-plant-full-geometry.log`; its result is pending. Fresh Windows views, normal PLC-program-driven transfer, guard/curtain behavior and mechanical approval remain unverified.
+
+
 ## 2026-10-06 guarded-transfer drive-command repair
 
 Scene 40's PLC `transfer_run` previously drove only a lamp. Added its `running` binding to the existing conveyor controller. The focused audit now passes ten checks: six delivered-mesh placement/support checks plus initial off, PLC on, command withdrawal and Reset for the drive command. Build, initial-state scene contract and help validation pass. A fresh corrected full geometry run is active in `.tools/guarded-current-full-geometry.log`; its terminal result is not yet known. The carton remains stationary, and manual guard/path fixtures do not prove protective detection or interlocking. Fresh native views remain pending after the Escape stop.

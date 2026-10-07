@@ -19,6 +19,10 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | `exit_clear` | `BOOL` | **PC** | `False` |
 | `transfer_run` | `BOOL` | **PLC** | `False` |
 | `transfer_permissive` | `BOOL` | **PLC** | `False` |
+| `carton_position` | `REAL` | **PC** | `-5.9` |
+| `entry_carton_present` | `BOOL` | **PC** | `False` |
+| `exit_carton_present` | `BOOL` | **PC** | `False` |
+| `transfer_complete` | `BOOL` | **PC** | `False` |
 
 ## Operator actions
 
@@ -38,6 +42,8 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | `transfer_run` | `indicator_5` | `indicator` |
 | `transfer_permissive` | `indicator_11` | `indicator` |
 | `transfer_run` | `conveyor_0` | `running` |
+| `entry_carton_present` | `photoeye_2` | `photoeye` |
+| `exit_carton_present` | `photoeye_3` | `photoeye` |
 
 ## Expected equipment
 
