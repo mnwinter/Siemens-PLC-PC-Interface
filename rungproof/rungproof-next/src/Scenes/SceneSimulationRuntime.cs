@@ -1426,9 +1426,10 @@ public partial class SceneSimulationRuntime : Node
                 Roughness = 0.18f,
                 EmissionEnabled = lensActive,
                 Emission = color,
-                // Keep independent channels recognizable by hue in the HDR
-                // viewport. The old exclusive indicator intensity is retained.
-                EmissionEnergyMultiplier = lensActive ? (channelOnly ? 0.65f : 4.0f) : 0.0f,
+                // Both exclusive and independent lamps must retain their hue.
+                // High emission washed a stopped red tower lens out to white
+                // in the native compatibility renderer.
+                EmissionEnergyMultiplier = lensActive ? 0.65f : 0.0f,
             };
         }
     }
