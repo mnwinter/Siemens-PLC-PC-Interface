@@ -1,10 +1,10 @@
 {
   "source": "MULTI_ANGLE_SCENE_REVIEW.md",
-  "scope": "Inventory of documented observations only; views may predate current geometry. Runtime, collision and visual acceptance remain separate.",
+  "scope": "Inventory of documented observations only; views may predate current geometry. Pending flags refer to changed home layouts only. Runtime, collision and visual acceptance remain separate.",
   "sceneCount": 77,
   "allFiveAnglesRecordedCount": 77,
   "explicitFailureCount": 12,
-  "knownChangedSceneCount": 5,
+  "knownChangedSceneCount": 2,
   "scenes": [
     {
       "index": 1,
@@ -86,7 +86,7 @@
         "Top": true
       },
       "recordedResult": "Repaired carton seating, four receiving belts and supported handoffs freshly inspected in native Windows window 8389926. CLASS / NO RESULT readable on grounded display stand; carton bottom visibly seated inside belt deck. FAIL/open: class feedback and driven routing absent; loaded-controller sorter workflow and continuous-motion proof unverified.",
-      "latestNativeReviewPending": true,
+      "latestNativeReviewPending": false,
       "explicitFailureRecorded": true,
       "disposition": "REPAIR_RECORDED_FAILURE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
@@ -596,9 +596,9 @@
         "Top": true
       },
       "recordedResult": "Placement/reference repaired: grounded outside-belt stations, seated tote, supported discharge and attached tools. Missing Start binding and controller-clocked tote travel repaired; 38 Start/travel/normalized-fill/standalone geometry checks pass. Six new PC position/station-window/exit points; Stop/command withdrawal retain load and Reset reloads it. OPEN: latest native command/travel review. New open-fill candidate has exported cavity/aperture and separate initially hidden cap; five mesh ray checks pass, and top/four corner asset renders inspected. Bounded normalized fill and effective stream are connected; moving/off-station/capped/misaligned commands inhibited. Litre/flow calibration and cap application remain unverified. Label application, inspection and complete PLC station sequencing remain open; no complete finishing model",
-      "latestNativeReviewPending": true,
+      "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
-      "disposition": "REVIEW_CHANGED_SCENE",
+      "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
     {
@@ -681,9 +681,9 @@
         "Top": true
       },
       "recordedResult": "Carton support repaired and re-inspected. Latest offline layout moves both sensors and the curtain onto the carrying route and replaces the foot-switch surrogate with the mesh swing gate beside the belt. Build/help, thirty-three focused mesh/drive/travel/offline ladder-reference checks, initial-state contract, controller regression and app shell pass. Dedicated nine-point runtime retains the carton at the supported exit after crossing both optical routes; Stop/command withdrawal retain pose and Reset reloads infeed. Current carton-runtime full geometry and all 71 scene contracts pass. Offline normal PLC scan-driven transfer is verified with the explicit review program; fresh native home views FR/FL/RL/RR/Top inspected in window 6823104; native moving transfer and protective behavior remain unverified.",
-      "latestNativeReviewPending": true,
+      "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
-      "disposition": "REVIEW_CHANGED_SCENE",
+      "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
     {

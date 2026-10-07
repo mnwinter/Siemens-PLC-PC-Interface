@@ -6,8 +6,9 @@ raw=source.read_bytes()
 try:text=raw.decode('utf-8')
 except UnicodeDecodeError:text=raw.decode('cp1252')
 rows=[]
-# These scenes were modified after their last recorded native inspection.
-latest_pending={'lab-10-03-vision-package-sorter','lab-2-21-tote-finishing','lab-3-01-guarded-pallet-transfer','lab-9-12-ev-charging-manager','tank-radar'}
+# These layouts still lack a fresh native home-pose inspection.
+# Completed home inspection does not certify controller motion or acceptance.
+latest_pending={'lab-9-12-ev-charging-manager','tank-radar'}
 for line in text.splitlines():
  if not re.match(r'^\| \d+ \|',line):continue
  cells=[c.strip() for c in line.split('|')[1:-1]]
@@ -21,7 +22,7 @@ for line in text.splitlines():
   disposition='REPAIR_RECORDED_FAILURE' if explicit_failure else 'REVIEW_CHANGED_SCENE' if current_pending else 'RECONCILE_CURRENT_EVIDENCE',
   acceptance='NOT_CERTIFIED_BY_THIS_INVENTORY'))
 assert len(rows)==77 and len({r['sceneId'] for r in rows})==77
-report={'source':'MULTI_ANGLE_SCENE_REVIEW.md','scope':'Inventory of documented observations only; views may predate current geometry. Runtime, collision and visual acceptance remain separate.',
+report={'source':'MULTI_ANGLE_SCENE_REVIEW.md','scope':'Inventory of documented observations only; views may predate current geometry. Pending flags refer to changed home layouts only. Runtime, collision and visual acceptance remain separate.',
  'sceneCount':len(rows),'allFiveAnglesRecordedCount':sum(all(r['recordedAngles'].values()) for r in rows),
  'explicitFailureCount':sum(r['explicitFailureRecorded'] for r in rows),'knownChangedSceneCount':sum(r['latestNativeReviewPending'] for r in rows),'scenes':rows}
 Path('../docs/SCENE_NATIVE_REVIEW_QUEUE.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
