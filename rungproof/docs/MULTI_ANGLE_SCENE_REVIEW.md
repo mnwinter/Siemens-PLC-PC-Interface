@@ -1,4 +1,10 @@
 
+## 2026-10-07 - Service elevator full upward traverse and Stop/resume observed
+
+Continued live native session 94013 from held 3.0 s / scan 150. Rear-right inspected 3.0, 3.5, 4.0, 4.5 s. Stop at scan 225 cleared both direction commands, retained the raised car and closed panels; releasing the QA hold while stopped retained pose and scan. Re-held clock, Run, then rear-right inspected 5.0, 5.5, 6.0 s / scan 300. All half-second endpoints of the upward traverse have now been observed across the two rear angles (first half rear-left in previous entry), not every frame or every angle at every endpoint.
+
+At 6.0 s the car reached upper landing; one 20 ms step to scan 301 withdrew lift_up_cmd. Native I/O reads car_position_pct 99.9999, at_lower_landing false, at_upper_landing true, both direction outputs false. Upper pose inspected rear-right, front-right, front-left, rear-left, top. No obvious car/fixed-part penetration in visible portions. Top view clips the upper shaft behind the toolbar, so it cannot prove a complete roof-envelope inspection; framing needs repair. Current app held at upper pose for downward-program review. Native Reset, downward traverse, revised car label, and remaining depiction fixes are pending. Physical PLC disconnected.
+
 ## 2026-10-07 - Service elevator normal editor QA begins
 
 Added explicit audit-only up/down QA project exports (nine tags, one rung, 20 ms task) and enabled offline held-clock 0.5 s / 20 ms steps for this single-clock elevator. Focused verification passed 18 checks including both QA compilation checks; build passed without warnings/errors.
