@@ -1,5 +1,22 @@
 # Multi-angle scene review - 2026-10-04
 
+## Wastewater current-build native offset inspection (2026-10-06)
+
+Started current aa5cbf0 build through normal Windows shell, owned exec session
+53628, window 6095772. Dismissed startup notice and selected Wastewater through
+the actual Scenario menu. Full-scene FR and focused tank_0 FR/FL/RL/RR/Top
+inspected after current-DLL restart. The inward probe fitting remains connected
+to roof/socket; central manway is visually clear. Top shows the inward movement.
+Focused framing can crop other equipment behind UI; this is not full-scene
+framing acceptance. Hollow rail clearance is supported by the separate nine
+focused assertions, not by claiming ring AABBs are empty.
+
+Local runtime stopped and PLC disconnected throughout. OFF valve pointer
+quarter-turn is visible in nearby views; native ON transition and pump animation
+under authored/loaded controller remain untested. Scene remains FAIL/open for
+process piping, wrong pneumatic manifold and native driven process workflow.
+Current native window remains open for next repair/inspection.
+
 ## Wastewater focused clearance verification (2026-10-06)
 
 Prior valve-only full audit session 3943 completed exit 0 / geometry PASS.
