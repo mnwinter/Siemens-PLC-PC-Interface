@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-10-06-ten-motor-array-startup",
   "name": "Lab 10.6 - Ten-Motor Array Startup",
-  "description": "An array-based startup sequence starts ten motors with a staggered delay and stops the group on alarm.",
+  "description": "Ten visible motors with group BOOL commands and validity inputs. Per-motor array values and staggered-start timing are not implemented; author or load controller logic before Run.",
   "camera": {
     "position": [
       11,
@@ -21,11 +21,11 @@
     {
       "id": "motor_0",
       "type": "motor",
-      "label": "Ten-Motor Array Startup motor",
+      "label": "Motor 01 - group command",
       "position": [
-        -3.3000000000000003,
+        -5.2,
         0,
-        0
+        0.0
       ],
       "config": {
         "running": false
@@ -34,11 +34,11 @@
     {
       "id": "motor_1",
       "type": "motor",
-      "label": "Ten-Motor Array Startup motor",
+      "label": "Motor 02 - group command",
       "position": [
-        -1.1,
+        -2.6,
         0,
-        0
+        0.0
       ],
       "config": {
         "running": false
@@ -47,11 +47,11 @@
     {
       "id": "motor_2",
       "type": "motor",
-      "label": "Ten-Motor Array Startup motor",
+      "label": "Motor 03 - group command",
       "position": [
-        1.1,
+        0.0,
         0,
-        0
+        0.0
       ],
       "config": {
         "running": false
@@ -60,11 +60,11 @@
     {
       "id": "motor_3",
       "type": "motor",
-      "label": "Ten-Motor Array Startup motor",
+      "label": "Motor 04 - group command",
       "position": [
-        3.3000000000000003,
+        2.6,
         0,
-        0
+        0.0
       ],
       "config": {
         "running": false
@@ -73,11 +73,76 @@
     {
       "id": "motor_4",
       "type": "motor",
-      "label": "Ten-Motor Array Startup motor",
+      "label": "Motor 05 - group command",
       "position": [
-        -2.85,
+        5.2,
         0,
-        2.35
+        0.0
+      ],
+      "config": {
+        "running": false
+      }
+    },
+    {
+      "id": "motor_5",
+      "type": "motor",
+      "label": "Motor 06 - group command",
+      "position": [
+        -5.2,
+        0,
+        2.5
+      ],
+      "config": {
+        "running": false
+      }
+    },
+    {
+      "id": "motor_6",
+      "type": "motor",
+      "label": "Motor 07 - group command",
+      "position": [
+        -2.6,
+        0,
+        2.5
+      ],
+      "config": {
+        "running": false
+      }
+    },
+    {
+      "id": "motor_7",
+      "type": "motor",
+      "label": "Motor 08 - group command",
+      "position": [
+        0.0,
+        0,
+        2.5
+      ],
+      "config": {
+        "running": false
+      }
+    },
+    {
+      "id": "motor_8",
+      "type": "motor",
+      "label": "Motor 09 - group command",
+      "position": [
+        2.6,
+        0,
+        2.5
+      ],
+      "config": {
+        "running": false
+      }
+    },
+    {
+      "id": "motor_9",
+      "type": "motor",
+      "label": "Motor 10 - group command",
+      "position": [
+        5.2,
+        0,
+        2.5
       ],
       "config": {
         "running": false
@@ -88,9 +153,9 @@
       "type": "indicator",
       "label": "Ten-Motor Array Startup indicator",
       "position": [
-        -0.6500000000000001,
+        -5.2,
         0,
-        2.35
+        5.5
       ],
       "config": {
         "colors": [
@@ -102,90 +167,83 @@
       }
     },
     {
-      "id": "training_accessory_6",
-      "type": "trainingAccessory",
-      "label": "Ten-Motor Array Startup - ten-motor lineup asset",
-      "position": [
-        1.1,
-        0,
-        1.8
-      ],
-      "config": {
-        "assetName": "ten-motor lineup asset",
-        "catalogAssetId": "training.accessory.ten_motor_lineup_asset.v1"
-      }
-    },
-    {
       "id": "training_accessory_7",
       "type": "trainingAccessory",
-      "label": "Ten-Motor Array Startup - group motor status panel",
+      "label": "Group Status display - no live data",
       "position": [
-        3.3000000000000003,
+        -3.3,
         0,
-        1.8
+        5.5
       ],
       "config": {
-        "assetName": "group motor status panel",
-        "catalogAssetId": "training.accessory.group_motor_status_panel.v1"
+        "assetName": "supported group status display",
+        "catalogAssetId": "training.accessory.count_display.v1",
+        "display": "staticText",
+        "displayText": "GROUP STATUS\nNO DATA"
       }
     },
     {
       "id": "training_accessory_8",
       "type": "trainingAccessory",
-      "label": "Ten-Motor Array Startup - staggered-start sequence display",
+      "label": "Start Sequence display - no live data",
       "position": [
-        -3.3000000000000003,
+        -1.1,
         0,
-        3.6
+        5.5
       ],
       "config": {
-        "assetName": "staggered-start sequence display",
-        "catalogAssetId": "training.accessory.staggered_start_sequence_display.v1"
+        "assetName": "supported group status display",
+        "catalogAssetId": "training.accessory.count_display.v1",
+        "display": "staticText",
+        "displayText": "START SEQUENCE\nNO DATA"
       }
     },
     {
       "id": "switch_9",
       "type": "switch",
-      "label": "Ten-Motor Array Startup operator input",
+      "label": "Group Start",
       "position": [
-        -0.20000000000000007,
+        1.1,
         0,
-        4.7
+        5.5
       ],
       "config": {
         "style": "pushbutton",
         "action": "toggle-group_start_request",
-        "color": 2204518
+        "color": 2204518,
+        "faceLabel": "GROUP START"
       }
     },
     {
       "id": "switch_10",
       "type": "switch",
-      "label": "Ten-Motor Array Startup operator input",
+      "label": "All Ready",
       "position": [
-        2,
+        3.3,
         0,
-        4.7
+        5.5
       ],
       "config": {
         "style": "pushbutton",
         "action": "toggle-all_motors_ready",
-        "color": 2204518
+        "color": 2204518,
+        "faceLabel": "ALL READY"
       }
     },
     {
       "id": "switch_11",
       "type": "switch",
-      "label": "Ten-Motor Array Startup operator input",
+      "label": "Alarm Clear",
       "position": [
-        4.2,
+        5.5,
         0,
-        4.7
+        5.5
       ],
       "config": {
         "style": "pushbutton",
         "action": "toggle-group_alarm_clear",
-        "color": 2204518
+        "color": 2204518,
+        "faceLabel": "ALARM CLEAR"
       }
     },
     {
@@ -193,9 +251,9 @@
       "type": "indicator",
       "label": "Ten-Motor Array Startup output indication",
       "position": [
-        -1.9500000000000002,
+        7.3,
         0,
-        7.050000000000001
+        5.5
       ],
       "config": {
         "colors": [
@@ -292,6 +350,56 @@
         "equipmentId": "indicator_12",
         "mode": "indicator",
         "activeColor": "green"
+      },
+      {
+        "point": "motor_array_run",
+        "equipmentId": "motor_0",
+        "mode": "running"
+      },
+      {
+        "point": "motor_array_run",
+        "equipmentId": "motor_1",
+        "mode": "running"
+      },
+      {
+        "point": "motor_array_run",
+        "equipmentId": "motor_2",
+        "mode": "running"
+      },
+      {
+        "point": "motor_array_run",
+        "equipmentId": "motor_3",
+        "mode": "running"
+      },
+      {
+        "point": "motor_array_run",
+        "equipmentId": "motor_4",
+        "mode": "running"
+      },
+      {
+        "point": "motor_array_run",
+        "equipmentId": "motor_5",
+        "mode": "running"
+      },
+      {
+        "point": "motor_array_run",
+        "equipmentId": "motor_6",
+        "mode": "running"
+      },
+      {
+        "point": "motor_array_run",
+        "equipmentId": "motor_7",
+        "mode": "running"
+      },
+      {
+        "point": "motor_array_run",
+        "equipmentId": "motor_8",
+        "mode": "running"
+      },
+      {
+        "point": "motor_array_run",
+        "equipmentId": "motor_9",
+        "mode": "running"
       }
     ]
   },
@@ -316,7 +424,7 @@
       "staggered-start sequence display"
     ],
     "machineGuide": {
-      "purpose": "An array-based startup sequence starts ten motors with a staggered delay and stops the group on alarm.",
+      "purpose": "Ten visible motors with group BOOL commands and validity inputs. Per-motor array values and staggered-start timing are not implemented; author or load controller logic before Run.",
       "startConditions": [
         "The common PLC/watchdog foundation is healthy.",
         "All required simulator inputs are at their documented initial state."

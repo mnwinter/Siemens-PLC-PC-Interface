@@ -128,7 +128,7 @@
     {
       "index": 8,
       "sceneId": "lab-10-06-ten-motor-array-startup",
-      "recordedNativeViews": "FR/FL/RL/RR/T",
+      "recordedNativeViews": "FR/FL/RL/RR/T + both supported-display readable details",
       "recordedAngles": {
         "FR": true,
         "FL": true,
@@ -136,7 +136,7 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "FAIL: five motors and overlapping shutter copies, no array/timed startup, empty editor on Run",
+      "recordedResult": "Ten actual motors and display/control spacing repaired; 8 focused checks pass, native five-angle reinspection. FAIL/open: no per-motor array/staggered timing; native loaded-controller workflow unverified",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": true,
       "disposition": "REPAIR_RECORDED_FAILURE",

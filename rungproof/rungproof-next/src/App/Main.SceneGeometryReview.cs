@@ -289,6 +289,7 @@ public partial class Main
             VerifyDriveAlarmGeometry(Check);
             VerifyMotorStateProjection(Check);
             VerifyMotorRecordGeometry(Check);
+            VerifyMotorArrayGeometry(Check);
             VerifyLabelPrintGeometry(Check);
             VerifySelectorProjection(Check);
             VerifyInboundToteGeometry(Check);
@@ -693,6 +694,36 @@ public partial class Main
         check(motion.Running, "motor_record_declared_enable_projects_to_motor");
         runtime.CommitExternalPlcOutputs(new Dictionary<string, object?> { ["motor_enable"] = false });
         check(!motion.Running, "motor_record_removed_enable_stops_motor");
+    }
+
+    private void VerifyMotorArrayGeometry(Action<bool, string> check)
+    {
+        AddMigratedScene("lab-10-06-ten-motor-array-startup", _candidateCatalog!, _mainCamera!, false, false);
+        var root = _sceneCompositionRoot!;
+        var motors = root.GetChildren().OfType<Node3D>().Where(node => node.Name.ToString().StartsWith("motor_", StringComparison.Ordinal)).ToArray();
+        check(motors.Length == 10 && motors.All(node => node.FindChildren("KIN_motor_*", string.Empty, true, false).Count > 0),
+            "motor_array_ten_actual_motors_without_lineup_surrogate");
+        check(LogBoundsCandidates(root) == 0, "motor_array_separate_equipment_bounds_clear");
+        foreach (var id in new[] { "training_accessory_7", "training_accessory_8" })
+        {
+            var display = root.GetNode<Node3D>(id);
+            check(display.FindChild("COUNT_DISPLAY_screen", true, false) is MeshInstance3D
+                && display.FindChild("StaticReadout", true, false) is Label3D label && label.Text.EndsWith("\nNO DATA", StringComparison.Ordinal),
+                $"motor_array_{id}_actual_display_without_fabricated_sequence_data");
+            var foot = (MeshInstance3D)display.FindChild("COUNT_DISPLAY_base", true, false);
+            var mast = (MeshInstance3D)display.FindChild("COUNT_DISPLAY_mast", true, false);
+            var housing = (MeshInstance3D)display.FindChild("COUNT_DISPLAY_housing", true, false);
+            check(MathF.Abs(ReviewBounds(foot).Position.Y) < .001f
+                && ReviewBounds(foot).Grow(.001f).Intersects(ReviewBounds(mast))
+                && ReviewBounds(mast).Grow(.001f).Intersects(ReviewBounds(housing)), $"motor_array_{id}_grounded_supported_display");
+        }
+        var motions = motors.SelectMany(node => node.FindChildren("*", string.Empty, true, false).OfType<EquipmentMotionController>()).ToArray();
+        // The retained BOOL is a group command. This is projection, not proof
+        // of per-motor array execution or staggered startup timing.
+        _sceneRuntime!.CommitExternalPlcOutputs(new Dictionary<string, object?> { ["motor_array_run"] = true });
+        check(motions.Length == 10 && motions.All(motion => motion.Running), "motor_array_group_command_projects_to_all_ten_motors");
+        _sceneRuntime.CommitExternalPlcOutputs(new Dictionary<string, object?> { ["motor_array_run"] = false });
+        check(motions.All(motion => !motion.Running), "motor_array_group_command_off_stops_all_ten_motors");
     }
 
     private void VerifyDrillStartPermissives(Action<bool, string> check)
