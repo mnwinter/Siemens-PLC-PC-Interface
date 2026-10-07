@@ -1,3 +1,6 @@
+## Sorter second native route - 2026-10-07
+
+Existing rebuilt window204276/session18888 and loaded QA controller. After Reset, cycled class once to route2, set package-present, valid-result and destination-clear fixtures, then Run. Top scan17 shows initial travel and both outputsTrue; scan477 shows carton at table; scan1348 shows retained carton at second outgoing belt end. Stop scan1783 cleared both outputs while retaining carton. Inspected stopped endpoint individually in Top/FR/FL/RL/RR: carton remains visible on receiving belt, no gross equipment intersection visible in these views. Reset scan0 returned carton home and shown fixtures/commandsFalse. These discrete observations do not prove every intervening moving pose. Native routes3-4 remain pending; all four already have bounded automated runtime verification. Goal active.
 ## Service elevator landing annotation repair - 2026-10-07
 
 Landing annotations now face the camera, have a readable outlined font and remain visible through the shaft. Moved them outside the deck footprint with separate ground-plane positions so Top does not overlap them. They are review annotations, not physical installation signs. No motion or controller changes.
