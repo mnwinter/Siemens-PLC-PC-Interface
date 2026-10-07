@@ -66,6 +66,7 @@ public partial class Main
         {
             ("tank-high-low", "water_tank_hl", "hl_low_switch", "hl_high_switch", 0.5f, 0.25f, 0.75f),
             ("tank-level", "process_tank", "low_level_switch", "high_level_switch", 0.42f, 0.2f, 0.8f),
+            ("lab-2-14-sump-pump", "sump_tank", "low_float", "high_float", 0.22f, 0.2f, 0.78f),
         })
         {
             AddMigratedScene(sceneId, _candidateCatalog!, _mainCamera!, false, false);
@@ -86,9 +87,19 @@ public partial class Main
                 }), $"{sceneId}_{id}_tips_inside_tank_at_actual_level_threshold");
                 var nozzle = tank.FindChild($"TANK_SWITCH_{id}", true, false) as MeshInstance3D;
                 var seal = ReviewBounds((MeshInstance3D)sensor.FindChild("PROCESS_seal", true, false));
-                check(nozzle is not null && MathF.Abs(ReviewBounds(nozzle).End.Z - seal.Position.Z) < 0.001f
-                    && ReviewBounds(nozzle).Position.Z < shell.End.Z,
+                var alongX = sceneId == "lab-2-14-sump-pump";
+                check(nozzle is not null && (alongX
+                    ? MathF.Abs(ReviewBounds(nozzle).End.X - seal.Position.X) < 0.001f
+                        && ReviewBounds(nozzle).Position.X < shell.End.X
+                    : MathF.Abs(ReviewBounds(nozzle).End.Z - seal.Position.Z) < 0.001f
+                        && ReviewBounds(nozzle).Position.Z < shell.End.Z),
                     $"{sceneId}_{id}_process_seal_seated_on_tank_nozzle");
+                var tankObstacles = ReviewMeshes(tank).Where(mesh =>
+                    mesh.Name.ToString().StartsWith("LADDER", StringComparison.Ordinal)
+                    || mesh.Name.ToString().StartsWith("SIGHT", StringComparison.Ordinal)).ToArray();
+                check(ReviewMeshes(sensor).All(part => ReviewBounds(part).Position.Y >= 0
+                    && tankObstacles.All(other => !OrientedBoxesPenetrate(part, other))),
+                    $"{sceneId}_{id}_above_floor_and_clear_of_ladder_and_sight_glass");
                 var separateSolids = root.GetChildren().OfType<Node3D>().Where(node => node != tank && node != sensor)
                     .SelectMany(ReviewMeshes).ToArray();
                 check(ReviewMeshes(sensor).All(part => separateSolids.All(other =>

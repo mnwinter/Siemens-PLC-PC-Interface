@@ -269,6 +269,13 @@ public partial class Main
                 GetTree().Quit(passed ? 0 : 1);
                 return;
             }
+            if (OS.GetCmdlineUserArgs().Contains("--verify-tank-switch-mounts", StringComparer.Ordinal))
+            {
+                VerifyTankSwitchMountGeometry(Check);
+                GD.Print($"TANK_SWITCH_INSTALLATION_VERIFY {(passed ? "PASS" : "FAIL")} geometry only; native/process acceptance pending");
+                GetTree().Quit(passed ? 0 : 1);
+                return;
+            }
             VerifyPalletizerWorkflow(Check);
             AddMigratedScene("lab-11-19-powder-batch-mixer", _candidateCatalog!, _mainCamera!, false, false);
             var mixer = _sceneCompositionRoot!;

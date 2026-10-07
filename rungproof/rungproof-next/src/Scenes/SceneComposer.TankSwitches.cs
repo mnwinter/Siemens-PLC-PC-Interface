@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Godot;
 
 namespace RungProof.Next.Scenes;
@@ -39,18 +40,31 @@ public static partial class SceneComposer
             // The tank's authored sight-glass liquid is the runtime's level
             // datum. Use its full range, including configured tank scaling.
             var elevation = liquid.Position.Y + liquid.Size.Y * (float)threshold;
-            sensor.RotationDegrees = new Vector3(90, 0, 0);
-            sensor.Position = new Vector3(shell.GetCenter().X, elevation, shell.End.Z + 0.10f);
+            var mounting = scene.Equipment.Single(equipment => equipment.Id == id);
+            var mountSide = Text(mounting.Config, "mountSide", "positiveZ");
+            if (mountSide is not "positiveZ" and not "negativeZ" and not "positiveX")
+                throw new InvalidOperationException($"Tank switch '{id}' requires a supported mount side.");
+            var positiveSide = mountSide != "negativeZ";
+            var alongX = mountSide == "positiveX";
+            sensor.RotationDegrees = new Vector3(positiveSide ? 90 : -90, alongX ? 90 : 0, 0);
+            sensor.Position = alongX
+                ? new Vector3(shell.End.X + 0.10f, elevation, shell.GetCenter().Z)
+                : new Vector3(shell.GetCenter().X, elevation,
+                    positiveSide ? shell.End.Z + 0.10f : shell.Position.Z - 0.10f);
             var seal = sensor.FindChild("PROCESS_seal", true, false) as MeshInstance3D
                 ?? throw new InvalidOperationException($"Tank switch '{id}' lacks a process seal.");
             var sealBounds = InScene(seal) * seal.GetAabb();
             // Short hollow socket seats the seal and supports the fitting.
             // Vessel penetration is a visual installation, not a fabricated
             // pressure-vessel opening or rated nozzle design.
-            var start = new Vector3(sensor.Position.X, elevation, shell.End.Z - 0.02f);
-            var end = start with { Z = sealBounds.Position.Z };
+            var start = alongX
+                ? new Vector3(shell.End.X - 0.02f, elevation, sensor.Position.Z)
+                : new Vector3(sensor.Position.X, elevation,
+                    positiveSide ? shell.End.Z - 0.02f : shell.Position.Z + 0.02f);
+            var end = alongX ? start with { X = sealBounds.Position.X }
+                : start with { Z = positiveSide ? sealBounds.Position.Z : sealBounds.End.Z };
             AddSumpRoute(tank, $"TANK_SWITCH_{id}",
-                new[] { start - tank.Position, end - tank.Position }, 0.14f, steel);
+                new[] { InScene(tank).AffineInverse() * start, InScene(tank).AffineInverse() * end }, 0.14f, steel);
         }
     }
 }
