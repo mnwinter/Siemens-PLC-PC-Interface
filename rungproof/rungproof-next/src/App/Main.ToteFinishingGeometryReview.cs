@@ -178,6 +178,33 @@ public partial class Main
         check(MathF.Abs(ReviewBounds(heldCap).End.Y - ReviewBounds(Part(capper, "TORQUE_CHUCK")).Position.Y) < .001f,
             "tote_finishing_held_cap_roof_contacts_chuck_without_axial_overlap");
 
+        var neckPart = Part(tote, "IBC_open_fill_neck");
+        var neckSize = ReviewBounds(neckPart).Size;
+        var capSize = ReviewBounds(toteCap).Size;
+        check(MathF.Abs(neckSize.X - neckSize.Z) < .0001f
+            && MathF.Abs(capSize.X - capSize.Z) < .0001f,
+            "tote_finishing_actual_installed_neck_and_cap_remain_circular");
+        // Inspect delivered wall vertices through a quarter-turn, not just the
+        // catalog dimensions. This is radial clearance, not a thread/seal test.
+        var heldHome = heldCap.GlobalTransform;
+        var capBounds = ReviewBounds(heldCap);
+        var capCenter = capBounds.GetCenter();
+        var neckCenter = ReviewBounds(neckPart).GetCenter();
+        float Radius(Vector3 vertex, Vector3 center) => new Vector2(vertex.X-center.X, vertex.Z-center.Z).Length();
+        var neckRadius = neckPart.Mesh.GetFaces().Max(vertex => Radius(neckPart.GlobalTransform * vertex, neckCenter));
+        var radialClear = true;
+        foreach (var angle in new[] { 0f, Mathf.Pi / 2 })
+        {
+            var turn = new Transform3D(new Basis(Vector3.Up, angle), Vector3.Zero);
+            heldCap.GlobalTransform = new Transform3D(Basis.Identity, capCenter) * turn
+                * new Transform3D(Basis.Identity, -capCenter) * heldHome;
+            var lowerWall = heldCap.Mesh.GetFaces().Select(vertex => heldCap.GlobalTransform * vertex)
+                .Where(vertex => vertex.Y < capBounds.Position.Y + capBounds.Size.Y * .35f).ToArray();
+            radialClear &= lowerWall.Length > 0 && lowerWall.Min(vertex => Radius(vertex, capCenter)) > neckRadius + .002f;
+        }
+        heldCap.GlobalTransform = heldHome;
+        check(radialClear, "tote_finishing_actual_held_cap_lower_wall_clears_neck_at_home_and_quarter_turn");
+
         var runtime = _sceneRuntime!;
         runtime.UsesExternalClock = false; // Explicit standalone preview, not a controller-owned lesson.
         var controllers = root.FindChildren("*", "", true, false).OfType<EquipmentMotionController>().ToArray();

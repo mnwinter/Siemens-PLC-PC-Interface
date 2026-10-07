@@ -75,3 +75,14 @@ including bore engagement, fill inhibition and full supported preview route.
 The reproducible nominal envelope check is tools/modeling/verify_installed_tote_cap_rotation.py.
 This is not a thread/seal fit, swept triangle proof or native acceptance.
 Axial application and the latest native multi-angle review remain OPEN.
+
+## Composed-mesh radial regression
+
+Two actual Godot mesh checks now verify equal horizontal neck/cap dimensions
+and delivered cap lower-wall radial clearance at home and a quarter-turn,
+with 2 mm minimum margin relative to the neck outer vertices. All 42 focused
+checks pass in .tools/installed-cap-audit.log; build succeeds. These checks
+inspect installed vertices/transforms, strengthening the earlier nominal
+calculation. They do not prove thread engagement, sealing or axial application.
+Native Windows multi-angle inspection remains OPEN after the prior Escape
+stop; permission to resume computer control has been requested.
