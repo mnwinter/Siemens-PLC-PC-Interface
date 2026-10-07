@@ -87,6 +87,27 @@ public partial class Main
         {
             var runtime = _sceneRuntime!;
             _virtualController!.Run();
+            // The inspection clock must preserve the real scan -> plant path.
+            // Gauge transforms are read after the accepted scan, not forged.
+            var reviewWasEnabled = _visualSceneReview;
+            _visualSceneReview = true;
+            try
+            {
+                var tankId = sceneId == "tank-high-low" ? "water_tank_hl" : "process_tank";
+                var liquid = (Node3D)root.GetNode<Node3D>(tankId).FindChild("KIN_liquid", true, false);
+                var beforeLevel = Convert.ToDouble(runtime.Points["tank_level"]);
+                var beforeTransform = liquid.Transform;
+                var beforeScan = _virtualController.Snapshot.ScanNumber;
+                SetGantryReviewClockHeld(true);
+                _PhysicsProcess(.02);
+                check(_virtualController.Snapshot.ScanNumber == beforeScan
+                    && liquid.Transform == beforeTransform, $"{sceneId}_held_clock_freezes_scan_and_gauge");
+                AdvanceGantryReviewClock(1);
+                check(_virtualController.Snapshot.ScanNumber == beforeScan + 1
+                    && Convert.ToDouble(runtime.Points["tank_level"]) > beforeLevel
+                    && liquid.Transform != beforeTransform, $"{sceneId}_held_step_advances_one_scan_level_and_gauge");
+            }
+            finally { ReleaseGantryReviewClock(); _visualSceneReview = reviewWasEnabled; }
             var consistent = true; var transitions = 0; var previous = false;
             for (var tick = 0; tick < 1000 && transitions < 3; tick++)
             {
