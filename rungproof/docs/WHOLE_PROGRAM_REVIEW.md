@@ -1,3 +1,7 @@
+## 2026-10-07 - Repaired call-station native cycle
+
+Reused sole native15532934 with repaired geometry c7ac0fa. Normal Logic Editor Project Open .tools/aaa-service-elevator-cycle-native-qa.rpproj.json loaded its visible Service_Elevator_QA_Cycle ladder; returned to scene, enabled three manual fixtures, Run. Unpaused FR39/0.78s: doors visibly closing, car0%, upTrue/downFalse. FL328/6.56s: ascent92.7%, upTrue/downFalse. RL627/12.54s: return7.7%, upFalse/downTrue. RR946/18.92s: home0%, lowerTrue, bothcommandsFalse with call/doors stillTrue. No gross new overlap seen at full-scene scale; some call-station details remain occluded. This establishes sampled native ascent-return-home on the repaired geometry, not every motion frame or the exact upper reversal frame. Reset0 restored open/home, visible inputsFalse and bothcommandsFalse; left sole instance stoppedRR. Whole goal remains active.
+
 ## 2026-10-07 - Elevator call-station collision repaired
 
 Added 101 sampled sliding-leaf poses against permanent installation parts and other leaves. The initial run found a real open-leaf/call-button intersection at the lower landing (ELEVATOR_open_door_leaf_1_72_0_6 versus ELEVATOR_call_button_0_6); .tools/elevator-leaf-path-review.log records FAIL. Both landing call stations now sit on supported posts on their landing decks outside the door sweep, rather than inside the jamb/leaf envelope. Existing manual fixture bindings and operator row are unchanged.
