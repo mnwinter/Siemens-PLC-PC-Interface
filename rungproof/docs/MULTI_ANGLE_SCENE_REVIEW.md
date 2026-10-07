@@ -1,3 +1,9 @@
+## Pallet robot mid-carry Stop and restart permissive - 2026-10-06
+
+Native window 3342534/build 561feda: after Reset, repeated Run and Start initiated first pickup again. FL scan 391 showed the first tote attached and lifted. Stop at scan 669 froze the carried tote near the receiver; scan stayed 669 through explicit FR/FL/RL/RR/Top inspection. Both commands false, robot_at_park=false, cycle_complete=false. The load remained attached in all inspected views; receiver/pallet geometry remained present.
+
+Run then Start without Reset exposed a UI defect: it reported accepted and asserted robot_run but the stopped reference did not move. New CanExecuteAction start permissive rejects PalletRobotMotion.ReferenceNeedsReset before pulsing the ladder input. Focused real-runtime checks prove stopped-carry Start unavailable and Reset restores availability. Build clean; 145 controller tests pass. Evidence: .tools/pallet-robot-restart-ui-build.log, pallet-robot-restart-ui-check.log, pallet-robot-restart-ui-tests.log. Native UI rejection text after this latest repair is pending a fresh launch. On the previous native build, Reset from the held pose restored initial pallet/totes, empty receiver, home robot, scan 0 and false commands. Continuous descent/contact views still required; row 31 remains open.
+
 ## Pallet robot normal-editor native cycle - 2026-10-06
 
 Windows window 3342534, build 561feda: opened the eight-tag QA project through Project > Open, used Online > Verify + load offline (1 block, 1 task, 3 rungs, 8 tags), returned to the scene and clicked Run. At scan 28 both robot_run and conveyor_run were false and the robot remained home. Start pallet unload was accepted at scan 285 and robot_run became true.

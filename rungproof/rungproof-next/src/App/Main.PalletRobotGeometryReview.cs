@@ -531,7 +531,11 @@ public partial class Main
         check(!runtime.SampleVirtualControllerInputs()["robot_at_park"]
             && runtime.Points["robot_run"] is true && runtime.Points["conveyor_run"] is false,
             "pallet_robot_plc_command_starts_sequence_without_replacing_output_image");
+        runtime.StopSimulation();
+        runtime.TryGetAction("start-robot", out var startAction);
+        check(!runtime.CanExecuteAction(startAction), "pallet_robot_stopped_carry_rejects_operator_restart_before_reset");
         runtime.ResetSimulation();
+        check(runtime.CanExecuteAction(startAction), "pallet_robot_reset_restores_operator_start_permissive");
         runtime.UsesExternalClock = false;
         runtime.RunDefault();
         var leftPark = false;

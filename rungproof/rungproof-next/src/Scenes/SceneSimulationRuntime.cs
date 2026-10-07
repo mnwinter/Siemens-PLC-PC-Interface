@@ -168,6 +168,7 @@ public partial class SceneSimulationRuntime : Node
     }
 
     public bool CanExecuteAction(JsonElement action) => RequirementsSatisfied(action) && EvActionAvailable(action)
+        && (Text(action, "type", "") != "start" || !Controllers().OfType<PalletRobotMotion>().Any(robot => robot.ReferenceNeedsReset))
         && (Text(action, "type", "") != "palletizerLoad" || _palletizer?.CanLoadCarton == true)
         && (Text(action, "type", "") != "groupingLoad" || PackageGroupingPlant?.CanLoad == true)
         && (!HasLuggagePlant || (Text(action,"type","") != "luggageLoad" || (LuggageFinished && LuggageCommandsOff)))
