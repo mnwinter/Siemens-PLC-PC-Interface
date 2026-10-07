@@ -3,7 +3,7 @@
   "scope": "Inventory of documented observations only; views may predate current geometry. Pending flags refer to changed home layouts only. Runtime, collision and visual acceptance remain separate.",
   "sceneCount": 77,
   "allFiveAnglesRecordedCount": 77,
-  "explicitFailureCount": 12,
+  "explicitFailureCount": 11,
   "knownChangedSceneCount": 0,
   "scenes": [
     {
@@ -170,10 +170,10 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Three belts, supported handoffs, loaded pallet, powered receiver and four geometric beams. Common-stop/fresh-edge QA, native two handoff holds, arrival/Stop/Reset verified. 4322-position bearing sweep: nine rollers per runner at endpoint, .128 m maximum uncovered span. Continuous translated envelopes clear at 1 mm overlap tolerance; 360 roller phases stable using delivered vertices. FAIL/open: detailed held native transfer-frame inspection after splice repair; exact submillimetre solids not certified.",
+      "recordedResult": "Three belts, supported handoffs, loaded pallet, powered receiver and four geometric beams. Common-stop/fresh-edge QA, native two handoff holds, arrival/Stop/Reset verified. 4322-position bearing sweep: nine rollers per runner at endpoint, .128 m maximum uncovered span. Continuous translated envelopes clear at 1 mm overlap tolerance; 360 roller phases stable using delivered vertices. Held post-splice straddled transfer inspected natively in five views at X 9.95 m, then every 0.5 s through X 12.30 m with opposing contact views. No disappearance or gross frame intrusion in these observations; Stop removes all three commands and Reset clears receiver. Exact submillimetre solids and intervening frames remain unverified.",
       "latestNativeReviewPending": false,
-      "explicitFailureRecorded": true,
-      "disposition": "REPAIR_RECORDED_FAILURE",
+      "explicitFailureRecorded": false,
+      "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
     {
