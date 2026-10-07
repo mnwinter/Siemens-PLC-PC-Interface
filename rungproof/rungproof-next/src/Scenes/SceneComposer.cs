@@ -76,6 +76,7 @@ public static partial class SceneComposer
                     EquipmentMotionController.MotionKind.ContinuousRotation, "KIN_pump_shaft", speedRpm: 1450.0f,
                     rotationAxis: Vector3.Right),
                 "valve" when Text(equipment.Config, "installation", string.Empty) == "barrelValve" => CreateBarrelFillPart("barrelValve"),
+                "valve" when Text(equipment.Config, "installation", string.Empty) == "wastewaterOutlet" => CreateWastewaterOutletValve(equipment, candidates),
                 "valve" => CreateControlledAsset(equipment, candidates, "process.valve.actuated-ball.v1", runCommands,
                     EquipmentMotionController.MotionKind.PositionRotation, "KIN_valve_stem", travelDegrees: 90.0f, travelTimeSeconds: 1.2f),
                 "levelSensor" => CreateLevelSensorAsset(equipment, candidates),
@@ -488,6 +489,17 @@ public static partial class SceneComposer
             throw new InvalidOperationException($"Photoeye '{equipment.Id}' requires a finite optical height >= 0.3 m.");
         if (MathF.Abs(positiveHeightM - centerlineM) > 1e-6f)
             ConfigureInclinedPhotoeye(model, centerlineM, positiveHeightM, -spanM / 2, positiveStandM);
+        return model;
+    }
+
+    // This delivered valve pointer is parallel to the process bore at authored zero (OPEN).
+    // Opt in only for this command-driven installation; other lessons keep their existing contract.
+    private static Node3D CreateWastewaterOutletValve(SceneEquipment equipment, AssetCatalogDocument candidates)
+    {
+        var model = CreateControlledAsset(equipment, candidates, "process.valve.actuated-ball.v1", false,
+            EquipmentMotionController.MotionKind.PositionRotation, "KIN_valve_stem", travelDegrees: 90,
+            positionInputInverted: true);
+        model.GetNode<EquipmentMotionController>("PositionRotationController").AutonomousPositionTravel = false;
         return model;
     }
 

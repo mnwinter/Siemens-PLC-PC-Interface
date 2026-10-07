@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-11-06-wastewater-collection",
   "name": "Lab 11.6 - Wastewater Collection",
-  "description": "Wastewater command exercise with manually toggled BOOL feedback and a roof-mounted probe. Connected process piping and valve command projection remain incomplete.",
+  "description": "Wastewater command exercise with manually toggled BOOL feedback, a roof-mounted probe, and pump/valve command projection. Connected process piping remains incomplete.",
   "camera": {
     "position": [
       11,
@@ -89,7 +89,8 @@
         4
       ],
       "config": {
-        "initialPosition": 0
+        "initialPosition": 0,
+        "installation": "wastewaterOutlet"
       }
     },
     {
@@ -135,7 +136,9 @@
       ],
       "config": {
         "sensorType": "analog",
-        "installation": "roofAnalogProbe"
+        "installation": "roofAnalogProbe",
+        "roofOffsetX": 0.55,
+        "roofOffsetZ": -0.55
       }
     },
     {
@@ -320,6 +323,11 @@
         "point": "transfer_pump_run",
         "equipmentId": "pump_3",
         "mode": "running"
+      },
+      {
+        "point": "outlet_valve_open",
+        "equipmentId": "valve_4",
+        "mode": "position"
       }
     ],
     "tankId": "tank_0",
@@ -347,7 +355,7 @@
       "alarm beacon"
     ],
     "machineGuide": {
-      "purpose": "Wastewater command exercise with manually toggled BOOL feedback and a roof-mounted probe. Connected process piping and valve command projection remain incomplete.",
+      "purpose": "Wastewater command exercise with manually toggled BOOL feedback, a roof-mounted probe, and pump/valve command projection. Connected process piping remains incomplete.",
       "startConditions": [
         "The common PLC/watchdog foundation is healthy.",
         "All required simulator inputs are at their documented initial state."

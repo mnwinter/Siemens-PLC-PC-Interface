@@ -262,6 +262,13 @@ public partial class Main
             var passed = true;
             void Check(bool condition, string label)
             { passed &= condition; GD.Print($"SCENE_GEOMETRY_CHECK {label}={condition}"); }
+            if (OS.GetCmdlineUserArgs().Contains("--verify-wastewater-installation", StringComparer.Ordinal))
+            {
+                VerifyWastewaterProbeGeometry(Check);
+                GD.Print($"WASTEWATER_INSTALLATION_VERIFY {(passed ? "PASS" : "FAIL")} bounds and projection only; native/process acceptance pending");
+                GetTree().Quit(passed ? 0 : 1);
+                return;
+            }
             VerifyPalletizerWorkflow(Check);
             AddMigratedScene("lab-11-19-powder-batch-mixer", _candidateCatalog!, _mainCamera!, false, false);
             var mixer = _sceneCompositionRoot!;
@@ -739,6 +746,30 @@ public partial class Main
         var socket = ReviewBounds(Part(tank, "TANK_ANALOG_socket"));
         check(socket.Grow(.001f).Intersects(roof) && socket.Grow(.001f).Intersects(flange),
             "wastewater_probe_socket_mates_roof_and_process_flange");
+        var obstructions = ReviewMeshes(tank).Where(mesh => mesh.Name.ToString().StartsWith("RAIL_", StringComparison.Ordinal)
+            || mesh.Name.ToString().Contains("manway", StringComparison.OrdinalIgnoreCase)).ToArray();
+        bool ClearOfRoofPart(MeshInstance3D part, MeshInstance3D obstruction)
+        {
+            if (!ReviewBounds(part).Intersects(ReviewBounds(obstruction))) return true;
+            if (obstruction.Name.ToString() is "RAIL_mid" or "RAIL_top")
+            {
+                // A torus' OBB fills its hollow centre. Require the whole probe mesh
+                // to fit inside the sampled inner ring with 10 mm chord/tolerance margin.
+                float Radius(Vector3 point) => new Vector2(point.X - roof.GetCenter().X,
+                    point.Z - roof.GetCenter().Z).Length();
+                float[] Radii(MeshInstance3D mesh) => Enumerable.Range(0, mesh.Mesh.GetSurfaceCount())
+                    .SelectMany(surface => mesh.Mesh.SurfaceGetArrays(surface)[(int)Mesh.ArrayType.Vertex].AsVector3Array())
+                    .Select(vertex => Radius(mesh.GlobalTransform * vertex)).ToArray();
+                var probeRadii = Radii(part); var railRadii = Radii(obstruction);
+                return probeRadii.Length > 0 && railRadii.Length > 0 && probeRadii.Max() < railRadii.Min() - .01f;
+            }
+            return !OrientedBoxesPenetrate(part, obstruction);
+        }
+        foreach (var part in ReviewMeshes(probe))
+        foreach (var obstruction in obstructions)
+            if (!ClearOfRoofPart(part, obstruction)) GD.Print($"WASTEWATER_PROBE_CANDIDATE {part.Name}/{obstruction.Name}");
+        check(obstructions.Length > 0 && ReviewMeshes(probe).All(part => obstructions.All(obstruction => ClearOfRoofPart(part, obstruction))),
+            "wastewater_probe_clear_of_roof_rail_and_manway_bounds_screen");
         var liquid = ReviewBounds(Part(tank, "KIN_liquid"));
         var tip = ReviewBounds(Part(probe, "PROBE_tip_weight"));
         var rod = ReviewBounds(Part(probe, "PROBE_sensing_rod"));
@@ -752,6 +783,13 @@ public partial class Main
         check(pump.Running, "wastewater_output_command_runs_actual_pump_controller");
         _sceneRuntime.CommitExternalPlcOutputs(new Dictionary<string, object?> { ["transfer_pump_run"] = false });
         check(!pump.Running, "wastewater_output_command_off_stops_actual_pump_controller");
+        var valve = root.GetNode<Node3D>("valve_4").GetNode<EquipmentMotionController>("PositionRotationController");
+        _sceneRuntime.CommitExternalPlcOutputs(new Dictionary<string, object?> { ["outlet_valve_open"] = false });
+        check(valve.PositionInputInverted && !valve.AutonomousPositionTravel && valve.PositionPercent == 100,
+            "wastewater_false_valve_command_projects_closed_quarter_turn_without_autonomous_motion");
+        _sceneRuntime.CommitExternalPlcOutputs(new Dictionary<string, object?> { ["outlet_valve_open"] = true });
+        check(valve.PositionPercent == 0, "wastewater_true_valve_command_projects_open_authored_bore_alignment");
+        _sceneRuntime.CommitExternalPlcOutputs(new Dictionary<string, object?> { ["outlet_valve_open"] = false });
         // Manual BOOL feedback remains manual: mounting geometry does not manufacture analog measurement.
         check(_sceneRuntime.Points["source_level_high"] is false, "wastewater_probe_installation_preserves_manual_feedback");
     }

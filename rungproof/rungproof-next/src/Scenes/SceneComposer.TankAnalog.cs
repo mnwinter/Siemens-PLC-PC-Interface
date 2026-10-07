@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Godot;
 
 namespace RungProof.Next.Scenes;
@@ -25,7 +26,9 @@ public static partial class SceneComposer
         sensor.RotationDegrees = Vector3.Zero;
         // Keep the central manway and outer guardrail clear. This is an
         // explicit scene installation; the reusable transmitter stays intact.
-        sensor.Position = new Vector3(roof.GetCenter().X + 0.35f, roof.End.Y + 0.15f, roof.GetCenter().Z - 0.85f);
+        var config = scene.Equipment.Single(equipment => equipment.Id == Text(scene.Simulation, "transmitterId", string.Empty)).Config;
+        sensor.Position = new Vector3(roof.GetCenter().X + (float)Number(config, "roofOffsetX", 0.35),
+            roof.End.Y + 0.15f, roof.GetCenter().Z + (float)Number(config, "roofOffsetZ", -0.85));
         var socketBottom = new Vector3(sensor.Position.X, roof.End.Y - 0.02f, sensor.Position.Z);
         var socketTop = socketBottom with { Y = Bounds(flange).Position.Y };
         AddSumpRoute(tank, "TANK_ANALOG_socket", new[] { socketBottom - tank.Position, socketTop - tank.Position },

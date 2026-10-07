@@ -1,5 +1,60 @@
 # Multi-angle scene review - 2026-10-04
 
+## Wastewater focused clearance verification (2026-10-06)
+
+Prior valve-only full audit session 3943 completed exit 0 / geometry PASS.
+Current build --verify-wastewater-installation runs the same nine assertions
+as the full verifier without replaying unrelated lesson workflows. All nine
+PASS, exit 0; log .tools/wastewater-clearance-focused.log. Build zero warnings
+and errors, 145 tests PASS/0 FAIL, app-shell PASS 77 scenes/5 demos/295 assets.
+
+The initial OBB-only rail check failed because RAIL_mid/top are whole hollow
+torus meshes whose boxes fill the empty center. The current check requires
+all probe mesh vertices to fit within the actual ring inner radial profile
+with 10 mm allowance; posts/manway retain OBB checks. Height-separated pairs
+are screened first. This is a bounded static clearance check, not swept,
+physical, structural or instrument calibration acceptance. The inward roof
+offsets remain scene-specific and defaults remain unchanged in other lessons.
+
+Current native window 12518294 still has an older DLL. Fresh restart and
+native post-offset inspection remain pending, as does controller-driven
+valve/pump motion. Process piping and pneumatic manifold replacement remain
+open. Earlier WIP notes are historical checkpoints, not current acceptance.
+
+## Wastewater rail-clearance correction WIP (2026-10-06)
+
+Closing native session 2907 revealed its actual BOUNDS_CANDIDATE output:
+tank_0/training_accessory_7 count=16, example RAIL_mid/PROBE_insulator. The
+previous rendered views and socket-only checks did not establish guardrail
+clearance. Added scene opt-in roof offsets +0.55 X/-0.55 Z instead of the
+full-size default +0.35/-0.85, retaining default offsets for other tank lessons.
+Added a specific probe-versus-RAIL/manway OBB bounds assertion. Build passes
+zero warnings/errors after adding the missing LINQ import. New mounting offset
+and clearance assertion still require verifier and fresh native inspection.
+
+Old native window 5774044 closed normally, session 2907 exit 0. Restarted
+normal shell is window 12518294 (Conveyor Inspection Cell). It launched before
+the offset-source rebuild and therefore needs another restart before the
+new offset implementation can be visually verified. Full geometry session 3943
+is still live for the previous valve-only build; do not attribute its result to
+this newer rail-clearance fix. All five changed files remain uncommitted WIP.
+
+## Wastewater valve projection WIP (2026-10-06)
+
+Added actual valve_4 position binding for outlet_valve_open and a scene-local
+wastewaterOutlet installation. Authored zero pointer parallels the process bore
+(OPEN); inverted input maps false to quarter-turn CLOSED, true to authored OPEN.
+Autonomous valve travel is disabled only for this installation. Existing other
+valve lessons remain unchanged. This is command position projection, not valve
+feedback, actuator transit-time simulation or hydraulic flow proof.
+
+Build zero warnings/errors, 145 tests PASS/0 FAIL. App-shell/full geometry checks
+launched with .tools/wastewater-valve-shell.log and
+.tools/wastewater-valve-geometry.log. Added two focused assertions for false/true
+valve geometry. Results and native app restart/inspection are pending. Current
+native window 5774044 still uses prior DLL: do not claim this new factory has
+been visually inspected. Piping and pneumatic manifold replacement remain open.
+
 ## Wastewater probe and pump projection WIP (2026-10-06)
 
 Converted training_accessory_7 to the real analog levelSensor factory and opted
