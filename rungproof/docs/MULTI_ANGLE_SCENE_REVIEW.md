@@ -1,3 +1,10 @@
+## Native first-deck exit and second-handoff hold - source d23cde1
+
+Continued the live window 138608/session 22211. Reobserved held scan 775, then one fine step to scan 776/time 15.52 s. Rear-left, front-left, front-right, rear-right and Top inspected the straddled first-deck pose without advancing that scan. Load remained visible; no gross structural penetration appeared at the rendered resolution. Separate 0.5 s steps reached 801 and 826; Top showed the tail moving away from the first deck onto the second belt. These are sampled poses, not every scan or exact optical threshold frames.
+
+Released Hold: Top scan 850 showed handoff_1_blocked False. Rear-left scan 1715 showed the load at the second interlocked handoff; held at scan 2223/time 44.46 s with unchanged pose. Requested zone 3 while held: scan stayed 2223 and its lamp stayed off. One fine step reached scan 2224/time 44.48 s and the third green lamp turned on; the load remained visible at the second deck approach. Zone 3 output row was below the visible I/O pane, so native command evidence for this scan is the lamp, not a directly read BOOL row.
+
+Current window is RUNNING but held at scan 2224/time 44.48 s, rear-left close view, all three zones requested. Second-deck multi-angle crossing and receiver transfer remain open. No whole-scene completion claim.
 ## Native held first-transfer review - source d23cde1
 
 Fresh Windows app-shell session 22211/window 138608 loaded the multi-conveyor QA project through Project > Open and Online > Verify + load offline (1 block, 1 task, 3 rungs, 7 tags). Hold before Run kept scan 0; fine step sampled the initial inputs at scan 1. Zone 1 request did not change outputs while held. Released the clock to approach the unrequested second zone: front-left scan 416 showed handoff_1_blocked True, zone_1_run True, zone_2_run False. Held again at scan 724/time 14.48 s.
