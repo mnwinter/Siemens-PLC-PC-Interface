@@ -3753,6 +3753,22 @@ public partial class Main : Node3D
         // conservative translated envelope without changing any equipment pose.
         if (_currentSceneId == "lab-5-08-drawbridge-control") AddDrawbridgeFrameEnvelope(root, points);
         var currentPoints = points.ToArray();
+        var sorterCartonFocus = _visualSceneReview && _currentSceneId == "lab-10-03-vision-package-sorter"
+            && _visualReviewFocusId == "box_1" && ReferenceEquals(root, _sceneCompositionRoot?.GetNodeOrNull<Node3D>("box_1"));
+        if (sorterCartonFocus && MathF.Abs(authoredDirection.Normalized().Y) > 0.99f)
+        {
+            // Fit every possible table yaw up front. Following translates this
+            // camera without changing zoom; fitting only the home rectangle
+            // lets its rotated corner grow behind the review toolbar.
+            var cartonCenter = ReviewBounds(root).GetCenter();
+            var radius = currentPoints.Max(point => new Vector2(point.X - cartonCenter.X, point.Z - cartonCenter.Z).Length());
+            var bottom = currentPoints.Min(point => point.Y);
+            var top = currentPoints.Max(point => point.Y);
+            foreach (var height in new[] { bottom, top })
+            foreach (var xSign in new[] { -1, 1 })
+            foreach (var zSign in new[] { -1, 1 })
+                points.Add(new Vector3(cartonCenter.X + xSign * radius, height, cartonCenter.Z + zSign * radius));
+        }
         foreach (var motion in root.FindChildren("*", "", true, false).OfType<EquipmentMotionController>()
             .Where(item => item.Kind == EquipmentMotionController.MotionKind.ScissorLift))
         {
@@ -3792,8 +3808,8 @@ public partial class Main : Node3D
             halfWidth * viewport.Size.Y / (verticalTangent * aperture.Size.X));
         distance = (distance + halfDepth) * 1.16f;
         // Reserve space below the review clock for barrier tips and sensor heads
-        // in nearly vertical full-scene views. Equipment focus views keep their fit.
-        if (_visualSceneReview && ReferenceEquals(root, _sceneCompositionRoot) && MathF.Abs(direction.Y) > 0.99f)
+        // in nearly vertical full-scene views and the rotating sorter focus.
+        if (_visualSceneReview && (ReferenceEquals(root, _sceneCompositionRoot) || sorterCartonFocus) && MathF.Abs(direction.Y) > 0.99f)
             distance *= 1.30f;
         camera.Position = center + direction * MathF.Max(distance, 2.5f);
         camera.LookAt(center, Vector3.Up);

@@ -1,3 +1,10 @@
+## 2026-10-07 - sorter Top rotation framing repaired
+
+Sorter box_1 Top focus now frames a conservative full-yaw envelope and reserves toolbar space before following carton translation. Other camera directions retain their existing fit. The screen regression checks every carton mesh corner against the usable shell aperture on each 20 ms scan for all four routes. The headless verifier now establishes a 1600x900 shell layout before those assertions; its original dummy window was too small for valid screen-space checks.
+
+Validation: pinned build succeeds with 0 warnings/errors; controller tests 145 PASS, app-shell PASS, focused carton/static-route verifier exit0 with all four new Top framing assertions True. Final focused log: rungproof-next/.tools/sorter-top-envelope-final.log. These are scan-pose checks, not continuous clearance certification.
+
+Fresh native app-shell window139154/session8402: opened the existing offline two-rung/five-tag sorter QA through Project/Open and Verify+load. Selected box_1 and Top at home, then class4 and all three permissives. With no subsequent camera angle click or manual zoom, scan326 infeed,506 table rotation,760 outgoing and3164 receiving endpoint show the entire carton below the toolbar. Stop3284 retains the visible receiving pose and sets both commands False. Reset0 restores the centered home carton, class1 and False permissives/commands. External PLC remained disconnected. This resolves the Top framing defect documented below; broader runtime and continuous-clearance requirements remain open. Goal remains active.
 ## 2026-10-07 - post-splice native sorter lanes 3 and 4
 
 Native window401258/session28080, implementation26c0403 and documentation checkpointb83040e. Existing two-rung/five-tag offline QA remained loaded; used normal scene action buttons and Run/Stop/Reset. External PLC disconnected throughout.

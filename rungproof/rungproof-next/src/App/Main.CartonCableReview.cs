@@ -8,7 +8,7 @@ public partial class Main
 {
     private bool _verifyCartonStaticRoutes;
 
-    private void VerifyCartonStaticRoutesOnly()
+    private async void VerifyCartonStaticRoutesOnly()
     {
         var passed = true;
         void Check(bool condition, string label)
@@ -18,6 +18,11 @@ public partial class Main
         }
         try
         {
+            // Headless windows start at a tiny dummy size. Screen-space
+            // assertions require the same usable shell layout as native QA.
+            GetWindow().Size = new Vector2I(1600, 900);
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
             VerifyCartonStaticCableRoutes(Check);
             VerifyInclinedPhotoeyeGeometry(Check);
             VerifyVisionSorterCartonSupport(Check);
@@ -77,9 +82,33 @@ public partial class Main
             var previousReviewMode = _visualSceneReview;
             _visualSceneReview = true;
             _visualReviewFocusId = "box_1";
-            SetVisualReviewAngle(new Vector3(-11, 7, 12), "sorter-follow-regression");
+            SetVisualReviewAngle(new Vector3(0, 20, .01f), "sorter-top-follow-regression");
             var follows = true;
             var cartonMeshes = ReviewMeshes(carton);
+            var topFrameFits = true;
+            void ScreenTopFrame()
+            {
+                var viewport = _mainCamera!.GetViewport().GetVisibleRect();
+                var aperture = _simulatorShell?.SceneViewportRect() ?? viewport;
+                // The review bar overlays the top of the scene aperture.
+                // Require the entire rendered carton below it, not just its center.
+                var safeTop = aperture.Position.Y + 64;
+                foreach (var mesh in cartonMeshes)
+                for (var corner = 0; corner < 8; corner++)
+                {
+                    var box = mesh.GetAabb();
+                    var world = mesh.GlobalTransform * (box.Position + box.Size * new Vector3(
+                        (corner & 1) == 0 ? 0 : 1, (corner & 2) == 0 ? 0 : 1, (corner & 4) == 0 ? 0 : 1));
+                    var screen = _mainCamera.UnprojectPosition(world);
+                    var fits = !_mainCamera.IsPositionBehind(world)
+                        && screen.X >= aperture.Position.X + 12 && screen.X <= aperture.End.X - 12
+                        && screen.Y >= safeTop && screen.Y <= aperture.End.Y - 12;
+                    if (topFrameFits && !fits)
+                        GD.Print($"SORTER_TOP_FRAME_OUTSIDE lane={lane} screen={screen} aperture={aperture} camera={_mainCamera.Position} carton={carton.Position}");
+                    topFrameFits &= fits;
+                }
+            }
+            ScreenTopFrame();
             // Dashed photoeye rays are optical annotations, not solids. All
             // housings, drums, rails, decks and cable meshes remain included.
             var obstacles = ReviewMeshes(_sceneCompositionRoot).Where(mesh => !carton.IsAncestorOf(mesh)
@@ -121,6 +150,7 @@ public partial class Main
             { ["sort_conveyor_run"] = true, ["diverter_enable"] = true });
             runtime.AdvanceSimulation(.02);
             FollowVisualReviewCarton();
+            ScreenTopFrame();
             ScreenCarton();
             var latched = Convert.ToInt32(runtime.Points["sort_latched_class"]);
             runtime.ExecuteAction("cycle-vision_class");
@@ -134,6 +164,7 @@ public partial class Main
                 var beforeTarget = _cameraController!.ViewTarget;
                 runtime.AdvanceSimulation(.02);
                 FollowVisualReviewCarton();
+                ScreenTopFrame();
                 var travel = ReviewBounds(carton).GetCenter() - beforeCenter;
                 follows &= (_mainCamera.Position - beforeCamera).IsEqualApprox(travel)
                     && (_cameraController.ViewTarget - beforeTarget).IsEqualApprox(travel);
@@ -142,6 +173,7 @@ public partial class Main
             }
             var target = _sceneCompositionRoot.GetNode<Node3D>($"destination_lane_{lane}");
             check(follows, $"vision_sorter_lane_{lane}_camera_follows_rendered_center_without_zoom_change");
+            check(topFrameFits, $"vision_sorter_lane_{lane}_top_carton_corners_clear_toolbar_and_aperture_each_scan");
             var belt = (MeshInstance3D)target.FindChild("KIN_belt_surface", true, false);
             var load = ReviewBounds(carton);
             var support = ReviewBounds(belt);
