@@ -14,6 +14,12 @@ public partial class Main
         var passed = true;
         try
         {
+            VerifyToteStartCommand((condition, label) =>
+            {
+                passed &= condition;
+                GD.Print($"TOTE_START_CHECK {label}={condition}");
+            });
+            if (!passed) { GetTree().Quit(1); return; }
             VerifyToteFinishingPlacement((condition, label) =>
             {
                 passed &= condition;
@@ -25,6 +31,7 @@ public partial class Main
             passed = false;
             GD.PushError($"TOTE_FINISHING_EXCEPTION {error}");
         }
+        GD.Print($"TOTE_FINISHING_VERIFY {(passed ? "PASS" : "FAIL")} Start binding, geometry and standalone preview only; controller-driven finishing and native review pending");
         GetTree().Quit(passed ? 0 : 1);
     }
 

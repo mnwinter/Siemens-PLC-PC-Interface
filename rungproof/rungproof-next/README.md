@@ -830,3 +830,7 @@ of this change and its full cycle remains pending.
 ### Guarded-transfer static layout audit
 
 Run `--audit-guarded-layout` with the pinned Godot executable after building. Thirty-three focused checks cover supported home carton, photoeye routes at carton height, curtain width, mesh-gate placement, carton clearance, PLC drive-command binding and prescribed retained carton travel. Travel checks sample the complete belt route, both optical crossings, command withdrawal, Stop/Run, endpoint retention and Reset. The explicit audit also creates `.tools/plant-review-guarded-transfer.rpproj.json` and tests the offline ladder through all eight manual permissive combinations, each permissive loss, completion, Stop/Run and Reset. Default lessons stay blank. Protective-field detection and native visual appearance remain unverified.
+
+### Tote-finishing command and placement verification
+
+Run `--verify-tote-finishing` after building. Five checks exercise the actual 3D Start action through a running ladder probe; twelve checks cover the existing station geometry and standalone sequence preview. The explicit Start binding is `operator.start`. Normal controller-driven finishing, process quantities and latest native inspection remain pending.

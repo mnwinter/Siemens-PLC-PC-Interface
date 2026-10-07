@@ -1,5 +1,10 @@
 # Cumulative Lab Progression
 
+## 2026-10-06 tote-finishing Start binding repair
+
+The 3D Start action was rejected even with a running compatible ladder because the scene omitted its explicit controllerStartBinding. A deterministic command probe reproduced the missing Start pulse twice. Adding `operator.start` fixes the action; five checks now prove Run alone does not pulse Start, the 3D action reaches the matching ladder input for one scan, Reset clears state and a stopped controller rejects Start. The twelve existing delivered-mesh/standalone-preview checks also pass, including 5,000 two-millisecond travel samples. Build and focused verification pass. This repairs command delivery only: normal controller-driven tote transport, capped fill/volume, cap application, label application, inspection and process restart/resume remain open. Latest native command and visual inspection remain pending after the Escape stop.
+
+
 ## 2026-10-06 guarded-transfer offline PLC reference
 
 The explicit `--audit-guarded-layout` command now generates `.tools/plant-review-guarded-transfer.rpproj.json`, a compatible 20 ms ladder document. Its PLC evaluates the three manual permissives and removes transfer_run at supported exit completion. Thirty-three focused checks pass, including all eight input combinations, individual permissive losses during motion, normal scan-driven transfer across both optical routes, Stop/Run retention, completion without held-input restart and Reset. Build and app-shell validation pass (77 scenes, five demos, 294 assets, disconnected). Default exercise programs remain blank. Current carton-runtime full geometry exited 0 with no failed geometry checks; all 71 scene contracts passed with zero failures. The later reference audit is separately proved by 33 focused checks. Fresh native views and physical/protective acceptance remain pending.

@@ -8,29 +8,6 @@ Scene contract: `res://scenes/migrated/lab-2-21-tote-finishing.scene.json`
 
 A small chemical tote is filled, capped, labeled, inspected, and discharged through a five-station finishing line.
 
-## Current visual and runtime limits
-
-The conveyor installation now has supports outside the carrying corridor,
-an IBC seated on the 0.9 m belt, and a 14 m belt that supports the entire
-load at the X=6.4 m preview discharge position. The filler tip follows its
-nozzle, the chuck follows its spindle, and the camera optic follows its lens.
-The initial, fill and discharge poses were inspected in the Windows app
-from front right, front left, rear left, rear right and above.
-
-The declared timed plant preview is a geometry demonstration. It does not
-prove chemical filling: the IBC still has its fill cap, fluid volume is not
-modeled, the capper has no axial application stroke, and the labeler command
-rotates its roll without applying a label. `inspection_ok` in that preview
-is scripted; it is not measured defect detection.
-
-Normal Built-in Simulator operation requires a loaded ladder program. This
-exercise opens an empty project; Run reports no controller loaded, and scene
-Start remains blocked. The current generic sequence does not provide a
-controller-driven tote transport model or a complete Start binding. Its
-preview result must not be used as proof that a loaded controller or external
-PLC can execute the full finishing process. Use Reset before repeating the
-preview; restart/resume from an intermediate tote pose is not accepted.
-
 ## Expected I/O to operate this scene
 
 All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or hardware addresses. PC-owned points are simulator feedback; PLC-owned points are commands supplied by the controller; SIM points are internal and should not be wired as external I/O.
