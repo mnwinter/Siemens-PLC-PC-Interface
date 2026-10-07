@@ -6,7 +6,7 @@ Scene contract: `prototype/scenes/lab-10-05-motor-struct-data.plcscene`
 
 ## Purpose
 
-A structured motor record combines command, power, temperature, and alarm fields for one motor.
+The current scene is a BOOL-based motor validity exercise. It does not supply a STRUCT-valued motor record, power measurement, or temperature measurement. The scene title identifies the intended lesson; the missing structured-data interface remains an open implementation defect.
 
 ## Expected I/O to operate this scene
 
@@ -37,21 +37,26 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | `alarm_clear` | `switch_8` | `switch` |
 | `motor_enable` | `indicator_2` | `indicator` |
 | `record_ready` | `indicator_9` | `indicator` |
+| `motor_enable` | `motor_0` | `running` |
 
 ## Expected equipment
 
 | ID | Type | Label |
 | --- | --- | --- |
-| `motor_0` | `motor` | Motor STRUCT Data motor |
+| `motor_0` | `motor` | Motor commanded by motor_enable |
 | `machine_1` | `machine` | Motor STRUCT Data machine |
 | `indicator_2` | `indicator` | Motor STRUCT Data indicator |
-| `training_accessory_3` | `trainingAccessory` | Motor STRUCT Data - motor diagnostic faceplate |
-| `training_accessory_4` | `trainingAccessory` | Motor STRUCT Data - temperature display |
-| `training_accessory_5` | `trainingAccessory` | Motor STRUCT Data - structured-data monitor |
+| `training_accessory_3` | `trainingAccessory` | Motor Record display - no live value |
+| `training_accessory_4` | `trainingAccessory` | Temperature display - no live value |
+| `training_accessory_5` | `trainingAccessory` | Struct Data display - no live value |
 | `switch_6` | `switch` | Motor STRUCT Data operator input |
 | `switch_7` | `switch` | Motor STRUCT Data operator input |
 | `switch_8` | `switch` | Motor STRUCT Data operator input |
 | `indicator_9` | `indicator` | Motor STRUCT Data output indication |
+
+## Current operating workflow
+
+Author or load controller logic before Run. Require motor_record_valid, temperature_valid, and alarm_clear for the documented validity condition; the controller owns motor_enable and record_ready. Verify that losing each permissive removes the commands, and that Stop and Reset clear them. These BOOLs do not represent measured temperature or a decoded STRUCT. The three displays currently show NO DATA and have no live measurement binding.
 
 ## Stop and safety boundary
 
@@ -59,7 +64,7 @@ A normal Stop removes PLC-owned commands according to the scene runtime. This do
 
 ## Machine guide
 
-A structured motor record combines command, power, temperature, and alarm fields for one motor.
+The current scene is a BOOL-based motor validity exercise. It does not supply a STRUCT-valued motor record, power measurement, or temperature measurement. The scene title identifies the intended lesson; the missing structured-data interface remains an open implementation defect.
 
 ### Start conditions
 
