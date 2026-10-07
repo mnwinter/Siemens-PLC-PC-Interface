@@ -1173,7 +1173,7 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Live DINT A/B/choice/RESULT and opt-in FB routing to SUM/PRODUCT; observed 7/10 and invalid 99 clears validity. Native picking conflict repaired by moving readouts behind buttons; supports and separate-equipment clearance pass. Open: source-selector parity and FB instance/parameter semantics unverified; QA close/top cropping documented",
+      "recordedResult": "Live DINT A/B/choice/RESULT and opt-in FB routing to SUM/PRODUCT; observed 7/10 and invalid 99 clears validity. Native picking conflict repaired by moving readouts behind buttons; supports and separate-equipment clearance pass. Open: source-selector parity and FB instance/parameter semantics unverified; Historical QA close/top cropping reconciled 2026-10-07 at source ac76abe, native window 270158: Next navigation loaded scene 69 normally; home FR, Top, FL, RL, RR inspected at 1602x932 with I/O expanded. All eight equipment items fit in wide full-scene views. FL Wide/close deliberately magnifies the center: A readout crops at left and the nearest switch crops at bottom; toggling back restores both. Close-up cropping remains a limitation for whole-scene inspection, not evidence of a placement intersection. STOP, PLC disconnected; arithmetic/FB semantics not reverified",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",

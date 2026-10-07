@@ -1,3 +1,7 @@
+## 2026-10-07 - Function Selector wide versus close inspection
+
+Normal Next navigation from scene 68 loaded scene 69 in native window 270158 at source ac76abe. Inspected home FR, Top, FL, RL, and RR individually, I/O expanded at 1602x932. All eight equipment items fit in wide views; front views provide readout faces, rear views provide supports. FL Wide/close crops the A readout at left and the nearest switch at bottom; toggling back restores complete framing. This is an observed close-up limitation and must not be reported as a full-scene Top crop or placement collision. No source edit or runtime/PLC acceptance in this checkpoint. Scene 70 close framing remains to be reconciled.
+
 ## 2026-10-07 - Lab 9.3 framing reconciliation
 
 Fresh normal Windows launch of scene 68 at source 47cd859 (window 270158, session 58262). Continued the startup notice and selected Top, FL, RL, RR, and FR separately. All nine items fit with Scene I/O expanded at 1602x932; no wheel zoom was needed. The historical outer-control crop does not reproduce in the current build. Readout faces are available from front views; rear and top angles establish placement, not face readability. No source change, runtime execution, or live PLC verification in this checkpoint.
