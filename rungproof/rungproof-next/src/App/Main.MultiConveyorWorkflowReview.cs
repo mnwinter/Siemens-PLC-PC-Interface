@@ -111,6 +111,24 @@ public partial class Main
             check(MathF.Abs(pallet.Position.X + 9.3f) < .001f && runtime.Points["route_complete"] is false,
                 "multi_conveyor_reset_restores_load_home");
             check(sensorPoints.All(point => runtime.Points[point] is false), "multi_conveyor_reset_restores_clear_geometric_sensors");
+            _visualSceneReview = true;
+            SetGantryReviewClockHeld(true); RunActiveController();
+            var heldScans = _virtualController!.Snapshot.ScanNumber;
+            _PhysicsProcess(5);
+            check(GantryReviewClockHeld && _virtualController.Snapshot.ScanNumber == heldScans,
+                "multi_conveyor_review_hold_freezes_controller_clock");
+            StepGantryReviewClock();
+            check(_virtualController.Snapshot.ScanNumber == heldScans + 25,
+                "multi_conveyor_review_coarse_step_executes_25_scans");
+            Action("toggle-zone_1_clear"); var beforeFine = pallet.Position.X;
+            AdvanceGantryReviewClock(1);
+            check(MathF.Abs(pallet.Position.X - beforeFine - .015f) < .0001f,
+                "multi_conveyor_review_fine_step_moves_actual_pallet_one_scan");
+            StopActiveController(); heldScans = _virtualController.Snapshot.ScanNumber;
+            AdvanceGantryReviewClock(1);
+            check(_virtualController.Snapshot.ScanNumber == heldScans,
+                "multi_conveyor_review_stopped_clock_cannot_step");
+            ResetActiveController(); ReleaseGantryReviewClock();
         }
         finally { DisableVirtualController(); }
     }
