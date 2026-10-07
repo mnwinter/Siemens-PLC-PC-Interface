@@ -76,7 +76,15 @@ public partial class Main
             lanesClear=false;
         }
         check(lanes.Length==4 && lanesClear,"vision_sorter_four_receiving_conveyors_clear_each_other_at_one_mm_obb_screen");
-        foreach(var lane in lanes)GD.Print($"VISION_SORTER_RECEIVING_LANE {lane.Name} {ReviewBounds((MeshInstance3D)lane.FindChild("KIN_belt_surface",true,false))}");
+        foreach(var lane in lanes)
+        {
+            var laneDeck=(MeshInstance3D)lane.FindChild("KIN_belt_surface",true,false);
+            var laneTop=ReviewBounds(laneDeck).End.Y;
+            var localBearingStart=laneDeck.Mesh.GetFaces().Select(v=>laneDeck.GlobalTransform*v)
+                .Where(v=>MathF.Abs(v.Y-laneTop)<.002f).Min(v=>lane.ToLocal(v).X);
+            var localNoseStart=laneDeck.Mesh.GetFaces().Select(v=>lane.ToLocal(laneDeck.GlobalTransform*v)).Min(v=>v.X);
+            GD.Print($"VISION_SORTER_RECEIVING_LANE {lane.Name} {ReviewBounds(laneDeck)} localBearingStart={localBearingStart} localNoseStart={localNoseStart}");
+        }
         var receiver = root.GetNodeOrNull<Node3D>("destination_lane_1") ?? root.GetNode<Node3D>("training_accessory_8");
         var receivingBelt = (MeshInstance3D)receiver.FindChild("KIN_belt_surface", true, false);
         GD.Print($"VISION_SORTER_RECEIVING infeed={belt} platter={ReviewBounds(platter)} bank={ReviewBounds(receivingBelt)}");
@@ -170,6 +178,43 @@ public partial class Main
         }
         GD.Print($"VISION_SORTER_SUPPORT_SAMPLES {samples}");
         check(routeSupported,"vision_sorter_infeed_bridge_and_platter_support_sampled_full_carton_footprint");
+        var handoffs=root.GetChildren().OfType<Node3D>().Where(n=>n.Name.ToString().StartsWith("sorter_outgoing_bridge_",StringComparison.Ordinal)).ToArray();
+        check(handoffs.Length==4 && root.GetNodeOrNull<Node3D>("training_accessory_7") is null,
+            "vision_sorter_four_outgoing_handoffs_replace_cabinet_diverter_surrogate");
+        var infeedTriangles=topTriangles;
+        var outgoingSupported=handoffs.Length==4;var outgoingSamples=0;
+        foreach(var lane in lanes)
+        {
+            var id=lane.Name.ToString().Replace("destination_lane_","sorter_outgoing_bridge_",StringComparison.Ordinal);
+            var handoff=root.GetNodeOrNull<Node3D>(id);
+            if(handoff is null){outgoingSupported=false;continue;}
+            var handoffDeck=(MeshInstance3D)handoff.FindChild("SORTER_handoff_deck",true,false);
+            var laneDeck=(MeshInstance3D)lane.FindChild("KIN_belt_surface",true,false);
+            topTriangles=new[]{platter,handoffDeck,laneDeck}.SelectMany(mesh=>
+            {
+                var vertices=mesh.Mesh.GetFaces().Select(v=>mesh.GlobalTransform*v).ToArray();
+                return Enumerable.Range(0,vertices.Length/3).Select(i=>new[]{vertices[i*3],vertices[i*3+1],vertices[i*3+2]})
+                    .Where(t=>t.All(v=>MathF.Abs(v.Y-belt.End.Y)<.002f));
+            }).ToArray();
+            var alongAxis=lane.GlobalBasis.X.Normalized();var acrossAxis=lane.GlobalBasis.Z.Normalized();
+            for(var step=0;step<=122;step++)
+            for(var along=0;along<=4;along++)
+            for(var across=0;across<=4;across++)
+            {
+                var distance=step*.05f-carton.Size.X/2+carton.Size.X*along/4;
+                var offset=carton.Position.Z+carton.Size.Z*across/4;
+                var world=table.GlobalPosition+alongAxis*distance+acrossAxis*offset;
+                if(!Supported(new Vector2(world.X,world.Z)))
+                {
+                    if(outgoingSupported)GD.Print($"VISION_SORTER_OUTGOING_UNSUPPORTED {lane.Name} step={step} world={world}");
+                    outgoingSupported=false;
+                }
+                outgoingSamples++;
+            }
+        }
+        topTriangles=infeedTriangles;
+        GD.Print($"VISION_SORTER_OUTGOING_SUPPORT_SAMPLES {outgoingSamples}");
+        check(outgoingSupported,"vision_sorter_all_four_outgoing_routes_support_sampled_full_carton_footprint");
         GD.Print($"VISION_SORTER_CARTON_SUPPORT carton={carton} belt={belt}");
         check(MathF.Abs(carton.Position.Y - belt.End.Y) < .001f,
             "vision_sorter_carton_bottom_contacts_actual_delivered_belt_top");

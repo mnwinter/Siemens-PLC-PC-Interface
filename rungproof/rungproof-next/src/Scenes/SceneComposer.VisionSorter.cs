@@ -67,9 +67,12 @@ public static partial class SceneComposer
             }
         }
         root.AddChild(new MeshInstance3D { Name="SORTER_handoff_deck", Mesh=surface.Commit(), MaterialOverride=steel });
-        foreach(var x in new[]{.4f,1.7f})
-        foreach(var z in new[]{-.55f,.55f})
+        var supportXs=NumberArray(equipment.Config,"supportXs",new[]{.4,1.7});
+        var supportHalfSpan=(float)Number(equipment.Config,"supportHalfSpan",.55);
+        foreach(var xValue in supportXs)
+        foreach(var z in new[]{-supportHalfSpan,supportHalfSpan})
         {
+            var x=(float)xValue;
             AddBox(root,new Vector3(.16f,.08f,.16f),new Vector3(x,.04f,z),steel).Name=$"SORTER_bridge_foot_{x}_{z}";
             AddBox(root,new Vector3(.08f,top-thickness-.08f,.08f),
                 new Vector3(x,(top-thickness+.08f)/2,z),steel).Name=$"SORTER_bridge_leg_{x}_{z}";

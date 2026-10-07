@@ -135,20 +135,6 @@
       }
     },
     {
-      "id": "training_accessory_7",
-      "type": "trainingAccessory",
-      "label": "Vision Package Sorter - four-lane diverter",
-      "position": [
-        3.3000000000000003,
-        0,
-        1.8
-      ],
-      "config": {
-        "assetName": "four-lane diverter",
-        "catalogAssetId": "training.accessory.four_lane_diverter.v1"
-      }
-    },
-    {
       "id": "switch_9",
       "type": "switch",
       "label": "Vision Package Sorter operator input",
@@ -316,6 +302,122 @@
         "deckHeight": 0.9,
         "running": false,
         "beltColor": 2568760
+      }
+    },
+    {
+      "id": "sorter_outgoing_bridge_1",
+      "type": "trainingAccessory",
+      "label": "Supported table-to-lane 1 handoff",
+      "position": [
+        3.3,
+        0,
+        0
+      ],
+      "rotation": [
+        0,
+        247.5,
+        0
+      ],
+      "config": {
+        "installation": "visionSorterHandoffBridge",
+        "startX": -2.6372665,
+        "beltNoseEndX": -2.5966664,
+        "tableCenterX": 0,
+        "tableRadius": 1.28,
+        "width": 0.9,
+        "deckHeight": 0.9,
+        "supportXs": [
+          -2.15,
+          -1.55
+        ],
+        "supportHalfSpan": 0.35
+      }
+    },
+    {
+      "id": "sorter_outgoing_bridge_2",
+      "type": "trainingAccessory",
+      "label": "Supported table-to-lane 2 handoff",
+      "position": [
+        3.3,
+        0,
+        0
+      ],
+      "rotation": [
+        0,
+        202.5,
+        0
+      ],
+      "config": {
+        "installation": "visionSorterHandoffBridge",
+        "startX": -2.6372665,
+        "beltNoseEndX": -2.5966664,
+        "tableCenterX": 0,
+        "tableRadius": 1.28,
+        "width": 0.9,
+        "deckHeight": 0.9,
+        "supportXs": [
+          -2.15,
+          -1.55
+        ],
+        "supportHalfSpan": 0.35
+      }
+    },
+    {
+      "id": "sorter_outgoing_bridge_3",
+      "type": "trainingAccessory",
+      "label": "Supported table-to-lane 3 handoff",
+      "position": [
+        3.3,
+        0,
+        0
+      ],
+      "rotation": [
+        0,
+        157.5,
+        0
+      ],
+      "config": {
+        "installation": "visionSorterHandoffBridge",
+        "startX": -2.6372665,
+        "beltNoseEndX": -2.5966664,
+        "tableCenterX": 0,
+        "tableRadius": 1.28,
+        "width": 0.9,
+        "deckHeight": 0.9,
+        "supportXs": [
+          -2.15,
+          -1.55
+        ],
+        "supportHalfSpan": 0.35
+      }
+    },
+    {
+      "id": "sorter_outgoing_bridge_4",
+      "type": "trainingAccessory",
+      "label": "Supported table-to-lane 4 handoff",
+      "position": [
+        3.3,
+        0,
+        0
+      ],
+      "rotation": [
+        0,
+        112.5,
+        0
+      ],
+      "config": {
+        "installation": "visionSorterHandoffBridge",
+        "startX": -2.6372665,
+        "beltNoseEndX": -2.5966664,
+        "tableCenterX": 0,
+        "tableRadius": 1.28,
+        "width": 0.9,
+        "deckHeight": 0.9,
+        "supportXs": [
+          -2.15,
+          -1.55
+        ],
+        "supportHalfSpan": 0.35
       }
     }
   ],
