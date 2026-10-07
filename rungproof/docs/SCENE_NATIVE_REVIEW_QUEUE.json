@@ -544,7 +544,7 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Pallet/case bearing planes, closed strap route, belt support, sensor mounting and bounded reference repaired; 434 checks pass. Home/pickup underside views added. FAIL/open: normal controller lesson and complete solid-contact/mechanical acceptance",
+      "recordedResult": "Pallet/case bearing planes, closed strap route, belt support, sensor mounting and bounded reference repaired; 434 checks pass. Home/pickup underside views added. Fresh native reference session 50830/window 17302630 at 8bc504a: held before automatic Run, every 0.5 s through 8.5 s inspected; FR early, FL early/middle, RL middle, RR later, Top approach; completed pickup FR/FL/RL/RR/Top. Pallet stays visibly seated, cases/straps move together, no gross overlap at viewed scale. Pickup False at 97.3615 percent then True at 100 percent, conveyor False, amber, complete True; Reset returns clear sensor/home/zero. FAIL/open: normal controller lesson and complete solid-contact/mechanical acceptance",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": true,
       "disposition": "REPAIR_RECORDED_FAILURE",
