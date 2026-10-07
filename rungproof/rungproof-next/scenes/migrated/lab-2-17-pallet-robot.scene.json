@@ -258,6 +258,12 @@
         "type": "BOOL",
         "owner": "PC",
         "initial": true
+      },
+      {
+        "name": "operator.start",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
       }
     ],
     "actions": [
@@ -268,7 +274,8 @@
         "sequence": "unload-cycle",
         "requires": {
           "pallet_ready": true
-        }
+        },
+        "controllerStartBinding": "operator.start"
       },
       {
         "id": "stop-robot",
@@ -779,7 +786,8 @@
     },
     "completionState": {},
     "conveyorSpeedMps": 0.65,
-    "robotParkFeedback": "pallet_robot"
+    "robotParkFeedback": "pallet_robot",
+    "controllerSequenceCommand": "robot_run"
   },
   "training": {
     "hints": [

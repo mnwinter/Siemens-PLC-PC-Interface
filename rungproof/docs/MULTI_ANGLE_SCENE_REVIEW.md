@@ -1,3 +1,9 @@
+## Pallet robot start-path repair - 2026-10-06
+
+Explicit operator.start PC BOOL and controllerStartBinding now connect the Start action to a loaded ladder input. Opt-in controllerSequenceCommand=robot_run starts the plant routine once per Reset when controller playback and the command are active. Sequence presets preserve PLC-owned outputs in this opt-in mode, preventing reference steps from overwriting the loaded controller image. Existing standalone reference sequence remains available. QA ladder now latches robot_run from the Start request and removes it after both placements and completed park.
+
+Build: zero warnings/errors. Focused Godot command-boundary verifier passes, including no routine start before command and command-triggered motion with preserved outputs. Controller tests: zero failures. Updated eight-tag QA fixture validation passes with zero binding issues. Evidence: .tools/pallet-robot-start-build.log, pallet-robot-start-check.log, pallet-robot-start-tests.log, pallet-robot-start-project.log. These checks do not prove the native normal-editor Start button or full loaded-ladder transfer. Restart the native app with this build and repeat that workflow; row 31 remains FAIL/open.
+
 ## Pallet robot native controller blocker - 2026-10-06
 
 Native Windows session 45504/window 2497778: opened aaa-pallet-robot-native-qa.rpproj.json through the normal editor, used Online > Verify + load offline, and observed verification complete: 1 block, 1 task, 3 rungs, 7 tags. Run advanced the controller scan and asserted robot_run=true while conveyor_run=false, placed_count=0. Clicking Start pallet unload was rejected with 'this scene action has no command binding in the loaded ladder program'. Robot remained at home; no native transfer or release was verified.

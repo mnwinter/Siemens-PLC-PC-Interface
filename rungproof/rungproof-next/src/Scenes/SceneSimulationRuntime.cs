@@ -30,6 +30,7 @@ public partial class SceneSimulationRuntime : Node
     private JsonElement _activeSteps;
     private int _activeStepIndex = -1;
     private double _stepElapsed;
+    private bool _commandSequenceStarted;
     private readonly Dictionary<string, float> _positionMotionStarts = new(StringComparer.Ordinal);
     // Tank scenes are continuous process simulations, not timed sequences. Keep
     // their running state independently so a stopped tank cannot keep changing
@@ -227,6 +228,22 @@ public partial class SceneSimulationRuntime : Node
         }
 
         if (UsesExternalClock && !PlantPlaybackRunning) return;
+
+        // An explicitly configured PLC enable starts this plant routine once
+        // per Reset. Scene step output presets never replace that PLC image.
+        var sequenceCommand = Text(_definition, "controllerSequenceCommand", "");
+        if (UsesExternalClock && sequenceCommand.Length > 0 && !_commandSequenceStarted
+            && AsBool(_points.GetValueOrDefault(sequenceCommand)))
+        {
+            if (_pointOwners.GetValueOrDefault(sequenceCommand) != "PLC"
+                || _pointTypes.GetValueOrDefault(sequenceCommand) != "BOOL")
+                throw new InvalidOperationException("Sequence command must be a declared PLC BOOL.");
+            var sequence = Text(_definition, "defaultSequence", "");
+            var action = Actions().FirstOrDefault(a => Text(a, "type", "") == "start"
+                && Text(a, "sequence", "") == sequence);
+            if (action.ValueKind == JsonValueKind.Object && CanExecuteAction(action)
+                && StartSequence(sequence)) _commandSequenceStarted = true;
+        }
 
         if (HasChainLiftPlant) { AdvanceChainLiftPlant(delta); return; }
         if (HasCookiePackagingPlant) { AdvanceCookiePackagingPlant(delta); return; }
@@ -462,6 +479,7 @@ public partial class SceneSimulationRuntime : Node
     public void ResetSimulation()
     {
         _booleanPreviewStopped = false;
+        _commandSequenceStarted = false;
         _activeStepIndex = -1;
         _stepElapsed = 0.0;
         _tankSimulationRunning = false;
@@ -1364,7 +1382,12 @@ public partial class SceneSimulationRuntime : Node
     private void ApplySet(JsonElement values)
     {
         if (values.ValueKind != JsonValueKind.Object) return;
-        foreach (var property in values.EnumerateObject()) SetPoint(property.Name, Value(property.Value));
+        foreach (var property in values.EnumerateObject())
+        {
+            if (UsesExternalClock && Text(_definition, "controllerSequenceCommand", "").Length > 0
+                && IsPlcOwnedPoint(property.Name)) continue;
+            SetPoint(property.Name, Value(property.Value));
+        }
     }
 
     private void SetPoint(string name, object? value)

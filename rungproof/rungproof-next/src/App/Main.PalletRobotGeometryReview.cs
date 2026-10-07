@@ -521,6 +521,18 @@ public partial class Main
             && !runtime.SampleVirtualControllerInputs()["cycle_complete"]
             && runtime.SampleVirtualControllerNumericInputs()["placed_count"] == 0,
             "pallet_robot_feedback_is_readable_at_reset");
+        runtime.UsesExternalClock = true;
+        runtime.SetControllerPlaybackRunning(true);
+        runtime.AdvanceSimulation(.02);
+        check(runtime.SampleVirtualControllerInputs()["robot_at_park"], "pallet_robot_no_sequence_before_command");
+        runtime.CommitVirtualControllerOutputs(new System.Collections.Generic.Dictionary<string, bool>
+            { ["robot_run"] = true, ["conveyor_run"] = false });
+        for (var tick = 0; tick < 30; tick++) runtime.AdvanceSimulation(.02);
+        check(!runtime.SampleVirtualControllerInputs()["robot_at_park"]
+            && runtime.Points["robot_run"] is true && runtime.Points["conveyor_run"] is false,
+            "pallet_robot_plc_command_starts_sequence_without_replacing_output_image");
+        runtime.ResetSimulation();
+        runtime.UsesExternalClock = false;
         runtime.RunDefault();
         var leftPark = false;
         for (var tick = 0; tick < 3000; tick++)
