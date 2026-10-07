@@ -185,16 +185,19 @@ public partial class Main
             _cameraController.FocusOn(target, _mainCamera.Position.DistanceTo(target) * 0.58f / 2.6f);
         }
         _sceneCameraDirection = direction;
-        _visualReviewFollowCenter = _currentSceneId == "lab-10-03-vision-package-sorter"
-            && _visualReviewFocusId == "box_1" ? ReviewBounds(focus).GetCenter() : null;
+        _visualReviewFollowCenter = IsMovingVisualReviewFocus() ? ReviewBounds(focus).GetCenter() : null;
         GD.Print($"VISUAL_REVIEW_ANGLE {_currentSceneId} {label}");
     }
 
+    private bool IsMovingVisualReviewFocus() =>
+        (_currentSceneId == "lab-10-03-vision-package-sorter" && _visualReviewFocusId == "box_1")
+        || (_currentSceneId == "lab-2-21-tote-finishing" && _visualReviewFocusId == "finishing_tote");
+
     private void FollowVisualReviewCarton()
     {
-        if (!_visualSceneReview || _currentSceneId != "lab-10-03-vision-package-sorter"
-            || _visualReviewFocusId != "box_1" || _mainCamera is null || _cameraController is null
-            || _sceneCompositionRoot?.GetNodeOrNull<Node3D>("box_1") is not { } carton)
+        if (!_visualSceneReview || !IsMovingVisualReviewFocus() || _visualReviewFocusId is null
+            || _mainCamera is null || _cameraController is null
+            || _sceneCompositionRoot?.GetNodeOrNull<Node3D>(_visualReviewFocusId) is not { } carton)
         {
             _visualReviewFollowCenter = null;
             return;
