@@ -14,6 +14,7 @@ public partial class Main
     private Button? _gantryReviewStep;
     private Button? _gantryReviewFineStep;
     private Label? _gantryReviewClockLabel;
+    private CheckButton? _receiverReviewCutaway;
     private Node3D? _gantryReviewHeldRoot;
     private SceneSimulationRuntime? _gantryReviewHeldRuntime;
     private ProcessModeEnum _gantryReviewRootMode;
@@ -39,6 +40,34 @@ public partial class Main
         _gantryReviewStep = new Button { Text = "Step 0.5 s", Disabled = true };
         _gantryReviewFineStep = new Button { Text = "Step 20 ms", Disabled = true, Visible = false };
         _gantryReviewClockLabel = new Label();
+        // Diagnostic visibility only: retain bearing rollers, trays, loads,
+        // collision shapes and all controller/runtime processing.
+        _receiverReviewCutaway = new CheckButton
+        {
+            Text = "QA receiver cutaway (visual only)",
+            Position = new Vector2(310, 198), Visible = false,
+        };
+        layer.AddChild(_receiverReviewCutaway);
+        _receiverReviewCutaway.Toggled += cutaway =>
+        {
+            if (_currentSceneId != "lab-2-17-pallet-robot"
+                || _sceneCompositionRoot?.GetNodeOrNull<Node3D>("process_receiver") is not { } receiver) return;
+            // ReviewMeshes excludes invisible parts, so enumerate all meshes
+            // to ensure switching off also restores the hidden obstructions.
+            foreach (var mesh in receiver.FindChildren("*", "", true, false).OfType<MeshInstance3D>())
+            {
+                var name = mesh.Name.ToString();
+                if (!(name.StartsWith("GUIDE_", StringComparison.Ordinal)
+                    || name.StartsWith("FRONT_STOP_", StringComparison.Ordinal)
+                    || name.StartsWith("DOCK_FUNNEL_", StringComparison.Ordinal)
+                    || name.StartsWith("BACKSTOP", StringComparison.Ordinal)
+                    || name is "RECEIVER_NAMEPLATE" or "RECEIVER_NAME")) continue;
+                if (cutaway) mesh.SetMeta("qa_cutaway_original_visible", mesh.Visible);
+                mesh.Visible = !cutaway && (!mesh.HasMeta("qa_cutaway_original_visible")
+                    || mesh.GetMeta("qa_cutaway_original_visible").AsBool());
+            }
+            GD.Print($"VISUAL_REVIEW_RECEIVER_CUTAWAY enabled={cutaway} visual-only");
+        };
         _gantryReviewClockBar.AddChild(_gantryReviewHold);
         _gantryReviewClockBar.AddChild(_gantryReviewStep);
         _gantryReviewClockBar.AddChild(_gantryReviewFineStep);
@@ -57,6 +86,12 @@ public partial class Main
 
     private void RefreshGantryReviewClockControls()
     {
+        if (_receiverReviewCutaway is not null)
+        {
+            _receiverReviewCutaway.Visible = CanReviewGantryClock && _gantryReviewOperatorView
+                && _currentSceneId == "lab-2-17-pallet-robot";
+            if (_currentSceneId != "lab-2-17-pallet-robot") _receiverReviewCutaway.SetPressedNoSignal(false);
+        }
         if (!CanReviewGantryClock) ReleaseGantryReviewClock();
         if (_gantryReviewClockBar is not null)
             _gantryReviewClockBar.Visible = CanReviewGantryClock && _gantryReviewOperatorView;
