@@ -1462,7 +1462,7 @@ public partial class Main
     // Separating axes for transformed mesh boxes. Unlike world AABBs, this
     // keeps the diagonal belt motor separate from a carton centered on it.
     // It still bounds meshes rather than testing triangles or certifying fit.
-    private static bool OrientedBoxesPenetrate(MeshInstance3D left, MeshInstance3D right)
+    private static bool OrientedBoxesPenetrate(MeshInstance3D left, MeshInstance3D right, float allowance = .005f)
     {
         (Vector3 Center, Vector3[] Edges) Box(MeshInstance3D mesh)
         {
@@ -1486,7 +1486,7 @@ public partial class Main
         foreach (var axis in axes.Where(axis => axis.LengthSquared() > 1e-10f).Select(axis => axis.Normalized()))
         {
             var radius = a.Edges.Sum(edge => MathF.Abs(axis.Dot(edge))) + b.Edges.Sum(edge => MathF.Abs(axis.Dot(edge)));
-            if (radius - MathF.Abs(axis.Dot(a.Center - b.Center)) <= 0.005f) return false;
+            if (radius - MathF.Abs(axis.Dot(a.Center - b.Center)) <= allowance) return false;
         }
         return true;
     }

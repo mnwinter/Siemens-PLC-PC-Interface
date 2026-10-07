@@ -152,15 +152,16 @@ public partial class Main
         GD.Print($"MULTI_CONVEYOR_BEARING samples={samples} spacing_m=.005 worst_uncovered_runner_span_m={worstGap:F6} endpoint_min_contacts={minimumReceiverContacts} geometric_only=True");
     }
 
-    private static bool RouteTriangleEntersBox(MeshInstance3D mesh, Aabb box)
+    private static bool RouteTriangleEntersBox(MeshInstance3D mesh, Aabb box, Transform3D? referenceInverse = null)
     {
         // Clip every transformed face to the conservative swept box. This
         // rejects empty corners of bent cable bounds without excluding cables.
         var faces = mesh.Mesh.GetFaces();
+        var transform = (referenceInverse ?? Transform3D.Identity) * mesh.GlobalTransform;
         for (var index = 0; index < faces.Length; index += 3)
         {
-            var polygon = new List<Vector3> { mesh.GlobalTransform * faces[index],
-                mesh.GlobalTransform * faces[index + 1], mesh.GlobalTransform * faces[index + 2] };
+            var polygon = new List<Vector3> { transform * faces[index],
+                transform * faces[index + 1], transform * faces[index + 2] };
             for (var axis = 0; axis < 3 && polygon.Count > 0; axis++)
             foreach (var upper in new[] { false, true })
             {

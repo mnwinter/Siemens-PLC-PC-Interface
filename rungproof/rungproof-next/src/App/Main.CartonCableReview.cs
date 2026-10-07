@@ -74,6 +74,38 @@ public partial class Main
             AddMigratedScene("lab-10-03-vision-package-sorter", _candidateCatalog!, _mainCamera!, false, false);
             var runtime = _sceneRuntime!;
             var carton = _sceneCompositionRoot!.GetNode<Node3D>("box_1");
+            var cartonMeshes = ReviewMeshes(carton);
+            // Dashed photoeye rays are optical annotations, not solids. All
+            // housings, drums, rails, decks and cable meshes remain included.
+            var obstacles = ReviewMeshes(_sceneCompositionRoot).Where(mesh => !carton.IsAncestorOf(mesh)
+                && !mesh.Name.ToString().StartsWith("KIN_beam_dash_", StringComparison.Ordinal)).ToArray();
+            var motionClear = cartonMeshes.Length > 0 && obstacles.Length > 0;
+            var interferenceCount = 0;
+            // Bounds enclose the rendered meshes: this is a conservative pose
+            // screen, not a swept-volume/contact-force simulation. Each scan
+            // moves at most 9 mm; the index advances at most 0.9 degrees.
+            void ScreenCarton()
+            {
+                foreach (var part in cartonMeshes)
+                foreach (var obstacle in obstacles)
+                {
+                    var overlap = ReviewBounds(part).Intersection(ReviewBounds(obstacle)).Size;
+                    if (overlap.X <= .001f || overlap.Y <= .001f || overlap.Z <= .001f
+                        || !OrientedBoxesPenetrate(part, obstacle, .001f)) continue;
+                    // Refine cylinder/curved-cable empty bounds against actual
+                    // faces in the carton mesh's local box. Convert the world
+                    // allowance per axis so scaled carton meshes remain valid.
+                    var basis = part.GlobalBasis;
+                    var padding = new Vector3(.001f / basis.X.Length(), .001f / basis.Y.Length(), .001f / basis.Z.Length());
+                    var box = part.GetAabb();
+                    var interior = new Aabb(box.Position + padding, box.Size - padding * 2);
+                    if (!RouteTriangleEntersBox(obstacle, interior, part.GlobalTransform.AffineInverse())) continue;
+                    motionClear = false;
+                    if (interferenceCount++ < 8)
+                        GD.Print($"VISION_SORTER_MOVING_INTERFERENCE lane={lane} carton={part.Name} obstacle={obstacle.GetPath()} position={carton.Position}");
+                }
+            }
+            ScreenCarton();
             for (var selection = 1; selection < lane; selection++) runtime.ExecuteAction("cycle-vision_class");
             runtime.ExecuteAction("toggle-package_present");
             runtime.ExecuteAction("toggle-vision_result_valid");
@@ -83,6 +115,7 @@ public partial class Main
             runtime.CommitVirtualControllerOutputs(new System.Collections.Generic.Dictionary<string, bool>
             { ["sort_conveyor_run"] = true, ["diverter_enable"] = true });
             runtime.AdvanceSimulation(.02);
+            ScreenCarton();
             var latched = Convert.ToInt32(runtime.Points["sort_latched_class"]);
             runtime.ExecuteAction("cycle-vision_class");
             var continuous = true;
@@ -91,12 +124,14 @@ public partial class Main
             {
                 var before = carton.Position;
                 runtime.AdvanceSimulation(.02);
+                ScreenCarton();
                 continuous &= carton.Position.DistanceTo(before) <= .00901f;
             }
             var target = _sceneCompositionRoot.GetNode<Node3D>($"destination_lane_{lane}");
             var belt = (MeshInstance3D)target.FindChild("KIN_belt_surface", true, false);
             var load = ReviewBounds(carton);
             var support = ReviewBounds(belt);
+            check(motionClear, $"vision_sorter_runtime_lane_{lane}_carton_triangle_pose_screen_one_mm_allowance");
             check(runtime.Points["sort_complete"] is true && latched == lane
                 && Convert.ToInt32(runtime.Points["sort_latched_class"]) == lane && continuous,
                 $"vision_sorter_runtime_lane_{lane}_continuous_complete_retains_latched_class");

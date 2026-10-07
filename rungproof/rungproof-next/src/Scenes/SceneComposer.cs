@@ -139,6 +139,8 @@ public static partial class SceneComposer
 
         if (scene.Equipment.Any(equipment => Text(equipment.Config, "installation", string.Empty) == "multiConveyorHandoffs"))
             ConfigureMultiConveyorHandoffs(root);
+        if (scene.Equipment.Any(equipment => Text(equipment.Config, "installation", string.Empty) == "visionSorterHandoffBridge"))
+            ConfigureVisionSorterSplices(root);
         if (scene.Equipment.Any(equipment => Text(equipment.Config, "installation", string.Empty) == "wastewaterCollector"))
             ConfigureWastewaterPiping(root);
         if (scene.Equipment.Any(equipment => Text(equipment.Config, "installation", string.Empty) == "sumpPiping"))

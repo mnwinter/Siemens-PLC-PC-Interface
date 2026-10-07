@@ -1,10 +1,33 @@
 using System;
+using System.Linq;
 using Godot;
 
 namespace RungProof.Next.Scenes;
 
 public static partial class SceneComposer
 {
+    private static void ConfigureVisionSorterSplices(Node3D root)
+    {
+        Transform3D InScene(Node3D node)
+        {
+            var transform = node.Transform;
+            for (var parent = node.GetParent() as Node3D; parent != null && parent != root; parent = parent.GetParent() as Node3D)
+                transform = parent.Transform * transform;
+            return transform;
+        }
+        foreach (var conveyor in root.GetChildren().OfType<Node3D>().Where(node =>
+            node.Name == "conveyor_0" || node.Name.ToString().StartsWith("destination_lane_", StringComparison.Ordinal)))
+        {
+            MeshInstance3D Part(string name) => conveyor.FindChild(name, true, false) as MeshInstance3D
+                ?? throw new InvalidOperationException($"Sorter conveyor requires {conveyor.Name}/{name}.");
+            var belt = Part("KIN_belt_surface");
+            var splice = Part("BELT_vulcanized_splice");
+            // This authored witness strip must not protrude into a passing
+            // carton. Retain it visibly flush with the measured belt plane.
+            var rise = (InScene(splice) * splice.GetAabb()).End.Y - (InScene(belt) * belt.GetAabb()).End.Y;
+            splice.Position -= InScene((Node3D)splice.GetParent()).Basis.Inverse() * (Vector3.Up * rise);
+        }
+    }
     // Static installation, not an automatic routing or protective device.
     // The curved nose mates to the parcel platter's measured circular edge.
     private static Node3D CreateVisionSorterBridge(SceneEquipment equipment)

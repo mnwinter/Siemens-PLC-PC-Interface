@@ -1,3 +1,11 @@
+## Sorter moving-carton screen and flush splices - 2026-10-07
+
+Added all-four-route carton mesh triangle pose screen at accepted20ms scans (9mm travel/0.9degree indexing,1mm allowance). Bounds positives refine actual obstacle triangles inside carton local boxes. Only optical KIN_beam_dash_ rays excluded; physical housings/cables/drums remain. OBB optional allowance retains previous5mm default; triangle clip optional reference inverse retains world default.
+
+Refined screen detected actual raised receiving BELT_vulcanized_splice entering CARTON_BODY, route1 near X4.502/Z-2.902. Sorter-local composition now seats all five splice strips flush with measured belt top. Build PASS zero warnings/errors. Fresh native window269882/session85308 home FR/FL/RL/RR/Top individually inspected; carton seated, four receiving decks visible. Prior native completed cycles predate this repair; new loaded cycle pending.
+
+Post-fix focused verifier session66675 confirmed running, .tools/sorter-flush-splices.log: routes1-2 carton triangle pose checks True; routes3-4 and final exit pending. Earlier bounds-only drum candidates refined clear; failed/interrupted probes are diagnostic only. Sampled surface checks are not continuous swept-solid/contact-force proof. Goal active.
+
 ## Sorter third and fourth native routes - 2026-10-07
 
 Existing rebuilt window204276/session18888, same normally loaded QA controller. Route3: Reset, two class cycles from initial1, all three fixture permissives, Run. Top scan9 initial travel, scan562 carton leaving table at third-lane angle, FR1024 on receiving belt, FL1476 retained endpoint. Stop1964 cleared both commands; RL/RR/Top held endpoint inspected individually. Reset0 returned carton home and shown fixtures/commandsFalse.
