@@ -8,7 +8,7 @@ except UnicodeDecodeError:text=raw.decode('cp1252')
 rows=[]
 # These layouts still lack a fresh native home-pose inspection.
 # Completed home inspection does not certify controller motion or acceptance.
-latest_pending={'tank-radar'}
+latest_pending=set()
 for line in text.splitlines():
  if not re.match(r'^\| \d+ \|',line):continue
  cells=[c.strip() for c in line.split('|')[1:-1]]

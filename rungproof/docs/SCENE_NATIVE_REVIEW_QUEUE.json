@@ -4,7 +4,7 @@
   "sceneCount": 77,
   "allFiveAnglesRecordedCount": 77,
   "explicitFailureCount": 12,
-  "knownChangedSceneCount": 1,
+  "knownChangedSceneCount": 0,
   "scenes": [
     {
       "index": 1,
@@ -1309,10 +1309,10 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Radar flange/head mounting and antenna-to-surface distance/beam repaired (sampled checks); 35% native range 3.10036. OPEN: piping/grounded drain valve and explicit inspection view added; 24 focused checks PASS. 32 focused geometry/offline PLC reference checks PASS; new geometry/view/operator requests and full native cycle review pending; no physical acceptance",
-      "latestNativeReviewPending": true,
+      "recordedResult": "Radar flange/head mounting and antenna-to-surface distance/beam repaired (sampled checks); 35% native range 3.10036. OPEN: piping/grounded drain valve and explicit inspection view added; 24 focused checks PASS. 32 focused geometry/offline PLC reference checks PASS; Fresh current-build native FR/FL/RL/RR/Top home views inspected: supported inlet/drain piping, external drain valve, roof radar and separate operator stations visible; ghost-shell FL reveals internal cone and liquid. Operator requests and full native controller cycle remain pending; no physical acceptance",
+      "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
-      "disposition": "REVIEW_CHANGED_SCENE",
+      "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     }
   ]
