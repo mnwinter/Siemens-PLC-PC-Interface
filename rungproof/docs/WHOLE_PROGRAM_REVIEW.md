@@ -1,5 +1,12 @@
 # Whole program review - 2026-10-03
 
+## 2026-10-06 tote normalized fill model
+
+Added a renderer-neutral normalized fill model, illustrative 20 percent/second, bounded to 0–100 percent. Controller-clocked fill requires the stopped tote at the fill station, hidden/open cap and delivered nozzle vertices fitting the measured bore with 2 mm radial clearance and the tip entering its vertical range. Ineligible/full commands produce PC fill_inhibited without rewriting the PLC valve command. Four PC points publish percentage, effective percentage/second, inhibition and full completion. A visible level witness remains inside the cavity with its bottom fixed; stream visibility follows effective delivery rather than raw valve animation. The nozzle's general callback is disabled under the accepted controller clock.
+
+Thirty-eight focused checks pass, including two-second/40-percent integration, moving/off-station/capped/misaligned inhibition, Stop/Run retention, command withdrawal, saturation under held valve, witness-height scaling and repeated Reset without cumulative shrink. Inspected 40/100-percent top asset renders; these do not establish native scene readability. Build passes. All 71 scene contracts pass with zero failures; litre/capacity/flow calibration, cap/label application, inspection, complete PLC station sequencing and fresh native scene views remain unverified.
+
+
 ## 2026-10-06 tote fill-aperture geometry repair
 
 Added the scene-specific unapproved candidate loads.ibc.open-finishing.v1, derived from the generic IBC master with a Boolean inner cavity, roof aperture and open neck. Its delivery retains a separate cap; the finishing installation initially hides that cap. The generic closed master is unchanged. Five actual exported-GLB ray checks pass: centre reaches the cavity floor at Z 0.11 m, surrounding roof remains at Z 1.49 m, neck centre is open, rim remains solid and the cap remains separately available. Visually inspected the top and four corner open-port Blender renders; these are asset views, not native scene acceptance.

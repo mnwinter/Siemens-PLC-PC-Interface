@@ -29,6 +29,10 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | `tote_at_label` | `BOOL` | **PC** | `False` |
 | `tote_at_inspection` | `BOOL` | **PC** | `False` |
 | `tote_at_exit` | `BOOL` | **PC** | `False` |
+| `fill_percent` | `REAL` | **PC** | `0` |
+| `actual_fill_percent_per_second` | `REAL` | **PC** | `0` |
+| `fill_inhibited` | `BOOL` | **PC** | `False` |
+| `fill_complete` | `BOOL` | **PC** | `False` |
 
 ## Operator actions
 

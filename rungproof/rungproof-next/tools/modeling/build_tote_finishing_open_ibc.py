@@ -54,6 +54,8 @@ def build(materials):
     apply_difference(body, f.cyl('PORT_CUTTER', (0, 0, 1.51), .11, .30, None, 'Z', 96))
     neck = f.cyl('IBC_open_fill_neck', (0, 0, 1.5125), .14, .095, body.data.materials[0], 'Z', 96)
     apply_difference(neck, f.cyl('NECK_BORE_CUTTER', (0, 0, 1.5125), .11, .14, None, 'Z', 96))
+    f.box('IBC_fill_witness', (0, 0, .75), (.90, .85, 1.20),
+        f.mat('Illustrative fill witness', (.03, .22, .58), 0, .20), 0, False)
     body['candidate_scope'] = 'Illustrative hollow fill geometry; no seal, capacity, chemical or mechanical approval.'
 
 
@@ -62,6 +64,7 @@ root = f.BASE/SLUG
 # Additional open-port view corresponds to the scene installation, which hides
 # only the separate cap. Delivery/source retain it for future cap application.
 bpy.data.objects['IBC_fill_cap'].hide_render = True
+bpy.data.objects['IBC_fill_witness'].hide_render = True
 camera = bpy.context.scene.camera
 camera.location = (0, 0, 4.2)
 f.point(camera, Vector((0, 0, .78)))
@@ -99,5 +102,5 @@ catalog_path.write_text(json.dumps(catalog, indent=2)+'\n')
 (root/'review'/'repair_scope.json').write_text(json.dumps(dict(assetId=asset_id,
     status='candidate-unapproved', scope='Scene-specific cavity and fill aperture; separate cap retained in delivery.',
     sourceBasis='Generic closed IBC master remains unchanged.',
-    nativeSceneReview='pending', fillVolume='not implemented', capApplication='not implemented'), indent=2)+'\n')
+    nativeSceneReview='pending', fillVolume='uncalibrated; normalized percentage only', capApplication='not implemented'), indent=2)+'\n')
 print('TOTE_OPEN_IBC_CANDIDATE_BUILT', asset_id, size)

@@ -717,6 +717,7 @@ public static partial class SceneComposer
             var cap = model.FindChild("IBC_fill_cap", true, false) as MeshInstance3D
                 ?? throw new InvalidOperationException("Open finishing tote requires a separate delivered fill cap.");
             cap.Visible = false;
+            if (model.FindChild("IBC_fill_witness", true, false) is MeshInstance3D witness) witness.Visible = false;
         }
         if (equipment.Id == "coolant_jug" && equipment.Config.TryGetProperty("openForFill", out var open)
             && open.ValueKind == JsonValueKind.True)

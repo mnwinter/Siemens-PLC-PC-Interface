@@ -20,6 +20,12 @@ public partial class Main
                 GD.Print($"TOTE_START_CHECK {label}={condition}");
             });
             if (!passed) { GetTree().Quit(1); return; }
+            VerifyToteFill((condition, label) =>
+            {
+                passed &= condition;
+                GD.Print($"TOTE_FILL_CHECK {label}={condition}");
+            });
+            if (!passed) { GetTree().Quit(1); return; }
             VerifyToteFinishingPlacement((condition, label) =>
             {
                 passed &= condition;
@@ -31,7 +37,7 @@ public partial class Main
             passed = false;
             GD.PushError($"TOTE_FINISHING_EXCEPTION {error}");
         }
-        GD.Print($"TOTE_FINISHING_VERIFY {(passed ? "PASS" : "FAIL")} Start binding, controller-clocked tote travel and standalone geometry preview; station processes and native review pending");
+        GD.Print($"TOTE_FINISHING_VERIFY {(passed ? "PASS" : "FAIL")} Start, travel, normalized fill and standalone geometry preview; cap/label/inspection and native review pending");
         GetTree().Quit(passed ? 0 : 1);
     }
 

@@ -1236,6 +1236,7 @@ public partial class SceneSimulationRuntime : Node
             }
         }
         foreach (var (equipment, state) in indicatorStates) SetIndicator(equipment, state.Active, state.Color);
+        ProjectToteFillVisibility();
         ProjectChainLiftCommands();
     }
 
