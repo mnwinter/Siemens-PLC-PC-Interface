@@ -1,3 +1,9 @@
+## 2026-10-07 shipping operator request bindings prepared
+
+- Existing normal-shell action handling requires an explicit controllerStartBinding for a start action. Shipping Start/Jog omitted these and were rejected even with a loaded ladder.
+- Added separate PC BOOL auto_start_request and manual_jog_request points, bound to the existing Start/Jog actions through the established controllerStartBinding mechanism. Autonomous preview action types and sequences are preserved; no controller output is forced.
+- Automatic QA fixture now has five tags and waits for Start, then seals conveyor_run until the actual pickup beam. Integrated focused PASS proves idle Run, accepted Start, travel, Stop hold, Run without auto-restart, fresh Start/resume, sensor stop and Reset. Initial build used a nonexistent AddBranch helper, corrected to existing AddParallelBranch; only the rebuilt passing verifier is accepted as evidence.
+- Build zero warnings/errors, focused shipping geometry/controller verifier PASS, 145 controller tests PASS, app-shell PASS (77 scenes, 3 groups, 5 demos, 295 assets). Native Start/Jog request verification and a bounded manual-jog ladder remain pending. Previously open window 531616 predates these scene/request edits.
 ## 2026-10-07 native loaded-controller shipping QA verification
 
 - Session 80675/window 531616 uses shipping repair source subsequently committed as 8fb40d4. Normal editor Project/Open accepted .tools/aaa-shipping-pallet-native-qa.rpproj.json; Online/Verify+load reported 1 block, 1 task, 1 rung, 3 tags. Physical PLC stayed disconnected.

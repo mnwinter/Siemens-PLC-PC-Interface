@@ -136,6 +136,18 @@
     "type": "sequence",
     "points": [
       {
+        "name": "auto_start_request",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "manual_jog_request",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
         "name": "auto_mode",
         "type": "BOOL",
         "owner": "PC",
@@ -182,6 +194,7 @@
       },
       {
         "id": "start-auto",
+        "controllerStartBinding": "auto_start_request",
         "label": "Start automatic travel",
         "type": "start",
         "sequence": "automatic",
@@ -193,6 +206,7 @@
       },
       {
         "id": "manual-jog",
+        "controllerStartBinding": "manual_jog_request",
         "label": "Jog pallet one increment",
         "type": "start",
         "sequence": "manual",
@@ -253,7 +267,7 @@
   "training": {
     "hints": [
       "Define the required result before writing logic: Auto stops at the pickup sensor; manual jog moves only one bounded increment.",
-      "Treat auto_mode, pickup_sensor as simulator-to-PLC inputs. The PLC should command only conveyor_run.",
+      "Treat auto_mode, pickup_sensor, auto_start_request and manual_jog_request as simulator-to-PLC inputs. Start and Jog pulse their separate requests when a matching ladder input is loaded. The PLC should command only conveyor_run.",
       "Use a step/state approach and prove the transition order: automatic travel \u2192 pickup position."
     ],
     "solution": {
@@ -300,6 +314,8 @@
       "cycle_complete"
     ],
     "addedTags": [
+      "auto_start_request",
+      "manual_jog_request",
       "auto_mode",
       "pickup_sensor",
       "pallet_position",
