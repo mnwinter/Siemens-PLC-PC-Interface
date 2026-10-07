@@ -238,7 +238,7 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Repaired static layout/chute; process behavior unverified",
+      "recordedResult": "Repaired static layout/chute and Top framing; normal native six-point I/O, Stop/resume and Reset checked; powder batch process unverified",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
