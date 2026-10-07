@@ -307,6 +307,7 @@
     "completionState": {},
     "conveyorSpeedMps": 0.75,
     "tankId": "sump_tank",
+    "sequenceLevelFeedback": true,
     "lowSensorId": "low_float",
     "highSensorId": "high_float",
     "lowThreshold": 0.2,

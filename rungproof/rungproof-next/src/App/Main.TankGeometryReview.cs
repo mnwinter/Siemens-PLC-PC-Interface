@@ -26,6 +26,7 @@ public partial class Main
         check(Math.Abs(reportedPercent-actualFraction*100)<.01,
             "sump_mid_rise_reported_level_matches_actual_liquid_surface");
         var contained = true;
+        var feedbackCoherent = true;
         var peak = initial.End.Y;
         for (var tick=0;tick<350;tick++)
         {
@@ -36,8 +37,13 @@ public partial class Main
                 && bounds.Position.X>shell.Position.X+.14f && bounds.End.X<shell.End.X-.14f
                 && bounds.Position.Z>shell.Position.Z+.14f && bounds.End.Z<shell.End.Z-.14f;
             peak=MathF.Max(peak,bounds.End.Y);
+            var fraction=(bounds.End.Y-.12f)/1.65f;
+            feedbackCoherent &= Math.Abs(Convert.ToDouble(runtime.Points["sump_level"])-fraction*100)<.01
+                && Equals(runtime.Points["low_float_active"],fraction<=.200001f)
+                && Equals(runtime.Points["high_float_active"],fraction>=.779999f);
         }
         check(contained,"sump_350_reference_level_samples_remain_inside_open_basin");
+        check(feedbackCoherent,"sump_350_samples_percentage_and_float_inputs_match_liquid_surface");
         check(MathF.Abs(peak-(.12f+1.65f*.78f))<.001f,
             "sump_reference_motion_reaches_78_percent_high_level");
         check(MathF.Abs(ReviewBounds(liquid).End.Y-(.12f+1.65f*.18f))<.001f,
@@ -45,6 +51,9 @@ public partial class Main
         runtime.ResetSimulation();
         check(MathF.Abs(ReviewBounds(liquid).End.Y-initial.End.Y)<.001f,
             "sump_reset_restores_initial_liquid_surface");
+        check(Math.Abs(Convert.ToDouble(runtime.Points["sump_level"])-22)<.001
+            && runtime.Points["low_float_active"] is false && runtime.Points["high_float_active"] is false,
+            "sump_reset_restores_level_and_float_input_image");
         // This drives the existing reference trajectory for geometry only.
         // It does not establish a PLC-owned pump latch or float mechanics.
     }

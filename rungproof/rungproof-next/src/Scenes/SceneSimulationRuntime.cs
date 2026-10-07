@@ -761,6 +761,9 @@ public partial class SceneSimulationRuntime : Node
         EvaluateRules();
         ApplyBindings();
         GD.Print($"SCENE_SEQUENCE_STEP {Text(step, "name", _activeStepIndex.ToString(CultureInfo.InvariantCulture))}");
+        // Opt-in level trajectories own their current feedback from the start
+        // of the step; authored endpoint presets must not appear as live data.
+        if (HasSequenceLevelFeedback) ApplyMotions(step, 0);
     }
 
     private bool ApplyMotions(JsonElement step, float progress)
@@ -840,6 +843,7 @@ public partial class SceneSimulationRuntime : Node
                     break;
                 case "tankLevel":
                     ApplyTankLevel(equipment, value);
+                    if (HasSequenceLevelFeedback) { ApplyBindings(); StateChanged?.Invoke(); }
                     break;
             }
         }
@@ -877,7 +881,23 @@ public partial class SceneSimulationRuntime : Node
         var bottom = authored.Position.Y - authored.Height * 0.5f;
         position.Y = bottom + authored.Height * normalized * 0.5f;
         liquid.Position = position;
+        if (HasSequenceLevelFeedback && equipment.Name.ToString() == SafeNodeName(Text(_definition, "tankId", "")))
+        {
+            // Sump contract: the plant supplies its measured level and two
+            // threshold inputs; this projection never supplies pump_run.
+            foreach (var (name, owner, type) in new[] {
+                ("sump_level", "SIM", "REAL"), ("low_float_active", "PC", "BOOL"), ("high_float_active", "PC", "BOOL"),
+            })
+                if (_pointOwners.GetValueOrDefault(name) != owner || _pointTypes.GetValueOrDefault(name) != type)
+                    throw new InvalidOperationException($"Sequence level feedback requires {owner} {type} {name}.");
+            SetPoint("sump_level", (double)normalized * 100);
+            SetPoint("low_float_active", normalized <= Number(_definition, "lowThreshold", .2)+.000001);
+            SetPoint("high_float_active", normalized >= Number(_definition, "highThreshold", .78)-.000001);
+        }
     }
+
+    private bool HasSequenceLevelFeedback => _definition.TryGetProperty("sequenceLevelFeedback", out var enabled)
+        && enabled.ValueKind == JsonValueKind.True;
 
     /// <summary>
     /// Mirrors the source tank simulation using only scene-owned symbolic
@@ -1387,6 +1407,7 @@ public partial class SceneSimulationRuntime : Node
         if (values.ValueKind != JsonValueKind.Object) return;
         foreach (var property in values.EnumerateObject())
         {
+            if (HasSequenceLevelFeedback && property.Name is "sump_level" or "low_float_active" or "high_float_active") continue;
             if (UsesExternalClock && Text(_definition, "controllerSequenceCommand", "").Length > 0
                 && IsPlcOwnedPoint(property.Name)) continue;
             SetPoint(property.Name, Value(property.Value));
