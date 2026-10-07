@@ -1,5 +1,11 @@
 # Multi-angle scene review - 2026-10-04
 
+## Sorter overhead framing verified in Windows - 2026-10-06
+
+Extended the existing opt-in near-vertical full-scene framing allowance to Vision Package Sorter. No equipment poses or normal camera defaults changed. Native rebuilt operator-shell overhead view at 1602x932 now displays the entire infeed, all four outgoing lane ends and controls between the review toolbar and I/O panel. Focused front-left inspection of outgoing bridge 4 also shows separation between its support and the table drive motor. These observations are static; automatic carton routing remains unwired.
+
+Verification: build zero warnings/errors, VirtualController tests 144 PASS/0 FAIL, --verify-app-shell PASS for 77 scenes/5 demos/295 assets. Native instance is active (exec session 57157). Next: resolve switch_11/destination_lane_4 overlap candidate in a focused view and actual bounds; continue runtime gaps. A direct --scene-id invocation opens standalone preview even with --app-shell; native acceptance above used normal shell navigation instead.
+
 ## Sorter support clearance and resumed native review - 2026-10-06
 
 User explicitly returned screen control. Moved lane 4's inner bridge support pair from local X -1.55 m to -1.65 m to remove the measured table-drive-motor intersection. Added outgoing bridge peer checks and lane-frame belt/drum/platter profile checks. Build: zero warnings/errors; focused carton static route command exited 0, with outgoing clearance/profile checks and 12,300 outgoing footprint samples passing. This is bounded offline geometry evidence, not mechanical approval.
