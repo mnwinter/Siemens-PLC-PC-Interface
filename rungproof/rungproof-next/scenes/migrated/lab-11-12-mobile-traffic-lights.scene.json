@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-11-12-mobile-traffic-lights",
   "name": "Lab 11.12 - Mobile Traffic Lights",
-  "description": "Two opposing signal heads display PLC-owned road-green commands. Road-clear and controller-ready inputs are manual; synchronization and red/amber timing remain controller work.",
+  "description": "Two opposing signal heads display six independent PLC-owned red, amber and green commands. Road-clear and controller-ready inputs are manual; alternating timing and interlocks belong to the loaded ladder.",
   "camera": {
     "position": [
       11,
@@ -155,6 +155,34 @@
         "owner": "PLC",
         "initial": false,
         "role": "output"
+      },
+      {
+        "name": "road_a_red",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "road_a_amber",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "road_b_red",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "name": "road_b_amber",
+        "type": "BOOL",
+        "owner": "PLC",
+        "initial": false,
+        "role": "output"
       }
     ],
     "actions": [
@@ -198,14 +226,38 @@
       {
         "point": "road_a_green",
         "equipmentId": "indicator_0",
-        "mode": "indicator",
+        "mode": "indicatorChannel",
         "activeColor": "green"
       },
       {
         "point": "road_b_green",
         "equipmentId": "indicator_1",
-        "mode": "indicator",
+        "mode": "indicatorChannel",
         "activeColor": "green"
+      },
+      {
+        "point": "road_a_red",
+        "equipmentId": "indicator_0",
+        "mode": "indicatorChannel",
+        "activeColor": "red"
+      },
+      {
+        "point": "road_a_amber",
+        "equipmentId": "indicator_0",
+        "mode": "indicatorChannel",
+        "activeColor": "amber"
+      },
+      {
+        "point": "road_b_red",
+        "equipmentId": "indicator_1",
+        "mode": "indicatorChannel",
+        "activeColor": "red"
+      },
+      {
+        "point": "road_b_amber",
+        "equipmentId": "indicator_1",
+        "mode": "indicatorChannel",
+        "activeColor": "amber"
       }
     ]
   },
@@ -213,6 +265,7 @@
     "hints": [
       "Translate the lesson into explicit state and permissive logic: Only one road receives a green command at a time, and both roads stop on a fault.",
       "Inputs are simulator feedback (controller_ready, road_a_clear, road_b_clear); PLC logic owns road_a_green, road_b_green.",
+      "The loaded ladder also owns road_a_red, road_a_amber, road_b_red and road_b_amber. Each lamp shows its actual command, including conflicting colors; test the interlocks in your ladder.",
       "Test the initial state, the valid condition, and at least one missing permissive."
     ],
     "solution": {
@@ -265,7 +318,11 @@
       "road_a_clear",
       "road_b_clear",
       "road_a_green",
-      "road_b_green"
+      "road_b_green",
+      "road_a_red",
+      "road_a_amber",
+      "road_b_red",
+      "road_b_amber"
     ],
     "changedTags": [],
     "previousAcceptance": [

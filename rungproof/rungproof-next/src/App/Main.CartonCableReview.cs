@@ -22,6 +22,7 @@ public partial class Main
             VerifyInclinedPhotoeyeGeometry(Check);
             VerifyVisionSorterCartonSupport(Check);
             VerifyVisionSorterRuntime(Check);
+            VerifyMobileTrafficLampChannels(Check);
         }
         catch (Exception error)
         {
@@ -29,6 +30,41 @@ public partial class Main
             GD.PushError($"CARTON_STATIC_CHECK exception: {error}");
         }
         GetTree().Quit(passed ? 0 : 1);
+    }
+
+    private void VerifyMobileTrafficLampChannels(Action<bool, string> check)
+    {
+        AddMigratedScene("lab-11-12-mobile-traffic-lights", _candidateCatalog!, _mainCamera!, false, false);
+        var runtime = _sceneRuntime!;
+        var colors = new[] { "red", "amber", "green" };
+        var heads = new[] { _sceneCompositionRoot!.GetNode<Node3D>("indicator_0"),
+            _sceneCompositionRoot.GetNode<Node3D>("indicator_1") };
+        var lamps = heads.SelectMany(head => colors.Select(color => ReviewMeshes(head)
+            .Where(mesh => mesh.Name.ToString().StartsWith("LENS_" + color, StringComparison.OrdinalIgnoreCase)).ToArray())).ToArray();
+        bool Lit(int channel) => lamps[channel].Length > 0 && lamps[channel].All(mesh =>
+            mesh.MaterialOverride is StandardMaterial3D { EmissionEnabled: true });
+        var names = new[] { "road_a_red", "road_a_amber", "road_a_green", "road_b_red", "road_b_amber", "road_b_green" };
+        check(lamps.All(group => group.Length > 0) && names.All(name => runtime.Points[name] is false)
+            && Enumerable.Range(0, 6).All(channel => !Lit(channel)), "traffic_six_present_channels_initially_dark");
+        runtime.UsesExternalClock = true;
+        runtime.SetControllerPlaybackRunning(true);
+        // Exhaust every command combination, including invalid simultaneous
+        // colors. The renderer must expose, not silently correct, ladder bugs.
+        var accurate = true;
+        for (var mask = 0; mask < 64; mask++)
+        {
+            var outputs = names.Select((name, channel) => (name, active: (mask & (1 << channel)) != 0))
+                .ToDictionary(item => item.name, item => item.active);
+            runtime.CommitVirtualControllerOutputs(outputs);
+            accurate &= Enumerable.Range(0, 6).All(channel => Lit(channel) == outputs[names[channel]]);
+        }
+        check(accurate, "traffic_all_64_command_images_match_six_lenses_including_conflicts");
+        runtime.SetControllerPlaybackRunning(false);
+        runtime.CommitVirtualControllerOutputs(names.ToDictionary(name => name, _ => false));
+        check(Enumerable.Range(0, 6).All(channel => !Lit(channel)), "traffic_stopped_zero_commands_dark");
+        runtime.ResetSimulation();
+        check(names.All(name => runtime.Points[name] is false) && Enumerable.Range(0, 6).All(channel => !Lit(channel)),
+            "traffic_reset_commands_and_lenses_dark");
     }
 
     private void VerifyVisionSorterRuntime(Action<bool, string> check)

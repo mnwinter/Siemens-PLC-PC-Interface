@@ -85,7 +85,7 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Repaired carton seating, four receiving belts and supported handoffs freshly inspected in native Windows window 8389926. CLASS / NO RESULT readable on grounded display stand; carton bottom visibly seated inside belt deck. FAIL/open: class feedback and driven routing absent; loaded-controller sorter workflow and continuous-motion proof unverified.",
+      "recordedResult": "Repaired carton seating, four receiving belts and supported handoffs freshly inspected in native Windows window 8389926. CLASS / NO RESULT readable on grounded display stand; carton bottom visibly seated inside belt deck. Class fixture/display and driven routing implemented (a601080/38d5088). Four integrated routes pass continuous motion, class retention, endpoint/Stop/Reset checks. Native loaded QA lane1 route, class change, Stop/resume, endpoint in five directions and Reset verified in window204276. FAIL/open: native completed routes2-4 and complete moving-solid clearance remain unverified.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": true,
       "disposition": "REPAIR_RECORDED_FAILURE",
@@ -204,7 +204,7 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Horizontal road, two opposing three-color heads and separate wheeled cart bases on shoulders. Cart footprints clear asphalt/crosswalk/stations; corrected Top contains raised heads. Existing green bindings retained. FAIL/open: synchronization link, red/amber command timing, native command cycle, vehicle motion and automatic clear feedback; default exercise unloaded.",
+      "recordedResult": "Horizontal road, two opposing three-color heads and separate wheeled cart bases on shoulders. Cart footprints clear asphalt/crosswalk/stations; corrected Top contains raised heads. Existing green bindings retained. Six independent PLC-owned lamp commands now available; 64 command combinations match actual lenses including conflicts. Native six-rung QA verifies red/amber/green on both heads, opposing-green visibility, five views, Stop and Reset. FAIL/open: synchronization depiction, timed alternating reference cycle, vehicle motion and automatic clear feedback; default exercise unloaded.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": true,
       "disposition": "REPAIR_RECORDED_FAILURE",
