@@ -181,6 +181,34 @@ public partial class Main
         var handoffs=root.GetChildren().OfType<Node3D>().Where(n=>n.Name.ToString().StartsWith("sorter_outgoing_bridge_",StringComparison.Ordinal)).ToArray();
         check(handoffs.Length==4 && root.GetNodeOrNull<Node3D>("training_accessory_7") is null,
             "vision_sorter_four_outgoing_handoffs_replace_cabinet_diverter_surrogate");
+        var outgoingClear=handoffs.Length==4;var outgoingMatingClear=handoffs.Length==4;
+        var peerParts=root.GetChildren().OfType<Node3D>().SelectMany(n=>ReviewMeshes(n).Select(m=>(Root:n,Mesh:m,Bounds:ReviewBounds(m)))).ToArray();
+        foreach(var handoff in handoffs)
+        {
+            var laneId=handoff.Name.ToString().Replace("sorter_outgoing_bridge_","destination_lane_",StringComparison.Ordinal);
+            var lane=root.GetNode<Node3D>(laneId);
+            var outgoingDeck=(MeshInstance3D)handoff.FindChild("SORTER_handoff_deck",true,false);
+            var receivingDeck=(MeshInstance3D)lane.FindChild("KIN_belt_surface",true,false);
+            var receivingDrum=(MeshInstance3D)lane.FindChild("KIN_drive_drum",true,false);
+            var receivingTail=(MeshInstance3D)lane.FindChild("KIN_tail_drum",true,false);
+            outgoingMatingClear &= VisionSorterContactProfileClear(outgoingDeck,receivingDeck,false,lane)
+                && VisionSorterContactProfileClear(outgoingDeck,receivingDrum,false,lane)
+                && VisionSorterContactProfileClear(outgoingDeck,receivingTail,false,lane)
+                && VisionSorterContactProfileClear(outgoingDeck,platter,true);
+            foreach(var part in ReviewMeshes(handoff))
+            foreach(var peer in peerParts.Where(p=>p.Root!=handoff))
+            {
+                if(part==outgoingDeck && (peer.Mesh==receivingDeck || peer.Mesh==receivingDrum || peer.Mesh==receivingTail || peer.Mesh==platter))continue;
+                var overlap=ReviewBounds(part).Intersection(peer.Bounds).Size;
+                if(overlap.X<=.001f || overlap.Y<=.001f || overlap.Z<=.001f || !OrientedBoxesPenetrate(part,peer.Mesh))continue;
+                if(peer.Mesh==platter && VisionSorterContactProfileClear(part,platter,true))continue;
+                GD.Print($"VISION_SORTER_OUTGOING_BOUNDS part={ReviewBounds(part)} peer={peer.Bounds}");
+                GD.Print($"VISION_SORTER_OUTGOING_INTERFERENCE {handoff.Name}/{part.Name} {peer.Root.Name}/{peer.Mesh.Name}");
+                outgoingClear=false;
+            }
+        }
+        check(outgoingClear,"vision_sorter_all_four_outgoing_bridges_clear_other_equipment_at_one_mm_obb_screen");
+        check(outgoingMatingClear,"vision_sorter_four_outgoing_belt_drum_platter_profiles_clear_in_lane_frames");
         var infeedTriangles=topTriangles;
         var outgoingSupported=handoffs.Length==4;var outgoingSamples=0;
         foreach(var lane in lanes)
@@ -227,12 +255,13 @@ public partial class Main
     // against an obstacle vertex hull (XY for belt/drum, XZ for platter),
     // eroded by a declared 1 mm allowance. These projections are bounded
     // geometry evidence, not general concave-mesh or swept-volume proof.
-    private static bool VisionSorterContactProfileClear(MeshInstance3D deck, MeshInstance3D drum, bool horizontal = false)
+    private static bool VisionSorterContactProfileClear(MeshInstance3D deck, MeshInstance3D drum, bool horizontal = false, Node3D? referenceFrame = null)
     {
         Vector2 Project(Vector3 v)=>horizontal ? new Vector2(v.X,v.Z) : new Vector2(v.X,v.Y);
         float Depth(Vector3 v)=>horizontal ? v.Y : v.Z;
-        var points=drum.Mesh.GetFaces().Select(v=>drum.GlobalTransform*v)
-            .Select(Project).Distinct().OrderBy(v=>v.X).ThenBy(v=>v.Y).ToArray();
+        var toFrame=referenceFrame?.GlobalTransform.AffineInverse() ?? Transform3D.Identity;
+        var obstacleVertices=drum.Mesh.GetFaces().Select(v=>toFrame*drum.GlobalTransform*v).ToArray();
+        var points=obstacleVertices.Select(Project).Distinct().OrderBy(v=>v.X).ThenBy(v=>v.Y).ToArray();
         float Cross(Vector2 a,Vector2 b)=>a.X*b.Y-a.Y*b.X;
         var hull=new System.Collections.Generic.List<Vector2>();
         foreach(var p in points)
@@ -249,11 +278,12 @@ public partial class Main
         }
         if(hull.Count>1)hull.RemoveAt(hull.Count-1);
         if(hull.Count<3)return false;
-        var faces=deck.Mesh.GetFaces();var drumBounds=ReviewBounds(drum);
+        var faces=deck.Mesh.GetFaces();
+        var depthStart=obstacleVertices.Min(Depth);var depthEnd=obstacleVertices.Max(Depth);
         for(var i=0;i<faces.Length;i+=3)
         {
-            var triangle=new[]{deck.GlobalTransform*faces[i],deck.GlobalTransform*faces[i+1],deck.GlobalTransform*faces[i+2]};
-            if(triangle.All(v=>Depth(v)<Depth(drumBounds.Position)) || triangle.All(v=>Depth(v)>Depth(drumBounds.End)))continue;
+            var triangle=new[]{toFrame*deck.GlobalTransform*faces[i],toFrame*deck.GlobalTransform*faces[i+1],toFrame*deck.GlobalTransform*faces[i+2]};
+            if(triangle.All(v=>Depth(v)<depthStart) || triangle.All(v=>Depth(v)>depthEnd))continue;
             var clipped=triangle.Select(Project).ToList();
             for(var edge=0;edge<hull.Count && clipped.Count>0;edge++)
             {

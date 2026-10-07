@@ -1,5 +1,11 @@
 # Multi-angle scene review - 2026-10-04
 
+## Sorter support clearance and resumed native review - 2026-10-06
+
+User explicitly returned screen control. Moved lane 4's inner bridge support pair from local X -1.55 m to -1.65 m to remove the measured table-drive-motor intersection. Added outgoing bridge peer checks and lane-frame belt/drum/platter profile checks. Build: zero warnings/errors; focused carton static route command exited 0, with outgoing clearance/profile checks and 12,300 outgoing footprint samples passing. This is bounded offline geometry evidence, not mechanical approval.
+
+Launched the actual Windows app with --app-shell --visual-scene-review and navigated to catalog scene 5 (Vision Package Sorter). Inspected front right, front left, rear left, rear right and overhead at the full-scene setting. Four separate receiving conveyors and supported table handoffs are visible. The overhead camera clips an upper lane end: camera framing remains unresolved. Full-scene views are insufficient to certify the small motor/support clearance visually; a focused close view remains required. Scene description still claims vision-based package routing, but the actual five-point boolean-panel simulation has no driven class selection/carton routing. Runtime completion remains failed/unverified. No physical PLC connection or writes.
+
 Sorter four-outgoing-handoff checkpoint (2026-10-06; native review OPEN):
 Four scene-specific curved handoffs now join the parcel table to its four
 receiving conveyors. Actual lane-local bearing starts are -1.9627335..-1.9627337
