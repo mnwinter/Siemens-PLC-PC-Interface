@@ -1,5 +1,9 @@
 # Whole-program completion ledger
 
+## 2026-10-07 elevator evidence refresh
+
+Later checkpoints supersede the historical door-travel gap below: modeled door travel/closure gating, partial Stop and opening reversal are implemented and observed. Call-station leaf collision repaired c7ac0fa with101 sampled leaf poses and fresh five-angle home inspection. Native repaired roundtrip recorded ed8c345; adjacent native scans350/351 now directly show upper feedback selecting exclusive return. Hoist/access installation and continuous motion clearance remain open. Historical counts and unresolved feature lists below are checkpoint evidence, not current acceptance.
+
 ## 2026-10-07 queue triage update
 
 At source0f94a16, the eleven literal FAIL/open rows were reviewed against their full recorded results. Five contain missing implementation (typed STRUCT/ARRAY interfaces, wastewater process, elevator hoist/access/door travel, traffic timing/vehicle feedback); six contain verification gaps (sorter/robot between-sample clearance, sump visual/process limits, shipping last-active scan/intermediate poses, two tank operator/threshold checks). Generator58ddf72 now distinguishes IMPLEMENT_RECORDED_GAP from VERIFY_RECORDED_GAP and sends unknown FAIL records to TRIAGE_RECORDED_FAILURE. Original result text and failure flags remain; no row changed to PASS.
