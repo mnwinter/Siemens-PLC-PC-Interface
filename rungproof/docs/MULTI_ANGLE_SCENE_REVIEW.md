@@ -1,5 +1,17 @@
 # Multi-angle scene review - 2026-10-04
 
+Sorter display support regression checkpoint (2026-10-06; native review OPEN):
+Five actual scene checks pass for display mesh identity, grounded base with
+attached mast/housing, explicit CLASS / NO RESULT text with hidden stale COUNT
+legend, carton bearing-plane contact and full supported footprint. Evidence:
+.tools/sorter-display-support.log. Full scene contracts pass 71/0 in
+.tools/sorter-display-contracts.log; app shell passes 77 scenes / 5 demos / 295
+assets while DISCONNECTED in .tools/sorter-display-shell.log. Source contract
+checks and text-node inspection do not prove rendered readability or sorting.
+The diverter still uses a cabinet surrogate; connected four-lane routing,
+class feedback and latest native five-angle inspection remain OPEN.
+
+
 Vision sorter display identity checkpoint (2026-10-06; native review OPEN):
 Actual GLB node inventory confirms the former class-display package contains
 photoeye receiver/transmitter parts; the supposed four-lane diverter contains

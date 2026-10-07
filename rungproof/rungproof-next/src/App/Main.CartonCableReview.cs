@@ -38,6 +38,16 @@ public partial class Main
         check(display.FindChild("COUNT_DISPLAY_screen", true, false) is MeshInstance3D
             && display.FindChild("COUNT_DISPLAY_base", true, false) is MeshInstance3D,
             "vision_sorter_class_display_has_actual_supported_display_mesh_identity");
+        var foot = (MeshInstance3D)display.FindChild("COUNT_DISPLAY_base", true, false);
+        var mast = (MeshInstance3D)display.FindChild("COUNT_DISPLAY_mast", true, false);
+        var housing = (MeshInstance3D)display.FindChild("COUNT_DISPLAY_housing", true, false);
+        check(MathF.Abs(ReviewBounds(foot).Position.Y) < .001f
+            && ReviewBounds(foot).Grow(.001f).Intersects(ReviewBounds(mast))
+            && ReviewBounds(mast).Grow(.001f).Intersects(ReviewBounds(housing)),
+            "vision_sorter_display_has_grounded_base_and_attached_mast_housing");
+        check(display.FindChild("StaticReadout", true, false) is Label3D label && label.Text == "CLASS\nNO RESULT"
+            && display.FindChild("COUNT_DISPLAY_static_legend", true, false) is MeshInstance3D legend && !legend.Visible,
+            "vision_sorter_display_states_no_result_and_hides_stale_count_legend");
         var carton = ReviewBounds(root.GetNode<Node3D>("box_1"));
         var surface = (MeshInstance3D)root.GetNode<Node3D>("conveyor_0").FindChild("KIN_belt_surface", true, false);
         var belt = ReviewBounds(surface);
