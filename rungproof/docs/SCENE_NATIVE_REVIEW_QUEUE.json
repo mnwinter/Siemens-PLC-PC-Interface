@@ -1207,7 +1207,7 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Carton/fixture/readout geometry repaired and five views/details inspected. Live DINT count/readout FR/FL and invalid/five-edge/held/permissive/Stop/Run/Reset native checks pass. Optical classification/pallet travel/CNC integration open",
+      "recordedResult": "Carton/fixture/readout geometry repaired and five views/details inspected. Live DINT count/readout FR/FL and invalid/five-edge/held/permissive/Stop/Run/Reset native checks pass. Optical classification/pallet travel/CNC integration open 2026-10-07 native794268 supplied Demo4 Run/rail inputs refresh: invalid/held detection stays0, five fresh edges visibly produce DINT1-5 and validity only at5. Close grounded COUNT5 display read, Stop12529 shows published COUNT0, Run12542 restores retained5, Reset0 clears shown values. Full installation refreshed initial diagonal/FL/RL/RR/Top, RR machine occlusion resolved opposing views. Static/manual count lesson; process motion and stopped-zero presentation concern remain open.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
@@ -1241,7 +1241,7 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Carton belt contact/load-end footprint repaired; native five wide/Top/FL close and Demo 3 Run/Start/photoeye/Stop/Reset rechecked; full clearance open",
+      "recordedResult": "Carton belt contact/load-end footprint repaired; native five wide/Top/FL close and Demo 3 Run/Start/photoeye/Stop/Reset rechecked; full clearance open 2026-10-07 native794268 supplied Demo3 Run144 idle, Start accepted/830 photoeyeTrue atposition0.5 with conveyorFalse, Stop1749 retains supported carton. Endpoint inspected initial diagonal/FL/RL/RR/Top, Reset0 restores load end and clears feedback/output. Intermediate travel/mid-travel Stop/full clearance still open.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
