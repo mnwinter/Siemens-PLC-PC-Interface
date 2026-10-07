@@ -1,3 +1,17 @@
+
+Verification for this checkpoint: build zero warnings/errors; 145 virtual-controller tests PASS/zero failures (.tools/catalog-20261007-unit.log); --verify-app-shell exited 0 (.tools/catalog-20261007-shell.log). The post-change full --verify-scene-geometry run remains in progress in session 9476 (.tools/catalog-20261007-geometry-final.log); do not count it as passed before its exit result is checked.
+## 2026-10-07 - catalog consistency and native control-row repairs
+
+Full catalog preflight found stale equipment metadata in five entries: ten-motor array, wastewater collection, multi-conveyor pallet route, service elevator and mobile traffic lights. Regenerated their counts/types and aggregate equipment totals from the existing scene definitions: 77 scenes, 627 instances. No geometry was added by this metadata correction.
+
+The same preflight found depth-stacked controls in elevator and traffic. Elevator controls now occupy five distinct X positions (-6.4, -3.2, 0, 3.2, 6.4) at Z 4.7 outside the landings; traffic READY/A CLEAR/B CLEAR occupy X 6/8/10 at Z 2 outside the road. Actions, bindings and controller logic remain unchanged.
+
+Full tools/verify_scene_contracts.py run with four workers exited 0: 71 authored cases PASS, zero failures (.tools/catalog-20261007-all-contracts-final.log; build/scene-contract-verification/summary.json). This includes catalog-wide metadata/layout preflight; six catalog scenes lack authored contract cases. Passing contracts does not certify native motion or continuous solid clearance.
+
+Fresh normal Windows app session 53981/window 204592 loaded elevator, then the visible Next action opened traffic. Inspected each revised home layout in FR, FL, RL, RR and Top at full-scene framing. All five elevator controls and three traffic controls are distinct and separated from the structures in front/top views; elevator shaft and traffic head partially occlude individual controls in some rear views. Opposing views resolve the spacing. No clipping or obvious footprint overlap observed at the viewed scale. Stopped local runtime; external PLC disconnected throughout. Existing native motion evidence predates these placement-only changes; motion was not rerun in this checkpoint.
+
+Older entries below are historical checkpoints, including failures subsequently repaired. The full-program review remains open: incomplete scene features, missing native motion/transition evidence and continuous geometry checks must not be represented as completed by this catalog pass.
+
 ## 2026-10-07 - native controller dual-spindle feed/retract/transfer review
 
 Extended the existing offline visual-review Hold/Step controls to the repaired single-clock dual-spindle plant. Coarse steps accept 25 normal 20 ms scans; fine steps accept one. The review label exposes actual simulated A/B axial and slide percentages. Integrated audit proves Hold prevents unaccepted scans and a coarse step accepts exactly 25; final --audit-dual-spindle passes 45 checks (.tools/dual-clock-audit.log). Build zero warnings/errors and --verify-app-shell passed (.tools/dual-clock-shell.log). This review tool does not contact or step an external PLC.

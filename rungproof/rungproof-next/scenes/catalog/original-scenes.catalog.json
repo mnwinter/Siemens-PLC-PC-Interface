@@ -3,30 +3,30 @@
   "catalogId": "rungproof-original-scenes-migrated",
   "sourceRoot": "prototype/scenes",
   "sceneCount": 77,
-  "equipmentInstanceCount": 628,
+  "equipmentInstanceCount": 627,
   "equipmentTypeCounts": {
     "box": 30,
     "containerReceiver": 3,
     "conveyor": 38,
     "drillPress": 4,
     "fan": 5,
-    "indicator": 114,
-    "levelSensor": 9,
+    "indicator": 112,
+    "levelSensor": 10,
     "liftTable": 4,
     "machine": 10,
     "meteringSkid": 1,
-    "motor": 10,
-    "palletLoad": 1,
-    "photoeye": 34,
+    "motor": 15,
+    "palletLoad": 2,
+    "photoeye": 35,
     "pipe": 8,
     "pump": 6,
     "pusher": 2,
     "radarLevelSensor": 1,
     "robotArm": 5,
-    "rollerShutter": 3,
+    "rollerShutter": 2,
     "rotarySwitch": 18,
     "rotaryTable": 4,
-    "sceneInstallation": 4,
+    "sceneInstallation": 6,
     "sizeSensorBank": 1,
     "switch": 148,
     "tank": 12,
@@ -34,7 +34,7 @@
     "toteFiller": 2,
     "toteLabeler": 1,
     "toteVision": 1,
-    "trainingAccessory": 140,
+    "trainingAccessory": 132,
     "valve": 8
   },
   "scenes": [
@@ -177,7 +177,7 @@
       "name": "Lab 10.6 - Ten-Motor Array Startup",
       "path": "res://scenes/migrated/lab-10-06-ten-motor-array-startup.scene.json",
       "sourceFile": "prototype/scenes/lab-10-06-ten-motor-array-startup.plcscene",
-      "equipmentCount": 13,
+      "equipmentCount": 17,
       "equipmentTypes": [
         "indicator",
         "motor",
@@ -197,7 +197,9 @@
       "equipmentCount": 14,
       "equipmentTypes": [
         "indicator",
+        "levelSensor",
         "pump",
+        "sceneInstallation",
         "switch",
         "tank",
         "trainingAccessory",
@@ -213,11 +215,13 @@
       "name": "Lab 11.7 - Multi-Conveyor Pallet Route",
       "path": "res://scenes/migrated/lab-11-07-multi-conveyor-pallet-route.scene.json",
       "sourceFile": "prototype/scenes/lab-11-07-multi-conveyor-pallet-route.plcscene",
-      "equipmentCount": 15,
+      "equipmentCount": 17,
       "equipmentTypes": [
         "conveyor",
         "indicator",
+        "palletLoad",
         "photoeye",
+        "sceneInstallation",
         "switch",
         "trainingAccessory"
       ],
@@ -231,13 +235,11 @@
       "name": "Lab 11.11 - Service Elevator",
       "path": "res://scenes/migrated/lab-11-11-service-elevator.scene.json",
       "sourceFile": "prototype/scenes/lab-11-11-service-elevator.plcscene",
-      "equipmentCount": 11,
+      "equipmentCount": 6,
       "equipmentTypes": [
         "indicator",
         "liftTable",
-        "rollerShutter",
-        "switch",
-        "trainingAccessory"
+        "switch"
       ],
       "unresolvedAssetTypes": [
         "trainingAccessory"
@@ -249,9 +251,8 @@
       "name": "Lab 11.12 - Mobile Traffic Lights",
       "path": "res://scenes/migrated/lab-11-12-mobile-traffic-lights.scene.json",
       "sourceFile": "prototype/scenes/lab-11-12-mobile-traffic-lights.plcscene",
-      "equipmentCount": 8,
+      "equipmentCount": 6,
       "equipmentTypes": [
-        "indicator",
         "switch",
         "trainingAccessory"
       ],

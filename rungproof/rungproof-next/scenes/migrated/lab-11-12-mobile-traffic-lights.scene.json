@@ -63,9 +63,9 @@
       "type": "switch",
       "label": "Manual READY",
       "position": [
-        6.0,
+        6,
         0,
-        2.0
+        2
       ],
       "config": {
         "style": "pushbutton",
@@ -93,9 +93,9 @@
       "type": "switch",
       "label": "Manual A CLEAR",
       "position": [
-        6.0,
+        8,
         0,
-        0.0
+        2
       ],
       "config": {
         "style": "pushbutton",
@@ -109,9 +109,9 @@
       "type": "switch",
       "label": "Manual B CLEAR",
       "position": [
-        6.0,
+        10,
         0,
-        -2.0
+        2
       ],
       "config": {
         "style": "pushbutton",

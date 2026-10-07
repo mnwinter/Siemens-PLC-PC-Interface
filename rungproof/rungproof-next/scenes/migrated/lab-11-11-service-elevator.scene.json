@@ -38,9 +38,9 @@
       "type": "switch",
       "label": "Service Elevator switch",
       "position": [
-        -3.2,
+        -6.4,
         0,
-        2.8
+        4.7
       ],
       "config": {
         "style": "pushbutton",
@@ -53,9 +53,9 @@
       "type": "indicator",
       "label": "Service Elevator indicator",
       "position": [
-        3.2,
+        6.4,
         0,
-        2.8
+        4.7
       ],
       "config": {
         "colors": [
