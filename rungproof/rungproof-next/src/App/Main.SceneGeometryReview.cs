@@ -290,6 +290,7 @@ public partial class Main
             VerifyMotorStateProjection(Check);
             VerifyMotorRecordGeometry(Check);
             VerifyMotorArrayGeometry(Check);
+            VerifyWastewaterProbeGeometry(Check);
             VerifyLabelPrintGeometry(Check);
             VerifySelectorProjection(Check);
             VerifyInboundToteGeometry(Check);
@@ -724,6 +725,35 @@ public partial class Main
         check(motions.Length == 10 && motions.All(motion => motion.Running), "motor_array_group_command_projects_to_all_ten_motors");
         _sceneRuntime.CommitExternalPlcOutputs(new Dictionary<string, object?> { ["motor_array_run"] = false });
         check(motions.All(motion => !motion.Running), "motor_array_group_command_off_stops_all_ten_motors");
+    }
+
+    private void VerifyWastewaterProbeGeometry(Action<bool, string> check)
+    {
+        AddMigratedScene("lab-11-06-wastewater-collection", _candidateCatalog!, _mainCamera!, false, false);
+        var root = _sceneCompositionRoot!;
+        var tank = root.GetNode<Node3D>("tank_0");
+        var probe = root.GetNode<Node3D>("training_accessory_7");
+        MeshInstance3D Part(Node node, string name) => (MeshInstance3D)node.FindChild(name, true, false);
+        var roof = ReviewBounds(Part(tank, "TANK_roof"));
+        var flange = ReviewBounds(Part(probe, "PROCESS_flange"));
+        var socket = ReviewBounds(Part(tank, "TANK_ANALOG_socket"));
+        check(socket.Grow(.001f).Intersects(roof) && socket.Grow(.001f).Intersects(flange),
+            "wastewater_probe_socket_mates_roof_and_process_flange");
+        var liquid = ReviewBounds(Part(tank, "KIN_liquid"));
+        var tip = ReviewBounds(Part(probe, "PROBE_tip_weight"));
+        var rod = ReviewBounds(Part(probe, "PROBE_sensing_rod"));
+        check(MathF.Abs(tip.Position.Y - liquid.Position.Y) < .001f && rod.Grow(.001f).Intersects(tip),
+            "wastewater_probe_tip_at_liquid_zero_datum_and_attached_to_rod");
+        var shells = ReviewMeshes(root).Where(mesh => mesh.Name == "TANK_shell").ToArray();
+        check(shells.Length == 4 && !shells.Where((a, i) => shells.Skip(i + 1).Any(b => ReviewBounds(a).Intersects(ReviewBounds(b)))).Any(),
+            "wastewater_four_tank_shells_have_separate_bounds");
+        var pump = root.GetNode<Node3D>("pump_3").FindChildren("*", string.Empty, true, false).OfType<EquipmentMotionController>().Single();
+        _sceneRuntime!.CommitExternalPlcOutputs(new Dictionary<string, object?> { ["transfer_pump_run"] = true });
+        check(pump.Running, "wastewater_output_command_runs_actual_pump_controller");
+        _sceneRuntime.CommitExternalPlcOutputs(new Dictionary<string, object?> { ["transfer_pump_run"] = false });
+        check(!pump.Running, "wastewater_output_command_off_stops_actual_pump_controller");
+        // Manual BOOL feedback remains manual: mounting geometry does not manufacture analog measurement.
+        check(_sceneRuntime.Points["source_level_high"] is false, "wastewater_probe_installation_preserves_manual_feedback");
     }
 
     private void VerifyDrillStartPermissives(Action<bool, string> check)

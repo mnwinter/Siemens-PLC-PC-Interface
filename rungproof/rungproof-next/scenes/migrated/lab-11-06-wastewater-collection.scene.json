@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-11-06-wastewater-collection",
   "name": "Lab 11.6 - Wastewater Collection",
-  "description": "Wastewater command exercise with manually toggled BOOL feedback. Vessel spacing is modeled; installed sensing and connected process piping remain incomplete.",
+  "description": "Wastewater command exercise with manually toggled BOOL feedback and a roof-mounted probe. Connected process piping and valve command projection remain incomplete.",
   "camera": {
     "position": [
       11,
@@ -126,16 +126,16 @@
     },
     {
       "id": "training_accessory_7",
-      "type": "trainingAccessory",
-      "label": "Wastewater Collection - level transmitters",
+      "type": "levelSensor",
+      "label": "Source tank insertion probe - manual BOOL feedback",
       "position": [
         -2,
         0,
         4
       ],
       "config": {
-        "assetName": "level transmitters",
-        "catalogAssetId": "training.accessory.level_transmitters.v1"
+        "sensorType": "analog",
+        "installation": "roofAnalogProbe"
       }
     },
     {
@@ -315,8 +315,15 @@
         "equipmentId": "indicator_13",
         "mode": "indicator",
         "activeColor": "green"
+      },
+      {
+        "point": "transfer_pump_run",
+        "equipmentId": "pump_3",
+        "mode": "running"
       }
-    ]
+    ],
+    "tankId": "tank_0",
+    "transmitterId": "training_accessory_7"
   },
   "training": {
     "hints": [
@@ -340,7 +347,7 @@
       "alarm beacon"
     ],
     "machineGuide": {
-      "purpose": "Wastewater command exercise with manually toggled BOOL feedback. Vessel spacing is modeled; installed sensing and connected process piping remain incomplete.",
+      "purpose": "Wastewater command exercise with manually toggled BOOL feedback and a roof-mounted probe. Connected process piping and valve command projection remain incomplete.",
       "startConditions": [
         "The common PLC/watchdog foundation is healthy.",
         "All required simulator inputs are at their documented initial state."

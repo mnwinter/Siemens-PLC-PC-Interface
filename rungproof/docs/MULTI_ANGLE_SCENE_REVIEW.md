@@ -1,5 +1,30 @@
 # Multi-angle scene review - 2026-10-04
 
+## Wastewater probe and pump projection WIP (2026-10-06)
+
+Converted training_accessory_7 to the real analog levelSensor factory and opted
+into roofAnalogProbe, with tank_0/transmitterId installation references. Existing
+measured roof/socket/flange and liquid-zero/tip sizing now places the probe on
+tank_0 instead of standing unmounted on the floor. Retained manually toggled
+source_level_high; no analog acquisition or calibration is established.
+Added transfer_pump_run running binding to actual pump_3, retaining its light.
+Valve projection and correct process manifold/piping remain unresolved.
+
+Normal Windows Previous/Next navigation reloaded the scene. Actual full-scene FR
+and focused tank_0 FR/Top show the roof-mounted probe and clear central manway.
+Focused Top partly approaches toolbar; complete rail/attachment clearance and
+FR/FL/RL/RR/Top focused post-change views are now inspected. The roof socket
+shows contact with the process flange and roof, clear of the central manway;
+rail crossing in projected views is not swept or physical clearance proof. Native controller-driven pump
+animation not tested in this checkpoint.
+
+Build zero warnings/errors; 145 controller tests PASS/0 FAIL; app shell PASS
+77 scenes/5 demos/295 assets. Six new geometry assertions check socket/roof/flange,
+tip/liquid zero and rod attachment, separate shells, pump running true/false and
+unchanged manual feedback. Full --verify-scene-geometry is live in exec session
+59906, log .tools/wastewater-probe-geometry.log; all six new wastewater assertions are True; overall outcome pending. Do not restart
+solely because observation times out. Checkpoint commit preserves the repair; overall audit result remains pending.
+
 ## Wastewater spacing repair checkpoint (2026-10-06)
 
 Changed only scene placement and its displayed scope description. The four
