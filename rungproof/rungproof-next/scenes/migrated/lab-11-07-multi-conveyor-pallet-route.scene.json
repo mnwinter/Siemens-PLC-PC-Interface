@@ -94,7 +94,7 @@
       "config": {
         "span": 3.2,
         "height": 0.7,
-        "beamCenterHeightM": 1.23,
+        "beamCenterHeightM": 1.5,
         "blocked": false
       }
     },
@@ -110,7 +110,7 @@
       "config": {
         "span": 3.2,
         "height": 0.7,
-        "beamCenterHeightM": 1.23,
+        "beamCenterHeightM": 1.5,
         "blocked": false
       }
     },
@@ -126,7 +126,7 @@
       "config": {
         "span": 3.2,
         "height": 0.7,
-        "beamCenterHeightM": 1.23,
+        "beamCenterHeightM": 1.5,
         "blocked": false
       }
     },
@@ -156,7 +156,7 @@
       "config": {
         "span": 3.2,
         "height": 0.7,
-        "beamCenterHeightM": 1.23,
+        "beamCenterHeightM": 1.5,
         "blocked": false
       }
     },
@@ -289,7 +289,18 @@
   ],
   "simulation": {
     "type": "booleanPanel",
+    "multiConveyorRoute": {
+      "productId": "route_pallet",
+      "speedMps": 0.75,
+      "maximumX": 12.3
+    },
     "points": [
+      { "name": "infeed_blocked", "type": "BOOL", "owner": "PC", "initial": false },
+      { "name": "handoff_1_blocked", "type": "BOOL", "owner": "PC", "initial": false },
+      { "name": "zone_2_blocked", "type": "BOOL", "owner": "PC", "initial": false },
+      { "name": "receiver_entry_blocked", "type": "BOOL", "owner": "PC", "initial": false },
+      { "name": "route_position", "type": "REAL", "owner": "SIM", "initial": -9.3 },
+      { "name": "route_complete", "type": "BOOL", "owner": "SIM", "initial": false },
       {
         "name": "common_stop_request",
         "type": "BOOL",
@@ -365,6 +376,11 @@
     "rules": [],
     "edgeRules": [],
     "pointBindings": [
+      { "point": "zone_3_run", "equipmentId": "training_accessory_6", "mode": "running" },
+      { "point": "infeed_blocked", "equipmentId": "photoeye_4", "mode": "photoeye" },
+      { "point": "handoff_1_blocked", "equipmentId": "training_accessory_7", "mode": "photoeye" },
+      { "point": "zone_2_blocked", "equipmentId": "photoeye_5", "mode": "photoeye" },
+      { "point": "receiver_entry_blocked", "equipmentId": "photoeye_3", "mode": "photoeye" },
       {
         "point": "zone_1_clear",
         "equipmentId": "switch_9",
@@ -418,7 +434,8 @@
   "training": {
     "hints": [
       "Translate the lesson into explicit state and permissive logic: A blocked zone removes the affected run command while preserving a diagnosable handoff state.",
-      "Inputs are simulator feedback (zone_1_clear, zone_2_clear, zone_3_clear); PLC logic owns zone_1_run, zone_2_run, zone_3_run.",
+      "zone_1_clear, zone_2_clear and zone_3_clear are manual clear requests. Geometric photoeye feedback is separately published as infeed_blocked, handoff_1_blocked, zone_2_blocked and receiver_entry_blocked. PLC logic owns the three zone run commands.",
+      "A spanning pallet waits until both adjacent belt commands are on. Zone 3 commands the final belt and powered receiving zone. route_complete retains the load but does not remove a PLC command.",
       "common_stop_request is a simulator-to-PLC input. Remove all three run commands while it is true; releasing it must wait for a new clear leading edge.",
       "Test the initial state, the valid condition, and at least one missing permissive."
     ],
@@ -468,6 +485,10 @@
       "Simulation_Timeout"
     ],
     "addedTags": [
+      "infeed_blocked",
+      "handoff_1_blocked",
+      "zone_2_blocked",
+      "receiver_entry_blocked",
       "common_stop_request",
       "zone_1_clear",
       "zone_2_clear",

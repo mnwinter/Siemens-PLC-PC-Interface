@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Godot;
 using RungProof.Next.VirtualController;
@@ -57,7 +58,16 @@ public partial class Main
         EnableVirtualControllerProgram(program);
         try
         {
-            void Tick(int count) { for (var scan = 0; scan < count; scan++) _PhysicsProcess(.02); }
+            var crossedSensors = new HashSet<string>();
+            var sensorPoints = new[] { "infeed_blocked", "handoff_1_blocked", "zone_2_blocked", "receiver_entry_blocked" };
+            void Tick(int count)
+            {
+                for (var scan = 0; scan < count; scan++)
+                {
+                    _PhysicsProcess(.02);
+                    foreach (var point in sensorPoints) if (runtime.Points[point] is true) crossedSensors.Add(point);
+                }
+            }
             bool Outputs(bool expected) => Enumerable.Range(1, 3).All(zone => Equals(runtime.Points[$"zone_{zone}_run"], expected));
             void Action(string id) { if (!ExecuteSelectedControllerAction(id)) throw new InvalidOperationException("Rejected action: " + id); }
             RunActiveController(); Tick(5);
@@ -76,6 +86,30 @@ public partial class Main
             StopActiveController(); ResetActiveController();
             check(Outputs(false) && runtime.Points["common_stop_request"] is false,
                 "multi_conveyor_reset_restores_inputs_and_outputs");
+            RunActiveController(); Tick(2); Action("toggle-zone_1_clear"); Tick(100);
+            check(pallet.Position.X > -8 && pallet.Position.X < -7.5,
+                "multi_conveyor_zone_one_command_moves_load");
+            StopActiveController(); var held = pallet.Position; Tick(50);
+            check(pallet.Position == held, "multi_conveyor_stop_holds_actual_pallet_pose");
+            ResetActiveController(); RunActiveController(); Tick(2); Action("toggle-zone_1_clear"); Tick(1000);
+            var firstHandoff = pallet.Position;
+            check(firstHandoff.X > -4 && firstHandoff.X < -3.5 && runtime.Points["zone_2_run"] is false,
+                "multi_conveyor_stopped_zone_two_prevents_handoff");
+            Tick(100); check(pallet.Position == firstHandoff, "multi_conveyor_first_handoff_holds");
+            Action("toggle-zone_2_clear"); Tick(1000);
+            var secondHandoff = pallet.Position;
+            check(secondHandoff.X > 2.5 && secondHandoff.X < 3 && runtime.Points["zone_3_run"] is false,
+                "multi_conveyor_stopped_zone_three_prevents_handoff");
+            Action("toggle-zone_3_clear"); Tick(1500);
+            check(MathF.Abs(pallet.Position.X - 12.3f) < .001f && runtime.Points["route_complete"] is true && Outputs(true),
+                "multi_conveyor_arrives_on_receiver_without_overwriting_commands");
+            check(sensorPoints.All(crossedSensors.Contains), "multi_conveyor_load_crosses_all_four_actual_optical_beams");
+            var endpoint = pallet.Position; Tick(100);
+            check(pallet.Position == endpoint, "multi_conveyor_endpoint_retains_pallet");
+            StopActiveController(); ResetActiveController();
+            check(MathF.Abs(pallet.Position.X + 9.3f) < .001f && runtime.Points["route_complete"] is false,
+                "multi_conveyor_reset_restores_load_home");
+            check(sensorPoints.All(point => runtime.Points[point] is false), "multi_conveyor_reset_restores_clear_geometric_sensors");
         }
         finally { DisableVirtualController(); }
     }

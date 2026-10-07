@@ -1,5 +1,6 @@
 using System;
 using Godot;
+using RungProof.Next.App;
 
 namespace RungProof.Next.Scenes;
 
@@ -63,5 +64,14 @@ public static partial class SceneComposer
             }
             GD.Print($"MULTI_CONVEYOR_HANDOFF zone={zone} left={left} right={right} top={top} width={width}");
         }
+        // The receiving asset has a delivered drive and rollers. It shares
+        // zone 3's command; the transfer deck between them remains passive.
+        root.GetNode<Node3D>("training_accessory_6").AddChild(new RollerConveyorController
+        {
+            Name = "RouteReceivingRollers",
+            SpeedSetpointMps = .75f,
+            // This route uses prescribed velocity, not an inertial drive model.
+            AccelerationMps2 = 1000f,
+        });
     }
 }

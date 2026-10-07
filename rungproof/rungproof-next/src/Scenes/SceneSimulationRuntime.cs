@@ -270,6 +270,7 @@ public partial class SceneSimulationRuntime : Node
             return;
         }
 
+        if (HasMultiConveyorRoute) { AdvanceMultiConveyorRoute(delta); return; }
         if (HasShippingPalletReference && UsesExternalClock)
         {
             AdvanceControllerShippingPallet(delta);
@@ -541,6 +542,7 @@ public partial class SceneSimulationRuntime : Node
         }
         ApplyInitialTankLevels();
         ResetShippingPalletReference();
+        ResetMultiConveyorRoute();
         ResetBottleShuttleReference();
         ResetChainLiftPlant();
         ResetCookiePackagingPlant();

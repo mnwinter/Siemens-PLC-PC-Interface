@@ -170,7 +170,12 @@ public partial class SceneSimulationRuntime
     {
         Vector3 Center(MeshInstance3D mesh) => mesh.GlobalTransform * mesh.GetAabb().GetCenter();
         var from = Center(_shippingPalletTx!); var to = Center(_shippingPalletRx!);
-        foreach (var (mesh, faces) in _shippingPalletCases)
+        return LoadedCasesBlockBeam(_shippingPalletCases, from, to);
+    }
+
+    private static bool LoadedCasesBlockBeam((MeshInstance3D Mesh, Vector3[] Faces)[] cases, Vector3 from, Vector3 to)
+    {
+        foreach (var (mesh, faces) in cases)
         {
             var inverse = mesh.GlobalTransform.AffineInverse();
             var a = inverse * from; var b = inverse * to;
