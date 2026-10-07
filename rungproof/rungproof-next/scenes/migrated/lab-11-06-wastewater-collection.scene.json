@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-11-06-wastewater-collection",
   "name": "Lab 11.6 - Wastewater Collection",
-  "description": "Collection vessels inhibit intake when full and transfer wastewater only when the treatment path is ready.",
+  "description": "Wastewater command exercise with manually toggled BOOL feedback. Vessel spacing is modeled; installed sensing and connected process piping remain incomplete.",
   "camera": {
     "position": [
       11,
@@ -23,7 +23,7 @@
       "type": "tank",
       "label": "Wastewater Collection tank",
       "position": [
-        -3.3000000000000003,
+        -6,
         0,
         0
       ],
@@ -39,7 +39,7 @@
       "type": "tank",
       "label": "Wastewater Collection tank",
       "position": [
-        -1.1,
+        -2,
         0,
         0
       ],
@@ -55,7 +55,7 @@
       "type": "tank",
       "label": "Wastewater Collection tank",
       "position": [
-        1.1,
+        2,
         0,
         0
       ],
@@ -71,9 +71,9 @@
       "type": "pump",
       "label": "Wastewater Collection pump",
       "position": [
-        3.3000000000000003,
+        6,
         0,
-        0
+        4
       ],
       "config": {
         "running": false
@@ -84,9 +84,9 @@
       "type": "valve",
       "label": "Wastewater Collection valve",
       "position": [
-        -2.85,
+        -6,
         0,
-        2.35
+        4
       ],
       "config": {
         "initialPosition": 0
@@ -97,9 +97,9 @@
       "type": "indicator",
       "label": "Wastewater Collection indicator",
       "position": [
-        -0.6500000000000001,
+        8,
         0,
-        2.35
+        4
       ],
       "config": {
         "colors": [
@@ -115,9 +115,9 @@
       "type": "trainingAccessory",
       "label": "Wastewater Collection - collection tank bank",
       "position": [
-        1.1,
+        6,
         0,
-        1.8
+        0
       ],
       "config": {
         "assetName": "collection tank bank",
@@ -129,9 +129,9 @@
       "type": "trainingAccessory",
       "label": "Wastewater Collection - level transmitters",
       "position": [
-        3.3000000000000003,
+        -2,
         0,
-        1.8
+        4
       ],
       "config": {
         "assetName": "level transmitters",
@@ -143,9 +143,9 @@
       "type": "trainingAccessory",
       "label": "Wastewater Collection - pipe manifold",
       "position": [
-        -3.3000000000000003,
+        -6,
         0,
-        3.6
+        7
       ],
       "config": {
         "assetName": "pipe manifold",
@@ -157,9 +157,9 @@
       "type": "trainingAccessory",
       "label": "Wastewater Collection - alarm beacon",
       "position": [
-        -1.1,
+        -2,
         0,
-        3.6
+        7
       ],
       "config": {
         "assetName": "alarm beacon",
@@ -171,9 +171,9 @@
       "type": "switch",
       "label": "Wastewater Collection operator input",
       "position": [
-        2,
+        1,
         0,
-        4.7
+        7
       ],
       "config": {
         "style": "pushbutton",
@@ -186,9 +186,9 @@
       "type": "switch",
       "label": "Wastewater Collection operator input",
       "position": [
-        4.2,
+        3.2,
         0,
-        4.7
+        7
       ],
       "config": {
         "style": "pushbutton",
@@ -201,9 +201,9 @@
       "type": "switch",
       "label": "Wastewater Collection operator input",
       "position": [
-        -1.9500000000000002,
+        5.4,
         0,
-        7.050000000000001
+        7
       ],
       "config": {
         "style": "pushbutton",
@@ -216,9 +216,9 @@
       "type": "indicator",
       "label": "Wastewater Collection output indication",
       "position": [
-        0.25,
+        7.6,
         0,
-        7.050000000000001
+        7
       ],
       "config": {
         "colors": [
@@ -340,7 +340,7 @@
       "alarm beacon"
     ],
     "machineGuide": {
-      "purpose": "Collection vessels inhibit intake when full and transfer wastewater only when the treatment path is ready.",
+      "purpose": "Wastewater command exercise with manually toggled BOOL feedback. Vessel spacing is modeled; installed sensing and connected process piping remain incomplete.",
       "startConditions": [
         "The common PLC/watchdog foundation is healthy.",
         "All required simulator inputs are at their documented initial state."

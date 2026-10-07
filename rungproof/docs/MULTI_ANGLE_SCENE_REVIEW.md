@@ -1,5 +1,24 @@
 # Multi-angle scene review - 2026-10-04
 
+## Wastewater spacing repair checkpoint (2026-10-06)
+
+Changed only scene placement and its displayed scope description. The four
+vessels now occupy X=-6,-2,2,6 m, Z=0, rather than intersecting shells.
+Pump, valve, transmitter prop, pneumatic prop and operator stations occupy
+separate front rows. Native normal Previous/Next navigation reloaded the JSON;
+FR/FL/RL/RR/Top all inspected afterward in window 5774044, stopped, controller
+unloaded and PLC disconnected. Tank shells and exterior ladders now show
+visible gaps. Top confirms separate tank footprints; the larger fourth tank
+approaches the focus toolbar and needs later framing review with its installation.
+
+Build: zero warnings/errors. Controller tests: 145 PASS / 0 FAIL. App shell:
+PASS 77 scenes / 5 authored demos / 295 assets. Logs are
+.tools/wastewater-spacing-tests.log and .tools/wastewater-spacing-shell.log.
+These checks do not prove process behavior or eliminate all component-level
+collisions. This partial repair does NOT accept the scene: unmounted probe,
+incorrect pneumatic manifold, disconnected process ports and missing actual
+pump/valve output projection remain open. Existing FAIL matrix row remains.
+
 ## Wastewater native diagnosis checkpoint (2026-10-06)
 
 Re-inspected current lab-11-06-wastewater-collection in the normal Windows shell,
