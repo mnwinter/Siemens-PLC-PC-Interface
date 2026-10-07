@@ -86,3 +86,18 @@ inspect installed vertices/transforms, strengthening the earlier nominal
 calculation. They do not prove thread engagement, sealing or axial application.
 Native Windows multi-angle inspection remains OPEN after the prior Escape
 stop; permission to resume computer control has been requested.
+
+## Axial model checkpoint - adapter pending
+
+ToteCapPlantModel.cs adds an isolated renderer-neutral illustrative cycle:
+home, lowering, seated dwell, release and retraction. Accepted ticks are at
+most 20 ms. Command/eligibility loss before release retracts without setting
+Applied; an applied cap survives command withdrawal and Stop. Pause holds the
+stroke and Reset clears the applied state. A continuously asserted command
+cannot apply repeatedly. Durations are constructor inputs, not hardware claims.
+Fifteen focused model checks pass (.tools/tote-cap-model-tests.log); the main
+application builds with zero warnings/errors (.tools/tote-cap-model-build.log).
+The model is NOT connected to scene meshes or PC feedback yet. The remaining
+adapter must derive the stroke from actual seating geometry, move the chuck
+assembly, exchange held/retained cap visibility at release, project feedback,
+and check full stroke/capped discharge before native multi-angle acceptance.
