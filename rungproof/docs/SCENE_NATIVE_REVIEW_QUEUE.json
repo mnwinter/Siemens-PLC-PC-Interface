@@ -1156,7 +1156,7 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "CNC removed; typed DINT operands/sum/count and live readouts added. Opt-in reference displays 2+5=7 and one held completion count, Stop zeros image, Run republishes retained count, Reset clears. Eleven integration/clearance checks pass. 2026-10-06: indicator peers moved inline; final native five angles and full top wheel-zoom inspected; eleven existing integration/clearance checks pass. Default top framing crops an outer control. Open: independent reusable-asset approval; manual call-complete feedback; exercise requires authored/explicit reference logic",
+      "recordedResult": "CNC removed; typed DINT operands/sum/count and live readouts added. Opt-in reference displays 2+5=7 and one held completion count, Stop zeros image, Run republishes retained count, Reset clears. Eleven integration/clearance checks pass. 2026-10-06: indicator peers moved inline; final native five angles and full top wheel-zoom inspected; eleven existing integration/clearance checks pass. Historical default-top crop superseded by 2026-10-07 native inspection at source 47cd859: freshly launched window 270158, full scene, 1602x932, I/O expanded; selected Top/FL/RL/RR/FR individually. All nine equipment items fit inside the viewport without wheel zoom. Front views resolve readouts; rear views show backs, Top shows separated footprints. STOP, PLC disconnected, no logic loaded; this check does not reverify arithmetic or controller behavior. Open: independent reusable-asset approval; manual call-complete feedback; exercise requires authored/explicit reference logic",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",

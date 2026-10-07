@@ -1,3 +1,7 @@
+## 2026-10-07 - Lab 9.3 framing reconciliation
+
+Fresh normal Windows launch of scene 68 at source 47cd859 (window 270158, session 58262). Continued the startup notice and selected Top, FL, RL, RR, and FR separately. All nine items fit with Scene I/O expanded at 1602x932; no wheel zoom was needed. The historical outer-control crop does not reproduce in the current build. Readout faces are available from front views; rear and top angles establish placement, not face readability. No source change, runtime execution, or live PLC verification in this checkpoint.
+
 ## 2026-10-07 - held native dual-spindle return-path samples
 
 Continued normal Windows review in window139020/session37669 with the previously verified 13-rung round-trip QA. Reset returned scan0; enabled Hold before Run, Run stayed at0; actual Start accepted at0. Repeated double-clicks on coarse Step each accepted50 scans, confirmed individually in the UI:50 A/B58.8%;100 both100%;150 A67.5/B100;200 A5/B100;250 A0/B67.5;300 A0/B5;350 heads0/slide76.7%;400 heads0/slide100%. No unheld clock interval was used in this pass.
