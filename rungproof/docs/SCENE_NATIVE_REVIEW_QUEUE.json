@@ -170,7 +170,7 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Three belts, supported handoffs, loaded pallet, powered receiver and four geometric beams. Common-stop/fresh-edge QA, native two handoff holds, arrival/Stop/Reset verified. 4322-position bearing sweep: nine rollers per runner at endpoint, .128 m maximum uncovered span. Continuous translated envelopes clear at 1 mm overlap tolerance; 360 roller phases stable using delivered vertices. Held post-splice straddled transfer inspected natively in five views at X 9.95 m, then every 0.5 s through X 12.30 m with opposing contact views. No disappearance or gross frame intrusion in these observations; Stop removes all three commands and Reset clears receiver. Exact submillimetre solids and intervening frames remain unverified.",
+      "recordedResult": "Three belts, supported handoffs, loaded pallet, powered receiver and four geometric beams. Common-stop/fresh-edge QA, native two handoff holds, arrival/Stop/Reset verified. 4322-position bearing sweep: nine rollers per runner at endpoint, .128 m maximum uncovered span. Continuous translated envelopes clear at 1 mm overlap tolerance; 360 roller phases stable using delivered vertices. Held post-splice straddled transfer inspected natively in five views at X 9.95 m, then every 0.5 s through X 12.30 m with opposing contact views. No disappearance or gross frame intrusion in these observations; Stop removes all three commands and Reset clears receiver. Exact submillimetre solids and intervening frames remain unverified. Native receiver-focus stepped handoff now inspected at X10.24 in FR/FL/RL/RR/Top; Top step X10.61, FR steps X10.99/11.36 and FL steps X11.74/12.11/12.30 retain whole load without refit. Sampled framing gap closed; continuous contact remains unverified.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
@@ -1309,7 +1309,7 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Radar flange/head mounting and antenna-to-surface distance/beam repaired (sampled checks); 35% native range 3.10036. OPEN: piping/grounded drain valve and explicit inspection view added; 24 focused checks PASS. 32 focused geometry/offline PLC reference checks PASS; Fresh current-build native FR/FL/RL/RR/Top home views inspected: supported inlet/drain piping, external drain valve, roof radar and separate operator stations visible; ghost-shell FL reveals internal cone and liquid. Operator requests and full native controller cycle remain pending; no physical acceptance",
+      "recordedResult": "Radar flange/head mounting and antenna-to-surface distance/beam repaired (sampled checks); 35% native range 3.10036. OPEN: piping/grounded drain valve and explicit inspection view added; 24 focused checks PASS. 32 focused geometry/offline PLC reference checks PASS; Fresh current-build native FR/FL/RL/RR/Top home views inspected: supported inlet/drain piping, external drain valve, roof radar and separate operator stations visible; ghost-shell FL reveals internal cone and liquid. Native reference Open/Verify/Run and automatic cycle request snapshots now observed; inspection-only interior surface added and initial 35% viewed FR/FL/RL/RR/Top. Revised moving-cycle/operator acceptance remains pending; no physical acceptance",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",

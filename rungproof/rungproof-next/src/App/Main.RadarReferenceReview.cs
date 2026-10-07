@@ -54,12 +54,17 @@ public partial class Main
             RunActiveController();Tick(10);
             check(!On("inlet_pump_run")&&!On("drain_valve_open")&&Math.Abs(N("radar_level")-35)<.001,"reference_idle_without_cycle_request");
             check(ExecuteSelectedControllerAction("toggle-pump"),"reference_local_cycle_request_accepted");
-            var transitions=0;var previous=false;var consistent=true;
+            var transitions=0;var previous=false;var consistent=true;var surfaceConsistent=true;
             for(var i=0;i<2200 && transitions<3;i++) {
                 Tick();var draining=On("drain_valve_open");if(draining!=previous){transitions++;previous=draining;}
                 consistent &= PointerMatches(draining) && !(draining&&On("inlet_pump_run")) && Math.Abs(N("radar_signal")-(4+.16*N("radar_level")))<1e-6;
+                var tank=_sceneCompositionRoot!.GetNode<Node3D>("water_tank_radar");
+                var surface=tank.GetNode<MeshInstance3D>("REVIEW_liquid_surface");
+                var liquid=(MeshInstance3D)tank.FindChild("KIN_liquid",true,false);
+                surfaceConsistent &= Math.Abs(ReviewBounds(surface).End.Y-ReviewBounds(liquid).End.Y)<.001f;
             }
             check(transitions==3 && consistent,"reference_real_thresholds_cycle_fill_drain_fill_drain_with_matching_pointer");
+            check(surfaceConsistent,"reference_inspection_surface_tracks_liquid_datum_through_three_transitions");
             var level=N("radar_level");var distance=N("radar_distance");StopActiveController();var scans=_virtualController!.Snapshot.ScanNumber;Tick(30);
             check(N("radar_level")==level&&N("radar_distance")==distance&&_virtualController.Snapshot.ScanNumber==scans&&!On("drain_valve_open")&&PointerMatches(false),"reference_stop_holds_surface_and_range_and_closes_pointer");
             RunActiveController();Tick();
