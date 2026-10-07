@@ -77,7 +77,7 @@
     {
       "index": 5,
       "sceneId": "lab-10-03-vision-package-sorter",
-      "recordedNativeViews": "FR/FL/RL/RR/T + carton FR",
+      "recordedNativeViews": "FR/FL/RL/RR/T + carton FL + display FL",
       "recordedAngles": {
         "FR": true,
         "FL": true,
@@ -85,7 +85,7 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Carton support source repaired: bottom now contacts delivered belt at Y=0.9, full footprint supported; failing-before/passing-after mesh checks. Latest native review pending. Display source now reuses supported count-display housing with CLASS / NO RESULT text; native readability pending. Four level receiving belts and supported outgoing handoffs now modeled; cabinet surrogate removed. Historical FAIL requires fresh native review; class feedback and driven routing absent; empty exercise editor on Run",
+      "recordedResult": "Repaired carton seating, four receiving belts and supported handoffs freshly inspected in native Windows window 8389926. CLASS / NO RESULT readable on grounded display stand; carton bottom visibly seated inside belt deck. FAIL/open: class feedback and driven routing absent; loaded-controller sorter workflow and continuous-motion proof unverified.",
       "latestNativeReviewPending": true,
       "explicitFailureRecorded": true,
       "disposition": "REPAIR_RECORDED_FAILURE",
