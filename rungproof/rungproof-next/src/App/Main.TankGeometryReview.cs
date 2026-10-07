@@ -77,6 +77,26 @@ public partial class Main
             foreach (var (id, threshold) in new[] { (lowId, low), (highId, high) })
             {
                 var sensor = root.GetNode<Node3D>(id);
+                if (sceneId == "lab-2-14-sump-pump")
+                {
+                    var body = ReviewBounds((MeshInstance3D)sensor.FindChild("SUMP_FLOAT_body", true, false));
+                    var elevationFloat = liquid.Position.Y + liquid.Size.Y / initial * threshold;
+                    check(MathF.Abs(body.GetCenter().Y-elevationFloat)<.001f
+                        && body.Position.X>shell.Position.X+.14f && body.End.X<shell.End.X-.14f
+                        && body.Position.Z>shell.Position.Z+.14f && body.End.Z<shell.End.Z-.14f,
+                        $"{sceneId}_{id}_float_inside_open_basin_at_actual_threshold");
+                    var bracket = ReviewBounds((MeshInstance3D)sensor.FindChild("SUMP_FLOAT_bracket",true,false));
+                    check(bracket.Position.Y<shell.End.Y && bracket.End.Y>shell.End.Y
+                        && bracket.Position.X<shell.End.X && bracket.End.X>shell.End.X,
+                        $"{sceneId}_{id}_bracket_seated_on_basin_rim");
+                    var stem = ReviewBounds((MeshInstance3D)sensor.FindChild("SUMP_FLOAT_stem",true,false));
+                    check(stem.Intersects(body) && stem.Intersects(bracket) && stem.Position.Y>.12f,
+                        $"{sceneId}_{id}_float_stem_connected_to_bracket_above_floor");
+                    check(tank.FindChild("TANK_roof",true,false) is null
+                        && sensor.FindChild("FORK_tip",true,false) is null,
+                        $"{sceneId}_{id}_open_basin_float_replaces_closed_vessel_fork");
+                    continue;
+                }
                 var tips = ReviewMeshes(sensor).Where(mesh => mesh.Name.ToString().StartsWith("FORK_tip", StringComparison.Ordinal)).ToArray();
                 var elevation = liquid.Position.Y + liquid.Size.Y / initial * threshold;
                 check(tips.Length == 2 && tips.All(tip =>

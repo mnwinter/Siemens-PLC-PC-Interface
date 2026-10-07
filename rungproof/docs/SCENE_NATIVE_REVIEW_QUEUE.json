@@ -476,7 +476,7 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Joined pipes, aligned valve/spool and grounded supports repaired. Low/high switches now seated at actual modeled thresholds on clear side, above floor and clear of ladder/sight glass; 24 three-scene mount checks pass, native re-inspected. FAIL/open: closed vertical vessel instead of sump, tuning forks instead of floats, full controller-owned level cycle and complete native motion unverified.",
+      "recordedResult": "Joined pipes, aligned valve/spool and grounded supports repaired. Low/high switches now seated at actual modeled thresholds on clear side, above floor and clear of ladder/sight glass; 24 three-scene mount checks pass, native re-inspected. Open collection basin and rim-mounted float switch depiction now replace closed vessel/forks; final five native views inspected. FAIL/open: full controller-owned level cycle and complete native motion unverified; float bodies mark fixed thresholds, mechanical buoyancy/actuation is not simulated.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": true,
       "disposition": "REPAIR_RECORDED_FAILURE",

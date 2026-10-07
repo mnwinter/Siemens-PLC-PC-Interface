@@ -71,6 +71,7 @@ public static partial class SceneComposer
                     rotationAxis: Vector3.Right),
                 "pipe" => CreateMappedAsset(equipment, candidates, "process.pipe.flanged-spool.v1"),
                 "tank" when Text(equipment.Config, "installation", string.Empty) == "barrelSupply" => CreateBarrelFillPart("barrelSupply"),
+                "tank" when Text(equipment.Config, "installation", "") == "sumpPiping" => CreateOpenSump(),
                 "tank" => CreateTankAsset(equipment, candidates),
                 "pump" => CreateControlledAsset(equipment, candidates, "process.pump.centrifugal-skid.v1", runCommands,
                     EquipmentMotionController.MotionKind.ContinuousRotation, "KIN_pump_shaft", speedRpm: 1450.0f,
@@ -145,7 +146,8 @@ public static partial class SceneComposer
         if (scene.Equipment.Any(equipment => Text(equipment.Config, "installation", string.Empty) == "fixtureDrill"))
             ConfigureFixtureDrill(root);
         if (scene.Equipment.Any(equipment => Text(equipment.Config, "installation", string.Empty) == "tankSwitchMounts"))
-            ConfigureTankSwitchMounts(root, scene);
+            if (scene.Id == "lab-2-14-sump-pump") ConfigureSumpFloats(root, scene);
+            else ConfigureTankSwitchMounts(root, scene);
         if (scene.Equipment.Any(equipment => Text(equipment.Config, "installation", string.Empty) == "roofAnalogProbe"))
             ConfigureTankAnalogMount(root, scene);
         if (scene.Equipment.Any(equipment => Text(equipment.Config, "installation", string.Empty) == "tankPiping"))
