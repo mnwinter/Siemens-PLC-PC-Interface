@@ -187,7 +187,7 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Car/shaft and two landings repaired. Door tracks/hangers supported, controller-owned car position and landing flags implemented. Normal editor audit cycle completed native round trip, upper reversal, held-call home, Stop/resume, Reset; all three manual permissive losses held ascent. Changing QA label and raised Top framing inspected. Upper landing side/rear rails and toe boards added; new home FR/FL/RL/RR/Top inspected and101 open/101 closed car-pose bounds checks pass including guards. FAIL/open: hoist, access stair/gate, landing legend readability, instantaneous door fixture rather than modeled door travel; default exercise remains unloaded.",
+      "recordedResult": "Car/shaft and two landings repaired. Door tracks/hangers supported, controller-owned car position and landing flags implemented. Normal editor audit cycle completed native round trip, upper reversal, held-call home, Stop/resume, Reset; all three manual permissive losses held ascent. Changing QA label and raised Top framing inspected. Upper landing side/rear rails and toe boards added; new home FR/FL/RL/RR/Top inspected and101 open/101 closed car-pose bounds checks pass including guards. FAIL/open: hoist, access stair/gate, instantaneous door fixture rather than modeled door travel; default exercise remains unloaded.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": true,
       "disposition": "REPAIR_RECORDED_FAILURE",

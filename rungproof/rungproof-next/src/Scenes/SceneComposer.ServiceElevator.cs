@@ -18,7 +18,10 @@ public static partial class SceneComposer
         { var mesh = AddBox(parent, size, at, material); mesh.Name = name; return mesh; }
         void Label(string name, string text, Vector3 at)
         { root.AddChild(new Label3D { Name = name, Text = text, Position = at,
-            FontSize = 36, PixelSize = .003f, OutlineSize = 0, Modulate = Colors.White }); }
+            // Review annotations face the observer instead of presenting
+            // reversed lettering when the front camera sees their back face.
+            FontSize = 48, PixelSize = .004f, OutlineSize = 4, Modulate = Colors.White,
+            Billboard = BaseMaterial3D.BillboardModeEnum.Enabled, NoDepthTest = true }); }
 
         // The car envelope is wholly inside four shaft columns. The two
         // landing surfaces meet the car floor at 0.6 and 2.7 metres.
@@ -90,7 +93,7 @@ public static partial class SceneComposer
             Box(root,$"ELEVATOR_call_plate_{y}",new(.15f,.3f,.05f),new(1.34f,y+1.2f,1.1f),dark);
             AddCylinder(root,$"ELEVATOR_call_button_{y}",new(1.34f,y+1.2f,1.135f),.035f,.025f,blue,new(90,0,0));
             Box(root,$"ELEVATOR_position_sensor_{y}",new(.1f,.08f,.12f),new(-1.12f,y+.04f,-.65f),dark);
-            Label($"ELEVATOR_landing_label_{y}", y < 1 ? "LOWER LANDING" : "UPPER LANDING",new(0,y+2.12f,1.15f));
+            Label($"ELEVATOR_landing_label_{y}", y < 1 ? "LOWER LANDING" : "UPPER LANDING",new(-4.5f,y+.3f,y < 1 ? 4.0f : 1.86f));
         }
         // Upper deck support continues to ground; its feet must not duplicate
         // the lower deck feet at the same position.
