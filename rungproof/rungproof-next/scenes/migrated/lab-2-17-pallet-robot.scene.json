@@ -238,7 +238,7 @@
       {
         "name": "placed_count",
         "type": "DINT",
-        "owner": "SIM",
+        "owner": "PC",
         "initial": 0
       },
       {
@@ -250,8 +250,14 @@
       {
         "name": "cycle_complete",
         "type": "BOOL",
-        "owner": "SIM",
+        "owner": "PC",
         "initial": false
+      },
+      {
+        "name": "robot_at_park",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": true
       }
     ],
     "actions": [
@@ -749,7 +755,8 @@
               "equipmentId": "robot_pallet",
               "axis": "x",
               "from": -0.55,
-              "to": 5.2
+              "to": 5.2,
+              "requiresCommand": "conveyor_run"
             }
           ]
         },
@@ -771,13 +778,15 @@
       "cell_color": "red"
     },
     "completionState": {},
-    "conveyorSpeedMps": 0.65
+    "conveyorSpeedMps": 0.65,
+    "robotParkFeedback": "pallet_robot"
   },
   "training": {
     "hints": [
       "Define the required result before writing logic: Exactly two containers are placed before the pallet conveyor releases.",
       "Treat pallet_ready as simulator-to-PLC inputs. The PLC should command only robot_run, conveyor_run.",
-      "Use a step/state approach: approach, grip, lift, carry, lower and release each container before releasing the empty pallet. The offline model uses the imported joints and tool attachment; physical gripping and rated motion remain unverified."
+      "Use a step/state approach: approach, grip, lift, carry, lower and release each container before releasing the empty pallet. The offline model uses the imported joints and tool attachment; physical gripping and rated motion remain unverified.",
+      "Use placed_count, robot_at_park and cycle_complete feedback to release the empty pallet only after both loads are seated and the robot has completed its park."
     ],
     "solution": {
       "summary": "This is one valid functional reference. The same behavior may be implemented in LAD, FBD, or SCL; the rung layout is not prescribed.",

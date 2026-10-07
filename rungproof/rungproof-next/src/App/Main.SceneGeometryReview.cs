@@ -276,6 +276,13 @@ public partial class Main
                 GetTree().Quit(passed ? 0 : 1);
                 return;
             }
+            if (OS.GetCmdlineUserArgs().Contains("--verify-pallet-robot-controller", StringComparer.Ordinal))
+            {
+                VerifyPalletRobotCommandBoundary(Check);
+                GD.Print($"PALLET_ROBOT_CONTROLLER_BOUNDARY_VERIFY {(passed ? "PASS" : "FAIL")} virtual command boundary only; native loaded-ladder workflow pending");
+                GetTree().Quit(passed ? 0 : 1);
+                return;
+            }
             VerifyPalletizerWorkflow(Check);
             AddMigratedScene("lab-11-19-powder-batch-mixer", _candidateCatalog!, _mainCamera!, false, false);
             var mixer = _sceneCompositionRoot!;

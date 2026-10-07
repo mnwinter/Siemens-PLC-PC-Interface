@@ -14,6 +14,7 @@ namespace RungProof.Next.Scenes;
 public partial class PalletRobotMotion : Node
 {
     public bool RunCommand { get; set; }
+    public bool AtPark { get; private set; }
     public Node3D? GrippedLoad { get; private set; }
     public float PositionErrorM { get; private set; }
     public float OrientationError { get; private set; }
@@ -75,6 +76,7 @@ public partial class PalletRobotMotion : Node
         GrippedLoad = null;
         _motionKey = string.Empty;
         if (_home.Length != 6) return;
+        AtPark = true;
         _angles = (float[])_home.Clone();
         ApplyAngles();
         SetJawSpan(0.36f);
@@ -84,6 +86,7 @@ public partial class PalletRobotMotion : Node
         Vector3 from, Vector3 to, float progress)
     {
         if (!RunCommand) return false;
+        AtPark = false;
         if (_motionKey != key)
         {
             _motionKey = key;
@@ -110,6 +113,9 @@ public partial class PalletRobotMotion : Node
                 // a staged load even when both endpoint poses are clear.
                 var eased = progress * progress * (3 - 2 * progress);
                 if (!Solve(_approachFrom.Lerp(_approachTo, eased))) return false;
+                // Publish a completed park, not proximity during its final scan.
+                AtPark = load is null && progress >= 0.99999f
+                    && ToolTransform.Origin.DistanceTo(ParkTarget) < 0.0005f;
                 SetJawSpan(load is null ? _jawHalfSpan : _closedHalfSpan + 0.025f);
                 return true;
             case "robotGrip":

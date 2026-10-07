@@ -288,6 +288,17 @@ public partial class SceneSimulationRuntime : Node
         }
 
         var step = steps[_activeStepIndex];
+        // Explicitly gated sequence routes hold their elapsed time and pose
+        // until the PLC supplies the configured command.
+        if (step.TryGetProperty("motions", out var gatedMotions))
+        foreach (var motion in gatedMotions.EnumerateArray())
+        {
+            var command = Text(motion, "requiresCommand", "");
+            if (command.Length == 0) continue;
+            if (_pointOwners.GetValueOrDefault(command) != "PLC" || _pointTypes.GetValueOrDefault(command) != "BOOL")
+                throw new InvalidOperationException($"Motion requires a declared PLC BOOL command '{command}'.");
+            if (!AsBool(_points.GetValueOrDefault(command))) return;
+        }
         var duration = Math.Max(Number(step, "durationS", 0.0), 0.0001);
         _stepElapsed += delta;
         var progress = (float)Math.Clamp(_stepElapsed / duration, 0.0, 1.0);
@@ -584,6 +595,7 @@ public partial class SceneSimulationRuntime : Node
     /// </summary>
     public IReadOnlyDictionary<string, bool> SampleVirtualControllerInputs()
     {
+        ProjectRobotParkFeedback();
         var result = new Dictionary<string, bool>(StringComparer.Ordinal);
         foreach (var (name, owner) in _pointOwners)
         {
@@ -811,6 +823,17 @@ public partial class SceneSimulationRuntime : Node
             }
         }
         return true;
+    }
+
+    private void ProjectRobotParkFeedback()
+    {
+        if (!_definition.TryGetProperty("robotParkFeedback", out var robotId)) return;
+        if (_pointOwners.GetValueOrDefault("robot_at_park") != "PC" || _pointTypes.GetValueOrDefault("robot_at_park") != "BOOL")
+            throw new InvalidOperationException("Robot park feedback requires PC-owned BOOL robot_at_park.");
+        var equipment = _sceneRoot.GetNode<Node3D>(SafeNodeName(robotId.GetString() ?? ""));
+        var robot = equipment.FindChild("PalletRobotMotion", true, false) as PalletRobotMotion
+            ?? throw new InvalidOperationException("Robot park feedback requires the actual robot motion adapter.");
+        _points["robot_at_park"] = robot.AtPark;
     }
 
     private void ApplyTankLevel(Node3D equipment, float normalized)
@@ -1157,6 +1180,7 @@ public partial class SceneSimulationRuntime : Node
 
     private void ApplyBindings()
     {
+        ProjectRobotParkFeedback();
         if (!_definition.TryGetProperty("pointBindings", out var bindings) || bindings.ValueKind != JsonValueKind.Array)
         {
             return;

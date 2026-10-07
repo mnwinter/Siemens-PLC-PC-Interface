@@ -510,6 +510,51 @@ public partial class Main
         }
     }
 
+    private void VerifyPalletRobotCommandBoundary(Action<bool, string> check)
+    {
+        AddMigratedScene("lab-2-17-pallet-robot", _candidateCatalog!, _mainCamera!, false, false);
+        var runtime = _sceneRuntime!;
+        var pallet = _sceneCompositionRoot!.GetNode<Node3D>("robot_pallet");
+        runtime.UsesExternalClock = false;
+        runtime.ResetSimulation();
+        check(runtime.SampleVirtualControllerInputs()["robot_at_park"]
+            && !runtime.SampleVirtualControllerInputs()["cycle_complete"]
+            && runtime.SampleVirtualControllerNumericInputs()["placed_count"] == 0,
+            "pallet_robot_feedback_is_readable_at_reset");
+        runtime.RunDefault();
+        var leftPark = false;
+        for (var tick = 0; tick < 3000; tick++)
+        {
+            runtime.AdvanceSimulation(.02);
+            var inputs = runtime.SampleVirtualControllerInputs();
+            leftPark |= !inputs["robot_at_park"];
+            if (runtime.SampleVirtualControllerNumericInputs()["placed_count"] == 2 && inputs["robot_at_park"]) break;
+        }
+        check(leftPark && runtime.SampleVirtualControllerNumericInputs()["placed_count"] == 2
+            && runtime.SampleVirtualControllerInputs()["robot_at_park"], "pallet_robot_feedback_requires_completed_second_placement_and_park");
+        runtime.UsesExternalClock = true;
+        runtime.SetControllerPlaybackRunning(true);
+        runtime.CommitVirtualControllerOutputs(new System.Collections.Generic.Dictionary<string, bool>
+            { ["robot_run"] = false, ["conveyor_run"] = false });
+        var held = pallet.Position;
+        runtime.AdvanceSimulation(1);
+        runtime.AdvanceSimulation(1);
+        check(pallet.Position == held && runtime.Points["cycle_complete"] is false,
+            "pallet_robot_outbound_waits_for_plc_conveyor_command");
+        runtime.CommitVirtualControllerOutputs(new System.Collections.Generic.Dictionary<string, bool> { ["conveyor_run"] = true });
+        runtime.AdvanceSimulation(.2);
+        check(pallet.Position.X > held.X + .12f, "pallet_robot_outbound_moves_with_plc_command");
+        runtime.CommitVirtualControllerOutputs(new System.Collections.Generic.Dictionary<string, bool> { ["conveyor_run"] = false });
+        held = pallet.Position;
+        runtime.AdvanceSimulation(3);
+        check(pallet.Position == held, "pallet_robot_command_withdrawal_holds_outbound_pose_and_elapsed_time");
+        runtime.CommitVirtualControllerOutputs(new System.Collections.Generic.Dictionary<string, bool> { ["conveyor_run"] = true });
+        for (var tick = 0; tick < 600 && runtime.Points["cycle_complete"] is false; tick++) runtime.AdvanceSimulation(.02);
+        check(runtime.SampleVirtualControllerInputs()["cycle_complete"] && MathF.Abs(pallet.Position.X - 5.2f) < .001f,
+            "pallet_robot_resumed_outbound_completes_at_authored_endpoint");
+        runtime.ResetSimulation();
+    }
+
     private static bool PalletTransferPartsClear(MeshInstance3D a, MeshInstance3D b)
     {
         var overlap = ReviewBounds(a).Intersection(ReviewBounds(b)).Size;
