@@ -25,6 +25,51 @@ public partial class Main
         }
         var rollers = ReviewMeshes(root.GetNode<Node3D>("training_accessory_6"))
             .Where(mesh => mesh.Name.ToString().StartsWith("KIN_roller_", StringComparison.Ordinal)).ToArray();
+        GD.Print($"MULTI_CONVEYOR_ROLLER_AXIS local_bounds={rollers[0].GetAabb()} basis={rollers[0].GlobalBasis}");
+        var rollerDrive = root.GetNode<Node3D>("training_accessory_6").FindChildren("*", "", true, false)
+            .OfType<RollerConveyorController>().Single();
+        var rollerHomes = rollers.ToDictionary(mesh => mesh, mesh => mesh.Transform);
+        var rollerFaces = rollers.ToDictionary(mesh => mesh, mesh => mesh.Mesh.GetFaces());
+        Aabb TightRollerBounds(MeshInstance3D mesh)
+        {
+            // Rotating the local bounding box expands its empty square corners.
+            // Use delivered vertices to measure the rotating cylinder itself.
+            var faces = rollerFaces[mesh];
+            var bounds = new Aabb(mesh.GlobalTransform * faces[0], Vector3.Zero);
+            foreach (var vertex in faces) bounds = bounds.Expand(mesh.GlobalTransform * vertex);
+            return bounds;
+        }
+        var rollerBounds = rollers.ToDictionary(mesh => mesh, TightRollerBounds);
+        var rollerAxes = rollers.ToDictionary(mesh => mesh, mesh => mesh.GlobalBasis.Y.Normalized());
+        var phasesClear = true;
+        var rotates = false;
+        try
+        {
+            rollerDrive.RunCommand = true;
+            // Exercise the delivered controller for a full rotation. This is
+            // deterministic adapter evidence, separate from native imagery.
+            for (var phase = 0; phase < 360; phase++)
+            {
+                rollerDrive._PhysicsProcess(Math.PI / 180 * .038 / .75);
+                foreach (var roller in rollers)
+                {
+                    var bounds = TightRollerBounds(roller); var baseline = rollerBounds[roller];
+                    phasesClear &= roller.GlobalBasis.Y.Normalized().Dot(rollerAxes[roller]) > .99999f
+                        && MathF.Abs(bounds.End.Y - baseline.End.Y) < .001f
+                        && bounds.GetCenter().DistanceTo(baseline.GetCenter()) < .00001f
+                        && MathF.Abs(bounds.Size.Z - baseline.Size.Z) < .00001f;
+                }
+                if (phase == 89) rotates = !rollers[0].Basis.IsEqualApprox(rollerHomes[rollers[0]].Basis);
+            }
+            rollerDrive.RunCommand = false; rollerDrive._PhysicsProcess(.02);
+            check(rotates && !rollerDrive.Running, "multi_conveyor_receiving_adapter_rotates_and_stops");
+            check(phasesClear, "multi_conveyor_all_roller_phase_axes_and_carrying_envelopes_stable");
+        }
+        finally
+        {
+            rollerDrive.RunCommand = false;
+            foreach (var (roller, transform) in rollerHomes) roller.Transform = transform;
+        }
         foreach (var roller in rollers)
         {
             var bounds = ReviewBounds(roller);

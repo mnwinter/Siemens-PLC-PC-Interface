@@ -162,7 +162,7 @@
     {
       "index": 10,
       "sceneId": "lab-11-07-multi-conveyor-pallet-route",
-      "recordedNativeViews": "Final repaired FR/FL/RL/RR/T + receiver/first seam/middle belt details",
+      "recordedNativeViews": "FR/FL/RL/RR/Top; native loaded route handoff holds and receiver endpoint; repaired-splice home views",
       "recordedAngles": {
         "FR": true,
         "FL": true,
@@ -170,7 +170,7 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Three separated belts, level supported handoffs, inline grounded receiver and actual handoff photoeye repaired. Native independent zone commands, loss, Stop/Reset checked with QA program; actual conveyor Reset internals verified. FAIL/open: missing pallet travel, common-stop/edge control, automatic beam feedback and bearing traversal; receiver static.",
+      "recordedResult": "Three belts, supported handoffs, loaded pallet, powered receiver and four geometric beams. Common-stop/fresh-edge QA, native two handoff holds, arrival/Stop/Reset verified. 4322-position bearing sweep: nine rollers per runner at endpoint, .128 m maximum uncovered span. Continuous translated envelopes clear at 1 mm overlap tolerance; 360 roller phases stable using delivered vertices. FAIL/open: detailed held native transfer-frame inspection after splice repair; exact submillimetre solids not certified.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": true,
       "disposition": "REPAIR_RECORDED_FAILURE",
