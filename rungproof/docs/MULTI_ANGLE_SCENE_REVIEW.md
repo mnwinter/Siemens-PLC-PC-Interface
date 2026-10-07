@@ -1,3 +1,10 @@
+## Native repaired receiver framing and five-angle endpoint - source 591d599
+
+Fresh native window 400788 loaded .tools/aaa-multi-conveyor-native-qa.rpproj.json through Logic Editor / Project Open / Online Verify + load offline: one block, one task, three rungs, seven tags. PLC remained disconnected. Run at scan 15; requested zones 1, 2, 3 separately. Observed zone 1 True / infeed blocked True at scan 338 X -8.88; both visible zone commands True and handoff_1 blocked True at 772 X -3.58; scan 1136 X 1.88 retained load.
+
+Clicked Top to refit at scan 1630 / 32.60 s / X 9.29 m: whole incoming pallet and receiving deck/roller bed readable together inside aperture, resolving the prior overhead clipping. This is an approach observation, not an every-frame straddled-contact proof. Hold engaged after travel reached scan 1934 / 38.68 s / X 12.30 m / complete True. Top retained load entirely on receiver. Front right, front left, rear left, rear right then inspected at exactly the same held scan. Whole load readable in each view; runners visibly above/on roller bed with no gross frame penetration. Exact millimetre bearing contact remains bounded by prior geometry checks, not screenshot measurement.
+
+Left held at endpoint rear-right for subsequent Stop/Reset and input/output inspection. Near-transfer five-angle held pose still needs refreshed build evidence; full catalog acceptance remains open.
 ## Receiver review framing repair
 
 Receiver-focused camera framing now includes the route pallet current mesh bounds. Previously the overhead view fitted only the receiver and clipped the incoming load. This is opt-in review framing; equipment poses and controller ownership are unchanged. The multi-conveyor QA clock now reports actual route_position in metres and route_complete instead of unrelated stroke 0%.
