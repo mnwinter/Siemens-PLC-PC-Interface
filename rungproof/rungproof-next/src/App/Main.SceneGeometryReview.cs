@@ -291,6 +291,14 @@ public partial class Main
                 GetTree().Quit(passed ? 0 : 1);
                 return;
             }
+            if (OS.GetCmdlineUserArgs().Contains("--verify-shipping-pallet", StringComparer.Ordinal))
+            {
+                VerifyShippingPalletGeometry(Check);
+                VerifyShippingPalletControllerWorkflow(Check);
+                GD.Print($"SHIPPING_PALLET_VERIFY {(passed ? "PASS" : "FAIL")} offline geometry and loaded-controller workflow; native review pending");
+                GetTree().Quit(passed ? 0 : 1);
+                return;
+            }
             if (OS.GetCmdlineUserArgs().Contains("--verify-motor-array", StringComparer.Ordinal))
             {
                 VerifyMotorArrayGeometry(Check);

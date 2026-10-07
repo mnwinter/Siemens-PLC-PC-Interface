@@ -215,8 +215,17 @@ public partial class Main
         runtime.CommitVirtualControllerOutputs(new System.Collections.Generic.Dictionary<string, bool> { ["conveyor_run"] = true });
         var controllerOwnsCommand = !runtime.RunDefault();
         runtime.AdvanceSimulation(1);
-        check(controllerOwnsCommand && runtime.Points["conveyor_run"] is true && pallet.Position.IsEqualApprox(home),
-            "shipping_pallet_reference_does_not_replace_selected_controller_commands_or_motion");
+        check(controllerOwnsCommand && runtime.Points["conveyor_run"] is true
+            && MathF.Abs(pallet.Position.X - home.X - .75f) < .001f,
+            "shipping_pallet_controller_command_drives_motion_without_reference_output_writes");
+        runtime.CommitVirtualControllerOutputs(new System.Collections.Generic.Dictionary<string, bool> { ["conveyor_run"] = false });
+        var held = pallet.Position; runtime.AdvanceSimulation(1);
+        check(pallet.Position.IsEqualApprox(held), "shipping_pallet_controller_command_loss_holds_pose");
+        runtime.CommitVirtualControllerOutputs(new System.Collections.Generic.Dictionary<string, bool> { ["conveyor_run"] = true });
+        runtime.AdvanceSimulation(30);
+        check(runtime.Points["conveyor_run"] is true && OpticalMatch()
+            && pallet.Position.X > pickupX && pallet.Position.X <= 3.1001f,
+            "shipping_pallet_missing_plc_stop_remains_visible_and_bounded");
         runtime.UsesExternalClock = false;
         runtime.ResetSimulation();
     }

@@ -133,6 +133,26 @@ public partial class SceneSimulationRuntime
         ApplyBindings(); StateChanged?.Invoke();
     }
 
+    private void AdvanceControllerShippingPallet(double seconds)
+    {
+        if (!double.IsFinite(seconds) || seconds < 0)
+            throw new ArgumentException("Shipping pallet step must be finite and non-negative.");
+        // The PLC owns run/stop and mode logic. Do not reuse the autonomous
+        // reference: it writes conveyor_run and stops itself at the beam.
+        var commanded = AsBool(_points.GetValueOrDefault("conveyor_run"));
+        if (commanded)
+        {
+            var maximumX = Number(_definition.GetProperty("shippingPalletReference"), "maximumX", _shippingPalletPickupX);
+            _shippingPalletX = Math.Min(maximumX, _shippingPalletX + _shippingPalletSpeed * seconds);
+            MoveShippingPallet(_shippingPalletX);
+        }
+        ProjectShippingPalletReference();
+        SetPoint("cycle_complete", !commanded && ShippingPalletBlocksBeam());
+        SetPoint("status_color", commanded ? "green" : "amber");
+        ApplyBindings();
+        StateChanged?.Invoke();
+    }
+
     private void MoveShippingPallet(double x)
     {
         var position = _shippingPallet!.Position;

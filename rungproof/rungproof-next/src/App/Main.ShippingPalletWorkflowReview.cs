@@ -1,0 +1,51 @@
+using System;
+using Godot;
+using RungProof.Next.VirtualController;
+
+namespace RungProof.Next.App;
+
+public partial class Main
+{
+    private void VerifyShippingPalletControllerWorkflow(Action<bool, string> check)
+    {
+        AddMigratedScene("lab-2-18-pallet-pickup", _candidateCatalog!, _mainCamera!, false, false);
+        var runtime = _sceneRuntime!;
+        var pallet = _sceneCompositionRoot!.GetNode<Node3D>("shipping_pallet");
+        var home = pallet.Position;
+        var document = new LadderEditorDocument();
+        document.ResetProject("review-shipping-pallet", "Shipping_Pallet_QA", TimeSpan.FromMilliseconds(20));
+        document.SourceSceneId = "lab-2-18-pallet-pickup";
+        document.AddTag("auto_mode", PlcVariableRole.Input, "auto_mode");
+        document.AddTag("pickup_sensor", PlcVariableRole.Input, "pickup_sensor");
+        document.AddTag("conveyor_run", PlcVariableRole.Output, "conveyor_run");
+        document.AddRung("Automatic travel until actual pickup beam", "conveyor_run");
+        document.AddContact(0, 0, "auto_mode", false);
+        document.AddContact(0, 0, "pickup_sensor", true);
+        var program = document.BuildProgram();
+        var compiled = LadderCompiler.Compile(program);
+        check(compiled.IsValid, "shipping_pallet_qa_compiles");
+        if (!compiled.IsValid) throw new InvalidOperationException("Shipping QA compile failed.");
+        System.IO.File.WriteAllText(ProjectSettings.GlobalizePath("res://.tools/aaa-shipping-pallet-native-qa.rpproj.json"), LadderEditorProjectJson.Save(document));
+        EnableVirtualControllerProgram(program);
+        try
+        {
+            void Tick(int count) { for (var scan = 0; scan < count; scan++) _PhysicsProcess(.02); }
+            RunActiveController(); Tick(50);
+            check(MathF.Abs(pallet.Position.X - home.X - .75f) < .001f && runtime.Points["conveyor_run"] is true,
+                "shipping_pallet_loaded_ladder_moves_at_configured_speed");
+            StopActiveController(); var stopped = pallet.Position; Tick(50);
+            check(pallet.Position.IsEqualApprox(stopped) && runtime.Points["conveyor_run"] is false,
+                "shipping_pallet_loaded_ladder_stop_holds");
+            RunActiveController(); Tick(400);
+            check(runtime.Points["pickup_sensor"] is true && runtime.Points["conveyor_run"] is false
+                && runtime.Points["cycle_complete"] is true,
+                "shipping_pallet_loaded_ladder_stops_on_geometric_sensor");
+            var endpoint = pallet.Position; Tick(50);
+            check(pallet.Position.IsEqualApprox(endpoint), "shipping_pallet_loaded_ladder_endpoint_remains_held");
+            ResetActiveController();
+            check(pallet.Position.IsEqualApprox(home) && runtime.Points["pickup_sensor"] is false,
+                "shipping_pallet_loaded_ladder_reset_restores_home");
+        }
+        finally { DisableVirtualController(); }
+    }
+}

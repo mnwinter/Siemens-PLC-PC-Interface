@@ -1,3 +1,10 @@
+## 2026-10-07 shipping-pallet loaded-controller motion repair prepared
+
+- Confirmed runtime defect: shippingPalletReference advanced only when UsesExternalClock was false, so loaded ladder conveyor_run rotated the conveyor but never moved the loaded pallet.
+- Added a separate controller-driven advance path. It reads the PLC command, translates at the authored 0.75 m/s, projects the actual geometric photoeye and SIM progress/completion/status, and never writes conveyor_run. Travel is bounded at authored maximumX=3.1; a missing PLC stop remains commanded and can move beyond the first crossing. The reference preview is unchanged.
+- Focused --verify-scene-geometry --verify-shipping-pallet PASS includes bearing/strap/reference checks, command motion/loss, missing-stop bounded travel, and integrated 20 ms QA ladder travel/Stop/resume/geometric pickup stop/Reset. Build zero warnings/errors; 145 virtual-controller tests PASS, no real transport constructed or attempted.
+- Generated separate QA fixture .tools/aaa-shipping-pallet-native-qa.rpproj.json: one rung, auto_mode AND NOT pickup_sensor -> conveyor_run. This proves automatic controller travel; it does not supply a full manual jog lesson solution.
+- Fresh Windows shell session 80675/window 531616 launched with repaired source. Startup screen inspected; normal editor Open/Verify+load cycle remains the next required native verification. Do not treat deterministic PASS or launch as complete native workflow acceptance.
 ## 2026-10-07 held shipping-pallet automatic reference inspection
 
 - Native Windows session 50830/window 17302630 at source 8bc504a, launched with --visual-plant-review --scene-id=lab-2-18-pallet-pickup. This explicit plant preview has no PLC controller and is not the normal loaded-controller lesson.

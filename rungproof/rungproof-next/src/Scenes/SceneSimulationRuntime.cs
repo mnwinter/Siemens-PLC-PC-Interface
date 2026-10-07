@@ -270,6 +270,11 @@ public partial class SceneSimulationRuntime : Node
             return;
         }
 
+        if (HasShippingPalletReference && UsesExternalClock)
+        {
+            AdvanceControllerShippingPallet(delta);
+            return;
+        }
         if (HasShippingPalletReference && !UsesExternalClock && !_externalPlaybackSelected)
         {
             AdvanceShippingPalletReference(delta);
