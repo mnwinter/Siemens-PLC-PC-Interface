@@ -4,7 +4,7 @@
   "id": "review-tote-fill-cap",
   "name": "Tote_Fill_Cap_QA",
   "sourceSceneId": "lab-2-21-tote-finishing",
-  "scanPeriodMs": 20,
+  "scanPeriodMs": 10,
   "activeBlockIndex": 0,
   "entryBlockId": "block-1",
   "nextId": 43,
@@ -271,7 +271,7 @@
                   "normallyClosed": false,
                   "isComparison": true,
                   "compareOperator": "LessThan",
-                  "rightOperand": "0",
+                  "rightOperand": "-0.005",
                   "edgeMode": "None"
                 }
               ]
@@ -471,7 +471,7 @@
       "id": "task-2",
       "name": "MainTask",
       "kind": "Continuous",
-      "periodMs": 20,
+      "periodMs": 10,
       "priority": 10,
       "entryBlock": "block-1"
     }

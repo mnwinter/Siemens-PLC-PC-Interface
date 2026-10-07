@@ -21,13 +21,21 @@ public partial class Main
             ExecuteSelectedControllerAction("start-line");
             for (var scan = 0; scan < 1500; scan++) _PhysicsProcess(.02);
             GD.Print($"TOTE_QA_FINAL position={_sceneRuntime!.Points["tote_position"]} fill={_sceneRuntime.Points["fill_complete"]} applied={_sceneRuntime.Points["cap_applied"]} home={_sceneRuntime.Points["cap_home"]} inhibited={_sceneRuntime.Points["cap_inhibited"]}");
-            // Reproduction of the native failure, not acceptance of a finished
-            // cycle. Keep this explicit until controller/plant timing is repaired.
             check(_sceneRuntime.Points["fill_complete"] is true
+                && _sceneRuntime.Points["cap_applied"] is true
+                && _sceneRuntime.Points["cap_home"] is true
+                && _sceneRuntime.Points["tote_at_exit"] is true,
+                "editor_ladder_fills_caps_retracts_and_retains_supported_exit");
+            StopActiveController();
+            check(_sceneRuntime.Points["cap_applied"] is true
+                && _sceneRuntime.Points["conveyor_run"] is false
+                && _sceneRuntime.Points["capper_run"] is false,
+                "editor_ladder_stop_preserves_applied_cap_and_clears_commands");
+            ResetActiveController();
+            check(_sceneRuntime.Points["fill_complete"] is false
                 && _sceneRuntime.Points["cap_applied"] is false
-                && _sceneRuntime.Points["cap_inhibited"] is true
-                && Math.Abs(Convert.ToDouble(_sceneRuntime.Points["tote_position"]) - .005) < .00001,
-                "known_20ms_ladder_stop_quantization_reproduces_native_cap_inhibition");
+                && _sceneRuntime.Points["cap_home"] is true,
+                "editor_ladder_reset_restores_empty_open_tote_and_chuck_home");
         }
         finally { DisableVirtualController(); }
     }
