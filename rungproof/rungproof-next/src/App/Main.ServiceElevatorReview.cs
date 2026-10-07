@@ -10,6 +10,31 @@ public partial class Main
 {
     private void VerifyServiceElevatorInstallation(Action<bool,string> check)
     {
+        var cycle=new LadderEditorDocument();
+        cycle.ResetProject("review-service-elevator-cycle","Service_Elevator_QA_Cycle",TimeSpan.FromMilliseconds(20));
+        cycle.SourceSceneId="lab-11-11-service-elevator";
+        foreach(var name in new[]{"call_valid","doors_closed","landing_clear","at_lower_landing","at_upper_landing","direction_conflict"})
+            cycle.AddTag(name,PlcVariableRole.Input,name);
+        cycle.AddTag("car_position_pct",PlcVariableRole.Input,"car_position_pct",type:PlcVariableType.Real);
+        foreach(var name in new[]{"lift_up_cmd","lift_down_cmd"}) cycle.AddTag(name,PlcVariableRole.Output,name);
+        cycle.AddTag("qa_upper_seen",PlcVariableRole.Memory);
+        // Retain the return phase through permissive loss and Stop. Reset is
+        // required for another round trip, preventing held-call oscillation.
+        cycle.AddRung("Remember upper landing for a single return trip","qa_upper_seen").CoilMode=LadderCoilMode.Set;
+        cycle.AddContact(0,0,"at_upper_landing",false);
+        for(var direction=0;direction<2;direction++)
+        {
+            var index=cycle.Rungs.Count;
+            cycle.AddRung(direction==0?"Ascend until upper landing":"Return and hold at lower landing",direction==0?"lift_up_cmd":"lift_down_cmd");
+            foreach(var name in new[]{"call_valid","doors_closed","landing_clear"}) cycle.AddContact(index,0,name,false);
+            cycle.AddContact(index,0,"qa_upper_seen",direction==0);
+            cycle.AddContact(index,0,direction==0?"at_upper_landing":"at_lower_landing",true);
+        }
+        cycle.WatchVariables.AddRange(cycle.Tags.Select(tag=>tag.Name));
+        var cycleCompiled=LadderCompiler.Compile(cycle.BuildProgram());
+        check(cycleCompiled.IsValid,"elevator_native_round_trip_qa_program_compiles");
+        if(!cycleCompiled.IsValid) throw new InvalidOperationException(string.Join(";",cycleCompiled.Issues));
+        System.IO.File.WriteAllText(ProjectSettings.GlobalizePath("res://.tools/aaa-service-elevator-cycle-native-qa.rpproj.json"),LadderEditorProjectJson.Save(cycle));
         // Explicit QA files for normal editor Open / Verify+load review. They
         // never replace the exercise's blank project or connect to a PLC.
         foreach(var up in new[]{true,false})
@@ -119,5 +144,29 @@ public partial class Main
         check(runtime.Points["at_lower_landing"] is true && runtime.Points["direction_conflict"] is false
             && runtime.Points["lift_up_cmd"] is false && runtime.Points["lift_down_cmd"] is false,
             "elevator_reset_restores_home_and_command_image");
+        EnableVirtualControllerProgram(cycle.BuildProgram());
+        try
+        {
+            RunActiveController();
+            foreach(var name in new[]{"call_valid","doors_closed","landing_clear"}) ExecuteSelectedControllerAction("toggle-"+name);
+            void Scans(int n) { for(var i=0;i<n;i++) _PhysicsProcess(.02); }
+            Scans(300);
+            check(runtime.Points["at_upper_landing"] is true,"elevator_qa_normal_controller_reaches_upper_landing");
+            Scans(1);
+            check(runtime.Points["lift_up_cmd"] is false && runtime.Points["lift_down_cmd"] is true,
+                "elevator_qa_upper_feedback_selects_return_without_opposing_outputs");
+            Scans(100); StopActiveController();
+            var stopped=car.Transform; var scan=_virtualController!.Snapshot.ScanNumber;
+            Scans(25);
+            check(car.Transform==stopped && _virtualController.Snapshot.ScanNumber==scan,
+                "elevator_qa_stop_retains_return_phase_and_car");
+            RunActiveController(); Scans(205);
+            check(runtime.Points["at_lower_landing"] is true && runtime.Points["lift_up_cmd"] is false
+                && runtime.Points["lift_down_cmd"] is false,"elevator_qa_return_holds_home_with_call_still_valid");
+            ResetActiveController();
+            check(_virtualController.Snapshot.ScanNumber==0 && runtime.Points["at_lower_landing"] is true
+                && runtime.Points["call_valid"] is false,"elevator_qa_reset_restores_inputs_and_home");
+        }
+        finally { DisableVirtualController(); }
     }
 }

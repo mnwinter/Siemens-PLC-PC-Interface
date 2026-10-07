@@ -1,4 +1,12 @@
 
+## 2026-10-07 - Service elevator round-trip QA and top camera repair
+
+Normal editor Verify+load resets the plant; separate directional files cannot demonstrate a retained upper-to-lower trip. Added an explicit audit-only cycle project (10 tags, three rungs): upper feedback latches qa_upper_seen, ascent ends, return holds at lower landing until Reset. It retains phase through Stop/permissive loss. Existing exercise blank project remains unchanged.
+
+Focused verifier passed 24 checks including normal offline-controller ascent, feedback-driven return with exclusive direction outputs, Stop holding return phase/car/scan, retained home with held call, Reset inputs/home. Build zero warnings/errors. These new controller checks are headless evidence, not a native downward-motion review.
+
+Added elevator to existing full-scene top-view framing reserve. Fresh native session 81849 inspected home front-right and top: the full shaft now appears below the clock toolbar, with separate stations/decks visible. Corrected QA label visibly shows car 0.0%, lower True, upper False without toolbar overlap at home. Changing percentage, raised top pose, native round-trip descent, and native Reset remain pending. The old session 94013 was closed intentionally to run the revised source.
+
 ## 2026-10-07 - Service elevator full upward traverse and Stop/resume observed
 
 Continued live native session 94013 from held 3.0 s / scan 150. Rear-right inspected 3.0, 3.5, 4.0, 4.5 s. Stop at scan 225 cleared both direction commands, retained the raised car and closed panels; releasing the QA hold while stopped retained pose and scan. Re-held clock, Run, then rear-right inspected 5.0, 5.5, 6.0 s / scan 300. All half-second endpoints of the upward traverse have now been observed across the two rear angles (first half rear-left in previous entry), not every frame or every angle at every endpoint.

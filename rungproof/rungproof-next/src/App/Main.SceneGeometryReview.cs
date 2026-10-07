@@ -265,7 +265,7 @@ public partial class Main
             if (OS.GetCmdlineUserArgs().Contains("--verify-service-elevator-installation", StringComparer.Ordinal))
             {
                 VerifyServiceElevatorInstallation(Check);
-                GD.Print($"SERVICE_ELEVATOR_INSTALLATION_VERIFY {(passed ? "PASS" : "FAIL")} modeled bounds only; controller and native motion pending");
+                GD.Print($"SERVICE_ELEVATOR_INSTALLATION_VERIFY {(passed ? "PASS" : "FAIL")} sampled bounds and offline QA controller; native full-cycle review pending");
                 GetTree().Quit(passed ? 0 : 1);
                 return;
             }
