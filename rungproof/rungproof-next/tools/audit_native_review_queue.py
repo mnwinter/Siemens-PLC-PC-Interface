@@ -16,7 +16,7 @@ implementation_gaps={
  'lab-10-05-motor-struct-data': 'STRUCT record and power/temperature data',
  'lab-10-06-ten-motor-array-startup': 'Typed array-value interface',
  'lab-11-06-wastewater-collection': 'Fluid and analog process model',
- 'lab-11-11-service-elevator': 'Hoist/access depiction and modeled door travel',
+ 'lab-11-11-service-elevator': 'Hoist/access depiction; modeled door travel implemented, remaining verification in result',
  'lab-11-12-mobile-traffic-lights': 'Timed reference cycle, vehicle motion and clear feedback',
 }
 verification_gaps={
