@@ -30,7 +30,7 @@
       "config": {
         "length": 6.5,
         "width": 1.4,
-        "deckHeight": 0.9,
+        "deckHeight": 1.053,
         "beltColor": 2568760,
         "running": false
       }
@@ -47,7 +47,7 @@
       "config": {
         "length": 6.5,
         "width": 1.4,
-        "deckHeight": 0.9,
+        "deckHeight": 1.053,
         "beltColor": 2568760,
         "running": false
       }
@@ -64,7 +64,7 @@
       "config": {
         "length": 6.5,
         "width": 1.4,
-        "deckHeight": 0.9,
+        "deckHeight": 1.053,
         "beltColor": 2568760,
         "running": false
       }
@@ -79,9 +79,9 @@
         0
       ],
       "config": {
-        "span": 2.05,
+        "span": 3.2,
         "height": 0.7,
-        "beamCenterHeightM": 1.1,
+        "beamCenterHeightM": 1.23,
         "blocked": false
       }
     },
@@ -95,9 +95,9 @@
         0
       ],
       "config": {
-        "span": 2.05,
+        "span": 3.2,
         "height": 0.7,
-        "beamCenterHeightM": 1.1,
+        "beamCenterHeightM": 1.23,
         "blocked": false
       }
     },
@@ -111,9 +111,9 @@
         0
       ],
       "config": {
-        "span": 2.05,
+        "span": 3.2,
         "height": 0.7,
-        "beamCenterHeightM": 1.1,
+        "beamCenterHeightM": 1.23,
         "blocked": false
       }
     },
@@ -122,9 +122,9 @@
       "type": "trainingAccessory",
       "label": "Multi-Conveyor Pallet Route - pallet roller conveyor zone",
       "position": [
-        1.1,
-        0,
-        1.8
+        12.3,
+        -0.04,
+        0
       ],
       "config": {
         "assetName": "pallet roller conveyor zone",
@@ -141,9 +141,9 @@
         0
       ],
       "config": {
-        "span": 2.05,
+        "span": 3.2,
         "height": 0.7,
-        "beamCenterHeightM": 1.1,
+        "beamCenterHeightM": 1.23,
         "blocked": false
       }
     },
@@ -258,6 +258,19 @@
           "green"
         ],
         "active": "red"
+      }
+    },
+    {
+      "id": "zone_handoffs",
+      "type": "sceneInstallation",
+      "label": "Supported conveyor zone handoffs",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "config": {
+        "installation": "multiConveyorHandoffs"
       }
     }
   ],
