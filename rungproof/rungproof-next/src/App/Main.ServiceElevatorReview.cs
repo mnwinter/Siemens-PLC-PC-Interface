@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
+using RungProof.Next.VirtualController;
 
 namespace RungProof.Next.App;
 
@@ -9,6 +10,27 @@ public partial class Main
 {
     private void VerifyServiceElevatorInstallation(Action<bool,string> check)
     {
+        // Explicit QA files for normal editor Open / Verify+load review. They
+        // never replace the exercise's blank project or connect to a PLC.
+        foreach(var up in new[]{true,false})
+        {
+            var document=new LadderEditorDocument();
+            var direction=up?"up":"down";
+            document.ResetProject("review-service-elevator-"+direction,"Service_Elevator_QA_"+direction,TimeSpan.FromMilliseconds(20));
+            document.SourceSceneId="lab-11-11-service-elevator";
+            foreach(var name in new[]{"call_valid","doors_closed","landing_clear","at_lower_landing","at_upper_landing","direction_conflict"})
+                document.AddTag(name,PlcVariableRole.Input,name);
+            document.AddTag("car_position_pct",PlcVariableRole.Input,"car_position_pct",type:PlcVariableType.Real);
+            foreach(var name in new[]{"lift_up_cmd","lift_down_cmd"}) document.AddTag(name,PlcVariableRole.Output,name);
+            document.AddRung("QA single direction until destination landing",up?"lift_up_cmd":"lift_down_cmd");
+            foreach(var name in new[]{"call_valid","doors_closed","landing_clear"}) document.AddContact(0,0,name,false);
+            document.AddContact(0,0,up?"at_upper_landing":"at_lower_landing",true);
+            document.WatchVariables.AddRange(document.Tags.Select(tag=>tag.Name));
+            var compiled=LadderCompiler.Compile(document.BuildProgram());
+            check(compiled.IsValid,"elevator_"+direction+"_native_qa_program_compiles");
+            if(!compiled.IsValid) throw new InvalidOperationException(string.Join(";",compiled.Issues));
+            System.IO.File.WriteAllText(ProjectSettings.GlobalizePath("res://.tools/aaa-service-elevator-"+direction+"-native-qa.rpproj.json"),LadderEditorProjectJson.Save(document));
+        }
         AddMigratedScene("lab-11-11-service-elevator", _candidateCatalog!, _mainCamera!, false, false);
         var scene = _sceneCompositionRoot!;
         var shaft = scene.GetNode<Node3D>("liftTable_0");

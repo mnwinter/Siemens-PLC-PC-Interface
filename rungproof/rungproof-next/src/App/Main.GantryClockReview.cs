@@ -25,7 +25,7 @@ public partial class Main
     // single-clock palletizer / conveyor-pusher / chain lift / cookie / barrel / cable / repeat-cycle plants. Other scenes may
     // have separate callbacks; this is not a general external PLC step.
     private bool CanReviewGantryClock => _visualSceneReview && !_visualPlantReview
-        && _currentSceneId is "scene-2-conveyor-pusher" or "lab-11-13-xy-palletizing" or "lab-4-09-chain-drive-lift" or "lab-4-10-cookie-packaging" or "lab-4-11-barrel-fill-station" or "lab-4-12-cable-cut-length" or "lab-4-03-repeat-cycle-counter" or "lab-4-07-parking-garage-entry" or "lab-4-08-package-grouping" or "lab-5-01-delayed-lamp" or "lab-5-02-timed-lamp-off" or "lab-5-03-rotary-flasher" or "lab-5-04-alternating-lamps" or "lab-5-05-variable-flash-rate" or "lab-5-06-running-light-tower" or "lab-5-07-pedestrian-crossing" or "lab-5-08-drawbridge-control" or "lab-5-09-bag-indexing-conveyor" or "lab-5-10-coating-line" or "lab-6-08-hand-dryer" or "lab-6-07-luggage-weight-sort"
+        && _currentSceneId is "scene-2-conveyor-pusher" or "lab-11-13-xy-palletizing" or "lab-4-09-chain-drive-lift" or "lab-4-10-cookie-packaging" or "lab-4-11-barrel-fill-station" or "lab-4-12-cable-cut-length" or "lab-4-03-repeat-cycle-counter" or "lab-4-07-parking-garage-entry" or "lab-4-08-package-grouping" or "lab-5-01-delayed-lamp" or "lab-5-02-timed-lamp-off" or "lab-5-03-rotary-flasher" or "lab-5-04-alternating-lamps" or "lab-5-05-variable-flash-rate" or "lab-5-06-running-light-tower" or "lab-5-07-pedestrian-crossing" or "lab-5-08-drawbridge-control" or "lab-5-09-bag-indexing-conveyor" or "lab-5-10-coating-line" or "lab-6-08-hand-dryer" or "lab-6-07-luggage-weight-sort" or "lab-11-11-service-elevator"
         && _simulatorShell?.IsExternalMode != true;
 
     private bool GantryReviewClockHeld => _gantryReviewHeldRoot is not null
@@ -62,7 +62,7 @@ public partial class Main
             _gantryReviewClockBar.Visible = CanReviewGantryClock && _gantryReviewOperatorView;
         if (_gantryReviewStep is not null)
             _gantryReviewStep.Text = _currentSceneId == "scene-2-conveyor-pusher" ? "Step 0.1 s" : _currentSceneId is "lab-4-09-chain-drive-lift" or "lab-4-10-cookie-packaging" or "lab-4-11-barrel-fill-station" ? "Step 2.0 s" : "Step 0.5 s";
-        if (_gantryReviewFineStep is not null) _gantryReviewFineStep.Visible = _currentSceneId is "scene-2-conveyor-pusher" or "lab-4-03-repeat-cycle-counter" or "lab-4-07-parking-garage-entry" or "lab-4-08-package-grouping" or "lab-5-01-delayed-lamp" or "lab-5-02-timed-lamp-off" or "lab-5-03-rotary-flasher" or "lab-5-04-alternating-lamps" or "lab-5-05-variable-flash-rate" or "lab-5-06-running-light-tower" or "lab-5-07-pedestrian-crossing" or "lab-5-08-drawbridge-control" or "lab-5-09-bag-indexing-conveyor" or "lab-5-10-coating-line" or "lab-6-08-hand-dryer" or "lab-6-07-luggage-weight-sort";
+        if (_gantryReviewFineStep is not null) _gantryReviewFineStep.Visible = _currentSceneId is "scene-2-conveyor-pusher" or "lab-4-03-repeat-cycle-counter" or "lab-4-07-parking-garage-entry" or "lab-4-08-package-grouping" or "lab-5-01-delayed-lamp" or "lab-5-02-timed-lamp-off" or "lab-5-03-rotary-flasher" or "lab-5-04-alternating-lamps" or "lab-5-05-variable-flash-rate" or "lab-5-06-running-light-tower" or "lab-5-07-pedestrian-crossing" or "lab-5-08-drawbridge-control" or "lab-5-09-bag-indexing-conveyor" or "lab-5-10-coating-line" or "lab-6-08-hand-dryer" or "lab-6-07-luggage-weight-sort" or "lab-11-11-service-elevator";
         UpdateGantryReviewClockLabel();
     }
 
@@ -99,7 +99,7 @@ public partial class Main
 
     private void StepGantryReviewClock() => AdvanceGantryReviewClock(
         _currentSceneId == "scene-2-conveyor-pusher" ? 5 :
-        _currentSceneId is "lab-4-12-cable-cut-length" or "lab-11-13-xy-palletizing" or "lab-4-03-repeat-cycle-counter" or "lab-4-07-parking-garage-entry" or "lab-4-08-package-grouping" or "lab-5-01-delayed-lamp" or "lab-5-02-timed-lamp-off" or "lab-5-03-rotary-flasher" or "lab-5-04-alternating-lamps" or "lab-5-05-variable-flash-rate" or "lab-5-06-running-light-tower" or "lab-5-07-pedestrian-crossing" or "lab-5-08-drawbridge-control" or "lab-5-09-bag-indexing-conveyor" or "lab-5-10-coating-line" or "lab-6-08-hand-dryer" or "lab-6-07-luggage-weight-sort" ? 25 : 100);
+        _currentSceneId is "lab-4-12-cable-cut-length" or "lab-11-13-xy-palletizing" or "lab-4-03-repeat-cycle-counter" or "lab-4-07-parking-garage-entry" or "lab-4-08-package-grouping" or "lab-5-01-delayed-lamp" or "lab-5-02-timed-lamp-off" or "lab-5-03-rotary-flasher" or "lab-5-04-alternating-lamps" or "lab-5-05-variable-flash-rate" or "lab-5-06-running-light-tower" or "lab-5-07-pedestrian-crossing" or "lab-5-08-drawbridge-control" or "lab-5-09-bag-indexing-conveyor" or "lab-5-10-coating-line" or "lab-6-08-hand-dryer" or "lab-6-07-luggage-weight-sort" or "lab-11-11-service-elevator" ? 25 : 100);
 
     private void AdvanceGantryReviewClock(int ticks)
     {
@@ -131,6 +131,11 @@ public partial class Main
         if (_gantryReviewFineStep is not null) _gantryReviewFineStep.Disabled = !GantryReviewClockHeld
             || _virtualController?.Snapshot.State != VirtualControllerState.Running;
         if (_gantryReviewClockLabel is null) return;
+        if (_currentSceneId == "lab-11-11-service-elevator")
+        {
+            _gantryReviewClockLabel.Text = $"QA | {(_virtualController?.Snapshot.SimulatedTime.TotalSeconds ?? 0):F2} s | car {_sceneRuntime?.Points.GetValueOrDefault("car_position_pct") ?? 0:0.0}% | lower {_sceneRuntime?.Points.GetValueOrDefault("at_lower_landing") ?? false} | upper {_sceneRuntime?.Points.GetValueOrDefault("at_upper_landing") ?? false}";
+            return;
+        }
         if (_currentSceneId == "scene-2-conveyor-pusher")
         {
             _gantryReviewClockLabel.Text = $"QA | {(_virtualController?.Snapshot.SimulatedTime.TotalSeconds ?? 0):F2} s | stroke {_sceneRuntime?.Points.GetValueOrDefault("pusher_position") ?? 0:0.0}% | count {_sceneRuntime?.Points.GetValueOrDefault("parts_completed") ?? 0}";

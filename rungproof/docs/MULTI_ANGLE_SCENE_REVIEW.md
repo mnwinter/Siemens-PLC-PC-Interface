@@ -1,4 +1,12 @@
 
+## 2026-10-07 - Service elevator normal editor QA begins
+
+Added explicit audit-only up/down QA project exports (nine tags, one rung, 20 ms task) and enabled offline held-clock 0.5 s / 20 ms steps for this single-clock elevator. Focused verification passed 18 checks including both QA compilation checks; build passed without warnings/errors.
+
+Native session 94013: opened aaa-service-elevator-up-native-qa.rpproj.json through Project > Open, then Online > Verify + load offline. UI confirmed nine tags and one rung. Returned to scene, held clock, Run, enabled call_valid/doors_closed/landing_clear. First 0.5 s / scan 25 closed panels and raised car, up true/down false; front-right and rear-left observed. Rear-left inspected each 0.5 s through 3.0 s / scan 150 with retained closed doors and car moving inside shaft. No obvious intersection in these bounded views. Second half, descent, Stop/Reset, and opposing-view motion still pending.
+
+Native review exposed fallback clock label incorrectly reporting stroke 0.0%. Added scene-specific car percentage and landing flags; source build passes but revised label has not yet been visually inspected. Current native app remains on the previous build held at 3.0 s / scan 150. No physical PLC connection.
+
 ## 2026-10-07 - Service elevator door support and closed-door clearance
 
 Added continuous overhead door tracks and leaf-owned hangers; both open and closed fixture poses retain the visible supports. Build passed with zero warnings/errors. Focused elevator verifier passed 16 checks, including 101 positions against fixed shaft/landing/door/hanger bounds with doors open and another 101 with doors closed. These are sampled bounds checks, not mechanical acceptance.
