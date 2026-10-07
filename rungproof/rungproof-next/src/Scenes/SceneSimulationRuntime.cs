@@ -1226,6 +1226,11 @@ public partial class SceneSimulationRuntime : Node
 
     private void ApplyBindings()
     {
+        // Refresh display feedback even when Stop prevents further motion ticks.
+        // The selected controller retains ownership of conveyor_run.
+        if (UsesExternalClock && HasShippingPalletReference)
+            SetPoint("status_color", !PlantPlaybackRunning ? "red"
+                : AsBool(_points.GetValueOrDefault("conveyor_run")) ? "green" : "amber");
         // The sump tower reports the current controller image, rather than
         // retaining a sequence-entry color after Stop clears the pump output.
         // This is display-only feedback; it never produces a PLC command.

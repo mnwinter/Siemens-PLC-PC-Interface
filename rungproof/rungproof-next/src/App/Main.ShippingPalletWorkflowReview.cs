@@ -47,6 +47,7 @@ public partial class Main
             StopActiveController(); var stopped = pallet.Position; Tick(50);
             check(pallet.Position.IsEqualApprox(stopped) && runtime.Points["conveyor_run"] is false,
                 "shipping_pallet_loaded_ladder_stop_holds");
+            check(Equals(runtime.Points["status_color"], "red"), "shipping_pallet_stop_tower_refreshes_without_motion_tick");
             RunActiveController(); Tick(10);
             check(pallet.Position.IsEqualApprox(stopped), "shipping_pallet_restart_requires_new_start");
             check(ExecuteSelectedControllerAction("start-auto"), "shipping_pallet_restart_start_button_accepted");

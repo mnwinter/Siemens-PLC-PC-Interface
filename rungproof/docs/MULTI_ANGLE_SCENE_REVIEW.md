@@ -1,3 +1,8 @@
+## 2026-10-07 shipping Start native check and stopped-tower correction
+
+Normal Windows shipping scene at source 729f3be, window 269562: opened QA through Project > Open and Verify + load offline (1 block, 1 task, 1 rung, 5 tags). Run held the home pose and conveyor_run=False through scan 224. Start automatic travel was accepted at scan 552, conveyor_run=True and load visibly moving. Stop at scan 994 left the load seated near pickup, output False. Front right, Top, Front left, Rear left and Rear right views showed retained load with no gross overlap at displayed scale; tower occludes one rear-right corner. No claim of continuous-frame or full-solid clearance.
+
+Reset restored home/scan 0/output False. Second Start accepted at scan 424. Stop during travel at scan 772 held the intermediate pose/output False; Run scans 775 through 1147 did not resume travel. Native observation revealed tower incorrectly retaining green on Stop, then becoming amber on Run. Fixed shipping display projection in ApplyBindings so stopped controller is red immediately, running idle amber, commanded travel green; PLC command ownership unchanged. Fresh build passed with zero warnings/errors; focused shipping geometry/controller verification passed including stopped tower regression. Corrected tower still requires fresh-build native screenshot verification. Manual controller jog lesson remains unverified. Goal remains open.
 ## 2026-10-07 shipping operator request bindings prepared
 
 - Existing normal-shell action handling requires an explicit controllerStartBinding for a start action. Shipping Start/Jog omitted these and were rejected even with a loaded ladder.
