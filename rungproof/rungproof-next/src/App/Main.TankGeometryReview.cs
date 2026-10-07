@@ -46,8 +46,8 @@ public partial class Main
         check(feedbackCoherent,"sump_350_samples_percentage_and_float_inputs_match_liquid_surface");
         check(MathF.Abs(peak-(.12f+1.65f*.78f))<.001f,
             "sump_reference_motion_reaches_78_percent_high_level");
-        check(MathF.Abs(ReviewBounds(liquid).End.Y-(.12f+1.65f*.18f))<.001f,
-            "sump_reference_motion_finishes_at_18_percent_low_level");
+        check(MathF.Abs(ReviewBounds(liquid).End.Y-(.12f+1.65f*.20f))<.001f,
+            "sump_reference_motion_finishes_at_20_percent_low_level");
         runtime.ResetSimulation();
         check(MathF.Abs(ReviewBounds(liquid).End.Y-initial.End.Y)<.001f,
             "sump_reset_restores_initial_liquid_surface");

@@ -162,6 +162,8 @@
   "simulation": {
     "type": "sequence",
     "points": [
+      { "name": "start_sump", "type": "BOOL", "owner": "PC", "initial": false },
+      { "name": "cycle_enable", "type": "BOOL", "owner": "PLC", "initial": false },
       {
         "name": "sump_level",
         "type": "REAL",
@@ -205,6 +207,7 @@
         "id": "start-sump",
         "label": "Simulate sump cycle",
         "type": "start",
+        "controllerStartBinding": "start_sump",
         "sequence": "level-cycle"
       },
       {
@@ -276,14 +279,15 @@
           "durationS": 2.8,
           "set": {
             "high_float_active": false,
-            "sump_level": 18
+            "sump_level": 20
           },
           "motions": [
             {
               "type": "tankLevel",
               "equipmentId": "sump_tank",
               "from": 0.78,
-              "to": 0.18
+              "to": 0.2,
+              "requiresCommand": "pump_run"
             }
           ]
         },
@@ -307,6 +311,7 @@
     "completionState": {},
     "conveyorSpeedMps": 0.75,
     "tankId": "sump_tank",
+    "controllerSequenceCommand": "cycle_enable",
     "sequenceLevelFeedback": true,
     "lowSensorId": "low_float",
     "highSensorId": "high_float",
