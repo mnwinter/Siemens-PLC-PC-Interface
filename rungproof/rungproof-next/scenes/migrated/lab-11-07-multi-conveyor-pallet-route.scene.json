@@ -19,6 +19,19 @@
   },
   "equipment": [
     {
+      "id": "route_pallet",
+      "type": "palletLoad",
+      "label": "Loaded route pallet",
+      "position": [-9.3, 1.0155, 0],
+      "config": {
+        "caseWidthM": 0.5,
+        "caseHeightM": 0.32,
+        "caseDepthM": 0.42,
+        "layers": 2,
+        "color": 10254930
+      }
+    },
+    {
       "id": "conveyor_0",
       "type": "conveyor",
       "label": "Multi-Conveyor Pallet Route conveyor",

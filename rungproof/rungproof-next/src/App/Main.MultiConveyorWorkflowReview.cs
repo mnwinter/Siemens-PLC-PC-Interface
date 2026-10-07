@@ -11,6 +11,23 @@ public partial class Main
     {
         AddMigratedScene("lab-11-07-multi-conveyor-pallet-route", _candidateCatalog!, _mainCamera!, false, false);
         var runtime = _sceneRuntime!;
+        var root = _sceneCompositionRoot!;
+        var pallet = root.GetNode<Node3D>("route_pallet");
+        var feed = root.GetNode<Node3D>("conveyor_0");
+        var belt = ReviewBounds((MeshInstance3D)feed.FindChild("KIN_belt_surface", true, false));
+        var tailX = ReviewBounds((MeshInstance3D)feed.FindChild("KIN_tail_drum", true, false)).GetCenter().X;
+        var driveX = ReviewBounds((MeshInstance3D)feed.FindChild("KIN_drive_drum", true, false)).GetCenter().X;
+        var runners = ReviewMeshes(pallet).Where(mesh => mesh.Name.ToString().StartsWith("PALLET_BOTTOM_", StringComparison.Ordinal)).ToArray();
+        // The curved belt envelope is not the flat carrying span. Check the
+        // three actual runner meshes against the drum axes independently.
+        check(runners.Length == 3 && runners.All(mesh =>
+        {
+            var bounds = ReviewBounds(mesh);
+            return MathF.Abs(bounds.Position.Y - belt.End.Y) < .001f
+                && bounds.Position.X >= tailX && bounds.End.X <= driveX
+                && bounds.Position.Z >= belt.Position.Z && bounds.End.Z <= belt.End.Z;
+        }), "multi_conveyor_home_pallet_runners_seated_inside_flat_belt");
+        GD.Print($"MULTI_CONVEYOR_HOME pallet={ReviewBounds(pallet)} belt={belt} flat={tailX}..{driveX}");
         var document = new LadderEditorDocument();
         document.ResetProject("review-multi-conveyor", "Multi_Conveyor_QA", TimeSpan.FromMilliseconds(20));
         document.SourceSceneId = "lab-11-07-multi-conveyor-pallet-route";
