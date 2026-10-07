@@ -1037,9 +1037,28 @@ public partial class Main
             if (!ok) failures++;
             GD.Print($"GUARDED_LAYOUT_CHECK {name}={ok}");
         }
-        try { VerifyTransferCartonSupport(Check, "lab-3-01-guarded-pallet-transfer"); }
+        try
+        {
+            VerifyTransferCartonSupport(Check, "lab-3-01-guarded-pallet-transfer");
+            var runtime = _sceneRuntime!;
+            runtime.UsesExternalClock = true;
+            runtime.SetControllerPlaybackRunning(true);
+            var drive = _sceneCompositionRoot!.GetNode<Node3D>("conveyor_0")
+                .FindChildren("*", string.Empty, true, false).OfType<ConveyorController>().Single();
+            Check(!drive.RunCommand, "reset_drive_command_is_off");
+            runtime.CommitVirtualControllerOutputs(new Dictionary<string, bool> { ["transfer_run"] = true });
+            Check(drive.RunCommand && runtime.Points["transfer_run"] is true,
+                "plc_transfer_run_commands_conveyor_drive");
+            runtime.CommitVirtualControllerOutputs(new Dictionary<string, bool> { ["transfer_run"] = false });
+            Check(!drive.RunCommand, "withdrawing_transfer_run_removes_drive_command");
+            runtime.CommitVirtualControllerOutputs(new Dictionary<string, bool> { ["transfer_run"] = true });
+            runtime.ResetSimulation();
+            Check(!drive.RunCommand && runtime.Points["transfer_run"] is false,
+                "reset_removes_transfer_command_and_drive_command");
+            runtime.SetControllerPlaybackRunning(false);
+        }
         catch (Exception exception) { failures++; GD.PushError(exception.ToString()); }
-        GD.Print($"GUARDED_LAYOUT_VERIFY {(failures == 0 ? "PASS" : "FAIL")} static geometry only; native views and transfer behavior pending");
+        GD.Print($"GUARDED_LAYOUT_VERIFY {(failures == 0 ? "PASS" : "FAIL")} static geometry and drive-command binding only; native views and carton transfer pending");
         GetTree().Quit(failures == 0 ? 0 : 1);
     }
 

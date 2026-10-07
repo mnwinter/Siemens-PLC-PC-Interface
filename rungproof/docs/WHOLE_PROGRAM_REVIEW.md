@@ -1,5 +1,10 @@
 # Whole program review - 2026-10-03
 
+## 2026-10-06 guarded-transfer drive-command repair
+
+Scene 40's PLC `transfer_run` previously drove only a lamp. Added its `running` binding to the existing conveyor controller. The focused audit now passes ten checks: six delivered-mesh placement/support checks plus initial off, PLC on, command withdrawal and Reset for the drive command. Build, initial-state scene contract and help validation pass. A fresh corrected full geometry run is active in `.tools/guarded-current-full-geometry.log`; its terminal result is not yet known. The carton remains stationary, and manual guard/path fixtures do not prove protective detection or interlocking. Fresh native views remain pending after the Escape stop.
+
+
 ## 2026-10-06 guarded-transfer layout repair (native pending)
 
 Scene 40 used a foot-switch surrogate for its access gate, with both photoeyes and the curtain outside the conveyor route. Replaced the scene gate mapping with the existing mesh swing gate at the access side, rotated the existing light-curtain pair across the belt, and placed both photoeyes within its X extent. Retained the supported home carton and the manual boolean fixture inputs. Added delivered-mesh checks for beam height/span and gate identity/clearance. Build, help validation, the focused six-check delivered-mesh audit and the scene initial-state contract pass. The first broad regression (before new checks) exited 0; the second exited 1 on the two superseded per-dash photoeye checks; it is not a pass. Current focused checks aggregate the dashed photoeye witness route correctly. New Windows multi-angle views remain pending after the native Escape stop. No carton transport, physical interlocking or safety-rated detection is claimed.

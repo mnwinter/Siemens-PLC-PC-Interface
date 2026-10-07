@@ -299,6 +299,11 @@
         "equipmentId": "indicator_11",
         "mode": "indicator",
         "activeColor": "green"
+      },
+      {
+        "point": "transfer_run",
+        "equipmentId": "conveyor_0",
+        "mode": "running"
       }
     ]
   },
@@ -307,7 +312,8 @@
       "Translate the lesson into explicit state and permissive logic: The transfer runs only with protection closed and both path sensors clear.",
       "Inputs are simulator feedback (guard_closed, entry_clear, exit_clear); PLC logic owns transfer_run, transfer_permissive.",
       "Test the initial state, the valid condition, and at least one missing permissive.",
-      "The gate and curtain are layout fixtures. Manual guard/path inputs do not prove gate interlocking, curtain detection, or a safety-rated stop. Carton transport is not yet modeled in this lesson."
+      "The gate and curtain are layout fixtures. Manual guard/path inputs do not prove gate interlocking, curtain detection, or a safety-rated stop. Carton transport is not yet modeled in this lesson.",
+      "transfer_run now commands the conveyor drive and its indicator. The carton is still a retained static fixture; drive animation alone does not prove a completed transfer."
     ],
     "solution": {
       "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",

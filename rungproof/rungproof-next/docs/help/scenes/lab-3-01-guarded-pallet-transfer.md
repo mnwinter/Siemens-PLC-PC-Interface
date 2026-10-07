@@ -37,6 +37,7 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | `exit_clear` | `switch_10` | `switch` |
 | `transfer_run` | `indicator_5` | `indicator` |
 | `transfer_permissive` | `indicator_11` | `indicator` |
+| `transfer_run` | `conveyor_0` | `running` |
 
 ## Expected equipment
 
