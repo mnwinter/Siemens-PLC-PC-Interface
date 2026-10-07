@@ -187,7 +187,7 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Car/shaft and two landings repaired. Door tracks/hangers supported, controller-owned car position and landing flags implemented. Normal editor audit cycle completed native round trip, upper reversal, held-call home, Stop/resume, Reset; all three manual permissive losses held ascent. Changing QA label and raised Top framing inspected. Upper landing side/rear rails and toe boards added; new home FR/FL/RL/RR/Top inspected and101 open/101 closed car-pose bounds checks pass including guards. FAIL/open: hoist, access stair/gate, instantaneous door fixture rather than modeled door travel; default exercise remains unloaded.",
+      "recordedResult": "Car/shaft and two landings repaired. Door tracks/hangers supported, controller-owned car position and landing flags implemented. Normal editor audit cycle completed native round trip, upper reversal, held-call home, Stop/resume, Reset; all three manual permissive losses held ascent. Changing QA label and raised Top framing inspected. Upper landing side/rear rails and toe boards added; separated control row freshly inspected in native window204592 FR/FL/RL/RR/Top; new home FR/FL/RL/RR/Top inspected and101 open/101 closed car-pose bounds checks pass including guards. FAIL/open: hoist, access stair/gate, instantaneous door fixture rather than modeled door travel; default exercise remains unloaded.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": true,
       "disposition": "REPAIR_RECORDED_FAILURE",
@@ -204,7 +204,7 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Horizontal road, two opposing three-color heads and separate wheeled cart bases on shoulders. Cart footprints clear asphalt/crosswalk/stations; corrected Top contains raised heads. Existing green bindings retained. Six independent PLC-owned lamp commands now available; 64 command combinations match actual lenses including conflicts. Native six-rung QA verifies red/amber/green on both heads, opposing-green visibility, five views, Stop and Reset. FAIL/open: synchronization depiction, timed alternating reference cycle, vehicle motion and automatic clear feedback; default exercise unloaded.",
+      "recordedResult": "Horizontal road, two opposing three-color heads and separate wheeled cart bases on shoulders. Cart footprints clear asphalt/crosswalk/stations; corrected Top contains raised heads. Existing green bindings retained. Six independent PLC-owned lamp commands now available; 64 command combinations match actual lenses including conflicts. Separated READY/A CLEAR/B CLEAR row freshly inspected in native window204592 FR/FL/RL/RR/Top. Native six-rung QA verifies red/amber/green on both heads, opposing-green visibility, five views, Stop and Reset. FAIL/open: synchronization depiction, timed alternating reference cycle, vehicle motion and automatic clear feedback; default exercise unloaded.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": true,
       "disposition": "REPAIR_RECORDED_FAILURE",
@@ -612,7 +612,7 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Placement/reference repaired: one shared stock, grounded supporting bed, 330 mm axial feeds with reference home flags, contacted matching 2.2 m slide/fixture travel; 18 focused checks PASS. Start binding repaired and native watch verified (00eec88/window 138990); Controller axial feed/independent retract/shared-fixture transfer repaired with 43 focused checks; native QA full-feed/independent-retract/partial-transfer/endpoint five-view review completed (window 139020). Open: exact transition frames, explicit native return, every intermediate motion pose, material removal/dynamics and continuous native motion; reference completion remains timed",
+      "recordedResult": "Placement/reference repaired: one shared stock, grounded supporting bed, 330 mm axial feeds with reference home flags, contacted matching 2.2 m slide/fixture travel; 18 focused checks PASS. Start binding repaired and native watch verified (00eec88/window 138990); Controller axial feed/independent retract/shared-fixture transfer repaired with 43 focused checks; native QA full-feed/independent-retract/partial-transfer/endpoint five-view review completed (window 139020). Native round-trip QA returned to home with qa_return TRUE and transfer_home TRUE (window139020); return-path intermediate poses not observed. Open: exact transition frames, multi-angle native return-path review, every intermediate motion pose, material removal/dynamics and continuous native motion; reference completion remains timed",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
