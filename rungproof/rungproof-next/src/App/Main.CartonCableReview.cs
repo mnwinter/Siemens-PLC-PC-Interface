@@ -76,6 +76,18 @@ public partial class Main
             lanesClear=false;
         }
         check(lanes.Length==4 && lanesClear,"vision_sorter_four_receiving_conveyors_clear_each_other_at_one_mm_obb_screen");
+        var controlsClear=true;
+        foreach(var control in root.GetChildren().OfType<Node3D>().Where(n=>n.Name.ToString().StartsWith("switch_",StringComparison.Ordinal)))
+        foreach(var part in ReviewMeshes(control))
+        foreach(var lane in lanes)
+        foreach(var other in ReviewMeshes(lane))
+        {
+            var overlap=ReviewBounds(part).Intersection(ReviewBounds(other)).Size;
+            if(overlap.X<=.001f || overlap.Y<=.001f || overlap.Z<=.001f || !OrientedBoxesPenetrate(part,other))continue;
+            GD.Print($"VISION_SORTER_OPERATOR_INTERFERENCE {control.Name}/{part.Name} {lane.Name}/{other.Name} overlap={overlap}");
+            controlsClear=false;
+        }
+        check(controlsClear,"vision_sorter_operator_controls_clear_all_four_receiving_conveyors_at_one_mm_obb_screen");
         foreach(var lane in lanes)
         {
             var laneDeck=(MeshInstance3D)lane.FindChild("KIN_belt_surface",true,false);

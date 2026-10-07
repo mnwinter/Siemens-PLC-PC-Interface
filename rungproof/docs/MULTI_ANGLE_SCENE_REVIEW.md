@@ -1,5 +1,11 @@
 # Multi-angle scene review - 2026-10-04
 
+## Sorter operator button interference corrected - 2026-10-06
+
+Focused native before views (overhead/front left) placed switch_11 against lane 4's services. Added a 1 mm AABB plus oriented-box screen for all three operator switches against all four receiving conveyors. Before repair this reported switch_11 enclosure/junction-box overlap of approximately 198x137x116 mm and additional pedestal/foot/cable intersections; focused command exited 1. Shifted only switch_11 from X 4.2 m to 3.6 m, retaining Y 0 and Z 4.7, its action and authored style. After repair the focused command exits 0 and operator controls are clear under the bounded screen. Logs: .tools/sorter-operator-before.log and .tools/sorter-operator-after.log.
+
+Reloaded via normal Windows shell Previous/Next navigation. Focused diagonal and overhead views now show a visible gap between button housing/pedestal and lane 4 junction box/frame. This proves observed static separation, not every-frame collision or mechanical certification. Build zero warnings/errors; controller tests 144 PASS/0 FAIL; app-shell verification PASS for 77 scenes. Remaining sorter class feedback, driven carton routing and normal-controller motion acceptance are unresolved. Native window remains active in session 57157.
+
 ## Sorter overhead framing verified in Windows - 2026-10-06
 
 Extended the existing opt-in near-vertical full-scene framing allowance to Vision Package Sorter. No equipment poses or normal camera defaults changed. Native rebuilt operator-shell overhead view at 1602x932 now displays the entire infeed, all four outgoing lane ends and controls between the review toolbar and I/O panel. Focused front-left inspection of outgoing bridge 4 also shows separation between its support and the table drive motor. These observations are static; automatic carton routing remains unwired.
