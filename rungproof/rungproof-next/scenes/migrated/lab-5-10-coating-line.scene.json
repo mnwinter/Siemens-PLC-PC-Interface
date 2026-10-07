@@ -21,9 +21,9 @@
     {
       "id": "conveyor_0",
       "type": "conveyor",
-      "label": "Coating Line conveyor",
+      "label": "Index conveyor with integral drive",
       "position": [
-        -3.3000000000000003,
+        0,
         0,
         0
       ],
@@ -31,84 +31,65 @@
         "length": 6.5,
         "width": 1.4,
         "deckHeight": 0.9,
-        "beltColor": 2568760,
-        "running": false
-      }
-    },
-    {
-      "id": "machine_1",
-      "type": "machine",
-      "label": "Coating Line machine",
-      "position": [
-        -1.1,
-        0,
-        0
-      ],
-      "config": {
-        "size": [
-          2.1,
-          2.7,
-          1.7
-        ],
-        "color": 5466227,
         "running": false
       }
     },
     {
       "id": "fan_2",
       "type": "fan",
-      "label": "Coating Line fan",
+      "label": "Mounted exhaust fan (command display, not airflow feedback)",
       "position": [
-        1.1,
         0,
-        0
+        0.9,
+        -2.2
       ],
       "config": {
-        "running": false
-      }
+        "running": false,
+        "installation": "coatingExhaust"
+      },
+      "scale": [
+        0.55,
+        0.55,
+        0.55
+      ]
     },
     {
       "id": "photoeye_3",
       "type": "photoeye",
-      "label": "Coating Line photoeye",
+      "label": "STATION beam at workpiece height",
       "position": [
-        3.3000000000000003,
+        0.27,
         0,
         0
       ],
       "config": {
-        "span": 2.05,
-        "height": 0.7,
-        "beamCenterHeightM": 1.1,
-        "blocked": false
+        "span": 2.3,
+        "beamCenterHeightM": 1.1
       }
     },
     {
-      "id": "indicator_4",
-      "type": "indicator",
-      "label": "Coating Line indicator",
+      "id": "photoeye_exit",
+      "type": "photoeye",
+      "label": "EXIT beam on the supported discharge belt",
       "position": [
-        -2.85,
+        2.5,
         0,
-        2.35
+        0
       ],
       "config": {
-        "colors": [
-          "red",
-          "amber",
-          "green"
-        ],
-        "active": "red"
+        "span": 3.5,
+        "positiveStandPositionM": 1.3,
+        "beamCenterHeightM": 1.1
       }
     },
     {
       "id": "training_accessory_5",
       "type": "trainingAccessory",
-      "label": "Coating Line - coating enclosure",
+      "label": "Open-ended spray tunnel with inspection glazing",
       "position": [
-        -1.1,
         0,
-        1.8
+        0,
+        0
       ],
       "config": {
         "assetName": "coating enclosure",
@@ -118,25 +99,36 @@
     {
       "id": "training_accessory_6",
       "type": "trainingAccessory",
-      "label": "Coating Line - spray head",
+      "label": "Roof-mounted existing spray gun",
       "position": [
-        1.1,
-        0,
-        1.8
+        -0.36,
+        1.825,
+        0
       ],
       "config": {
         "assetName": "spray head",
-        "catalogAssetId": "training.accessory.spray_head.v1"
-      }
+        "catalogAssetId": "training.accessory.spray_head.v1",
+        "installation": "coatingGun"
+      },
+      "rotation": [
+        0,
+        0,
+        -90
+      ],
+      "scale": [
+        0.5,
+        0.5,
+        0.5
+      ]
     },
     {
       "id": "training_accessory_7",
       "type": "trainingAccessory",
-      "label": "Coating Line - workpiece load",
+      "label": "Metal workpiece on flat carrying fixture",
       "position": [
-        3.3000000000000003,
-        0,
-        1.8
+        -2,
+        0.9,
+        0
       ],
       "config": {
         "assetName": "workpiece load",
@@ -146,11 +138,11 @@
     {
       "id": "training_accessory_8",
       "type": "trainingAccessory",
-      "label": "Coating Line - ventilation damper",
+      "label": "Connected rear exhaust duct, damper and fan stand",
       "position": [
-        -3.3000000000000003,
         0,
-        3.6
+        0,
+        0
       ],
       "config": {
         "assetName": "ventilation damper",
@@ -160,90 +152,128 @@
     {
       "id": "switch_9",
       "type": "switch",
-      "label": "Coating Line operator input",
+      "label": "Momentary cycle START",
       "position": [
-        -0.20000000000000007,
+        -2.4,
         0,
-        4.7
+        2.5
       ],
       "config": {
         "style": "pushbutton",
-        "action": "toggle-workpiece_at_station",
+        "action": "pulse-start_request",
+        "faceLabel": "START",
         "color": 2204518
       }
     },
     {
       "id": "switch_10",
-      "type": "switch",
-      "label": "Coating Line operator input",
+      "type": "rotarySwitch",
+      "label": "Manual spray supply permissive",
       "position": [
-        2,
+        -1.2,
         0,
-        4.7
+        2.5
       ],
       "config": {
-        "style": "pushbutton",
         "action": "toggle-spray_ready",
-        "color": 2204518
+        "positionCount": 2,
+        "initialPosition": 0,
+        "positionLabels": [
+          "OFF",
+          "READY"
+        ],
+        "faceLabel": "SPRAY READY"
       }
     },
     {
       "id": "switch_11",
-      "type": "switch",
-      "label": "Coating Line operator input",
+      "type": "rotarySwitch",
+      "label": "Manual ventilation permissive",
       "position": [
-        4.2,
         0,
-        4.7
+        0,
+        2.5
       ],
       "config": {
-        "style": "pushbutton",
         "action": "toggle-ventilation_ready",
-        "color": 2204518
+        "positionCount": 2,
+        "initialPosition": 0,
+        "positionLabels": [
+          "OFF",
+          "READY"
+        ],
+        "faceLabel": "VENT READY"
+      }
+    },
+    {
+      "id": "indicator_4",
+      "type": "indicator",
+      "label": "PLC index command",
+      "position": [
+        1.2,
+        0,
+        2.5
+      ],
+      "config": {
+        "colors": [
+          "green"
+        ],
+        "active": ""
       }
     },
     {
       "id": "indicator_12",
       "type": "indicator",
-      "label": "Coating Line output indication",
+      "label": "PLC spray command",
       "position": [
-        -1.9500000000000002,
+        2.1,
         0,
-        7.050000000000001
+        2.5
       ],
       "config": {
         "colors": [
-          "red",
-          "amber",
-          "green"
+          "amber"
         ],
-        "active": "red"
+        "active": ""
       }
     },
     {
       "id": "indicator_13",
       "type": "indicator",
-      "label": "Coating Line output indication",
+      "label": "PLC ventilation command",
       "position": [
-        0.25,
+        3,
         0,
-        7.050000000000001
+        2.5
       ],
       "config": {
         "colors": [
-          "red",
-          "amber",
           "green"
         ],
-        "active": "red"
+        "active": ""
       }
     }
   ],
   "simulation": {
-    "type": "booleanPanel",
+    "type": "coatingLine",
+    "minimumX": -2.6,
+    "maximumX": 2.6,
+    "speedMps": 0.5,
     "points": [
       {
         "name": "workpiece_at_station",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "workpiece_at_exit",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "start_request",
         "type": "BOOL",
         "owner": "PC",
         "initial": false
@@ -259,6 +289,36 @@
         "type": "BOOL",
         "owner": "PC",
         "initial": false
+      },
+      {
+        "name": "motion_inhibited",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "spray_inhibited",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "travel_limited",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "workpiece_position",
+        "type": "REAL",
+        "owner": "PC",
+        "initial": -2
+      },
+      {
+        "name": "belt_speed",
+        "type": "REAL",
+        "owner": "PC",
+        "initial": 0
       },
       {
         "name": "index_run",
@@ -284,20 +344,20 @@
     ],
     "actions": [
       {
-        "id": "toggle-workpiece_at_station",
-        "label": "Toggle workpiece at station",
-        "type": "toggle",
-        "point": "workpiece_at_station"
+        "id": "pulse-start_request",
+        "label": "START cycle",
+        "type": "pulse",
+        "point": "start_request"
       },
       {
         "id": "toggle-spray_ready",
-        "label": "Toggle spray ready",
+        "label": "Manual spray ready",
         "type": "toggle",
         "point": "spray_ready"
       },
       {
         "id": "toggle-ventilation_ready",
-        "label": "Toggle ventilation ready",
+        "label": "Manual ventilation ready",
         "type": "toggle",
         "point": "ventilation_ready"
       }
@@ -306,19 +366,14 @@
     "edgeRules": [],
     "pointBindings": [
       {
-        "point": "workpiece_at_station",
-        "equipmentId": "switch_9",
-        "mode": "switch"
-      },
-      {
         "point": "spray_ready",
         "equipmentId": "switch_10",
-        "mode": "switch"
+        "mode": "selector"
       },
       {
         "point": "ventilation_ready",
         "equipmentId": "switch_11",
-        "mode": "switch"
+        "mode": "selector"
       },
       {
         "point": "index_run",
@@ -330,7 +385,7 @@
         "point": "spray_enable",
         "equipmentId": "indicator_12",
         "mode": "indicator",
-        "activeColor": "green"
+        "activeColor": "amber"
       },
       {
         "point": "vent_run",
@@ -342,9 +397,9 @@
   },
   "training": {
     "hints": [
-      "Translate the lesson into explicit state and permissive logic: Spray is enabled only while the workpiece is positioned and ventilation is ready.",
-      "Inputs are simulator feedback (workpiece_at_station, spray_ready, ventilation_ready); PLC logic owns index_run, spray_enable, vent_run.",
-      "Test the initial state, the valid condition, and at least one missing permissive."
+      "START is momentary; SPRAY READY and VENT READY are manual maintained permissives, not measured equipment feedback.",
+      "STATION and EXIT are calculated from actual workpiece body and finite optical beams. PLC owns index, spray and ventilation commands.",
+      "Index to STATION, stop, ventilate while spraying for 2 s, purge for 1 s, discharge to EXIT. These are illustrative reference times."
     ],
     "solution": {
       "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
@@ -364,22 +419,27 @@
     "machineGuide": {
       "purpose": "A workpiece is indexed into a coating enclosure, sprayed for a timed interval, and discharged after ventilation.",
       "startConditions": [
-        "The common PLC/watchdog foundation is healthy.",
-        "All required simulator inputs are at their documented initial state."
+        "Exercise opens blank; author a PLC program or explicitly open the ignored review reference.",
+        "Manual SPRAY READY and VENT READY true, workpiece at its supported home."
       ],
       "normalSequence": [
-        "Apply the requested input condition.",
-        "Verify only the documented PLC outputs respond."
+        "Fresh START indexes to actual STATION.",
+        "Reference holds index and runs vent/spray for 2 s.",
+        "Spray stops; ventilation continues for a 1 s purge, then index discharges to actual EXIT.",
+        "One supported workpiece remains visible; Reset reloads home."
       ],
       "stopBehavior": [
-        "Removing the permissive removes PLC-owned commands.",
-        "Reset returns the module to its initial state."
+        "Local Stop freezes position/phase and the timer snapshot, and clears output commands. Run resumes the retained phase; the reference nonretentive spray/purge interval starts fresh after cleared commands.",
+        "Reset restores raw inputs false, load home and zero scan."
       ],
       "faultBehavior": [
-        "A missing or stale input must fail safe and remain diagnosable."
+        "Permissive loss inhibits index/spray; reference spray and purge TON timing restarts when eligibility returns.",
+        "Malformed simultaneous index/spray inhibits motion and spray, exposes command image and reports diagnostics.",
+        "Travel limit holds the supported part without manufacturing a PLC stop or completion."
       ],
       "expectedObservations": [
-        "Spray is enabled only while the workpiece is positioned and ventilation is ready."
+        "PART stays on the belt, spray is visible only over the actual stationed body with both readiness inputs and vent command.",
+        "Fan/damper are symbolic actuator projections; no measured airflow or coating quality is claimed."
       ]
     },
     "sequenceNumber": 49,
@@ -394,8 +454,15 @@
     ],
     "addedTags": [
       "workpiece_at_station",
+      "workpiece_at_exit",
+      "start_request",
       "spray_ready",
       "ventilation_ready",
+      "motion_inhibited",
+      "spray_inhibited",
+      "travel_limited",
+      "workpiece_position",
+      "belt_speed",
       "index_run",
       "spray_enable",
       "vent_run"

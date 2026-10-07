@@ -157,6 +157,7 @@ public static partial class SceneComposer
         if (scene.Simulation.TryGetProperty("chainLiftPlant", out _)) ConfigureChainLiftReceiver(root);
         if (scene.Simulation.TryGetProperty("cookiePackagingPlant", out _)) ConfigureCookieConveyor(root);
         if (scene.Simulation.TryGetProperty("barrelFillPlant", out _)) ConfigureBarrelConveyor(root);
+        if (scene.Id == "lab-5-10-coating-line") ConfigureCoatingInstallation(root);
         return new SceneComposition(root, rendered, deferred);
     }
 

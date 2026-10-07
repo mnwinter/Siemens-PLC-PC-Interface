@@ -2,7 +2,7 @@
 
 Scene ID: `lab-5-10-coating-line`  
 Migrated source: `prototype/scenes/lab-5-10-coating-line.plcscene`  
-Scene contract: `prototype/scenes/lab-5-10-coating-line.plcscene`
+Scene contract: `res://scenes/migrated/lab-5-10-coating-line.scene.json`
 
 ## Purpose
 
@@ -15,8 +15,15 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | Point | Type | Owner | Initial value |
 | --- | --- | --- | --- |
 | `workpiece_at_station` | `BOOL` | **PC** | `False` |
+| `workpiece_at_exit` | `BOOL` | **PC** | `False` |
+| `start_request` | `BOOL` | **PC** | `False` |
 | `spray_ready` | `BOOL` | **PC** | `False` |
 | `ventilation_ready` | `BOOL` | **PC** | `False` |
+| `motion_inhibited` | `BOOL` | **PC** | `False` |
+| `spray_inhibited` | `BOOL` | **PC** | `False` |
+| `travel_limited` | `BOOL` | **PC** | `False` |
+| `workpiece_position` | `REAL` | **PC** | `-2` |
+| `belt_speed` | `REAL` | **PC** | `0` |
 | `index_run` | `BOOL` | **PLC** | `False` |
 | `spray_enable` | `BOOL` | **PLC** | `False` |
 | `vent_run` | `BOOL` | **PLC** | `False` |
@@ -25,17 +32,16 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 
 | Action | Type | Bound point/sequence |
 | --- | --- | --- |
-| `Toggle workpiece at station` | `toggle` | `workpiece_at_station` |
-| `Toggle spray ready` | `toggle` | `spray_ready` |
-| `Toggle ventilation ready` | `toggle` | `ventilation_ready` |
+| `START cycle` | `pulse` | `start_request` |
+| `Manual spray ready` | `toggle` | `spray_ready` |
+| `Manual ventilation ready` | `toggle` | `ventilation_ready` |
 
 ## Equipment bindings
 
 | Symbolic point | Equipment | Mode |
 | --- | --- | --- |
-| `workpiece_at_station` | `switch_9` | `switch` |
-| `spray_ready` | `switch_10` | `switch` |
-| `ventilation_ready` | `switch_11` | `switch` |
+| `spray_ready` | `switch_10` | `selector` |
+| `ventilation_ready` | `switch_11` | `selector` |
 | `index_run` | `indicator_4` | `indicator` |
 | `spray_enable` | `indicator_12` | `indicator` |
 | `vent_run` | `indicator_13` | `indicator` |
@@ -44,20 +50,20 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 
 | ID | Type | Label |
 | --- | --- | --- |
-| `conveyor_0` | `conveyor` | Coating Line conveyor |
-| `machine_1` | `machine` | Coating Line machine |
-| `fan_2` | `fan` | Coating Line fan |
-| `photoeye_3` | `photoeye` | Coating Line photoeye |
-| `indicator_4` | `indicator` | Coating Line indicator |
-| `training_accessory_5` | `trainingAccessory` | Coating Line - coating enclosure |
-| `training_accessory_6` | `trainingAccessory` | Coating Line - spray head |
-| `training_accessory_7` | `trainingAccessory` | Coating Line - workpiece load |
-| `training_accessory_8` | `trainingAccessory` | Coating Line - ventilation damper |
-| `switch_9` | `switch` | Coating Line operator input |
-| `switch_10` | `switch` | Coating Line operator input |
-| `switch_11` | `switch` | Coating Line operator input |
-| `indicator_12` | `indicator` | Coating Line output indication |
-| `indicator_13` | `indicator` | Coating Line output indication |
+| `conveyor_0` | `conveyor` | Index conveyor with integral drive |
+| `fan_2` | `fan` | Mounted exhaust fan (command display, not airflow feedback) |
+| `photoeye_3` | `photoeye` | STATION beam at workpiece height |
+| `photoeye_exit` | `photoeye` | EXIT beam on the supported discharge belt |
+| `training_accessory_5` | `trainingAccessory` | Open-ended spray tunnel with inspection glazing |
+| `training_accessory_6` | `trainingAccessory` | Roof-mounted existing spray gun |
+| `training_accessory_7` | `trainingAccessory` | Metal workpiece on flat carrying fixture |
+| `training_accessory_8` | `trainingAccessory` | Connected rear exhaust duct, damper and fan stand |
+| `switch_9` | `switch` | Momentary cycle START |
+| `switch_10` | `rotarySwitch` | Manual spray supply permissive |
+| `switch_11` | `rotarySwitch` | Manual ventilation permissive |
+| `indicator_4` | `indicator` | PLC index command |
+| `indicator_12` | `indicator` | PLC spray command |
+| `indicator_13` | `indicator` | PLC ventilation command |
 
 ## Stop and safety boundary
 
@@ -69,14 +75,17 @@ A workpiece is indexed into a coating enclosure, sprayed for a timed interval, a
 
 ### Start conditions
 
-- The common PLC/watchdog foundation is healthy.
-- All required simulator inputs are at their documented initial state.
+- Exercise opens blank; author a PLC program or explicitly open the ignored review reference.
+- Manual SPRAY READY and VENT READY true, workpiece at its supported home.
 
 ### Normal sequence
 
-- Apply the requested input condition.
-- Verify only the documented PLC outputs respond.
+- Fresh START indexes to actual STATION.
+- Reference holds index and runs vent/spray for 2 s.
+- Spray stops; ventilation continues for a 1 s purge, then index discharges to actual EXIT.
+- One supported workpiece remains visible; Reset reloads home.
 
 ### Expected observations
 
-- Spray is enabled only while the workpiece is positioned and ventilation is ready.
+- PART stays on the belt, spray is visible only over the actual stationed body with both readiness inputs and vent command.
+- Fan/damper are symbolic actuator projections; no measured airflow or coating quality is claimed.

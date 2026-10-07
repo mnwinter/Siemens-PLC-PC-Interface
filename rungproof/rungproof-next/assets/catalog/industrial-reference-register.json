@@ -5494,32 +5494,6 @@
       ]
     },
     {
-      "assetId": "training.accessory.coating_enclosure.v1",
-      "status": "referenced",
-      "comparisonStatus": "reference-identified",
-      "comparisonNotes": "Generic family reference inherited for candidate package review; the training accessory must be independently compared before promotion.",
-      "referenceFamily": "floor-standing modular electrical enclosure",
-      "sources": [
-        {
-          "publisher": "Rittal",
-          "title": "TS 8 Floormount Enclosure product page",
-          "url": "https://www.rittal.com/us-en_US/products/PG20231215SCH101/PG20240111SCH301/PRO39595?variantId=8018807",
-          "sourceType": "oem-product-page",
-          "accessed": "2026-09-22"
-        }
-      ],
-      "modeledFeatures": [
-        "tall floor-mounted cabinet envelope",
-        "door and handle zone",
-        "roof/base structure",
-        "removable floor-stand context"
-      ],
-      "intentionallyGeneric": [
-        "No Rittal marks, exact sheet thickness, dimensions, listed protection category, material, panel layout, or certification is reproduced.",
-        "The enclosure does not imply energized equipment or live I/O."
-      ]
-    },
-    {
       "assetId": "training.accessory.coded_safety_gate_switch.v1",
       "status": "referenced",
       "comparisonStatus": "reference-identified",
@@ -7236,61 +7210,6 @@
     },
     {
       "assetId": "training.accessory.vehicle_load_asset.v1",
-      "status": "referenced",
-      "comparisonStatus": "reference-identified",
-      "comparisonNotes": "Generic family reference inherited for candidate package review; the training accessory must be independently compared before promotion.",
-      "referenceFamily": "three-pole contactor and thermal-overload motor starter",
-      "sources": [
-        {
-          "publisher": "ABB",
-          "title": "AF three-pole contactors and overload relays",
-          "url": "https://new.abb.com/low-voltage/products/motor-protection/3-pole-contactors-and-overload-relays-for-motor-starting/afcontactors",
-          "sourceType": "oem-product-page",
-          "accessed": "2026-09-22"
-        }
-      ],
-      "modeledFeatures": [
-        "stacked contactor/overload body",
-        "three line lugs",
-        "three load lugs",
-        "reset treatment",
-        "adjustment treatment",
-        "motor-starter face"
-      ],
-      "intentionallyGeneric": [
-        "No ABB mark, coil voltage, contact rating, overload class/range, auxiliary contacts, motor rating, coordination type, enclosure, or wiring is reproduced.",
-        "The visual does not energize a coil, switch motor power, or provide overload protection."
-      ]
-    },
-    {
-      "assetId": "training.accessory.ventilation_damper.v1",
-      "status": "referenced",
-      "comparisonStatus": "reference-identified",
-      "comparisonNotes": "Generic family reference inherited for candidate package review; the training accessory must be independently compared before promotion.",
-      "referenceFamily": "industrial coiling steel service door",
-      "sources": [
-        {
-          "publisher": "Clopay",
-          "title": "Roll-Up Sheet Doors product page",
-          "url": "https://www.clopaydoor.com/coiling-sheet-doors",
-          "sourceType": "oem-product-page",
-          "accessed": "2026-09-22"
-        }
-      ],
-      "modeledFeatures": [
-        "interlocking horizontal curtain slats",
-        "vertical guide tracks",
-        "header coil/shaft zone",
-        "bottom bar",
-        "side-mounted operator context"
-      ],
-      "intentionallyGeneric": [
-        "No Clopay mark, slat gauge, curtain material, door size, drive voltage, cycle count, weather sealing, or safety edge is reproduced.",
-        "Simulator travel is not a real door safety or commissioning claim."
-      ]
-    },
-    {
-      "assetId": "training.accessory.workpiece_load.v1",
       "status": "referenced",
       "comparisonStatus": "reference-identified",
       "comparisonNotes": "Generic family reference inherited for candidate package review; the training accessory must be independently compared before promotion.",

@@ -10210,9 +10210,9 @@
         "thumbnailFile": "res://assets/training_accessories/coating_enclosure/thumbnail.png"
       },
       "bounds": {
-        "widthM": 1.3,
-        "heightM": 2.05,
-        "depthM": 0.55
+        "widthM": 2.4800000190734863,
+        "heightM": 2.359999895095825,
+        "depthM": 2.8600001335144043
       },
       "connectors": [],
       "kinematics": [],
@@ -10225,10 +10225,9 @@
         "topologyReviewed": false,
         "materialReviewed": false,
         "scaleReviewed": false,
-        "animationReviewed": true
+        "animationReviewed": false
       },
       "trainingRequirement": "coating enclosure",
-      "genericBasisAssetId": "controls.enclosure.floorstanding.v1",
       "copyrightBoundary": "Generic training visual; no logo, trade dress, product number, or exact OEM claim."
     },
     {
@@ -13960,29 +13959,13 @@
         "thumbnailFile": "res://assets/training_accessories/ventilation_damper/thumbnail.png"
       },
       "bounds": {
-        "widthM": 5.3,
-        "heightM": 4.2,
-        "depthM": 0.8
+        "widthM": 1.2599999904632568,
+        "heightM": 2.2478256225585938,
+        "depthM": 1.2025001049041748
       },
       "connectors": [],
-      "kinematics": [
-        {
-          "id": "door_position",
-          "kind": "linear",
-          "nodePath": "KIN_bottom_bar",
-          "minimum": 0,
-          "maximum": 3.2,
-          "unit": "m",
-          "maximumRate": 1.2
-        }
-      ],
-      "animationTags": [
-        {
-          "id": "door_position",
-          "nodePath": "KIN_bottom_bar",
-          "kind": "linear"
-        }
-      ],
+      "kinematics": [],
+      "animationTags": [],
       "signals": [],
       "quality": {
         "status": "candidate",
@@ -13991,10 +13974,9 @@
         "topologyReviewed": false,
         "materialReviewed": false,
         "scaleReviewed": false,
-        "animationReviewed": true
+        "animationReviewed": false
       },
       "trainingRequirement": "ventilation damper",
-      "genericBasisAssetId": "access-control.door.roller-shutter.v1",
       "copyrightBoundary": "Generic training visual; no logo, trade dress, product number, or exact OEM claim."
     },
     {
@@ -14051,9 +14033,9 @@
         "thumbnailFile": "res://assets/training_accessories/workpiece_load/thumbnail.png"
       },
       "bounds": {
-        "widthM": 0.65,
-        "heightM": 0.5,
-        "depthM": 1.1
+        "widthM": 0.7200000286102295,
+        "heightM": 0.3999999761581421,
+        "depthM": 0.5600000023841858
       },
       "connectors": [],
       "kinematics": [],
@@ -14066,10 +14048,9 @@
         "topologyReviewed": false,
         "materialReviewed": false,
         "scaleReviewed": false,
-        "animationReviewed": true
+        "animationReviewed": false
       },
       "trainingRequirement": "workpiece load",
-      "genericBasisAssetId": "electrical.starter.contactor-overload-three-pole.v1",
       "copyrightBoundary": "Generic training visual; no logo, trade dress, product number, or exact OEM claim."
     },
     {

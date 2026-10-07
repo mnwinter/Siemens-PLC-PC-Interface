@@ -1,6 +1,71 @@
 # Multi-angle scene review - 2026-10-04
 
-Scene 63 baseline native review (2026-10-06, next repair):
+Scene 63 coating-line repair (2026-10-06, current checkpoint):
+Replaced the electrical-cabinet/motor-starter/roller-shutter copies with an
+original open-ended spray tunnel, flat workpiece fixture and hollow exhaust duct
+with a centred damper vane and fan stand. Removed the CNC from the carrying belt.
+Retained the relevant spray-gun and axial-fan assets in explicit mounted variants;
+presentation pedestals are hidden only in this installation. Roof mounting and
+service routes connect the gun; exhaust duct reaches the retained fan inlet.
+Three replaced assets remain unapproved candidates. Archived copied recognition
+and renders do not approve their replacements. No airflow, coating quality,
+liquid/powder classification, physical interlock or mechanical acceptance claim.
+
+Fourteen actual items / thirteen typed symbolic points. Whole catalog remains
+77 scenes, 294 runtime assets, exactly five authored demos, 609 actual equipment
+items. Refreshed the previously stale aggregate equipment counts from all current
+scene definitions. Default coating exercise remains blank. PC owns actual finite
+STATION/EXIT beam feedback from WORKPIECE_BODY triangles, position/speed, raw
+momentary START, manual maintained SPRAY READY/VENT READY and three diagnostics.
+PLC owns index_run, spray_enable and vent_run. No manual station-result toggle.
+
+The single-clock coating plant drives supported load travel, belt animation,
+fan rotation, instantaneous illustrative damper position and eligible spray cone
+from accepted symbolic output images. Motion/spray conflict or missing readiness
+holds the plant with diagnostics while preserving the PLC command image. Missed
+EXIT clamps X to supported bounds instead of deleting the part or fabricating
+completion. Spray requires the positioned body, both manual readiness inputs,
+vent command and no indexing. Manual readiness does not prove measured airflow.
+
+-- --audit-coating passes 23 focused checks. Eight hundred ten sampled workflow
+observations include stopped-clock probes; a separate uninterrupted cycle uses
+574 accepted scans with exactly 100 spray ticks and 50 purge ticks at 20 ms.
+The original reference uses ten editable PLC rungs: fresh START with readiness,
+index to actual STATION, stopped two-second spray with ventilation, one-second
+post-spray purge, discharge to actual EXIT, then wait for Reset. Reference is
+created only under ignored .tools/plant-review-coating-line.rpproj.json for an
+explicit normal File Open. Readiness alone cannot replay rejected START. Stop
+freezes position/phase and timer snapshot, clearing commands; Run resumes the
+retained phase with a fresh nonretentive interval after cleared commands. Reset
+restores X=-2, raw inputs false, commands dark and zero scan. Older projects need
+the revised Scene 63 roles. External/physical PLC behavior has not been tested.
+
+Native Windows: normal File Open / Return to Scene, actual 3D readiness selectors
+and START accepted. Held scan225 / 4.50 s / X=0.01 had STATION true, index false,
+spray/vent true; FR/FL/RL/RR/Top inspected. At 6.50 s spray was false, ventilation
+remained true with the part stationary. At 11.50 s EXIT true / X=2.23 retained
+the supported part with all commands off. Final models re-inspected five angles
+at home and continuous-cycle EXIT, including corrected overhead framing: fan
+clears review toolbar. Normal continuous playback reached supported EXIT and
+held through later scans; native Stop held scan7526 / X=2.23. Reset and missing
+readiness were verified by the deterministic audit; no native Reset claim.
+Both owned previews are now absent; first exited normally with code zero, second
+process/handle was absent after the user update, so its exit code is unavailable.
+Logs: .tools/coating-{assets,build,import,audit,geometry-final,conformance,contracts,
+help,controls,shell}.log and coating-native-{final,camera-final}.log.
+
+Final regression: build zero warnings/errors; 968/968 rendered geometry/workflow
+checks pass. Controller conformance 144/144, scene contracts 71/71, help 294 assets
+/ 77 scenes, rendered scene controls, review-overlay input, external-image and
+headless app shell pass. App-shell probe reports the expected WORKSPACE_LOAD_FAILED
+warning when no saved workspace exists. No physical PLC transport constructed or
+connection attempted by conformance. Deterministic probes do not constitute solid
+collision, airflow, coating quality or external-PLC commissioning acceptance.
+
+Whole-program goal ACTIVE and incomplete. Continue with remaining matrix failures,
+including luggage weighing/reject layout, hand dryer, EV charging and radar piping.
+
+Historical Scene 63 baseline (before the repair above):
 Repeated FR/FL/RL/RR/Top in the Windows shell. CNC enclosure occupies the belt;
 coating-enclosure asset is an electrical cabinet, workpiece asset a motor starter,
 and damper asset a roller shutter. Spray gun has a relevant identity but sits
@@ -15,7 +80,7 @@ implement actual position feedback and an explicitly opened timed reference.
 Baseline window closed normally; .tools/coating-native-before.log. Scene 63 is
 still FAIL/open; no new geometry or process implementation has been accepted.
 
-Scene 62 bag indexing repair (2026-10-06, current checkpoint):
+Previous Scene 62 bag indexing repair (2026-10-06):
 Replaced the copied pneumatic pusher/carton with an original filled sack, flat
 bearing underside, tapered body, sealed ends and BAG label. Removed duplicate
 pusher/drive/control substitutes. Eight actual items and ten symbolic points;
@@ -3492,7 +3557,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 60 | `lab-5-07-pedestrian-crossing` | 26 historic; intended road support excluded from separation check | Repaired native FR/FL/RL/RR/T; signal and PATH focus; continuous cycle | Repaired horizontal road/sidewalks, two opposing vehicle and pedestrian heads, independent channels, momentary request, PLC-owned timed reference and startup restart. 30 offline checks pass. Declared simplified timings; no traffic/people motion or public-road compliance; independent asset approval open |
 | 61 | `lab-5-08-drawbridge-control` | 43 historical; 2 current shaft/limit-mount contact candidates | Repaired native home/35/70-degree FR/FL/RL/RR/T; focused cam/endpoints and physical selectors; final Top barriers down/90 degrees; continuous cycle and Stop/Run/Reset | Reviewed / bounded: actual hinged deck and two supported barriers; angle-derived limits, moving cam, independent red/green, no false manual HOME. 35 focused checks PASS. Explicit six-rung reference, default exercise blank. Candidate shaft/mount contact intentional; sampled rail bounds and native views only, no solid collision/road/hardware acceptance |
 | 62 | `lab-5-09-bag-indexing-conveyor` | 37 historic; 2 current cable enclosing-bound candidates, both excluded by triangle screen | Final installation native FR/FL/RL/RR/T at forward/EXIT/reverse; physical START/CLEAR; continuous cycle; final Top home/returned ENTRY | Reviewed / bounded: original supported sack, actual optical entry/exit and single-clock travel; explicit six-rung reference, manual CLEAR + fresh START return, Stop/Run/Reset. 30 focused checks / 1203 samples pass. Default exercise blank; independent asset approval, flexible-body physics and hardware acceptance open |
-| 63 | `lab-5-10-coating-line` | 97 | Native FR/FL/RL/RR/T | FAIL/open: CNC occupies belt, disconnected coating/spray/ventilation props; only lamp outputs, process unverified |
+| 63 | `lab-5-10-coating-line` | historic 97; sampled load clearance passes | Native home/station/EXIT FR/FL/RL/RR/T; physical controls, timed steps, continuous discharge and Stop | Connected original tunnel/load/duct; retained mounted gun/fan; actual optical feedback and explicit timed PLC reference. 23 checks; 574 healthy scans, 100 spray / 50 purge ticks. Candidate assets and sampled installation only; airflow/coating/physical acceptance unverified |
 | 64 | `lab-6-07-luggage-weight-sort` | 110 | Native FR/FL/RL/RR/T; replacement readout five focus views | Carton support repaired earlier; WEIGHT readout replaced and five focus views inspected (RL obscured, RR partly obscured). FAIL/open: disconnected weighing/rejecting layout; no numeric weight/class |
 | 65 | `lab-6-08-hand-dryer` | 634 | Native FR/FL/RL/RR/T; replacement readout five focus views | PROGRESS readout replaced/repositioned; five focus views (FL text partly obscured, RL obscured). FAIL/open: substitute heating shutter and disconnected fan/panel/bottle; no remaining-time numeric binding |
 | 66 | `lab-9-01-sum-function` | 0 | Native FR/FL/RL/RR/T; close front; 3D A/B clicks; actual reference Open/Run/Stop/Reset | Two PC DINT inputs and live SUM result; 2+5=7 observed. Seven grounded, clear props. Global-tag reference FB supplied; exercise remains opt-in; FB parameter/instance semantics and independent asset approval open |

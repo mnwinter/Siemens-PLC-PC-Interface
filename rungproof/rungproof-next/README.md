@@ -237,7 +237,8 @@ bag and zero scan. The default exercise stays blank. Speed and supported bounds
 are illustrative; travel-limit diagnostics do not manufacture a PLC stop.
 Old projects need the revised point roles. Independent asset approval remains open.
 
-`-- --verify-scene-geometry` runs 945 focused geometry/workflow checks with `--visual-scene-review` for Demo 5 supported pickup, four-carton placement, moving clearance and attachment,
+`-- --verify-scene-geometry` runs 968 focused geometry/workflow checks with `--visual-scene-review` for Demo 5 supported pickup, four-carton placement, moving clearance and attachment,
+coating-line supported workpiece travel, finite station/exit beams, timed spray/purge/discharge, malformed output inhibition and retained Stop phase,
 bag indexing actual sack/belt support, optical feedback, static cable screen, manual return acknowledgement and Stop/Run/Reset,
 drawbridge actual motion/limits, connected cam, sampled rail clearance and controller interlocks,
 pedestrian-crossing supported road/sidewalks, symbol/color channels, timed phases, blocked release and startup restart,
@@ -769,3 +770,13 @@ Launch with `--visual-scene-review --shell-scene=lab-4-12-cable-cut-length
 reel. Tension, sag, layering, elasticity and cutting force are excluded.
 Sampled bounds and native snapshots do not establish physical process or
 live PLC acceptance.
+
+`-- --audit-coating` runs 23 focused checks for Scene 63. It creates an ignored
+`.tools/plant-review-coating-line.rpproj.json` for explicit File Open; the exercise
+remains blank by default. Set manual SPRAY READY and VENT READY, Run, then press
+START. The reference indexes to STATION, sprays for 2 s, purges for 1 s, and
+discharges to EXIT. The supported workpiece remains visible. Reset reloads home.
+Stop clears commands and holds pose/phase; Run resumes that phase with a fresh
+nonretentive spray/purge interval. The healthy cycle proves 100 spray and 50 purge
+ticks at 20 ms; fan/damper/spray are illustrative command projections, without
+measured airflow, coating quality or physical acceptance.

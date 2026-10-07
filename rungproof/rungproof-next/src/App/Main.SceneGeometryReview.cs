@@ -311,6 +311,7 @@ public partial class Main
             VerifyPedestrianCrossingWorkflow(Check);
             VerifyDrawbridgeWorkflow(Check);
             VerifyBagIndexWorkflow(Check);
+            VerifyCoatingWorkflow(Check);
             VerifyTransferCartonSupport(Check);
             VerifyBaseConveyorCartonSupport(Check);
             VerifyPusherRodGeometry(Check);

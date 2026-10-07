@@ -1,6 +1,71 @@
 # Whole program review - 2026-10-03
 
-Scene 63 baseline native review (2026-10-06, next repair):
+Scene 63 coating-line repair (2026-10-06, current checkpoint):
+Replaced the electrical-cabinet/motor-starter/roller-shutter copies with an
+original open-ended spray tunnel, flat workpiece fixture and hollow exhaust duct
+with a centred damper vane and fan stand. Removed the CNC from the carrying belt.
+Retained the relevant spray-gun and axial-fan assets in explicit mounted variants;
+presentation pedestals are hidden only in this installation. Roof mounting and
+service routes connect the gun; exhaust duct reaches the retained fan inlet.
+Three replaced assets remain unapproved candidates. Archived copied recognition
+and renders do not approve their replacements. No airflow, coating quality,
+liquid/powder classification, physical interlock or mechanical acceptance claim.
+
+Fourteen actual items / thirteen typed symbolic points. Whole catalog remains
+77 scenes, 294 runtime assets, exactly five authored demos, 609 actual equipment
+items. Refreshed the previously stale aggregate equipment counts from all current
+scene definitions. Default coating exercise remains blank. PC owns actual finite
+STATION/EXIT beam feedback from WORKPIECE_BODY triangles, position/speed, raw
+momentary START, manual maintained SPRAY READY/VENT READY and three diagnostics.
+PLC owns index_run, spray_enable and vent_run. No manual station-result toggle.
+
+The single-clock coating plant drives supported load travel, belt animation,
+fan rotation, instantaneous illustrative damper position and eligible spray cone
+from accepted symbolic output images. Motion/spray conflict or missing readiness
+holds the plant with diagnostics while preserving the PLC command image. Missed
+EXIT clamps X to supported bounds instead of deleting the part or fabricating
+completion. Spray requires the positioned body, both manual readiness inputs,
+vent command and no indexing. Manual readiness does not prove measured airflow.
+
+-- --audit-coating passes 23 focused checks. Eight hundred ten sampled workflow
+observations include stopped-clock probes; a separate uninterrupted cycle uses
+574 accepted scans with exactly 100 spray ticks and 50 purge ticks at 20 ms.
+The original reference uses ten editable PLC rungs: fresh START with readiness,
+index to actual STATION, stopped two-second spray with ventilation, one-second
+post-spray purge, discharge to actual EXIT, then wait for Reset. Reference is
+created only under ignored .tools/plant-review-coating-line.rpproj.json for an
+explicit normal File Open. Readiness alone cannot replay rejected START. Stop
+freezes position/phase and timer snapshot, clearing commands; Run resumes the
+retained phase with a fresh nonretentive interval after cleared commands. Reset
+restores X=-2, raw inputs false, commands dark and zero scan. Older projects need
+the revised Scene 63 roles. External/physical PLC behavior has not been tested.
+
+Native Windows: normal File Open / Return to Scene, actual 3D readiness selectors
+and START accepted. Held scan225 / 4.50 s / X=0.01 had STATION true, index false,
+spray/vent true; FR/FL/RL/RR/Top inspected. At 6.50 s spray was false, ventilation
+remained true with the part stationary. At 11.50 s EXIT true / X=2.23 retained
+the supported part with all commands off. Final models re-inspected five angles
+at home and continuous-cycle EXIT, including corrected overhead framing: fan
+clears review toolbar. Normal continuous playback reached supported EXIT and
+held through later scans; native Stop held scan7526 / X=2.23. Reset and missing
+readiness were verified by the deterministic audit; no native Reset claim.
+Both owned previews are now absent; first exited normally with code zero, second
+process/handle was absent after the user update, so its exit code is unavailable.
+Logs: .tools/coating-{assets,build,import,audit,geometry-final,conformance,contracts,
+help,controls,shell}.log and coating-native-{final,camera-final}.log.
+
+Final regression: build zero warnings/errors; 968/968 rendered geometry/workflow
+checks pass. Controller conformance 144/144, scene contracts 71/71, help 294 assets
+/ 77 scenes, rendered scene controls, review-overlay input, external-image and
+headless app shell pass. App-shell probe reports the expected WORKSPACE_LOAD_FAILED
+warning when no saved workspace exists. No physical PLC transport constructed or
+connection attempted by conformance. Deterministic probes do not constitute solid
+collision, airflow, coating quality or external-PLC commissioning acceptance.
+
+Whole-program goal ACTIVE and incomplete. Continue with remaining matrix failures,
+including luggage weighing/reject layout, hand dryer, EV charging and radar piping.
+
+Historical Scene 63 baseline (before the repair above):
 Repeated FR/FL/RL/RR/Top in the Windows shell. CNC enclosure occupies the belt;
 coating-enclosure asset is an electrical cabinet, workpiece asset a motor starter,
 and damper asset a roller shutter. Spray gun has a relevant identity but sits
@@ -15,7 +80,7 @@ implement actual position feedback and an explicitly opened timed reference.
 Baseline window closed normally; .tools/coating-native-before.log. Scene 63 is
 still FAIL/open; no new geometry or process implementation has been accepted.
 
-Scene 62 bag indexing repair (2026-10-06, current checkpoint):
+Previous Scene 62 bag indexing repair (2026-10-06):
 Replaced the copied pneumatic pusher/carton with an original filled sack, flat
 bearing underside, tapered body, sealed ends and BAG label. Removed duplicate
 pusher/drive/control substitutes. Eight actual items and ten symbolic points;
