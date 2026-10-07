@@ -1,3 +1,7 @@
+## Tank inspection clock verifier completion - 2026-10-07
+
+Session 99830 completed exit 0: SCENE_GEOMETRY_VERIFY PASS. Both tank-high-low and tank-level held-clock freeze and one-scan level/gauge assertions True in .tools/tank-clock-full-geometry.log. This verifies the bounded offline scan and transform path; native threshold transitions remain pending.
+
 ## Tank offline inspection clock support - 2026-10-07
 
 Added tank-high-low and tank-level to the existing opt-in offline inspection clock: hold, 25-scan/0.5-second step, one-scan/20-ms step, and actual level/low/high point readout. External mode remains excluded. Added automated checks to the tank drain verifier for held scan/gauge freeze and accepted one-scan level/gauge change. Build passed with zero warnings/errors. Tank-switch installation verifier passed but does not execute these new drain-verifier checks; do not cite it as their proof. Full --verify-scene-geometry remains running in session 99830, log .tools/tank-clock-full-geometry.log; new checks not yet reached at this checkpoint.
