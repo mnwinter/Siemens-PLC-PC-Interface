@@ -4500,7 +4500,9 @@ public partial class SimulatorShell : CanvasLayer
         var editorAndInspector = new VSplitContainer { Name = "EditorAndInspector" };
         editorAndInspector.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         editorAndInspector.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
-        editorAndInspector.SplitOffsets = [280];
+        // Keep the ladder visible when Scene I/O is also expanded. Diagnostics
+        // opens on demand with its full watch-table minimum height.
+        editorAndInspector.SplitOffsets = [10000];
         ConfigureDockSplit(editorAndInspector);
         var bottomDockSplitOffset = 280;
         editorAndTasks.AddChild(editorAndInspector);
@@ -5742,9 +5744,10 @@ public partial class SimulatorShell : CanvasLayer
         var reopenBottomDock = ToolbarButton("ReopenBottomDock", "DIAGNOSTICS  ▲", new Color("4d6674"), 175);
         reopenBottomDock.CustomMinimumSize = new Vector2(0, 26);
         reopenBottomDock.TooltipText = "Show errors, output, and watch data";
-        reopenBottomDock.Visible = false;
+        reopenBottomDock.Visible = true;
         bottomDockHost.AddChild(reopenBottomDock);
         var bottomPanel = PanelContainer("InspectorOutputDock", new Color("eef1f3"), new Color("9aa7ad"));
+        bottomPanel.Visible = false;
         // Title, tabs and watch controls consume most of a 120 px dock,
         // leaving the actual feedback table below the visible aperture.
         bottomPanel.CustomMinimumSize = new Vector2(0, 180);
@@ -8191,7 +8194,7 @@ public partial class SimulatorShell : CanvasLayer
         _ladderSceneDiagnosticResetters.Add(() =>
         {
             ShowValidationIssues([]);
-            output.Text = "Scene changed. Verify + Load this scene's ladder before Run.";
+            output.Text = "Scene ready. Run loads its supplied ladder; verify and load after editing.";
         });
         _ladderWatchRefreshers.Add(RefreshWatchTable);
         _ladderValidationRefreshers.Add(ShowValidationIssues);
