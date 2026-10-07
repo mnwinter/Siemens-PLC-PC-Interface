@@ -23,7 +23,7 @@
       "type": "conveyor",
       "label": "Multi-Conveyor Pallet Route conveyor",
       "position": [
-        -3.3000000000000003,
+        -6.8,
         0,
         0
       ],
@@ -40,7 +40,7 @@
       "type": "conveyor",
       "label": "Multi-Conveyor Pallet Route conveyor",
       "position": [
-        -1.1,
+        0.0,
         0,
         0
       ],
@@ -57,7 +57,7 @@
       "type": "conveyor",
       "label": "Multi-Conveyor Pallet Route conveyor",
       "position": [
-        1.1,
+        6.8,
         0,
         0
       ],
@@ -74,7 +74,7 @@
       "type": "photoeye",
       "label": "Multi-Conveyor Pallet Route photoeye",
       "position": [
-        3.3000000000000003,
+        10.2,
         0,
         0
       ],
@@ -90,9 +90,9 @@
       "type": "photoeye",
       "label": "Multi-Conveyor Pallet Route photoeye",
       "position": [
-        -2.85,
+        -8.5,
         0,
-        2.35
+        0
       ],
       "config": {
         "span": 2.05,
@@ -106,9 +106,9 @@
       "type": "photoeye",
       "label": "Multi-Conveyor Pallet Route photoeye",
       "position": [
-        -0.6500000000000001,
+        1.7,
         0,
-        2.35
+        0
       ],
       "config": {
         "span": 2.05,
@@ -133,16 +133,18 @@
     },
     {
       "id": "training_accessory_7",
-      "type": "trainingAccessory",
-      "label": "Multi-Conveyor Pallet Route - zone handoff sensor",
+      "type": "photoeye",
+      "label": "Zone 1 to 2 handoff photoeye",
       "position": [
-        3.3000000000000003,
+        -3.4,
         0,
-        1.8
+        0
       ],
       "config": {
-        "assetName": "zone handoff sensor",
-        "catalogAssetId": "training.accessory.zone_handoff_sensor.v1"
+        "span": 2.05,
+        "height": 0.7,
+        "beamCenterHeightM": 1.1,
+        "blocked": false
       }
     },
     {
@@ -162,7 +164,7 @@
     {
       "id": "switch_9",
       "type": "switch",
-      "label": "Multi-Conveyor Pallet Route operator input",
+      "label": "ZONE 1 CLEAR",
       "position": [
         -0.20000000000000007,
         0,
@@ -177,7 +179,7 @@
     {
       "id": "switch_10",
       "type": "switch",
-      "label": "Multi-Conveyor Pallet Route operator input",
+      "label": "ZONE 2 CLEAR",
       "position": [
         2,
         0,
@@ -192,7 +194,7 @@
     {
       "id": "switch_11",
       "type": "switch",
-      "label": "Multi-Conveyor Pallet Route operator input",
+      "label": "ZONE 3 CLEAR",
       "position": [
         4.2,
         0,
@@ -357,6 +359,21 @@
         "equipmentId": "indicator_14",
         "mode": "indicator",
         "activeColor": "green"
+      },
+      {
+        "point": "zone_1_run",
+        "equipmentId": "conveyor_0",
+        "mode": "running"
+      },
+      {
+        "point": "zone_2_run",
+        "equipmentId": "conveyor_1",
+        "mode": "running"
+      },
+      {
+        "point": "zone_3_run",
+        "equipmentId": "conveyor_2",
+        "mode": "running"
       }
     ]
   },

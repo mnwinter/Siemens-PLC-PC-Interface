@@ -1,3 +1,41 @@
+## Multi-conveyor sensor and output-binding repair (2026-10-06)
+
+Replaced scene-local training_accessory_7 vibration surrogate with existing
+through-beam photoeye type at zone 1/2 boundary X=-3.4, Z=0. Existing three
+photoeyes moved onto belt centerlines (-8.5, 1.7, 10.2 X). Manual zone-clear
+inputs remain explicitly manual; photoeyes do not fabricate feedback yet.
+Added running point bindings from zone_1_run/2_run/3_run to conveyor_0/1/2,
+retaining original indicator bindings. Operator labels now identify each zone.
+No default ladder program or authored demo was added.
+
+Normal Windows Previous/Next reload, owned session 16751/window 3277368,
+updated front-right visually inspected. Belt/photoeye installation is visible;
+roller zone still disconnected. Existing 145 controller tests PASS/0 FAIL;
+app-shell PASS 77 scenes/5 demos/295 assets; no PLC connection attempted.
+These checks do not prove native loaded-controller drive motion, sensor solids
+clearance, transfer continuity or a pallet route. Full repair remains open.
+Builder source identifies roller bearing top at 1.093 m and foot bottom .040 m,
+so a grounded roller's carrying top is 1.053 m; current .9 m belt installation
+will need matching elevation or an explicit transition. Inspect actual meshes
+before finalizing this source-derived measurement.
+
+## Multi-conveyor overlap first repair (2026-10-06)
+
+Native session 16751/window 3277368, current scene 10. Front-right and Top
+confirm original three 6.5 m belts superimposed (centers only 2.2 m apart).
+Changed only belt center X positions to -6.8, 0, +6.8 m. This separates their
+carrying decks with nominal 0.3 m end gaps. Normal Previous/Next navigation
+reloads JSON; updated native front-right inspection confirms separated belts.
+App-shell verifier PASS: 77 scenes, 5 demos, 295 assets, disconnected.
+
+This is deliberately an unfinished installation repair. Handoff bridges,
+photoeye relocation/mounting, roller-zone inline connection, delivered roller
+bearing height and missing pallet need measurement and repair. Candidate
+catalog confirms zone_handoff_sensor maps to sensing.condition.vibration.v1,
+so it is a wrong sensor identity. Current booleanPanel projects outputs only
+to indicators, not the conveyor motors; no common-stop input or actual pallet
+route model exists. Keep scene FAIL/open. No motion acceptance established.
+
 ## Wastewater pump native visual checkpoint (2026-10-06)
 
 Owned session 16751/window 3277368, focused pump_3 Top and front-right views.
