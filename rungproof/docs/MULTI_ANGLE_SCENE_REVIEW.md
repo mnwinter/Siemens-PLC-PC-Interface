@@ -1,4 +1,75 @@
+## Wastewater pump native visual checkpoint (2026-10-06)
+
+Owned session 16751/window 3277368, focused pump_3 Top and front-right views.
+At source-high false, pump command false; all other QA permissives retained true.
+Front-right shows pump suction/discharge connections, base and guarded coupling.
+Restoring source-high made pump command true. Exposed rear rotor orientation
+changed between running captures (scan 3886 and 4188); after Stop at scan 4498,
+output false and rear rotor orientation unchanged on the following capture.
+This establishes bounded visible rear rotor motion/stop, not internal coupling
+or impeller motion, speed fidelity, hydraulic flow or swept-volume clearance.
+No guard was removed. Native runtime left stopped, manually toggled inputs
+retained true. Final full-scene five-angle evidence is recorded above.
+
+## Wastewater final-build angles and valve motion (2026-10-06)
+
+Owned native session 16751/window 3277368, final 0cd70ad build. Full-scene
+front-right and Top were inspected in the preceding operator checkpoint;
+front-left, rear-left and rear-right now inspected too. All four tanks are
+visibly separated; probe remains roof-mounted; front views expose collector
+connections and floor supports. Rear vessels occlude much of the collector.
+No complete internal pipe bore or hydraulic validation is implied.
+
+Focused valve rear-right view shows supported installation and readable
+TO TREATMENT label. Focused Top shows pointer perpendicular to bore at reset,
+parallel to bore with all three QA permissives true, perpendicular after
+outlet-clear loss, parallel on restore, perpendicular after source-high loss.
+Both commands clear on each of these losses. Treatment-ready loss was tested
+in the previous checkpoint. Thus all three individual permissive losses have
+native command evidence. Pointer quarter-turn endpoints verified visually;
+continuous intermediate travel, shaft animation and hydraulic behavior remain
+unverified. Focused Top intentionally crops surrounding piping/indicators.
+
+## Wastewater native operator checkpoint (2026-10-06)
+
+Final build 0cd70ad, owned Windows session 16751/window 3277368. Loaded ignored
+wastewater-native-qa.rpproj.json using Logic Editor > Project > Open project,
+selected the actual file-list item, then Online > Verify + load offline.
+Verification UI reported 1 block, 1 task, 2 networks/rungs, 5 tags loaded.
+Bottom Load is a workspace picker, not the ladder project picker.
+
+Native Run: initially both output commands false; source high alone false;
+source high plus treatment ready false; adding outlet clear made both true.
+Removing treatment ready made both false; restoring it made both true.
+Stop cleared both commands while preserving visible manual feedback. Reset
+returned stopped scan 0, visible source/treatment inputs false and both outputs
+false. No physical PLC was connected. This is QA-fixture BOOL behavior, not
+liquid transfer, measured analog feedback, all-permissive-loss coverage, or
+confirmed shaft/valve animation. Those checks remain pending.
+
+Final full-scene Top camera inspected: four tank roofs and collector/discharge
+route fit below the toolbar; separate tank footprints are visible. Front-right
+final build also inspected. Focused station readability and full five-angle
+final-build inspection remain pending; overall goal remains active.
+
 # Multi-angle scene review - 2026-10-04
+
+## Wastewater native controller QA preparation (2026-10-06)
+
+Created ignored .tools/wastewater-native-qa.rpproj.json from existing project
+schema, two assignment rungs each requiring source_level_high AND treatment_ready
+AND outlet_clear. Both outputs are false initially. QA-only fixture does not
+change exercise defaults or the five authored demos. Offline --mcp-project
+validation PASS, zero compiler/I/O issues, log
+.tools/wastewater-native-qa-verify.log. This proves readability/compilation/scene
+bindings, not scan behavior or operator acceptance.
+
+Owned session 78708 closed normally exit 0. Restarted final camera/labels build
+normal Windows shell, live exec session 16751 at initial Conveyor Inspection
+Cell startup notice. Next: select current returned window, dismiss notice, load
+QA project using normal Load/file dialog, Verify + load offline if required, Run
+and toggle manual inputs. Observe pump/valve ON/OFF, individual permissive loss,
+Stop and Reset. Also recheck final overhead camera and station text.
 
 ## Wastewater piping native checkpoint (2026-10-06)
 
