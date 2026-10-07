@@ -1,3 +1,8 @@
+## Native held second-deck crossing - source d23cde1
+
+Continued window 138608/session 22211. Reobserved scan 2224/time 44.48 s, then inspected second-transfer entry from rear-left, front-left, front-right, rear-right and Top without scan advancement. The load remained visible and the repaired deck was present below the leading edge. One 0.5 s step reached 2249; one fine 20 ms step reached 2250/time 45.00 s. Inspected this middle/straddled pose from all five angles; no gross visible structural penetration or disappearance appeared. Carrying contact is partly occluded by the pallet and exact submillimetre clearance is not visually resolved.
+
+Three separately observed 0.5 s steps reached scans 2275, 2300 and 2325/time 46.50 s. Top showed the tail passing off the deck onto the third belt; the load remained visible throughout these sampled poses. This does not claim every intervening scan was inspected. Close views clip route ends. Receiver-deck crossing remains the next native check. Window left RUNNING but held at 2325, Top close, all three zones requested.
 ## Native first-deck exit and second-handoff hold - source d23cde1
 
 Continued the live window 138608/session 22211. Reobserved held scan 775, then one fine step to scan 776/time 15.52 s. Rear-left, front-left, front-right, rear-right and Top inspected the straddled first-deck pose without advancing that scan. Load remained visible; no gross structural penetration appeared at the rendered resolution. Separate 0.5 s steps reached 801 and 826; Top showed the tail moving away from the first deck onto the second belt. These are sampled poses, not every scan or exact optical threshold frames.
