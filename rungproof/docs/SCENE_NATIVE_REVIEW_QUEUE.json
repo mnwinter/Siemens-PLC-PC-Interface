@@ -85,7 +85,7 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Carton support source repaired: bottom now contacts delivered belt at Y=0.9, full footprint supported; failing-before/passing-after mesh checks. Latest native review pending. Display source now reuses supported count-display housing with CLASS / NO RESULT text; native readability pending. FAIL/open: cabinet mapped as diverter, no four-lane path; class feedback absent; empty exercise editor on Run",
+      "recordedResult": "Carton support source repaired: bottom now contacts delivered belt at Y=0.9, full footprint supported; failing-before/passing-after mesh checks. Latest native review pending. Display source now reuses supported count-display housing with CLASS / NO RESULT text; native readability pending. Four separate level receiving belts now staged; outgoing table handoffs and controller routing pending. FAIL/open: cabinet mapped as diverter; class feedback absent; empty exercise editor on Run",
       "latestNativeReviewPending": true,
       "explicitFailureRecorded": true,
       "disposition": "REPAIR_RECORDED_FAILURE",

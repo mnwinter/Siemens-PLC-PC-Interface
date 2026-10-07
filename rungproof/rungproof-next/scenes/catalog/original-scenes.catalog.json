@@ -3,11 +3,11 @@
   "catalogId": "rungproof-original-scenes-migrated",
   "sourceRoot": "prototype/scenes",
   "sceneCount": 77,
-  "equipmentInstanceCount": 622,
+  "equipmentInstanceCount": 625,
   "equipmentTypeCounts": {
     "box": 30,
     "containerReceiver": 3,
-    "conveyor": 34,
+    "conveyor": 38,
     "drillPress": 4,
     "fan": 5,
     "indicator": 114,
@@ -34,7 +34,7 @@
     "toteFiller": 2,
     "toteLabeler": 1,
     "toteVision": 1,
-    "trainingAccessory": 138,
+    "trainingAccessory": 137,
     "valve": 8
   },
   "scenes": [
@@ -125,7 +125,7 @@
       "name": "Lab 10.3 - Vision Package Sorter",
       "path": "res://scenes/migrated/lab-10-03-vision-package-sorter.scene.json",
       "sourceFile": "prototype/scenes/lab-10-03-vision-package-sorter.plcscene",
-      "equipmentCount": 14,
+      "equipmentCount": 17,
       "equipmentTypes": [
         "box",
         "conveyor",

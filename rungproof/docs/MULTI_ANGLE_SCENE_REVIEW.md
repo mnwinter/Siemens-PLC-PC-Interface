@@ -1,5 +1,19 @@
 # Multi-angle scene review - 2026-10-04
 
+Vision sorter four-receiver checkpoint (2026-10-06; native review OPEN):
+The single destination-bank surrogate is replaced in this scene by four
+actual conveyor installations, each 4 m long / 0.9 m wide / deck Y=0.9.
+Their axes fan at -67.5/-22.5/+22.5/+67.5 degrees with inner nominal tips
+2.6 m from the table center. This spacing is for separate receiving equipment;
+table-to-lane bridges are not yet present. Two deck-count/level checks failed
+before repair and pass afterward. All four complete delivered conveyor
+assemblies clear each other at the 1 mm OBB screen. All 19 sorter checks pass
+in .tools/sorter-lane-separation.log; all scene contracts pass 71/0 in
+.tools/sorter-four-lanes-contracts.log. Scene/catalog equipment count is 17.
+Outgoing handoffs, cabinet-diverter replacement, class feedback, actual PLC
+routing and latest native static/full-motion camera review remain OPEN.
+
+
 Vision sorter infeed bridge checkpoint (2026-10-06; native review OPEN):
 A scene-specific four-leg steel handoff bridge now connects the infeed to
 the circular parcel platter at deck Y=0.9. Its 64-segment curved nose follows
@@ -3958,7 +3972,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 2 | `equipment-gallery` | 0 | FR/FL/RL/RR/T | Repaired floor/display support; normal Run opens blank editor, animation workflow open |
 | 3 | `lab-10-01-drive-alarm-code-string` | 0 | FR/FL/RL/RR/T | Repaired prop identity, spacing and supports; normal Run opens blank editor; string processing absent |
 | 4 | `lab-10-02-chicken-label-print` | 0 | FR/FL/RL/RR/T + support/printer/display/plate details; repeated after repair | Repaired static identity/support/spacing; actual weighing/formatting/printing/controller absent; normal Run opens empty editor |
-| 5 | `lab-10-03-vision-package-sorter` | 32 | FR/FL/RL/RR/T + carton FR | Carton support source repaired: bottom now contacts delivered belt at Y=0.9, full footprint supported; failing-before/passing-after mesh checks. Latest native review pending. Display source now reuses supported count-display housing with CLASS / NO RESULT text; native readability pending. FAIL/open: cabinet mapped as diverter, no four-lane path; class feedback absent; empty exercise editor on Run |
+| 5 | `lab-10-03-vision-package-sorter` | 32 | FR/FL/RL/RR/T + carton FR | Carton support source repaired: bottom now contacts delivered belt at Y=0.9, full footprint supported; failing-before/passing-after mesh checks. Latest native review pending. Display source now reuses supported count-display housing with CLASS / NO RESULT text; native readability pending. Four separate level receiving belts now staged; outgoing table handoffs and controller routing pending. FAIL/open: cabinet mapped as diverter; class feedback absent; empty exercise editor on Run |
 | 6 | `lab-10-04-motor-enum-state` | 0 | FR/FL/RL/RR/T + three plate details; repeated after repair | Repaired plates and symbolic shaft binding; enum state/controller absent, normal Run opens empty editor |
 | 7 | `lab-10-05-motor-struct-data` | 67 | FR/FL/RL/RR/T | FAIL: shutter copies instead of displays, interference, no STRUCT data, empty editor on Run |
 | 8 | `lab-10-06-ten-motor-array-startup` | 260 | FR/FL/RL/RR/T | FAIL: five motors and overlapping shutter copies, no array/timed startup, empty editor on Run |

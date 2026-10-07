@@ -149,20 +149,6 @@
       }
     },
     {
-      "id": "training_accessory_8",
-      "type": "trainingAccessory",
-      "label": "Vision Package Sorter - destination conveyor bank",
-      "position": [
-        -3.3000000000000003,
-        0,
-        3.6
-      ],
-      "config": {
-        "assetName": "destination conveyor bank",
-        "catalogAssetId": "training.accessory.destination_conveyor_bank.v1"
-      }
-    },
-    {
       "id": "switch_9",
       "type": "switch",
       "label": "Vision Package Sorter operator input",
@@ -242,6 +228,94 @@
         "width": 1.4,
         "deckHeight": 0.9,
         "beltNoseEndX": -0.0445833
+      }
+    },
+    {
+      "id": "destination_lane_1",
+      "type": "conveyor",
+      "label": "Destination lane 1",
+      "position": [
+        5.060343788879413,
+        0,
+        -4.249845849551918
+      ],
+      "rotation": [
+        0,
+        67.5,
+        0
+      ],
+      "config": {
+        "length": 4,
+        "width": 0.9,
+        "deckHeight": 0.9,
+        "running": false,
+        "beltColor": 2568760
+      }
+    },
+    {
+      "id": "destination_lane_2",
+      "type": "conveyor",
+      "label": "Destination lane 2",
+      "position": [
+        7.549845849551918,
+        0,
+        -1.760343788879413
+      ],
+      "rotation": [
+        0,
+        22.5,
+        0
+      ],
+      "config": {
+        "length": 4,
+        "width": 0.9,
+        "deckHeight": 0.9,
+        "running": false,
+        "beltColor": 2568760
+      }
+    },
+    {
+      "id": "destination_lane_3",
+      "type": "conveyor",
+      "label": "Destination lane 3",
+      "position": [
+        7.549845849551918,
+        0,
+        1.760343788879413
+      ],
+      "rotation": [
+        0,
+        -22.5,
+        0
+      ],
+      "config": {
+        "length": 4,
+        "width": 0.9,
+        "deckHeight": 0.9,
+        "running": false,
+        "beltColor": 2568760
+      }
+    },
+    {
+      "id": "destination_lane_4",
+      "type": "conveyor",
+      "label": "Destination lane 4",
+      "position": [
+        5.060343788879413,
+        0,
+        4.249845849551918
+      ],
+      "rotation": [
+        0,
+        -67.5,
+        0
+      ],
+      "config": {
+        "length": 4,
+        "width": 0.9,
+        "deckHeight": 0.9,
+        "running": false,
+        "beltColor": 2568760
       }
     }
   ],

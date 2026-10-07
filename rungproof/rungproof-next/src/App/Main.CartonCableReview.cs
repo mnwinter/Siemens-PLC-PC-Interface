@@ -58,7 +58,26 @@ public partial class Main
             "vision_sorter_parcel_platter_has_no_visible_machining_fixture_or_raised_index_markers");
         check(MathF.Abs(ReviewBounds(platter).End.Y - belt.End.Y) < .001f,
             "vision_sorter_parcel_platter_matches_actual_infeed_bearing_plane");
-        var receiver = root.GetNode<Node3D>("training_accessory_8");
+        var lanes=root.GetChildren().OfType<Node3D>().Where(n=>n.Name.ToString().StartsWith("destination_lane_",StringComparison.Ordinal)).ToArray();
+        check(lanes.Length==4 && lanes.All(l=>l.FindChild("KIN_belt_surface",true,false) is MeshInstance3D),
+            "vision_sorter_has_four_separate_actual_receiving_conveyor_decks");
+        check(lanes.Length==4 && lanes.All(l=>MathF.Abs(ReviewBounds((MeshInstance3D)l.FindChild("KIN_belt_surface",true,false)).End.Y-belt.End.Y)<.001f),
+            "vision_sorter_four_receiving_decks_match_infeed_and_platter_height");
+        var laneParts=lanes.Select(l=>ReviewMeshes(l).Select(m=>(Mesh:m,Bounds:ReviewBounds(m))).ToArray()).ToArray();
+        var lanesClear=true;
+        for(var left=0;left<laneParts.Length;left++)
+        for(var right=left+1;right<laneParts.Length;right++)
+        foreach(var aPart in laneParts[left])
+        foreach(var bPart in laneParts[right])
+        {
+            var overlap=aPart.Bounds.Intersection(bPart.Bounds).Size;
+            if(overlap.X<=.001f || overlap.Y<=.001f || overlap.Z<=.001f || !OrientedBoxesPenetrate(aPart.Mesh,bPart.Mesh))continue;
+            GD.Print($"VISION_SORTER_LANE_INTERFERENCE {lanes[left].Name}/{aPart.Mesh.Name} {lanes[right].Name}/{bPart.Mesh.Name}");
+            lanesClear=false;
+        }
+        check(lanes.Length==4 && lanesClear,"vision_sorter_four_receiving_conveyors_clear_each_other_at_one_mm_obb_screen");
+        foreach(var lane in lanes)GD.Print($"VISION_SORTER_RECEIVING_LANE {lane.Name} {ReviewBounds((MeshInstance3D)lane.FindChild("KIN_belt_surface",true,false))}");
+        var receiver = root.GetNodeOrNull<Node3D>("destination_lane_1") ?? root.GetNode<Node3D>("training_accessory_8");
         var receivingBelt = (MeshInstance3D)receiver.FindChild("KIN_belt_surface", true, false);
         GD.Print($"VISION_SORTER_RECEIVING infeed={belt} platter={ReviewBounds(platter)} bank={ReviewBounds(receivingBelt)}");
         GD.Print($"VISION_SORTER_RECEIVING_GAP x={ReviewBounds(platter).Position.X-belt.End.X} deckDelta={ReviewBounds(platter).End.Y-belt.End.Y} bankBeltCount={receiver.FindChildren("KIN_belt_surface", "MeshInstance3D", true, false).Count}");
