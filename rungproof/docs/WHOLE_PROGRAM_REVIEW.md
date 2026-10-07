@@ -1,3 +1,13 @@
+## 2026-10-07 - held native dual-spindle return-path samples
+
+Continued normal Windows review in window139020/session37669 with the previously verified 13-rung round-trip QA. Reset returned scan0; enabled Hold before Run, Run stayed at0; actual Start accepted at0. Repeated double-clicks on coarse Step each accepted50 scans, confirmed individually in the UI:50 A/B58.8%;100 both100%;150 A67.5/B100;200 A5/B100;250 A0/B67.5;300 A0/B5;350 heads0/slide76.7%;400 heads0/slide100%. No unheld clock interval was used in this pass.
+
+Single coarse step425 (8.50s) shows heads0/slide80.0% on the return, with fixture moved back from the receiving endpoint. Inspected inherited diagonal, then explicitly FL/RL/RR/Top at the same held scan. The inherited diagonal was rear right; a distinct FR selection was not made at425, so count four distinct named views rather than five. Initial commentary overstated that pose's five-angle coverage. Step450 (9.00s) shows heads0/slide38.3%; inspected Top/FR/FL/RL/RR without advancing time. This supplies the previously missing intermediate return five-angle native evidence. Stock and fixture remain visibly on the supporting bed with no disappearance or gross extra penetration at the viewed scale. Rear columns partially occlude the fixture and Top heads obscure tool tips; opposing front views resolve bed seating. No continuous solid/contact certification is implied.
+
+Step475 (9.50s) shows heads0/slide0, returned fixture under the heads; RR/FR/FL/RL/Top inspected at held scan475. Step500 (10.00s) retains all positions0 in Top with no re-extension. Stop at500 retains home; Reset shows STOPPED/scan0 and identical Top home pose. External PLC disconnected throughout. No application source changes or fresh deterministic test run required for this observation-only checkpoint; previous build,145 controller tests,71 authored scene contracts, app verifier and completed geometry-screen evidence remain as recorded.
+
+The sampled native return review is now recorded. Exact limit-transition frames, unsampled intermediate poses, continuous solid clearance, material removal and live PLC operation remain unverified. Whole-program review remains open.
+
 ## 2026-10-07 - completed geometry regression and native return endpoint
 
 Post-control-row --verify-scene-geometry session 9476 exited 0. Final log .tools/catalog-20261007-geometry-final.log ends SCENE_GEOMETRY_VERIFY PASS bounds screen only; no mechanical or live acceptance. This supersedes the in-progress status immediately below.

@@ -8,4 +8,4 @@ Use Step 0.5 s to review motion, and Step 20 ms near transitions. The QA drives 
 
 Opening the editor releases the visual-review Hold. Stop before checking the watch table when the pose must remain fixed. Expected final watch values: qa_return TRUE, transfer_home TRUE, transfer_at_end FALSE, transfer_retract FALSE. The timer symbol qa_return_delay displays its ET/Q; do not add qa_return_delay.Q as a separately declared watch symbol.
 
-Native validation to date: normal Open/Verify+load, actual Run/Start, returned-home pose and final latch/feedback were observed. Intermediate return-path multi-angle clearance remains unverified. No physical PLC was connected or written.
+Native validation to date: normal Open/Verify+load, actual Run/Start, returned-home pose and final latch/feedback were observed. Held intermediate return at 38.3% and returned home were inspected from all five angles; the 80% return pose has four distinct named views. No gross visible support loss was observed. Exact transition frames, unsampled poses and continuous solid clearance remain unverified. No physical PLC was connected or written.
