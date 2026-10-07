@@ -48,6 +48,22 @@ public partial class Main
                 Check(!_virtualController.Snapshot.Variables.GetValueOrDefault("start_request"), "start_input_is_single_scan_pulse");
                 ResetActiveController();
                 Check(!_virtualController.Snapshot.Variables.GetValueOrDefault("start_seen"), "reset_clears_start_probe");
+                var previousReview = _visualSceneReview;
+                try
+                {
+                    _visualSceneReview = true;
+                    SetGantryReviewClockHeld(true);
+                    RunActiveController();
+                    var before = _virtualController.Snapshot.ScanNumber;
+                    _PhysicsProcess(.5);
+                    Check(GantryReviewClockHeld && _virtualController.Snapshot.ScanNumber == before,
+                        "dual_review_hold_prevents_unaccepted_scans");
+                    AdvanceGantryReviewClock(25);
+                    Check(_virtualController.Snapshot.ScanNumber == before + 25,
+                        "dual_review_step_accepts_exactly_25_scans");
+                    ResetActiveController();
+                }
+                finally { ReleaseGantryReviewClock(); _visualSceneReview = previousReview; }
             }
             finally { DisableVirtualController(); }
             runtime.ResetSimulation(); runtime.UsesExternalClock = true;
