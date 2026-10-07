@@ -189,6 +189,7 @@ public partial class SimulatorShell : CanvasLayer
     private EditableContact? _ladderContactClipboard;
     private bool _ladderMonitorMatchesLoadedProgram;
     private readonly List<Action> _ladderEditorRefreshers = [];
+    private readonly List<Action> _ladderSceneDiagnosticResetters = [];
     private readonly List<Action<VirtualControllerSnapshot?>> _ladderWatchRefreshers = [];
     private readonly List<Action<IReadOnlyList<LadderValidationIssue>>> _ladderValidationRefreshers = [];
     private FileDialog _ladderSaveDialog = null!;
@@ -408,6 +409,9 @@ public partial class SimulatorShell : CanvasLayer
 
     private void LoadSceneLadderDraft(SceneDefinition scene)
     {
+        // Verification belongs to the previous scene's controller, not the
+        // restored or fresh draft. Both editor modes must show this boundary.
+        foreach (var reset in _ladderSceneDiagnosticResetters) reset();
         if (_sceneLadderDrafts.TryGetValue(scene.Id, out var draft))
         {
             _ladderDocument.RestoreSnapshot(draft.Document);
@@ -8170,6 +8174,11 @@ public partial class SimulatorShell : CanvasLayer
         };
         RefreshTagBindingOptions(SelectedTagType(), SelectedTagRole(SelectedTagType()), string.Empty);
         _ladderEditorRefreshers.Add(RefreshEditor);
+        _ladderSceneDiagnosticResetters.Add(() =>
+        {
+            ShowValidationIssues([]);
+            output.Text = "Scene changed. Verify + Load this scene's ladder before Run.";
+        });
         _ladderWatchRefreshers.Add(RefreshWatchTable);
         _ladderValidationRefreshers.Add(ShowValidationIssues);
         RefreshEditor();
