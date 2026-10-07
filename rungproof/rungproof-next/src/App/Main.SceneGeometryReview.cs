@@ -767,7 +767,8 @@ public partial class Main
         {
             var display = root.GetNode<Node3D>(id);
             check(display.FindChild("COUNT_DISPLAY_screen", true, false) is MeshInstance3D
-                && display.FindChild("StaticReadout", true, false) is Label3D label && label.Text.EndsWith("\nNO DATA", StringComparison.Ordinal),
+                && display.FindChild("StaticReadout", true, false) is Label3D label
+                && label.Text == (id == "training_accessory_7" ? "COMMANDS ON\n0/10" : "SEQUENCE CMD\nOFF"),
                 $"motor_array_{id}_actual_display_without_fabricated_sequence_data");
             var foot = (MeshInstance3D)display.FindChild("COUNT_DISPLAY_base", true, false);
             var mast = (MeshInstance3D)display.FindChild("COUNT_DISPLAY_mast", true, false);
@@ -781,6 +782,8 @@ public partial class Main
         // Projection checks do not prove a timed loaded-controller sequence.
         _sceneRuntime!.CommitExternalPlcOutputs(new Dictionary<string, object?> { ["motor_array_run"] = true });
         check(motions.Length == 10 && motions.All(motion => motion.Running), "motor_array_group_command_projects_to_all_ten_motors");
+        check(root.GetNode<Node3D>("training_accessory_7").FindChild("StaticReadout", true, false) is Label3D groupReadout
+            && groupReadout.Text == "COMMANDS ON\n10/10", "motor_array_display_legacy_group_counts_ten");
         _sceneRuntime.CommitExternalPlcOutputs(new Dictionary<string, object?> { ["motor_array_run"] = false });
         check(motions.All(motion => !motion.Running), "motor_array_group_command_off_stops_all_ten_motors");
         // Exercise independent requests with the legacy group command false.
@@ -791,6 +794,8 @@ public partial class Main
             _sceneRuntime.CommitExternalPlcOutputs(new Dictionary<string, object?> { [$"motor_{index}_run"] = true });
             check(motors.All(motor => ControllersForReview(motor).Single().Running ==
                 (motor.Name.ToString() == $"motor_{index}")), $"motor_array_independent_{index}_only");
+            check(root.GetNode<Node3D>("training_accessory_7").FindChild("StaticReadout", true, false) is Label3D individualReadout
+                && individualReadout.Text == "COMMANDS ON\n1/10", $"motor_array_display_individual_{index}_counts_one");
             _sceneRuntime.CommitExternalPlcOutputs(new Dictionary<string, object?> { [$"motor_{index}_run"] = false });
         }
         _sceneRuntime.CommitExternalPlcOutputs(new Dictionary<string, object?> { ["motor_3_run"] = true, ["motor_array_run"] = true });
@@ -798,7 +803,14 @@ public partial class Main
         _sceneRuntime.CommitExternalPlcOutputs(new Dictionary<string, object?> { ["motor_array_run"] = false });
         check(motors.All(motor => ControllersForReview(motor).Single().Running == (motor.Name.ToString() == "motor_3")),
             "motor_array_group_release_preserves_individual_request");
+        _sceneRuntime.CommitExternalPlcOutputs(new Dictionary<string, object?> { ["startup_sequence_active"] = true });
+        check(root.GetNode<Node3D>("training_accessory_8").FindChild("StaticReadout", true, false) is Label3D activeReadout
+            && activeReadout.Text == "SEQUENCE CMD\nACTIVE", "motor_array_display_sequence_command_active");
         _sceneRuntime.ResetSimulation();
+        check(root.GetNode<Node3D>("training_accessory_7").FindChild("StaticReadout", true, false) is Label3D resetCount
+            && resetCount.Text == "COMMANDS ON\n0/10"
+            && root.GetNode<Node3D>("training_accessory_8").FindChild("StaticReadout", true, false) is Label3D resetSequence
+            && resetSequence.Text == "SEQUENCE CMD\nOFF", "motor_array_display_reset_clears_count_and_sequence");
         check(motions.All(motion => !motion.Running)
             && Enumerable.Range(0, 10).All(index => _sceneRuntime.Points[$"motor_{index}_run"] is false),
             "motor_array_reset_clears_all_individual_requests");

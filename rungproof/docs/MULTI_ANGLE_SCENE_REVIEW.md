@@ -1,3 +1,8 @@
+## Ten-motor command displays repaired and initial native readability
+
+Opt-in motorCommandDisplays projects retained group OR independent motor requests to COMMANDS ON n/10, and startup_sequence_active to SEQUENCE CMD ACTIVE/OFF. These are command-image labels, not measured motor or ARRAY/STRUCT feedback. Other scene readouts unchanged. Native window 335262 / session 41118: fresh shell, stopped/unloaded; focused training_accessory_7 and _8 views show readable 0/10 and OFF, supported display stands unchanged. Full-scene legends remain too distant for reading. Dynamic native loaded timed-cycle display changes remain pending.
+
+Build zero warnings/errors; focused --verify-scene-geometry --verify-motor-array PASS. Checks cover legacy group 10/10, each independent request 1/10, sequence ACTIVE, reset 0/10 + OFF, existing independent/group projection and loaded timed/permissive/Stop/Reset workflow. Native screenshot proof is limited to the initial readouts; tests do not close dynamic visual verification.
 ## Native endpoint outputs, Stop and Reset - source 591d599
 
 Window 400788 reobserved held scan 1934 / X 12.30 / complete True, retained endpoint load. Scrolled the actual I/O panes: all three zone_run outputs True; handoff_1_blocked, zone_2_blocked and receiver_entry_blocked False after the load passed their beams (infeed False observed in prior pane). Stop at the same held scan immediately displayed all three zone_run outputs False, tower greens off, load retained unchanged. Reset restored scan/time zero, X -9.30, complete False and empty receiver. All three commands remained False and the visible downstream sensors False.

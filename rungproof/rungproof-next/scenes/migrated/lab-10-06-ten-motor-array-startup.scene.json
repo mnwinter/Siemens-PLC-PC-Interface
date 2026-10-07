@@ -522,7 +522,8 @@
         "mode": "running"
       }
     ],
-    "combineRunningCommands": true
+    "combineRunningCommands": true,
+    "motorCommandDisplays": true
   },
   "training": {
     "hints": [

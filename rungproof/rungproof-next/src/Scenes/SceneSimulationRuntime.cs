@@ -1228,6 +1228,19 @@ public partial class SceneSimulationRuntime : Node
 
     private void ApplyBindings()
     {
+        // Command-image display only. Do not imply measured shaft feedback or
+        // array/STRUCT support from these existing independent BOOL outputs.
+        if (_definition.TryGetProperty("motorCommandDisplays", out var motorDisplays)
+            && motorDisplays.ValueKind == JsonValueKind.True)
+        {
+            var group = AsBool(_points.GetValueOrDefault("motor_array_run"));
+            var commanded = Enumerable.Range(0, 10).Count(i => group
+                || AsBool(_points.GetValueOrDefault($"motor_{i}_run")));
+            if (_sceneRoot.GetNodeOrNull<Node3D>("training_accessory_7")?.FindChild("StaticReadout", true, false) is Label3D groupDisplay)
+                groupDisplay.Text = $"COMMANDS ON\n{commanded}/10";
+            if (_sceneRoot.GetNodeOrNull<Node3D>("training_accessory_8")?.FindChild("StaticReadout", true, false) is Label3D sequenceDisplay)
+                sequenceDisplay.Text = "SEQUENCE CMD\n" + (AsBool(_points.GetValueOrDefault("startup_sequence_active")) ? "ACTIVE" : "OFF");
+        }
         // Refresh display feedback even when Stop prevents further motion ticks.
         // The selected controller retains ownership of conveyor_run.
         if (UsesExternalClock && HasShippingPalletReference)
