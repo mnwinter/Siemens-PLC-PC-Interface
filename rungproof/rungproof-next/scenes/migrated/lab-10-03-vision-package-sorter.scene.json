@@ -130,8 +130,8 @@
       "config": {
         "assetName": "package-class result display",
         "catalogAssetId": "training.accessory.count_display.v1",
-        "display": "staticText",
-        "displayText": "CLASS\nNO RESULT"
+        "display": "numeric",
+        "displayLabel": "SIM CLASS"
       }
     },
     {
@@ -456,8 +456,22 @@
         "initial": false,
         "role": "output"
       }
+,
+      {
+        "name": "vision_class",
+        "type": "INT",
+        "owner": "PC",
+        "initial": 1
+      }
     ],
     "actions": [
+      {
+        "id": "cycle-vision_class",
+        "label": "Select simulated vision class (1-4)",
+        "type": "cycle",
+        "point": "vision_class",
+        "values": [1, 2, 3, 4]
+      },
       {
         "id": "toggle-package_present",
         "label": "Toggle package present",
@@ -480,6 +494,14 @@
     "rules": [],
     "edgeRules": [],
     "pointBindings": [
+      {
+        "point": "vision_class",
+        "equipmentId": "training_accessory_6",
+        "mode": "numericDisplay",
+        "label": "SIM CLASS",
+        "format": "F0",
+        "validPoint": "vision_result_valid"
+      },
       {
         "point": "package_present",
         "equipmentId": "switch_9",
@@ -512,7 +534,8 @@
   "training": {
     "hints": [
       "Translate the lesson into explicit state and permissive logic: Sorting is enabled only for a present package with a valid vision result and clear destination.",
-      "Inputs are simulator feedback (package_present, vision_result_valid, destination_clear); PLC logic owns sort_conveyor_run, diverter_enable.",
+      "Inputs are simulator feedback (package_present, vision_result_valid, destination_clear, vision_class); PLC logic owns sort_conveyor_run, diverter_enable.",
+      "Select simulated vision_class 1-4; the class display is hidden until vision_result_valid. This is a fixture, not camera image recognition.",
       "Test the initial state, the valid condition, and at least one missing permissive."
     ],
     "solution": {
@@ -563,6 +586,7 @@
     ],
     "addedTags": [
       "package_present",
+      "vision_class",
       "vision_result_valid",
       "destination_clear",
       "sort_conveyor_run",
