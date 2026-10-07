@@ -206,6 +206,7 @@
         "id": "start-dual-drill",
         "label": "Start dual-spindle cycle",
         "type": "start",
+        "controllerStartBinding": "operator.start",
         "sequence": "dual-cycle"
       },
       {

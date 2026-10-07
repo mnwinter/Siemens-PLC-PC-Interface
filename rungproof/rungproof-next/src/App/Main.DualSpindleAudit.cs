@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using Godot;
+using RungProof.Next.VirtualController;
 
 namespace RungProof.Next.App;
 
@@ -25,6 +26,30 @@ public partial class Main
             AddMigratedScene("lab-2-22-dual-spindle", _candidateCatalog!, _mainCamera!, false, false);
             var root = _sceneCompositionRoot!;
             var runtime = _sceneRuntime!;
+            var probe = new LadderEditorDocument();
+            probe.ResetProject("review-dual-start", "Dual_Start_QA", TimeSpan.FromMilliseconds(20));
+            probe.SourceSceneId = "lab-2-22-dual-spindle";
+            probe.AddTag("start_request", PlcVariableRole.Input, "operator.start");
+            probe.AddTag("start_seen", PlcVariableRole.Memory);
+            var startRung = probe.Rungs.Count;
+            probe.AddRung("Observe Start without commanding spindle motion", "start_seen").CoilMode = LadderCoilMode.Set;
+            probe.AddContact(startRung, 0, "start_request", false);
+            EnableVirtualControllerProgram(probe.BuildProgram());
+            try
+            {
+                Check(!ExecuteSelectedControllerAction("start-dual-drill"), "stopped_controller_rejects_start");
+                RunActiveController();
+                _PhysicsProcess(.02);
+                Check(!_virtualController!.Snapshot.Variables.GetValueOrDefault("start_seen"), "run_alone_does_not_start");
+                var accepted = ExecuteSelectedControllerAction("start-dual-drill");
+                _PhysicsProcess(.02);
+                Check(accepted && _virtualController.Snapshot.Variables.GetValueOrDefault("start_seen"), "start_action_reaches_ladder_input");
+                _PhysicsProcess(.02);
+                Check(!_virtualController.Snapshot.Variables.GetValueOrDefault("start_request"), "start_input_is_single_scan_pulse");
+                ResetActiveController();
+                Check(!_virtualController.Snapshot.Variables.GetValueOrDefault("start_seen"), "reset_clears_start_probe");
+            }
+            finally { DisableVirtualController(); }
             runtime.UsesExternalClock = false; // Explicit reference preview only.
             var fixture = root.GetNode<Node3D>("metal_plate");
             var slide = root.GetNode<Node3D>("plate_transfer");

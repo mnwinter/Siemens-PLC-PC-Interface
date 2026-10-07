@@ -1,3 +1,8 @@
+## 2026-10-07 - dual-spindle controller Start interface repair
+
+Current standalone --audit-dual-spindle rerun passed (.tools/dual-spindle-current-audit.log), but only exercises reference geometry/feed/transfer. Source inspection confirms normal Start lacked controllerStartBinding and SpindleFeed running only rotates, with axial feed supplied by reference position motions. Added explicit operator.start input binding to start-dual-drill. A separate integrated Start probe verifies stopped rejection, Run-alone idle, actual action reaching the ladder, one-scan pulse and Reset clearing probe state. No fabricated feed/home feedback or authored exercise solution.
+
+Build zero warnings/errors. Updated --audit-dual-spindle exited 0 with all five Start checks and retained geometry reference checks (.tools/dual-spindle-start-binding-audit.log). Native Windows Start recheck is still pending. Normal controller axial feed/independent retract/shared-stock transfer and complete cycle remain unresolved; this repair only fixes the missing operator interface.
 ## 2026-10-07 - Reset focused review-camera repair
 
 Native tote check in a4bee84 exposed Reset moving the load to infeed while its close diagnostic camera remained at discharge. ResetActiveController now reframes a selected visual-review focus after scene reset, retaining angle and close/wide setting. Normal full-scene view is unaffected. Offline/external/standalone reset branches share this presentation helper; no PLC command or transport change.
