@@ -903,6 +903,20 @@ public partial class SceneSimulationRuntime : Node
             })
                 if (_pointOwners.GetValueOrDefault(name) != owner || _pointTypes.GetValueOrDefault(name) != type)
                     throw new InvalidOperationException($"Sequence level feedback requires {owner} {type} {name}.");
+            // Visual captive floats move independently of the PLC command.
+            // Their limited stroke illustrates the existing threshold inputs;
+            // it is not a physical buoyancy/contact simulation.
+            var surfaceY = (equipment.GlobalTransform * new Vector3(0, bottom + authored.Height * normalized, 0)).Y;
+            foreach (var id in new[] { "low_float", "high_float" })
+            {
+                if (_sceneRoot.GetNodeOrNull<Node3D>(id) is not { } sensor
+                    || !sensor.HasMeta("sump_float_visual_travel_m")
+                    || sensor.GetNodeOrNull<MeshInstance3D>("SUMP_FLOAT_body") is not { } body) continue;
+                var travel = sensor.GetMeta("sump_float_visual_travel_m").AsSingle();
+                var pose = body.Position;
+                pose.Y = Mathf.Clamp(surfaceY - sensor.GlobalPosition.Y, -travel, travel);
+                body.Position = pose;
+            }
             SetPoint("sump_level", (double)normalized * 100);
             SetPoint("low_float_active", normalized <= Number(_definition, "lowThreshold", .2)+.000001);
             SetPoint("high_float_active", normalized >= Number(_definition, "highThreshold", .78)-.000001);

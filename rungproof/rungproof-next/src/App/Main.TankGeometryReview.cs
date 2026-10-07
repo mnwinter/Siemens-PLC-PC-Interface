@@ -16,6 +16,10 @@ public partial class Main
         var runtime = _sceneRuntime!;
         runtime.UsesExternalClock = false;
         runtime.ResetSimulation();
+        var lowBody = _sceneCompositionRoot.GetNode<MeshInstance3D>("low_float/SUMP_FLOAT_body");
+        var highBody = _sceneCompositionRoot.GetNode<MeshInstance3D>("high_float/SUMP_FLOAT_body");
+        var initialLow = lowBody.Position;
+        var initialHigh = highBody.Position;
         var initial = ReviewBounds(liquid);
         check(MathF.Abs(initial.Position.Y-.12f)<.001f && MathF.Abs(initial.End.Y-(.12f+1.65f*.22f))<.001f,
             "sump_liquid_initial_22_percent_matches_open_basin_datum");
@@ -23,11 +27,14 @@ public partial class Main
         runtime.AdvanceSimulation(1);
         var actualFraction = (ReviewBounds(liquid).End.Y-.12f)/1.65f;
         var reportedPercent = Convert.ToDouble(runtime.Points["sump_level"]);
+        check(lowBody.Position.Y > initialLow.Y && highBody.Position == initialHigh,
+            "sump_rising_water_lifts_low_float_with_high_float_on_lower_stop");
         GD.Print($"SUMP_LEVEL_COHERENCE after=1s renderedPercent={actualFraction*100} reportedPercent={reportedPercent}");
         check(Math.Abs(reportedPercent-actualFraction*100)<.01,
             "sump_mid_rise_reported_level_matches_actual_liquid_surface");
         var contained = true;
         var feedbackCoherent = true;
+        var floatTravelCoherent = true;
         var peak = initial.End.Y;
         for (var tick=0;tick<350;tick++)
         {
@@ -37,12 +44,19 @@ public partial class Main
                 && bounds.End.Y<shell.End.Y
                 && bounds.Position.X>shell.Position.X+.14f && bounds.End.X<shell.End.X-.14f
                 && bounds.Position.Z>shell.Position.Z+.14f && bounds.End.Z<shell.End.Z-.14f;
+            foreach (var body in new[] { lowBody, highBody })
+            {
+                var datum = ((Node3D)body.GetParent()).GlobalPosition.Y;
+                floatTravelCoherent &= MathF.Abs(body.Position.Y - Mathf.Clamp(bounds.End.Y - datum, -.08f, .08f)) < .001f
+                    && body.Position.X == 0 && body.Position.Z == 0;
+            }
             peak=MathF.Max(peak,bounds.End.Y);
             var fraction=(bounds.End.Y-.12f)/1.65f;
             feedbackCoherent &= Math.Abs(Convert.ToDouble(runtime.Points["sump_level"])-fraction*100)<.01
                 && Equals(runtime.Points["low_float_active"],fraction<=.200001f)
                 && Equals(runtime.Points["high_float_active"],fraction>=.779999f);
         }
+        check(floatTravelCoherent, "sump_350_samples_float_bodies_follow_level_on_bounded_stems");
         check(contained,"sump_350_reference_level_samples_remain_inside_open_basin");
         check(feedbackCoherent,"sump_350_samples_percentage_and_float_inputs_match_liquid_surface");
         check(MathF.Abs(peak-(.12f+1.65f*.78f))<.001f,
@@ -55,6 +69,8 @@ public partial class Main
         check(Math.Abs(Convert.ToDouble(runtime.Points["sump_level"])-22)<.001
             && runtime.Points["low_float_active"] is false && runtime.Points["high_float_active"] is false,
             "sump_reset_restores_level_and_float_input_image");
+        check(lowBody.Position.IsEqualApprox(initialLow) && highBody.Position.IsEqualApprox(initialHigh),
+            "sump_reset_restores_both_float_poses");
         // This drives the existing reference trajectory for geometry only.
         // It does not establish a PLC-owned pump latch or float mechanics.
         VerifySumpControllerCycle(check);
@@ -187,10 +203,11 @@ public partial class Main
                 {
                     var body = ReviewBounds((MeshInstance3D)sensor.FindChild("SUMP_FLOAT_body", true, false));
                     var elevationFloat = liquid.Position.Y + liquid.Size.Y / initial * threshold;
-                    check(MathF.Abs(body.GetCenter().Y-elevationFloat)<.001f
+                    check(MathF.Abs(sensor.GlobalPosition.Y-elevationFloat)<.001f
+                        && MathF.Abs(body.GetCenter().Y-(elevationFloat+Mathf.Clamp(liquid.End.Y-elevationFloat,-.08f,.08f)))<.001f
                         && body.Position.X>shell.Position.X+.14f && body.End.X<shell.End.X-.14f
                         && body.Position.Z>shell.Position.Z+.14f && body.End.Z<shell.End.Z-.14f,
-                        $"{sceneId}_{id}_float_inside_open_basin_at_actual_threshold");
+                        $"{sceneId}_{id}_float_datum_at_threshold_and_moving_body_inside_open_basin");
                     var bracket = ReviewBounds((MeshInstance3D)sensor.FindChild("SUMP_FLOAT_bracket",true,false));
                     check(bracket.Position.Y<shell.End.Y && bracket.End.Y>shell.End.Y
                         && bracket.Position.X<shell.End.X && bracket.End.X>shell.End.X,

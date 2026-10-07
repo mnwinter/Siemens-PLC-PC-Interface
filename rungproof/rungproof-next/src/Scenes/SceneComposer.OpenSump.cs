@@ -61,6 +61,9 @@ public static partial class SceneComposer
             AddBox(sensor,new Vector3(.18f,.18f,.16f),new Vector3(.40f,2.01f-elevation,0),steel).Name="SUMP_FLOAT_head";
             var stemHeight=1.92f-elevation+.14f;
             AddCylinder(sensor,"SUMP_FLOAT_stem",new Vector3(0,(1.92f-elevation-.14f)/2,0),.025f,stemHeight,steel);
+            // Illustrative captive float: +/-80 mm about the switch datum.
+            // Runtime projects water level onto this bounded stem travel.
+            sensor.SetMeta("sump_float_visual_travel_m", .08f);
             sensor.AddChild(new MeshInstance3D { Name="SUMP_FLOAT_body",
                 Mesh=new SphereMesh { Radius=.11f, Height=.22f },
                 MaterialOverride=Material(new Color("e4b442"),.15f,.4f) });
