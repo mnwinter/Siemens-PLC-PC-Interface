@@ -74,6 +74,11 @@ public partial class Main
             AddMigratedScene("lab-10-03-vision-package-sorter", _candidateCatalog!, _mainCamera!, false, false);
             var runtime = _sceneRuntime!;
             var carton = _sceneCompositionRoot!.GetNode<Node3D>("box_1");
+            var previousReviewMode = _visualSceneReview;
+            _visualSceneReview = true;
+            _visualReviewFocusId = "box_1";
+            SetVisualReviewAngle(new Vector3(-11, 7, 12), "sorter-follow-regression");
+            var follows = true;
             var cartonMeshes = ReviewMeshes(carton);
             // Dashed photoeye rays are optical annotations, not solids. All
             // housings, drums, rails, decks and cable meshes remain included.
@@ -115,6 +120,7 @@ public partial class Main
             runtime.CommitVirtualControllerOutputs(new System.Collections.Generic.Dictionary<string, bool>
             { ["sort_conveyor_run"] = true, ["diverter_enable"] = true });
             runtime.AdvanceSimulation(.02);
+            FollowVisualReviewCarton();
             ScreenCarton();
             var latched = Convert.ToInt32(runtime.Points["sort_latched_class"]);
             runtime.ExecuteAction("cycle-vision_class");
@@ -123,11 +129,19 @@ public partial class Main
             while (runtime.Points["sort_complete"] is not true && scans++ < 2000)
             {
                 var before = carton.Position;
+                var beforeCenter = ReviewBounds(carton).GetCenter();
+                var beforeCamera = _mainCamera!.Position;
+                var beforeTarget = _cameraController!.ViewTarget;
                 runtime.AdvanceSimulation(.02);
+                FollowVisualReviewCarton();
+                var travel = ReviewBounds(carton).GetCenter() - beforeCenter;
+                follows &= (_mainCamera.Position - beforeCamera).IsEqualApprox(travel)
+                    && (_cameraController.ViewTarget - beforeTarget).IsEqualApprox(travel);
                 ScreenCarton();
                 continuous &= carton.Position.DistanceTo(before) <= .00901f;
             }
             var target = _sceneCompositionRoot.GetNode<Node3D>($"destination_lane_{lane}");
+            check(follows, $"vision_sorter_lane_{lane}_camera_follows_rendered_center_without_zoom_change");
             var belt = (MeshInstance3D)target.FindChild("KIN_belt_surface", true, false);
             var load = ReviewBounds(carton);
             var support = ReviewBounds(belt);
@@ -143,6 +157,12 @@ public partial class Main
             check(carton.Transform == endpoint && carton.Visible,
                 $"vision_sorter_runtime_lane_{lane}_stopped_retains_visible_endpoint");
             runtime.ResetSimulation();
+            ReframeResetReviewFocus();
+            check(_cameraController!.ViewTarget.IsEqualApprox(ReviewBounds(carton).GetCenter()),
+                $"vision_sorter_lane_{lane}_reset_refocuses_home_carton");
+            _visualSceneReview = previousReviewMode;
+            _visualReviewFocusId = null;
+            _visualReviewFollowCenter = null;
             check(MathF.Abs(carton.Position.X + 1.1f) < .00001f && carton.Position.Z == 0
                 && runtime.Points["sort_complete"] is false && Convert.ToInt32(runtime.Points["sort_latched_class"]) == 0,
                 $"vision_sorter_runtime_lane_{lane}_reset_home_and_feedback");

@@ -16,6 +16,7 @@ public partial class Main
     private bool _visualReviewClose;
     private OptionButton? _visualReviewFocus;
     private string? _visualReviewFocusId;
+    private Vector3? _visualReviewFollowCenter;
     private HBoxContainer? _visualReviewBar;
 
     // This opt-in inspection bar uses the real shell, scene composer, meshes
@@ -148,6 +149,7 @@ public partial class Main
         var index = _sceneCatalog.Scenes.ToList().FindIndex(scene => scene.Id == _currentSceneId);
         _visualReviewLabel.Text = $"{index + 1}/{_sceneCatalog.Scenes.Count}";
         _visualReviewFocusId = null;
+        _visualReviewFollowCenter = null;
         _visualReviewFocus?.Clear();
         _visualReviewFocus?.AddItem("Full scene");
         if (_sceneCompositionRoot is not null)
@@ -183,7 +185,34 @@ public partial class Main
             _cameraController.FocusOn(target, _mainCamera.Position.DistanceTo(target) * 0.58f / 2.6f);
         }
         _sceneCameraDirection = direction;
+        _visualReviewFollowCenter = _currentSceneId == "lab-10-03-vision-package-sorter"
+            && _visualReviewFocusId == "box_1" ? ReviewBounds(focus).GetCenter() : null;
         GD.Print($"VISUAL_REVIEW_ANGLE {_currentSceneId} {label}");
+    }
+
+    private void FollowVisualReviewCarton()
+    {
+        if (!_visualSceneReview || _currentSceneId != "lab-10-03-vision-package-sorter"
+            || _visualReviewFocusId != "box_1" || _mainCamera is null || _cameraController is null
+            || _sceneCompositionRoot?.GetNodeOrNull<Node3D>("box_1") is not { } carton)
+        {
+            _visualReviewFollowCenter = null;
+            return;
+        }
+        var center = ReviewBounds(carton).GetCenter();
+        if (_visualReviewFollowCenter is { } previous)
+        {
+            // Translate the existing view: preserve the user's angle, pan and
+            // zoom while following the rendered load, including table rotation.
+            var travel = center - previous;
+            if (travel.LengthSquared() > 0.0000000001f)
+            {
+                var target = _cameraController.ViewTarget + travel;
+                _mainCamera.Position += travel;
+                _cameraController.CaptureCurrentView(target);
+            }
+        }
+        _visualReviewFollowCenter = center;
     }
 
     private static MeshInstance3D[] ReviewMeshes(Node root) =>

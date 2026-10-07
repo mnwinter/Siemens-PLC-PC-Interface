@@ -3803,6 +3803,7 @@ public partial class Main : Node3D
 
     public override void _Process(double delta)
     {
+        FollowVisualReviewCarton();
         _externalConnection?.Poll();
         if (_simulatorShell is not null && _mainCamera is not null && _sceneCompositionRoot is not null)
         {
