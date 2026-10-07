@@ -257,6 +257,7 @@ public partial class SceneSimulationRuntime : Node
         if (HasCoatingPlant) { AdvanceCoatingPlant(delta); return; }
         if (HasHandDryer) { AdvanceHandDryer(delta); return; }
         if (HasGuardedTransfer) { AdvanceGuardedTransfer(delta); return; }
+        if (HasServiceElevator) { AdvanceServiceElevator(delta); return; }
         if (HasToteTransfer && UsesExternalClock) { AdvanceToteTransfer(delta); return; }
         if (HasLuggagePlant) { AdvanceLuggagePlant(delta); return; }
         if (HasEvPlant) { AdvanceEvPlant(delta); return; }
@@ -547,6 +548,7 @@ public partial class SceneSimulationRuntime : Node
         ResetCoatingPlant();
         ResetHandDryer();
         ResetGuardedTransfer();
+        ResetServiceElevator();
         ResetToteTransfer();
         ResetLuggagePlant();
         ResetEvPlant();

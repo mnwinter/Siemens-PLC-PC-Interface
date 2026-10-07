@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Godot;
 
@@ -43,5 +44,40 @@ public partial class Main
         check(motion.InputPositionNormalized==0,"elevator_generic_run_cannot_fabricate_direction_sequence");
         motion.ResetMotion();
         _sceneRuntime!.ResetSimulation();
+        var runtime=_sceneRuntime;
+        runtime.UsesExternalClock=true;
+        runtime.SetControllerPlaybackRunning(true);
+        void Command(bool up,bool down) => runtime.CommitVirtualControllerOutputs(new Dictionary<string,bool>
+            { ["lift_up_cmd"]=up,["lift_down_cmd"]=down });
+        void Tick(int n) { for(var i=0;i<n;i++) runtime.AdvanceSimulation(.02); }
+        foreach(var name in new[]{"call_valid","doors_closed","landing_clear"}) runtime.ExecuteAction("toggle-"+name);
+        Command(true,false);Tick(150);
+        check(Math.Abs(Convert.ToDouble(runtime.Points["car_position_pct"])-50)<.001
+            && runtime.Points["at_lower_landing"] is false && runtime.Points["at_upper_landing"] is false,
+            "elevator_single_up_command_reaches_mid_travel_with_matching_floor_flags");
+        var held=car.Transform;
+        Command(true,true);Tick(20);
+        check(car.Transform==held && runtime.Points["direction_conflict"] is true
+            && runtime.Points["lift_up_cmd"] is true && runtime.Points["lift_down_cmd"] is true,
+            "elevator_opposing_commands_hold_and_remain_visible_for_diagnosis");
+        Command(true,false);
+        foreach(var name in new[]{"call_valid","doors_closed","landing_clear"})
+        {
+            runtime.ExecuteAction("toggle-"+name);Tick(20);
+            check(car.Transform==held,"elevator_missing_"+name+"_holds_position");
+            runtime.ExecuteAction("toggle-"+name);
+        }
+        runtime.SetControllerPlaybackRunning(false);Tick(20);
+        check(car.Transform==held,"elevator_stopped_controller_clock_holds_position");
+        runtime.SetControllerPlaybackRunning(true);Tick(200);
+        check(runtime.Points["at_upper_landing"] is true && Math.Abs(Convert.ToDouble(runtime.Points["car_position_pct"])-100)<.001,
+            "elevator_upper_endpoint_clamps_and_projects_feedback");
+        Command(false,true);Tick(350);
+        check(runtime.Points["at_lower_landing"] is true && Math.Abs(Convert.ToDouble(runtime.Points["car_position_pct"]))<.001,
+            "elevator_down_command_returns_and_clamps_lower_endpoint");
+        runtime.ResetSimulation();
+        check(runtime.Points["at_lower_landing"] is true && runtime.Points["direction_conflict"] is false
+            && runtime.Points["lift_up_cmd"] is false && runtime.Points["lift_down_cmd"] is false,
+            "elevator_reset_restores_home_and_command_image");
     }
 }

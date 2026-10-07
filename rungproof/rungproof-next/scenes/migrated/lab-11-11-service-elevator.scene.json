@@ -149,6 +149,30 @@
         "owner": "PLC",
         "initial": false,
         "role": "output"
+      },
+      {
+        "name": "car_position_pct",
+        "type": "REAL",
+        "owner": "PC",
+        "initial": 0
+      },
+      {
+        "name": "at_lower_landing",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": true
+      },
+      {
+        "name": "at_upper_landing",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "direction_conflict",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
       }
     ],
     "actions": [
@@ -201,14 +225,15 @@
         "mode": "indicator",
         "activeColor": "green"
       }
-    ]
+    ],
+    "installation": "serviceElevator"
   },
   "training": {
     "hints": [
       "Translate the lesson into explicit state and permissive logic: The elevator receives one direction command only when the doors are closed and the landing is clear.",
       "Inputs are simulator feedback (call_valid, doors_closed, landing_clear); PLC logic owns lift_up_cmd, lift_down_cmd.",
       "Test the initial state, the valid condition, and at least one missing permissive.",
-      "The car and two landing doors are a scene-local visual installation. Call plates and rail sensors are illustrative; manual inputs do not prove automatic floor or door feedback. Car motion is not connected to the direction commands yet."
+      "Car displacement follows one PLC direction command while the three manual permissives agree. Floor flags derive from the modeled position; landing-door poses follow the manual doors_closed fixture. Door travel and protective sensing are not modeled."
     ],
     "solution": {
       "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
@@ -261,7 +286,11 @@
       "doors_closed",
       "landing_clear",
       "lift_up_cmd",
-      "lift_down_cmd"
+      "lift_down_cmd",
+      "car_position_pct",
+      "at_lower_landing",
+      "at_upper_landing",
+      "direction_conflict"
     ],
     "changedTags": [],
     "previousAcceptance": [
@@ -318,6 +347,6 @@
     "unresolvedAssetTypes": [],
     "visualStatus": "partial",
     "productionApproved": false,
-    "reason": "Two-landing visual installation under native review; elevator direction, door and floor-feedback runtime remains unverified."
+    "reason": "Modeled car displacement and floor feedback implemented; native loaded-controller motion, door travel, hoist and landing guards remain under review."
   }
 }

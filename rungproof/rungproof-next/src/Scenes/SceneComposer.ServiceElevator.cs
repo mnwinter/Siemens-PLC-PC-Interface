@@ -59,8 +59,8 @@ public static partial class SceneComposer
             Box(root,$"ELEVATOR_door_header_{y}",new(2.58f,.12f,.12f),new(0,y+1.96f,1.17f),steel);
             // Open leaves make the landing/car relationship inspectable.
             // Their pose is visual only; doors_closed remains a manual input.
-            foreach (var x in new[] { -1.03f,1.03f })
-                Box(root,$"ELEVATOR_open_door_leaf_{x}_{y}",new(.28f,1.8f,.05f),new(x,y+.94f,1.13f),dark);
+            foreach (var x in new[] { -1.72f,1.72f })
+                Box(root,$"ELEVATOR_open_door_leaf_{x}_{y}",new(1.1f,1.8f,.05f),new(x,y+.94f,1.17f),dark);
             Box(root,$"ELEVATOR_call_plate_{y}",new(.15f,.3f,.05f),new(1.34f,y+1.2f,1.1f),dark);
             AddCylinder(root,$"ELEVATOR_call_button_{y}",new(1.34f,y+1.2f,1.135f),.035f,.025f,blue,new(90,0,0));
             Box(root,$"ELEVATOR_position_sensor_{y}",new(.1f,.08f,.12f),new(-1.12f,y+.04f,-.65f),dark);
