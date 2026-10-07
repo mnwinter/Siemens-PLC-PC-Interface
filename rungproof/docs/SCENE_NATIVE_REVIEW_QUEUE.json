@@ -1190,7 +1190,7 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Static supported fixture/carton and four live DINT readouts; observed 850*720*720=440640000 mm3 and maximum 1000000000. Missing validity/zero dimensions invalidate retained result. Readouts grounded/clear; 17 new checks pass. Open: automatic acquisition, source parity, FB instance/parameter semantics and independent asset approval; close-view cropping documented",
+      "recordedResult": "Static supported fixture/carton and four live DINT readouts; observed 850*720*720=440640000 mm3 and maximum 1000000000. Missing validity/zero dimensions invalidate retained result. Readouts grounded/clear; 17 new checks pass. Open: automatic acquisition, source parity, FB instance/parameter semantics and independent asset approval; 2026-10-07 native framing reconciliation at source 685b470, window 270158: normal Next navigation loaded scene 70; Top, FL, RL, RR and explicit FR inspected with I/O expanded at 1602x932. All ten equipment items fit in wide views, carton rests on carrying bench, fixture crossbar projects over carton in Top but diagonals show vertical separation. FL close view crops volume-display base at bottom; wide restores complete base. No new gross placement intersection observed at this scale; continuous solid clearance, automatic acquisition and runtime math not reverified",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
       "disposition": "RECONCILE_CURRENT_EVIDENCE",

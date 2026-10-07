@@ -1,3 +1,7 @@
+## 2026-10-07 - Box Volume framing and fixture inspection
+
+Source 685b470, native window 270158, scene 70 loaded through normal Next navigation. Individually inspected Top, FL, RL, RR and FR with I/O expanded at 1602x932. Wide views include all ten items and complete supports; the carton rests on its bench. The overhead fixture crossbar overlaps the carton in Top projection, while diagonal views resolve their vertical separation. FL Wide/close crops the volume-readout base at bottom; toggling back restores it. No new gross placement intersection observed at this scale. This checkpoint is STOP/PLC disconnected, not arithmetic, automatic acquisition, solid-clearance or live commissioning acceptance.
+
 ## 2026-10-07 - Function Selector wide versus close inspection
 
 Normal Next navigation from scene 68 loaded scene 69 in native window 270158 at source ac76abe. Inspected home FR, Top, FL, RL, and RR individually, I/O expanded at 1602x932. All eight equipment items fit in wide views; front views provide readout faces, rear views provide supports. FL Wide/close crops the A readout at left and the nearest switch at bottom; toggling back restores complete framing. This is an observed close-up limitation and must not be reported as a full-scene Top crop or placement collision. No source edit or runtime/PLC acceptance in this checkpoint. Scene 70 close framing remains to be reconciled.
