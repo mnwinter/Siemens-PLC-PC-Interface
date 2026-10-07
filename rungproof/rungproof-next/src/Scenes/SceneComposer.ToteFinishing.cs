@@ -109,9 +109,37 @@ public static partial class SceneComposer
             // The chuck follows the spindle rotation instead of remaining an
             // independent stationary sibling. Axial cap application is not
             // modeled by this rotation-only command.
+            // Use the actual finishing cap rather than the master's solid,
+            // differently sized placeholder. This only corrects the held pose;
+            // axial application and release remain a separate plant operation.
+            var capAssetId = Text(equipment.Config, "heldCapAssetId", "loads.ibc.open-finishing.v1");
+            var capAsset = candidates.Assets.Single(asset => asset.Id == capAssetId);
+            var capSource = CreateMappedAsset(equipment, candidates, capAssetId);
+            var sourceCap = (MeshInstance3D)capSource.FindChild("IBC_fill_cap", true, false);
+            var sourceTransform = sourceCap.Transform;
+            for (var parent = sourceCap.GetParent(); parent != capSource; parent = parent.GetParent())
+                if (parent is Node3D spatial) sourceTransform = spatial.Transform * sourceTransform;
+            var toteSize = NumberArray(equipment.Config, "heldCapToteSize", new[] { .95, 1.35, .9 });
+            var capScale = new Vector3((float)(toteSize[0] / capAsset.Bounds.WidthM),
+                (float)(toteSize[1] / capAsset.Bounds.HeightM), (float)(toteSize[2] / capAsset.Bounds.DepthM));
+            var heldCap = Part("CAP_UNDER_CHUCK");
+            heldCap.Mesh = sourceCap.Mesh;
+            heldCap.MaterialOverride = sourceCap.MaterialOverride;
+            heldCap.Transform = new Transform3D(Basis.FromScale(capScale), Vector3.Zero) * sourceTransform;
+            var heldBounds = heldCap.Transform * heldCap.GetAabb();
+            var chuckBottom = (Part("TORQUE_CHUCK").Transform * Part("TORQUE_CHUCK").GetAabb()).Position.Y;
+            heldCap.Position += new Vector3(-heldBounds.GetCenter().X, chuckBottom - heldBounds.End.Y,
+                -heldBounds.GetCenter().Z);
+            capSource.Free();
             var spindle = Part("KIN_capper_spindle");
+            // Keep the retained cap above the passing neck. Raising only the
+            // cap would detach it from its chuck; move the held assembly together.
+            var holdingLift = (float)Number(equipment.Config, "heldAssemblyLiftM", .10);
             foreach (var name in new[] { "TORQUE_CHUCK", "TORQUE_CHUCK_BODY", "CHUCK_GRIP_RING", "CAP_UNDER_CHUCK" })
+            {
+                Part(name).Position += Vector3.Up * holdingLift;
                 Attach(Part(name), spindle);
+            }
             model.AddChild(new EquipmentMotionController
             {
                 Name = "FinishingCapperController", Kind = EquipmentMotionController.MotionKind.ContinuousRotation,

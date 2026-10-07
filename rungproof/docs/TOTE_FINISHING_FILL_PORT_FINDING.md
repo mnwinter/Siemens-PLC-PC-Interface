@@ -48,3 +48,17 @@ tote cap differ in dimensions, and the seating plane, chuck retention, extension
 release and return must be resolved before setting travel. Use the repaired
 hollow cap geometry consistently, measure the seat/chuck interface, then screen
 the full axial stroke and retained capped tote route. Native views remain open.
+
+## Held-cap geometry repair checkpoint
+
+The capper now reuses the actual exported hollow tote cap mesh at the same
+installation scale. Its roof contacts the chuck lower face without axial
+overlap. The held chuck/body/ring/cap assembly is raised together by 100 mm
+to clear the passing neck; the generic capper master is unchanged. Two focused
+checks failed before the repair and pass afterward. The first repaired pose
+failed route clearance; the raised pose passes all 40 focused checks, including
+244 route intervals and the 5,000-tick preview (.tools/capper-cap-raised.log).
+This repairs the held shape and indexing clearance only. Axial application,
+release, retained capped travel and native multi-angle acceptance remain OPEN.
+The prior 152 mm finding records the earlier geometry and is superseded by
+the repaired held pose; it must not be used as the new actuator stroke.

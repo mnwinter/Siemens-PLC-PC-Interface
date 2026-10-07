@@ -87,7 +87,14 @@
         ],
         "color": 7307144,
         "running": false,
-        "installation": "toteFinishingLine"
+        "installation": "toteFinishingLine",
+        "heldCapAssetId": "loads.ibc.open-finishing.v1",
+        "heldCapToteSize": [
+          0.95,
+          1.35,
+          0.9
+        ],
+        "heldAssemblyLiftM": 0.1
       }
     },
     {

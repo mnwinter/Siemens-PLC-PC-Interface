@@ -39,5 +39,7 @@
   ],
   "heldCapLowerFaceToNeckRimM": 0.1520881639999998,
   "status": "OPEN: rotation-only capper cannot apply cap",
-  "limits": "Bounding-box separation at current installation; not required actuator stroke, swept-volume proof or native visual acceptance."
+  "limits": "Bounding-box separation at current installation; not required actuator stroke, swept-volume proof or native visual acceptance.",
+  "historical": true,
+  "supersededBy": "Held shape/pose repaired; current bounds in .tools/capper-cap-raised.log. Axial application still OPEN."
 }

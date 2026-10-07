@@ -170,6 +170,14 @@ public partial class Main
             && supports.Skip(3).All(pair => ReviewBounds(pair.Item1).Intersects(ReviewBounds(Part(vision, "VISION_ARCH_HEADER")))),
             "tote_finishing_overhead_heads_and_arch_connect_to_floor_columns");
 
+        var heldCap = Part(capper, "CAP_UNDER_CHUCK");
+        var toteCap = Part(tote, "IBC_fill_cap");
+        check(heldCap.Mesh.GetFaces().Length == toteCap.Mesh.GetFaces().Length
+            && ReviewBounds(heldCap).Size.IsEqualApprox(ReviewBounds(toteCap).Size),
+            "tote_finishing_held_cap_matches_delivered_tote_cap_geometry_and_size");
+        check(MathF.Abs(ReviewBounds(heldCap).End.Y - ReviewBounds(Part(capper, "TORQUE_CHUCK")).Position.Y) < .001f,
+            "tote_finishing_held_cap_roof_contacts_chuck_without_axial_overlap");
+
         var runtime = _sceneRuntime!;
         runtime.UsesExternalClock = false; // Explicit standalone preview, not a controller-owned lesson.
         var controllers = root.FindChildren("*", "", true, false).OfType<EquipmentMotionController>().ToArray();
