@@ -138,7 +138,19 @@ public partial class Main
             { ["lift_up_cmd"]=up,["lift_down_cmd"]=down });
         void Tick(int n) { for(var i=0;i<n;i++) runtime.AdvanceSimulation(.02); }
         foreach(var name in new[]{"call_valid","doors_closed","landing_clear"}) runtime.ExecuteAction("toggle-"+name);
-        Command(true,false);Tick(150);
+        Command(true,false);Tick(25);
+        var partialDoor=leaves[0].Position;
+        check(Math.Abs(partialDoor.X)> .55f && Math.Abs(partialDoor.X)<1.72f
+            && Convert.ToDouble(runtime.Points["car_position_pct"])==0,
+            "elevator_closing_doors_hold_car_despite_up_command");
+        runtime.SetControllerPlaybackRunning(false);Tick(25);
+        check(leaves[0].Position==partialDoor && Convert.ToDouble(runtime.Points["car_position_pct"])==0,
+            "elevator_stop_freezes_partial_door_and_car");
+        runtime.SetControllerPlaybackRunning(true);Tick(25);
+        check(Math.Abs(Math.Abs(leaves[0].Position.X)-.55f)<.001
+            && Convert.ToDouble(runtime.Points["car_position_pct"])==0,
+            "elevator_completed_closure_precedes_first_car_displacement");
+        Tick(150);
         check(Math.Abs(Convert.ToDouble(runtime.Points["car_position_pct"])-50)<.001
             && runtime.Points["at_lower_landing"] is false && runtime.Points["at_upper_landing"] is false,
             "elevator_single_up_command_reaches_mid_travel_with_matching_floor_flags");
@@ -172,7 +184,7 @@ public partial class Main
             RunActiveController();
             foreach(var name in new[]{"call_valid","doors_closed","landing_clear"}) ExecuteSelectedControllerAction("toggle-"+name);
             void Scans(int n) { for(var i=0;i<n;i++) _PhysicsProcess(.02); }
-            Scans(300);
+            Scans(350);
             check(runtime.Points["at_upper_landing"] is true,"elevator_qa_normal_controller_reaches_upper_landing");
             Scans(1);
             check(runtime.Points["lift_up_cmd"] is false && runtime.Points["lift_down_cmd"] is true,

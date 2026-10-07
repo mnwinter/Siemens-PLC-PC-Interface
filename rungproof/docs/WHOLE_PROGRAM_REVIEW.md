@@ -1,3 +1,9 @@
+## 2026-10-07 - Elevator modeled door travel implementation, native motion pending
+
+Added one-second selected-clock sliding-door closure/opening to the existing manual doors_closed fixture. Car displacement requires prior-step modeled full closure as well as the existing three permissives and exclusive PLC direction. Manual fixture is not relabeled as hardware feedback. Stopped plant clock holds partial doors; Reset restores open doors/home. Existing controller QA timing updated by50scans for closure delay. Three focused checks verify partial closure with car held, stopped partial-pose retention and full closure before first car movement; existing roundtrip/permissive/Stop/resume/Reset and1111pair envelope checks remain passing. Build0warnings/errors; .tools/elevator-door-motion-review.log SERVICE_ELEVATOR_INSTALLATION_VERIFY PASS, noFalse records.
+
+Closed sole radar window394914 normally; session62226 exit0 and native2308 absent confirmed before replacement. Fresh compatibility session96229/window531606 is sole RungProof instance. Continue shows updated open-door home/operator rendering. Native loaded-ladder intermediate door motion and multi-angle acceptance still pending; scene is not done. No PLC transport. Hoist/access and full leaf-to-fixed-part envelope remain open. Whole goal active.
+
 ## 2026-10-07 - Elevator intermediate door envelope preparation
 
 Inspected actual service-elevator runtime: doors_closed is a manual fixture, projects endpoint door poses immediately, and gates car displacement with call_valid/landing_clear. A cosmetic interpolation alone would depict open doors while movement is already enabled; actual door travel needs a distinct modeled completion interlock without relabeling fixture input as measured hardware feedback. No production behavior changed this turn.

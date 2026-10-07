@@ -233,7 +233,7 @@
       "Translate the lesson into explicit state and permissive logic: The elevator receives one direction command only when the doors are closed and the landing is clear.",
       "Inputs are simulator feedback (call_valid, doors_closed, landing_clear); PLC logic owns lift_up_cmd, lift_down_cmd.",
       "Test the initial state, the valid condition, and at least one missing permissive.",
-      "Car displacement follows one PLC direction command while the three manual permissives agree. Floor flags derive from the modeled position; landing-door poses follow the manual doors_closed fixture. Door travel and protective sensing are not modeled."
+      "Car displacement follows one PLC direction command while the three manual permissives agree and the modeled doors have finished closing. Floor flags derive from modeled car position. The manual doors_closed fixture selects one-second sliding-door travel; Stop freezes the pose and Reset opens the doors at home. Modeled closure is not hardware protective sensing."
     ],
     "solution": {
       "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
