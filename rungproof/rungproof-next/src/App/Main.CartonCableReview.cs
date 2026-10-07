@@ -34,6 +34,10 @@ public partial class Main
     {
         AddMigratedScene("lab-10-03-vision-package-sorter", _candidateCatalog!, _mainCamera!, false, false);
         var root = _sceneCompositionRoot!;
+        var display = root.GetNode<Node3D>("training_accessory_6");
+        check(display.FindChild("COUNT_DISPLAY_screen", true, false) is MeshInstance3D
+            && display.FindChild("COUNT_DISPLAY_base", true, false) is MeshInstance3D,
+            "vision_sorter_class_display_has_actual_supported_display_mesh_identity");
         var carton = ReviewBounds(root.GetNode<Node3D>("box_1"));
         var surface = (MeshInstance3D)root.GetNode<Node3D>("conveyor_0").FindChild("KIN_belt_surface", true, false);
         var belt = ReviewBounds(surface);

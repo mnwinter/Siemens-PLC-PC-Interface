@@ -1,5 +1,18 @@
 # Multi-angle scene review - 2026-10-04
 
+Vision sorter display identity checkpoint (2026-10-06; native review OPEN):
+Actual GLB node inventory confirms the former class-display package contains
+photoeye receiver/transmitter parts; the supposed four-lane diverter contains
+cabinet parts. VISION_SORTER_ASSET_IDENTITY.json preserves that inventory;
+tools/audit_vision_sorter_asset_identity.py regenerates it. The scene now reuses
+the existing count-display housing through an opt-in staticText rendering mode,
+with CLASS / NO RESULT instead of an invented class value. Its actual display
+mesh identity check failed before and passes after repair; the carton support
+checks also pass (.tools/sorter-display-after.log). Build succeeds. Current
+class feedback, diverter identity/connected lanes, and native readability/
+five-angle review remain OPEN. This does not certify the reusable display asset.
+
+
 Vision sorter support checkpoint (2026-10-06; native review OPEN):
 The current source carton was confirmed below the actual belt: bottom Y=0
 against belt top Y=0.9. Changing only box_1 position Y to 0.9 repairs contact
@@ -3902,7 +3915,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 2 | `equipment-gallery` | 0 | FR/FL/RL/RR/T | Repaired floor/display support; normal Run opens blank editor, animation workflow open |
 | 3 | `lab-10-01-drive-alarm-code-string` | 0 | FR/FL/RL/RR/T | Repaired prop identity, spacing and supports; normal Run opens blank editor; string processing absent |
 | 4 | `lab-10-02-chicken-label-print` | 0 | FR/FL/RL/RR/T + support/printer/display/plate details; repeated after repair | Repaired static identity/support/spacing; actual weighing/formatting/printing/controller absent; normal Run opens empty editor |
-| 5 | `lab-10-03-vision-package-sorter` | 32 | FR/FL/RL/RR/T + carton FR | Carton support source repaired: bottom now contacts delivered belt at Y=0.9, full footprint supported; failing-before/passing-after mesh checks. Latest native review pending. FAIL/open: wrong display/diverter models, no four-lane path; empty exercise editor on Run |
+| 5 | `lab-10-03-vision-package-sorter` | 32 | FR/FL/RL/RR/T + carton FR | Carton support source repaired: bottom now contacts delivered belt at Y=0.9, full footprint supported; failing-before/passing-after mesh checks. Latest native review pending. Display source now reuses supported count-display housing with CLASS / NO RESULT text; native readability pending. FAIL/open: cabinet mapped as diverter, no four-lane path; class feedback absent; empty exercise editor on Run |
 | 6 | `lab-10-04-motor-enum-state` | 0 | FR/FL/RL/RR/T + three plate details; repeated after repair | Repaired plates and symbolic shaft binding; enum state/controller absent, normal Run opens empty editor |
 | 7 | `lab-10-05-motor-struct-data` | 67 | FR/FL/RL/RR/T | FAIL: shutter copies instead of displays, interference, no STRUCT data, empty editor on Run |
 | 8 | `lab-10-06-ten-motor-array-startup` | 260 | FR/FL/RL/RR/T | FAIL: five motors and overlapping shutter copies, no array/timed startup, empty editor on Run |

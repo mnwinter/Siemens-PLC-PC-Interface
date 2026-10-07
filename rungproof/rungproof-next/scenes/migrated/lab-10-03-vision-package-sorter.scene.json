@@ -127,7 +127,9 @@
       ],
       "config": {
         "assetName": "package-class result display",
-        "catalogAssetId": "training.accessory.package_class_result_display.v1"
+        "catalogAssetId": "training.accessory.count_display.v1",
+        "display": "staticText",
+        "displayText": "CLASS\nNO RESULT"
       }
     },
     {

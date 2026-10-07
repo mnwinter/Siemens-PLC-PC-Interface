@@ -302,7 +302,7 @@ public static partial class SceneComposer
             return AddDrawbridgePivot(model, installation);
         if (model is not null && installation == "drawbridgeSignal") return CreateDrawbridgeSignal(model);
         var display = Text(equipment.Config, "display", string.Empty);
-        if (model is not null && display is "palletCount" or "numeric" or "lengthNumeric" or "remainingSeconds" or "weightKg" or "energyKwh")
+        if (model is not null && display is "palletCount" or "numeric" or "lengthNumeric" or "remainingSeconds" or "weightKg" or "energyKwh" or "staticText")
         {
             // Only explicitly configured equipment opts into a live readout. The reusable
             // asset retains its honest NO LIVE VALUE legend when used alone.
@@ -311,7 +311,9 @@ public static partial class SceneComposer
             legend.Visible = false;
             model.AddChild(new Label3D
             {
-                Name = "NumericReadout", Text = Text(equipment.Config, "displayLabel", "COUNT") + "\n0",
+                Name = display == "staticText" ? "StaticReadout" : "NumericReadout",
+                Text = display == "staticText" ? Text(equipment.Config, "displayText", "NO DATA")
+                    : Text(equipment.Config, "displayLabel", "COUNT") + "\n0",
                 Position = display == "energyKwh" ? new Vector3(0,1.42f,.135f) : new Vector3(0, 1.51f, 0.09f),
                 FontSize = display == "energyKwh" ? 30 : 48, PixelSize = display == "energyKwh" ? .001f : .0014f, OutlineSize = 0, Modulate = Colors.White,
             });
