@@ -75,7 +75,31 @@ public partial class Main
         var exit = tote.Transform;
         for (var tick = 0; tick < 25; tick++) runtime.AdvanceSimulation(.02);
         check(tote.Transform == exit, "tote_held_run_at_exit_retains_visible_tote");
-        runtime.ResetSimulation(); runtime.SetControllerPlaybackRunning(false);
+        var reviewEnabled = _visualSceneReview;
+        var previousFocus = _visualReviewFocusId;
+        var previousClose = _visualReviewClose;
+        var direction = new Vector3(8, 6, 8);
+        try
+        {
+            _visualSceneReview = true;
+            _visualReviewFocusId = "finishing_tote";
+            _visualReviewClose = true;
+            SetVisualReviewAngle(direction, "tote-exit-reset-probe");
+            var exitTarget = _cameraController!.ViewTarget;
+            ResetActiveController();
+            var expectedTravel = new Vector3(home - 6.4f, 0, 0);
+            check((_cameraController.ViewTarget - exitTarget).IsEqualApprox(expectedTravel)
+                && _sceneCameraDirection == direction && _visualReviewClose
+                && _visualReviewFocusId == "finishing_tote",
+                "tote_reset_refits_selected_close_focus_to_infeed_preserving_angle");
+        }
+        finally
+        {
+            _visualSceneReview = reviewEnabled;
+            _visualReviewFocusId = previousFocus;
+            _visualReviewClose = previousClose;
+        }
+        runtime.SetControllerPlaybackRunning(false);
         check(MathF.Abs(tote.Position.X - home) < .001f && runtime.Points["tote_at_exit"] is false,
             "tote_controller_reset_restores_infeed_and_clears_exit_feedback");
     }

@@ -158,6 +158,14 @@ public partial class Main
         RefreshGantryReviewClockControls();
     }
 
+    private void ReframeResetReviewFocus()
+    {
+        // Reset can teleport a moving load back to its infeed. Keep the
+        // selected diagnostic focus visible without changing angle or zoom.
+        if (_visualSceneReview && _visualReviewFocusId is not null)
+            SetVisualReviewAngle(_sceneCameraDirection, "reset-focus");
+    }
+
     private void SetVisualReviewAngle(Vector3 direction, string label)
     {
         if (_mainCamera is null || _sceneCompositionRoot is null) return;

@@ -1090,6 +1090,7 @@ public partial class Main : Node3D
             _externalPlayback.Pause();
             SynchronizeExternalPlayback();
             _sceneRuntime?.ResetExternalPlant();
+            ReframeResetReviewFocus();
             _simulatorShell.SetWorkspaceStatus("Scene reset and paused · PLC connection and heartbeat exchange remain active");
             return;
         }
@@ -1099,9 +1100,11 @@ public partial class Main : Node3D
             var snapshot = _virtualController.Reset();
             CommitVirtualControllerSnapshot(snapshot);
             _simulatorShell?.SetWorkspaceStatus("Built-in controller reset · stopped · new machine Start required");
+            ReframeResetReviewFocus();
             return;
         }
         _sceneRuntime?.ResetSimulation();
+        ReframeResetReviewFocus();
     }
 
     private void VerifyVirtualController()

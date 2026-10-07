@@ -1,3 +1,10 @@
+## 2026-10-07 - Reset focused review-camera repair
+
+Native tote check in a4bee84 exposed Reset moving the load to infeed while its close diagnostic camera remained at discharge. ResetActiveController now reframes a selected visual-review focus after scene reset, retaining angle and close/wide setting. Normal full-scene view is unaffected. Offline/external/standalone reset branches share this presentation helper; no PLC command or transport change.
+
+Build zero warnings/errors. Focused --verify-tote-finishing exited 0, including actual exit-to-infeed camera-target displacement and preserved focus/angle/close setting regression (.tools/tote-reset-focus-audit.log). --verify-app-shell exited 0 (.tools/reset-focus-shell-audit.log).
+
+Fresh rebuilt native window 138970/session 15604 normally opened and Verify + loaded separate one-rung/seven-tag tote travel QA. Run scan 12 idle, Start scan 671 conveyor True, full-scene scan 1398 in motion near inspection, close finishing_tote FR scan 2048 at supported discharge/conveyor False. Reset returned scan 0/conveyor False, tote and camera immediately refitted to infeed in the same FR close view without angle reselection. This closes the reported reset-focused framing defect. No external PLC connection or full finishing-sequence claim.
 ## 2026-10-07 - tote native controller travel and endpoint check
 
 Source a08525c, native window 597660/session 76257. Normal app-shell scene 35 starts with no authored ladder. Separate `.tools/aaa-tote-travel-native-qa.rpproj.json` uses Start/seal-in/NC exit to command conveyor only; five station outputs remain False. Initial fixture rejected an incorrect coil enum; corrected to documented Assign before successful Open and Verify + load (1 block/1 task/1 rung/7 tags).
