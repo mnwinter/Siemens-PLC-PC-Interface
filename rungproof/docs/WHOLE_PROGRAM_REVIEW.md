@@ -1,3 +1,9 @@
+## 2026-10-07 - Sorter follow regression completed; native QA loaded
+
+Focused verifier session89724 completed EXIT0, log .tools/sorter-follow-regression.log. All four route camera-follow and Reset-target checks True, with no CARTON_STATIC_CHECK False; existing actual triangle-pose/support/class-retention/Stop/Reset and traffic checks also passed. This supersedes the in-progress status below. Build, 145 controller tests and app-shell PASS remain recorded separately.
+
+Native rebuilt window401258/session28080 now responds after activation timeouts; confirmed its distinct fresh startup notice and scan-unloaded state, dismissed notice, opened the existing QA file through normal Project/Open and Online/Verify+load. Visible result: verification complete, 1 block, 1 task, 2 networks/rungs, 5 tags, loaded offline, STOP scan0, PLC disconnected. An initial filename paste was wrong and was replaced before Open; correct project tab and verification result confirmed. Camera-follow motion, Reset, and lanes3-4 native inspection remain pending. Do not count fresh startup/project loading as motion verification. Goal active.
+
 ## 2026-10-07 - Sorter camera-follow implementation; verification pending
 
 Implemented camera-only follow for visual-review box_1 focus in the sorter. Each rendered update translates camera position and orbit target by actual rendered carton-bounds-center displacement, preserving angle, pan and zoom; full-scene/other-equipment views remain outside this opt-in path. Angle/focus selection establishes a fresh anchor and Reset uses existing home reframe. Added actual all-four-route camera displacement and Reset-target checks to the existing carton static/routes verifier.
