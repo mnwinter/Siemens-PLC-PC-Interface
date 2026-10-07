@@ -175,6 +175,11 @@ public partial class Main
         if (_gantryReviewFineStep is not null) _gantryReviewFineStep.Disabled = !GantryReviewClockHeld
             || _virtualController?.Snapshot.State != VirtualControllerState.Running;
         if (_gantryReviewClockLabel is null) return;
+        if (_currentSceneId == "lab-11-07-multi-conveyor-pallet-route")
+        {
+            _gantryReviewClockLabel.Text = $"QA | {(_virtualController?.Snapshot.SimulatedTime.TotalSeconds ?? 0):F2} s | X {_sceneRuntime?.Points.GetValueOrDefault("route_position") ?? 0:0.00} m | complete {_sceneRuntime?.Points.GetValueOrDefault("route_complete") ?? false}";
+            return;
+        }
         if (_currentSceneId == "lab-10-06-ten-motor-array-startup")
         {
             var commands = string.Concat(Enumerable.Range(0, 10)

@@ -1,3 +1,8 @@
+## Receiver review framing repair
+
+Receiver-focused camera framing now includes the route pallet current mesh bounds. Previously the overhead view fitted only the receiver and clipped the incoming load. This is opt-in review framing; equipment poses and controller ownership are unchanged. The multi-conveyor QA clock now reports actual route_position in metres and route_complete instead of unrelated stroke 0%.
+
+Build: zero warnings/errors. Focused --verify-scene-geometry --verify-multi-conveyor completed PASS (geometry, loaded command workflow, both interlocked handoffs, retained endpoint, four optical beams, Reset and held scan stepping). Fresh native window 400788 visibly reports X -9.30 m / complete False. Receiver-focused initial angled and Top views include both home pallet and receiver within the scene aperture. At home their separation forces a wide fit; readable near-transfer framing still needs fresh native loaded-route inspection. No completion claimed from this static camera check.
 ## Native receiver crossing continuation - source d23cde1
 
 Window 138608, loaded local QA project, PLC disconnected. Held scan 2676 / 53.52 s: rear-right view retained the incoming load across the entry deck/first rollers without an obvious frame intersection. Top focus clipped most of the incoming pallet at the left viewport edge; this is not a readable five-angle bearing proof. Prior approach views likewise had clipping/overlay limitations. Exact millimetre contact and every intermediate frame remain unverified.

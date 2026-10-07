@@ -3719,10 +3719,11 @@ public partial class Main : Node3D
         RefreshStatus();
     }
 
-    private void FrameComposition(Camera3D camera, Node3D root, Vector3 authoredDirection)
+    private void FrameComposition(Camera3D camera, Node3D root, Vector3 authoredDirection, Node3D? companion = null)
     {
         var points = new List<Vector3>();
-        foreach (var node in root.FindChildren("*", "MeshInstance3D", true, false))
+        foreach (var node in root.FindChildren("*", "MeshInstance3D", true, false)
+            .Concat(companion?.FindChildren("*", "MeshInstance3D", true, false) ?? new Godot.Collections.Array<Node>()))
         {
             if (node is not MeshInstance3D mesh || !mesh.IsVisibleInTree())
             {

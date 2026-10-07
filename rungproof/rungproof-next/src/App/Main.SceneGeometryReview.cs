@@ -163,7 +163,12 @@ public partial class Main
         if (_mainCamera is null || _sceneCompositionRoot is null) return;
         var focus = _visualReviewFocusId is null ? _sceneCompositionRoot
             : _sceneCompositionRoot.GetNodeOrNull<Node3D>(_visualReviewFocusId) ?? _sceneCompositionRoot;
-        FrameComposition(_mainCamera, focus, direction);
+        // The receiver-only bounds exclude the incoming load. Include its
+        // current pose so an overhead transfer inspection cannot clip it.
+        var companion = _currentSceneId == "lab-11-07-multi-conveyor-pallet-route"
+            && _visualReviewFocusId == "training_accessory_6"
+            ? _sceneCompositionRoot.GetNodeOrNull<Node3D>("route_pallet") : null;
+        FrameComposition(_mainCamera, focus, direction, companion);
         if (_visualReviewClose && _cameraController is not null)
         {
             var target = _cameraController.ViewTarget;
