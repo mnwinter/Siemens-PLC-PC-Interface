@@ -1221,6 +1221,14 @@ public partial class SceneSimulationRuntime : Node
 
     private void ApplyBindings()
     {
+        // The sump tower reports the current controller image, rather than
+        // retaining a sequence-entry color after Stop clears the pump output.
+        // This is display-only feedback; it never produces a PLC command.
+        if (UsesExternalClock && HasSequenceLevelFeedback
+            && _pointOwners.GetValueOrDefault("status_color") == "SIM"
+            && _pointTypes.GetValueOrDefault("status_color") == "STRING")
+            SetPoint("status_color", !PlantPlaybackRunning ? "red"
+                : AsBool(_points.GetValueOrDefault("pump_run")) ? "green" : "amber");
         ProjectRobotParkFeedback();
         if (!_definition.TryGetProperty("pointBindings", out var bindings) || bindings.ValueKind != JsonValueKind.Array)
         {

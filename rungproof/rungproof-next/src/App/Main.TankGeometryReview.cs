@@ -95,12 +95,14 @@ public partial class Main
                 && Convert.ToDouble(runtime.Points["sump_level"])>20 && Convert.ToDouble(runtime.Points["sump_level"])<78,
                 "sump_normal_controller_latches_pump_through_deadband");
             StopActiveController();var held=Convert.ToDouble(runtime.Points["sump_level"]);var scan=_virtualController!.Snapshot.ScanNumber;
+            check(Equals(runtime.Points["status_color"], "red"), "sump_Stop_tower_reports_stopped_controller");
             Scans(25);
             check(Convert.ToDouble(runtime.Points["sump_level"])==held && runtime.Points["pump_run"] is false
                 && _virtualController.Snapshot.ScanNumber==scan,"sump_Stop_holds_water_and_clears_pump_command");
             RunActiveController();Scans(200);
             check(Math.Abs(Convert.ToDouble(runtime.Points["sump_level"])-20)<.001 && runtime.Points["low_float_active"] is true
                 && runtime.Points["pump_run"] is false,"sump_resume_finishes_at_low_float_with_pump_off");
+            check(Equals(runtime.Points["status_color"], "amber"), "sump_completed_tower_reports_pump_off");
             Scans(30);
             check(Math.Abs(Convert.ToDouble(runtime.Points["sump_level"])-20)<.001,"sump_held_cycle_enable_does_not_repeat_without_Reset");
             ResetActiveController();

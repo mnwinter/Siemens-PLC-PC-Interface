@@ -321,7 +321,7 @@
   "training": {
     "hints": [
       "Define the required result before writing logic: High float starts the pump; it remains on through the deadband and stops only at low float.",
-      "Treat high_float_active, low_float_active as simulator-to-PLC inputs. The PLC should command only pump_run.",
+      "Treat start_sump, high_float_active and low_float_active as simulator-to-PLC inputs. Remember the Start pulse and command cycle_enable to begin one level cycle per Reset; command pump_run with a high-float SET and low-float RESET latch.",
       "Use a step/state approach and prove the transition order: level rising \u2192 pump latched \u2192 pumping down \u2192 low level stop."
     ],
     "solution": {
@@ -337,9 +337,9 @@
     "machineGuide": {
       "purpose": "A simulated sump rises to the high float, starts a dewatering pump, and pumps down until the low float resets the run latch.",
       "startConditions": [
-        "The common PLC/watchdog foundation is healthy.",
+        "Load and Verify + load an offline ladder program, then press Run. Local testing does not establish a physical PLC or watchdog connection.",
         "All required simulator inputs are at their documented initial state.",
-        "The PLC is ready to command pump_run."
+        "Press Simulate sump cycle to pulse start_sump. The ladder must command cycle_enable and pump_run."
       ],
       "normalSequence": [
         "level rising",
@@ -348,7 +348,7 @@
         "low level stop"
       ],
       "stopBehavior": [
-        "A normal stop removes PLC-owned commands and leaves the equipment in a safe state.",
+        "Local Stop clears output commands and holds the water level; Run resumes the loaded ladder state. This does not establish a physical safety function.",
         "Reset returns the scene to its documented initial condition."
       ],
       "faultBehavior": [
@@ -371,6 +371,8 @@
       "cycle_complete"
     ],
     "addedTags": [
+      "start_sump",
+      "cycle_enable",
       "sump_level",
       "high_float_active",
       "low_float_active",

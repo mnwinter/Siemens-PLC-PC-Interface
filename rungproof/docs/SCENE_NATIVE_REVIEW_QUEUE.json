@@ -476,7 +476,7 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Joined pipes, aligned valve/spool and grounded supports repaired. Low/high switches now seated at actual modeled thresholds on clear side, above floor and clear of ladder/sight glass; 24 three-scene mount checks pass, native re-inspected. Open collection basin and rim-mounted float switch depiction now replace closed vessel/forks; final five native views inspected. FAIL/open: full controller-owned level cycle and complete native motion unverified; float bodies mark fixed thresholds, mechanical buoyancy/actuation is not simulated.",
+      "recordedResult": "Joined pipes, aligned valve/spool and grounded supports repaired. Low/high switches now seated at actual modeled thresholds on clear side, above floor and clear of ladder/sight glass; 24 three-scene mount checks pass, native re-inspected. Open collection basin and rim-mounted float switch depiction now replace closed vessel/forks; final five native views inspected. Normal editor-loaded 5-rung/7-tag QA cycle sampled natively in five views: rise, deadband latch, drain to 20%, Stop/resume/Reset. Stale stopped-green tower repaired and native stopped-red/completed-amber rechecked. FAIL/open: float bodies mark fixed thresholds, mechanical buoyancy/actuation and physical discharge/process acceptance are not simulated or certified.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": true,
       "disposition": "REPAIR_RECORDED_FAILURE",
