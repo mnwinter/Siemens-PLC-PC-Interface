@@ -4,7 +4,7 @@
   "sceneCount": 77,
   "allFiveAnglesRecordedCount": 77,
   "explicitFailureCount": 12,
-  "knownChangedSceneCount": 4,
+  "knownChangedSceneCount": 5,
   "scenes": [
     {
       "index": 1,
@@ -85,8 +85,8 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "FAIL: carton under belt, wrong display/diverter models, no four-lane path, empty editor on Run",
-      "latestNativeReviewPending": false,
+      "recordedResult": "Carton support source repaired: bottom now contacts delivered belt at Y=0.9, full footprint supported; failing-before/passing-after mesh checks. Latest native review pending. FAIL/open: wrong display/diverter models, no four-lane path; empty exercise editor on Run",
+      "latestNativeReviewPending": true,
       "explicitFailureRecorded": true,
       "disposition": "REPAIR_RECORDED_FAILURE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"

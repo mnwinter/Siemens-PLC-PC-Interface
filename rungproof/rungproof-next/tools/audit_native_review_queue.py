@@ -7,7 +7,7 @@ try:text=raw.decode('utf-8')
 except UnicodeDecodeError:text=raw.decode('cp1252')
 rows=[]
 # These scenes were modified after their last recorded native inspection.
-latest_pending={'lab-2-21-tote-finishing','lab-3-01-guarded-pallet-transfer','lab-9-12-ev-charging-manager','tank-radar'}
+latest_pending={'lab-10-03-vision-package-sorter','lab-2-21-tote-finishing','lab-3-01-guarded-pallet-transfer','lab-9-12-ev-charging-manager','tank-radar'}
 for line in text.splitlines():
  if not re.match(r'^\| \d+ \|',line):continue
  cells=[c.strip() for c in line.split('|')[1:-1]]

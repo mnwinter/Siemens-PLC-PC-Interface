@@ -20,6 +20,7 @@ public partial class Main
         {
             VerifyCartonStaticCableRoutes(Check);
             VerifyInclinedPhotoeyeGeometry(Check);
+            VerifyVisionSorterCartonSupport(Check);
         }
         catch (Exception error)
         {
@@ -27,6 +28,21 @@ public partial class Main
             GD.PushError($"CARTON_STATIC_CHECK exception: {error}");
         }
         GetTree().Quit(passed ? 0 : 1);
+    }
+
+    private void VerifyVisionSorterCartonSupport(Action<bool, string> check)
+    {
+        AddMigratedScene("lab-10-03-vision-package-sorter", _candidateCatalog!, _mainCamera!, false, false);
+        var root = _sceneCompositionRoot!;
+        var carton = ReviewBounds(root.GetNode<Node3D>("box_1"));
+        var surface = (MeshInstance3D)root.GetNode<Node3D>("conveyor_0").FindChild("KIN_belt_surface", true, false);
+        var belt = ReviewBounds(surface);
+        GD.Print($"VISION_SORTER_CARTON_SUPPORT carton={carton} belt={belt}");
+        check(MathF.Abs(carton.Position.Y - belt.End.Y) < .001f,
+            "vision_sorter_carton_bottom_contacts_actual_delivered_belt_top");
+        check(carton.Position.X >= belt.Position.X && carton.End.X <= belt.End.X
+            && carton.Position.Z >= belt.Position.Z && carton.End.Z <= belt.End.Z,
+            "vision_sorter_initial_carton_full_footprint_is_supported");
     }
 
     private void VerifyCartonStaticCableRoutes(Action<bool, string> check,

@@ -1,5 +1,17 @@
 # Multi-angle scene review - 2026-10-04
 
+Vision sorter support checkpoint (2026-10-06; native review OPEN):
+The current source carton was confirmed below the actual belt: bottom Y=0
+against belt top Y=0.9. Changing only box_1 position Y to 0.9 repairs contact
+while preserving its existing footprint and scene behavior. Two actual Godot
+mesh checks verify bearing-plane contact within 1 mm and full belt footprint;
+the contact check failed before and passes after repair. The existing carton
+static-route/photoeye verifier also passes (.tools/vision-sorter-support-after.log).
+The sorter authored initial-safe-state contract passes separately; it does not
+prove sorting. Display/diverter identity, connected four-lane routing and
+latest native five-angle scene inspection remain OPEN.
+
+
 Coverage inventory checkpoint (2026-10-06):
 The canonical 77-row matrix records FR/FL/RL/RR/Top for all 77 scenes. Older
 chronological statements of 18/59 or 30/47 are historical checkpoint counts,
@@ -3890,7 +3902,7 @@ count as this scene's multi-angle or runtime acceptance.
 | 2 | `equipment-gallery` | 0 | FR/FL/RL/RR/T | Repaired floor/display support; normal Run opens blank editor, animation workflow open |
 | 3 | `lab-10-01-drive-alarm-code-string` | 0 | FR/FL/RL/RR/T | Repaired prop identity, spacing and supports; normal Run opens blank editor; string processing absent |
 | 4 | `lab-10-02-chicken-label-print` | 0 | FR/FL/RL/RR/T + support/printer/display/plate details; repeated after repair | Repaired static identity/support/spacing; actual weighing/formatting/printing/controller absent; normal Run opens empty editor |
-| 5 | `lab-10-03-vision-package-sorter` | 32 | FR/FL/RL/RR/T + carton FR | FAIL: carton under belt, wrong display/diverter models, no four-lane path, empty editor on Run |
+| 5 | `lab-10-03-vision-package-sorter` | 32 | FR/FL/RL/RR/T + carton FR | Carton support source repaired: bottom now contacts delivered belt at Y=0.9, full footprint supported; failing-before/passing-after mesh checks. Latest native review pending. FAIL/open: wrong display/diverter models, no four-lane path; empty exercise editor on Run |
 | 6 | `lab-10-04-motor-enum-state` | 0 | FR/FL/RL/RR/T + three plate details; repeated after repair | Repaired plates and symbolic shaft binding; enum state/controller absent, normal Run opens empty editor |
 | 7 | `lab-10-05-motor-struct-data` | 67 | FR/FL/RL/RR/T | FAIL: shutter copies instead of displays, interference, no STRUCT data, empty editor on Run |
 | 8 | `lab-10-06-ten-motor-array-startup` | 260 | FR/FL/RL/RR/T | FAIL: five motors and overlapping shutter copies, no array/timed startup, empty editor on Run |
