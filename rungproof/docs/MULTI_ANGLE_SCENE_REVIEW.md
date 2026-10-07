@@ -1,4 +1,12 @@
 
+## 2026-10-07 - Native service elevator round trip and Reset
+
+Continued session 81849 with the audit-only cycle project loaded through normal Project > Open and Online > Verify + load (10 tags, three rungs, 20 ms). Top view inspected every 0.5 s from home through 6.0 s / scan 300: changing car percentage tracked travel and reached 100.0%, upper True/lower False. Full shaft remained below toolbar through the raised endpoint. Roof appeared within shaft in these top samples; this is bounded visual evidence, not every-frame clearance proof.
+
+Raised endpoint inspected rear-left. One 20 ms step to scan 301 changed up False/down True, car 99.7%, both landing flags False. Rear-left descent inspected every 0.5 s from 6.52 through 9.02 s / scans 326-451 (91.3%-49.7%). Switched rear-right at 9.02 s; inspected every 0.5 s through 12.02 s / scan 601 (41.3%, 33.0%, 24.7%, 16.3%, 8.0%, 0.0%). No obvious car/fixed-part penetration in visible portions. Lower True/upper False and both commands False at home. Another step to 12.52 s / scan 626 retained home with held call and both commands False, as intended by this QA fixture.
+
+Native Reset stopped controller, restored scan/time zero, car 0.0%, lower True/upper False, both commands False, call_valid and doors_closed False, and open door fixture pose. Revised QA label remained readable throughout. This closes the previously pending native round-trip descent, raised top framing, changing label, and Reset checks for this source. Native permissive-loss tests, hoist/guard/access depiction, landing legend readability, and remaining catalog findings remain open. Physical PLC stayed disconnected. This does not close whole-scene or whole-program acceptance.
+
 ## 2026-10-07 - Service elevator round-trip QA and top camera repair
 
 Normal editor Verify+load resets the plant; separate directional files cannot demonstrate a retained upper-to-lower trip. Added an explicit audit-only cycle project (10 tags, three rungs): upper feedback latches qa_upper_seen, ascent ends, return holds at lower landing until Reset. It retains phase through Stop/permissive loss. Existing exercise blank project remains unchanged.
