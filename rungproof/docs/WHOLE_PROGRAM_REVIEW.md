@@ -1,3 +1,7 @@
+## 2026-10-07 - Radar nonzero withdrawal and Run-action clarification
+
+Current native394914/source331baf7: stopped0/35%, click Run Simulated Process directly produces RUNNING28/35% with both commandsFalse; current Main.cs type=run routes straight to RunActiveController, without a queued machine Start. Historical immediate stopped capture does not establish deferred action defect; high-low-specific reproduction remains separate. Automatic request accepted433/40.46% inletTrue/drainFalse; withdrawal738/77.7% clears both commands. Later explicit FR1245 retains77.7%/bothFalse while controller continues running, proving nonzero withdrawal retention across507scans. Reset0 restores35%/bothFalse; left stoppedFR. No production edit. Whole-program goal active.
+
 ## 2026-10-07 - Single-instance cleanup and fresh native radar cycle
 
 Verified old review windows absent; exact leftover process40072 had no native window and was terminated after command-line identity check. An initial replacement session62556 became absent after runtime/tool session reset; verified no Godot process before relaunch. Fresh compatibility session62226/window394914 is the sole RungProof window (console wrapper11176/native2308). Reuse one window for further scenes and close before replacement.
