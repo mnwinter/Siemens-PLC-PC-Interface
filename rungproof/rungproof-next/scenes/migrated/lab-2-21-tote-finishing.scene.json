@@ -538,7 +538,8 @@
     "toteExitX": 6.4,
     "fillRateFractionPerSecond": 0.2,
     "capTravelSeconds": 0.35,
-    "capSeatingSeconds": 0.8
+    "capSeatingSeconds": 0.8,
+    "capSeatingRpm": 180
   },
   "training": {
     "hints": [

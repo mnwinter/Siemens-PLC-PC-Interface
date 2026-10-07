@@ -43,7 +43,7 @@ public partial class Main
             passed = false;
             GD.PushError($"TOTE_FINISHING_EXCEPTION {error}");
         }
-        GD.Print($"TOTE_FINISHING_VERIFY {(passed ? "PASS" : "FAIL")} Start, travel, normalized fill, axial cap and standalone preview; seated rotation/label/inspection/native review pending");
+        GD.Print($"TOTE_FINISHING_VERIFY {(passed ? "PASS" : "FAIL")} Start, travel, normalized fill, axial/seated cap and standalone preview; label/inspection/native review pending");
         GetTree().Quit(passed ? 0 : 1);
     }
 

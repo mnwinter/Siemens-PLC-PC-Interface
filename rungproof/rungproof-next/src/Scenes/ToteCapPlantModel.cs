@@ -10,18 +10,20 @@ public sealed class ToteCapPlantModel
 {
     public enum Phase { Home, Lowering, Seating, Retracting }
     public readonly record struct Snapshot(Phase Stage, double Extension, bool Applied,
-        bool Moving, bool Inhibited);
-    private readonly double _travelSeconds, _seatingSeconds;
+        bool Moving, bool Inhibited, double Turns);
+    private readonly double _travelSeconds, _seatingSeconds, _turnsPerSecond;
     private double _seatElapsed;
     public Snapshot State { get; private set; }
 
-    public ToteCapPlantModel(double travelSeconds, double seatingSeconds)
+    public ToteCapPlantModel(double travelSeconds, double seatingSeconds, double seatingTurnsPerSecond = 0)
     {
         if (!double.IsFinite(travelSeconds) || travelSeconds <= 0)
             throw new ArgumentOutOfRangeException(nameof(travelSeconds));
         if (!double.IsFinite(seatingSeconds) || seatingSeconds <= 0)
             throw new ArgumentOutOfRangeException(nameof(seatingSeconds));
-        _travelSeconds = travelSeconds; _seatingSeconds = seatingSeconds;
+        if (!double.IsFinite(seatingTurnsPerSecond) || seatingTurnsPerSecond < 0)
+            throw new ArgumentOutOfRangeException(nameof(seatingTurnsPerSecond));
+        _travelSeconds = travelSeconds; _seatingSeconds = seatingSeconds; _turnsPerSecond = seatingTurnsPerSecond;
         Reset();
     }
 
@@ -32,6 +34,7 @@ public sealed class ToteCapPlantModel
         var stage = State.Stage;
         var extension = State.Extension;
         var applied = State.Applied;
+        var turns = State.Turns;
         var inhibited = command && (!eligible || applied);
         // Loss before release returns the retained cap to home. No partial
         // attempt can turn into completion merely because a timer expired.
@@ -50,6 +53,8 @@ public sealed class ToteCapPlantModel
                 if (extension >= 1 - 1e-12) { extension = 1; stage = Phase.Seating; _seatElapsed = 0; }
                 break;
             case Phase.Seating:
+                var accepted = Math.Min(seconds, Math.Max(0, _seatingSeconds - _seatElapsed));
+                turns += accepted * _turnsPerSecond;
                 _seatElapsed += seconds;
                 if (_seatElapsed + 1e-12 >= _seatingSeconds)
                 {
@@ -62,9 +67,9 @@ public sealed class ToteCapPlantModel
                 if (extension <= 1e-12) { extension = 0; stage = Phase.Home; moving = false; }
                 break;
         }
-        State = new Snapshot(stage, extension, applied, moving, inhibited);
+        State = new Snapshot(stage, extension, applied, moving, inhibited, turns);
     }
 
     public void Pause() => State = State with { Moving = false };
-    public void Reset() { _seatElapsed = 0; State = new Snapshot(Phase.Home, 0, false, false, false); }
+    public void Reset() { _seatElapsed = 0; State = new Snapshot(Phase.Home, 0, false, false, false, 0); }
 }

@@ -31,6 +31,7 @@ public partial class Main
         var held = (MeshInstance3D)station.FindChild("CAP_UNDER_CHUCK",true,false);
         var spindle = (Node3D)station.FindChild("KIN_capper_spindle",true,false);
         var home = spindle.GlobalPosition;
+        var homeBasis = spindle.GlobalBasis;
         var neck=(MeshInstance3D)tote.FindChild("IBC_open_fill_neck",true,false);
         bool Clear(MeshInstance3D a,MeshInstance3D b)
         {
@@ -86,6 +87,8 @@ public partial class Main
         Command(false,false,true);Tick(80);
         check(On("cap_applied") && On("cap_home") && cap.Visible && !held.Visible && spindle.GlobalPosition.IsEqualApprox(home),
             "accepted_cycle_releases_tote_cap_and_retracts_chuck");
+        check(!spindle.GlobalBasis.IsEqualApprox(homeBasis),
+            "accepted_seated_cycle_projects_declared_rotation_to_actual_spindle");
         var capLocal=cap.Transform;Command(true,false,true);Tick(500);
         check(On("tote_at_exit") && On("cap_applied") && cap.Visible && cap.Transform.IsEqualApprox(capLocal) && !held.Visible,
             "applied_cap_remains_with_tote_at_supported_exit");

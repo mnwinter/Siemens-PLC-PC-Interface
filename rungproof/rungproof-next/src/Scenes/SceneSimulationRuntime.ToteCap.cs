@@ -26,7 +26,7 @@ public partial class SceneSimulationRuntime
         _toteCapController = station.FindChildren("*", string.Empty, true, false)
             .OfType<EquipmentMotionController>().Single();
         _toteCap = new ToteCapPlantModel(Number(_definition, "capTravelSeconds", .35),
-            Number(_definition, "capSeatingSeconds", .8));
+            Number(_definition, "capSeatingSeconds", .8), Number(_definition, "capSeatingRpm", 180) / 60);
         var held = _toteHeldCap.GlobalTransform * _toteHeldCap.GetAabb();
         var seated = _toteFillCap!.GlobalTransform * _toteFillCap.GetAabb();
         _toteCapStroke = held.End.Y - seated.End.Y;
@@ -67,7 +67,9 @@ public partial class SceneSimulationRuntime
         var state = _toteCap!.State;
         var parent = (Node3D)_toteCapSpindle!.GetParent();
         var displacement = parent.GlobalBasis.Inverse() * (Vector3.Down * _toteCapStroke * (float)state.Extension);
-        _toteCapSpindle.Transform = new Transform3D(_toteCapHome.Basis, _toteCapHome.Origin + displacement);
+        var axis = (parent.GlobalBasis.Inverse() * Vector3.Up).Normalized();
+        var rotation = new Basis(axis, (float)(state.Turns * Math.Tau));
+        _toteCapSpindle.Transform = new Transform3D(rotation * _toteCapHome.Basis, _toteCapHome.Origin + displacement);
         _toteHeldCap!.Visible = !state.Applied;
         // Preserve independent visible-cap fault fixtures before application.
         // Once released, the delivered tote cap travels with its tote parent.

@@ -42,6 +42,15 @@ internal static class ToteCapTests
         }
         model.Reset();
         Check(!model.State.Applied && model.State.Extension==0 && !model.State.Inhibited,"reset_restores_empty_home");
+        var spinning=new ToteCapPlantModel(.2,.1,3);
+        for(var i=0;i<10;i++) spinning.Advance(.02,true,true);
+        Check(spinning.State.Turns==0,"descent_does_not_spin");
+        spinning.Advance(.02,true,true);var turns=spinning.State.Turns;
+        Check(Math.Abs(turns-.06)<1e-9,"seated_tick_integrates_declared_speed");
+        spinning.Pause();Check(spinning.State.Turns==turns,"stop_holds_seated_angle");
+        for(var i=0;i<30;i++) spinning.Advance(.02,true,true);
+        Check(Math.Abs(spinning.State.Turns-.3)<1e-9 && spinning.State.Applied,"rotation_limited_to_accepted_seated_dwell");
+        spinning.Reset();Check(spinning.State.Turns==0,"reset_restores_authored_angle");
         Console.WriteLine("TOTE_CAP_MODEL_PASS " + _checks);
     }
 }

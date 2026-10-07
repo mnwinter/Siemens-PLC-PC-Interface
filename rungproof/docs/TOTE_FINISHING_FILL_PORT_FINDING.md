@@ -149,3 +149,16 @@ it is not a blanket collision exclusion. Full scene contracts pass 71/0 in
 Native static/moving multi-angle inspection is still OPEN after Escape stop.
 Seated rotation/thread/torque/seal behavior, every-frame swept-volume proof,
 labeling, inspection and complete PLC station sequencing remain unverified.
+
+## Seated rotation checkpoint
+
+The cap model now integrates turns only during accepted seated-dwell ticks.
+The adapter projects that angle onto the actual spindle and attached chuck
+using the same accepted clock as axial extension. The scene explicitly uses
+180 RPM, matching its existing illustrative capper speed. Descent and
+retraction do not add turns; Stop holds angle; Reset restores zero. Model
+checks: 20 PASS (.tools/cap-spin-model.log). Focused actual-scene checks:
+54 PASS (.tools/cap-spin-final-screen.log), including direct spindle rotation
+and the combined-motion/capped-discharge geometry screen. This is illustrative
+rotation, not modeled helical threads, torque control or sealing. Native
+Windows multi-angle review, labeling and inspection remain OPEN.
