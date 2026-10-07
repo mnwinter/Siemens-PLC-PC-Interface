@@ -312,6 +312,7 @@ public partial class Main
             VerifyDrawbridgeWorkflow(Check);
             VerifyBagIndexWorkflow(Check);
             VerifyCoatingWorkflow(Check);
+            VerifyHandDryerWorkflow(Check);
             VerifyTransferCartonSupport(Check);
             VerifyBaseConveyorCartonSupport(Check);
             VerifyPusherRodGeometry(Check);

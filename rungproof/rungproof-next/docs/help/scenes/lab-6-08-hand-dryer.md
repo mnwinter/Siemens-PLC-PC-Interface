@@ -6,7 +6,7 @@ Scene contract: `res://scenes/migrated/lab-6-08-hand-dryer.scene.json`
 
 ## Purpose
 
-Manual hand-presence and timer-active inputs form a blower/heater logic exercise. The progress readout is static; a remaining-time value is not modeled.
+Hand presence starts a PLC-timed drying interval with blower, heater and live remaining seconds. Illustrated commands are not measured airflow or temperature.
 
 ## Expected I/O to operate this scene
 
@@ -14,41 +14,40 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 
 | Point | Type | Owner | Initial value |
 | --- | --- | --- | --- |
+| `hands_inserted` | `BOOL` | **PC** | `False` |
 | `hands_present` | `BOOL` | **PC** | `False` |
-| `dryer_timer_active` | `BOOL` | **PC** | `False` |
+| `heater_inhibited` | `BOOL` | **PC** | `False` |
 | `blower_run` | `BOOL` | **PLC** | `False` |
 | `heater_enable` | `BOOL` | **PLC** | `False` |
+| `remaining_seconds` | `REAL` | **PLC** | `0` |
 
 ## Operator actions
 
 | Action | Type | Bound point/sequence |
 | --- | --- | --- |
-| `Toggle hands present` | `toggle` | `hands_present` |
-| `Toggle dryer timer active` | `toggle` | `dryer_timer_active` |
+| `Insert / withdraw hands` | `toggle` | `hands_inserted` |
 
 ## Equipment bindings
 
 | Symbolic point | Equipment | Mode |
 | --- | --- | --- |
-| `hands_present` | `switch_7` | `switch` |
-| `dryer_timer_active` | `switch_8` | `switch` |
+| `hands_inserted` | `switch_7` | `switch` |
 | `blower_run` | `indicator_2` | `indicator` |
 | `heater_enable` | `indicator_9` | `indicator` |
+| `remaining_seconds` | `training_accessory_6` | `numericDisplay` |
 
 ## Expected equipment
 
 | ID | Type | Label |
 | --- | --- | --- |
 | `fan_0` | `fan` | Timed Hand-Dryer fan |
-| `machine_1` | `machine` | Timed Hand-Dryer machine |
-| `indicator_2` | `indicator` | Timed Hand-Dryer indicator |
+| `indicator_2` | `indicator` | BLOWER command |
 | `training_accessory_3` | `trainingAccessory` | Timed Hand-Dryer - hand-presence sensor |
 | `training_accessory_4` | `trainingAccessory` | Timed Hand-Dryer - air outlet |
 | `training_accessory_5` | `trainingAccessory` | Timed Hand-Dryer - heating element |
 | `training_accessory_6` | `trainingAccessory` | Timed Hand-Dryer - progress display |
-| `switch_7` | `switch` | Timed Hand-Dryer operator input |
-| `switch_8` | `switch` | Timed Hand-Dryer operator input |
-| `indicator_9` | `indicator` | Timed Hand-Dryer output indication |
+| `switch_7` | `switch` | Insert / withdraw hands |
+| `indicator_9` | `indicator` | HEATER command |
 
 ## Stop and safety boundary
 
@@ -56,7 +55,7 @@ A normal Stop removes PLC-owned commands according to the scene runtime. This do
 
 ## Machine guide
 
-Manual hand-presence and timer-active inputs form a blower/heater logic exercise. The progress readout is static; a remaining-time value is not modeled.
+Hand presence starts a PLC-timed drying interval with blower, heater and live remaining seconds. Illustrated commands are not measured airflow or temperature.
 
 ### Start conditions
 
@@ -65,10 +64,11 @@ Manual hand-presence and timer-active inputs form a blower/heater logic exercise
 
 ### Normal sequence
 
-- Apply the requested input condition.
-- Verify only the documented PLC outputs respond.
+- Insert hands; a user-authored PLC program starts its timer and outputs.
+- The PLC calculates remaining seconds; completion removes outputs.
+- Withdraw and reinsert to rearm.
 
 ### Expected observations
 
-- The blower and heater run only during a valid hand-drying interval.
-- The readout says NO LIVE VALUE and is not bound to a numeric point.
+- The mounted fan and heater project eligible commands.
+- The readout displays PLC-owned remaining_seconds; the scene does not manufacture a timer result.

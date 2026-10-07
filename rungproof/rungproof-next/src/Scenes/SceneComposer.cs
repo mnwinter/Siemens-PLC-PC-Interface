@@ -158,6 +158,7 @@ public static partial class SceneComposer
         if (scene.Simulation.TryGetProperty("cookiePackagingPlant", out _)) ConfigureCookieConveyor(root);
         if (scene.Simulation.TryGetProperty("barrelFillPlant", out _)) ConfigureBarrelConveyor(root);
         if (scene.Id == "lab-5-10-coating-line") ConfigureCoatingInstallation(root);
+        if (scene.Id == "lab-6-08-hand-dryer") ConfigureHandDryerInstallation(root);
         return new SceneComposition(root, rendered, deferred);
     }
 
@@ -299,11 +300,11 @@ public static partial class SceneComposer
             return AddDrawbridgePivot(model, installation);
         if (model is not null && installation == "drawbridgeSignal") return CreateDrawbridgeSignal(model);
         var display = Text(equipment.Config, "display", string.Empty);
-        if (model is not null && display is "palletCount" or "numeric" or "lengthNumeric")
+        if (model is not null && display is "palletCount" or "numeric" or "lengthNumeric" or "remainingSeconds")
         {
             // Only explicitly configured equipment opts into a live readout. The reusable
             // asset retains its honest NO LIVE VALUE legend when used alone.
-            var legend = model.FindChild(display == "lengthNumeric" ? "LENGTH_DISPLAY_static_legend" : "COUNT_DISPLAY_static_legend", true, false) as MeshInstance3D
+            var legend = model.FindChild(display == "remainingSeconds" ? "STATIC_READOUT_static_legend" : display == "lengthNumeric" ? "LENGTH_DISPLAY_static_legend" : "COUNT_DISPLAY_static_legend", true, false) as MeshInstance3D
                 ?? throw new InvalidOperationException($"Count display '{equipment.Id}' is missing its authored legend.");
             legend.Visible = false;
             model.AddChild(new Label3D

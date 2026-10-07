@@ -9625,29 +9625,13 @@
         "thumbnailFile": "res://assets/training_accessories/air_outlet/thumbnail.png"
       },
       "bounds": {
-        "widthM": 5.3,
-        "heightM": 4.2,
-        "depthM": 0.8
+        "widthM": 1.159999966621399,
+        "heightM": 1.8575000762939453,
+        "depthM": 1.0889999866485596
       },
       "connectors": [],
-      "kinematics": [
-        {
-          "id": "door_position",
-          "kind": "linear",
-          "nodePath": "KIN_bottom_bar",
-          "minimum": 0,
-          "maximum": 3.2,
-          "unit": "m",
-          "maximumRate": 1.2
-        }
-      ],
-      "animationTags": [
-        {
-          "id": "door_position",
-          "nodePath": "KIN_bottom_bar",
-          "kind": "linear"
-        }
-      ],
+      "kinematics": [],
+      "animationTags": [],
       "signals": [],
       "quality": {
         "status": "candidate",
@@ -9656,10 +9640,9 @@
         "topologyReviewed": false,
         "materialReviewed": false,
         "scaleReviewed": false,
-        "animationReviewed": true
+        "animationReviewed": false
       },
       "trainingRequirement": "air outlet",
-      "genericBasisAssetId": "access-control.door.roller-shutter.v1",
       "copyrightBoundary": "Generic training visual; no logo, trade dress, product number, or exact OEM claim."
     },
     {
@@ -11526,9 +11509,9 @@
         "thumbnailFile": "res://assets/training_accessories/hand_presence_sensor/thumbnail.png"
       },
       "bounds": {
-        "widthM": 0.64,
-        "heightM": 1.22,
-        "depthM": 0.44
+        "widthM": 1.0800000429153442,
+        "heightM": 0.9600000381469727,
+        "depthM": 0.5199999809265137
       },
       "connectors": [],
       "kinematics": [],
@@ -11541,10 +11524,9 @@
         "topologyReviewed": false,
         "materialReviewed": false,
         "scaleReviewed": false,
-        "animationReviewed": true
+        "animationReviewed": false
       },
       "trainingRequirement": "hand-presence sensor",
-      "genericBasisAssetId": "loads.container.jerry-can-hdpe.v1",
       "copyrightBoundary": "Generic training visual; no logo, trade dress, product number, or exact OEM claim."
     },
     {
@@ -11564,29 +11546,13 @@
         "thumbnailFile": "res://assets/training_accessories/heating_element/thumbnail.png"
       },
       "bounds": {
-        "widthM": 5.3,
-        "heightM": 4.2,
-        "depthM": 0.8
+        "widthM": 0.7200000286102295,
+        "heightM": 0.12999999895691872,
+        "depthM": 0.48749999701976776
       },
       "connectors": [],
-      "kinematics": [
-        {
-          "id": "door_position",
-          "kind": "linear",
-          "nodePath": "KIN_bottom_bar",
-          "minimum": 0,
-          "maximum": 3.2,
-          "unit": "m",
-          "maximumRate": 1.2
-        }
-      ],
-      "animationTags": [
-        {
-          "id": "door_position",
-          "nodePath": "KIN_bottom_bar",
-          "kind": "linear"
-        }
-      ],
+      "kinematics": [],
+      "animationTags": [],
       "signals": [],
       "quality": {
         "status": "candidate",
@@ -11595,10 +11561,9 @@
         "topologyReviewed": false,
         "materialReviewed": false,
         "scaleReviewed": false,
-        "animationReviewed": true
+        "animationReviewed": false
       },
       "trainingRequirement": "heating element",
-      "genericBasisAssetId": "access-control.door.roller-shutter.v1",
       "copyrightBoundary": "Generic training visual; no logo, trade dress, product number, or exact OEM claim."
     },
     {

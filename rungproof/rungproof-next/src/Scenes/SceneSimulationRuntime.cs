@@ -72,6 +72,7 @@ public partial class SceneSimulationRuntime : Node
         if (selected && !running) PausePalletizerClock();
         if (selected && !running) PauseBagIndexClock();
         if (selected && !running) PauseCoatingClock();
+        if (selected && !running) PauseHandDryer();
         if (selected && running) ApplyBindings();
     }
 
@@ -99,6 +100,7 @@ public partial class SceneSimulationRuntime : Node
         if (!running) PausePalletizerClock();
         if (!running) PauseBagIndexClock();
         if (!running) PauseCoatingClock();
+        if (!running) PauseHandDryer();
         if (RuntimeType == "tank") ProjectTankState();
     }
 
@@ -118,6 +120,7 @@ public partial class SceneSimulationRuntime : Node
         FreezeRepeatCycleAdapters();
         FreezeBagIndexAdapter();
         FreezeCoatingAdapters();
+        FreezeHandDryerAdapter();
     }
 
     public void ConsumeExternalInputPulses(IReadOnlyDictionary<string, object?> sampledPoints)
@@ -221,6 +224,7 @@ public partial class SceneSimulationRuntime : Node
         if (HasDrawbridgePlant) { AdvanceDrawbridgePlant(delta); return; }
         if (HasBagIndexPlant) { AdvanceBagIndexPlant(delta); return; }
         if (HasCoatingPlant) { AdvanceCoatingPlant(delta); return; }
+        if (HasHandDryer) { AdvanceHandDryer(delta); return; }
         if (HasParkingEntryPlant) { AdvanceParkingEntryPlant(delta); return; }
         if (HasPackageGroupingPlant) { AdvancePackageGroupingPlant(delta); return; }
 
@@ -398,6 +402,7 @@ public partial class SceneSimulationRuntime : Node
         _bottleShuttleConveyor?.ApplyPlantTravel(0, 0);
         PauseBagIndexClock();
         PauseCoatingClock();
+        PauseHandDryer();
         _shippingPalletReferenceActive = false;
         if (!UsesExternalClock && RuntimeType == "booleanPanel") _booleanPreviewStopped = true;
         _activeStepIndex = -1;
@@ -488,6 +493,7 @@ public partial class SceneSimulationRuntime : Node
         ResetDrawbridgePlant();
         ResetBagIndexPlant();
         ResetCoatingPlant();
+        ResetHandDryer();
         ResetParkingEntryPlant();
         ResetPackageGroupingPlant();
         EvaluateRules();
@@ -1071,6 +1077,7 @@ public partial class SceneSimulationRuntime : Node
 
     private void EvaluateRules()
     {
+        if (HasHandDryer) { ProjectDryerHands(); if (_dryerFan is not null) ProjectDryerCommands(PlantPlaybackRunning); }
         if (UsesExternalClock)
         {
             // The selected controller produces the output image. Scene rules

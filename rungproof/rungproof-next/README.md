@@ -237,8 +237,9 @@ bag and zero scan. The default exercise stays blank. Speed and supported bounds
 are illustrative; travel-limit diagnostics do not manufacture a PLC stop.
 Old projects need the revised point roles. Independent asset approval remains open.
 
-`-- --verify-scene-geometry` runs 968 focused geometry/workflow checks with `--visual-scene-review` for Demo 5 supported pickup, four-carton placement, moving clearance and attachment,
+`-- --verify-scene-geometry` runs 987 focused geometry/workflow checks with `--visual-scene-review` for Demo 5 supported pickup, four-carton placement, moving clearance and attachment,
 coating-line supported workpiece travel, finite station/exit beams, timed spray/purge/discharge, malformed output inhibition and retained Stop phase,
+hand-dryer actual hand sensor geometry, heater bearing/clearance, timed countdown/rearming and malformed heater inhibition,
 bag indexing actual sack/belt support, optical feedback, static cable screen, manual return acknowledgement and Stop/Run/Reset,
 drawbridge actual motion/limits, connected cam, sampled rail clearance and controller interlocks,
 pedestrian-crossing supported road/sidewalks, symbol/color channels, timed phases, blocked release and startup restart,
@@ -780,3 +781,16 @@ Stop clears commands and holds pose/phase; Run resumes that phase with a fresh
 nonretentive spray/purge interval. The healthy cycle proves 100 spray and 50 purge
 ticks at 20 ms; fan/damper/spray are illustrative command projections, without
 measured airflow, coating quality or physical acceptance.
+
+
+`-- --audit-hand-dryer` runs 19 focused checks for Scene 65 and creates the ignored
+`.tools/plant-review-hand-dryer.rpproj.json`. Open it explicitly with File → Open
+Ladder Agent Project, return to the scene, Run, and insert hands using the scene
+button or rendered physical control. The original illustrative reference runs a
+ten-second interval, calculates PLC-owned remaining seconds, stops on completion
+or withdrawal, and requires withdrawal before another cycle. Stop clears commands;
+Run during an interrupted interval starts a fresh nonretentive interval. Reset
+withdraws hands and returns idle. Defaults remain blank and the demo count is five.
+Hand presence is derived from the finite sensor segment and delivered hand mesh.
+Heater/air effects project eligible commands; no measured heat/flow, protective
+function, electrical design or physical acceptance is implied.

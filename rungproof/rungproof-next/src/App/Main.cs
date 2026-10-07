@@ -152,6 +152,7 @@ public partial class Main : Node3D
         _auditParkingEntry = userArguments.Contains("--audit-parking-entry", StringComparer.Ordinal);
         _auditFlashPair = userArguments.Contains("--audit-flash-pair", StringComparer.Ordinal);
         _auditDrawbridge = userArguments.Contains("--audit-drawbridge", StringComparer.Ordinal);
+        _auditHandDryer = userArguments.Contains("--audit-hand-dryer", StringComparer.Ordinal);
         _auditCoating = userArguments.Contains("--audit-coating", StringComparer.Ordinal);
         _auditBagIndex = userArguments.Contains("--audit-bag-index", StringComparer.Ordinal);
         _auditPedestrianCrossing = userArguments.Contains("--audit-pedestrian-crossing", StringComparer.Ordinal);
@@ -182,7 +183,7 @@ public partial class Main : Node3D
         _mcpSceneId = userArguments
             .FirstOrDefault(argument => argument.StartsWith("--mcp-scene=", StringComparison.Ordinal))?
             .Substring("--mcp-scene=".Length);
-        _appShellRequested = _reportSceneGeometry || _verifySceneGeometry || _verifyToteFinishing || _auditDualSpindle || _auditRobotCnc || _auditRobotRestart || _auditSequenceTower || _auditChainLiftInstallation || _auditCookiePackaging || _auditBarrelFill || _auditCableCut || _auditPalletizer || _auditRepeatCycle || _auditButtonCounters || _auditParkingEntry || _auditPackageGrouping || _auditTimerLessons || _auditRotaryFlasher || _auditFlashPair || _auditRunningTower || _auditPedestrianCrossing || _auditDrawbridge || _auditBagIndex || _auditCoating || _verifyCartonStaticRoutes || (_visualSceneReview && !_visualPlantReview) || _verifyAppShell || _verifyExternalDialog || _verifyExternalPlayback || _verifyPlantMotion || _verifyWorkspace || _verifyHud || _verifyCameraInput || _verifySceneControls
+        _appShellRequested = _reportSceneGeometry || _verifySceneGeometry || _verifyToteFinishing || _auditDualSpindle || _auditRobotCnc || _auditRobotRestart || _auditSequenceTower || _auditChainLiftInstallation || _auditCookiePackaging || _auditBarrelFill || _auditCableCut || _auditPalletizer || _auditRepeatCycle || _auditButtonCounters || _auditParkingEntry || _auditPackageGrouping || _auditTimerLessons || _auditRotaryFlasher || _auditFlashPair || _auditRunningTower || _auditPedestrianCrossing || _auditDrawbridge || _auditBagIndex || _auditCoating || _auditHandDryer || _verifyCartonStaticRoutes || (_visualSceneReview && !_visualPlantReview) || _verifyAppShell || _verifyExternalDialog || _verifyExternalPlayback || _verifyPlantMotion || _verifyWorkspace || _verifyHud || _verifyCameraInput || _verifySceneControls
             || _verifyVirtualController || _verifyNumericSceneIo || _verifyLadderEditor || _verifySplitView || _verifyUiDensity || _virtualControllerDemo
             || userArguments.Contains("--app-shell", StringComparer.Ordinal);
         if (_visualPlantReview && (_sceneId is null || _appShellRequested || _verifySceneContract))
@@ -551,6 +552,10 @@ public partial class Main : Node3D
         else if (_auditPalletizer)
         {
             CallDeferred(nameof(AuditPalletizer));
+        }
+        else if (_auditHandDryer)
+        {
+            CallDeferred(nameof(AuditHandDryer));
         }
         else if (_auditCoating)
         {
@@ -3760,7 +3765,7 @@ public partial class Main : Node3D
         distance = (distance + halfDepth) * 1.16f;
         // Reserve space below the review clock for barrier tips and sensor heads
         // in nearly vertical full-scene views. Equipment focus views keep their fit.
-        if (_visualSceneReview && (_currentSceneId is "lab-5-08-drawbridge-control" or "lab-5-09-bag-indexing-conveyor" or "lab-5-10-coating-line")
+        if (_visualSceneReview && (_currentSceneId is "lab-5-08-drawbridge-control" or "lab-5-09-bag-indexing-conveyor" or "lab-5-10-coating-line" or "lab-6-08-hand-dryer")
             && ReferenceEquals(root, _sceneCompositionRoot) && MathF.Abs(direction.Y) > 0.99f)
             distance *= _currentSceneId == "lab-5-08-drawbridge-control" ? 1.15f : 1.30f;
         camera.Position = center + direction * MathF.Max(distance, 2.5f);

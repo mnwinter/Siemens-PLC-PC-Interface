@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-6-08-hand-dryer",
   "name": "Lab 6.8 - Timed Hand-Dryer",
-  "description": "Manual hand-presence and timer-active inputs form a blower/heater logic exercise. The progress readout is static; a remaining-time value is not modeled.",
+  "description": "Hand presence starts a PLC-timed drying interval with blower, heater and live remaining seconds. Illustrated commands are not measured airflow or temperature.",
   "camera": {
     "position": [
       11,
@@ -23,49 +23,33 @@
       "type": "fan",
       "label": "Timed Hand-Dryer fan",
       "position": [
-        -3.3000000000000003,
         0,
-        0
+        1.15,
+        -0.7
       ],
       "config": {
         "running": false
-      }
-    },
-    {
-      "id": "machine_1",
-      "type": "machine",
-      "label": "Timed Hand-Dryer machine",
-      "position": [
-        -1.1,
-        0,
-        0
-      ],
-      "config": {
-        "size": [
-          2.1,
-          2.7,
-          1.7
-        ],
-        "color": 5466227,
-        "running": false
-      }
+      },
+      "scale": [
+        0.25,
+        0.25,
+        0.25
+      ]
     },
     {
       "id": "indicator_2",
       "type": "indicator",
-      "label": "Timed Hand-Dryer indicator",
+      "label": "BLOWER command",
       "position": [
-        1.1,
+        -1.35,
         0,
-        0
+        -0.6
       ],
       "config": {
         "colors": [
-          "red",
-          "amber",
           "green"
         ],
-        "active": "red"
+        "active": "off"
       }
     },
     {
@@ -73,7 +57,7 @@
       "type": "trainingAccessory",
       "label": "Timed Hand-Dryer - hand-presence sensor",
       "position": [
-        3.3000000000000003,
+        0,
         0,
         0
       ],
@@ -87,9 +71,9 @@
       "type": "trainingAccessory",
       "label": "Timed Hand-Dryer - air outlet",
       "position": [
-        -3.3000000000000003,
         0,
-        1.8
+        0,
+        0
       ],
       "config": {
         "assetName": "air outlet",
@@ -101,9 +85,9 @@
       "type": "trainingAccessory",
       "label": "Timed Hand-Dryer - heating element",
       "position": [
-        -1.1,
         0,
-        1.8
+        1.35,
+        0
       ],
       "config": {
         "assetName": "heating element",
@@ -115,67 +99,58 @@
       "type": "trainingAccessory",
       "label": "Timed Hand-Dryer - progress display",
       "position": [
-        1.1,
+        1.45,
         0,
-        3.1
+        0.2
       ],
       "config": {
         "assetName": "progress display",
-        "catalogAssetId": "training.accessory.progress_display.v1"
+        "catalogAssetId": "training.accessory.progress_display.v1",
+        "display": "remainingSeconds",
+        "displayLabel": "REMAINING (s)"
       }
     },
     {
       "id": "switch_7",
       "type": "switch",
-      "label": "Timed Hand-Dryer operator input",
+      "label": "Insert / withdraw hands",
       "position": [
-        3.7500000000000004,
+        -1.35,
         0,
-        2.35
+        0.6
       ],
       "config": {
         "style": "pushbutton",
-        "action": "toggle-hands_present",
-        "color": 2204518
-      }
-    },
-    {
-      "id": "switch_8",
-      "type": "switch",
-      "label": "Timed Hand-Dryer operator input",
-      "position": [
-        -2.4000000000000004,
-        0,
-        4.7
-      ],
-      "config": {
-        "style": "pushbutton",
-        "action": "toggle-dryer_timer_active",
+        "action": "toggle-hands_inserted",
         "color": 2204518
       }
     },
     {
       "id": "indicator_9",
       "type": "indicator",
-      "label": "Timed Hand-Dryer output indication",
+      "label": "HEATER command",
       "position": [
-        -0.20000000000000007,
+        1.45,
         0,
-        4.7
+        -0.7
       ],
       "config": {
         "colors": [
-          "red",
-          "amber",
-          "green"
+          "amber"
         ],
-        "active": "red"
+        "active": "off"
       }
     }
   ],
   "simulation": {
-    "type": "booleanPanel",
+    "type": "handDryer",
     "points": [
+      {
+        "name": "hands_inserted",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
       {
         "name": "hands_present",
         "type": "BOOL",
@@ -183,7 +158,7 @@
         "initial": false
       },
       {
-        "name": "dryer_timer_active",
+        "name": "heater_inhibited",
         "type": "BOOL",
         "owner": "PC",
         "initial": false
@@ -201,33 +176,29 @@
         "owner": "PLC",
         "initial": false,
         "role": "output"
+      },
+      {
+        "name": "remaining_seconds",
+        "type": "REAL",
+        "owner": "PLC",
+        "initial": 0,
+        "role": "output"
       }
     ],
     "actions": [
       {
-        "id": "toggle-hands_present",
-        "label": "Toggle hands present",
+        "id": "toggle-hands_inserted",
+        "label": "Insert / withdraw hands",
         "type": "toggle",
-        "point": "hands_present"
-      },
-      {
-        "id": "toggle-dryer_timer_active",
-        "label": "Toggle dryer timer active",
-        "type": "toggle",
-        "point": "dryer_timer_active"
+        "point": "hands_inserted"
       }
     ],
     "rules": [],
     "edgeRules": [],
     "pointBindings": [
       {
-        "point": "hands_present",
+        "point": "hands_inserted",
         "equipmentId": "switch_7",
-        "mode": "switch"
-      },
-      {
-        "point": "dryer_timer_active",
-        "equipmentId": "switch_8",
         "mode": "switch"
       },
       {
@@ -240,22 +211,30 @@
         "point": "heater_enable",
         "equipmentId": "indicator_9",
         "mode": "indicator",
-        "activeColor": "green"
+        "activeColor": "amber"
+      },
+      {
+        "point": "remaining_seconds",
+        "equipmentId": "training_accessory_6",
+        "mode": "numericDisplay",
+        "label": "REMAINING (s)",
+        "format": "F2"
       }
     ]
   },
   "training": {
     "hints": [
-      "Translate the lesson into explicit state and permissive logic: The blower and heater run only during a valid hand-drying interval.",
-      "Inputs are simulator feedback (hands_present, dryer_timer_active); PLC logic owns blower_run, heater_enable.",
-      "Test the initial state, the valid condition, and at least one missing permissive."
+      "Insert hands using the operator input; hands_present is derived from the illustrated sensor zone.",
+      "PLC logic owns the timer, blower_run, heater_enable and remaining_seconds.",
+      "Use a nonretentive timer; withdrawing hands cancels the interval. A completed interval must wait for withdrawal before restarting."
     ],
     "solution": {
       "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
       "steps": [
-        "Require the documented inputs: hands_present, dryer_timer_active.",
-        "Command the documented outputs: blower_run, heater_enable.",
-        "Remove PLC commands when the permissive is lost."
+        "Start one timed interval when hands enter.",
+        "Stop both commands on withdrawal or timer completion.",
+        "Calculate remaining_seconds from timer elapsed milliseconds.",
+        "Require withdrawal before another cycle."
       ],
       "acceptance": "The blower and heater run only during a valid hand-drying interval."
     },
@@ -266,14 +245,15 @@
       "progress display"
     ],
     "machineGuide": {
-      "purpose": "Manual hand-presence and timer-active inputs form a blower/heater logic exercise. The progress readout is static; a remaining-time value is not modeled.",
+      "purpose": "Hand presence starts a PLC-timed drying interval with blower, heater and live remaining seconds. Illustrated commands are not measured airflow or temperature.",
       "startConditions": [
         "The common PLC/watchdog foundation is healthy.",
         "All required simulator inputs are at their documented initial state."
       ],
       "normalSequence": [
-        "Apply the requested input condition.",
-        "Verify only the documented PLC outputs respond."
+        "Insert hands; a user-authored PLC program starts its timer and outputs.",
+        "The PLC calculates remaining seconds; completion removes outputs.",
+        "Withdraw and reinsert to rearm."
       ],
       "stopBehavior": [
         "Removing the permissive removes PLC-owned commands.",
@@ -283,8 +263,8 @@
         "A missing or stale input must fail safe and remain diagnosable."
       ],
       "expectedObservations": [
-        "The blower and heater run only during a valid hand-drying interval.",
-        "The readout says NO LIVE VALUE and is not bound to a numeric point."
+        "The mounted fan and heater project eligible commands.",
+        "The readout displays PLC-owned remaining_seconds; the scene does not manufacture a timer result."
       ]
     },
     "sequenceNumber": 51,
@@ -298,10 +278,12 @@
       "Simulation_Timeout"
     ],
     "addedTags": [
+      "hands_inserted",
       "hands_present",
-      "dryer_timer_active",
+      "heater_inhibited",
       "blower_run",
-      "heater_enable"
+      "heater_enable",
+      "remaining_seconds"
     ],
     "changedTags": [],
     "previousAcceptance": [
