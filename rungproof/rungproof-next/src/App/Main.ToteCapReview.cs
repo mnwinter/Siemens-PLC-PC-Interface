@@ -34,7 +34,12 @@ public partial class Main
         runtime.SetControllerPlaybackRunning(false);Tick(30);
         check(spindle.GlobalPosition.IsEqualApprox(lowered) && Number("cap_extension_percent")==extension && !On("cap_applied"),
             "stop_holds_actual_partial_cap_stroke");
-        runtime.SetControllerPlaybackRunning(true);Command(false,false,false);Tick(30);
+        runtime.SetControllerPlaybackRunning(true);
+        var positionBeforeConflict=Number("tote_position");
+        Command(true,false,true);Tick(1);
+        check(Number("tote_position")==positionBeforeConflict && On("cap_inhibited") && On("conveyor_run") && !On("cap_applied"),
+            "conveyor_request_during_extension_holds_tote_and_aborts_cap_without_rewriting_command");
+        Command(false,false,false);Tick(30);
         check(On("cap_home") && !On("cap_applied") && !cap.Visible && held.Visible && spindle.GlobalPosition.IsEqualApprox(home),
             "withdrawal_returns_retained_cap_without_application");
         Command(false,false,true);Tick(80);

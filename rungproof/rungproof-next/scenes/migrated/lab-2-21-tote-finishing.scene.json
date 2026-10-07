@@ -318,6 +318,12 @@
         "type": "BOOL",
         "owner": "PC",
         "initial": true
+      },
+      {
+        "name": "tote_transfer_inhibited",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
       }
     ],
     "actions": [

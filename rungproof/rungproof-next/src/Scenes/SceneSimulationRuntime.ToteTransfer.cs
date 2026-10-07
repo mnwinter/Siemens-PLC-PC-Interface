@@ -34,6 +34,7 @@ public partial class SceneSimulationRuntime
         ResetToteFill();
         ResetToteCap();
         FreezeToteTransferAdapter();
+        SetPoint("tote_transfer_inhibited", false);
         ProjectToteTransfer();
     }
 
@@ -57,7 +58,12 @@ public partial class SceneSimulationRuntime
     private void AdvanceToteTransfer(double seconds)
     {
         var old = _toteTransfer!.State.Position;
-        _toteTransfer.Advance(seconds, AsBool(_points.GetValueOrDefault("conveyor_run")));
+        var travelRequested = AsBool(_points.GetValueOrDefault("conveyor_run"));
+        // Authored simulator interlock: do not slide the neck under an extended
+        // cap chuck. Retain the PLC request and publish the effective inhibition.
+        var capExtended = _toteCap is not null && _toteCap.State.Extension > 0;
+        SetPoint("tote_transfer_inhibited", travelRequested && capExtended);
+        _toteTransfer.Advance(seconds, travelRequested && !capExtended);
         var state = _toteTransfer.State;
         _transferTote!.Position = new Vector3((float)state.Position, _transferTote.Position.Y, _transferTote.Position.Z);
         _toteTransferDrive!.ApplyPlantTravel((float)(state.Position - old), (float)state.Speed);

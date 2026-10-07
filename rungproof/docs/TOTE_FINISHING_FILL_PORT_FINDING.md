@@ -120,3 +120,16 @@ adapter currently projects axial motion only: rotating seated dwell/thread
 engagement, torque and sealing are not proved. Concurrent conveyor commands
 during an extended chuck still require explicit conflict testing; no protective
 hardware behavior is claimed. Labeling and inspection remain unfinished.
+
+## Concurrent travel/cap conflict repair
+
+An actual adapter regression failed: conveyor_run moved the tote while the
+cap chuck was extended, and the next cap attempt missed alignment. The
+simulator now inhibits effective tote/belt travel while cap extension is
+nonzero, retains the raw PLC command and publishes PC tote_transfer_inhibited.
+The conflicting request makes cap eligibility false, so the held cap retracts
+without release. Travel can resume when the chuck is home. This is an authored
+simulation interlock, not evidence of protective hardware or a rated safety
+function. The failing regression passes after repair; all 51 focused checks
+pass in .tools/cap-conflict-after.log. Full stroke collision screening,
+latest capped-route geometry and native multi-angle inspection remain OPEN.
