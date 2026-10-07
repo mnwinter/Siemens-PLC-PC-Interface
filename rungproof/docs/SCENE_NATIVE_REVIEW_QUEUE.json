@@ -4,7 +4,7 @@
   "sceneCount": 77,
   "allFiveAnglesRecordedCount": 77,
   "explicitFailureCount": 12,
-  "knownChangedSceneCount": 2,
+  "knownChangedSceneCount": 1,
   "scenes": [
     {
       "index": 1,
@@ -1224,10 +1224,10 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Geometry repaired with original two-bay EV layout; native FR/FL/RL/RR/T inspected. OPEN: 45 geometry/offline adapter/PLC reference checks PASS; two-bay allocation, meter events and PLC kWh provided. Latest controls, vehicle visibility, readouts and native runtime review pending after Escape stop",
-      "latestNativeReviewPending": true,
+      "recordedResult": "Geometry repaired with original two-bay EV layout; native FR/FL/RL/RR/T inspected. OPEN: 45 geometry/offline adapter/PLC reference checks PASS; two-bay allocation, meter events and PLC kWh provided. Fresh current-build native home and occupied-bay FR/FL/RL/RR/Top inspected: two vehicles retained inside separate bays, charger/display/reader/control stands separate. Runtime charging, allocation, connector attachment and close readout checks remain pending",
+      "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
-      "disposition": "REVIEW_CHANGED_SCENE",
+      "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     },
     {
