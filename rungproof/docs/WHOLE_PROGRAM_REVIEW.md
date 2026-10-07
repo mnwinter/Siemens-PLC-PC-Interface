@@ -1,5 +1,12 @@
 # Whole program review - 2026-10-03
 
+## 2026-10-06 tote-finishing controller-clocked travel
+
+A direct plant probe reproduced the next gap: four seconds of PLC conveyor_run left the tote stationary because all load translation existed only in the standalone sequence. Added a renderer-neutral ToteTransferPlantModel and an opted-in adapter for controller operation. Accepted ticks up to 20 ms now drive both belt and tote at prescribed 0.75 m/s; the general conveyor callback is disabled for that clock. Six PC points publish position, four installed station windows and retained exit arrival. Home and endpoint are checked against the delivered belt footprint. Command withdrawal and Stop hold position; Run continues the retained load; held Run cannot wrap or discard it at the exit; Reset reloads the infeed.
+
+The explicit legacy preview remains available for its existing geometry checks. Twenty-four focused checks pass: twelve Start/commanded-travel checks and twelve delivered-mesh/standalone-preview checks. Latest shared-helper guarded regression and all scene contracts are running after the final build. Fill volume, cap application, label application, inspection and complete PLC station sequencing remain open; no process completion is fabricated from tote arrival. Fresh native inspection remains pending after the Escape stop.
+
+
 ## 2026-10-06 tote-finishing Start binding repair
 
 The 3D Start action was rejected even with a running compatible ladder because the scene omitted its explicit controllerStartBinding. A deterministic command probe reproduced the missing Start pulse twice. Adding `operator.start` fixes the action; five checks now prove Run alone does not pulse Start, the 3D action reaches the matching ladder input for one scan, Reset clears state and a stopped controller rejects Start. The twelve existing delivered-mesh/standalone-preview checks also pass, including 5,000 two-millisecond travel samples. Build and focused verification pass. This repairs command delivery only: normal controller-driven tote transport, capped fill/volume, cap application, label application, inspection and process restart/resume remain open. Latest native command and visual inspection remain pending after the Escape stop.

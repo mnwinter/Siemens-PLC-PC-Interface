@@ -23,6 +23,12 @@ All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or har
 | `station_number` | `DINT` | **SIM** | `0` |
 | `status_color` | `STRING` | **SIM** | `amber` |
 | `cycle_complete` | `BOOL` | **SIM** | `False` |
+| `tote_position` | `REAL` | **PC** | `-5.8` |
+| `tote_at_fill` | `BOOL` | **PC** | `False` |
+| `tote_at_cap` | `BOOL` | **PC** | `False` |
+| `tote_at_label` | `BOOL` | **PC** | `False` |
+| `tote_at_inspection` | `BOOL` | **PC** | `False` |
+| `tote_at_exit` | `BOOL` | **PC** | `False` |
 
 ## Operator actions
 

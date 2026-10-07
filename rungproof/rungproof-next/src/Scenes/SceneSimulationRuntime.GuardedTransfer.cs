@@ -13,15 +13,6 @@ public partial class SceneSimulationRuntime
     private ConveyorController? _guardedDrive;
     private float _guardedExitX;
 
-    private static Aabb GuardedBounds(Node3D node)
-    {
-        var meshes = node.FindChildren("*", "MeshInstance3D", true, false).OfType<MeshInstance3D>().ToArray();
-        if (meshes.Length == 0) throw new InvalidOperationException($"No delivered meshes for {node.Name}.");
-        var bounds = meshes[0].GlobalTransform * meshes[0].GetAabb();
-        foreach (var mesh in meshes.Skip(1)) bounds = bounds.Merge(mesh.GlobalTransform * mesh.GetAabb());
-        return bounds;
-    }
-
     private void ResetGuardedTransfer()
     {
         if (!HasGuardedTransfer) return;
@@ -30,7 +21,7 @@ public partial class SceneSimulationRuntime
         _guardedDrive = conveyor.FindChildren("*", string.Empty, true, false).OfType<ConveyorController>().Single();
         var surface = (MeshInstance3D)conveyor.FindChild("KIN_belt_surface", true, false);
         var belt = surface.GlobalTransform * surface.GetAabb();
-        var load = GuardedBounds(_guardedCarton);
+        var load = DeliveredEquipmentBounds(_guardedCarton);
         // Keep the complete delivered carton footprint on the actual belt,
         // including a 10 mm endpoint margin. No wraparound or disappearance.
         _guardedExitX = _guardedCarton.Position.X + belt.End.X - load.End.X - .01f;
@@ -69,7 +60,7 @@ public partial class SceneSimulationRuntime
 
     private void ProjectGuardedTransfer()
     {
-        var load = GuardedBounds(_guardedCarton!);
+        var load = DeliveredEquipmentBounds(_guardedCarton!);
         foreach (var (sensorId, point) in new[] { ("photoeye_2", "entry_carton_present"), ("photoeye_3", "exit_carton_present") })
         {
             // The imported dashed witness route is straight and transverse.

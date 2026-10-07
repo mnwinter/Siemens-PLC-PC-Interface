@@ -31,7 +31,7 @@ public partial class Main
             passed = false;
             GD.PushError($"TOTE_FINISHING_EXCEPTION {error}");
         }
-        GD.Print($"TOTE_FINISHING_VERIFY {(passed ? "PASS" : "FAIL")} Start binding, geometry and standalone preview only; controller-driven finishing and native review pending");
+        GD.Print($"TOTE_FINISHING_VERIFY {(passed ? "PASS" : "FAIL")} Start binding, controller-clocked tote travel and standalone geometry preview; station processes and native review pending");
         GetTree().Quit(passed ? 0 : 1);
     }
 

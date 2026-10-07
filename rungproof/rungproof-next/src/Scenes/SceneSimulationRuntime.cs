@@ -74,6 +74,7 @@ public partial class SceneSimulationRuntime : Node
         if (selected && !running) PauseCoatingClock();
         if (selected && !running) PauseHandDryer();
         if (selected && !running) PauseGuardedTransfer();
+        if (selected && !running) PauseToteTransfer();
         if (selected && !running) PauseLuggagePlant();
         if(selected && !running && HasEvPlant) PauseEvPlant();
         if (selected && running) ApplyBindings();
@@ -105,6 +106,7 @@ public partial class SceneSimulationRuntime : Node
         if (!running) PauseCoatingClock();
         if (!running) PauseHandDryer();
         if (!running) PauseGuardedTransfer();
+        if (!running) PauseToteTransfer();
         if (!running) PauseLuggagePlant();
         if(!running && HasEvPlant) PauseEvPlant();
         if (RuntimeType == "tank") ProjectTankState();
@@ -128,6 +130,7 @@ public partial class SceneSimulationRuntime : Node
         FreezeCoatingAdapters();
         FreezeHandDryerAdapter();
         _guardedDrive?.SetPhysicsProcess(false);
+        FreezeToteTransferAdapter();
         FreezeLuggageAdapters();
     }
 
@@ -236,6 +239,7 @@ public partial class SceneSimulationRuntime : Node
         if (HasCoatingPlant) { AdvanceCoatingPlant(delta); return; }
         if (HasHandDryer) { AdvanceHandDryer(delta); return; }
         if (HasGuardedTransfer) { AdvanceGuardedTransfer(delta); return; }
+        if (HasToteTransfer && UsesExternalClock) { AdvanceToteTransfer(delta); return; }
         if (HasLuggagePlant) { AdvanceLuggagePlant(delta); return; }
         if (HasEvPlant) { AdvanceEvPlant(delta); return; }
         if (HasParkingEntryPlant) { AdvanceParkingEntryPlant(delta); return; }
@@ -417,6 +421,7 @@ public partial class SceneSimulationRuntime : Node
         PauseCoatingClock();
         PauseHandDryer();
         PauseGuardedTransfer();
+        PauseToteTransfer();
         PauseLuggagePlant();
         if(HasEvPlant) PauseEvPlant();
         _shippingPalletReferenceActive = false;
@@ -511,6 +516,7 @@ public partial class SceneSimulationRuntime : Node
         ResetCoatingPlant();
         ResetHandDryer();
         ResetGuardedTransfer();
+        ResetToteTransfer();
         ResetLuggagePlant();
         ResetEvPlant();
         ResetParkingEntryPlant();
