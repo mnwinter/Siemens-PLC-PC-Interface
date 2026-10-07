@@ -1,7 +1,7 @@
 # Open-fill IBC - finishing installation candidate help
 
-Asset ID: `loads.ibc.open-finishing.v1`  
-Catalog status: **candidate / candidate**  
+Asset ID: `loads.ibc.open-finishing.v1`
+Catalog status: **candidate / candidate**
 Category: `loads/containers`
 
 ## Purpose and integration boundary
