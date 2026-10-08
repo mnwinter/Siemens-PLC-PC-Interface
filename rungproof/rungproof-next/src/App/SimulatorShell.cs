@@ -8682,20 +8682,41 @@ public partial class SimulatorShell : CanvasLayer
             result = "Scenario menu is unavailable";
             return false;
         }
-        var expected = AuthoredDemos[0];
-        var index = Enumerable.Range(0, popup.ItemCount)
-            .FirstOrDefault(item => popup.GetItemText(item) == expected.Label, -1);
-        if (index < 0)
+        // Exercise each real menu binding; checking the authored files alone
+        // cannot detect a later menu item loading another scene's editor draft.
+        var verified = 0;
+        // Leave Demo 1 active, as before, for the subsequent cross-scene open check.
+        foreach (var expected in AuthoredDemos.Skip(1).Concat(AuthoredDemos.Take(1)))
         {
-            result = $"Scenario menu item is missing: {expected.Label}";
-            return false;
+            var index = Enumerable.Range(0, popup.ItemCount)
+                .FirstOrDefault(item => popup.GetItemText(item) == expected.Label, -1);
+            if (index < 0)
+            {
+                result = $"Scenario menu item is missing: {expected.Label}";
+                return false;
+            }
+            popup.EmitSignal(PopupMenu.SignalName.IdPressed, popup.GetItemId(index));
+            if (_activeScene?.Id != expected.SceneId
+                || _ladderDocument.SourceSceneId != expected.SceneId
+                || _sceneTitle.Text != expected.Label)
+            {
+                result = $"Scenario menu mismatch: {expected.Label}; scene={_activeScene?.Id ?? "<none>"} editor={_ladderDocument.SourceSceneId} title={_sceneTitle.Text}";
+                return false;
+            }
+            var program = _ladderDocument.BuildProgram();
+            var compile = LadderCompiler.Compile(program);
+            var bindingIssues = SceneIoBindingValidator.Validate(program, ScenePoints());
+            if (!compile.IsValid || bindingIssues.Count > 0
+                || !AuthoredDemoLadderPrograms.TryCreate(expected.SceneId, out var authored)
+                || LadderEditorProjectJson.Save(_ladderDocument) != LadderEditorProjectJson.Save(authored))
+            {
+                result = $"Scenario menu loaded an invalid or different demo draft: {expected.Label}; compile={compile.IsValid} bindingIssues={bindingIssues.Count}";
+                return false;
+            }
+            verified++;
         }
-        popup.EmitSignal(PopupMenu.SignalName.IdPressed, popup.GetItemId(index));
-        var selected = _activeScene?.Id == expected.SceneId;
-        result = selected
-            ? $"Scenario menu selected {expected.Label}"
-            : $"Scenario menu click did not load {expected.SceneId}; active={_activeScene?.Id ?? "<none>"}";
-        return selected;
+        result = $"demoSelections={verified}/{AuthoredDemos.Length} scene/editor/title/program/interface match";
+        return verified == AuthoredDemos.Length;
     }
 
     public void ShowLadderSaveDialog() => _ladderSaveDialog.PopupCenteredRatio(0.72f);
