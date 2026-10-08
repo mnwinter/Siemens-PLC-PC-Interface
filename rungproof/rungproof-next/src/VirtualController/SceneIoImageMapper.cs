@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace RungProof.Next.VirtualController;
 
@@ -10,6 +11,18 @@ namespace RungProof.Next.VirtualController;
 /// </summary>
 public static class SceneIoImageMapper
 {
+    public static IReadOnlyDictionary<string, object> SampleAggregateInputs(LadderProgram program, IReadOnlyDictionary<string, object> sceneInputs)
+    {
+        var roots = program.Variables.Where(v => v.Role == PlcVariableRole.Input && PlcAggregates.IsAggregate(v.Type) && v.Binding.Length > 0 && sceneInputs.ContainsKey(v.Binding)).ToArray();
+        // Validate the complete shape before handing any values to the scan executor.
+        PlcAggregates.Expand(roots.Select(v => v with { InitialValue = sceneInputs[v.Binding] }).ToArray());
+        return roots.ToDictionary(v => v.Name, v => sceneInputs[v.Binding], StringComparer.Ordinal);
+    }
+
+    public static IReadOnlyDictionary<string, object> CommitAggregateOutputs(LadderProgram program, VirtualControllerSnapshot snapshot) =>
+        program.Variables.Where(v => v.Role == PlcVariableRole.Output && PlcAggregates.IsAggregate(v.Type) && v.Binding.Length > 0)
+            .ToDictionary(v => v.Binding, v => snapshot.Aggregates[v.Name], StringComparer.Ordinal);
+
     public static IReadOnlyDictionary<string, bool> SampleBoolInputs(
         LadderProgram program,
         IReadOnlyDictionary<string, bool> sceneInputs)
@@ -17,7 +30,7 @@ public static class SceneIoImageMapper
         ArgumentNullException.ThrowIfNull(program);
         ArgumentNullException.ThrowIfNull(sceneInputs);
         var mapped = new Dictionary<string, bool>(StringComparer.Ordinal);
-        foreach (var variable in program.Variables)
+        foreach (var variable in PlcAggregates.Expand(program.Variables))
         {
             if (variable.Role != PlcVariableRole.Input
                 || variable.Type != PlcVariableType.Bool
@@ -34,7 +47,7 @@ public static class SceneIoImageMapper
         ArgumentNullException.ThrowIfNull(program);
         ArgumentNullException.ThrowIfNull(sceneInputs);
         var mapped = new Dictionary<string, double>(StringComparer.Ordinal);
-        foreach (var variable in program.Variables)
+        foreach (var variable in PlcAggregates.Expand(program.Variables))
         {
             if (variable.Role != PlcVariableRole.Input
                 || variable.Type is not (PlcVariableType.Int or PlcVariableType.DInt or PlcVariableType.Real)
@@ -51,7 +64,7 @@ public static class SceneIoImageMapper
         ArgumentNullException.ThrowIfNull(program);
         ArgumentNullException.ThrowIfNull(controllerOutputs);
         var mapped = new Dictionary<string, bool>(StringComparer.Ordinal);
-        foreach (var variable in program.Variables)
+        foreach (var variable in PlcAggregates.Expand(program.Variables))
         {
             if (variable.Role != PlcVariableRole.Output
                 || variable.Type != PlcVariableType.Bool
@@ -69,7 +82,7 @@ public static class SceneIoImageMapper
         ArgumentNullException.ThrowIfNull(program);
         ArgumentNullException.ThrowIfNull(controllerOutputs);
         var mapped = new Dictionary<string, double>(StringComparer.Ordinal);
-        foreach (var variable in program.Variables)
+        foreach (var variable in PlcAggregates.Expand(program.Variables))
         {
             if (variable.Role != PlcVariableRole.Output
                 || variable.Type is not (PlcVariableType.Int or PlcVariableType.DInt or PlcVariableType.Real)

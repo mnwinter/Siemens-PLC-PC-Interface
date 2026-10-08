@@ -304,6 +304,14 @@ public sealed partial class LadderEditorDocument
         ActiveBlockIndex = index;
     }
 
+    public PlcVariable AddAggregateTag(string name, PlcVariableRole role, PlcVariableType type, PlcAggregateSchema schema, object initialValue, string binding = "")
+    {
+        if (!PlcAggregates.IsAggregate(type)) throw new ArgumentException("Aggregate tag requires STRUCT or ARRAY.");
+        var tag = new PlcVariable(name.Trim(), type, role, initialValue, binding.Trim(), schema);
+        PlcAggregates.Expand(Tags.Append(tag).ToArray());
+        Tags.Add(tag); return tag;
+    }
+
     public PlcVariable AddTag(
         string name,
         PlcVariableRole role,
@@ -324,7 +332,8 @@ public sealed partial class LadderEditorDocument
         PlcVariableType type,
         PlcVariableRole role,
         string binding = "",
-        object? initialValue = null)
+        object? initialValue = null,
+        PlcAggregateSchema? aggregate = null)
     {
         var index = Tags.FindIndex(tag => tag.Name.Equals(currentName, StringComparison.Ordinal));
         if (index < 0) throw new InvalidOperationException($"Tag '{currentName}' does not exist.");
@@ -339,16 +348,22 @@ public sealed partial class LadderEditorDocument
             binding = string.Empty;
         }
         var current = Tags[index];
+        var normalizedInitialValue = initialValue ?? (current.Type == type ? current.InitialValue : InitialValue(type));
+        var updatedSchema = PlcAggregates.IsAggregate(type) ? aggregate ?? (current.Type == type ? current.Aggregate : null) : null;
+        if (PlcAggregates.IsAggregate(type)) PlcAggregates.Expand([current with { Name = normalizedName, Type = type, InitialValue = normalizedInitialValue, Aggregate = updatedSchema }]);
+        else ValidateInitialValue(type, normalizedInitialValue);
+        var updated = new PlcVariable(normalizedName, type, role, normalizedInitialValue, binding.Trim(), updatedSchema);
+        if (PlcAggregates.IsAggregate(type) || Tags.Any(tag => PlcAggregates.IsAggregate(tag.Type)))
+            PlcAggregates.Expand(Tags.Where((_, tagIndex) => tagIndex != index).Append(updated).ToArray());
         if (!current.Name.Equals(normalizedName, StringComparison.Ordinal))
         {
             RenameTagReferences(current.Name, normalizedName);
             for (var watchIndex = 0; watchIndex < WatchVariables.Count; watchIndex++)
-                if (WatchVariables[watchIndex].Equals(current.Name, StringComparison.Ordinal))
-                    WatchVariables[watchIndex] = normalizedName;
+                if (WatchVariables[watchIndex].Equals(current.Name, StringComparison.Ordinal)
+                    || WatchVariables[watchIndex].StartsWith(current.Name + ".", StringComparison.Ordinal)
+                    || WatchVariables[watchIndex].StartsWith(current.Name + "[", StringComparison.Ordinal))
+                    WatchVariables[watchIndex] = normalizedName + WatchVariables[watchIndex][current.Name.Length..];
         }
-        var normalizedInitialValue = initialValue ?? (current.Type == type ? current.InitialValue : InitialValue(type));
-        ValidateInitialValue(type, normalizedInitialValue);
-        var updated = new PlcVariable(normalizedName, type, role, normalizedInitialValue, binding.Trim());
         Tags[index] = updated;
         return updated;
     }
@@ -357,7 +372,8 @@ public sealed partial class LadderEditorDocument
     {
         var count = 0;
         bool Matches(string operand) => operand.Equals(name, StringComparison.Ordinal)
-            || operand.StartsWith(name + ".", StringComparison.Ordinal);
+            || operand.StartsWith(name + ".", StringComparison.Ordinal)
+            || operand.StartsWith(name + "[", StringComparison.Ordinal);
         foreach (var block in Blocks)
         foreach (var rung in block.Rungs)
         {
@@ -387,7 +403,7 @@ public sealed partial class LadderEditorDocument
         var index = Tags.FindIndex(tag => tag.Name.Equals(name, StringComparison.Ordinal));
         if (index < 0) return false;
         Tags.RemoveAt(index);
-        WatchVariables.RemoveAll(item => item.Equals(name, StringComparison.Ordinal));
+        WatchVariables.RemoveAll(item => item.Equals(name, StringComparison.Ordinal) || item.StartsWith(name + ".", StringComparison.Ordinal) || item.StartsWith(name + "[", StringComparison.Ordinal));
         return true;
     }
 
@@ -396,7 +412,7 @@ public sealed partial class LadderEditorDocument
         string RenameOperand(string operand)
         {
             if (operand.Equals(oldName, StringComparison.Ordinal)) return newName;
-            return operand.StartsWith(oldName + ".", StringComparison.Ordinal)
+            return operand.StartsWith(oldName + ".", StringComparison.Ordinal) || operand.StartsWith(oldName + "[", StringComparison.Ordinal)
                 ? newName + operand[oldName.Length..]
                 : operand;
         }

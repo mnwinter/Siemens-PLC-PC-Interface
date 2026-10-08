@@ -30,6 +30,8 @@ public static class SceneLadderProject
                 "INT" => PlcVariableType.Int,
                 "DINT" => PlcVariableType.DInt,
                 "REAL" => PlcVariableType.Real,
+                "STRUCT" => PlcVariableType.Struct,
+                "ARRAY" => PlcVariableType.Array,
                 _ => null,
             };
             if (type is null)
@@ -43,7 +45,12 @@ public static class SceneLadderProject
             // at the scene boundary; retain strict validation for other values.
             if (type == PlcVariableType.Real && initial is long integer)
                 initial = (double)integer;
-            document.AddTag(point.Name, input ? PlcVariableRole.Input : PlcVariableRole.Output,
+            if (PlcAggregates.IsAggregate(type.Value))
+            {
+                if (point.Aggregate is null || initial is null) throw new ArgumentException($"Aggregate scene point '{point.Name}' requires schema and initial data.");
+                document.AddAggregateTag(point.Name, input ? PlcVariableRole.Input : PlcVariableRole.Output, type.Value, point.Aggregate, initial, point.Name);
+            }
+            else document.AddTag(point.Name, input ? PlcVariableRole.Input : PlcVariableRole.Output,
                 point.Name, type.Value, initial);
             document.WatchVariables.Add(point.Name);
         }

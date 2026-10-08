@@ -8,8 +8,7 @@
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Program.cs" />
-    <Compile Include="MotorAggregateTests.cs" />
-    <Compile Include="..\src\VirtualController\*.cs" />
+    <Compile Include="WastewaterPlantChecks.cs" />
+    <Compile Include="..\src\Scenes\WastewaterPlantModel.cs" />
   </ItemGroup>
 </Project>

@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-10-05-motor-struct-data",
   "name": "Lab 10.5 - Motor STRUCT Data",
-  "description": "Motor validity exercise with BOOL inputs and motor/status outputs. No STRUCT-valued record, power or temperature measurement is supplied; author or load controller logic before Run.",
+  "description": "Typed motor feedback and command STRUCT exercise with legacy BOOL compatibility. Numeric power/temperature data are explicit user or fixture values without a physical process model or specified units; author or load controller logic before Run.",
   "camera": {
     "position": [
       11,
@@ -71,7 +71,7 @@
     {
       "id": "training_accessory_3",
       "type": "trainingAccessory",
-      "label": "Motor Record display - no live value",
+      "label": "Motor record fixture display",
       "position": [
         3.3,
         0,
@@ -87,7 +87,7 @@
     {
       "id": "training_accessory_4",
       "type": "trainingAccessory",
-      "label": "Temperature display - no live value",
+      "label": "Temperature fixture display - units unspecified",
       "position": [
         -3.3,
         0,
@@ -96,14 +96,15 @@
       "config": {
         "assetName": "supported diagnostic display",
         "catalogAssetId": "training.accessory.count_display.v1",
-        "display": "staticText",
-        "displayText": "TEMPERATURE\nNO DATA"
+        "display": "numeric",
+        "displayText": "TEMP SIM VALUE\nNO DATA",
+        "displayLabel": "TEMP SIM VALUE"
       }
     },
     {
       "id": "training_accessory_5",
       "type": "trainingAccessory",
-      "label": "Struct Data display - no live value",
+      "label": "Power fixture display - units unspecified",
       "position": [
         -1.1,
         0,
@@ -112,8 +113,9 @@
       "config": {
         "assetName": "supported diagnostic display",
         "catalogAssetId": "training.accessory.count_display.v1",
-        "display": "staticText",
-        "displayText": "STRUCT DATA\nNO DATA"
+        "display": "numeric",
+        "displayText": "POWER SIM VALUE\nNO DATA",
+        "displayLabel": "POWER SIM VALUE"
       }
     },
     {
@@ -217,6 +219,81 @@
         "owner": "PLC",
         "initial": false,
         "role": "output"
+      },
+      {
+        "type": "STRUCT",
+        "initial": {
+          "record_valid": false,
+          "temperature": 0.0,
+          "power": 0.0,
+          "temperature_valid": false,
+          "alarm_clear": false,
+          "power_valid": false
+        },
+        "owner": "PC",
+        "name": "motor_feedback",
+        "aggregate": {
+          "fields": [
+            {
+              "name": "record_valid",
+              "type": "Bool"
+            },
+            {
+              "name": "temperature_valid",
+              "type": "Bool"
+            },
+            {
+              "name": "alarm_clear",
+              "type": "Bool"
+            },
+            {
+              "name": "power_valid",
+              "type": "Bool"
+            },
+            {
+              "name": "power",
+              "type": "Real"
+            },
+            {
+              "name": "temperature",
+              "type": "Real"
+            }
+          ]
+        }
+      },
+      {
+        "aggregate": {
+          "fields": [
+            {
+              "name": "enable",
+              "type": "Bool"
+            },
+            {
+              "name": "record_ready",
+              "type": "Bool"
+            }
+          ]
+        },
+        "type": "STRUCT",
+        "owner": "PLC",
+        "name": "motor_command",
+        "initial": {
+          "record_ready": false,
+          "enable": false
+        },
+        "role": "output"
+      },
+      {
+        "type": "BOOL",
+        "initial": false,
+        "owner": "SIM",
+        "name": "motor_effective_enable"
+      },
+      {
+        "type": "BOOL",
+        "initial": false,
+        "owner": "SIM",
+        "name": "motor_effective_ready"
       }
     ],
     "actions": [
@@ -258,23 +335,46 @@
         "mode": "switch"
       },
       {
-        "point": "motor_enable",
+        "point": "motor_effective_enable",
         "equipmentId": "indicator_2",
         "mode": "indicator",
         "activeColor": "green"
       },
       {
-        "point": "record_ready",
+        "point": "motor_effective_ready",
         "equipmentId": "indicator_9",
         "mode": "indicator",
         "activeColor": "green"
       },
       {
-        "point": "motor_enable",
+        "point": "motor_effective_enable",
         "equipmentId": "motor_0",
         "mode": "running"
+      },
+      {
+        "equipmentId": "training_accessory_4",
+        "mode": "numericDisplay",
+        "label": "TEMP SIM VALUE",
+        "validPoint": "motor_feedback.temperature_valid",
+        "format": "G",
+        "point": "motor_feedback.temperature"
+      },
+      {
+        "equipmentId": "training_accessory_5",
+        "mode": "numericDisplay",
+        "label": "POWER SIM VALUE",
+        "validPoint": "motor_feedback.power_valid",
+        "format": "G",
+        "point": "motor_feedback.power"
       }
-    ]
+    ],
+    "aggregateFeedbackAliases": {
+      "motor_feedback.temperature_valid": "temperature_valid",
+      "motor_feedback.record_valid": "motor_record_valid",
+      "motor_feedback.alarm_clear": "alarm_clear"
+    },
+    "motorAggregateCommands": "single",
+    "combineRunningCommands": true
   },
   "training": {
     "hints": [
@@ -297,7 +397,7 @@
       "structured-data monitor"
     ],
     "machineGuide": {
-      "purpose": "Motor validity exercise with BOOL inputs and motor/status outputs. No STRUCT-valued record, power or temperature measurement is supplied; author or load controller logic before Run.",
+      "purpose": "Typed motor feedback and command STRUCT exercise with legacy BOOL compatibility. Numeric power/temperature data are explicit user or fixture values without a physical process model or specified units; author or load controller logic before Run.",
       "startConditions": [
         "The common PLC/watchdog foundation is healthy.",
         "All required simulator inputs are at their documented initial state."
@@ -337,7 +437,8 @@
     "changedTags": [],
     "previousAcceptance": [
       "lab-10-04-motor-enum-state"
-    ]
+    ],
+    "purpose": "Typed motor feedback and command STRUCT exercise with legacy BOOL compatibility. Numeric power/temperature data are explicit user or fixture values without a physical process model or specified units; author or load controller logic before Run."
   },
   "verification": {
     "cases": [

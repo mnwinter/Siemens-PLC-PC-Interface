@@ -3502,7 +3502,8 @@ public partial class SimulatorShell : CanvasLayer
                     type,
                     Text(point, "owner"),
                     Text(point, "role"),
-                    Text(point, "purpose")));
+                    Text(point, "purpose"),
+                    point.TryGetProperty("aggregate", out var schema) ? PlcAggregates.ParseSchema(schema) : null));
         }
         return result;
     }
@@ -4869,6 +4870,9 @@ public partial class SimulatorShell : CanvasLayer
         tagType.AddItem("INT");
         tagType.AddItem("DINT");
         tagType.AddItem("REAL");
+        tagType.AddItem("STRUCT");
+        tagType.AddItem("ARRAY");
+        var aggregateTagEditor = new AggregateTagEditor();
         var tagRole = new OptionButton { Name = "NewTagRole" };
         tagRole.AddItem("Input");
         tagRole.AddItem("Memory");
@@ -5129,6 +5133,8 @@ public partial class SimulatorShell : CanvasLayer
             3 => PlcVariableType.Int,
             4 => PlcVariableType.DInt,
             5 => PlcVariableType.Real,
+            6 => PlcVariableType.Struct,
+            7 => PlcVariableType.Array,
             _ => PlcVariableType.Bool,
         };
 
@@ -5139,6 +5145,8 @@ public partial class SimulatorShell : CanvasLayer
 
         static string FormatTagInitialValue(PlcVariable variable) => variable.Type switch
         {
+            PlcVariableType.Struct => $"{variable.Aggregate?.Fields?.Count ?? 0} typed fields",
+            PlcVariableType.Array => $"[{variable.Aggregate?.LowerBound}..{(long)(variable.Aggregate?.LowerBound ?? 0) + (variable.Aggregate?.Length ?? 0) - 1}] {variable.Aggregate?.ElementType}",
             PlcVariableType.Bool => ((bool)variable.InitialValue).ToString().ToUpperInvariant(),
             PlcVariableType.Real => Convert.ToDouble(variable.InitialValue,
                 System.Globalization.CultureInfo.InvariantCulture).ToString("R", System.Globalization.CultureInfo.InvariantCulture),
@@ -5149,10 +5157,26 @@ public partial class SimulatorShell : CanvasLayer
 
         bool TryReadTagInitialValue(PlcVariableType type, out object initialValue)
         {
+            if (PlcAggregates.IsAggregate(type))
+            {
+                if (aggregateTagEditor.TryRead(type, out _, out initialValue, out var aggregateError)) return true;
+                output.Text = $"[color=#d64545]Tag definition rejected.[/color] {Escape(aggregateError)}"; return false;
+            }
             if (LadderEditorDocument.TryParseInitialValue(type, tagInitialValue.Text, out initialValue, out var error))
                 return true;
             output.Text = $"[color=#d64545]Tag definition rejected.[/color] {Escape(error)}";
             return false;
+        }
+
+        bool PreflightTagEdit(Func<LadderEditorDocument, PlcVariable> edit)
+        {
+            var preview = new LadderEditorDocument(); preview.RestoreSnapshot(document.CaptureSnapshot());
+            try { edit(preview); return true; }
+            catch (Exception error) when (error is ArgumentException or InvalidOperationException)
+            {
+                output.Text = $"[color=#d64545]Tag definition rejected.[/color] {Escape(error.Message)}";
+                return false;
+            }
         }
 
         string SelectedTagBinding() => tagBinding.Selected >= 0
@@ -5173,7 +5197,7 @@ public partial class SimulatorShell : CanvasLayer
                 }
             }
             if (role is PlcVariableRole.Input or PlcVariableRole.Output
-                && type is PlcVariableType.Bool or PlcVariableType.Int or PlcVariableType.DInt or PlcVariableType.Real)
+                && type is PlcVariableType.Bool or PlcVariableType.Int or PlcVariableType.DInt or PlcVariableType.Real or PlcVariableType.Struct or PlcVariableType.Array)
             {
                 foreach (var scenePoint in ScenePoints().Where(candidate =>
                              SceneIoBindingValidator.TypesCompatible(type, candidate.Type)
@@ -5203,7 +5227,7 @@ public partial class SimulatorShell : CanvasLayer
                 selected = tagBinding.ItemCount - 1;
             }
             tagBinding.Select(Math.Max(0, selected));
-            var bindableType = type is PlcVariableType.Bool or PlcVariableType.Int or PlcVariableType.DInt or PlcVariableType.Real;
+            var bindableType = type is PlcVariableType.Bool or PlcVariableType.Int or PlcVariableType.DInt or PlcVariableType.Real or PlcVariableType.Struct or PlcVariableType.Array;
             tagBinding.Disabled = !bindableType || role == PlcVariableRole.Memory;
             var binding = SelectedTagBinding();
             var selectedPoint = ScenePoints().FirstOrDefault(candidate => candidate.Name == binding);
@@ -5379,6 +5403,23 @@ public partial class SimulatorShell : CanvasLayer
             var tagRoot = tagList.CreateItem();
             foreach (var (tag, index) in document.Tags.Select((tag, index) => (tag, index)))
             {
+                if (PlcAggregates.IsAggregate(tag.Type))
+                {
+                    foreach (var leaf in AggregateEditorLeaves(tag))
+                    {
+                        var context = $"{tag.Name} · {tag.Type} member · {leaf.Type} · {leaf.Role}";
+                        if (leaf.Type == PlcVariableType.Bool)
+                        {
+                            tagSelector.AddItem(leaf.Name); tagSelector.SetItemTooltip(tagSelector.ItemCount - 1, context);
+                            if (leaf.Role != PlcVariableRole.Input) { coilSelector.AddItem(leaf.Name); coilSelector.SetItemTooltip(coilSelector.ItemCount - 1, context); }
+                        }
+                        else
+                        {
+                            compareLeft.AddItem(leaf.Name); compareLeft.SetItemTooltip(compareLeft.ItemCount - 1, context);
+                            if (leaf.Role != PlcVariableRole.Input) { numericDestination.AddItem(leaf.Name); numericDestination.SetItemTooltip(numericDestination.ItemCount - 1, context); }
+                        }
+                    }
+                }
                 if (tag.Type == PlcVariableType.Bool)
                 {
                     tagSelector.AddItem(tag.Name);
@@ -5415,7 +5456,7 @@ public partial class SimulatorShell : CanvasLayer
                 tagRow.SetText(3, FormatTagInitialValue(tag));
                 tagRow.SetText(4, string.IsNullOrWhiteSpace(tag.Binding) ? "—" : tag.Binding);
                 tagRow.SetTooltipText(0, tag.Name);
-                tagRow.SetTooltipText(1, tag.Type.ToString().ToUpperInvariant());
+                tagRow.SetTooltipText(1, PlcAggregates.IsAggregate(tag.Type) ? string.Join("\n", AggregateEditorLeaves(tag).Select(leaf => $"{leaf.Name}: {leaf.Type}")) : tag.Type.ToString().ToUpperInvariant());
                 tagRow.SetTooltipText(2, tag.Role.ToString().ToUpperInvariant());
                 tagRow.SetTooltipText(3, FormatTagInitialValue(tag));
                 tagRow.SetTooltipText(4, string.IsNullOrWhiteSpace(tag.Binding) ? "—" : tag.Binding);
@@ -5472,8 +5513,7 @@ public partial class SimulatorShell : CanvasLayer
                     }
                 }
                 rungLabel.Text = rung.Label;
-                var coilIndex = document.Tags.Where(tag => tag.Type == PlcVariableType.Bool && tag.Role != PlcVariableRole.Input).ToList()
-                    .FindIndex(tag => tag.Name == rung.CoilVariable);
+                var coilIndex = Enumerable.Range(0, coilSelector.ItemCount).FirstOrDefault(index => coilSelector.GetItemText(index) == rung.CoilVariable, -1);
                 if (coilIndex >= 0) coilSelector.Select(coilIndex);
                 coilModeSelector.Select((int)rung.CoilMode);
                 var timerIndex = document.Tags.Where(tag => tag.Type == PlcVariableType.Timer).ToList()
@@ -5890,6 +5930,7 @@ public partial class SimulatorShell : CanvasLayer
 
         string WatchValue(PlcVariable variable, VirtualControllerSnapshot snapshot)
         {
+            if (PlcAggregates.IsAggregate(variable.Type)) return AggregateWatchValue(variable, snapshot);
             if (variable.Type == PlcVariableType.Bool)
                 return snapshot.Variables.TryGetValue(variable.Name, out var boolean)
                     ? boolean.ToString().ToUpperInvariant() : "—";
@@ -5911,7 +5952,8 @@ public partial class SimulatorShell : CanvasLayer
             // Scan publication changes values, not the controls' identity.
             // Clearing each scan loses selection and disrupts an open symbol
             // menu or a Remove click between mouse-down and mouse-up.
-            var tagNames = document.Tags.Select(tag => tag.Name).ToArray();
+            var watchVariables = AggregateWatchVariables(document.Tags).ToArray();
+            var tagNames = watchVariables.Select(tag => tag.Name).ToArray();
             if (!watchTagNames.SequenceEqual(tagNames, StringComparer.Ordinal))
             {
                 var selectedSymbol = watchSymbol.Selected >= 0 ? watchSymbol.GetItemText(watchSymbol.Selected) : string.Empty;
@@ -5922,7 +5964,7 @@ public partial class SimulatorShell : CanvasLayer
                 watchTagNames = tagNames;
             }
             var variables = document.WatchVariables
-                .Select(name => document.Tags.FirstOrDefault(tag => tag.Name == name))
+                .Select(name => watchVariables.FirstOrDefault(tag => tag.Name == name))
                 .OfType<PlcVariable>().ToArray();
             var rowNames = variables.Select(variable => variable.Name).ToArray();
             if (watchTable.GetRoot() is null || !watchRowNames.SequenceEqual(rowNames, StringComparer.Ordinal))
@@ -6264,6 +6306,7 @@ public partial class SimulatorShell : CanvasLayer
         tagPage.AddChild(TagFieldRow("TagTypeRow", "TYPE", tagType));
         tagPage.AddChild(TagFieldRow("TagRoleRow", "ROLE", tagRole));
         tagPage.AddChild(TagFieldRow("TagInitialValueRow", "INITIAL", tagInitialValue));
+        tagPage.AddChild(aggregateTagEditor);
         tagPage.AddChild(TagFieldRow("TagBindingRow", "BINDING", tagBinding));
         tagPage.AddChild(tagBindingStatus);
         var addTag = ToolbarButton("AddTag", "+ ADD TAG", accent, 180);
@@ -6504,13 +6547,16 @@ public partial class SimulatorShell : CanvasLayer
                 PlcVariableType.Int => 3,
                 PlcVariableType.DInt => 4,
                 PlcVariableType.Real => 5,
+                PlcVariableType.Struct => 6,
+                PlcVariableType.Array => 7,
                 _ => 0,
             });
             tagRole.Select((int)tag.Role);
             var isInstance = tag.Type is PlcVariableType.Timer or PlcVariableType.Counter;
             tagRole.Disabled = isInstance;
             tagInitialValue.Text = FormatTagInitialValue(tag);
-            tagInitialValue.Editable = !isInstance;
+            tagInitialValue.Editable = !isInstance && !PlcAggregates.IsAggregate(tag.Type);
+            aggregateTagEditor.Load(tag.Type, tag.Aggregate, tag.InitialValue);
             RefreshTagBindingOptions(tag.Type, tag.Role, tag.Binding);
             applyTagEdit!.Disabled = false;
             deleteTag!.Disabled = false;
@@ -6544,10 +6590,11 @@ public partial class SimulatorShell : CanvasLayer
             var type = SelectedTagType();
             var role = SelectedTagRole(type);
             if (!TryReadTagInitialValue(type, out var initialValue)) return;
+            var schema = PlcAggregates.IsAggregate(type) && aggregateTagEditor.TryRead(type, out var editedSchema, out _, out _) ? editedSchema : null;
+            var binding = type is PlcVariableType.Timer or PlcVariableType.Counter ? string.Empty : SelectedTagBinding();
+            if (!PreflightTagEdit(preview => preview.UpdateTag(current.Name, normalizedName, type, role, binding, initialValue, schema))) return;
             if (!BeginEdit("Update tag definition")) return;
-            var updated = document.UpdateTag(current.Name, normalizedName, type, role,
-                type is PlcVariableType.Timer or PlcVariableType.Counter ? string.Empty : SelectedTagBinding(),
-                initialValue);
+            var updated = document.UpdateTag(current.Name, normalizedName, type, role, binding, initialValue, schema);
             RefreshEditor();
             output.Text = $"[color=#18864b]Tag updated.[/color] {Escape(updated.Name)} · {updated.Type} · {updated.Role}. All symbolic references were renamed atomically.";
         };
@@ -7779,7 +7826,8 @@ public partial class SimulatorShell : CanvasLayer
                 _ => "new_bool_tag",
             };
             var type = SelectedTagType();
-            tagInitialValue.Editable = !isInstance;
+            tagInitialValue.Editable = !isInstance && !PlcAggregates.IsAggregate(type);
+            aggregateTagEditor.Load(type);
             tagInitialValue.PlaceholderText = type switch
             {
                 PlcVariableType.Bool => "FALSE",
@@ -7800,6 +7848,8 @@ public partial class SimulatorShell : CanvasLayer
         {
             var type = SelectedTagType();
             RefreshTagBindingOptions(type, SelectedTagRole(type), SelectedTagBinding());
+            if (PlcAggregates.IsAggregate(type) && ScenePoints().FirstOrDefault(p => p.Name == SelectedTagBinding()) is { Aggregate: not null } root)
+                aggregateTagEditor.Load(type, root.Aggregate, _runtime?.Points.GetValueOrDefault(root.Name));
         };
         addTag.Pressed += () =>
         {
@@ -7807,10 +7857,16 @@ public partial class SimulatorShell : CanvasLayer
             var type = SelectedTagType();
             var role = SelectedTagRole(type);
             if (!TryReadTagInitialValue(type, out var initialValue)) return;
+            if (document.Tags.Any(tag => tag.Name == tagName.Text.Trim()))
+            { output.Text = "[color=#d64545]Tag definition rejected.[/color] Tag name already exists."; return; }
+            var schema = PlcAggregates.IsAggregate(type) && aggregateTagEditor.TryRead(type, out var newSchema, out _, out _) ? newSchema : null;
+            var binding = type is PlcVariableType.Timer or PlcVariableType.Counter ? string.Empty : SelectedTagBinding();
+            PlcVariable AddDefinition(LadderEditorDocument target) => schema is not null
+                ? target.AddAggregateTag(tagName.Text, role, type, schema, initialValue, binding)
+                : target.AddTag(tagName.Text, role, binding, type, initialValue);
+            if (!PreflightTagEdit(AddDefinition)) return;
             if (!BeginEdit("Add tag")) return;
-            document.AddTag(tagName.Text, role,
-                type is PlcVariableType.Timer or PlcVariableType.Counter ? string.Empty : SelectedTagBinding(), type,
-                initialValue);
+            AddDefinition(document);
             tagName.Clear();
             tagInitialValue.Text = type == PlcVariableType.Bool ? "FALSE" : "0";
             RefreshTagBindingOptions(type, role, string.Empty);
@@ -8446,7 +8502,8 @@ public partial class SimulatorShell : CanvasLayer
         var controlsFit = _externalAuthorization.GetGlobalRect().End.Y <= size.Y
             && actions.GetGlobalRect().End.Y <= size.Y && _externalPlcDialog.GetOkButton().GetGlobalRect().End.Y <= size.Y;
         var profileValid = _verifiedExternalDescriptor is not null && _externalProfileDetails.Text.Contains("PROFILE VALID", StringComparison.Ordinal);
-        result = $"window={size} viewport={viewport} controlsFit={controlsFit} profileValid={profileValid} connection={_connection.State}";
+        var profileFailure = profileValid ? string.Empty : _externalProfileDetails.Text.Replace('\n', ' ');
+        result = $"window={size} viewport={viewport} controlsFit={controlsFit} profileValid={profileValid} connection={_connection.State} profileDetail={profileFailure}";
         return size.X <= viewport.X && size.Y <= viewport.Y && controlsFit && profileValid && _connection.State == ConnectionState.Disconnected;
     }
 
@@ -8999,6 +9056,11 @@ public partial class SimulatorShell : CanvasLayer
         var variables = new StringBuilder();
         foreach (var variable in virtualProgram.Variables)
         {
+            if (PlcAggregates.IsAggregate(variable.Type))
+            {
+                variables.AppendLine($"{Escape(variable.Name)} [color=#7fa7ba]{variable.Type} · {variable.Role}[/color] {Escape(AggregateWatchValue(variable, snapshot))}");
+                continue;
+            }
             if (variable.Type == PlcVariableType.Timer)
             {
                 var timer = snapshot.Timers.GetValueOrDefault(variable.Name);

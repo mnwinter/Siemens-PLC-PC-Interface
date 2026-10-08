@@ -54,7 +54,7 @@ public static partial class SceneComposer
             {
                 // Fixed landing edge guards stay outside the car entrance
                 // and the sliding-door fixture. Rear centre remains an access
-                // opening; stairs and its gate need a separate installation.
+                // opening connected to the scene-local access installation below.
                 foreach (var x in new[] { -1.25f, 1.25f })
                 {
                     foreach (var z in new[] { 1.35f, 2.60f })
@@ -101,6 +101,7 @@ public static partial class SceneComposer
         }
         // Upper deck support continues to ground; its feet must not duplicate
         // the lower deck feet at the same position.
+        AddServiceElevatorAccessAndHoist(root,steel,blue,dark);
         root.AddChild(new EquipmentMotionController { Name = "ServiceElevatorPosition",
             Kind = EquipmentMotionController.MotionKind.LinearY,
             TargetPrefix = "KIN_service_elevator_car", TravelM = 2.1f,

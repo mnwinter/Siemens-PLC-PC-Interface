@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
+using RungProof.Next.Scenes;
 using RungProof.Next.VirtualController;
 
 namespace RungProof.Next.App;
@@ -74,6 +75,7 @@ public partial class Main
         for(var i=0;i<=100;i++)
         {
             motion.SetPositionNormalized(i/100f);
+            SceneComposer.ProjectServiceElevatorHoist(shaft);
             foreach(var c in ReviewMeshes(car))
             foreach(var p in fixedParts)
             {
@@ -90,6 +92,7 @@ public partial class Main
         for(var i=0;i<=100;i++)
         {
             motion.SetPositionNormalized(i/100f);
+            SceneComposer.ProjectServiceElevatorHoist(shaft);
             foreach(var c in ReviewMeshes(car))
             foreach(var p in fixedParts)
             {
@@ -111,6 +114,7 @@ public partial class Main
             for(var carPose=0;carPose<=100;carPose++)
             {
                 motion.SetPositionNormalized(carPose/100f);
+                SceneComposer.ProjectServiceElevatorHoist(shaft);
                 foreach(var c in ReviewMeshes(car))
                 foreach(var p in fixedParts)
                 {
@@ -146,10 +150,12 @@ public partial class Main
         var deck=car.GetNode<MeshInstance3D>("ELEVATOR_car_floor");
         check(MathF.Abs(ReviewBounds(deck).End.Y-2.7f)<.001f,"elevator_upper_car_floor_matches_upper_landing");
         motion.SetPositionNormalized(0);
+        SceneComposer.ProjectServiceElevatorHoist(shaft);
         check(MathF.Abs(ReviewBounds(deck).End.Y-.6f)<.001f,"elevator_lower_car_floor_matches_lower_landing");
         motion.Run();motion._PhysicsProcess(1);
         check(motion.InputPositionNormalized==0,"elevator_generic_run_cannot_fabricate_direction_sequence");
         motion.ResetMotion();
+        SceneComposer.ProjectServiceElevatorHoist(shaft);
         _sceneRuntime!.ResetSimulation();
         var runtime=_sceneRuntime;
         runtime.UsesExternalClock=true;

@@ -324,6 +324,72 @@
         "type": "BOOL",
         "owner": "PC",
         "initial": false
+      },
+      {
+        "name": "label_applied",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "label_extension_percent",
+        "type": "REAL",
+        "owner": "PC",
+        "initial": 0
+      },
+      {
+        "name": "label_busy",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "label_home",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": true
+      },
+      {
+        "name": "label_inhibited",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "inspection_busy",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "inspection_done",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "inspection_inhibited",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "inspection_defect_code",
+        "type": "DINT",
+        "owner": "PC",
+        "initial": 0
+      },
+      {
+        "name": "inspection_view_clear",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "tote_label_aligned",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
       }
     ],
     "actions": [
@@ -489,7 +555,6 @@
           "set": {
             "conveyor_run": false,
             "inspection_run": true,
-            "inspection_ok": true,
             "status_color": "amber"
           }
         },
@@ -539,18 +604,26 @@
     "fillRateFractionPerSecond": 0.2,
     "capTravelSeconds": 0.35,
     "capSeatingSeconds": 0.8,
-    "capSeatingRpm": 180
+    "capSeatingRpm": 180,
+    "labelTravelSeconds": 0.35,
+    "labelContactSeconds": 0.4,
+    "inspectionSeconds": 0.6
   },
   "training": {
     "hints": [
       "Define the required result before writing logic: Stations execute in order and every actuator is off after a passing tote discharges.",
       "Treat inspection_ok as simulator-to-PLC inputs. The PLC should command only conveyor_run, fill_valve_open, capper_run, labeler_run, inspection_run.",
-      "Use a step/state approach and prove the transition order: index to fill \u2192 fill \u2192 index to cap \u2192 cap \u2192 index to label \u2192 label \u2192 index to inspect \u2192 inspect \u2192 discharge \u2192 ready.",
+      "Use a step/state approach and prove the transition order: index to fill â†’ fill â†’ index to cap â†’ cap â†’ index to label â†’ label â†’ index to inspect â†’ inspect â†’ discharge â†’ ready.",
       "The 3D Start button pulses the explicit BOOL ladder input binding operator.start while the controller is running. A compatible PLC program must implement the station sequence; this binding alone does not provide controller-driven tote travel or a validated finishing process.",
-      "Under a controller clock, conveyor_run now moves the tote at a prescribed 0.75 m/s with supported exit retention. PC tote_position and station-window feedback are available to PLC logic. The PLC must sequence its own station stops and commands. Normalized fill is now modeled; cap/label application and inspection remain open, and litre/flow calibration is unverified.",
+      "Under a controller clock, conveyor_run now moves the tote at a prescribed 0.75 m/s with supported exit retention. PC tote_position and station-window feedback are available to PLC logic. The PLC must sequence its own station stops and commands. Normalized fill is now modeled; label contact and modeled condition/visibility inspection now execute with controller commands, and litre/flow calibration is unverified.",
       "The finishing tote now uses an unapproved scene-specific hollow/open-port candidate. Its separate fill cap is initially hidden; cap application is not yet implemented. The generic closed IBC remains a separate catalog asset.",
-      "Controller-clocked fill is an illustrative normalized quantity, 20 percent per second, bounded to 0\u2013100 percent. It requires a stationary tote at the fill station, an open cap and actual nozzle-to-bore eligibility. PC fill_percent, fill_complete, fill_inhibited and actual_fill_percent_per_second report this model; litres and flow calibration remain unverified. Stop retains fill; Reset empties it.",
-      "The candidate cap now has an open underside and seats at the neck rim. It remains initially hidden; cap application is not yet connected. The finishing installation uses a prescribed 140 mm nozzle stroke to retain bore engagement with this candidate scale."
+      "Controller-clocked fill is an illustrative normalized quantity, 20 percent per second, bounded to 0â€“100 percent. It requires a stationary tote at the fill station, an open cap and actual nozzle-to-bore eligibility. PC fill_percent, fill_complete, fill_inhibited and actual_fill_percent_per_second report this model; litres and flow calibration remain unverified. Stop retains fill; Reset empties it.",
+      "The candidate cap now has an open underside and seats at the neck rim. It remains initially hidden; cap application is not yet connected. The finishing installation uses a prescribed 140 mm nozzle stroke to retain bore engagement with this candidate scale.",
+      "Controller label application requires a fully filled, capped stationary tote at the label station. The measured tamp stroke contacts a cage-mounted carrier for 0.4 seconds, then retracts; label_applied and the visible retained label are actual model results. Conveyor movement is inhibited while the tamp is extended.",
+      "Controller inspection requires a stationary tote in the inspection window and unobstructed triangle-screened camera rays to the label carrier. A fresh inspection_run rising edge acquires for 0.6 seconds; inspection_done/inspection_ok report modeled fill, cap and label conditions. Defect code bits: 1 underfill, 2 missing cap, 4 missing label. This is educational condition inspection, not image recognition, barcode decoding or real camera calibration.",
+      "Stop freezes label and acquisition progress; Reset removes the applied mark and inspection result. A lost view or moving tote aborts acquisition and requires a fresh request. Retained results travel with the discharged tote.",
+      "The unauthored standalone sequence remains a station geometry preview and does not declare inspection_ok. Actual fill, cap, label contact and condition inspection require a selected controller program sequencing the documented commands and feedback.",
+      "Use tote_label_aligned for the label stop: it measures pad-to-carrier lateral/height fit. tote_at_label is the wider +/-25 mm station-presence window; it does not itself authorize label contact."
     ],
     "solution": {
       "summary": "This is one valid functional reference. The same behavior may be implemented in LAD, FBD, or SCL; the rung layout is not prescribed.",
@@ -628,7 +701,18 @@
       "fill_percent",
       "actual_fill_percent_per_second",
       "fill_inhibited",
-      "fill_complete"
+      "fill_complete",
+      "label_applied",
+      "label_extension_percent",
+      "label_busy",
+      "label_home",
+      "label_inhibited",
+      "inspection_busy",
+      "inspection_done",
+      "inspection_inhibited",
+      "inspection_defect_code",
+      "inspection_view_clear",
+      "tote_label_aligned"
     ],
     "changedTags": [],
     "previousAcceptance": [
@@ -650,7 +734,7 @@
           "capper_run": false,
           "labeler_run": false,
           "inspection_run": false,
-          "inspection_ok": true,
+          "inspection_ok": false,
           "station_number": 5,
           "cycle_complete": true
         }

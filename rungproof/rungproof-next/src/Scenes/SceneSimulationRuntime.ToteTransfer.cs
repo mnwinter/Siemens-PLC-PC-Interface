@@ -33,6 +33,7 @@ public partial class SceneSimulationRuntime
         _toteTransferDrive.ResetPlantTravel();
         ResetToteFill();
         ResetToteCap();
+        ResetToteFinishingProcess();
         FreezeToteTransferAdapter();
         SetPoint("tote_transfer_inhibited", false);
         ProjectToteTransfer();
@@ -45,6 +46,7 @@ public partial class SceneSimulationRuntime
         if (_toteTransferDrive is not null) _toteTransferDrive.SetPhysicsProcess(!UsesExternalClock);
         _toteFillNozzleController?.SetPhysicsProcess(!UsesExternalClock);
         _toteCapController?.SetPhysicsProcess(!UsesExternalClock);
+        FreezeToteFinishingAdapters();
     }
 
     private void PauseToteTransfer()
@@ -53,6 +55,7 @@ public partial class SceneSimulationRuntime
         _toteTransfer.Pause(); _toteTransferDrive!.ApplyPlantTravel(0, 0);
         if (_toteFill is not null) { _toteFill.Pause(); ProjectToteFill(); }
         if (_toteCap is not null) { _toteCap.Pause(); ProjectToteCap(); }
+        PauseToteFinishingProcess();
     }
 
     private void AdvanceToteTransfer(double seconds)
@@ -61,13 +64,15 @@ public partial class SceneSimulationRuntime
         var travelRequested = AsBool(_points.GetValueOrDefault("conveyor_run"));
         // Authored simulator interlock: do not slide the neck under an extended
         // cap chuck. Retain the PLC request and publish the effective inhibition.
-        var capExtended = _toteCap is not null && _toteCap.State.Extension > 0;
-        SetPoint("tote_transfer_inhibited", travelRequested && capExtended);
-        _toteTransfer.Advance(seconds, travelRequested && !capExtended);
+        var actuatorExtended = (_toteCap is not null && _toteCap.State.Extension > 0)
+            || (_toteFinishingProcess is not null && _toteFinishingProcess.State.Extension > 0);
+        SetPoint("tote_transfer_inhibited", travelRequested && actuatorExtended);
+        _toteTransfer.Advance(seconds, travelRequested && !actuatorExtended);
         var state = _toteTransfer.State;
         _transferTote!.Position = new Vector3((float)state.Position, _transferTote.Position.Y, _transferTote.Position.Z);
         _toteTransferDrive!.ApplyPlantTravel((float)(state.Position - old), (float)state.Speed);
-        ProjectToteTransfer(); ApplyBindings(); AdvanceToteFill(seconds); AdvanceToteCap(seconds); StateChanged?.Invoke();
+        ProjectToteTransfer(); ApplyBindings(); AdvanceToteFill(seconds); AdvanceToteCap(seconds);
+        AdvanceToteFinishingProcess(seconds); StateChanged?.Invoke();
     }
 
     private void ProjectToteTransfer()

@@ -45,7 +45,9 @@ public sealed record VirtualControllerSnapshot(
     IReadOnlyDictionary<string, LadderForceState> Forces,
     IReadOnlyList<string> Diagnostics,
     IReadOnlyDictionary<string, LadderElementState> Elements
-);
+){
+    public IReadOnlyDictionary<string, object> Aggregates { get; init; } = new Dictionary<string, object>();
+}
 
 /// <summary>
 /// Deterministic scan executor for the validated Phase 1 LD subset. It owns
@@ -165,10 +167,10 @@ public sealed class VirtualControllerRuntime
         State = VirtualControllerState.Stopped;
         _dueTasks.Clear();
         _edgeInputs.Clear();
-        foreach (var variable in _program.Source.Variables.Where(item =>
+        foreach (var variable in _program.Variables.Values.Where(item =>
                      item.Role == PlcVariableRole.Output && item.Type == PlcVariableType.Bool))
             _values[variable.Name] = false;
-        foreach (var variable in _program.Source.Variables.Where(item =>
+        foreach (var variable in _program.Variables.Values.Where(item =>
                      item.Role == PlcVariableRole.Output
                      && item.Type is PlcVariableType.Int or PlcVariableType.DInt or PlcVariableType.Real))
             _numericValues[variable.Name] = 0.0;
@@ -202,7 +204,7 @@ public sealed class VirtualControllerRuntime
         _dueTasks.Clear();
         _forces.Clear();
         foreach (var task in _tasks) _taskExecutions[task.Id] = 0;
-        foreach (var variable in _program.Source.Variables)
+        foreach (var variable in _program.Variables.Values)
         {
             if (variable.Type == PlcVariableType.Bool) _values[variable.Name] = variable.InitialValue is true;
             else if (variable.Type is PlcVariableType.Int or PlcVariableType.DInt or PlcVariableType.Real)
@@ -224,18 +226,35 @@ public sealed class VirtualControllerRuntime
         return CreateSnapshot();
     }
 
+    /// <summary>Validates complete aggregate inputs before changing the scan image.</summary>
+    public VirtualControllerSnapshot ScanAggregates(IReadOnlyDictionary<string, object> inputs)
+    {
+        var declarations = _program.Source.Variables.Where(v => v.Role == PlcVariableRole.Input && PlcAggregates.IsAggregate(v.Type)).ToArray();
+        if (inputs.Keys.Any(name => !declarations.Any(v => v.Name == name)))
+            throw new ArgumentException("Aggregate input is not a declared input root.");
+        var leaves = PlcAggregates.Expand(declarations.Where(v => inputs.ContainsKey(v.Name)).Select(v => v with { InitialValue = inputs[v.Name] }).ToArray());
+        foreach (var leaf in leaves)
+        {
+            if (leaf.Type == PlcVariableType.Int && ((long)leaf.InitialValue < short.MinValue || (long)leaf.InitialValue > short.MaxValue)
+                || leaf.Type == PlcVariableType.DInt && ((long)leaf.InitialValue < int.MinValue || (long)leaf.InitialValue > int.MaxValue))
+                throw new ArgumentException($"Aggregate input '{leaf.Name}' is outside its declared numeric range.");
+        }
+        return Scan(leaves.Where(v => v.Type == PlcVariableType.Bool).ToDictionary(v => v.Name, v => (bool)v.InitialValue),
+            leaves.Where(v => v.Type != PlcVariableType.Bool).ToDictionary(v => v.Name, v => Convert.ToDouble(v.InitialValue, CultureInfo.InvariantCulture)));
+    }
+
     public VirtualControllerSnapshot Scan(
         IReadOnlyDictionary<string, bool> sampledInputs,
         IReadOnlyDictionary<string, double>? sampledNumericInputs = null)
     {
-        foreach (var variable in _program.Source.Variables.Where(item =>
+        foreach (var variable in _program.Variables.Values.Where(item =>
                      item.Role == PlcVariableRole.Input && item.Type == PlcVariableType.Bool))
         {
             if (sampledInputs.TryGetValue(variable.Name, out var value)) _values[variable.Name] = value;
         }
         if (sampledNumericInputs is not null)
         {
-            foreach (var variable in _program.Source.Variables.Where(item =>
+            foreach (var variable in _program.Variables.Values.Where(item =>
                          item.Role == PlcVariableRole.Input
                          && item.Type is PlcVariableType.Int or PlcVariableType.DInt or PlcVariableType.Real))
             {
@@ -500,10 +519,10 @@ public sealed class VirtualControllerRuntime
         }
         if (executionFault)
         {
-            foreach (var variable in _program.Source.Variables.Where(item =>
+            foreach (var variable in _program.Variables.Values.Where(item =>
                          item.Role == PlcVariableRole.Output && item.Type == PlcVariableType.Bool))
                 _values[variable.Name] = false;
-            foreach (var variable in _program.Source.Variables.Where(item =>
+            foreach (var variable in _program.Variables.Values.Where(item =>
                          item.Role == PlcVariableRole.Output
                          && item.Type is PlcVariableType.Int or PlcVariableType.DInt or PlcVariableType.Real))
                 _numericValues[variable.Name] = 0.0;
@@ -716,10 +735,10 @@ public sealed class VirtualControllerRuntime
     {
         var values = new ReadOnlyDictionary<string, bool>(new Dictionary<string, bool>(_values, StringComparer.Ordinal));
         var numericValues = new ReadOnlyDictionary<string, double>(new Dictionary<string, double>(_numericValues, StringComparer.Ordinal));
-        var outputs = new ReadOnlyDictionary<string, bool>(_program.Source.Variables
+        var outputs = new ReadOnlyDictionary<string, bool>(_program.Variables.Values
             .Where(item => item.Role == PlcVariableRole.Output && item.Type == PlcVariableType.Bool)
             .ToDictionary(item => item.Name, item => _values[item.Name], StringComparer.Ordinal));
-        var numericOutputs = new ReadOnlyDictionary<string, double>(_program.Source.Variables
+        var numericOutputs = new ReadOnlyDictionary<string, double>(_program.Variables.Values
             .Where(item => item.Role == PlcVariableRole.Output
                 && item.Type is PlcVariableType.Int or PlcVariableType.DInt or PlcVariableType.Real)
             .ToDictionary(item => item.Name, item => _numericValues[item.Name], StringComparer.Ordinal));
@@ -737,6 +756,6 @@ public sealed class VirtualControllerRuntime
             StringComparer.Ordinal));
         var forces = new ReadOnlyDictionary<string, LadderForceState>(
             new Dictionary<string, LadderForceState>(_forces, StringComparer.Ordinal));
-        return new VirtualControllerSnapshot(_scanNumber, _simulatedTime, State, values, numericValues, outputs, numericOutputs, timers, counters, taskStates, forces, _diagnostics.ToArray(), elements);
+        return new VirtualControllerSnapshot(_scanNumber, _simulatedTime, State, values, numericValues, outputs, numericOutputs, timers, counters, taskStates, forces, _diagnostics.ToArray(), elements) { Aggregates = PlcAggregates.Reconstruct(_program.Source.Variables, values, numericValues) };
     }
 }

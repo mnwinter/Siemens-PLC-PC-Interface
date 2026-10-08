@@ -159,6 +159,11 @@ public partial class Main : Node3D
         _auditGuardedLayout = userArguments.Contains("--audit-guarded-layout", StringComparer.Ordinal);
         _auditRadarLayout = userArguments.Contains("--audit-radar-layout", StringComparer.Ordinal);
         _auditEvLayout = userArguments.Contains("--audit-ev-layout", StringComparer.Ordinal);
+        _auditWastewaterProcess = userArguments.Contains("--verify-wastewater-process", StringComparer.Ordinal);
+        _auditMobileTraffic = userArguments.Contains("--verify-mobile-traffic", StringComparer.Ordinal);
+        _auditMotorAggregates = userArguments.Contains("--verify-motor-aggregates", StringComparer.Ordinal);
+        _auditServiceElevatorAccess = userArguments.Contains("--verify-service-elevator-access", StringComparer.Ordinal);
+        _auditToteFinishingProcess = userArguments.Contains("--verify-tote-finishing-process", StringComparer.Ordinal);
         _auditLuggageLayout = userArguments.Contains("--audit-luggage-layout", StringComparer.Ordinal);
         _auditHandDryer = userArguments.Contains("--audit-hand-dryer", StringComparer.Ordinal);
         _auditCoating = userArguments.Contains("--audit-coating", StringComparer.Ordinal);
@@ -191,7 +196,7 @@ public partial class Main : Node3D
         _mcpSceneId = userArguments
             .FirstOrDefault(argument => argument.StartsWith("--mcp-scene=", StringComparison.Ordinal))?
             .Substring("--mcp-scene=".Length);
-        _appShellRequested = _reportSceneGeometry || _verifySceneGeometry || _verifyToteFinishing || _auditDualSpindle || _auditRobotCnc || _auditRobotRestart || _auditSequenceTower || _auditChainLiftInstallation || _auditCookiePackaging || _auditBarrelFill || _auditCableCut || _auditPalletizer || _auditRepeatCycle || _auditButtonCounters || _auditParkingEntry || _auditPackageGrouping || _auditTimerLessons || _auditRotaryFlasher || _auditFlashPair || _auditRunningTower || _auditPedestrianCrossing || _auditDrawbridge || _auditBagIndex || _auditCoating || _auditHandDryer || _auditLuggageLayout || _auditEvLayout || _auditRadarLayout || _auditGuardedLayout || _verifyCartonStaticRoutes || (_visualSceneReview && !_visualPlantReview) || _verifyAppShell || _verifyExternalDialog || _verifyExternalPlayback || _verifyPlantMotion || _verifyWorkspace || _verifyHud || _verifyCameraInput || _verifySceneControls
+        _appShellRequested = _auditToteFinishingProcess || _auditServiceElevatorAccess || _auditMotorAggregates || _auditMobileTraffic || _auditWastewaterProcess || _reportSceneGeometry || _verifySceneGeometry || _verifyToteFinishing || _auditDualSpindle || _auditRobotCnc || _auditRobotRestart || _auditSequenceTower || _auditChainLiftInstallation || _auditCookiePackaging || _auditBarrelFill || _auditCableCut || _auditPalletizer || _auditRepeatCycle || _auditButtonCounters || _auditParkingEntry || _auditPackageGrouping || _auditTimerLessons || _auditRotaryFlasher || _auditFlashPair || _auditRunningTower || _auditPedestrianCrossing || _auditDrawbridge || _auditBagIndex || _auditCoating || _auditHandDryer || _auditLuggageLayout || _auditEvLayout || _auditRadarLayout || _auditGuardedLayout || _verifyCartonStaticRoutes || (_visualSceneReview && !_visualPlantReview) || _verifyAppShell || _verifyExternalDialog || _verifyExternalPlayback || _verifyPlantMotion || _verifyWorkspace || _verifyHud || _verifyCameraInput || _verifySceneControls
             || _verifyVirtualController || _verifyNumericSceneIo || _verifyLadderEditor || _verifySplitView || _verifyUiDensity || _virtualControllerDemo
             || userArguments.Contains("--app-shell", StringComparer.Ordinal);
         if (_visualPlantReview && (_sceneId is null || _appShellRequested || _verifySceneContract))
@@ -368,7 +373,8 @@ public partial class Main : Node3D
             var name = JsonText(element, "name");
             if (name.Length == 0) continue;
             points.Add(new SceneIoPoint(name, JsonText(element, "type"), JsonText(element, "owner"),
-                JsonText(element, "role"), JsonText(element, "purpose")));
+                JsonText(element, "role"), JsonText(element, "purpose"),
+                element.TryGetProperty("aggregate", out var schema) ? PlcAggregates.ParseSchema(schema) : null));
         }
         return points;
     }
@@ -568,6 +574,26 @@ public partial class Main : Node3D
         else if (_auditRadarLayout)
         {
             CallDeferred(nameof(AuditRadarLayout));
+        }
+        else if (_auditWastewaterProcess)
+        {
+            CallDeferred(nameof(AuditWastewaterProcess));
+        }
+        else if (_auditMobileTraffic)
+        {
+            CallDeferred(nameof(AuditMobileTraffic));
+        }
+        else if (_auditMotorAggregates)
+        {
+            CallDeferred(nameof(AuditMotorAggregates));
+        }
+        else if (_auditServiceElevatorAccess)
+        {
+            CallDeferred(nameof(AuditServiceElevatorAccess));
+        }
+        else if (_auditToteFinishingProcess)
+        {
+            CallDeferred(nameof(AuditToteFinishingProcess));
         }
         else if (_auditEvLayout)
         {
@@ -1313,7 +1339,7 @@ public partial class Main : Node3D
         foreach (var issue in ProjectValidator.Validate(_candidateCatalog!, _sceneCatalog, scenes))
             GD.Print($"CATALOG_DIAGNOSTIC {issue.Code}: {issue.Message}");
         var actualSupported = !ProjectValidator.Validate(_candidateCatalog!, _sceneCatalog, scenes)
-            .Any(issue => issue.Code == "SCN-BINDING-MODE");
+            .Any(issue => issue.Severity == DiagnosticSeverity.Error);
         // The sorter bridge is constructed by SceneComposer rather than loaded
         // from the asset catalog. It must not appear as a missing asset in the
         // normal scenario browser's diagnostics.
@@ -3604,6 +3630,8 @@ public partial class Main : Node3D
         var entry = catalog.Scenes.FirstOrDefault(scene => scene.Id == sceneId)
             ?? throw new InvalidOperationException($"Unknown migrated scene '{sceneId}'.");
         var scene = SceneCatalogLoader.LoadScene(entry);
+        // Reject malformed typed scene contracts before composing Godot nodes.
+        SceneAggregateContract.Validate(scene.Simulation);
         _activeSceneDefinition = scene;
         var composition = SceneComposer.Compose(
             scene,

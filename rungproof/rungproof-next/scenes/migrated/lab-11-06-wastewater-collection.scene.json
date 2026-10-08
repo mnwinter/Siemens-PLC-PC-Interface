@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-11-06-wastewater-collection",
   "name": "Lab 11.6 - Wastewater Collection",
-  "description": "Wastewater BOOL command exercise with manually toggled feedback, a mounted probe and connected visual piping. Liquid transfer and analog measurement are not simulated.",
+  "description": "Illustrative four-vessel common-header wastewater bank with normalized inflow/transfer, hysteretic source-high feedback and modeled 4-20 mA level. PLC logic owns pump/valve commands; rates are not calibrated hydraulics.",
   "camera": {
     "position": [
       11,
@@ -128,7 +128,7 @@
     {
       "id": "training_accessory_7",
       "type": "levelSensor",
-      "label": "Source tank insertion probe - manual BOOL feedback",
+      "label": "Source bank modeled analog level probe",
       "position": [
         -2,
         0,
@@ -171,7 +171,7 @@
     {
       "id": "switch_10",
       "type": "switch",
-      "label": "Wastewater Collection operator input",
+      "label": "Incoming wastewater fixture",
       "position": [
         1,
         0,
@@ -179,9 +179,9 @@
       ],
       "config": {
         "style": "pushbutton",
-        "action": "toggle-source_level_high",
+        "action": "toggle-inflow_enabled",
         "color": 2204518,
-        "faceLabel": "SOURCE HIGH"
+        "faceLabel": "INFLOW"
       }
     },
     {
@@ -236,7 +236,7 @@
     }
   ],
   "simulation": {
-    "type": "booleanPanel",
+    "type": "wastewaterCollection",
     "points": [
       {
         "name": "source_level_high",
@@ -269,14 +269,74 @@
         "owner": "PLC",
         "initial": false,
         "role": "output"
+      },
+      {
+        "name": "inflow_enabled",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "source_level_percent",
+        "type": "REAL",
+        "owner": "PC",
+        "initial": 35.0
+      },
+      {
+        "name": "source_level_ma",
+        "type": "REAL",
+        "owner": "PC",
+        "initial": 9.6
+      },
+      {
+        "name": "source_empty",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "source_full",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "actual_inflow_percent_per_second",
+        "type": "REAL",
+        "owner": "PC",
+        "initial": 0.0
+      },
+      {
+        "name": "actual_transfer_percent_per_second",
+        "type": "REAL",
+        "owner": "PC",
+        "initial": 0.0
+      },
+      {
+        "name": "overflow_percent_per_second",
+        "type": "REAL",
+        "owner": "PC",
+        "initial": 0.0
+      },
+      {
+        "name": "transfer_inhibited",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "outlet_valve_position_percent",
+        "type": "REAL",
+        "owner": "PC",
+        "initial": 0.0
       }
     ],
     "actions": [
       {
-        "id": "toggle-source_level_high",
-        "label": "Toggle source level high",
+        "id": "toggle-inflow_enabled",
+        "label": "Toggle incoming wastewater",
         "type": "toggle",
-        "point": "source_level_high"
+        "point": "inflow_enabled"
       },
       {
         "id": "toggle-treatment_ready",
@@ -295,7 +355,7 @@
     "edgeRules": [],
     "pointBindings": [
       {
-        "point": "source_level_high",
+        "point": "inflow_enabled",
         "equipmentId": "switch_10",
         "mode": "switch"
       },
@@ -333,13 +393,19 @@
       }
     ],
     "tankId": "tank_0",
-    "transmitterId": "training_accessory_7"
+    "transmitterId": "training_accessory_7",
+    "initialLevel": 0.35,
+    "inflowFractionPerSecond": 0.04,
+    "transferFractionPerSecond": 0.08,
+    "highOnFraction": 0.65,
+    "highOffFraction": 0.2
   },
   "training": {
     "hints": [
-      "Translate the lesson into explicit state and permissive logic: The pump and outlet valve run only when a source requires service and treatment is ready.",
-      "Inputs are simulator feedback (source_level_high, treatment_ready, outlet_clear); PLC logic owns transfer_pump_run, outlet_valve_open.",
-      "Test the initial state, the valid condition, and at least one missing permissive."
+      "Turn INFLOW on to raise the connected bank level. SOURCE HIGH turns on at 65% and stays on until 20%.",
+      "The model publishes source_level_percent and source_level_ma; pump and valve commands remain PLC-owned.",
+      "Require treatment_ready and outlet_clear. The plant inhibits actual transfer when either downstream permissive is absent, even with a bad PLC command.",
+      "Observe simultaneous inflow and transfer, empty/full clamps, overflow, Stop freezing level, and Reset to 35%."
     ],
     "solution": {
       "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
@@ -357,14 +423,15 @@
       "alarm beacon"
     ],
     "machineGuide": {
-      "purpose": "Wastewater BOOL command exercise with manually toggled feedback, a mounted probe and connected visual piping. Liquid transfer and analog measurement are not simulated.",
+      "purpose": "Illustrative four-vessel common-header wastewater bank with normalized inflow/transfer, hysteretic source-high feedback and modeled 4-20 mA level. PLC logic owns pump/valve commands; rates are not calibrated hydraulics.",
       "startConditions": [
         "The common PLC/watchdog foundation is healthy.",
         "All required simulator inputs are at their documented initial state."
       ],
       "normalSequence": [
-        "Apply the requested input condition.",
-        "Verify only the documented PLC outputs respond."
+        "Enable inflow and observe normalized bank level and modeled 4-20 mA feedback rise.",
+        "With treatment ready and outlet clear, PLC logic commands transfer from high to low threshold.",
+        "Disable inflow to drain the bank; inspect hysteretic source-high drop at 20%."
       ],
       "stopBehavior": [
         "Removing the permissive removes PLC-owned commands.",
@@ -374,7 +441,9 @@
         "A missing or stale input must fail safe and remain diagnosable."
       ],
       "expectedObservations": [
-        "The pump and outlet valve run only when a source requires service and treatment is ready."
+        "All four equal-size vessels share the common-header bank level.",
+        "Actual transfer depends on pump command, delivered valve opening and both downstream permissives.",
+        "A full bank clamps at 100% and reports rejected inflow as overflow; no external receiving tank is modeled."
       ]
     },
     "sequenceNumber": 65,
@@ -392,7 +461,17 @@
       "treatment_ready",
       "outlet_clear",
       "transfer_pump_run",
-      "outlet_valve_open"
+      "outlet_valve_open",
+      "inflow_enabled",
+      "source_level_percent",
+      "source_level_ma",
+      "source_empty",
+      "source_full",
+      "actual_inflow_percent_per_second",
+      "actual_transfer_percent_per_second",
+      "overflow_percent_per_second",
+      "transfer_inhibited",
+      "outlet_valve_position_percent"
     ],
     "changedTags": [],
     "previousAcceptance": [
@@ -405,7 +484,12 @@
         "name": "initial-safe-state",
         "expect": {
           "transfer_pump_run": false,
-          "outlet_valve_open": false
+          "outlet_valve_open": false,
+          "source_level_high": false,
+          "source_level_percent": 35.0,
+          "source_level_ma": 9.6,
+          "source_empty": false,
+          "source_full": false
         }
       }
     ]

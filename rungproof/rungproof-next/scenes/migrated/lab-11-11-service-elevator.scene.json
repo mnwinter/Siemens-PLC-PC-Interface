@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-11-11-service-elevator",
   "name": "Lab 11.11 - Service Elevator",
-  "description": "A lift travels between two landings only with door, position, and direction interlocks satisfied.",
+  "description": "Offline two-landing car with modeled sliding doors, top-supported illustrative drum/ropes and grounded landing-access stairs. Gate is fixed open; no gate feedback, personnel lift certification or hoist load simulation is claimed.",
   "camera": {
     "position": [
       11,
@@ -88,7 +88,7 @@
       "position": [
         0,
         0,
-        4.7
+        7.8
       ],
       "config": {
         "style": "pushbutton",
@@ -233,7 +233,8 @@
       "Translate the lesson into explicit state and permissive logic: The elevator receives one direction command only when the doors are closed and the landing is clear.",
       "Inputs are simulator feedback (call_valid, doors_closed, landing_clear); PLC logic owns lift_up_cmd, lift_down_cmd.",
       "Test the initial state, the valid condition, and at least one missing permissive.",
-      "Car displacement follows one PLC direction command while the three manual permissives agree and the modeled doors have finished closing. Floor flags derive from modeled car position. The manual doors_closed fixture selects one-second sliding-door travel; Stop freezes the pose and Reset opens the doors at home. Modeled closure is not hardware protective sensing."
+      "Car displacement follows one PLC direction command while the three manual permissives agree and the modeled doors have finished closing. Floor flags derive from modeled car position. The manual doors_closed fixture selects one-second sliding-door travel; Stop freezes the pose and Reset opens the doors at home. Modeled closure is not hardware protective sensing.",
+      "The new drum, car-roof anchors and changing rope length illustrate a connected hoist path. Rear upper stairs and side lower steps connect landings to floor; access gate is fixed open, without fabricated feedback or an engineered personnel-safety claim."
     ],
     "solution": {
       "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
@@ -347,6 +348,6 @@
     "unresolvedAssetTypes": [],
     "visualStatus": "partial",
     "productionApproved": false,
-    "reason": "Modeled car displacement and floor feedback implemented; native loaded-controller motion, door travel, hoist and landing guards remain under review."
+    "reason": "Car, doors and call stations repaired. Illustrative hoist/access geometry added; fresh native home and motion review remains pending. No physical commissioning or certified lift design."
   }
 }

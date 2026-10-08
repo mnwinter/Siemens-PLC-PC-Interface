@@ -166,6 +166,7 @@ public static class LadderEditorProjectJson
             ? time.TotalMilliseconds
             : source.InitialValue,
         Binding = source.Binding,
+        Aggregate = source.Aggregate,
     };
 
     private static BlockDto Block(EditableBlock source) => new()
@@ -244,7 +245,7 @@ public static class LadderEditorProjectJson
         var type = ParseEnum(dto.Type, PlcVariableType.Bool, $"$.tags[{index}].type", issues);
         var role = ParseEnum(dto.Role, PlcVariableRole.Memory, $"$.tags[{index}].role", issues);
         var initial = ParseInitial(dto.Initial, type, $"$.tags[{index}].initial", issues);
-        return new PlcVariable(dto.Name ?? string.Empty, type, role, initial, dto.Binding ?? string.Empty);
+        return new PlcVariable(dto.Name ?? string.Empty, type, role, initial, dto.Binding ?? string.Empty, dto.Aggregate);
     }
 
     private static EditableBlock ParseBlock(BlockDto dto, int blockIndex, ICollection<LadderValidationIssue> issues)
@@ -357,6 +358,7 @@ public static class LadderEditorProjectJson
                 PlcVariableType.Int or PlcVariableType.DInt or PlcVariableType.Counter => element.GetInt64(),
                 PlcVariableType.Real => element.GetDouble(),
                 PlcVariableType.Timer => TimeSpan.FromMilliseconds(element.GetDouble()),
+                PlcVariableType.Struct or PlcVariableType.Array => element.Clone(),
                 _ => false,
             };
         }
@@ -401,6 +403,7 @@ public static class LadderEditorProjectJson
         public string? Role { get; set; }
         public object? Initial { get; set; }
         public string? Binding { get; set; }
+        public PlcAggregateSchema? Aggregate { get; set; }
     }
 
     private sealed class BlockDto

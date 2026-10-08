@@ -78,6 +78,7 @@ public partial class SceneSimulationRuntime : Node
         if (selected && !running) PauseToteTransfer();
         if (selected && !running) PauseLuggagePlant();
         if(selected && !running && HasEvPlant) PauseEvPlant();
+        if (selected && !running) PauseWastewaterPlant();
         if (selected && running) ApplyBindings();
     }
 
@@ -110,6 +111,7 @@ public partial class SceneSimulationRuntime : Node
         if (!running) PauseToteTransfer();
         if (!running) PauseLuggagePlant();
         if(!running && HasEvPlant) PauseEvPlant();
+        if (!running) PauseWastewaterPlant();
         if (RuntimeType == "tank") ProjectTankState();
     }
 
@@ -175,7 +177,8 @@ public partial class SceneSimulationRuntime : Node
         && (Text(action, "type", "") != "groupingLoad" || PackageGroupingPlant?.CanLoad == true)
         && (!HasLuggagePlant || (Text(action,"type","") != "luggageLoad" || (LuggageFinished && LuggageCommandsOff)))
         && (!HasLuggagePlant || Text(action,"point","") != "fixture_mass_kg" || (LuggageFixtureAvailable && LuggageCommandsOff))
-        && ParkingEntryActionAvailable(Text(action, "type", ""));
+        && ParkingEntryActionAvailable(Text(action, "type", ""))
+        && MobileTrafficActionAvailable(Text(action, "type", ""));
     public bool IsPlcOwnedPoint(string point) =>
         string.Equals(_pointOwners.GetValueOrDefault(point), "PLC", StringComparison.OrdinalIgnoreCase);
 
@@ -191,6 +194,7 @@ public partial class SceneSimulationRuntime : Node
         _sceneRoot = sceneRoot;
         Name = "SceneSimulationRuntime";
         LoadInitialPoints();
+        InitializeAggregatePoints();
         if (RuntimeType is "conveyorStop" or "conveyorPusher")
             _conveyorPlant = new ConveyorPlantModel(Number(_definition, "lengthM", 1), Number(_definition, "speedMps", 0.5),
                 Number(_definition, "objectLengthM", 0.2), Number(_definition, "photoeyePositionM", 0.5),
@@ -261,6 +265,8 @@ public partial class SceneSimulationRuntime : Node
         if (HasHandDryer) { AdvanceHandDryer(delta); return; }
         if (HasGuardedTransfer) { AdvanceGuardedTransfer(delta); return; }
         if (HasServiceElevator) { AdvanceServiceElevator(delta); return; }
+        if (HasWastewaterPlant) { AdvanceWastewaterPlant(delta); return; }
+        if (HasMobileTrafficPlant) { AdvanceMobileTrafficPlant(delta); return; }
         if (HasDualSpindlePlant && UsesExternalClock) { AdvanceDualSpindlePlant(delta); return; }
         if (HasToteTransfer && UsesExternalClock) { AdvanceToteTransfer(delta); return; }
         if (HasLuggagePlant) { AdvanceLuggagePlant(delta); return; }
@@ -411,6 +417,14 @@ public partial class SceneSimulationRuntime : Node
 
     public bool RunDefault()
     {
+        // Run quantities without supplying PLC commands or starting adapters.
+        if (HasWastewaterPlant)
+        {
+            _tankSimulationRunning = true;
+            ApplyBindings();
+            StateChanged?.Invoke();
+            return true;
+        }
         if (_definition.ValueKind == JsonValueKind.Object
             && _definition.TryGetProperty("defaultSequence", out var sequence)
             && sequence.ValueKind == JsonValueKind.String)
@@ -464,6 +478,7 @@ public partial class SceneSimulationRuntime : Node
         PauseToteTransfer();
         PauseLuggagePlant();
         if(HasEvPlant) PauseEvPlant();
+        PauseWastewaterPlant();
         _shippingPalletReferenceActive = false;
         if (!UsesExternalClock && RuntimeType == "booleanPanel") _booleanPreviewStopped = true;
         _activeStepIndex = -1;
@@ -564,6 +579,8 @@ public partial class SceneSimulationRuntime : Node
         ResetToteTransfer();
         ResetLuggagePlant();
         ResetEvPlant();
+        ResetWastewaterPlant();
+        ResetMobileTrafficPlant();
         ResetParkingEntryPlant();
         ResetPackageGroupingPlant();
         ResetVisionSorter();
@@ -604,6 +621,7 @@ public partial class SceneSimulationRuntime : Node
             "toggle" or "togglePoint" => TogglePoint(point),
             "cycle" => CyclePoint(point, action),
             "luggageLoad" => LoadNextLuggage(),
+            "trafficRequestA" or "trafficRequestB" => MobileTrafficAction(type),
             "pulse" => PulsePoint(point),
             _ => false,
         };
@@ -1248,14 +1266,16 @@ public partial class SceneSimulationRuntime : Node
 
     private void ApplyBindings()
     {
-        // Command-image display only. Do not imply measured shaft feedback or
-        // array/STRUCT support from these existing independent BOOL outputs.
+        ProjectAggregatePoints();
+        // Count the effective command image from typed ARRAY and legacy BOOL
+        // sources. This display does not represent measured shaft feedback.
         if (_definition.TryGetProperty("motorCommandDisplays", out var motorDisplays)
             && motorDisplays.ValueKind == JsonValueKind.True)
         {
             var group = AsBool(_points.GetValueOrDefault("motor_array_run"));
             var commanded = Enumerable.Range(0, 10).Count(i => group
-                || AsBool(_points.GetValueOrDefault($"motor_{i}_run")));
+                || AsBool(_points.GetValueOrDefault($"motor_{i}_run"))
+                || AsBool(_points.GetValueOrDefault($"motor_commands[{i}]")));
             if (_sceneRoot.GetNodeOrNull<Node3D>("training_accessory_7")?.FindChild("StaticReadout", true, false) is Label3D groupDisplay)
                 groupDisplay.Text = $"COMMANDS ON\n{commanded}/10";
             if (_sceneRoot.GetNodeOrNull<Node3D>("training_accessory_8")?.FindChild("StaticReadout", true, false) is Label3D sequenceDisplay)
@@ -1544,8 +1564,8 @@ public partial class SceneSimulationRuntime : Node
             if (name.Length > 0 && point.TryGetProperty("initial", out var initial))
             {
                 _initialPoints[name] = Value(initial);
-                _pointOwners[name] = Text(point, "owner", string.Empty);
-                _pointTypes[name] = Text(point, "type", string.Empty);
+                _pointOwners[name] = Text(point, "owner", string.Empty).ToUpperInvariant();
+                _pointTypes[name] = Text(point, "type", string.Empty).ToUpperInvariant();
                 if (Text(point, "role", string.Empty) == "output") _outputPoints.Add(name);
             }
         }

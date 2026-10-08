@@ -11,6 +11,8 @@ public enum PlcVariableType
     Real,
     Timer,
     Counter,
+    Struct,
+    Array,
 }
 
 public enum PlcVariableRole
@@ -25,7 +27,8 @@ public sealed record PlcVariable(
     PlcVariableType Type,
     PlcVariableRole Role,
     object InitialValue,
-    string Binding = ""
+    string Binding = "",
+    PlcAggregateSchema? Aggregate = null
 );
 
 public enum LadderNodeKind

@@ -166,6 +166,7 @@ public static class LadderProgramJson
                 ["role"] = variable.Role.ToString().ToLowerInvariant(),
                 ["initial"] = variable.InitialValue,
                 ["binding"] = variable.Binding,
+                ["aggregate"] = variable.Aggregate,
             }).ToArray(),
             ["watchVariables"] = (program.WatchVariables ?? []).ToArray(),
             ["networks"] = program.Networks.Select(Network).ToArray(),
@@ -228,7 +229,7 @@ public static class LadderProgramJson
                     var initial = variable.TryGetProperty("initial", out var initialValue)
                         ? JsonValue(initialValue)
                         : false;
-                    variables.Add(new PlcVariable(name, type, role, initial, Text(variable, "binding")));
+                    variables.Add(new PlcVariable(name, type, role, initial, Text(variable, "binding"), variable.TryGetProperty("aggregate", out var schema) && schema.ValueKind == JsonValueKind.Object ? PlcAggregates.ParseSchema(schema) : null));
                 }
             }
 
@@ -557,6 +558,7 @@ public static class LadderProgramJson
         JsonValueKind.Number when value.TryGetInt64(out var integer) => integer,
         JsonValueKind.Number => value.GetDouble(),
         JsonValueKind.String => value.GetString() ?? string.Empty,
+        JsonValueKind.Object or JsonValueKind.Array => value.Clone(),
         _ => value.GetRawText(),
     };
 }

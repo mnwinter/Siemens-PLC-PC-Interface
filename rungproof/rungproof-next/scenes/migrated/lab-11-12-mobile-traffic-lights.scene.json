@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-11-12-mobile-traffic-lights",
   "name": "Lab 11.12 - Mobile Traffic Lights",
-  "description": "Two opposing signal heads display six independent PLC-owned red, amber and green commands. Road-clear and controller-ready inputs are manual; alternating timing and interlocks belong to the loaded ladder.",
+  "description": "Two common-command signal heads display six PLC-owned lamps. Manual READY/CLEAR fixtures are retained. Explicit queued 50%-scale training vehicles derive crossing occupancy; an explicitly loaded educational ladder owns 6 s green / 1 s amber / minimum 1 s all-red timing.",
   "camera": {
     "position": [
       11,
@@ -119,6 +119,84 @@
         "color": 2204518,
         "faceLabel": "B CLEAR"
       }
+    },
+    {
+      "id": "traffic_vehicle_a",
+      "type": "trainingAccessory",
+      "label": "Queued road A training vehicle (50% scale)",
+      "position": [
+        -3.6,
+        0.1,
+        0.9
+      ],
+      "rotation": [
+        0,
+        -90,
+        0
+      ],
+      "scale": [
+        0.5,
+        0.5,
+        0.5
+      ],
+      "config": {
+        "installation": "parkingVehicle"
+      }
+    },
+    {
+      "id": "traffic_request_a",
+      "type": "switch",
+      "label": "Queue road A vehicle",
+      "position": [
+        6,
+        0,
+        -1
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "request-road-a-vehicle",
+        "color": 2204518,
+        "faceLabel": "QUEUE A"
+      }
+    },
+    {
+      "id": "traffic_vehicle_b",
+      "type": "trainingAccessory",
+      "label": "Queued road B training vehicle (50% scale)",
+      "position": [
+        3.6,
+        0.1,
+        -0.9
+      ],
+      "rotation": [
+        0,
+        90,
+        0
+      ],
+      "scale": [
+        0.5,
+        0.5,
+        0.5
+      ],
+      "config": {
+        "installation": "parkingVehicle"
+      }
+    },
+    {
+      "id": "traffic_request_b",
+      "type": "switch",
+      "label": "Queue road B vehicle",
+      "position": [
+        8,
+        0,
+        -1
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "request-road-b-vehicle",
+        "color": 2204518,
+        "faceLabel": "QUEUE B"
+      }
     }
   ],
   "simulation": {
@@ -183,6 +261,42 @@
         "owner": "PLC",
         "initial": false,
         "role": "output"
+      },
+      {
+        "name": "road_a_occupied",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "road_b_occupied",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "crossing_clear",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": true
+      },
+      {
+        "name": "signal_conflict",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "road_a_position_m",
+        "type": "REAL",
+        "owner": "PC",
+        "initial": -3.6
+      },
+      {
+        "name": "road_b_position_m",
+        "type": "REAL",
+        "owner": "PC",
+        "initial": 3.6
       }
     ],
     "actions": [
@@ -203,6 +317,16 @@
         "label": "Toggle road b clear",
         "type": "toggle",
         "point": "road_b_clear"
+      },
+      {
+        "id": "request-road-a-vehicle",
+        "label": "Queue road A training vehicle",
+        "type": "trafficRequestA"
+      },
+      {
+        "id": "request-road-b-vehicle",
+        "label": "Queue road B training vehicle",
+        "type": "trafficRequestB"
       }
     ],
     "rules": [],
@@ -259,14 +383,21 @@
         "mode": "indicatorChannel",
         "activeColor": "amber"
       }
-    ]
+    ],
+    "mobileTrafficPlant": {
+      "model": "two-direction-training-v1"
+    }
   },
   "training": {
     "hints": [
       "Translate the lesson into explicit state and permissive logic: Only one road receives a green command at a time, and both roads stop on a fault.",
       "Inputs are simulator feedback (controller_ready, road_a_clear, road_b_clear); PLC logic owns road_a_green, road_b_green.",
       "The loaded ladder also owns road_a_red, road_a_amber, road_b_red and road_b_amber. Each lamp shows its actual command, including conflicting colors; test the interlocks in your ladder.",
-      "Test the initial state, the valid condition, and at least one missing permissive."
+      "Test the initial state, the valid condition, and at least one missing permissive.",
+      "Load the explicit original traffic reference to alternate the six lamps; the default exercise stays empty. Timing presets 6 s green / 1 s amber / minimum 1 s all-red are educational assumptions, not road engineering.",
+      "QUEUE A / B introduces one 50%-scale vehicle per lane. Initial hidden vehicles do not block the crossing. crossing_clear is derived from the conservative delivered-car footprint; manual CLEAR remains an independent entry fixture.",
+      "A committed vehicle clears under amber/red or entry-fixture loss. Application Stop freezes plant time. Opposing green commands remain visibly diagnosable and inhibit new entries; occupied all-red delays the next release.",
+      "Cart antennas illustrate the shared command source only. No measured radio synchronization or link-health signal is claimed."
     ],
     "solution": {
       "summary": "This is an original functional reference for the control concept, not a copy of the photographed solution.",
@@ -289,18 +420,21 @@
         "All required simulator inputs are at their documented initial state."
       ],
       "normalSequence": [
-        "Apply the requested input condition.",
-        "Verify only the documented PLC outputs respond."
+        "Load the explicit training reference, enable READY and both manual CLEAR fixtures, then queue A and B.",
+        "One-second startup all-red precedes A green; 6 s green, 1 s amber and minimum 1 s all-red alternate the direction.",
+        "Keep all-red until crossing_clear. Retain departed vehicles visibly; use QUEUE to explicitly reintroduce a completed vehicle."
       ],
       "stopBehavior": [
-        "Removing the permissive removes PLC-owned commands.",
-        "Reset returns the module to its initial state."
+        "Entry-fixture loss removes permissive signal commands and restarts all-red; a committed vehicle continues clearing on accepted plant time.",
+        "Application Stop clears PLC commands and holds vehicle poses. Run restarts all-red; Reset hides vehicles, clears requests and returns stopped."
       ],
       "faultBehavior": [
         "A missing or stale input must fail safe and remain diagnosable."
       ],
       "expectedObservations": [
-        "Only one road receives a green command at a time, and both roads stop on a fault."
+        "Only one road receives a green command at a time, and both roads stop on a fault.",
+        "Actual occupancy and crossing_clear follow vehicle footprints, not PLC output echoes.",
+        "No opposing vehicle entry while the other vehicle route remains committed. Both red on entry-fixture fault while scanning the explicit reference."
       ]
     },
     "sequenceNumber": 68,

@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-10-06-ten-motor-array-startup",
   "name": "Lab 10.6 - Ten-Motor Array Startup",
-  "description": "Ten motors accept independent BOOL commands for controller-timed startup. The retained motor_array_run BOOL requests all motors together; keep it false when sequencing individual outputs. Author or load controller logic before Run.",
+  "description": "Ten-motor fixed BOOL ARRAY [0..9] command exercise. Aggregate, independent legacy and group commands combine with OR; keep legacy/group commands false for aggregate-only sequencing. Author or load controller logic before Run.",
   "camera": {
     "position": [
       11,
@@ -369,6 +369,29 @@
         "owner": "PLC",
         "initial": false,
         "role": "output"
+      },
+      {
+        "aggregate": {
+          "lowerBound": 0,
+          "elementType": "Bool",
+          "length": 10
+        },
+        "type": "ARRAY",
+        "owner": "PLC",
+        "name": "motor_commands",
+        "initial": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "role": "output"
       }
     ],
     "actions": [
@@ -520,6 +543,56 @@
         "point": "motor_9_run",
         "equipmentId": "motor_9",
         "mode": "running"
+      },
+      {
+        "mode": "running",
+        "equipmentId": "motor_0",
+        "point": "motor_commands[0]"
+      },
+      {
+        "mode": "running",
+        "equipmentId": "motor_1",
+        "point": "motor_commands[1]"
+      },
+      {
+        "mode": "running",
+        "equipmentId": "motor_2",
+        "point": "motor_commands[2]"
+      },
+      {
+        "mode": "running",
+        "equipmentId": "motor_3",
+        "point": "motor_commands[3]"
+      },
+      {
+        "mode": "running",
+        "equipmentId": "motor_4",
+        "point": "motor_commands[4]"
+      },
+      {
+        "mode": "running",
+        "equipmentId": "motor_5",
+        "point": "motor_commands[5]"
+      },
+      {
+        "mode": "running",
+        "equipmentId": "motor_6",
+        "point": "motor_commands[6]"
+      },
+      {
+        "mode": "running",
+        "equipmentId": "motor_7",
+        "point": "motor_commands[7]"
+      },
+      {
+        "mode": "running",
+        "equipmentId": "motor_8",
+        "point": "motor_commands[8]"
+      },
+      {
+        "mode": "running",
+        "equipmentId": "motor_9",
+        "point": "motor_commands[9]"
       }
     ],
     "combineRunningCommands": true,
@@ -596,7 +669,8 @@
     "changedTags": [],
     "previousAcceptance": [
       "lab-10-05-motor-struct-data"
-    ]
+    ],
+    "purpose": "Ten-motor fixed BOOL ARRAY [0..9] command exercise. Aggregate, independent legacy and group commands combine with OR; keep legacy/group commands false for aggregate-only sequencing. Author or load controller logic before Run."
   },
   "verification": {
     "cases": [

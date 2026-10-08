@@ -5446,3 +5446,14 @@ All 16 sorter checks pass, preserving 2,225 footprint support samples, in
 profile/OBB screens, not general concave-mesh, swept-volume, fabrication or
 native visual proof. Four outgoing lanes, correct routing/diverter mechanics,
 class feedback and fresh static/full-motion camera inspection remain OPEN.
+
+## 2026-10-07 isolated process and aggregate implementation checkpoint
+
+Six changed scenes now require fresh native review: motor STRUCT, motor ARRAY, wastewater, service elevator, mobile traffic and tote finishing. Their older five-angle matrix records remain historical evidence. SCENE_NATIVE_REVIEW_QUEUE.json explicitly marks these six IMPLEMENTED_NATIVE_PENDING; its inventory does not certify visuals or runtime acceptance.
+
+The isolated integration build passes with zero warnings/errors, and the loaded native application's DLL hash remains unchanged. Wastewater passes 16 integrated checks, mobile traffic its integrated audit, motor typed execution its audit, and elevator access/hoist its sampled geometry audit. The latest tote full-process audit passes 23 checks, including measured label alignment, retained mark, camera-view conditions, compiled six-rung fill/cap/label/inspection cycle, commands off at exit, Stop retention and Reset. Existing tote fill/cap/preview regression also passes. Logs are under rungproof-next/.tools/*-latest-isolated.log and *-integrated-isolated.log. Models remain illustrative offline fixtures, not physical, image-recognition, radio, machine-safety or commissioning proof.
+
+Structured tag-editor widget handlers pass creation, typed initials, bounds, apply, Undo/Redo, save/open and atomic rejection checks; the first integrated run failed two operand availability checks. Investigation found the verifier searched the Workbench while selectors reside in the sibling instruction-properties overlay. The corrected scope and narrow-drawer wrapping still need rerun and actual native inspection. No editor completion is claimed from widget handlers alone.
+
+The existing native window is reserved while clarification about concurrent manual use is pending. No replacement window, live PLC connection, push or scheduled automation was created. The overall goal remains active; native visuals, editor interaction/layout, external settings and remaining scene-specific acceptance checks are open.
+Latest follow-up: corrected aggregate selector-scope verifier passes all nine widget/operand/persistence checks; MOTOR_AGGREGATE_AUDIT_RESULT failures=0. App-shell and full ladder-editor handler regressions pass on the same isolated build. The external-dialog run is inconclusive in this headless harness (64 x 64 viewport and unavailable verified profile); it is recorded as a failed check, not evidence of product acceptance. The default scene-contract invocation reports NO_CASES, so it supplies no catalog contract coverage. Actual native interaction and layout checks remain required.

@@ -773,8 +773,12 @@ public partial class Main
         foreach (var id in new[] { "training_accessory_3", "training_accessory_4", "training_accessory_5" })
         {
             var display = root.GetNode<Node3D>(id);
+            var fixtureReadout = id == "training_accessory_3"
+                ? display.FindChild("StaticReadout", true, false) as Label3D
+                : display.GetNodeOrNull<Label3D>("NumericReadout");
             check(display.FindChild("COUNT_DISPLAY_screen", true, false) is MeshInstance3D
-                && display.FindChild("StaticReadout", true, false) is Label3D label && label.Text.EndsWith("\nNO DATA", StringComparison.Ordinal)
+                && fixtureReadout is not null
+                && fixtureReadout.Text.EndsWith(id == "training_accessory_3" ? "\nINVALID" : "\n—", StringComparison.Ordinal)
                 && !ReviewMeshes(display).Any(mesh => mesh.Name.ToString().Contains("SHUTTER", StringComparison.Ordinal)),
                 $"motor_record_{id}_actual_display_without_shutter_or_fabricated_measurement");
             var foot = (MeshInstance3D)display.FindChild("COUNT_DISPLAY_base", true, false);

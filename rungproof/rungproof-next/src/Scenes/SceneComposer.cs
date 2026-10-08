@@ -143,6 +143,9 @@ public static partial class SceneComposer
             ConfigureVisionSorterSplices(root);
         if (scene.Equipment.Any(equipment => Text(equipment.Config, "installation", string.Empty) == "wastewaterCollector"))
             ConfigureWastewaterPiping(root);
+        if (scene.Simulation.TryGetProperty("controllerToteTransfer", out var toteProcess)
+            && toteProcess.ValueKind == JsonValueKind.True)
+            ConfigureToteFinishingProcess(root);
         if (scene.Equipment.Any(equipment => Text(equipment.Config, "installation", string.Empty) == "sumpPiping"))
             ConfigureSumpPiping(root);
         if (scene.Equipment.Any(equipment => Text(equipment.Config, "installation", string.Empty) == "fixtureDrill"))

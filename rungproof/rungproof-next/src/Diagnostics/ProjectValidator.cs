@@ -5,6 +5,7 @@ using System.Text.Json;
 using Godot;
 using RungProof.Next.Catalog;
 using RungProof.Next.Scenes;
+using RungProof.Next.VirtualController;
 
 namespace RungProof.Next.Diagnostics;
 
@@ -207,6 +208,28 @@ public static class ProjectValidator
                     AddError(issues, "SCN-POINT-DUPLICATE", scope,
                         $"Simulation point '{name}' is blank or duplicated.",
                         "Give every symbolic point a unique non-empty name.");
+                }
+                var type = Text(point, "type");
+                if (type is "STRUCT" or "ARRAY")
+                {
+                    try
+                    {
+                        var schema = point.TryGetProperty("aggregate", out var metadata)
+                            ? PlcAggregates.ParseSchema(metadata) : null;
+                        if (!point.TryGetProperty("initial", out var initial))
+                            throw new ArgumentException("Aggregate requires an initial value.");
+                        var root = new PlcVariable(name,
+                            type == "STRUCT" ? PlcVariableType.Struct : PlcVariableType.Array,
+                            PlcVariableRole.Memory, initial, Aggregate: schema);
+                        foreach (var leaf in PlcAggregates.Expand([root]))
+                            if (!points.Add(leaf.Name))
+                                throw new ArgumentException($"Aggregate leaf '{leaf.Name}' overlaps another point.");
+                    }
+                    catch (Exception exception) when (exception is ArgumentException or JsonException)
+                    {
+                        AddError(issues, "SCN-AGGREGATE", scope, exception.Message,
+                            "Provide a valid fixed aggregate schema and matching initial values.");
+                    }
                 }
             }
         }

@@ -25,13 +25,15 @@ public static class LadderCompiler
         return issues.Count == 0
             ? new(new CompiledLadderProgram(
                 program,
-                program.Variables.ToDictionary(item => item.Name, StringComparer.Ordinal)), [])
+                PlcAggregates.Expand(program.Variables).ToDictionary(item => item.Name, StringComparer.Ordinal)), [])
             : new(null, issues);
     }
 
     public static IReadOnlyList<LadderValidationIssue> Validate(LadderProgram program)
     {
         var issues = new List<LadderValidationIssue>();
+        try { program = program with { Variables = PlcAggregates.Expand(program.Variables), WatchVariables = program.WatchVariables?.Where(name => !program.Variables.Any(v => v.Name == name && PlcAggregates.IsAggregate(v.Type))).ToArray() }; }
+        catch (ArgumentException exception) { return [new("VC002", "$.variables", exception.Message)]; }
         if (program.SchemaVersion != 1)
             issues.Add(new("VC100", "$.schemaVersion", "Only schemaVersion 1 is supported."));
         if (string.IsNullOrWhiteSpace(program.Id))

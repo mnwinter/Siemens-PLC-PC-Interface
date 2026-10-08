@@ -9,7 +9,8 @@ public sealed record SceneIoPoint(
     string Type,
     string Owner,
     string Role,
-    string Purpose);
+    string Purpose,
+    PlcAggregateSchema? Aggregate = null);
 
 /// <summary>
 /// Validates the symbolic seam between an offline Ladder program and the
@@ -28,7 +29,39 @@ public static class SceneIoBindingValidator
         IReadOnlyList<SceneIoPoint> points)
     {
         var issues = new List<LadderValidationIssue>();
-        var pointsByName = points.ToDictionary(point => point.Name, StringComparer.Ordinal);
+        try
+        {
+            foreach (var point in points.Where(p => p.Type.Equals("STRUCT", StringComparison.OrdinalIgnoreCase) || p.Type.Equals("ARRAY", StringComparison.OrdinalIgnoreCase)))
+                PlcAggregates.ValidateSchema(point.Name, point.Type.Equals("STRUCT", StringComparison.OrdinalIgnoreCase) ? PlcVariableType.Struct : PlcVariableType.Array, point.Aggregate);
+        }
+        catch (ArgumentException exception) { return [new("IO002", "$.scenePoints", exception.Message)]; }
+        foreach (var root in program.Variables.Where(v => PlcAggregates.IsAggregate(v.Type) && v.Binding.Length > 0))
+        {
+            var point = points.FirstOrDefault(p => p.Name == root.Binding);
+            if (point is null || !point.Type.Equals(root.Type.ToString(), StringComparison.OrdinalIgnoreCase) || point.Aggregate is null || root.Aggregate is null
+                || point.Aggregate.LowerBound != root.Aggregate.LowerBound || point.Aggregate.Length != root.Aggregate.Length || point.Aggregate.ElementType != root.Aggregate.ElementType
+                || !(point.Aggregate.Fields ?? []).SequenceEqual(root.Aggregate.Fields ?? []))
+                issues.Add(new("IO002", "$.variables", $"Aggregate binding '{root.Binding}' requires the same declared root type and complete schema."));
+        }
+        if (issues.Count > 0) return issues;
+        try { program = program with { Variables = PlcAggregates.Expand(program.Variables) }; }
+        catch (ArgumentException exception) { return [new("IO002", "$.variables", exception.Message)]; }
+        var expandedPoints = new List<SceneIoPoint>();
+        foreach (var point in points)
+        {
+            if (point.Type.Equals("STRUCT", StringComparison.OrdinalIgnoreCase) && point.Aggregate?.Fields is { } fields)
+                expandedPoints.AddRange(fields.Select(field => point with { Name = point.Name + "." + field.Name, Type = field.Type.ToString(), Aggregate = null }));
+            else if (point.Type.Equals("ARRAY", StringComparison.OrdinalIgnoreCase) && point.Aggregate is { } array)
+            {
+                if (array.Length <= 0 || array.Length > 4096 || (long)array.LowerBound + array.Length - 1 > int.MaxValue)
+                    return [new("IO002", "$.scenePoints", "Invalid scene ARRAY bounds.")];
+                expandedPoints.AddRange(Enumerable.Range(array.LowerBound, array.Length).Select(i => point with { Name = $"{point.Name}[{i}]", Type = array.ElementType.ToString(), Aggregate = null }));
+            }
+            else expandedPoints.Add(point);
+        }
+        if (expandedPoints.Select(p => p.Name).Distinct(StringComparer.Ordinal).Count() != expandedPoints.Count)
+            return [new("IO002", "$.scenePoints", "Duplicate or overlapping scene point declarations.")];
+        var pointsByName = expandedPoints.ToDictionary(point => point.Name, StringComparer.Ordinal);
         var outputBindings = new HashSet<string>(StringComparer.Ordinal);
         for (var index = 0; index < program.Variables.Count; index++)
         {
@@ -84,6 +117,8 @@ public static class SceneIoBindingValidator
         PlcVariableType.Int => pointType.Equals("INT", StringComparison.OrdinalIgnoreCase),
         PlcVariableType.DInt => pointType.Equals("DINT", StringComparison.OrdinalIgnoreCase),
         PlcVariableType.Real => pointType.Equals("REAL", StringComparison.OrdinalIgnoreCase),
+        PlcVariableType.Struct => pointType.Equals("STRUCT", StringComparison.OrdinalIgnoreCase),
+        PlcVariableType.Array => pointType.Equals("ARRAY", StringComparison.OrdinalIgnoreCase),
         _ => false,
     };
 }

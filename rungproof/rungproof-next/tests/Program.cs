@@ -5,13 +5,22 @@ using System.Linq;
 using System.Text.Json;
 using RungProof.Next.VirtualController;
 
-internal static class Program
+internal static partial class Program
 {
     private static int _passed;
     private static int _failed;
 
+    private static string FindProjectRoot()
+    {
+        for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
+            if (File.Exists(Path.Combine(directory.FullName, "RungProof.Next.csproj"))) return directory.FullName;
+        throw new DirectoryNotFoundException("RungProof project root was not found above the test output.");
+    }
+
     private static int Main()
     {
+        Test("typed aggregate declarations execute and persist", TestAggregateExecution);
+        Test("aggregate malformed declarations and operands fail closed", TestAggregateRejection);
         Test("NO contact follows false/true", TestNormallyOpen);
         Test("NC contact inverts false/true", TestNormallyClosed);
         Test("rising edge contact pulses for exactly one scan", TestRisingEdgeContact);
@@ -185,7 +194,7 @@ internal static class Program
 
     private static void TestBottleShuttleReference()
     {
-        var root = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".."));
+        var root = FindProjectRoot();
         var loaded = LadderEditorProjectJson.Load(File.ReadAllText(Path.Combine(root,
             "programs", "examples", "02-bottle-shuttle-reference.rpproj.json")));
         True(loaded.IsReadable);
@@ -259,13 +268,14 @@ internal static class Program
 
     private static void TestSceneExerciseProjects()
     {
-        var root = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".."));
+        var root = FindProjectRoot();
         var files = Directory.GetFiles(Path.Combine(root, "scenes", "migrated"), "*.scene.json");
         Equal(77, files.Length);
         var unsupportedCount = 0;
         foreach (var path in files)
         {
             using var scene = JsonDocument.Parse(File.ReadAllText(path));
+            SceneAggregateContract.Validate(scene.RootElement.GetProperty("simulation"));
             var id = scene.RootElement.GetProperty("id").GetString()!;
             var points = new List<SceneIoPoint>();
             var initial = new Dictionary<string, object?>();
@@ -275,7 +285,7 @@ internal static class Program
                 var name = point.GetProperty("name").GetString()!;
                 var type = point.GetProperty("type").GetString()!;
                 var owner = point.GetProperty("owner").GetString()!;
-                points.Add(new(name, type, owner, string.Empty, string.Empty));
+                points.Add(new(name, type, owner, string.Empty, string.Empty, point.TryGetProperty("aggregate", out var metadata) ? PlcAggregates.ParseSchema(metadata) : null));
                 if (!point.TryGetProperty("initial", out var value)) continue;
                 initial[name] = value.ValueKind switch
                 {
@@ -285,6 +295,7 @@ internal static class Program
                     // remain long even when their declared scene type is REAL.
                     JsonValueKind.Number when value.TryGetInt64(out var integer) => integer,
                     JsonValueKind.Number => value.GetDouble(),
+                    JsonValueKind.Object or JsonValueKind.Array => value.Clone(),
                     _ => null,
                 };
             }
@@ -672,7 +683,7 @@ internal static class Program
 
     private static void TestUnknownContactType()
     {
-        var root = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".."));
+        var root = FindProjectRoot();
         var json = File.ReadAllText(Path.Combine(root, "programs", "demo-conveyor.ld.json"))
             .Replace("normallyOpen", "invalidContact", StringComparison.Ordinal);
         var loaded = LadderProgramJson.Load(json);
@@ -2604,7 +2615,7 @@ internal static class Program
 
     private static VirtualControllerRuntime DemoRuntime()
     {
-        var root = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".."));
+        var root = FindProjectRoot();
         var json = File.ReadAllText(Path.Combine(root, "programs", "demo-conveyor.ld.json"));
         var loaded = LadderProgramJson.Load(json);
         if (!loaded.IsValid) throw new InvalidOperationException(string.Join("; ", loaded.Issues.Select(item => item.Message)));

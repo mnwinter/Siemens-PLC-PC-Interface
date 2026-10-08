@@ -52,6 +52,7 @@ public partial class SceneSimulationRuntime
     private void ProjectServiceElevator()
     {
         _elevatorCarMotion!.SetPositionNormalized(_elevatorPosition);
+        SceneComposer.ProjectServiceElevatorHoist(_elevatorShaft!);
         SetPoint("car_position_pct",(double)_elevatorPosition*100);
         SetPoint("at_lower_landing",_elevatorPosition<=.00001f);
         SetPoint("at_upper_landing",_elevatorPosition>=.99999f);
