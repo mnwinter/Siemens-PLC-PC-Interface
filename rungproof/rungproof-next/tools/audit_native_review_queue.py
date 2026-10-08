@@ -30,8 +30,8 @@ accepted_bounded={
 implementation_gaps={
 }
 verification_gaps={
- 'lab-10-03-vision-package-sorter': 'Continuous clearance between sampled poses',
- 'lab-2-17-pallet-robot': 'Continuous clearance between sampled poses',
+ 'lab-10-03-vision-package-sorter': 'Required uninterrupted full-route native observation in five angles pending; continuous solid clearance between sampled poses also unverified',
+ 'lab-2-17-pallet-robot': 'Required uninterrupted full-cycle native observation in five angles pending; continuous solid clearance between sampled poses also unverified',
 }
 for line in text.splitlines():
  if not re.match(r'^\| \d+ \|',line):continue
