@@ -148,9 +148,9 @@
       "type": "switch",
       "label": "Queue road A vehicle",
       "position": [
-        6,
+        7,
         0,
-        -1
+        2
       ],
       "config": {
         "style": "pushbutton",
@@ -187,9 +187,9 @@
       "type": "switch",
       "label": "Queue road B vehicle",
       "position": [
-        8,
+        9,
         0,
-        -1
+        2
       ],
       "config": {
         "style": "pushbutton",

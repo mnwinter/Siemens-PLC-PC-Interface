@@ -3807,6 +3807,7 @@ public partial class Main : Node3D
         // only to the lowered deck clips the platform/fixture as it rises. Use a
         // conservative translated envelope without changing any equipment pose.
         if (_currentSceneId == "lab-5-08-drawbridge-control") AddDrawbridgeFrameEnvelope(root, points);
+        AddWastewaterReadoutFrameEnvelope(root, authoredDirection, points);
         var currentPoints = points.ToArray();
         var sorterCartonFocus = _visualSceneReview && _currentSceneId == "lab-10-03-vision-package-sorter"
             && _visualReviewFocusId == "box_1" && ReferenceEquals(root, _sceneCompositionRoot?.GetNodeOrNull<Node3D>("box_1"));
@@ -3858,6 +3859,7 @@ public partial class Main : Node3D
         var viewport = camera.GetViewport().GetVisibleRect();
         var aperture = _simulatorShell?.SceneViewportRect() ?? viewport;
         if (aperture.Size.X <= 0 || aperture.Size.Y <= 0) aperture = viewport;
+        aperture = WastewaterReadoutReviewAperture(root, aperture);
         camera.KeepAspect = Camera3D.KeepAspectEnum.Height;
         var distance = MathF.Max(halfHeight * viewport.Size.Y / (verticalTangent * aperture.Size.Y),
             halfWidth * viewport.Size.Y / (verticalTangent * aperture.Size.X));
@@ -3880,7 +3882,14 @@ public partial class Main : Node3D
         {
             var aperture = _simulatorShell.SceneViewportRect();
             if (aperture.Size.X > 0 && aperture.Size.Y > 0 && aperture != _lastFramedAperture)
-                FrameComposition(_mainCamera, _assetPreviewRoot ?? _sceneCompositionRoot, _sceneCameraDirection);
+            {
+                // Keep the wastewater diagnostic focus when its wrapped QA
+                // controls change the operator aperture during layout.
+                if (_visualSceneReview && _currentSceneId == "lab-11-06-wastewater-collection"
+                    && _visualReviewFocusId == "training_accessory_7")
+                    SetVisualReviewAngle(_sceneCameraDirection, "readout-aperture-resize");
+                else FrameComposition(_mainCamera, _assetPreviewRoot ?? _sceneCompositionRoot, _sceneCameraDirection);
+            }
         }
         _sceneControlInteractor?.AdvanceFeedback(delta);
         if (_sceneControlInteractor is not null && _sceneRuntime is not null)

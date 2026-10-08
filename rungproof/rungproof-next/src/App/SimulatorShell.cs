@@ -1995,6 +1995,7 @@ public partial class SimulatorShell : CanvasLayer
                          "Run requires a loaded ladder program. Exercises may start with an empty project: open Logic Editor, add networks, then use Online > Verify + load offline before Run.\n\n" +
                          "Stop removes output commands; Reset restores the scene. The physical PLC stays disconnected until you configure a connection.",
             Exclusive = true,
+            DialogAutowrap = true,
             MinSize = new Vector2I(500, 210),
         };
         _simulatorModeDialog.OkButtonText = "CONTINUE";
@@ -2137,7 +2138,8 @@ public partial class SimulatorShell : CanvasLayer
     /// </summary>
     public void ShowSimulatorModeNotice()
     {
-        _simulatorModeDialog.PopupCentered(new Vector2I(500, 210));
+        var viewport = GetViewport().GetVisibleRect().Size;
+        _simulatorModeDialog.PopupCentered(new Vector2I((int)Math.Min(620, viewport.X - 48), (int)Math.Min(300, viewport.Y - 48)));
     }
 
     public void ShowWorkspaceFeedback(string message, bool isError = false)
@@ -2729,6 +2731,10 @@ public partial class SimulatorShell : CanvasLayer
 
     private static string DisplayPointValue(object? value) => value switch
     {
+        IReadOnlyDictionary<string, object> fields => "{" + string.Join("; ", fields.Select(field => field.Key + "=" + DisplayPointValue(field.Value))) + "}",
+        // The value contains ordered elements, but no schema lower bound. Avoid
+        // inventing indices; the typed leaf rows carry their declared indices.
+        IReadOnlyList<object> elements => "[" + string.Join(", ", elements.Select(DisplayPointValue)) + "]",
         double number => number.ToString("G6", System.Globalization.CultureInfo.InvariantCulture),
         float number => number.ToString("G6", System.Globalization.CultureInfo.InvariantCulture),
         _ => Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture) ?? "—",
@@ -6114,8 +6120,9 @@ public partial class SimulatorShell : CanvasLayer
         var toolRailButtons = new List<Button>();
         toolTabs.TabChanged += tabIndex =>
         {
+            var railIndex = tabIndex == 0 ? 0 : tabIndex == 1 ? 3 : 4;
             for (var index = 0; index < toolRailButtons.Count; index++)
-                toolRailButtons[index].ButtonPressed = index == tabIndex;
+                toolRailButtons[index].ButtonPressed = index == railIndex;
         };
         var instructionPage = new VBoxContainer { Name = "Instructions" };
         var instructionTree = new Tree
@@ -6700,7 +6707,21 @@ public partial class SimulatorShell : CanvasLayer
                 SizeFlagsVertical = Control.SizeFlags.ExpandFill,
                 FocusMode = Control.FocusModeEnum.All,
             };
-            railButton.Pressed += () => toolTabs.CurrentTab = railIndex;
+            railButton.Pressed += () =>
+            {
+                if (railIndex is 1 or 2)
+                {
+                    // Tags and blocks belong to ProjectTabs, not the three
+                    // instruction/search/help pages in the right tool dock.
+                    reopenProjectDock.Visible = false;
+                    projectPanel.Visible = true;
+                    work.SplitOffsets = [projectDockSplitOffset];
+                    projectTabs.CurrentTab = railIndex;
+                }
+                else toolTabs.CurrentTab = railIndex == 0 ? 0 : railIndex == 3 ? 1 : 2;
+                for (var buttonIndex = 0; buttonIndex < toolRailButtons.Count; buttonIndex++)
+                    toolRailButtons[buttonIndex].ButtonPressed = buttonIndex == railIndex;
+            };
             toolRail.AddChild(railButton);
             toolRailButtons.Add(railButton);
         }

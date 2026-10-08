@@ -26,10 +26,17 @@ public partial class SceneSimulationRuntime
         _wastewaterReadout = _sceneRoot.GetNode<Node3D>("training_accessory_7").GetNodeOrNull<Label3D>("WastewaterReadout");
         if (_wastewaterReadout is null)
         {
-            _wastewaterReadout = new Label3D { Name = "WastewaterReadout", Position = new Vector3(0, .6f, 0),
+            _wastewaterReadout = new Label3D { Name = "WastewaterReadout",
                 FontSize = 40, PixelSize = .003f, Billboard = BaseMaterial3D.BillboardModeEnum.Enabled };
             _sceneRoot.GetNode<Node3D>("training_accessory_7").AddChild(_wastewaterReadout);
         }
+        // The probe's imported head extends above its installation origin.
+        // Place all three text rows above its actual installed mesh envelope,
+        // rather than inside the head with an arbitrary local-Y offset.
+        var sensor = _sceneRoot.GetNode<Node3D>("training_accessory_7");
+        var sensorBounds = DeliveredEquipmentBounds(sensor);
+        _wastewaterReadout.Position = sensor.GlobalTransform.AffineInverse() * new Vector3(
+            sensorBounds.GetCenter().X, sensorBounds.End.Y + .30f, sensorBounds.GetCenter().Z);
         PublishWastewaterSnapshot();
     }
 
@@ -63,6 +70,15 @@ public partial class SceneSimulationRuntime
         StateChanged?.Invoke();
     }
 
+    private void ProjectWastewaterValveFeedback()
+    {
+        if (!HasWastewaterPlant || _wastewaterValve is null) return;
+        // Absolute bindings may change the installed valve during Reset, Stop
+        // or output commit without a plant tick. Publish after those bindings
+        // so feedback describes the current adapter, including inversion.
+        SetPoint("outlet_valve_position_percent", _wastewaterValve.InputPositionNormalized * 100.0);
+    }
+
     private void PublishWastewaterSnapshot()
     {
         var state = _wastewater!.State;
@@ -75,9 +91,9 @@ public partial class SceneSimulationRuntime
         SetPoint("actual_transfer_percent_per_second", state.TransferFlow * 100);
         SetPoint("overflow_percent_per_second", state.Overflow * 100);
         SetPoint("transfer_inhibited", state.TransferInhibited);
-        SetPoint("outlet_valve_position_percent", _wastewaterValve!.InputPositionNormalized * 100.0);
+        ProjectWastewaterValveFeedback();
         foreach (var tank in _wastewaterTanks) ApplyTankLevel(tank, (float)state.Level);
         _wastewaterReadout!.Text = FormattableString.Invariant(
-            $"BANK {state.LevelPercent:F1}%  |  {state.TransmitterMa:F2} mA\nTRANSFER {state.TransferFlow * 100:F1}%/s  |  OVERFLOW {state.Overflow * 100:F1}%/s");
+            $"BANK {state.LevelPercent:F1}%  |  {state.TransmitterMa:F2} mA\nTRANSFER {state.TransferFlow * 100:F1}%/s\nOVERFLOW {state.Overflow * 100:F1}%/s");
     }
 }

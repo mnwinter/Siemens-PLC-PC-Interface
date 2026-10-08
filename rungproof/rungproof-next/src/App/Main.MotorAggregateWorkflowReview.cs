@@ -138,6 +138,8 @@ public partial class Main
                 for (var scan = 0; scan < 25; scan++) _PhysicsProcess(.02);
                 check(Enumerable.Range(0, 10).All(i => Equals(scene.Points[$"motor_commands[{i}]"], i < count)) && scene.Points["motor_array_run"] is false,
                     "motor_array_typed_prefix_" + count);
+                check(MotorReviewCommandBits(scene.Points) == new string('1', count) + new string('0', 10 - count),
+                    "motor_array_review_effective_typed_prefix_" + count);
             }
             ExecuteSelectedControllerAction("toggle-group_alarm_clear"); _PhysicsProcess(.02);
             check(Enumerable.Range(0, 10).All(i => scene.Points[$"motor_commands[{i}]"] is false), "motor_array_typed_alarm_loss");
@@ -153,12 +155,14 @@ public partial class Main
         var motions = _sceneCompositionRoot!.GetChildren().OfType<Node3D>().Where(n => n.Name.ToString().StartsWith("motor_", StringComparison.Ordinal))
             .SelectMany(n => n.FindChildren("*", "", true, false).OfType<EquipmentMotionController>()).ToArray();
         check(motions.Length == 10 && motions.All(m => m.Running), "motor_array_legacy_group_still_projects_to_all_motors");
+        check(MotorReviewCommandBits(scene.Points) == "1111111111", "motor_array_review_effective_legacy_group");
         scene.CommitExternalPlcOutputs(new Dictionary<string, object?> { ["motor_array_run"] = false });
         var lastOnly = new bool[10]; lastOnly[9] = true;
         scene.CommitAggregateSceneOutputs(new Dictionary<string, object> { ["motor_commands"] = lastOnly });
         check(motions.Count(m => m.Running) == 1, "motor_array_typed_single_element_projects_independently");
         scene.CommitExternalPlcOutputs(new Dictionary<string, object?> { ["motor_0_run"] = true });
         check(motions.Count(m => m.Running) == 2 && scene.Points["motor_commands[0]"] is false, "motor_array_legacy_or_does_not_overwrite_typed_root");
+        check(MotorReviewCommandBits(scene.Points) == "1000000001", "motor_array_review_effective_legacy_and_typed_arbitration");
         scene.ResetSimulation();
     }
 }

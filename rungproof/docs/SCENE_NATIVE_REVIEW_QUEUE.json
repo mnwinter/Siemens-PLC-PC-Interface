@@ -3,11 +3,11 @@
   "scope": "Inventory of documented observations only; views may predate current geometry or displays. Pending flags refer to changed layouts, displays or processes. Runtime, collision and visual acceptance remain separate.",
   "sceneCount": 77,
   "allFiveAnglesRecordedCount": 77,
-  "explicitFailureCount": 11,
+  "explicitFailureCount": 6,
   "triagedImplementationGapCount": 0,
-  "implementedNativePendingCount": 6,
-  "triagedVerificationGapCount": 6,
-  "knownChangedSceneCount": 6,
+  "implementedNativePendingCount": 0,
+  "triagedVerificationGapCount": 2,
+  "knownChangedSceneCount": 0,
   "scenes": [
     {
       "index": 1,
@@ -96,7 +96,7 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Repaired carton seating, four receiving belts and supported handoffs freshly inspected in native Windows window 8389926. CLASS / NO RESULT readable on grounded display stand; carton bottom visibly seated inside belt deck. Class fixture/display and driven routing implemented (a601080/38d5088). Four integrated routes pass continuous motion, class retention, endpoint/Stop/Reset checks. Native loaded QA lane1 route, class change, Stop/resume, endpoint in five directions and Reset verified in window204276. Native routes2-4 now observed with all receiving endpoints in five directions and Stop/Reset. Raised receiving splices repaired in e582ca2; all four scan-pose carton triangle screens pass at1mm allowance and post-fix native lane1 endpoint/Stop/Reset inspected. 2026-10-07 native window269882 class2 infeed/table/outgoing travel and Stop1060 delivered-carton five-angle inspection observed; post-fix native lanes3-4 now observed in window401258 with receiver five-angle checks, Stop1411/class3 and Stop1286/class4, then Reset0 for each. Lane4 Top rotation framing repaired with full-yaw envelope and toolbar reserve: four-route per-scan screen assertions PASS; fresh native window139154 unchanged Top focus shows complete carton at326/506/760/3164, Stop3284 and Reset0 without manual zoom. Moving box_1 focus repaired in26c0403: four-route camera/Reset checks PASS; native rebuilt window401258 FR focus remains centered without re-click at210 infeed,519 table and1030 outgoing; Stop1220 and Reset0 also retain/recover focus. Sampled native evidence only. FAIL/open: continuous clearance between sampled poses remains unverified.",
+      "recordedResult": "Repaired carton seating, four receiving belts and supported handoffs freshly inspected in native Windows window 8389926. CLASS / NO RESULT readable on grounded display stand; carton bottom visibly seated inside belt deck. Class fixture/display and driven routing implemented (a601080/38d5088). Four integrated routes pass continuous motion, class retention, endpoint/Stop/Reset checks. Native loaded QA lane1 route, class change, Stop/resume, endpoint in five directions and Reset verified in window204276. Native routes2-4 now observed with all receiving endpoints in five directions and Stop/Reset. Raised receiving splices repaired in e582ca2; all four scan-pose carton triangle screens pass at1mm allowance and post-fix native lane1 endpoint/Stop/Reset inspected. 2026-10-07 native window269882 class2 infeed/table/outgoing travel and Stop1060 delivered-carton five-angle inspection observed; post-fix native lanes3-4 now observed in window401258 with receiver five-angle checks, Stop1411/class3 and Stop1286/class4, then Reset 0 for each. Lane4 Top rotation framing repaired with full-yaw envelope and toolbar reserve: four-route per-scan screen assertions PASS; fresh native window139154 unchanged Top focus shows complete carton at326/506/760/3164, Stop3284 and Reset 0 without manual zoom. Moving box_1 focus repaired in26c0403: four-route camera/Reset checks PASS; native rebuilt window401258 FR focus remains centered without re-click at210 infeed,519 table and1030 outgoing; Stop1220 and Reset 0 also retain/recover focus. Sampled native evidence only. FAIL/open: continuous clearance between sampled poses remains unverified.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": true,
       "gapKind": "VERIFICATION_GAP",
@@ -134,13 +134,13 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Display identity/support/spacing and motor command projection repaired; 9 checks PASS, native five-angle reinspection. Native window 400814 at source 0a3864a: separate two-rung/five-BOOL QA loaded through Project/Open and verified in both TIA and Studio presentations. Run, initial/missing inputs, all three permissives, separate loss/restoration of each, Stop and Reset inspected; both outputs and green indicators follow QA condition. Complete BOOL command workflow verified; measured shaft motion not established by these full-scene screenshots. FAIL/open: no STRUCT record or power/temperature data; three NO DATA displays remain. QA is not the user exercise solution",
-      "latestNativeReviewPending": true,
-      "explicitFailureRecorded": true,
-      "gapKind": "IMPLEMENTED_NATIVE_PENDING",
-      "gapSummary": "Typed STRUCT and fixture readouts implemented; fresh native acceptance pending",
-      "disposition": "REVIEW_CHANGED_SCENE",
-      "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
+      "recordedResult": "Typed STRUCT and fixture readouts implemented; bounded offline native acceptance complete. Prior five-angle support/footprint views, typed command gates with legacy outputs false, shaft motion/inhibit, root/member REAL watches, green power flow and Stop/Reset observed. Final adaptive DLL native4917324 normal Project/Open20ms: full-width operand complete; 770px Help canvas wraps all three feedback members on two readable lines with clear neighboring gaps. QA separate from user exercise; physical/live PLC certification unverified.",
+      "latestNativeReviewPending": false,
+      "explicitFailureRecorded": false,
+      "gapKind": "NATIVE_REVIEW_ACCEPTED_BOUNDED",
+      "gapSummary": "C1 closed: offline native STRUCT views/typed gates/watch/operand layout/power flow/Stop/Reset evidence accepted",
+      "disposition": "RETAIN_BOUNDED_NATIVE_EVIDENCE",
+      "acceptance": "BOUNDED_OFFLINE_NATIVE_ONLY"
     },
     {
       "index": 8,
@@ -153,13 +153,13 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Ten actual motors and display/control spacing repaired; 8 focused checks pass, native five-angle reinspection. Independent motor_0_run through motor_9_run BOOL commands now added with opt-in OR aggregation alongside retained group command. 21 focused geometry/projection checks PASS including independence, legacy compatibility and Reset; build zero warnings/errors, 145 controller tests PASS. Fresh native session 41751/window 6561010 shows readable description and new PLC command rows; geometry unchanged. Native session 24462/window 7019226 at source 919c8ac: normal Open/Verify+load of QA ladder (1 block, 1 task, 21 rungs, 25 tags), held before Run; every 500 ms stage from 0.50 through 5.00 s inspected with actual M0..9 commands, one additional motor per stage, group command false; startup active clears at 5.00 s. Completed state inspected FR/FL/RL/RR/Top at scan 250; separated motor/control footprints, no visible gross overlap. Alarm-clear loss clears all ten commands on next 20 ms scan; Stop and Reset inspected, scan zero and home shafts. Native window 335262 on production change e86684d: command displays verified through all ten 500 ms startup stages, ending 10/10 and sequence OFF at scan 250/time 5.00 s. Stop clears commands to 0/10 at scan 250; Reset returns scan/time zero, inputs false and sequence OFF. FAIL/open: array-value interface remains unresolved; these displays report commands, not measured motor feedback; QA ladder is separate from the user exercise solution.",
-      "latestNativeReviewPending": true,
-      "explicitFailureRecorded": true,
-      "gapKind": "IMPLEMENTED_NATIVE_PENDING",
-      "gapSummary": "Typed ARRAY execution implemented; fresh native acceptance pending",
-      "disposition": "REVIEW_CHANGED_SCENE",
-      "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
+      "recordedResult": "Typed ARRAY implemented and bounded offline native acceptance complete. Prior FR/FL/RL/RR/Top supports/readout footprints separated. Native 4065356 normal Project/Open QA, indexed root watch, ten held 500 ms effective M0-M9 stages, shaft phases, AlarmClear next-scan inhibit, Stop and Reset accepted; legacy outputs remained false. Root watch truncates at normal column width, so no all-ten-root visibility claim. QA separate from user exercise; physical/live PLC certification unverified.",
+      "latestNativeReviewPending": false,
+      "explicitFailureRecorded": false,
+      "gapKind": "NATIVE_REVIEW_ACCEPTED_BOUNDED",
+      "gapSummary": "C2 closed: offline native ARRAY views/effective stages/shaft/inhibit/Stop/Reset evidence accepted",
+      "disposition": "RETAIN_BOUNDED_NATIVE_EVIDENCE",
+      "acceptance": "BOUNDED_OFFLINE_NATIVE_ONLY"
     },
     {
       "index": 9,
@@ -172,13 +172,13 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Tank spacing, roof probe mounting, measured collector/discharge pipes and grounded supports repaired; 18 focused checks pass. Native QA project load/Run, each permissive loss, Stop/Reset and valve endpoints inspected. FAIL/open: no fluid/analog process model or full continuous-motion proof; default exercise unloaded.",
-      "latestNativeReviewPending": true,
-      "explicitFailureRecorded": true,
-      "gapKind": "IMPLEMENTED_NATIVE_PENDING",
-      "gapSummary": "Normalized fluid and analog process implemented; fresh native acceptance pending",
-      "disposition": "REVIEW_CHANGED_SCENE",
-      "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
+      "recordedResult": "Normalized fluid/analog process implemented. Fresh five-angle native footprint/header inspection, readable FR/FL three-row focus, normal PLC permissive/threshold bracket and one-scan response, independent pump rotation/valve quarter-turn, Stop and corrected Reset accepted offline. Latest build zero warnings/errors; 21 focused checks pass. Native 4131118 independent QA is separate from product permissive logic; exact 20% equality source-tested only. Physical/continuous certification and live PLC acceptance unverified; default exercise remains unloaded.",
+      "latestNativeReviewPending": false,
+      "explicitFailureRecorded": false,
+      "gapKind": "NATIVE_REVIEW_ACCEPTED_BOUNDED",
+      "gapSummary": "C3 closed: offline native geometry/readout/threshold/independent actuator/Stop/Reset evidence accepted",
+      "disposition": "RETAIN_BOUNDED_NATIVE_EVIDENCE",
+      "acceptance": "BOUNDED_OFFLINE_NATIVE_ONLY"
     },
     {
       "index": 10,
@@ -210,13 +210,13 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Car/shaft and two landings repaired. Door tracks/hangers supported, controller-owned car position and landing flags implemented. Normal editor audit cycle completed native round trip, upper reversal, held-call home, Stop/resume, Reset; all three manual permissive losses held ascent. Changing QA label and raised Top framing inspected. Upper landing side/rear rails and toe boards added; separated control row freshly inspected in native window204592 FR/FL/RL/RR/Top; new home FR/FL/RL/RR/Top inspected and101 open/101 closed car-pose bounds checks pass including guards. One-second modeled door travel and prior-step closure gate now implemented2c5a2c1. Build/focused verifier pass including1111car/door-envelope pairs and partial Stop. Native531606 loaded3rungs10tags; held25/0.50s partial doors/car0/upTrue inspected FR/FL/RL/RR/Top; Stop25 retains pose/clears commands, resumed50/1.00s closed/car0, fine51/1.02s car0.3%, Reset0 open/home. Native partial reversal25 halfclosed to50 open/car0 observed; normal unheld FR88 closing/car0, FL373 ascent91%, RL658 return14%, RR910 home0/bothFalse with heldcallTrue; Reset0 open/home verified. Added101leaf-path samples found an actual open-leaf/call-button collision. Both landing call stations moved to deck-supported posts outside the sweep; build0warnings/errors and elevator-leaf-path-fixed.log PASS. Fresh sole15532934 home FR/FL/RL/RR/Top inspected at full-scene scale; rear/Top partly occlude stations. FAIL/open: hoist/access stair/gate, continuous multi-angle motion, repaired15532934 native cycle sampled FR39 closing/car0, FL328 ascent92.7%, RL627 return7.7%, RR946 home0/bothFalse; Reset0 verified. Native heldRR350/7.00s car100%/upperTrue/upTrue/downFalse then351/7.02s car99.7%/upperFalse/upFalse/downTrue directly verifies upper reversal; Reset0. Continuous five-angle frames remain unverified; default exercise remains unloaded.",
-      "latestNativeReviewPending": true,
-      "explicitFailureRecorded": true,
-      "gapKind": "IMPLEMENTED_NATIVE_PENDING",
-      "gapSummary": "Hoist and access geometry implemented; fresh native acceptance pending",
-      "disposition": "REVIEW_CHANGED_SCENE",
-      "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
+      "recordedResult": "Bounded offline native elevator acceptance complete: final DLL window4917550 five static views show connected floor/stairs/support/top hoist without visible unintended intersections. Normal20ms cycle: closed doors precede travel; held50% RR/RL rope attachments and shortening, FL door clearance; permission loss holds car while doors open, restoration closes doors before resume. Normal roundtrip/lower Stop/Reset and separate upper100% fixture inspected FL/RR/RL with roof clearance and shortened attached ropes. Model illustrative; physical/continuous certification unverified.",
+      "latestNativeReviewPending": false,
+      "explicitFailureRecorded": false,
+      "gapKind": "NATIVE_REVIEW_ACCEPTED_BOUNDED",
+      "gapSummary": "C4 closed: offline native hoist/access/door gating/moving rope/roundtrip/upper/Stop/Reset evidence accepted",
+      "disposition": "RETAIN_BOUNDED_NATIVE_EVIDENCE",
+      "acceptance": "BOUNDED_OFFLINE_NATIVE_ONLY"
     },
     {
       "index": 12,
@@ -229,13 +229,13 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Horizontal road, two opposing three-color heads and separate wheeled cart bases on shoulders. Cart footprints clear asphalt/crosswalk/stations; corrected Top contains raised heads. Existing green bindings retained. Six independent PLC-owned lamp commands now available; 64 command combinations match actual lenses including conflicts. Separated READY/A CLEAR/B CLEAR row freshly inspected in native window204592 FR/FL/RL/RR/Top. Native six-rung QA verifies red/amber/green on both heads, opposing-green visibility, five views, Stop and Reset. FAIL/open: synchronization depiction, timed alternating reference cycle, vehicle motion and automatic clear feedback; default exercise unloaded.",
-      "latestNativeReviewPending": true,
-      "explicitFailureRecorded": true,
-      "gapKind": "IMPLEMENTED_NATIVE_PENDING",
-      "gapSummary": "Timed reference and modeled vehicles implemented; fresh native acceptance pending",
-      "disposition": "REVIEW_CHANGED_SCENE",
-      "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
+      "recordedResult": "Bounded offline native traffic acceptance complete. Latest DLL window5245004: five static views, queued startup/red-to-green, READY loss blocks new entry while committed A clears, both-red occupied delay, sampled B amber/red travel, Stop retention/Run/Reset. Separate both-green diagnostic shows conflict=true with both queued vehicles stationary and occupancy=false; actual opposing lenses inspected. Stop clears commands/lamps while sampled conflict feedback retains until Reset. Build zero warnings/errors; traffic audit PASS. Diagnostic is not reference alternation proof; no radio/physical certification.",
+      "latestNativeReviewPending": false,
+      "explicitFailureRecorded": false,
+      "gapKind": "NATIVE_REVIEW_ACCEPTED_BOUNDED",
+      "gapSummary": "C5 closed: offline native views/queued crossings/READY loss/occupied all-red/conflicting entries/Stop/Reset evidence accepted",
+      "disposition": "RETAIN_BOUNDED_NATIVE_EVIDENCE",
+      "acceptance": "BOUNDED_OFFLINE_NATIVE_ONLY"
     },
     {
       "index": 13,
@@ -533,13 +533,13 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Joined pipes, aligned valve/spool and grounded supports repaired. Low/high switches now seated at actual modeled thresholds on clear side, above floor and clear of ladder/sight glass; 24 three-scene mount checks pass, native re-inspected. Open collection basin and rim-mounted float switch depiction now replace closed vessel/forks; final five native views inspected. Normal editor-loaded 5-rung/7-tag QA cycle sampled natively in five views: rise, deadband latch, drain to 20%, Stop/resume/Reset. Stale stopped-green tower repaired and native stopped-red/completed-amber rechecked. 2026-10-07 float spheres now project water level on bounded +/-80mm captive stem travel; fixed switching datums unchanged. Focused46checks PASS. Native2170334 loaded/verified QA through editor, stepped rise125 at75.8461% and drain150 at73.8571%/pumpTrue; closeFL shows high sphere lift/return, Stop150 holds and Reset0 restores22%/initial pose. Low sphere submerged during rise, upper portion visible afterReset. Fresh native139234 after exclusive-lamp emission repair shows stopped red, first-scan amber and pumpTrue green distinguishably. QA rise26-126 and drain151 captured; pumping pose151 inspected explicit FR/FL/RL/RR/T, normal playback reaches20%/pumpFalse/amber at1026, Stop1361 red/commandsFalse and Reset0 restores22%. Native139234 collapsed I/O/low_floatFL exposes low upper hemisphere at22%; Stop1410 endpoint20% visibly lowers it, Reset0 restores higher22% pose in unchanged view. Endpoint/restoration observed; uninterrupted low motion and continuous five-angle cycle remain open. Walls and opaque water conceal low sphere in other views. FAIL/open: physical buoyancy/contact calibration and discharge/process acceptance are not simulated or certified.",
+      "recordedResult": "Joined pipes, aligned valve/spool and grounded supports repaired. Low/high switches now seated at actual modeled thresholds on clear side, above floor and clear of ladder/sight glass; 24 three-scene mount checks pass, native re-inspected. Open collection basin and rim-mounted float switch depiction now replace closed vessel/forks; final five native views inspected. Normal editor-loaded 5-rung/7-tag QA cycle sampled natively in five views: rise, deadband latch, drain to 20%, Stop/resume/Reset. Stale stopped-green tower repaired and native stopped-red/completed-amber rechecked. 2026-10-07 float spheres now project water level on bounded +/-80mm captive stem travel; fixed switching datums unchanged. Focused46checks PASS. Native2170334 loaded/verified QA through editor, stepped rise125 at75.8461% and drain150 at73.8571%/pumpTrue; closeFL shows high sphere lift/return, Stop150 holds and Reset 0 restores22%/initial pose. Low sphere submerged during rise, upper portion visible afterReset. Fresh native139234 after exclusive-lamp emission repair shows stopped red, first-scan amber and pumpTrue green distinguishably. QA rise26-126 and drain151 captured; pumping pose151 inspected explicit FR/FL/RL/RR/T, normal playback reaches20%/pumpFalse/amber at1026, Stop1361 red/commandsFalse and Reset 0 restores22%. Native139234 collapsed I/O/low_floatFL exposes low upper hemisphere at22%; Stop1410 endpoint20% visibly lowers it, Reset 0 restores higher22% pose in unchanged view. Endpoint/restoration observed; uninterrupted low motion and continuous five-angle cycle remain open. Walls and opaque water conceal low sphere in other views. FAIL/open: physical buoyancy/contact calibration and discharge/process acceptance are not simulated or certified.  2026-10-08 native window 5900590 (.tools/native-sump-final-motion.log) normally opened the 20 ms latch fixture. Normal playback progressed scan189/57.7%/pumpTrue to707/20%/pumpFalse; Stop 2792 retained 20% and Reset 0 restored 22%. Same low_float FL camera then showed sampled visible cap/shaft descent at269/24.5571%,274/22.4857%,279/20.4143%,280/20%/pumpTrue and281/20%/pumpFalse, with no visible unintended penetration. Opaque water and front wall partly obscure the float. This closes bounded illustrative actuation/Stop/Reset coverage; uninterrupted full float motion, physical buoyancy/contact calibration and hydraulic discharge certification are not claimed.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": true,
-      "gapKind": "VERIFICATION_GAP",
-      "gapSummary": "Continuous float visualization and physical/process limits",
-      "disposition": "VERIFY_RECORDED_GAP",
-      "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
+      "gapKind": "NATIVE_REVIEW_ACCEPTED_BOUNDED",
+      "gapSummary": "C9 sump sub-scope accepted: sampled native float actuation/Stop/Reset; opaque-water visibility and physical buoyancy limits retained",
+      "disposition": "RETAIN_BOUNDED_NATIVE_EVIDENCE",
+      "acceptance": "BOUNDED_OFFLINE_NATIVE_ONLY"
     },
     {
       "index": 29,
@@ -609,13 +609,13 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Pallet/case bearing planes, closed strap route, belt support, sensor mounting and bounded reference repaired; 434 checks pass. Home/pickup underside views added. Fresh native reference session 50830/window 17302630 at 8bc504a: held before automatic Run, every 0.5 s through 8.5 s inspected; FR early, FL early/middle, RL middle, RR later, Top approach; completed pickup FR/FL/RL/RR/Top. Pallet stays visibly seated, cases/straps move together, no gross overlap at viewed scale. Pickup False at 97.3615 percent then True at 100 percent, conveyor False, amber, complete True; Reset returns clear sensor/home/zero. Loaded-controller motion repaired in 8fb40d4; focused geometry and integrated QA workflow PASS, build zero warnings/errors, 145 controller tests PASS. Native session 80675/window 531616 normal Open/Verify+load accepted 1 block/1 task/1 rung/3 tags. Run moved pallet; pickup sensor True stops PLC conveyor command; stable endpoint inspected Top/FR/FL/RL/RR while scans advanced, Stop and Reset verified. Start/manual-jog request integration repaired in 64ba0ca/02150cf. Native window 269574 normally opened/verified the two-rung/six-tag QA: manual Run idle, two Jog requests each moved then stopped, first stopped pose retained through scan 1667; automatic Start, mid-travel Stop, Run-alone hold and Reset separately observed. 2026-10-07 opt-in shipping review clock now provides0.5s/20ms steps; focused verifier passes held scan99 active/1.485m and100 expired/no motion, nonretrigger/Stop/Reset checks. Native139262 normal Open/Verify+load2rungs6tags, held manual Jog shows25/50/75 conveyorTrue and100 exactly2.00s conveyorFalse/pallet24.10%;101 retains same load. Endpoint101 inspected explicit FR/FL/RL/RR/T;126 nonretrigger, Stop red/retained load, Reset0 home verified. Exact native expiry100 observed;99 remains test-only. FAIL/open: not every intermediate loaded-controller pose or last-active native99 scan captured; complete solid-contact/mechanical acceptance unverified",
+      "recordedResult": "Pallet/case bearing planes, closed strap route, belt support, sensor mounting and bounded reference repaired; 434 checks pass. Home/pickup underside views added. Fresh native reference session 50830/window 17302630 at 8bc504a: held before automatic Run, every 0.5 s through 8.5 s inspected; FR early, FL early/middle, RL middle, RR later, Top approach; completed pickup FR/FL/RL/RR/Top. Pallet stays visibly seated, cases/straps move together, no gross overlap at viewed scale. Pickup False at 97.3615 percent then True at 100 percent, conveyor False, amber, complete True; Reset returns clear sensor/home/zero. Loaded-controller motion repaired in 8fb40d4; focused geometry and integrated QA workflow PASS, build zero warnings/errors, 145 controller tests PASS. Native session 80675/window 531616 normal Open/Verify+load accepted 1 block/1 task/1 rung/3 tags. Run moved pallet; pickup sensor True stops PLC conveyor command; stable endpoint inspected Top/FR/FL/RL/RR while scans advanced, Stop and Reset verified. Start/manual-jog request integration repaired in 64ba0ca/02150cf. Native window 269574 normally opened/verified the two-rung/six-tag QA: manual Run idle, two Jog requests each moved then stopped, first stopped pose retained through scan 1667; automatic Start, mid-travel Stop, Run-alone hold and Reset separately observed. 2026-10-07 opt-in shipping review clock now provides0.5s/20ms steps; focused verifier passes held scan99 active/1.485m and100 expired/no motion, nonretrigger/Stop/Reset checks. Native139262 normal Open/Verify+load2rungs6tags, held manual Jog shows25/50/75 conveyorTrue and100 exactly2.00s conveyorFalse/pallet 24.10%;101 retains same load. Endpoint101 inspected explicit FR/FL/RL/RR/T;126 nonretrigger, Stop red/retained load, Reset 0 home verified. Exact native expiry100 observed;99 remains test-only. FAIL/open: not every intermediate loaded-controller pose or last-active native99 scan captured; complete solid-contact/mechanical acceptance unverified  2026-10-08 bounded native shipping checkpoint (.tools/native-shipping-endpoint-final.log): normal Open/Verify held manual Jog captured scan99/1.98s/conveyorTrue, scan100/2.00s/conveyorFalse, scan101/2.02s/conveyorFalse with retained pallet 24.10%; Stop retained pose and Reset restored scan 0/home. This closes the genuinely missing last-active/expiry/retention observation with prior sampled loaded-pose views retained. Historical continuous solid-contact/mechanical limitation remains; bounded native pickup scope accepted.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": true,
-      "gapKind": "VERIFICATION_GAP",
-      "gapSummary": "Last-active native scan and intermediate-pose coverage",
-      "disposition": "VERIFY_RECORDED_GAP",
-      "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
+      "gapKind": "NATIVE_REVIEW_ACCEPTED_BOUNDED",
+      "gapSummary": "C9 shipping sub-scope accepted: native last-active99/expiry100/retention101/Stop/Reset; prior sampled poses retained",
+      "disposition": "RETAIN_BOUNDED_NATIVE_EVIDENCE",
+      "acceptance": "BOUNDED_OFFLINE_NATIVE_ONLY"
     },
     {
       "index": 33,
@@ -666,13 +666,13 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Placement/reference repaired: grounded outside-belt stations, seated tote, supported discharge and attached tools. Missing Start binding and controller-clocked tote travel repaired; 38 Start/travel/normalized-fill/standalone geometry checks pass. Six new PC position/station-window/exit points; Stop/command withdrawal retain load and Reset reloads it. Normal editor-loaded one-rung/seven-tag travel QA now verifies Run-alone idle, Start, sampled Top travel, retained discharge FR/FL/RL/RR/Top plus close support views, Stop and Reset (window 597660). FL/RL occluded, FR/RR resolve bearing. OPEN: intermediate-pose and full station-sequence review. New open-fill candidate has exported cavity/aperture and separate initially hidden cap; five mesh ray checks pass, and top/four corner asset renders inspected. Bounded normalized fill and effective stream are connected; moving/off-station/capped/misaligned commands inhibited. Current55-check integrated verifier and20-check cap model PASS: measured axial/seated cap application, Stop/abort/retraction, retained discharge and Reset verified in simulator. Corrected10ms four-rung QA reaches capped discharge in native window270216: Stop3512 retains cap, inherited diagonal and explicit FL/RL/RR/Top inspected; Reset0 restores centered open tote. Current follow implementation6d2d222 verified natively in window139198: unchanged inherited diagonal through active fill696/870/1056, lowered chuck1520, released cap1653, discharge2640, Stop2893 and Reset0. Separate unchanged explicit FL run shows active fill746/973, capper engagement1506 and separate retained cap1653; camera remains centered at observed poses. Actual runtime camera translation/rotation checks pass all five preset directions (8a9130b). Remaining intermediate cap directions, user-adjusted pan/zoom and litre/flow calibration remain open. Label application, inspection and complete PLC station sequencing remain open; no complete finishing model",
-      "latestNativeReviewPending": true,
+      "recordedResult": "Bounded offline native tote acceptance complete. Normal committed10ms full fixture window10553242: five static/fill views and prior FR/FL cap contact retained; held labeler FR/FL opposing full contact/dwell, Top pad alignment, retraction/retained label/belt release, Stop and Reset accepted. Normal cycle reached retained labeled inspected exit. Top roof partly hidden by header; no every-frame/physical labeling/image-recognition certification. Initial conveyor-only travel fixture excluded from acceptance.",
+      "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
-      "gapKind": "IMPLEMENTED_NATIVE_PENDING",
-      "gapSummary": "Modeled label contact and inspection implemented; fresh native acceptance pending",
-      "disposition": "REVIEW_CHANGED_SCENE",
-      "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
+      "gapKind": "NATIVE_REVIEW_ACCEPTED_BOUNDED",
+      "gapSummary": "C6 closed: offline native fill/cap/opposing label contact/dwell/retraction/retention/inspection/Stop/Reset evidence accepted",
+      "disposition": "RETAIN_BOUNDED_NATIVE_EVIDENCE",
+      "acceptance": "BOUNDED_OFFLINE_NATIVE_ONLY"
     },
     {
       "index": 36,
@@ -1027,7 +1027,7 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Existing authored Demo 2 off at ET 1.98 s/on at 2.00 s; Stop resets TON but retains ON; Run requires fresh full delay; OFF clears next scan; 2026-10-07 native1187724 normal Demo2 browser/Run workflow refreshed: Run59 idle, selector ON285/ET0.96/lampFalse, running485/ET2.00/lampTrue with visible green lamp. Stop754 clears lamp and ET but retains ON; FL/RL/RR/Top support/spacing reinspection, then Reset0 clears request/output/ET. Unheld sampled interval; exact threshold frame not recaptured",
+      "recordedResult": "Existing authored Demo 2 off at ET 1.98 s/on at 2.00 s; Stop resets TON but retains ON; Run requires fresh full delay; OFF clears next scan; 2026-10-07 native1187724 normal Demo2 browser/Run workflow refreshed: Run59 idle, selector ON285/ET0.96/lampFalse, running485/ET2.00/lampTrue with visible green lamp. Stop754 clears lamp and ET but retains ON; FL/RL/RR/Top support/spacing reinspection, then Reset 0 clears request/output/ET. Unheld sampled interval; exact threshold frame not recaptured",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
       "gapKind": "NOT_TRIAGED",
@@ -1350,7 +1350,7 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Carton/fixture/readout geometry repaired and five views/details inspected. Live DINT count/readout FR/FL and invalid/five-edge/held/permissive/Stop/Run/Reset native checks pass. Optical classification/pallet travel/CNC integration open 2026-10-07 native794268 supplied Demo4 Run/rail inputs refresh: invalid/held detection stays0, five fresh edges visibly produce DINT1-5 and validity only at5. Close grounded COUNT5 display read, Stop12529 shows published COUNT0, Run12542 restores retained5, Reset0 clears shown values. Full installation refreshed initial diagonal/FL/RL/RR/Top, RR machine occlusion resolved opposing views. Static/manual count lesson; process motion and stopped-zero presentation concern remain open.",
+      "recordedResult": "Carton/fixture/readout geometry repaired and five views/details inspected. Live DINT count/readout FR/FL and invalid/five-edge/held/permissive/Stop/Run/Reset native checks pass. Optical classification/pallet travel/CNC integration open 2026-10-07 native794268 supplied Demo4 Run/rail inputs refresh: invalid/held detection stays0, five fresh edges visibly produce DINT1-5 and validity only at5. Close grounded COUNT5 display read, Stop12529 shows published COUNT0, Run12542 restores retained5, Reset 0 clears shown values. Full installation refreshed initial diagonal/FL/RL/RR/Top, RR machine occlusion resolved opposing views. Static/manual count lesson; process motion and stopped-zero presentation concern remain open.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
       "gapKind": "NOT_TRIAGED",
@@ -1388,7 +1388,7 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Carton belt contact/load-end footprint repaired; native five wide/Top/FL close and Demo 3 Run/Start/photoeye/Stop/Reset rechecked; full clearance open 2026-10-07 native794268 supplied Demo3 Run144 idle, Start accepted/830 photoeyeTrue atposition0.5 with conveyorFalse, Stop1749 retains supported carton. Endpoint inspected initial diagonal/FL/RL/RR/Top, Reset0 restores load end and clears feedback/output. 2026-10-07 native2498006 held real Start/fine scan1 position0.01, coarse26 position0.26 eyeFalse/driveTrue; mid-travel diagonal/FL/RL/RR/Top visible carton within belt, Stop26 retains position/clears drive, Reset0 restores load end. Flat carrying-plane check confirms0.8336mm original overhang; corrected cartonX=-2.9 gives99.17mm margin. Native8068290 updated home diagonal/FL/RL/RR/Top, normalRun196 idle/Start739 photoeyeTrue at0.5/Reset0 restored corrected load. Flat-top support/travel/optical/Stop/Reset checks pass. Continuous clearance open.",
+      "recordedResult": "Carton belt contact/load-end footprint repaired; native five wide/Top/FL close and Demo 3 Run/Start/photoeye/Stop/Reset rechecked; full clearance open 2026-10-07 native794268 supplied Demo3 Run144 idle, Start accepted/830 photoeyeTrue atposition0.5 with conveyorFalse, Stop1749 retains supported carton. Endpoint inspected initial diagonal/FL/RL/RR/Top, Reset 0 restores load end and clears feedback/output. 2026-10-07 native2498006 held real Start/fine scan1 position0.01, coarse26 position0.26 eyeFalse/driveTrue; mid-travel diagonal/FL/RL/RR/Top visible carton within belt, Stop26 retains position/clears drive, Reset 0 restores load end. Flat carrying-plane check confirms0.8336mm original overhang; corrected cartonX=-2.9 gives99.17mm margin. Native8068290 updated home diagonal/FL/RL/RR/Top, normalRun196 idle/Start739 photoeyeTrue at0.5/Reset 0 restored corrected load. Flat-top support/travel/optical/Stop/Reset checks pass. Continuous clearance open.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
       "gapKind": "NOT_TRIAGED",
@@ -1426,13 +1426,13 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Probe/piping/valve installations repaired; 365 checks PASS. Native full-scene five-angle framing, external sight-glass fill/drain phases and Stop/settled Reset verified. Retained Windows1842540 ran without pause through sampled fill86/63.76%, drain186/71.64% to566/26.04%, refill620/32.16%; FR/FL/RL/RR/Top inspected during run, Stop693/43.84% both commandsFalse, Reset0/50%. FAIL/open: exact switch transition frames, fresh-current-source deferred Start reproduction and broader operator/process acceptance",
+      "recordedResult": "Probe/piping/valve installations repaired; 365 checks PASS. Native full-scene five-angle framing, external sight-glass fill/drain phases and Stop/settled Reset verified. Retained Windows1842540 ran without pause through sampled fill86/63.76%, drain186/71.64% to566/26.04%, refill620/32.16%; FR/FL/RL/RR/Top inspected during run, Stop693/43.84% both commandsFalse, Reset 0/50%. FAIL/open: exact switch transition frames, fresh-current-source deferred Start reproduction and broader operator/process acceptance  2026-10-08 native window5900364 (.tools/native-tank-high-low-final-threshold.log), normal Open/Verify20ms four-rung tank-high-low-drain-qa fixture: scan156/3.12s/74.96% highFalse inletTrue drainFalse;157/75.12% highTrue;158/75.00% highTrue inletFalse drainTrue. Stop158 retained75% and cleared commands; held Run retained pose, then416 ticks reached574/25.08% lowFalse/drainTrue;575/24.96% lowTrue;576/25.12% lowFalse/inletTrue/drainFalse. Reset0 restored50% with both commandsFalse. Actual native yellow high/low switches and gauge rise/fall accepted; prior five-angle geometry retained. Exact transition and current-source operator gaps closed for bounded offline acceptance; physical process/calibration certification is not claimed.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": true,
-      "gapKind": "VERIFICATION_GAP",
-      "gapSummary": "Exact switch frames and current-source operator checks",
-      "disposition": "VERIFY_RECORDED_GAP",
-      "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
+      "gapKind": "NATIVE_REVIEW_ACCEPTED_BOUNDED",
+      "gapSummary": "C9 high-low sub-scope accepted: native exact threshold frames/operator Stop/resume/Reset; prior five-angle geometry retained",
+      "disposition": "RETAIN_BOUNDED_NATIVE_EVIDENCE",
+      "acceptance": "BOUNDED_OFFLINE_NATIVE_ONLY"
     },
     {
       "index": 76,
@@ -1445,13 +1445,13 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Installations repaired; external sight-glass fill changes natively; Stop holds and settled Reset restores 42% / 10.72 mA. 365 checks PASS. FAIL/open: uninterrupted threshold-cycle and broader operator/process acceptance; tank-focused views crop peripheral piping",
+      "recordedResult": "Installations repaired; external sight-glass fill changes natively; Stop holds and settled Reset restores 42% / 10.72 mA. 365 checks PASS. FAIL/open: uninterrupted threshold-cycle and broader operator/process acceptance; tank-focused views crop peripheral piping  2026-10-08 native window1052278 (.tools/native-tank-level-final-threshold.log), normal Open/Verify20ms four-rung tank-level-drain-qa fixture: scan271/5.42s/79.94%/16.7904mA highFalse inletTrue;272/80.08%/16.8128mA highTrue inletTrue;273/79.99%/16.7984mA highFalse inletFalse drainTrue. Stop273 retained79.99% with both commandsFalse; held Run retained pose until666 ticks reached939/18.78s/20.05%/7.208mA lowFalse/drainTrue;940/19.96%/7.1936mA lowTrue;941/20.10%/7.216mA lowFalse/inletTrue/drainFalse. Reset0 stopped at42%/10.72mA with both commandsFalse. Actual native yellow switch states and gauge rise/fall accepted; prior five-angle geometry retained. Threshold/operator gaps closed for bounded offline acceptance; physical analog calibration and process certification are not claimed.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": true,
-      "gapKind": "VERIFICATION_GAP",
-      "gapSummary": "Native threshold-cycle and operator coverage",
-      "disposition": "VERIFY_RECORDED_GAP",
-      "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
+      "gapKind": "NATIVE_REVIEW_ACCEPTED_BOUNDED",
+      "gapSummary": "C9 analog sub-scope accepted: native exact threshold/4-20mA frames/operator Stop/resume/Reset; prior five-angle geometry retained",
+      "disposition": "RETAIN_BOUNDED_NATIVE_EVIDENCE",
+      "acceptance": "BOUNDED_OFFLINE_NATIVE_ONLY"
     },
     {
       "index": 77,
@@ -1464,7 +1464,7 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Radar flange/head mounting and antenna-to-surface distance/beam repaired (sampled checks); 35% native range 3.10036. OPEN: piping/grounded drain valve and explicit inspection view added; 24 focused checks PASS. 32 focused geometry/offline PLC reference checks PASS; Fresh current-build native FR/FL/RL/RR/Top home views inspected: supported inlet/drain piping, external drain valve, roof radar and separate operator stations visible; ghost-shell FL reveals internal cone and liquid. Native reference Open/Verify/Run and automatic cycle request snapshots now observed; inspection-only interior surface added and initial 35% viewed FR/FL/RL/RR/Top. Revised native moving-phase surface/beam alignment inspected in five angles, Stop retains 35.50% and Reset restores 35%/opaque view. Native manual drain gated by enabled cycle, withdrawal at zero clears both commands, Stop and Reset verified. Fresh single-window394914 normal Open/Verify loaded4rungs9tags; ghost-shell FR250/40.46% and FL499/75.32% fill, RL768/58.93% and RR1020/36.25% drain, Top1264/28.78% refill; Stop1503/62.24% clears commands, Reset0/35% restores opaque shell. Native nonzero request withdrawal738/77.7% clears commands and FR1245 retains77.7%/bothFalse; Reset0/35%. Exact threshold scans and physical acceptance remain unverified",
+      "recordedResult": "Radar flange/head mounting and antenna-to-surface distance/beam repaired (sampled checks); 35% native range 3.10036. OPEN: piping/grounded drain valve and explicit inspection view added; 24 focused checks PASS. 32 focused geometry/offline PLC reference checks PASS; Fresh current-build native FR/FL/RL/RR/Top home views inspected: supported inlet/drain piping, external drain valve, roof radar and separate operator stations visible; ghost-shell FL reveals internal cone and liquid. Native reference Open/Verify/Run and automatic cycle request snapshots now observed; inspection-only interior surface added and initial 35% viewed FR/FL/RL/RR/Top. Revised native moving-phase surface/beam alignment inspected in five angles, Stop retains 35.50% and Reset restores 35%/opaque view. Native manual drain gated by enabled cycle, withdrawal at zero clears both commands, Stop and Reset verified. Fresh single-window394914 normal Open/Verify loaded4rungs9tags; ghost-shell FR250/40.46% and FL499/75.32% fill, RL768/58.93% and RR1020/36.25% drain, Top1264/28.78% refill; Stop1503/62.24% clears commands, Reset 0/35% restores opaque shell. Native nonzero request withdrawal738/77.7% clears commands and FR1245 retains77.7%/bothFalse; Reset 0/35%. Exact threshold scans and physical acceptance remain unverified",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": false,
       "gapKind": "NOT_TRIAGED",

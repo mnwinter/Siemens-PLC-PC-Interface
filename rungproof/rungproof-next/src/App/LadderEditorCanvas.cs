@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Godot;
 using RungProof.Next.VirtualController;
 
@@ -511,8 +512,7 @@ public partial class LadderEditorCanvas : Control
                         DrawString(ThemeDB.FallbackFont, new Vector2(x - 24, branchY + 7), edgeLabel,
                             HorizontalAlignment.Center, 48, 11, elementColor);
                     }
-                    DrawString(ThemeDB.FallbackFont, new Vector2(x - 68, branchY - 27), contact.Variable,
-                        HorizontalAlignment.Center, 136, 12, new Color("17242c"));
+                    DrawContactOperand(x, branchY, contact.Variable, Math.Min(136, usable / (contacts + 1) - 8));
                     var contactLabel = contact.EdgeMode switch
                     {
                         LadderEdgeMode.Rising => _style == LadderVendorStyle.SiemensTia ? "P EDGE" : "XIC+ONS",
@@ -772,6 +772,47 @@ public partial class LadderEditorCanvas : Control
     {
         if (endX <= startX) return;
         DrawLine(new Vector2(startX, y), new Vector2(endX, y), color, width);
+    }
+
+    private void DrawContactOperand(float x, float y, string operand, float width)
+    {
+        width = Math.Max(1, width);
+        var font = ThemeDB.FallbackFont;
+        string[] lines = [operand];
+        if (font.GetStringSize(operand, HorizontalAlignment.Left, -1, 12).X > width)
+        {
+            // Keep member identity intact: clipping "temperature_valid" to
+            // "temperature" would display a different declared symbol.
+            var separator = operand.LastIndexOf('.');
+            if (separator > 0 && separator < operand.Length - 1)
+                lines = [operand[..(separator + 1)], operand[(separator + 1)..]];
+            // At narrow contact strides a member alone may exceed the cell.
+            // Prefer two complete balanced lines at a readable 9pt minimum.
+            if (lines.Length == 1 || lines.Any(line => font.GetStringSize(line, HorizontalAlignment.Left, -1, 9).X > width))
+            {
+                var split = Enumerable.Range(1, Math.Max(0, operand.Length - 1))
+                    .OrderBy(index => Math.Max(font.GetStringSize(operand[..index], HorizontalAlignment.Left, -1, 9).X,
+                        font.GetStringSize(operand[index..], HorizontalAlignment.Left, -1, 9).X)).FirstOrDefault();
+                if (split > 0) lines = [operand[..split], operand[split..]];
+            }
+        }
+        for (var index = 0; index < lines.Length; index++)
+        {
+            var fontSize = 12;
+            while (fontSize > 9 && font.GetStringSize(lines[index], HorizontalAlignment.Left, -1, fontSize).X > width)
+                fontSize--;
+            var text = lines[index];
+            if (font.GetStringSize(text, HorizontalAlignment.Left, -1, fontSize).X > width)
+            {
+                // Explicit omission is preferable to displaying a clipped,
+                // different symbol or silently shrinking it to one pixel.
+                while (text.Length > 0 && font.GetStringSize(text + "…", HorizontalAlignment.Left, -1, fontSize).X > width)
+                    text = text[..^1];
+                text += "…";
+            }
+            DrawString(font, new Vector2(x - width / 2, y - 27 - (lines.Length - 1 - index) * 14), text,
+                HorizontalAlignment.Center, width, fontSize, new Color("17242c"));
+        }
     }
 
     private void DrawContact(float x, float y, bool normallyClosed, Color color)

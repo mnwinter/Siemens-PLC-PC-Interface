@@ -17,7 +17,7 @@ public partial class Main
     private OptionButton? _visualReviewFocus;
     private string? _visualReviewFocusId;
     private Vector3? _visualReviewFollowCenter;
-    private HBoxContainer? _visualReviewBar;
+    private HFlowContainer? _visualReviewBar;
 
     // This opt-in inspection bar uses the real shell, scene composer, meshes
     // and camera. Only standalone plant QA exposes explicit scene actions;
@@ -26,7 +26,8 @@ public partial class Main
     {
         var layer = new CanvasLayer { Name = "VisualSceneReview", Layer = 20 };
         AddChild(layer);
-        var bar = new HBoxContainer { Position = _visualPlantReview ? new Vector2(400, 18) : new Vector2(310, 126) };
+        var bar = new HFlowContainer { Position = _visualPlantReview ? new Vector2(400, 18) : new Vector2(310, 126) };
+        bar.AddThemeFontSizeOverride("font_size", 13);
         _visualReviewBar = bar;
         layer.AddChild(bar);
         if (_simulatorShell is not null)
@@ -34,6 +35,7 @@ public partial class Main
         void Button(string text, Action action)
         {
             var button = new Godot.Button { Text = text };
+            button.AddThemeFontSizeOverride("font_size", 13);
             button.Pressed += action;
             bar.AddChild(button);
         }
@@ -55,9 +57,11 @@ public partial class Main
             _visualReviewClose = !_visualReviewClose;
             SetVisualReviewAngle(_sceneCameraDirection, _visualReviewClose ? "close-up" : "wide");
         });
-        _visualReviewLabel = new Label();
+        _visualReviewLabel = new Label { AutowrapMode = TextServer.AutowrapMode.WordSmart, CustomMinimumSize = new Vector2(140, 0) };
+        _visualReviewLabel.AddThemeFontSizeOverride("font_size", 13);
         bar.AddChild(_visualReviewLabel);
-        _visualReviewFocus = new OptionButton { CustomMinimumSize = new Vector2(180, 0) };
+        _visualReviewFocus = new OptionButton { CustomMinimumSize = new Vector2(180, 0), FitToLongestItem = false };
+        _visualReviewFocus.AddThemeFontSizeOverride("font_size", 13);
         _visualReviewFocus.ItemSelected += index =>
         {
             _visualReviewFocusId = index == 0 ? null : _visualReviewFocus.GetItemText((int)index);
@@ -67,6 +71,9 @@ public partial class Main
         bar.AddChild(_visualReviewFocus);
         UpdateVisualReviewLabel();
         if (!_visualPlantReview) AddGantryReviewClockControls(layer);
+        GetViewport().SizeChanged += UpdateReviewControlLayout;
+        bar.Resized += UpdateReviewControlLayout;
+        UpdateReviewControlLayout();
         if (_visualPlantReview && _sceneRuntime is not null)
         {
             // Standalone QA must expose both directions/actions, not only the

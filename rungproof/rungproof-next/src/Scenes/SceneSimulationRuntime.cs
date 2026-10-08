@@ -1388,6 +1388,7 @@ public partial class SceneSimulationRuntime : Node
             foreach (var controller in Controllers(equipment)) SetControllerRunning(controller, running);
         ProjectToteFillVisibility();
         ProjectChainLiftCommands();
+        ProjectWastewaterValveFeedback();
     }
 
     private void ApplyInitialTankLevels()

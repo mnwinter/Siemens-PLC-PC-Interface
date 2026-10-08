@@ -100,6 +100,21 @@ public partial class SimulatorShell
             }
             var program = _ladderDocument.BuildProgram(); var runtime = new VirtualControllerRuntime(LadderCompiler.Compile(program).Program!);
             runtime.Run(); var snapshot = runtime.Scan(new Dictionary<string, bool>()); AttachVirtualController(program, snapshot);
+            var structDisplay = DisplayPointValue(snapshot.Aggregates["qa_struct_renamed"]);
+            var arrayDisplay = DisplayPointValue(snapshot.Aggregates["qa_array_ui"]);
+            Check(structDisplay == "{ready=True; value=42.25}" && arrayDisplay == "[False, False, False, False, False, False, False, False, False, True]",
+                "io_point_formatter_displays_actual_struct_fields_and_array_elements");
+            Check(DisplayPointValue(true) == "True" && DisplayPointValue(42.25) == "42.25" && DisplayPointValue("fixture") == "fixture",
+                "io_point_formatter_preserves_scalar_behavior");
+            var ioParser = new RichTextLabel();
+            try
+            {
+                ioParser.BbcodeEnabled = true;
+                ioParser.Text = BuildPointTable([("qa_struct_renamed", "STRUCT", structDisplay, "PC"), ("qa_array_ui", "ARRAY", arrayDisplay, "PLC")], true, "fixture");
+                Check(ioParser.GetParsedText().Contains(structDisplay, StringComparison.Ordinal)
+                    && ioParser.GetParsedText().Contains(arrayDisplay, StringComparison.Ordinal), "io_point_table_parser_preserves_aggregate_values");
+            }
+            finally { ioParser.Free(); }
             var watch = Widget<Tree>("WatchTable");
             string WatchText(string symbol)
             {

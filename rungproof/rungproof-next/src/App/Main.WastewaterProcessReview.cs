@@ -28,6 +28,25 @@ public partial class Main
             void Tick(int count) { for (var i = 0; i < count; i++) runtime.AdvanceSimulation(.02); }
             void Commands(bool pump, bool valve) => runtime.CommitVirtualControllerOutputs(
                 new Dictionary<string, bool> { ["transfer_pump_run"] = pump, ["outlet_valve_open"] = valve });
+            var valveAdapter = root.GetNode<Node3D>("valve_4").FindChildren("*", string.Empty, true, false)
+                .OfType<EquipmentMotionController>().Single();
+            bool ValveFeedbackMatches() => Math.Abs(Point("outlet_valve_position_percent")
+                - valveAdapter.InputPositionNormalized * 100.0) < 1e-8;
+            Check(ValveFeedbackMatches() && Point("outlet_valve_position_percent") == 0,
+                "initial_closed_valve_feedback_matches_adapter_without_tick");
+            Commands(false, true);
+            Check(ValveFeedbackMatches() && Point("outlet_valve_position_percent") == 100,
+                "open_commit_refreshes_actual_valve_feedback_without_tick");
+            runtime.SetControllerPlaybackRunning(false);
+            Check(ValveFeedbackMatches() && Point("outlet_valve_position_percent") == 100 && On("outlet_valve_open"),
+                "stop_immediately_reports_retained_actual_valve_without_rewriting_command");
+            Commands(false, false);
+            Check(ValveFeedbackMatches() && Point("outlet_valve_position_percent") == 0,
+                "close_commit_refreshes_actual_valve_feedback_while_stopped_without_tick");
+            Commands(false, true);
+            runtime.ResetSimulation();
+            Check(ValveFeedbackMatches() && Point("outlet_valve_position_percent") == 0 && !On("outlet_valve_open"),
+                "reset_from_open_refreshes_closed_actual_valve_feedback_without_tick");
             // Shell composition selects the controller clock even before a
             // program is loaded. This explicit branch tests the standalone
             // runtime, without changing the product's shell selection policy.

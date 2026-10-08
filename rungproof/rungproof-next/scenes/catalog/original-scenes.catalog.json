@@ -3,7 +3,7 @@
   "catalogId": "rungproof-original-scenes-migrated",
   "sourceRoot": "prototype/scenes",
   "sceneCount": 77,
-  "equipmentInstanceCount": 627,
+  "equipmentInstanceCount": 631,
   "equipmentTypeCounts": {
     "box": 30,
     "containerReceiver": 3,
@@ -28,13 +28,13 @@
     "rotaryTable": 4,
     "sceneInstallation": 6,
     "sizeSensorBank": 1,
-    "switch": 148,
+    "switch": 150,
     "tank": 12,
     "toteCapper": 1,
     "toteFiller": 2,
     "toteLabeler": 1,
     "toteVision": 1,
-    "trainingAccessory": 132,
+    "trainingAccessory": 134,
     "valve": 8
   },
   "scenes": [
@@ -251,7 +251,7 @@
       "name": "Lab 11.12 - Mobile Traffic Lights",
       "path": "res://scenes/migrated/lab-11-12-mobile-traffic-lights.scene.json",
       "sourceFile": "prototype/scenes/lab-11-12-mobile-traffic-lights.plcscene",
-      "equipmentCount": 6,
+      "equipmentCount": 10,
       "equipmentTypes": [
         "switch",
         "trainingAccessory"
