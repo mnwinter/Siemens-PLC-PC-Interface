@@ -8822,7 +8822,11 @@ public partial class SimulatorShell : CanvasLayer
 
     private Control BuildVirtualControllerPanel()
     {
-        var scroll = new ScrollContainer { Name = "Virtual Controller" };
+        var scroll = new ScrollContainer
+        {
+            Name = "Virtual Controller",
+            HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
+        };
         var body = new VBoxContainer
         {
             Name = "VirtualControllerBody",
@@ -8836,6 +8840,7 @@ public partial class SimulatorShell : CanvasLayer
             12,
             new Color("f1aa5b"));
         _virtualControllerStatus.Name = "VirtualControllerStatus";
+        _virtualControllerStatus.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         body.AddChild(_virtualControllerStatus);
         var warning = Inspector("VirtualControllerWarning");
         warning.FitContent = true;
@@ -8892,6 +8897,7 @@ public partial class SimulatorShell : CanvasLayer
         body.AddChild(clearForces);
         _virtualForceStatus = Heading("NO SIMULATOR FORCES", 11, new Color("7fa7ba"));
         _virtualForceStatus.Name = "ForceStatus";
+        _virtualForceStatus.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         body.AddChild(_virtualForceStatus);
         applyForce.Pressed += () =>
         {
@@ -9676,7 +9682,53 @@ public partial class SimulatorShell : CanvasLayer
         var clipboardBranch = _ladderDocument.Rungs[0].Branches[0];
         var clipboardSource = clipboardBranch.Contacts[0];
         var clipboardContactCount = clipboardBranch.Contacts.Count;
+        // Exercise shortcut ownership with real Godot focus/visibility state.
+        // This isolated surface cannot alter the user's editor document/history.
+        var shortcutProbe = new LadderEditorCanvas(LadderVendorStyle.SiemensTia, new LadderEditorDocument());
+        AddChild(shortcutProbe);
+        var shortcutRequests = 0;
+        shortcutProbe.DeleteRequested += () => shortcutRequests++;
+        shortcutProbe.ReleaseFocus();
+        shortcutProbe._ShortcutInput(new InputEventKey { Keycode = Key.Delete, Pressed = true });
+        var unfocusedShortcutIgnored = shortcutRequests == 0;
+        shortcutProbe.GrabFocus();
+        shortcutProbe._ShortcutInput(new InputEventKey { Keycode = Key.Delete, Pressed = true });
+        var focusedShortcutAccepted = shortcutRequests == 1;
+        shortcutProbe.Hide();
+        shortcutProbe._ShortcutInput(new InputEventKey { Keycode = Key.Delete, Pressed = true });
+        var hiddenShortcutIgnored = shortcutRequests == 1;
+        // Also use the actual viewport dispatch route, not only direct callbacks.
+        var otherShortcutFocus = new Control { FocusMode = Control.FocusModeEnum.All };
+        AddChild(otherShortcutFocus);
+        shortcutProbe.Show();
+        otherShortcutFocus.GrabFocus();
+        GetViewport().PushInput(new InputEventKey { Keycode = Key.Delete, Pressed = true });
+        var unrelatedFocusDispatchIgnored = shortcutRequests == 1;
+        shortcutProbe.GrabFocus();
+        GetViewport().PushInput(new InputEventKey { Keycode = Key.Delete, Pressed = true });
+        var focusedDispatchAccepted = shortcutRequests == 2;
+        var arrowMoveRequests = 0;
+        shortcutProbe.MoveRequested += direction => arrowMoveRequests += direction;
+        GetViewport().PushInput(new InputEventKey { Keycode = Key.Right, Pressed = true });
+        var focusedArrowMovesInsteadOfNavigating = arrowMoveRequests == 1 && shortcutProbe.HasFocus();
+        shortcutProbe._GuiInput(new InputEventKey { Keycode = Key.Right, Pressed = true });
+        var guiArrowConsumedBeforeFocusNavigation = arrowMoveRequests == 2 && shortcutProbe.HasFocus();
+        shortcutProbe.Hide();
+        otherShortcutFocus.GrabFocus();
+        GetViewport().PushInput(new InputEventKey { Keycode = Key.Delete, Pressed = true });
+        var hiddenDispatchIgnored = shortcutRequests == 2;
+        otherShortcutFocus.Free();
+        shortcutProbe.Free();
+        GD.Print($"LADDER_SHORTCUT_FOCUS_VERIFY unfocusedIgnored={unfocusedShortcutIgnored} focusedAccepted={focusedShortcutAccepted} hiddenIgnored={hiddenShortcutIgnored} dispatch={unrelatedFocusDispatchIgnored}/{focusedDispatchAccepted}/{hiddenDispatchIgnored} arrowMoves={focusedArrowMovesInsteadOfNavigating}");
+        if (!unfocusedShortcutIgnored || !focusedShortcutAccepted || !hiddenShortcutIgnored
+            || !unrelatedFocusDispatchIgnored || !focusedDispatchAccepted || !hiddenDispatchIgnored
+            || !focusedArrowMovesInsteadOfNavigating || !guiArrowConsumedBeforeFocusNavigation)
+        {
+            result = "shortcut focus/visibility ownership failed";
+            return false;
+        }
         editorCanvas.SelectElement(0, 0, 0);
+        editorCanvas.GrabFocus();
         editorCanvas._ShortcutInput(new InputEventKey { Keycode = Key.C, CtrlPressed = true, Pressed = true });
         editorCanvas.SelectInsertionPoint(0, 0, 1);
         editorCanvas._ShortcutInput(new InputEventKey { Keycode = Key.V, CtrlPressed = true, Pressed = true });

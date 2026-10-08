@@ -136,6 +136,8 @@ internal static partial class Program
         Test("tag rename updates every symbolic reference atomically", TestTagRename);
         Test("referenced tag deletion is blocked and unused deletion succeeds", TestTagDeletion);
         Test("simulator input force overrides sampled BOOL input", TestInputForce);
+        Test("input force release restores unforced image without new samples", TestInputForceRelease);
+        Test("forced input retains latest sampled held and pulsed operator image", TestInputForceRawUpdates);
         Test("simulator output force overrides logic until removed", TestOutputForce);
         Test("Stop deenergizes forced output and Reset clears forces", TestForceLifecycle);
         Test("force rejects memory and non-BOOL targets", TestInvalidForceTarget);
@@ -2179,6 +2181,54 @@ internal static partial class Program
         True(snapshot.Outputs["output"]);
         True(snapshot.Forces["input"].Value);
         Equal(PlcVariableRole.Input, snapshot.Forces["input"].Role);
+    }
+
+    private static void TestInputForceRelease()
+    {
+        foreach (var clearAll in new[] { false, true })
+        {
+            var runtime = Runtime(SimpleProgram(Contact("input-contact", "input")));
+            // Reproduces a stopped operator command: no plant sample owns it.
+            runtime.SetBoolForce("input", true);
+            var released = clearAll ? runtime.ClearForces() : runtime.RemoveForce("input");
+            Equal(0, released.Forces.Count);
+            False(released.Variables["input"]);
+            runtime.Run();
+            False(runtime.Scan(Inputs()).Outputs["output"]);
+            False(runtime.Scan(Inputs()).Variables["input"]);
+        }
+    }
+
+    private static void TestInputForceRawUpdates()
+    {
+        var runtime = Runtime(SimpleProgram(Contact("input-contact", "input")));
+        runtime.Run();
+        runtime.SetBoolForce("input", false);
+        False(runtime.Scan(Inputs(("input", true))).Variables["input"]);
+        // A held TRUE raw input must survive removing a FALSE force.
+        True(runtime.RemoveForce("input").Variables["input"]);
+        True(runtime.Scan(Inputs()).Outputs["output"]);
+        runtime.SetBoolForce("input", true);
+        True(runtime.Scan(Inputs(("input", false))).Variables["input"]);
+        False(runtime.ClearForces().Variables["input"]);
+        runtime.Reset();
+        runtime.SetBoolForce("input", true);
+        False(runtime.ClearForces().Variables["input"]);
+
+        var session = new VirtualControllerSession(runtime);
+        session.Run();
+        session.SetBoolForce("input", false);
+        session.SetInput("input", true);
+        session.Advance(.020, () => Inputs(), _ => { }, _ => { });
+        True(session.RemoveForce("input").Variables["input"]);
+        session.SetInput("input", false);
+        session.SetBoolForce("input", false);
+        session.PulseInput("input");
+        session.Advance(.020, () => Inputs(), _ => { }, _ => { });
+        session.Advance(.020, () => Inputs(), _ => { }, _ => { });
+        False(session.ClearForces().Variables["input"]);
+        session.Advance(.020, () => Inputs(), _ => { }, _ => { });
+        False(session.Snapshot.Outputs["output"]);
     }
 
     private static void TestOutputForce()

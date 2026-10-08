@@ -1,0 +1,302 @@
+{
+  "schemaVersion": 1,
+  "kind": "rungproof-ladder-project",
+  "id": "pallet-robot-native-qa",
+  "name": "Pallet robot native QA - feedback gated release",
+  "sourceSceneId": "lab-2-17-pallet-robot",
+  "scanPeriodMs": 20,
+  "activeBlockIndex": 0,
+  "entryBlockId": "main",
+  "nextId": 100,
+  "tags": [
+    {
+      "name": "operator.start",
+      "type": "Bool",
+      "role": "Input",
+      "initial": false,
+      "binding": "operator.start"
+    },
+    {
+      "name": "pallet_ready",
+      "type": "Bool",
+      "role": "Input",
+      "initial": true,
+      "binding": "pallet_ready"
+    },
+    {
+      "name": "placed_count",
+      "type": "DInt",
+      "role": "Input",
+      "initial": 0,
+      "binding": "placed_count"
+    },
+    {
+      "name": "robot_at_park",
+      "type": "Bool",
+      "role": "Input",
+      "initial": true,
+      "binding": "robot_at_park"
+    },
+    {
+      "name": "cycle_complete",
+      "type": "Bool",
+      "role": "Input",
+      "initial": false,
+      "binding": "cycle_complete"
+    },
+    {
+      "name": "release_ready",
+      "type": "Bool",
+      "role": "Memory",
+      "initial": false,
+      "binding": ""
+    },
+    {
+      "name": "robot_run",
+      "type": "Bool",
+      "role": "Output",
+      "initial": false,
+      "binding": "robot_run"
+    },
+    {
+      "name": "conveyor_run",
+      "type": "Bool",
+      "role": "Output",
+      "initial": false,
+      "binding": "conveyor_run"
+    }
+  ],
+  "blocks": [
+    {
+      "id": "main",
+      "name": "Pallet robot native QA",
+      "blockType": "Function",
+      "interface": [],
+      "rungs": [
+        {
+          "id": "rung-1",
+          "label": "QA: both placed and completed park -> release ready",
+          "coilVariable": "release_ready",
+          "coilMode": "Assign",
+          "timerVariable": "",
+          "timerPresetMs": 1000,
+          "timerKind": "OnDelay",
+          "isTimer": false,
+          "isTimerReset": false,
+          "isCounter": false,
+          "isCounterReset": false,
+          "isCounterLoad": false,
+          "counterKind": "CountUp",
+          "counterVariable": "",
+          "counterPreset": 10,
+          "isNumericOperation": false,
+          "numericOperationKind": "Move",
+          "numericSourceA": "0",
+          "numericSourceB": "0",
+          "numericSourceC": "0",
+          "numericDestination": "",
+          "isCall": false,
+          "callTarget": "",
+          "isReturn": false,
+          "isJump": false,
+          "isLabel": false,
+          "programControlLabel": "",
+          "branches": [
+            {
+              "id": "branch-1",
+              "contacts": [
+                {
+                  "id": "contact-1",
+                  "variable": "placed_count",
+                  "normallyClosed": false,
+                  "isComparison": true,
+                  "compareOperator": "GreaterOrEqual",
+                  "rightOperand": "2",
+                  "edgeMode": "None"
+                },
+                {
+                  "id": "contact-2",
+                  "variable": "robot_at_park",
+                  "normallyClosed": false,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "None"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "rung-2",
+          "label": "QA: robot command until release",
+          "coilVariable": "robot_run",
+          "coilMode": "Assign",
+          "timerVariable": "",
+          "timerPresetMs": 1000,
+          "timerKind": "OnDelay",
+          "isTimer": false,
+          "isTimerReset": false,
+          "isCounter": false,
+          "isCounterReset": false,
+          "isCounterLoad": false,
+          "counterKind": "CountUp",
+          "counterVariable": "",
+          "counterPreset": 10,
+          "isNumericOperation": false,
+          "numericOperationKind": "Move",
+          "numericSourceA": "0",
+          "numericSourceB": "0",
+          "numericSourceC": "0",
+          "numericDestination": "",
+          "isCall": false,
+          "callTarget": "",
+          "isReturn": false,
+          "isJump": false,
+          "isLabel": false,
+          "programControlLabel": "",
+          "branches": [
+            {
+              "id": "start-branch",
+              "contacts": [
+                {
+                  "id": "contact-7",
+                  "variable": "operator.start",
+                  "normallyClosed": false,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "None"
+                },
+                {
+                  "id": "contact-3",
+                  "variable": "pallet_ready",
+                  "normallyClosed": false,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "None"
+                },
+                {
+                  "id": "contact-4",
+                  "variable": "release_ready",
+                  "normallyClosed": true,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "None"
+                }
+              ]
+            },
+            {
+              "id": "hold-branch",
+              "contacts": [
+                {
+                  "id": "contact-8",
+                  "variable": "robot_run",
+                  "normallyClosed": false,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "None"
+                },
+                {
+                  "id": "contact-9",
+                  "variable": "pallet_ready",
+                  "normallyClosed": false,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "None"
+                },
+                {
+                  "id": "contact-10",
+                  "variable": "release_ready",
+                  "normallyClosed": true,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "None"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "rung-3",
+          "label": "QA: empty pallet command until completed",
+          "coilVariable": "conveyor_run",
+          "coilMode": "Assign",
+          "timerVariable": "",
+          "timerPresetMs": 1000,
+          "timerKind": "OnDelay",
+          "isTimer": false,
+          "isTimerReset": false,
+          "isCounter": false,
+          "isCounterReset": false,
+          "isCounterLoad": false,
+          "counterKind": "CountUp",
+          "counterVariable": "",
+          "counterPreset": 10,
+          "isNumericOperation": false,
+          "numericOperationKind": "Move",
+          "numericSourceA": "0",
+          "numericSourceB": "0",
+          "numericSourceC": "0",
+          "numericDestination": "",
+          "isCall": false,
+          "callTarget": "",
+          "isReturn": false,
+          "isJump": false,
+          "isLabel": false,
+          "programControlLabel": "",
+          "branches": [
+            {
+              "id": "branch-3",
+              "contacts": [
+                {
+                  "id": "contact-5",
+                  "variable": "release_ready",
+                  "normallyClosed": false,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "None"
+                },
+                {
+                  "id": "contact-6",
+                  "variable": "cycle_complete",
+                  "normallyClosed": true,
+                  "isComparison": false,
+                  "compareOperator": "Equal",
+                  "rightOperand": "",
+                  "edgeMode": "None"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "task-4",
+      "name": "MainTask",
+      "kind": "Continuous",
+      "periodMs": 20,
+      "priority": 10,
+      "entryBlock": "main"
+    }
+  ],
+  "watchVariables": [
+    "operator.start",
+    "pallet_ready",
+    "placed_count",
+    "robot_at_park",
+    "cycle_complete",
+    "release_ready",
+    "robot_run",
+    "conveyor_run"
+  ]
+}

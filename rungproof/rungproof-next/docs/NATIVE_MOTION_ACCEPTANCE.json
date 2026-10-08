@@ -1,0 +1,877 @@
+{
+  "status": "COMPLETE_BOUNDED_VISIBLE_NATIVE_REVIEW",
+  "caseCount": 25,
+  "pngCount": 34980,
+  "dimensions": [
+    2400,
+    1350
+  ],
+  "fps": 50,
+  "captureAssemblySha256": "eba687cac7ea6d5dbddd4423cc56dcfa165119856b3ff42decc78afd5ccc36dc",
+  "captureSourceBundleSha256": "76a2bbd48a653ca9292723e13ad2aa6bdf65aa46698f38646c0841041b9fe000",
+  "captureConfigurationSha256": "8bdb22981367c29528ce4df99032ad9ebe35cb5008e7cf8bf3b942e5faa8c578",
+  "evidenceDirectory": ".tools/native-motion-png-v3",
+  "scope": "All recorded rendered geometry ROI panels and moving-load crops. Exact RGB duplicate mappings preserve every frame. Hidden contacts and between-frame clearance remain unverified. Capture/build identity is frozen; current functional build has separate verification.",
+  "cases": [
+    {
+      "case": "robot-r1-FL",
+      "status": "COMPLETE_BOUNDED_VISIBLE_REVIEW",
+      "pngCount": 2080,
+      "tracedFrameCount": 2079,
+      "reviewedFrameRange": [
+        0,
+        2079
+      ],
+      "geometryGroups": 5293,
+      "geometrySheetCount": 295,
+      "loadInstances": 6240,
+      "finalExtraFramePixelsReviewed": true,
+      "reviewRecord": "robot-r1-FL/review-wastewater.json",
+      "reviewSha256": "a5c0c70d559e8034eed26cd9df4d515b04000f74464951c5f34e07cf56eaac26",
+      "integritySha256": "bafdebeec57cfa948ad0be9b127fb7a1381a56f872d7c24db0094541fb37096b",
+      "captureManifestSha256": "1e943b6db8a116fec174741f5d3801e6b260d80e7271802c5bb89980e2d385e7",
+      "geometryMappingSha256": "e25745ba976f93ba0e5c9b8243d0f5691807b35557e25eaace283d28ac15dd0c",
+      "loadManifestSha256": "7dc51d461c32fbc170416aca0ae5d980433648e7b389c66679a9ab182a94b835",
+      "loadMappingSha256": "7dc51d461c32fbc170416aca0ae5d980433648e7b389c66679a9ab182a94b835",
+      "observations": [
+        "Both totes remain upright through continuous approach, grip, lift and transfer. Gripper opens and withdraws smoothly after each placement.",
+        "White pallet begins smooth rightward outbound travel at frame 1627, reaches retained endpoint by frame 2069, and remains there through final extra frame 2079. Blue receiver walls and supports remain stationary; both tote rims remain retained behind them.",
+        "No exposed abrupt jump, disappearance, reversal or gross unintended penetration across all reviewed frames. Fixed supports and nearby equipment remain separated beyond intended joins."
+      ],
+      "limits": [
+        "Bounded offline rendered-motion visual review for robot FrontLeft only. Every consecutive load tile and every distinct fixed geometry panel actually inspected at original detail.",
+        "Does not establish physical collision clearance, grasp/contact mechanics, hardware safety, real PLC execution or commissioning readiness.",
+        "Raw lossless native PNG originals preserved; reviewed sheet tiles were not rescaled."
+      ]
+    },
+    {
+      "case": "robot-r1-FR",
+      "status": "COMPLETE_BOUNDED_VISIBLE_REVIEW",
+      "pngCount": 2080,
+      "tracedFrameCount": 2079,
+      "reviewedFrameRange": [
+        0,
+        2079
+      ],
+      "geometryGroups": 7215,
+      "geometrySheetCount": 401,
+      "loadInstances": 6240,
+      "finalExtraFramePixelsReviewed": true,
+      "reviewRecord": "robot-r1-FR/review.json",
+      "reviewSha256": "27ee0956362649c37b86361599e6f18425e7a645d1d2062eaf330b0a7239cb01",
+      "integritySha256": "d908c0b91965ce122626d1767cd77e345b8343cc06ddbf81a30fa495152ceeac",
+      "captureManifestSha256": "2ef958f701be827cafb1aa360fbd722508e76eedddd31f6eb03e4051dd673867",
+      "geometryMappingSha256": "46a726dde4970c436157269688499878260300ec553e328964f0528ba51bccdd",
+      "loadManifestSha256": "bb2f23f242c832602528ac66f8b1b3986da236e38f473b9945a0a17fa34852ee",
+      "loadMappingSha256": "14df3c7d9dfef36e3fc9b31a10e427edc7748df7325fb65e658752c6c9b76ecf",
+      "observations": [
+        "All geometry representative panels through final frame 2079 inspected original native pixels; empty arm returned continuously, slatted pallet moved level across conveyor joint, yellow tower at 2069.",
+        "Load dedup sheets 0-21 show three initial upright loads, gradual gripper descent, side grip and upright lift through representative frame 213; no exposed jump or tip.",
+        "Dedup load sheets 22-53 inspected: first carried container stays upright with aligned side grip, continuous lift then yaw/transfer through frame480; stationary other load and white pallet remain stable. Lower target contact obscured by blue wall.",
+        "Dedup sheets 54-77 inspected: frames 480-680 gradual upright descent behind guard, visible gripper aligned; lower contact occluded.",
+        "Dedup sheets 78-97 inspected: frames 680-846 first placement descends behind guard, fingers open and withdraw around 742-776, arm rises away continuously; lower contact hidden.",
+        "Dedup sheets 98-109 inspected: frames 847-996 staged upright containers and pallet stable while unloaded gripper returns above them; no visible load jump or tip.",
+        "Dedup sheets 110-133 inspected: frames 996-1196 stable staged loads, second open-gripper approach/descent around 1122-1150, then upright lift; visible bottom gap grows after 1180 without jump or tip.",
+        "Dedup sheets 134-145 inspected: frames 1196-1296 second container upright with aligned side grip, continuous lift/transfer; other load and pallet stable.",
+        "Load dedup sheets158-169 inspected: F1396-1511 second descent behind guard, visible fingers remain aligned, release about1473 and smooth withdrawal. Lower placement contact hidden.",
+        "Load dedup sheets170-181 inspected: F1511-1632 unloaded gripper rises and returns; staged visible loads stable; pallet begins advancing after1627.",
+        "Load dedup sheets182-205 inspected: F1632-1832 level pallet advances out of guard and across exposed conveyor joint; both placed containers hidden behind front wall.",
+        "Load dedup sheets206-228 inspected: F1832-2079 level continuous pallet conveyor travel, no exposed jump or tip; tower green to yellow2069, final2079 inspected."
+      ],
+      "limits": [
+        "Every distinct native RGB panel and load crop actually inspected with view_image original; direct RGB byte equality maps duplicates.",
+        "No acceptance for hidden clearance, physical dynamics or commissioning."
+      ]
+    },
+    {
+      "case": "robot-r1-RL",
+      "status": "COMPLETE_BOUNDED_VISIBLE_REVIEW",
+      "pngCount": 2080,
+      "tracedFrameCount": 2079,
+      "reviewedFrameRange": [
+        0,
+        2079
+      ],
+      "geometryGroups": 7308,
+      "geometrySheetCount": 406,
+      "loadInstances": 6240,
+      "finalExtraFramePixelsReviewed": true,
+      "reviewRecord": "robot-r1-RL/review-audit.json",
+      "reviewSha256": "6f9acc8a95cee6ec3fccc8ea894a1fc1449591a4b60f8627889559e92634e3d0",
+      "integritySha256": "728226cb3787ad97af5c707600446c245f82c5020ef29c4785454a6e9a567d5e",
+      "captureManifestSha256": "af747080a416ef9dee2cb9c9b5a5cafb32ed5490f923ceaa14533c9ae6e71bb7",
+      "geometryMappingSha256": "f70321fa0ed7a7ad74c3e0528eb058f623d1063cb95099b1c26796c64ae62ba6",
+      "loadManifestSha256": "33eb46960cc54c33e411926f87c3b12f42973dcbe4852805f19b380a4727e8c1",
+      "loadMappingSha256": "dad1c36642aaa4dd5ed63aa3a86dac4a91ecc784076b57b89ba7454f61843b1d",
+      "observations": [
+        "All visible installation feet, pedestal, conveyor and receiver supports remain coherent.",
+        "Container A is gripped, lifted clear of pallet and container B, carried and lowered into first receiver bay; empty jaws withdraw. Container B is then gripped, lifted, carried and lowered into remaining bay. Both containers remain seated while empty jaw withdraws and robot parks; empty pallet moves along belt.",
+        "Every distinct native geometry and load tile inspected. No obvious visible unintended penetration, teleportation or disappearance observed. Intended jaw contact stays aligned with container sides."
+      ],
+      "limits": [
+        "Back jaw contact surfaces, load undersides and receiver interior/support interfaces are partly occluded in RL; visible offline rendered motion only, not physical continuous collision certification.",
+        "Full-frame opening image used for ROI selection only. Native geometry and complementary native load crops provide actual reviewed pixels.",
+        "Final PNG 2079 has no separate trace row; actual pixels inspected and last trace load centers used without asserting extra scan/time."
+      ]
+    },
+    {
+      "case": "robot-r1-RR",
+      "status": "COMPLETE_BOUNDED_VISIBLE_REVIEW",
+      "pngCount": 2080,
+      "tracedFrameCount": 2079,
+      "reviewedFrameRange": [
+        0,
+        2079
+      ],
+      "geometryGroups": 7000,
+      "geometrySheetCount": 389,
+      "loadInstances": 6240,
+      "finalExtraFramePixelsReviewed": true,
+      "reviewRecord": "robot-r1-RR/review-audit.json",
+      "reviewSha256": "0cb4fa4e4b5183f715846246e3842529f13d796bd0cb35c8b542311795ed71f0",
+      "integritySha256": "42671dcc4e31521a86c2a0bcaf754259a79d4aeafd348589b8c79006197ae288",
+      "captureManifestSha256": "6f6a627b72a7325a79a5fa85e1779567a384b6f808794735c2d0e3411adc0fab",
+      "geometryMappingSha256": "45646b2b83a5b44272890a8754f41c5bb6dd6bf693819de32b5cec6f4be96b52",
+      "loadManifestSha256": "7c68ef2085dac3d14a2334b401d003b2441fa7e9422221e0650924b22411729e",
+      "loadMappingSha256": "c952e40011b2047b373a8a142a3714f03ec6091819fb92754a87d6c057e1cd25",
+      "observations": [
+        "All geometry sheets 0..388 and distinct load sheets 0..222 actually inspected at original pixel detail. Exact duplicate mappings retain all source frames.",
+        "Both crates remain upright through jaw attachment, transfer and receiver seating. Empty jaw withdraws and parks while both released crates remain in the receiver.",
+        "Empty pallet departs smoothly along the belt through the final PNG2079. No exposed gross unintended penetration, drop, discontinuity or disappearance observed."
+      ],
+      "limits": [
+        "Hidden rear jaw, receiver interiors, underside contacts and motion between 50 fps frames remain unverified. Rendered pixels do not certify fine physical or continuous volumetric clearance."
+      ]
+    },
+    {
+      "case": "robot-r1-Top",
+      "status": "COMPLETE_BOUNDED_VISIBLE_REVIEW",
+      "pngCount": 2080,
+      "tracedFrameCount": 2079,
+      "reviewedFrameRange": [
+        0,
+        2079
+      ],
+      "geometryGroups": 5493,
+      "geometrySheetCount": 306,
+      "loadInstances": 6240,
+      "finalExtraFramePixelsReviewed": true,
+      "reviewRecord": "robot-r1-Top/review.json",
+      "reviewSha256": "68f12e619a15e44ef91c770f7dd5c1b25877aeddab32c47f9b54aed39a81a0c6",
+      "integritySha256": "25c33821f086602e97d58bab6da5dc3e972062fd45b5d57b8deb7d11a472a742",
+      "captureManifestSha256": "e69779430285b7afa380a063424c91751b7cb2d5e3ad576e967b9f24c12613a0",
+      "geometryMappingSha256": "4e558f4659c0c2bec913c41d8b9f9275272aac65ff523c06bbc156b6ae9c53c0",
+      "loadManifestSha256": "35ed1b6ea83b552a86a529a8f7fa3fc1e28793ad0ce9a22b500484ddd1edf242",
+      "loadMappingSha256": "cfa08592fb4ddf0acbfd2da947f71abeb3601b834298df3e9dd5e7b5d61345d6",
+      "observations": [
+        "Parent reported actual native inspection of all306 geometry sheets, original loads0..85 and all135 fixed distinct load sheets. Coverage union verified for all6240 frame-object instances including final2079.",
+        "Both upright tote transfers remain continuous and centered; release and empty withdrawal leave totes stable on their respective racks.",
+        "Robot returns home; pallet travels continuously across outgoing joint within rails to retained finalposition2073..2079. No exposed jump, tilt, intrusion, separation, disappearance or support discontinuity observed."
+      ],
+      "limits": [
+        "Top view does not prove hidden vertical, underside or contact depth, or clearance between50fps frames. Bounded offline rendered visual evidence only.",
+        "Final PNG2079 has no separate trace row; reviewed actual pixels with last traced centers without asserting an additional scan or time."
+      ]
+    },
+    {
+      "case": "vision-r1-FL",
+      "status": "COMPLETE_BOUNDED_VISIBLE_REVIEW",
+      "pngCount": 1254,
+      "tracedFrameCount": 1253,
+      "reviewedFrameRange": [
+        0,
+        1253
+      ],
+      "geometryGroups": 1870,
+      "geometrySheetCount": 104,
+      "loadInstances": 1254,
+      "finalExtraFramePixelsReviewed": true,
+      "reviewRecord": "vision-r1-FL/review-wastewater.json",
+      "reviewSha256": "c5d5552c1af03d10563fe86524d45d5d6ede17d770d06bffea3c5017ffdc241d",
+      "integritySha256": "dc4c03e37edba7bb7fae68492ce0cbe20ad10d59796cf9b4e1b75a2afe52298b",
+      "captureManifestSha256": "e61d0b2a7bf9b8d728afe93dec8a1b27ccd97b855394be895552594bb9bb60a3",
+      "geometryMappingSha256": "da3ee064525cfe93652575fd5a5442fc76aba601ad7388c9b478b694f60b389b",
+      "loadManifestSha256": "8cb98477574a18e26e7e31372ac9bbca2349f55cc9930d4fc2ab24a8028f2ed9",
+      "loadMappingSha256": "8cb98477574a18e26e7e31372ac9bbca2349f55cc9930d4fc2ab24a8028f2ed9",
+      "observations": [
+        "Carton stays upright and advances continuously from infeed to table, through rotation, then along receiver 1 to retained endpoint.",
+        "No visible abrupt jump, disappearance, reversal, or gross unintended penetration on exposed surfaces across the complete sequence.",
+        "Fixed scene panels show support, receiver belts and nearby equipment separated beyond intended joins."
+      ],
+      "limits": [
+        "Bounded offline rendered-motion visual review for route 1 FrontLeft only.",
+        "Does not establish physical collision clearance, belt contact mechanics, hardware safety, real PLC execution or commissioning readiness.",
+        "Raw lossless native PNG originals preserved; no rescaling of reviewed sheet tiles."
+      ]
+    },
+    {
+      "case": "vision-r1-FR",
+      "status": "COMPLETE_BOUNDED_VISIBLE_REVIEW",
+      "pngCount": 1254,
+      "tracedFrameCount": 1253,
+      "reviewedFrameRange": [
+        0,
+        1253
+      ],
+      "geometryGroups": 2042,
+      "geometrySheetCount": 114,
+      "loadInstances": 1254,
+      "finalExtraFramePixelsReviewed": true,
+      "reviewRecord": "vision-r1-FR/review.json",
+      "reviewSha256": "e2c1845510440e47558914a946c1bc0803ba2beb8a522085dc1da4431d14ebad",
+      "integritySha256": "34558e076f4e979d2e0346396c76041b422e023b8fba84fa0a40618062f5f875",
+      "captureManifestSha256": "2afe46e411417c33bdc5a6ed4e3febe154a5d308d2a06384ee48b0d69e369c32",
+      "geometryMappingSha256": "6f50c9bca3eb8cb9167718caf9e517761ec1051052b9651f79bb63ab6a6a4678",
+      "loadManifestSha256": "4e799402898106839dd22dc3691aaa720ae9ef6a36bfd1e8cc60e881bfee590c",
+      "loadMappingSha256": "4e799402898106839dd22dc3691aaa720ae9ef6a36bfd1e8cc60e881bfee590c",
+      "observations": [
+        "Carton remains upright through infeed, handoff, table rotation, bridge transfer and route-1 receiver travel.",
+        "Table radial markings and carton yaw change gradually; no visible abrupt jump or tipping.",
+        "Visible transfer surfaces remain aligned; no visible penetration observed.",
+        "Final carton remains upright on route-1 receiver."
+      ],
+      "limits": [
+        "Native scene ROI plus centered load crops reviewed; unrelated UI pixels outside ROI are not exhaustive review coverage.",
+        "No hidden underside clearance, exact mesh intersection, physical safety or hardware behavior claim.",
+        "Final untraced frame uses previous traced center explicitly; no new time or scan inferred."
+      ]
+    },
+    {
+      "case": "vision-r1-RL",
+      "status": "COMPLETE_BOUNDED_VISIBLE_REVIEW",
+      "pngCount": 1254,
+      "tracedFrameCount": 1253,
+      "reviewedFrameRange": [
+        0,
+        1253
+      ],
+      "geometryGroups": 2271,
+      "geometrySheetCount": 127,
+      "loadInstances": 1254,
+      "finalExtraFramePixelsReviewed": true,
+      "reviewRecord": "vision-r1-RL/review-audit.json",
+      "reviewSha256": "30297cd24a97c0278cd838028c30a2e5ec7246e384d6a0e44d1f1f3d27e55803",
+      "integritySha256": "7debfbacdef3fe119386473bde5b87292e915ddfb5317aa2afaa24bff146a2d7",
+      "captureManifestSha256": "ace2ef98a8e72a0777cfa6d9f0425a9d56ae33ccb649d6bafb7f2b8bff97a033",
+      "geometryMappingSha256": "f57e65f5909f1431f8268f7266c2c5f7f888a5b08599d285dff78402d2df331f",
+      "loadManifestSha256": "8cbdf7a6dde4a7387e1b2d9e4b6f8ee4735b02228044d23a1426dc727602a695",
+      "loadMappingSha256": "8cbdf7a6dde4a7387e1b2d9e4b6f8ee4735b02228044d23a1426dc727602a695",
+      "observations": [
+        "Visible installation supports and joins remain coherent and separated.",
+        "Carton stays aligned on infeed, crosses bridge onto rotary table, rotates, then crosses outgoing bridge and follows outgoing belt.",
+        "Complementary native crops preserve contact context across geometry panel boundaries. No obvious unintended visible penetration, teleportation, or disappearance observed.",
+        "Graphic orange sensing rays are not solid mechanical parts."
+      ],
+      "limits": [
+        "Undersides and far-side contacts remain occluded in RL. This records visible offline rendered motion only; it is not physical continuous collision certification.",
+        "Full-frame opening image was used to select ROI, not as native-pixel proof. Native ROI panels and load crops provide reviewed pixels.",
+        "Final PNG 1253 has no separate trace row; its actual pixels were inspected, with last traced load center explicitly used. No extra scan/time is asserted."
+      ]
+    },
+    {
+      "case": "vision-r1-RR",
+      "status": "COMPLETE_BOUNDED_VISIBLE_REVIEW",
+      "pngCount": 1254,
+      "tracedFrameCount": 1253,
+      "reviewedFrameRange": [
+        0,
+        1253
+      ],
+      "geometryGroups": 2998,
+      "geometrySheetCount": 167,
+      "loadInstances": 1254,
+      "finalExtraFramePixelsReviewed": true,
+      "reviewRecord": "vision-r1-RR/review.json",
+      "reviewSha256": "d3cf8cb1aaff752d1eaa97b3044a34fbcd47c10afd150d5d4c80d19af4ae7197",
+      "integritySha256": "b89bb5668ecffabad909c9c7ad483757cdedb515b8b49c0c891525d38462cf3c",
+      "captureManifestSha256": "d8753c8d61f64c3b3d3eec2d19520f4caa898ee2971afd9ac02f4b272eb4a1b8",
+      "geometryMappingSha256": "b1d2c56c7d133b39a54442f7f84f36c4c37c38df5ab51a137338ed7e23965f6c",
+      "loadManifestSha256": "a7ef953a59d2a3ac7bbe18cd0cc25ddac081aa48dd06b29251fa59c4f8557fb2",
+      "loadMappingSha256": "a7ef953a59d2a3ac7bbe18cd0cc25ddac081aa48dd06b29251fa59c4f8557fb2",
+      "observations": [
+        "All167 geometry sheets and all51 complementary load sheets actually inspected at original native pixels covering every frame0..1253.",
+        "Carton upright throughout continuous infeed, table arrival/yaw, bridge crossing, centered route1 outgoing belt travel and final receiver hold.",
+        "No exposed unintended intrusion, jump, disappearance, tipping or support discontinuity observed."
+      ],
+      "limits": [
+        "Rear Right angle cannot reveal all underside contacts or far lower edges behind the carton and supports. Bounded offline rendered visual evidence only; no physical or between-frame swept-clearance certification.",
+        "Opening full native frame established installation ROI; exact RGB mappings preserve every original frame.",
+        "FinalPNG1253 has no separate trace row; actual pixels inspected using last traced load center without asserting another scan or time."
+      ]
+    },
+    {
+      "case": "vision-r1-Top",
+      "status": "COMPLETE_BOUNDED_VISIBLE_REVIEW",
+      "pngCount": 1254,
+      "tracedFrameCount": 1253,
+      "reviewedFrameRange": [
+        0,
+        1253
+      ],
+      "geometryGroups": 2440,
+      "geometrySheetCount": 136,
+      "loadInstances": 1254,
+      "finalExtraFramePixelsReviewed": true,
+      "reviewRecord": "vision-r1-Top/review.json",
+      "reviewSha256": "e15d0993d8b27ae60eea72b46d6c7740b10af1f9f5d5f6b617bbb24d04eca2e0",
+      "integritySha256": "85ee3e4b7a15349d85fce78004c71fff1d82379cba9e8853a3ef0242fd10cf0f",
+      "captureManifestSha256": "9c305c9365083d2c6c6107527c64b4c2a414e675fda4e4815a609782d7dc4463",
+      "geometryMappingSha256": "915980932e4cf976f9b4e1163f6d15eed7c4d9cbc1f105d8bc4d38e0689851b0",
+      "loadManifestSha256": "9c54fd3506263603b47f7037119dd13cde2e8e890091c9cfb8fbff53411d544c",
+      "loadMappingSha256": "9c54fd3506263603b47f7037119dd13cde2e8e890091c9cfb8fbff53411d544c",
+      "observations": [
+        "All 136 geometry sheets and all 51 complementary load sheets inspected at original native pixels, covering every frame 0 through 1253.",
+        "Continuous carton arrival on infeed, table yaw, outgoing bridge transfer and route 1 receiver travel remain visible and coherent.",
+        "No obvious exposed intrusion, jump, disappearance or tipping observed."
+      ],
+      "limits": [
+        "Top angle cannot reveal undersides or vertical contact depth. This is bounded offline visible rendered motion evidence; no physical or between-frame swept-clearance certification is asserted.",
+        "Opening full native frame established the complete installation ROI. Exact RGB representative mappings preserve all original frame coverage.",
+        "Final PNG 1253 has no separate trace row; actual pixels inspected using last traced load center, without asserting an additional scan or time."
+      ]
+    },
+    {
+      "case": "vision-r2-FL",
+      "status": "COMPLETE_BOUNDED_VISIBLE_REVIEW",
+      "pngCount": 1204,
+      "tracedFrameCount": 1203,
+      "reviewedFrameRange": [
+        0,
+        1203
+      ],
+      "geometryGroups": 2381,
+      "geometrySheetCount": 133,
+      "loadInstances": 1204,
+      "finalExtraFramePixelsReviewed": true,
+      "reviewRecord": "vision-r2-FL/review-wastewater.json",
+      "reviewSha256": "5d42578e053431a92c98fe6dae000699145477f0d9a539f17a7d289596492d43",
+      "integritySha256": "94c24276f92b601880d3aa0e7d0e7a8f249e5d7e77348e437db28e9e257c5698",
+      "captureManifestSha256": "1c35fc946b9dab4ecd5e8dd67ecdf4d713e50b265fad5a4f0e80ddff944d5624",
+      "geometryMappingSha256": "ab9c4952a981a55c4bfdc4a9f0963a7f7b2753446c8b7a3be455f48fe75ac756",
+      "loadManifestSha256": "2ad5c4e9596b7a11069b00560dd2f6fdc5aec090a0aef3e38848e141d99a95b6",
+      "loadMappingSha256": "2ad5c4e9596b7a11069b00560dd2f6fdc5aec090a0aef3e38848e141d99a95b6",
+      "observations": [
+        "Carton stays upright and advances continuously from infeed to table, through rotation, then along receiver 2 to retained endpoint.",
+        "No visible abrupt jump, disappearance, reversal, or gross unintended penetration on exposed surfaces across the complete sequence.",
+        "Fixed scene panels show support, receiver belts and nearby equipment separated beyond intended joins."
+      ],
+      "limits": [
+        "Bounded offline rendered-motion visual review for route 2 FrontLeft only.",
+        "Does not establish physical collision clearance, belt contact mechanics, hardware safety, real PLC execution or commissioning readiness.",
+        "Raw lossless native PNG originals preserved; no rescaling of reviewed sheet tiles."
+      ]
+    },
+    {
+      "case": "vision-r2-FR",
+      "status": "COMPLETE_BOUNDED_VISIBLE_REVIEW",
+      "pngCount": 1204,
+      "tracedFrameCount": 1203,
+      "reviewedFrameRange": [
+        0,
+        1203
+      ],
+      "geometryGroups": 2450,
+      "geometrySheetCount": 137,
+      "loadInstances": 1204,
+      "finalExtraFramePixelsReviewed": true,
+      "reviewRecord": "vision-r2-FR/review.json",
+      "reviewSha256": "a9f0b097fc29fcaf8dd8996b6e8b6f90b1ac3ffe4eeda690491ca5969cb2003c",
+      "integritySha256": "a6a8b2c483ae34d59f9e7f60b675b0582f1d59cb029353ac255a77d3199312b4",
+      "captureManifestSha256": "f6db84275cd3236b28a351c9738755991251b82fb4d6ef6fc1da02b96b0233c0",
+      "geometryMappingSha256": "2b153cdf79b5b01dd7e2016251ef0009fefcceb7c2746067fbc461b0fb52c4f4",
+      "loadManifestSha256": "53efee18b69862c6b7fba489c77a4aaa9aaf7311abd5920dcf03f0c888d442fd",
+      "loadMappingSha256": "53efee18b69862c6b7fba489c77a4aaa9aaf7311abd5920dcf03f0c888d442fd",
+      "observations": [
+        "Carton remains upright throughout infeed, handoff, table yaw, outbound bridge and front/right route-2 receiver travel.",
+        "Table radial markings and carton yaw change gradually around frames 494 through 571; no visible abrupt jump or tipping.",
+        "Visible transfer surfaces remain aligned; no visible penetration observed.",
+        "Receiver entry around frame 788 and subsequent travel remain upright through final frame 1203."
+      ],
+      "limits": [
+        "Native scene ROI plus centered load crops reviewed; unrelated UI pixels outside ROI are not exhaustive review coverage.",
+        "No hidden underside clearance, exact mesh intersection, physical safety or hardware behavior claim.",
+        "Final untraced frame uses previous traced center explicitly; no new time or scan inferred."
+      ]
+    },
+    {
+      "case": "vision-r2-RL",
+      "status": "COMPLETE_BOUNDED_VISIBLE_REVIEW",
+      "pngCount": 1204,
+      "tracedFrameCount": 1203,
+      "reviewedFrameRange": [
+        0,
+        1203
+      ],
+      "geometryGroups": 2183,
+      "geometrySheetCount": 122,
+      "loadInstances": 1204,
+      "finalExtraFramePixelsReviewed": true,
+      "reviewRecord": "vision-r2-RL/review-audit.json",
+      "reviewSha256": "f87186c8f631a986878db99750af64c067f60ea895406846c0509afd50812af3",
+      "integritySha256": "fb178a8c9de126fc2e22141be5bd2370244ed3a9ba3a11e909af9120c13820d1",
+      "captureManifestSha256": "64ee6a84ec67e6ea18d884ba423e557d7d33642eb397314fcdc15ec5a868a23c",
+      "geometryMappingSha256": "d8ccde7c3974640c5ac11de5a0bac7ca7b1065fcda2930ed9c15ec66545c0cca",
+      "loadManifestSha256": "4e0fab1af445487c8a57673bb14e176656bedec4692be844fc048a3273807fa9",
+      "loadMappingSha256": "4e0fab1af445487c8a57673bb14e176656bedec4692be844fc048a3273807fa9",
+      "observations": [
+        "Visible installation supports and joins remain coherent and separated.",
+        "Carton stays aligned on infeed, crosses bridge onto rotary table, rotates, then crosses outgoing bridge and follows outgoing belt.",
+        "Complementary native crops preserve contact context across geometry panel boundaries. No obvious unintended visible penetration, teleportation, or disappearance observed.",
+        "Graphic orange sensing rays are not solid mechanical parts."
+      ],
+      "limits": [
+        "Undersides and far-side contacts remain occluded in RL. This records visible offline rendered motion only; it is not physical continuous collision certification.",
+        "Full-frame opening image was used to select ROI, not as native-pixel proof. Native ROI panels and load crops provide reviewed pixels.",
+        "Final PNG 1203 has no separate trace row; its actual pixels were inspected, with last traced load center explicitly used. No extra scan/time is asserted."
+      ]
+    },
+    {
+      "case": "vision-r2-RR",
+      "status": "COMPLETE_BOUNDED_VISIBLE_REVIEW",
+      "pngCount": 1204,
+      "tracedFrameCount": 1203,
+      "reviewedFrameRange": [
+        0,
+        1203
+      ],
+      "geometryGroups": 3178,
+      "geometrySheetCount": 177,
+      "loadInstances": 1204,
+      "finalExtraFramePixelsReviewed": true,
+      "reviewRecord": "vision-r2-RR/review.json",
+      "reviewSha256": "b16c894fe90e1af37b552ec5329b6c82f2d72d7dfd5d9d945c100ccb6ca78c84",
+      "integritySha256": "050dcf370f1b3a9e013137abff6656b5c4632f7e62bd44e5706faa1a128a9c8b",
+      "captureManifestSha256": "56ad2530004604c9f0f6ba445b8320d5d565156b4a678b85b353228aef10d609",
+      "geometryMappingSha256": "3c8eeb377a2b2aae01d3c0c7ec8e59b27cf7d4cd7eb08740d0f06b2d489517ac",
+      "loadManifestSha256": "4280f88c792f47e036a3044cec8235338bad5bd85e68aa3012ded34c3a6492a6",
+      "loadMappingSha256": "4280f88c792f47e036a3044cec8235338bad5bd85e68aa3012ded34c3a6492a6",
+      "observations": [
+        "Frames 0-324: upright infeed approach across the small infeed-to-gray-plate joint; no exposed jump or tip.",
+        "Frames 325-493: continuous upright handoff onto the slotted table, followed by centered hold.",
+        "Frames 494-571: table and carton yaw progressively together; whole geometry panels cover the rotating table and receivers.",
+        "Frames 572-788: upright departure across the gray outbound bridge into the front-left diagonal receiver; no exposed detachment, jump, tip or penetration.",
+        "Frames 789-1193: continuous upright receiver travel toward the near end. Frames 1193-1203: final hold; untraced frame 1203 actually inspected in the final load sheet and mapped to exact geometry representatives.",
+        "All 177 geometry sheets and all 49 centered load sheets were actually visually inspected at original detail; exact RGB mapping covers every duplicate panel instance."
+      ],
+      "limits": [
+        "Native scene ROI plus centered load crops reviewed; unrelated UI pixels outside ROI are not exhaustive review coverage.",
+        "No hidden underside clearance, exact mesh intersection, physical safety or hardware behavior claim.",
+        "Final untraced frame uses previous traced center explicitly; no new time or scan inferred."
+      ]
+    },
+    {
+      "case": "vision-r2-Top",
+      "status": "COMPLETE_BOUNDED_VISIBLE_REVIEW",
+      "pngCount": 1204,
+      "tracedFrameCount": 1203,
+      "reviewedFrameRange": [
+        0,
+        1203
+      ],
+      "geometryGroups": 2613,
+      "geometrySheetCount": 146,
+      "loadInstances": 1204,
+      "finalExtraFramePixelsReviewed": true,
+      "reviewRecord": "vision-r2-Top/review.json",
+      "reviewSha256": "9b1307edfb6c72301cdeda3c775f0317740848bb3f6148fa50b870ae8b95e320",
+      "integritySha256": "9a4a8ec7ede294ba35262c851eacf94128bad482bf9f0582e314824468f19b3c",
+      "captureManifestSha256": "861af66f09d714879db9189725112cc8ac4b5319e0b07d00eadf8eeb99aaa2e2",
+      "geometryMappingSha256": "adc794d888599fc3221fec3e10c4eebd1d13e20c019d9c597ea4c77d51b5a088",
+      "loadManifestSha256": "38cd3e6c614dcd6c2999dca6807bd0d3d83de5b736d8e330fb0bbfc2c914c957",
+      "loadMappingSha256": "38cd3e6c614dcd6c2999dca6807bd0d3d83de5b736d8e330fb0bbfc2c914c957",
+      "observations": [
+        "All 146 geometry sheets and 49 consecutive load sheets actually inspected at original native pixels, covering every frame 0 through 1203.",
+        "Continuous upright carton infeed, table yaw, outgoing bridge and route 2 receiver travel to retained endpoint.",
+        "No obvious exposed intrusion, jump, disappearance or tipping observed."
+      ],
+      "limits": [
+        "Top angle cannot reveal undersides or vertical contact depth. This is bounded offline visible rendered motion evidence; no physical or between-frame swept-clearance certification is asserted.",
+        "Opening full native frame established the complete installation ROI. Exact RGB representative mappings preserve all original frame coverage.",
+        "Final PNG 1203 has no separate trace row; actual pixels inspected using last traced load center, without asserting an additional scan or time."
+      ]
+    },
+    {
+      "case": "vision-r3-FL",
+      "status": "COMPLETE_BOUNDED_VISIBLE_REVIEW",
+      "pngCount": 1204,
+      "tracedFrameCount": 1203,
+      "reviewedFrameRange": [
+        0,
+        1203
+      ],
+      "geometryGroups": 2152,
+      "geometrySheetCount": 120,
+      "loadInstances": 1204,
+      "finalExtraFramePixelsReviewed": true,
+      "reviewRecord": "vision-r3-FL/review-wastewater.json",
+      "reviewSha256": "e8c2583ea83f0b53b27586fb65ca6415353f62741b1968e0aa48bf4e05ed7a7d",
+      "integritySha256": "8048e57b75ff75d136818c8711b0669252d9a0392502e6a32660cd37b111abde",
+      "captureManifestSha256": "07e6be5c092a6d67d47834a378536f13fc5ff7ab87e7e0b1dce198289058f418",
+      "geometryMappingSha256": "3659e4acb9abca7ea0d49a86f6d95bf1e1d47fb07de713126cf909b396b60238",
+      "loadManifestSha256": "27c47ea363c79d328ea9172c391048b682e37c8e1cc83f483fc539f1d92dfd97",
+      "loadMappingSha256": "27c47ea363c79d328ea9172c391048b682e37c8e1cc83f483fc539f1d92dfd97",
+      "observations": [
+        "Carton stays upright and advances continuously from infeed to table, through rotation, then along receiver 3 to retained endpoint.",
+        "No visible abrupt jump, disappearance, reversal, or gross unintended penetration on exposed surfaces across the complete sequence.",
+        "Fixed scene panels show support, receiver belts and nearby equipment separated beyond intended joins."
+      ],
+      "limits": [
+        "Bounded offline rendered-motion visual review for route 3 FrontLeft only.",
+        "Does not establish physical collision clearance, belt contact mechanics, hardware safety, real PLC execution or commissioning readiness.",
+        "Raw lossless native PNG originals preserved; no rescaling of reviewed sheet tiles."
+      ]
+    },
+    {
+      "case": "vision-r3-FR",
+      "status": "COMPLETE_BOUNDED_VISIBLE_REVIEW",
+      "pngCount": 1204,
+      "tracedFrameCount": 1203,
+      "reviewedFrameRange": [
+        0,
+        1203
+      ],
+      "geometryGroups": 2962,
+      "geometrySheetCount": 165,
+      "loadInstances": 1204,
+      "finalExtraFramePixelsReviewed": true,
+      "reviewRecord": "vision-r3-FR/review.json",
+      "reviewSha256": "09be10d58bd5cd08e19b712c7241ad85fd2d70d4280bda246f02b340a896bff5",
+      "integritySha256": "3e609a3f2e377cc59b5c561909a6cff324dc27944ba73e41921c243dbcc564dd",
+      "captureManifestSha256": "8fd6e578232ef457b7bb05ad1942d55b53e7d8c1036bfed7402d684fbf8cb81c",
+      "geometryMappingSha256": "ab974ba6c1b98fbe2a1b18d5c4ca56f2ce5d9971cee50e057a7bb9b31734070e",
+      "loadManifestSha256": "fa66f76849bd5cc0bd14953ecaa30b64ebbf71eb53dc2f3165b2ea9ef60ed1e5",
+      "loadMappingSha256": "fa66f76849bd5cc0bd14953ecaa30b64ebbf71eb53dc2f3165b2ea9ef60ed1e5",
+      "observations": [
+        "Every native geometry sheet 000 through 164 and every centered load sheet 00000 through 00048 actually inspected at original resolution.",
+        "Carton remains upright through infeed transfer, long table yaw approximately frames 494 through 635, departure across bridge, and front/right receiver travel through frame 1193.",
+        "No visible discontinuous jump, tipping, or penetration seen on visible surfaces. Receiver end hold persists through final frame 1203, which was visually inspected."
+      ],
+      "limits": [
+        "Native scene ROI plus centered load crops reviewed; unrelated UI pixels outside ROI are not exhaustive review coverage.",
+        "No hidden underside clearance, exact mesh intersection, physical safety or hardware behavior claim.",
+        "Final untraced frame uses previous traced center explicitly; no new time or scan inferred."
+      ]
+    },
+    {
+      "case": "vision-r3-RL",
+      "status": "COMPLETE_BOUNDED_VISIBLE_REVIEW",
+      "pngCount": 1204,
+      "tracedFrameCount": 1203,
+      "reviewedFrameRange": [
+        0,
+        1203
+      ],
+      "geometryGroups": 2467,
+      "geometrySheetCount": 138,
+      "loadInstances": 1204,
+      "finalExtraFramePixelsReviewed": true,
+      "reviewRecord": "vision-r3-RL/review-audit.json",
+      "reviewSha256": "034cdf71b4cc7e6d7cf7a197cc282ba6758de30a23b23487d44172b9533d421c",
+      "integritySha256": "b3e0da064c5a76ba1224e95b2477da16f40425c7a4a96fd0e239b1402a39dd7a",
+      "captureManifestSha256": "be8b0614b5bb8cc6de0730656b75048c8a30f7362ca45db3865bf351842a0805",
+      "geometryMappingSha256": "529ff16bc8d7366c04a462e0c8be867d2ab78020dfab4b066aed73e00e1a66c3",
+      "loadManifestSha256": "741c5504400447dd80142359a098a781102fb083c00938b20e5f57a10339ecbc",
+      "loadMappingSha256": "741c5504400447dd80142359a098a781102fb083c00938b20e5f57a10339ecbc",
+      "observations": [
+        "Visible installation supports and joins remain coherent and separated.",
+        "Carton stays upright on infeed, crosses the gray bridge onto rotary table, rotates coherently, then crosses the outgoing bridge and follows the upper-left diagonal belt; final carton remains on that belt.",
+        "Complementary native crops preserve contact context across geometry panel boundaries. No obvious unintended visible penetration, teleportation, or disappearance observed.",
+        "Graphic orange sensing rays are not solid mechanical parts."
+      ],
+      "limits": [
+        "Undersides and far-side contacts remain occluded in RL. This records visible offline rendered motion only; it is not physical continuous collision certification.",
+        "Full-frame opening image was used to select ROI, not as native-pixel proof. Native ROI panels and load crops provide reviewed pixels.",
+        "Final PNG 1203 has no separate trace row; its actual pixels were inspected, with last traced load center explicitly used. No extra scan/time is asserted."
+      ]
+    },
+    {
+      "case": "vision-r3-RR",
+      "status": "COMPLETE_BOUNDED_VISIBLE_REVIEW",
+      "pngCount": 1204,
+      "tracedFrameCount": 1203,
+      "reviewedFrameRange": [
+        0,
+        1203
+      ],
+      "geometryGroups": 2812,
+      "geometrySheetCount": 157,
+      "loadInstances": 1204,
+      "finalExtraFramePixelsReviewed": true,
+      "reviewRecord": "vision-r3-RR/review-wastewater.json",
+      "reviewSha256": "2fdf8b77a50053c3ebf89b5ffb1324bee8cfc069ee995dbdc8095c1aad6a6c16",
+      "integritySha256": "fe786529ec9a3f0fcb7ff7e1e81f2316e0b6684741029ea39f8a4caa9fc500f3",
+      "captureManifestSha256": "ba71216e299c58cbd5cc3eb385aa4d92e30ddaa27b3192fd751da49bb1a74e54",
+      "geometryMappingSha256": "b4dc30ff6171ba98ca3166adf98b473109d5226d7ba0a6b4ef776058a18322c9",
+      "loadManifestSha256": "423a6fd5906a795ff637183e7c485aefab59514b936a131f07015966170f9950",
+      "loadMappingSha256": "423a6fd5906a795ff637183e7c485aefab59514b936a131f07015966170f9950",
+      "observations": [
+        "Carton stays upright and advances continuously from infeed to table, through rotation, then along receiver 3 to retained endpoint, including extra frame 1203.",
+        "No visible abrupt jump, disappearance, reversal, or gross unintended penetration on exposed surfaces across the complete sequence.",
+        "Fixed scene panels show supports, receiver belts and nearby equipment separated beyond intended joins."
+      ],
+      "limits": [
+        "Bounded offline rendered motion review of route 3 RearRight only.",
+        "Does not establish physical collision clearance, belt contact mechanics, hardware safety, real PLC execution or commissioning readiness.",
+        "Raw lossless native PNG originals preserved; no rescaling of reviewed sheet tiles."
+      ]
+    },
+    {
+      "case": "vision-r3-Top",
+      "status": "COMPLETE_BOUNDED_VISIBLE_REVIEW",
+      "pngCount": 1204,
+      "tracedFrameCount": 1203,
+      "reviewedFrameRange": [
+        0,
+        1203
+      ],
+      "geometryGroups": 2103,
+      "geometrySheetCount": 117,
+      "loadInstances": 1204,
+      "finalExtraFramePixelsReviewed": true,
+      "reviewRecord": "vision-r3-Top/review.json",
+      "reviewSha256": "4804180bab2fd1a054f076857b4e8616473e26869aab4fd758560f63fe582ad1",
+      "integritySha256": "eb4c9e495dd6772686ada1715f386d9525d3737688aa6b087e42e66a93dd668c",
+      "captureManifestSha256": "0b6e4b912a39a9d490ace4e2a051cf0ce4e964a9c0d0e684c821418c8f4eea39",
+      "geometryMappingSha256": "0c5f869782d4125d497d1c129d84de11bd67679998ebc09a8875a8af3b6dfa14",
+      "loadManifestSha256": "6d333893b84d34a45d44b027e356d120f15b31444e0c8cdb4a835617000a98da",
+      "loadMappingSha256": "6d333893b84d34a45d44b027e356d120f15b31444e0c8cdb4a835617000a98da",
+      "observations": [
+        "Cloud parent reports actual original-detail inspection of every panel in geometry 000-116 and every tile in loads 00000-00048, all mapped frames 0-1203 including final untraced PNG.",
+        "Smooth infeed/bridge entry, centered turntable yaw around F491-515, continuous outgoing bridge transfer and route 3 receiver travel. Carton stays in visible rail envelope and remains present at F1194-1203.",
+        "No exposed collision/intrusion, jump, disappearance or wrong outgoing route observed. Full static geometry ROI inspected."
+      ],
+      "limits": [
+        "Top angle cannot reveal undersides or vertical contact depth. This is bounded offline visible rendered motion evidence; no physical or between-frame swept-clearance certification is asserted.",
+        "Opening full native frame established the complete installation ROI. Exact RGB representative mappings preserve all original frame coverage.",
+        "Final PNG 1203 has no separate trace row; actual pixels inspected using last traced load center, without asserting an additional scan or time."
+      ]
+    },
+    {
+      "case": "vision-r4-FL",
+      "status": "COMPLETE_BOUNDED_VISIBLE_REVIEW",
+      "pngCount": 1254,
+      "tracedFrameCount": 1253,
+      "reviewedFrameRange": [
+        0,
+        1253
+      ],
+      "geometryGroups": 2866,
+      "geometrySheetCount": 160,
+      "loadInstances": 1254,
+      "finalExtraFramePixelsReviewed": true,
+      "reviewRecord": "vision-r4-FL/review-wastewater.json",
+      "reviewSha256": "737fd135f968b3c1e53891a113364fabaa4a729113c47951d75a0e35f18bf94b",
+      "integritySha256": "01a8ac2cbd795ad2f642f111eaa53b974dfd006c00def1c556a81fdad3d81b23",
+      "captureManifestSha256": "bf33e1d64932cb7db8803bfb9893090d538069a6c366a3051809707127f39f62",
+      "geometryMappingSha256": "f1d8b2dce096fb579d9893c3d69fa0856091161001184b46e47cab89414191d5",
+      "loadManifestSha256": "d89fdd1967e4b488d9faa5a28ad6cdc2fc94a81588be9dd9498a0f2507124a47",
+      "loadMappingSha256": "d89fdd1967e4b488d9faa5a28ad6cdc2fc94a81588be9dd9498a0f2507124a47",
+      "observations": [
+        "Carton stays upright and advances continuously from infeed to table, through rotation, then along receiver 4 to retained endpoint.",
+        "No visible abrupt jump, disappearance, reversal, or gross unintended penetration on exposed surfaces across the complete sequence.",
+        "Fixed scene panels show support, receiver belts and nearby equipment separated beyond intended joins."
+      ],
+      "limits": [
+        "Bounded offline rendered-motion visual review for route 4 FrontLeft only.",
+        "Does not establish physical collision clearance, belt contact mechanics, hardware safety, real PLC execution or commissioning readiness.",
+        "Raw lossless native PNG originals preserved; no rescaling of reviewed sheet tiles."
+      ]
+    },
+    {
+      "case": "vision-r4-FR",
+      "status": "COMPLETE_BOUNDED_VISIBLE_REVIEW",
+      "pngCount": 1254,
+      "tracedFrameCount": 1253,
+      "reviewedFrameRange": [
+        0,
+        1253
+      ],
+      "geometryGroups": 2389,
+      "geometrySheetCount": 133,
+      "loadInstances": 1254,
+      "finalExtraFramePixelsReviewed": true,
+      "reviewRecord": "vision-r4-FR/review.json",
+      "reviewSha256": "3206d99f0db666b0edb9996ace7d982060aa6888f1e29eb6e5589cb5f564c4ad",
+      "integritySha256": "3d6fe1b967361c967d3d6107f91867c5832843ca5b42751e964be7a9ca8d5e17",
+      "captureManifestSha256": "8ac66a4883b12226ff0f30c7a9c5d1d8fbe94da7e2c4a0c0ed7e7f58efe281c0",
+      "geometryMappingSha256": "f1128f045a590514d8ac29148a83b9f9b038cf1447b2060d21b7f06466c12211",
+      "loadManifestSha256": "3f2af105e47545ff3858a3c5d7fdc8c7fa2e1c0f656042d3af4b6e4cacb8ccce",
+      "loadMappingSha256": "3f2af105e47545ff3858a3c5d7fdc8c7fa2e1c0f656042d3af4b6e4cacb8ccce",
+      "observations": [
+        "All 133 native geometry sheets and all 51 centered load sheets actually visually inspected at original resolution. All frames 0 through 1253 covered.",
+        "Continuous upright infeed and table handoff; carton centers through frame 493, rotates upright from 494 through approximately 566, then advances onto foreground bridge.",
+        "Continuous upright bridge and receiver transfer approximately 572 through 916, then receiver travel through 1243 and final hold through 1253. No visible jump, tipping, or penetration in exposed surfaces.",
+        "Centered load crops resolve carton splits at geometry panel edges. Initial camera/result display masks part of lower contact; table underside and far edges remain hidden."
+      ],
+      "limits": [
+        "Native scene ROI plus centered load crops reviewed; unrelated UI pixels outside ROI are not exhaustive review coverage.",
+        "No hidden underside clearance, exact mesh intersection, physical safety or hardware behavior claim.",
+        "Final untraced frame uses previous traced center explicitly; no new time or scan inferred."
+      ]
+    },
+    {
+      "case": "vision-r4-RL",
+      "status": "COMPLETE_BOUNDED_VISIBLE_REVIEW",
+      "pngCount": 1254,
+      "tracedFrameCount": 1253,
+      "reviewedFrameRange": [
+        0,
+        1253
+      ],
+      "geometryGroups": 1943,
+      "geometrySheetCount": 108,
+      "loadInstances": 1254,
+      "finalExtraFramePixelsReviewed": true,
+      "reviewRecord": "vision-r4-RL/review-audit.json",
+      "reviewSha256": "3f29cac1dc6465de6e074da75e63a591a3f4d2c591bb882bb223a3523e9c92be",
+      "integritySha256": "82488f573a312c8c69ef4807d364d5e2e8465bfc099353f48c537ba83190b5ea",
+      "captureManifestSha256": "b0e1ff013e75713c2fb7613659b9d914fabb8a13ae50ecc6b3dc409e0e1dc0f6",
+      "geometryMappingSha256": "9dd1eae1ab92d2dfe472e843a8cf0af5c106bcbfd05417d913309325a89629c0",
+      "loadManifestSha256": "c9d818fa5adffdd03623d096b942229e3749305c366c63b3df50e597fa92f4b9",
+      "loadMappingSha256": "c9d818fa5adffdd03623d096b942229e3749305c366c63b3df50e597fa92f4b9",
+      "observations": [
+        "Visible installation supports and joins remain coherent and separated.",
+        "Upright carton crosses the infeed bridge onto rotary table, turns coherently with the table, then crosses outgoing bridge onto upper-right diagonal belt and remains at the far end.",
+        "Every consecutive complementary native load crop was inspected; no obvious unintended visible penetration, teleportation, or disappearance observed.",
+        "Graphic orange sensing rays are not solid mechanical parts."
+      ],
+      "limits": [
+        "Undersides and far-side contacts remain occluded in RL. This records visible offline rendered motion only; it is not physical continuous collision certification.",
+        "Full-frame opening image was used to select ROI, not as native-pixel proof. Native ROI panels and load crops provide reviewed pixels.",
+        "Final PNG 1253 has no separate trace row; its actual pixels were inspected, with last traced load center explicitly used. No extra scan/time is asserted."
+      ]
+    },
+    {
+      "case": "vision-r4-RR",
+      "status": "COMPLETE_BOUNDED_VISIBLE_REVIEW",
+      "pngCount": 1254,
+      "tracedFrameCount": 1253,
+      "reviewedFrameRange": [
+        0,
+        1253
+      ],
+      "geometryGroups": 3245,
+      "geometrySheetCount": 181,
+      "loadInstances": 1254,
+      "finalExtraFramePixelsReviewed": true,
+      "reviewRecord": "vision-r4-RR/review-wastewater.json",
+      "reviewSha256": "737529e453b6e37ca65e014aaacd79c0a43f4c3c80e49ccf41632ff0dc090ed2",
+      "integritySha256": "d5ed047510c30148e370410a961e429c7e1b9e46ce1faf256d84bcc2fb4eeec0",
+      "captureManifestSha256": "8e4136c4d286e682b6541a45c99c93074ed6aa479aba6942828654a60f29cfcf",
+      "geometryMappingSha256": "1a3d14150d94d4546f41892193a2a995c498add85367a833fc43bc27e1a597e8",
+      "loadManifestSha256": "8f4c50916814e6ca5c4147ebc205d6d84bdddcd84792830d7d89071491f26cb0",
+      "loadMappingSha256": "8f4c50916814e6ca5c4147ebc205d6d84bdddcd84792830d7d89071491f26cb0",
+      "observations": [
+        "All 51 consecutive load sheets actually inspected at original detail, covering frames 0..1253 inclusive.",
+        "All 181 fixed-scene sheets actually inspected at original detail. Carton remains upright and supported through receiver 4 travel and retained endpoint; no exposed gross unintended penetration, drop, or discontinuity observed."
+      ],
+      "limits": [
+        "Hidden underside/rear contacts, between-frame motion, and fine mechanical clearance are outside this bounded rendered review."
+      ]
+    },
+    {
+      "case": "vision-r4-Top",
+      "status": "COMPLETE_BOUNDED_VISIBLE_REVIEW",
+      "pngCount": 1254,
+      "tracedFrameCount": 1253,
+      "reviewedFrameRange": [
+        0,
+        1253
+      ],
+      "geometryGroups": 2293,
+      "geometrySheetCount": 128,
+      "loadInstances": 1254,
+      "finalExtraFramePixelsReviewed": true,
+      "reviewRecord": "vision-r4-Top/review.json",
+      "reviewSha256": "1810987f520bd5afb3ebd4c8a53d42ad1935738783cbf6f5746293d4bfc8fe56",
+      "integritySha256": "42eb2ddc712a0f3e424b7e9843fb430b8abca301cc696cbf050d868c695c81cf",
+      "captureManifestSha256": "b7eac304a6fb1a8af9066bf9a468ef84f13e4eeb6016b86fd1b308f4b3072e4c",
+      "geometryMappingSha256": "e2798451b7619ca8d0c957729f79ec85b967149d2811cb9b5597508cec059159",
+      "loadManifestSha256": "d011c27e42f950691922a8b291252ecc9e6213ca5270f684d683e7777013d4b7",
+      "loadMappingSha256": "d011c27e42f950691922a8b291252ecc9e6213ca5270f684d683e7777013d4b7",
+      "observations": [
+        "All 128 geometry sheets and all 51 complementary load sheets actually inspected at original native pixels, covering every PNG frame 0 through 1253.",
+        "Carton arrives continuously on infeed, enters centered turntable, rotates clockwise and transfers across the lower-right bridge to route 4; outgoing travel stays visibly within rails and retains the carton at the end.",
+        "No obvious exposed intrusion, jump, disappearance or tipping observed."
+      ],
+      "limits": [
+        "Top angle cannot reveal undersides or vertical contact depth. This is bounded offline visible rendered motion evidence; no physical or between-frame swept-clearance certification is asserted.",
+        "Opening full native frame established the complete installation ROI. Exact RGB representative mappings preserve all original frame coverage.",
+        "Final PNG 1253 has no separate trace row; actual pixels inspected using last traced load center, without asserting an additional scan or time."
+      ]
+    }
+  ],
+  "sourceReconciliation": {
+    "frozenSourceBundleSha256": "76a2bbd48a653ca9292723e13ad2aa6bdf65aa46698f38646c0841041b9fe000",
+    "frozenBundleReconstructedExactly": true,
+    "currentSourceBundleSha256": "ecd8c3a6cb44495274858d94cf4f6510ce465dd5c73c179d6920698e691b21e0",
+    "changedSourceFiles": [
+      "src\\App\\LadderEditorCanvas.cs",
+      "src\\App\\Main.cs",
+      "src\\App\\Main.DemoSequenceReview.cs",
+      "src\\App\\SimulatorShell.cs",
+      "src\\VirtualController\\VirtualControllerRuntime.cs"
+    ],
+    "currentAssemblySha256": "c5d9d48ee05f71ecd31a1d32d164e1583fe17a05f0ee97104b45ebe06972e796",
+    "unchangedSceneSourceFiles": 93,
+    "frozenSourceFileCount": 196,
+    "scope": "The captured unforced native cycles retain their frozen assembly identity. Exact reconstruction of the 196-file capture source bundle establishes that all 93 scene source files and the capture helper are unchanged. Five current source deltas concern focused keyboard input, panel wrapping, raw BOOL force release, and opt-in Demo3 verification. This does not relabel old PNGs as current-DLL captures."
+  },
+  "recordingIntegrityNote": "Original recording/generation manifests retain their initial pending-review status. The separately hashed completed review records and this coordinator coverage audit supersede that status; they do not alter the original capture provenance.",
+  "currentFunctionalVerification": {
+    "buildWarnings": 0,
+    "buildErrors": 0,
+    "controllerPassed": 149,
+    "controllerFailed": 0,
+    "pythonPassed": 29,
+    "demo3IntegrationChecks": 16,
+    "palletizerChecks": 55,
+    "palletizerSamples": 2576,
+    "palletizerMode": "Fresh ordinary headless audit without --visual-scene-review; earlier 60-check run additionally exercised five opt-in review-clock assertions.",
+    "realPlcTransportConstructed": false,
+    "realPlcConnectionAttempted": false,
+    "logs": [
+      {
+        "log": ".tools/checkpoint-final-build.log",
+        "sha256": "7179a7a4db0f0e141bc8eb2d7dec47085f6c209e8c234465fc6c3c5149a613e0"
+      },
+      {
+        "log": ".tools/checkpoint-final-controller.log",
+        "sha256": "b657c866d42dcfd51b23e1eeb86f659bc91ebe71abb7d3464bf286898a872a79"
+      },
+      {
+        "log": ".tools/checkpoint-final-verify-app-shell.log",
+        "sha256": "ef3c56d55bdad9c067527bf7eae5130620f98da387b841ca77e5e1b30eb1d736"
+      },
+      {
+        "log": ".tools/checkpoint-final-verify-virtual-controller.log",
+        "sha256": "80752554646578ff165debccc0829e4f1863b9148590484df60c1945ff56bd74"
+      },
+      {
+        "log": ".tools/checkpoint-final-verify-ladder-editor.log",
+        "sha256": "29b8788ff8d8a94e3136872231d3cccda1bbeb34616e07ea1cf295aa8a70e7ad"
+      },
+      {
+        "log": ".tools/checkpoint-final-verify-demo-sequence.log",
+        "sha256": "cf11e06d4e3b9445286ab6b6a800bbb3d2da031d38b1245e53dca2f1cf8aae96"
+      },
+      {
+        "log": ".tools/checkpoint-final-audit-timer-lessons.log",
+        "sha256": "d91ad5a8c78503dcaa9e5587e123ac17820c63f58ef85368e9b62e1d0ed8f985"
+      },
+      {
+        "log": ".tools/checkpoint-final-verify-scene-geometry.log",
+        "sha256": "4dae616c99f033f3578dbe632b55545116bbdb56eead880c3d4d1a827ac6bfb4"
+      },
+      {
+        "log": ".tools/checkpoint-final-audit-palletizer.log",
+        "sha256": "4db63d22bb4c7bd774dc7a3bc61c7cb30f59882c288413db20548ba04264d524"
+      },
+      {
+        "log": ".tools/checkpoint-final-python.log",
+        "sha256": "7a2b641a53498b76217257f77414dd6d87547259d6ec5d4f9f78f4ea898e73ca"
+      }
+    ],
+    "nativeFunctionalObservations": "See DEMO_FUNCTIONAL_ACCEPTANCE.md for actual ordinary native observations and their distinct build identities."
+  }
+}

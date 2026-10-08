@@ -1,5 +1,18 @@
 # RungProof / PLC Visual Simulator AI handoff
 
+## Current handoff — 2026-10-08 completed local review
+
+The documented C1-C10 bounded offline/native review is complete, including the reopened every-recorded-frame motion requirement. All 25 frozen native cases and 34,980 PNGs have completed visual geometry/load coverage and a fresh zero-error hash/mapping audit. Sorter RR4 and robot RR were completed last, after functional work, as requested. See [native evidence](../rungproof-next/docs/NATIVE_MOTION_ACCEPTANCE.json), [five-demo expected/observed matrix](../rungproof-next/docs/DEMO_FUNCTIONAL_ACCEPTANCE.md), and the final REVIEW_COMPLETION_LEDGER.md entry. Historical open/deferral statements below do not reopen these completed criteria.
+
+Functional repairs: edit shortcuts belong to the visible focused ladder canvas and GUI arrows are consumed before focus navigation; simulator force controls remain readable when active; removing/clearing BOOL input forces restores the latest unforced raw image. Native use and meaningful regressions verified these repairs. Opt-in Demo3 integration checks ordinary loaded ladder → conveyor output → actual carton transform → actual beam feedback → next-scan stop, plus early operator Stop and Reset. Five demos retain their authored programs and normal entry paths.
+
+Final current-source logs are .tools/checkpoint-final-{build,controller,verify-app-shell,verify-virtual-controller,verify-ladder-editor,verify-demo-sequence,audit-timer-lessons,verify-scene-geometry,audit-palletizer,python}.log. Capture provenance remains separate: frozen DLL eba687cac7ea6d5dbddd4423cc56dcfa165119856b3ff42decc78afd5ccc36dc, source 76a2bbd48a653ca9292723e13ad2aa6bdf65aa46698f38646c0841041b9fe000. All 93 scene source files and native capture helper are unchanged by the five current source deltas. Current build hashes are saved in the acceptance JSON.
+
+Authorized local checkpoint: parent d8598d1, subject "Finish demo functional checks and complete native motion review"; exact commit is reported after creation and retained in .tools/final-review-checkpoint.json. Commit only reviewed source, regression tests, capture tools/fixtures and reconciliation documents. Leave unrelated generated .uid/.import and .blend1 files untouched. No push, merge, publish, deploy, real PLC action or automation. All .tools/native-motion-png-v3 originals and inspection mappings are retained locally and excluded from Git.
+
+Scope remains rendered local simulator behavior. Hidden contacts, continuous between-frame/swept-volume clearance, physical safety/performance, source-vendor parity and live PLC commissioning are unverified. Other historical catalog-row limitations are preserved; completion of this finite review is not certification of all 77 scenes or of physical machinery.
+
+
 Scene 65 hand-dryer native/reference repair (2026-10-06, current checkpoint):
 Completed the connected eight-item enclosure/fan/heater/sensor/hand layout and
 PLC-owned live countdown. Three original replacement assets remain unapproved

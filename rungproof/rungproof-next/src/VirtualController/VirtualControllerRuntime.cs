@@ -65,6 +65,9 @@ public sealed class VirtualControllerRuntime
     private readonly string _entryBlock;
     private readonly IReadOnlyList<LadderTask> _tasks;
     private readonly Dictionary<string, bool> _values = new(StringComparer.Ordinal);
+    // Raw input image stays independent of force overrides, including inputs
+    // absent from later partial samples (for example momentary operator commands).
+    private readonly Dictionary<string, bool> _unforcedBoolInputs = new(StringComparer.Ordinal);
     private readonly Dictionary<string, double> _numericValues = new(StringComparer.Ordinal);
     private readonly Dictionary<string, LadderTimerState> _timers = new(StringComparer.Ordinal);
     private readonly Dictionary<string, LadderCounterState> _counters = new(StringComparer.Ordinal);
@@ -152,12 +155,15 @@ public sealed class VirtualControllerRuntime
 
     public VirtualControllerSnapshot RemoveForce(string variableName)
     {
-        _forces.Remove(variableName);
+        if (_forces.Remove(variableName, out var force) && force.Role == PlcVariableRole.Input)
+            _values[variableName] = _unforcedBoolInputs[variableName];
         return CreateSnapshot();
     }
 
     public VirtualControllerSnapshot ClearForces()
     {
+        foreach (var force in _forces.Values.Where(item => item.Role == PlcVariableRole.Input))
+            _values[force.Variable] = _unforcedBoolInputs[force.Variable];
         _forces.Clear();
         return CreateSnapshot();
     }
@@ -195,6 +201,7 @@ public sealed class VirtualControllerRuntime
         _elements.Clear();
         _diagnostics.Clear();
         _values.Clear();
+        _unforcedBoolInputs.Clear();
         _numericValues.Clear();
         _timers.Clear();
         _counters.Clear();
@@ -206,7 +213,12 @@ public sealed class VirtualControllerRuntime
         foreach (var task in _tasks) _taskExecutions[task.Id] = 0;
         foreach (var variable in _program.Variables.Values)
         {
-            if (variable.Type == PlcVariableType.Bool) _values[variable.Name] = variable.InitialValue is true;
+            if (variable.Type == PlcVariableType.Bool)
+            {
+                _values[variable.Name] = variable.InitialValue is true;
+                if (variable.Role == PlcVariableRole.Input)
+                    _unforcedBoolInputs[variable.Name] = variable.InitialValue is true;
+            }
             else if (variable.Type is PlcVariableType.Int or PlcVariableType.DInt or PlcVariableType.Real)
                 _numericValues[variable.Name] = Convert.ToDouble(variable.InitialValue, CultureInfo.InvariantCulture);
             else if (variable.Type == PlcVariableType.Timer)
@@ -250,7 +262,11 @@ public sealed class VirtualControllerRuntime
         foreach (var variable in _program.Variables.Values.Where(item =>
                      item.Role == PlcVariableRole.Input && item.Type == PlcVariableType.Bool))
         {
-            if (sampledInputs.TryGetValue(variable.Name, out var value)) _values[variable.Name] = value;
+            if (sampledInputs.TryGetValue(variable.Name, out var value))
+            {
+                _unforcedBoolInputs[variable.Name] = value;
+                _values[variable.Name] = value;
+            }
         }
         if (sampledNumericInputs is not null)
         {

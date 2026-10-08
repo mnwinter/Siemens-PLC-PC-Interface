@@ -138,6 +138,7 @@ public partial class Main : Node3D
         _verifyAppShell = userArguments.Contains("--verify-app-shell", StringComparer.Ordinal);
         _verifyExternalDialog = userArguments.Contains("--verify-external-dialog", StringComparer.Ordinal);
         _verifyExternalPlayback = userArguments.Contains("--verify-external-playback", StringComparer.Ordinal);
+        _verifyDemoSequence = userArguments.Contains("--verify-demo-sequence", StringComparer.Ordinal);
         _verifyPlantMotion = userArguments.Contains("--verify-plant-motion", StringComparer.Ordinal);
         _verifySceneGeometry = userArguments.Contains("--verify-scene-geometry", StringComparer.Ordinal)
             || userArguments.Contains("--verify-wastewater-installation", StringComparer.Ordinal)
@@ -196,7 +197,7 @@ public partial class Main : Node3D
         _mcpSceneId = userArguments
             .FirstOrDefault(argument => argument.StartsWith("--mcp-scene=", StringComparison.Ordinal))?
             .Substring("--mcp-scene=".Length);
-        _appShellRequested = _auditToteFinishingProcess || _auditServiceElevatorAccess || _auditMotorAggregates || _auditMobileTraffic || _auditWastewaterProcess || _reportSceneGeometry || _verifySceneGeometry || _verifyToteFinishing || _auditDualSpindle || _auditRobotCnc || _auditRobotRestart || _auditSequenceTower || _auditChainLiftInstallation || _auditCookiePackaging || _auditBarrelFill || _auditCableCut || _auditPalletizer || _auditRepeatCycle || _auditButtonCounters || _auditParkingEntry || _auditPackageGrouping || _auditTimerLessons || _auditRotaryFlasher || _auditFlashPair || _auditRunningTower || _auditPedestrianCrossing || _auditDrawbridge || _auditBagIndex || _auditCoating || _auditHandDryer || _auditLuggageLayout || _auditEvLayout || _auditRadarLayout || _auditGuardedLayout || _verifyCartonStaticRoutes || (_visualSceneReview && !_visualPlantReview) || _verifyAppShell || _verifyExternalDialog || _verifyExternalPlayback || _verifyPlantMotion || _verifyWorkspace || _verifyHud || _verifyCameraInput || _verifySceneControls
+        _appShellRequested = _verifyDemoSequence || _auditToteFinishingProcess || _auditServiceElevatorAccess || _auditMotorAggregates || _auditMobileTraffic || _auditWastewaterProcess || _reportSceneGeometry || _verifySceneGeometry || _verifyToteFinishing || _auditDualSpindle || _auditRobotCnc || _auditRobotRestart || _auditSequenceTower || _auditChainLiftInstallation || _auditCookiePackaging || _auditBarrelFill || _auditCableCut || _auditPalletizer || _auditRepeatCycle || _auditButtonCounters || _auditParkingEntry || _auditPackageGrouping || _auditTimerLessons || _auditRotaryFlasher || _auditFlashPair || _auditRunningTower || _auditPedestrianCrossing || _auditDrawbridge || _auditBagIndex || _auditCoating || _auditHandDryer || _auditLuggageLayout || _auditEvLayout || _auditRadarLayout || _auditGuardedLayout || _verifyCartonStaticRoutes || (_visualSceneReview && !_visualPlantReview) || _verifyAppShell || _verifyExternalDialog || _verifyExternalPlayback || _verifyPlantMotion || _verifyWorkspace || _verifyHud || _verifyCameraInput || _verifySceneControls
             || _verifyVirtualController || _verifyNumericSceneIo || _verifyLadderEditor || _verifySplitView || _verifyUiDensity || _virtualControllerDemo
             || userArguments.Contains("--app-shell", StringComparer.Ordinal);
         if (_visualPlantReview && (_sceneId is null || _appShellRequested || _verifySceneContract))
@@ -211,6 +212,7 @@ public partial class Main : Node3D
         _shellScene = userArguments
             .FirstOrDefault(argument => argument.StartsWith("--shell-scene=", StringComparison.Ordinal))?
             .Substring("--shell-scene=".Length) ?? string.Empty;
+        if (!ConfigureNativeMotionMovie(userArguments)) return;
         _shellSearch = userArguments
             .FirstOrDefault(argument => argument.StartsWith("--shell-search=", StringComparison.Ordinal))?
             .Substring("--shell-search=".Length) ?? string.Empty;
@@ -293,6 +295,13 @@ public partial class Main : Node3D
 
     public override void _ExitTree()
     {
+        if (_nativeMotionTraceConnected)
+        {
+            RenderingServer.FramePostDraw -= TraceNativeMotionFrame;
+            _nativeMotionTraceConnected = false;
+        }
+        _nativeMotionTrace?.Dispose();
+        _nativeMotionTrace = null;
         _externalConnection?.Dispose();
         if (_offlinePlaybackModeFile is not null) System.IO.File.Delete(_offlinePlaybackModeFile);
     }
@@ -535,6 +544,7 @@ public partial class Main : Node3D
                 _simulatorShell.SetWorkspaceStatus($"Startup scene '{_shellScene}' unavailable · default scene loaded");
         }
         if (_visualSceneReview) AddVisualSceneReviewControls();
+        if (_nativeMotionMovie) CallDeferred(nameof(StartNativeMotionMovie));
         if (_reportSceneGeometry)
         {
             CallDeferred(nameof(ReportSceneGeometry));
@@ -709,6 +719,10 @@ public partial class Main : Node3D
         {
             CallDeferred(nameof(VerifySceneControls));
         }
+        else if (_verifyDemoSequence)
+        {
+            CallDeferred(nameof(VerifyDemoSequence));
+        }
         else if (_verifyVirtualController)
         {
             CallDeferred(nameof(VerifyVirtualController));
@@ -772,7 +786,7 @@ public partial class Main : Node3D
         {
             // Startup acknowledgement is interactive-only; it must not cover
             // deterministic verification or capture output.
-            if (_capturePath is null)
+            if (_capturePath is null && !_nativeMotionMovie)
                 _simulatorShell.CallDeferred(nameof(SimulatorShell.ShowSimulatorModeNotice));
         }
     }

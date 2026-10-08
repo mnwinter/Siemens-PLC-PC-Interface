@@ -222,8 +222,15 @@ public partial class LadderEditorCanvas : Control
 
     public override void _GuiInput(InputEvent input)
     {
+        // Consume edit keys before Control's directional focus navigation.
+        if (input is InputEventKey)
+        {
+            _ShortcutInput(input);
+            return;
+        }
         if (input is not InputEventMouseButton { Pressed: true } click
             || click.ButtonIndex is not (MouseButton.Left or MouseButton.Right)) return;
+        GrabFocus();
         var index = RungIndexAt(click.Position.Y);
         if (index < 0 || index >= _document.Rungs.Count) return;
         if (TryHitElement(index, click.Position, out var branchIndex, out var contactIndex, out var output))
@@ -261,6 +268,9 @@ public partial class LadderEditorCanvas : Control
 
     public override void _ShortcutInput(InputEvent input)
     {
+        // Shortcut callbacks are global to the viewport, including hidden tabs.
+        // Only the surface the user is editing may consume document edit keys.
+        if (!IsVisibleInTree() || !HasFocus()) return;
         if (input is not InputEventKey { Pressed: true, Echo: false } key) return;
         if (key.CtrlPressed && key.Keycode == Key.C)
         {

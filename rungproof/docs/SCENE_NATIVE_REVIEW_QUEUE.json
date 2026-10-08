@@ -1,12 +1,12 @@
 {
   "source": "MULTI_ANGLE_SCENE_REVIEW.md",
-  "scope": "Inventory of documented observations only; views may predate current geometry or displays. Pending flags refer to changed layouts, displays or processes. Runtime, collision and visual acceptance remain separate.",
+  "scope": "Documented observation inventory with historical failure flags retained. Current C1-C10 bounded offline/native acceptance is reconciled below; rendered visual acceptance is separate from hidden/between-frame solid clearance and physical/live PLC certification.",
   "sceneCount": 77,
   "allFiveAnglesRecordedCount": 77,
   "explicitFailureCount": 6,
   "triagedImplementationGapCount": 0,
   "implementedNativePendingCount": 0,
-  "triagedVerificationGapCount": 2,
+  "triagedVerificationGapCount": 0,
   "knownChangedSceneCount": 0,
   "scenes": [
     {
@@ -96,13 +96,13 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Repaired carton seating, four receiving belts and supported handoffs freshly inspected in native Windows window 8389926. CLASS / NO RESULT readable on grounded display stand; carton bottom visibly seated inside belt deck. Class fixture/display and driven routing implemented (a601080/38d5088). Four integrated routes pass continuous motion, class retention, endpoint/Stop/Reset checks. Native loaded QA lane1 route, class change, Stop/resume, endpoint in five directions and Reset verified in window204276. Native routes2-4 now observed with all receiving endpoints in five directions and Stop/Reset. Raised receiving splices repaired in e582ca2; all four scan-pose carton triangle screens pass at1mm allowance and post-fix native lane1 endpoint/Stop/Reset inspected. 2026-10-07 native window269882 class2 infeed/table/outgoing travel and Stop1060 delivered-carton five-angle inspection observed; post-fix native lanes3-4 now observed in window401258 with receiver five-angle checks, Stop1411/class3 and Stop1286/class4, then Reset 0 for each. Lane4 Top rotation framing repaired with full-yaw envelope and toolbar reserve: four-route per-scan screen assertions PASS; fresh native window139154 unchanged Top focus shows complete carton at326/506/760/3164, Stop3284 and Reset 0 without manual zoom. Moving box_1 focus repaired in26c0403: four-route camera/Reset checks PASS; native rebuilt window401258 FR focus remains centered without re-click at210 infeed,519 table and1030 outgoing; Stop1220 and Reset 0 also retain/recover focus. Sampled native evidence only. FAIL/open: continuous clearance between sampled poses remains unverified. Required native acceptance correction 2026-10-08: uninterrupted complete routes/cycle in FR/FL/RL/RR/Top remain pending; prior captures are sampled evidence. C10 reopened; swept-solid certification separately unverified.",
+      "recordedResult": "Repaired carton seating, four receiving belts and supported handoffs freshly inspected in native Windows window 8389926. CLASS / NO RESULT readable on grounded display stand; carton bottom visibly seated inside belt deck. Class fixture/display and driven routing implemented (a601080/38d5088). Four integrated routes pass continuous motion, class retention, endpoint/Stop/Reset checks. Native loaded QA lane1 route, class change, Stop/resume, endpoint in five directions and Reset verified in window204276. Native routes2-4 now observed with all receiving endpoints in five directions and Stop/Reset. Raised receiving splices repaired in e582ca2; all four scan-pose carton triangle screens pass at1mm allowance and post-fix native lane1 endpoint/Stop/Reset inspected. 2026-10-07 native window269882 class2 infeed/table/outgoing travel and Stop1060 delivered-carton five-angle inspection observed; post-fix native lanes3-4 now observed in window401258 with receiver five-angle checks, Stop1411/class3 and Stop1286/class4, then Reset 0 for each. Lane4 Top rotation framing repaired with full-yaw envelope and toolbar reserve: four-route per-scan screen assertions PASS; fresh native window139154 unchanged Top focus shows complete carton at326/506/760/3164, Stop3284 and Reset 0 without manual zoom. Moving box_1 focus repaired in26c0403: four-route camera/Reset checks PASS; native rebuilt window401258 FR focus remains centered without re-click at210 infeed,519 table and1030 outgoing; Stop1220 and Reset 0 also retain/recover focus. Sampled native evidence only. FAIL/open: continuous clearance between sampled poses remains unverified. Final C10 reconciliation 2026-10-08: uninterrupted native 50 fps PNG routes/cycle in FR/FL/RL/RR/Top completely reviewed through native geometry panels and complementary load crops, including every final extra PNG. Sorter four routes = 20 cases; robot = 5 cases. All 34,980 retained PNG hashes and mapping coverage reverified. Prior sampled evidence remains valid. C10 bounded rendered-motion requirement closed; hidden contacts and between-frame/swept-solid clearance remain unverified. Evidence: rungproof-next/docs/NATIVE_MOTION_ACCEPTANCE.json, with frozen capture identity distinguished from the current functional DLL.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": true,
-      "gapKind": "VERIFICATION_GAP",
-      "gapSummary": "Required uninterrupted full-route native observation in five angles pending; continuous solid clearance between sampled poses also unverified",
-      "disposition": "VERIFY_RECORDED_GAP",
-      "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
+      "gapKind": "NATIVE_REVIEW_ACCEPTED_BOUNDED",
+      "gapSummary": "C10 closed: full recorded native rendered-motion coverage in five angles; hidden contacts and between-frame solid clearance remain unverified",
+      "disposition": "RETAIN_BOUNDED_NATIVE_EVIDENCE",
+      "acceptance": "BOUNDED_OFFLINE_NATIVE_ONLY"
     },
     {
       "index": 6,
@@ -590,13 +590,13 @@
         "RR": true,
         "Top": true
       },
-      "recordedResult": "Imported robot/tool attachment, grounded installation, routes and roller landing repaired; 29 pallet-cell checks PASS within 406 total. Reference sampled at 10 ms; both totes land before count/release, empty pallet fully outbound. Loaded QA ladder normal cycle, outbound gating, Stop/blocked Start and Reset recovery verified in native Windows (17785af, 346da40). Second descent 28.00-28.40 s sampled each 20 ms; held landing and 30.40 s return inspected FR/FL/RL/RR/T in native aad8736. Park True 32.50, output release next scan 32.52, outbound complete by 42.52. Released-load support views now inspected with visual-only cutaway at 30.02 s in native f76ef30: FR/FL/RL/RR/T show separate seated totes; restored Top shows guide clearance. Previous bearing-view occlusion finding closed at visible scale. FAIL/open: continuous solid clearance between sampled poses remains unverified. Physical/rated handling is outside offline visual proof. Required native acceptance correction 2026-10-08: uninterrupted complete routes/cycle in FR/FL/RL/RR/Top remain pending; prior captures are sampled evidence. C10 reopened; swept-solid certification separately unverified.",
+      "recordedResult": "Imported robot/tool attachment, grounded installation, routes and roller landing repaired; 29 pallet-cell checks PASS within 406 total. Reference sampled at 10 ms; both totes land before count/release, empty pallet fully outbound. Loaded QA ladder normal cycle, outbound gating, Stop/blocked Start and Reset recovery verified in native Windows (17785af, 346da40). Second descent 28.00-28.40 s sampled each 20 ms; held landing and 30.40 s return inspected FR/FL/RL/RR/T in native aad8736. Park True 32.50, output release next scan 32.52, outbound complete by 42.52. Released-load support views now inspected with visual-only cutaway at 30.02 s in native f76ef30: FR/FL/RL/RR/T show separate seated totes; restored Top shows guide clearance. Previous bearing-view occlusion finding closed at visible scale. FAIL/open: continuous solid clearance between sampled poses remains unverified. Physical/rated handling is outside offline visual proof. Final C10 reconciliation 2026-10-08: uninterrupted native 50 fps PNG routes/cycle in FR/FL/RL/RR/Top completely reviewed through native geometry panels and complementary load crops, including every final extra PNG. Sorter four routes = 20 cases; robot = 5 cases. All 34,980 retained PNG hashes and mapping coverage reverified. Prior sampled evidence remains valid. C10 bounded rendered-motion requirement closed; hidden contacts and between-frame/swept-solid clearance remain unverified. Evidence: rungproof-next/docs/NATIVE_MOTION_ACCEPTANCE.json, with frozen capture identity distinguished from the current functional DLL.",
       "latestNativeReviewPending": false,
       "explicitFailureRecorded": true,
-      "gapKind": "VERIFICATION_GAP",
-      "gapSummary": "Required uninterrupted full-cycle native observation in five angles pending; continuous solid clearance between sampled poses also unverified",
-      "disposition": "VERIFY_RECORDED_GAP",
-      "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
+      "gapKind": "NATIVE_REVIEW_ACCEPTED_BOUNDED",
+      "gapSummary": "C10 closed: full recorded native rendered-motion coverage in five angles; hidden contacts and between-frame solid clearance remain unverified",
+      "disposition": "RETAIN_BOUNDED_NATIVE_EVIDENCE",
+      "acceptance": "BOUNDED_OFFLINE_NATIVE_ONLY"
     },
     {
       "index": 32,
@@ -1472,5 +1472,8 @@
       "disposition": "RECONCILE_CURRENT_EVIDENCE",
       "acceptance": "NOT_CERTIFIED_BY_THIS_INVENTORY"
     }
-  ]
+  ],
+  "completedNativeMotionCaseCount": 25,
+  "retainedNativeMotionPngCount": 34980,
+  "motionAcceptanceEvidence": "rungproof-next/docs/NATIVE_MOTION_ACCEPTANCE.json"
 }
