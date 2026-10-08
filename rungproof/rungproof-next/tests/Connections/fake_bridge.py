@@ -31,6 +31,10 @@ for line in sys.stdin:
 
     result = {"pid": os.getpid(), "value": request.get("value")}
     if command == "connect":
+        if request["profileId"] == "typed-scope-fixture.json":
+            # Opt-in wire inspection; existing offline/playback replies stay unchanged.
+            result["observedAuthorizedWriteScope"] = request["authorizedWriteScope"]
+            result["observedExpectedDescriptor"] = request["expectedDescriptor"]
         if playback_mode_file:
             result.update(request["expectedDescriptor"])
         result.update({"sessionId": "offline-session", "sceneId": request["sceneId"],

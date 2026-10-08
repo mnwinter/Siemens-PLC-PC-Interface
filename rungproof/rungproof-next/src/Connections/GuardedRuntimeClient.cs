@@ -81,7 +81,7 @@ public sealed class ExternalPlcRuntimeClient : IGuardedRuntimeClient, IDisposabl
     public void Connect(
         string profileId,
         string sceneId,
-        IReadOnlyList<Dictionary<string, string>> authorizedWriteScope,
+        IReadOnlyList<JsonElement> authorizedWriteScope,
         Action<JsonElement> completed,
         Action<Exception> failed,
         int connectTimeoutMs,
@@ -89,6 +89,12 @@ public sealed class ExternalPlcRuntimeClient : IGuardedRuntimeClient, IDisposabl
     {
         if (State != ConnectionState.Disconnected || IsBusy)
             throw new InvalidOperationException("Disconnect or finish the current bridge request before connecting.");
+        // Own the reviewed JSON before notifying observers or handing it to a
+        // worker. Callers may dispose their documents or reuse the input list.
+        var scopeSnapshot = new JsonElement[authorizedWriteScope.Count];
+        for (var index = 0; index < scopeSnapshot.Length; index++)
+            scopeSnapshot[index] = authorizedWriteScope[index].Clone();
+        var descriptorSnapshot = expectedDescriptor.Clone();
         SetState(ConnectionState.Connecting, "Opening guarded PLC session…");
         Request(new
         {
@@ -96,8 +102,8 @@ public sealed class ExternalPlcRuntimeClient : IGuardedRuntimeClient, IDisposabl
             profileId,
             sceneId,
             execute = true,
-            authorizedWriteScope,
-            expectedDescriptor,
+            authorizedWriteScope = scopeSnapshot,
+            expectedDescriptor = descriptorSnapshot,
         }, response =>
         {
             var result = response.GetProperty("result").Clone();

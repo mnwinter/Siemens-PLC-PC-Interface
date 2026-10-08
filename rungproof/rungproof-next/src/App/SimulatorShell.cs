@@ -8475,16 +8475,7 @@ public partial class SimulatorShell : CanvasLayer
             if (_verifiedExternalDescriptor is JsonElement previous && previous.GetRawText() != descriptor.GetRawText())
                 _externalAuthorization.ButtonPressed = false;
             _verifiedExternalDescriptor = descriptor;
-            var writes = descriptor.GetProperty("writeScope").EnumerateArray().ToArray();
-            var reads = descriptor.GetProperty("readScope").EnumerateArray().ToArray();
-            _externalProfileDetails.Text =
-                $"[color=#65d49a]PROFILE VALID[/color]\n" +
-                $"CPU: {Escape(descriptor.GetProperty("cpuFamily").GetString() ?? "")}, endpoint {Escape(descriptor.GetProperty("ip").GetString() ?? "")}, rack {descriptor.GetProperty("rack").GetInt32()}, slot {descriptor.GetProperty("slot").GetInt32()}\n" +
-                $"Cycle: {descriptor.GetProperty("cycleMs").GetInt32()} ms · connect timeout: {descriptor.GetProperty("connectTimeoutMs").GetInt32()} ms · heartbeat timeout: {descriptor.GetProperty("heartbeatTimeoutMs").GetInt32()} ms\n\n" +
-                $"[b]PC → PLC write scope ({writes.Length})[/b]\n" +
-                string.Join("\n", writes.Select(item => $"{Escape(item.GetProperty("address").GetString() ?? "")} · {Escape(item.GetProperty("symbol").GetString() ?? "")}")) +
-                $"\n\n[b]PLC → scene read scope ({reads.Length})[/b]\n" +
-                string.Join("\n", reads.Select(item => $"{Escape(item.GetProperty("address").GetString() ?? "")} · {Escape(item.GetProperty("symbol").GetString() ?? "")}"));
+            _externalProfileDetails.Text = ExternalProfilePresentation.Format(descriptor);
         }, exception =>
         {
             _verifiedExternalDescriptor = null;
@@ -8575,7 +8566,7 @@ public partial class SimulatorShell : CanvasLayer
                 return;
             }
             var scope = descriptor.GetProperty("writeScope").EnumerateArray()
-                .Select(item => item.EnumerateObject().ToDictionary(property => property.Name, property => property.Value.GetString() ?? string.Empty, StringComparer.Ordinal))
+                .Select(item => item.Clone())
                 .ToArray();
             SetExternalMode(true);
             external.Connect(profile, _activeScene.Id, scope, _ =>
@@ -10410,7 +10401,8 @@ public partial class SimulatorShell : CanvasLayer
             ? value.GetString() ?? string.Empty
             : string.Empty;
 
-    private static string Escape(string value) => value
-        .Replace("[", "[lb]", StringComparison.Ordinal)
-        .Replace("]", "[rb]", StringComparison.Ordinal);
+    private static string Escape(string value) => string.Concat(value.Select(character => character switch
+    {
+        '[' => "[lb]", ']' => "[rb]", _ => character.ToString(),
+    }));
 }

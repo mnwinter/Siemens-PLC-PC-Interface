@@ -96,6 +96,127 @@ class LivePlcControllerTests(unittest.TestCase):
         self.assertTrue(result["connected"])
         self.assertEqual(len(FakeLiveTransport.instances), 1)
 
+    def test_descriptor_reports_actual_safe_values_and_heartbeat_selection(self) -> None:
+        descriptor = self.controller.describe_profile("scene-1-db14-interface.json")
+        self.assertEqual(descriptor["heartbeatPcTag"], "pc_heartbeat")
+        self.assertEqual(descriptor["heartbeatEchoTag"], "plc_heartbeat_echo")
+        self.assertEqual(
+            {item["name"]: item["safeValue"] for item in descriptor["writeScope"]},
+            {"pc_to_plc": False, "pc_heartbeat": 0},
+        )
+        self.assertTrue(all("safeValue" not in item for item in descriptor["readScope"]))
+
+    def test_safe_value_file_edit_rejects_before_transport_creation(self) -> None:
+        profile_id = "scene-1-db14-interface.json"
+        profile = json.loads((PROFILE_DIR / profile_id).read_text(encoding="utf-8"))
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / profile_id
+            path.write_text(json.dumps(profile), encoding="utf-8")
+            controller = LivePlcController(Path(directory), transport_factory=FakeLiveTransport)
+            try:
+                descriptor = controller.describe_profile(profile_id)
+                profile["tags"][0]["safe_value"] = True
+                path.write_text(json.dumps(profile), encoding="utf-8")
+                # Describe the edited profile first: this is a valid config
+                # change, not rejection by the config parser.
+                edited = controller.describe_profile(profile_id)
+                self.assertTrue(edited["writeScope"][0]["safeValue"])
+                with self.assertRaisesRegex(LivePlcError, "changed after verification"):
+                    controller.connect(
+                        profile_id=profile_id,
+                        scene_id="scene-1-conveyor-stop",
+                        execute=True,
+                        authorized_write_scope=descriptor["writeScope"],
+                        expected_descriptor=descriptor,
+                    )
+                self.assertEqual(FakeLiveTransport.instances, [])
+            finally:
+                controller.close()
+
+    def test_heartbeat_file_selection_edit_rejects_with_identical_tag_scope(self) -> None:
+        profile_id = "scene-1-db14-interface.json"
+        for field, old_name, new_name, address in (
+            ("pc_tag", "pc_heartbeat", "test_pc_heartbeat", "DB14.DBD12"),
+            ("echo_tag", "plc_heartbeat_echo", "test_plc_echo", "DB14.DBD16"),
+        ):
+            with self.subTest(field=field), TemporaryDirectory() as directory:
+                profile = json.loads((PROFILE_DIR / profile_id).read_text(encoding="utf-8"))
+                original = next(tag for tag in profile["tags"] if tag["name"] == old_name)
+                # Test-only DINT tag at a nonoverlapping offset. Both valid
+                # candidates exist before verification, so selecting the other
+                # heartbeat changes neither read/write tag scope nor mappings.
+                profile["tags"].append({
+                    **original, "name": new_name,
+                    "plc_symbol": f"DB_TestOnly.{new_name}", "address": address,
+                })
+                path = Path(directory) / profile_id
+                path.write_text(json.dumps(profile), encoding="utf-8")
+                controller = LivePlcController(Path(directory), transport_factory=FakeLiveTransport)
+                try:
+                    descriptor = controller.describe_profile(profile_id)
+                    profile["heartbeat"][field] = new_name
+                    path.write_text(json.dumps(profile), encoding="utf-8")
+                    edited = controller.describe_profile(profile_id)
+                    self.assertEqual(edited["writeScope"], descriptor["writeScope"])
+                    self.assertEqual(edited["readScope"], descriptor["readScope"])
+                    self.assertEqual(edited["pcPointScope"], descriptor["pcPointScope"])
+                    self.assertEqual(edited["plcPointScope"], descriptor["plcPointScope"])
+                    with self.assertRaisesRegex(LivePlcError, "changed after verification"):
+                        controller.connect(
+                            profile_id=profile_id,
+                            scene_id="scene-1-conveyor-stop",
+                            execute=True,
+                            authorized_write_scope=descriptor["writeScope"],
+                            expected_descriptor=descriptor,
+                        )
+                    self.assertEqual(FakeLiveTransport.instances, [])
+                finally:
+                    controller.close()
+
+    def test_point_inversion_file_edit_rejects_before_transport_creation(self) -> None:
+        profile_id = "scene-1-db14-interface.json"
+        profile = json.loads((PROFILE_DIR / profile_id).read_text(encoding="utf-8"))
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / profile_id
+            path.write_text(json.dumps(profile), encoding="utf-8")
+            controller = LivePlcController(Path(directory), transport_factory=FakeLiveTransport)
+            try:
+                descriptor = controller.describe_profile(profile_id)
+                profile["points"][0]["inverted"] = True
+                path.write_text(json.dumps(profile), encoding="utf-8")
+                edited = controller.describe_profile(profile_id)
+                self.assertTrue(edited["pcPointScope"][0]["inverted"])
+                self.assertEqual(edited["writeScope"], descriptor["writeScope"])
+                self.assertEqual(edited["readScope"], descriptor["readScope"])
+                self.assertNotEqual(edited["configurationDigest"], descriptor["configurationDigest"])
+                with self.assertRaisesRegex(LivePlcError, "changed after verification"):
+                    controller.connect(
+                        profile_id=profile_id,
+                        scene_id="scene-1-conveyor-stop",
+                        execute=True,
+                        authorized_write_scope=descriptor["writeScope"],
+                        expected_descriptor=descriptor,
+                    )
+                self.assertEqual(FakeLiveTransport.instances, [])
+            finally:
+                controller.close()
+
+    def test_configuration_digest_is_stable_across_json_formatting(self) -> None:
+        profile_id = "scene-1-db14-interface.json"
+        profile = json.loads((PROFILE_DIR / profile_id).read_text(encoding="utf-8"))
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / profile_id
+            path.write_text(json.dumps(profile), encoding="utf-8")
+            controller = LivePlcController(Path(directory), transport_factory=FakeLiveTransport)
+            try:
+                descriptor = controller.describe_profile(profile_id)
+                path.write_text(json.dumps(profile, sort_keys=True, indent=4), encoding="utf-8")
+                edited = controller.describe_profile(profile_id)
+                self.assertEqual(edited, descriptor)
+                self.assertRegex(descriptor["configurationDigest"], r"^[0-9a-f]{64}$")
+            finally:
+                controller.close()
+
     def test_authorized_scene_two_session_exchanges_only_declared_points(
         self,
     ) -> None:
@@ -185,6 +306,7 @@ class LivePlcControllerTests(unittest.TestCase):
                     "tag": "pc_to_plc",
                     "address": "DB14.DBX0.0",
                     "dataType": "BOOL",
+                    "inverted": False,
                 }
             ],
         )
@@ -196,6 +318,7 @@ class LivePlcControllerTests(unittest.TestCase):
                     "tag": "plc_to_pc",
                     "address": "DB14.DBX0.1",
                     "dataType": "BOOL",
+                    "inverted": False,
                 }
             ],
         )

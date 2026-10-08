@@ -8,6 +8,10 @@ the PLC watchdog when browser cycles stop.
 
 from __future__ import annotations
 
+from dataclasses import asdict
+from enum import Enum
+import hashlib
+import json
 from pathlib import Path
 import re
 import secrets
@@ -103,22 +107,46 @@ def _profile_path(profile_dir: Path, profile_id: object) -> Path:
     return candidate
 
 
-def _scope_item(tag: Any) -> dict[str, str]:
-    return {
+def _scope_item(tag: Any, *, include_safe_value: bool = False) -> dict[str, Any]:
+    item: dict[str, Any] = {
         "name": tag.name,
         "symbol": tag.plc_symbol,
         "address": tag.address,
         "dataType": tag.data_type.value,
     }
+    if include_safe_value:
+        item["safeValue"] = tag.safe_value
+    return item
 
 
-def _point_scope_item(point: Any, tag: Any) -> dict[str, str]:
-    return {
+def _point_scope_item(point: Any, tag: Any) -> dict[str, Any]:
+    item: dict[str, Any] = {
         "name": point.name,
         "tag": tag.name,
         "address": tag.address,
         "dataType": tag.data_type.value,
     }
+    if hasattr(point, "inverted"):
+        item["inverted"] = point.inverted
+    return item
+
+
+def _configuration_json_value(value: Any) -> Any:
+    if isinstance(value, Enum):
+        return value.value
+    raise TypeError(f"Unsupported effective configuration value: {type(value).__name__}")
+
+
+def _configuration_digest(config: InterfaceConfig) -> str:
+    # Fingerprint the same validated immutable configuration that will create
+    # the runtime. Reopening the file here could verify different bytes from
+    # the configuration used to connect. Include point inversion/scaling and
+    # every validated setting, beyond the operator-facing descriptor summary.
+    encoded = json.dumps(
+        asdict(config), sort_keys=True, separators=(",", ":"),
+        default=_configuration_json_value, allow_nan=False,
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
 
 
 def _profile_descriptor(
@@ -127,7 +155,7 @@ def _profile_descriptor(
 ) -> dict[str, Any]:
     assert Direction is not None
     write_scope = [
-        _scope_item(tag)
+        _scope_item(tag, include_safe_value=True)
         for tag in config.tags
         if tag.direction is Direction.PC_TO_PLC
     ]
@@ -155,6 +183,9 @@ def _profile_descriptor(
         "cycleMs": config.connection.cycle_ms,
         "connectTimeoutMs": config.connection.connect_timeout_ms,
         "heartbeatTimeoutMs": config.heartbeat.timeout_ms,
+        "heartbeatPcTag": config.heartbeat.pc_tag,
+        "heartbeatEchoTag": config.heartbeat.echo_tag,
+        "configurationDigest": _configuration_digest(config),
         "writeScope": write_scope,
         "readScope": read_scope,
         "pcPointScope": pc_point_scope,

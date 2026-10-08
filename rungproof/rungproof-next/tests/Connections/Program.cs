@@ -81,6 +81,42 @@ internal static class Program
             client.Poll();
             Require(completed && callbackThread == pollThread && client.State == ConnectionState.Connected);
         });
+        await Test("connect snapshots typed scope and descriptor before observers and async serialization", async () =>
+        {
+            using var client = Client();
+            using var scopeDocument = JsonDocument.Parse("""[{"name":"permit","dataType":"BOOL","safeValue":false},{"name":"count","dataType":"INT","safeValue":0},{"name":"speed","dataType":"REAL","safeValue":0.25}]""");
+            using var descriptorDocument = JsonDocument.Parse("""{"id":"typed-scope-fixture.json","review":{"revision":7}}""");
+            var scope = new List<JsonElement>();
+            foreach (var entry in scopeDocument.RootElement.EnumerateArray()) scope.Add(entry);
+            var invalidatedBeforeRequest = false;
+            client.StateChanged += () =>
+            {
+                if (client.State != ConnectionState.Connecting) return;
+                // SetState precedes Request: disposal here deterministically tests
+                // ownership rather than racing a fast worker serialization.
+                scopeDocument.Dispose();
+                descriptorDocument.Dispose();
+                scope.Clear();
+                scope.Add(JsonSerializer.SerializeToElement(new { safeValue = "changed" }));
+                invalidatedBeforeRequest = true;
+            };
+            JsonElement observed = default;
+            client.Connect("typed-scope-fixture.json", "offline-scene", scope,
+                result => observed = result, Fail, 100, descriptorDocument.RootElement);
+            await Pump(client);
+            Require(invalidatedBeforeRequest && client.State == ConnectionState.Connected);
+            var wireScope = observed.GetProperty("observedAuthorizedWriteScope");
+            Require(wireScope.GetArrayLength() == 3);
+            Require(wireScope[0].GetProperty("name").GetString() == "permit"
+                && wireScope[0].GetProperty("safeValue").ValueKind == JsonValueKind.False);
+            Require(wireScope[1].GetProperty("dataType").GetString() == "INT"
+                && wireScope[1].GetProperty("safeValue").ValueKind == JsonValueKind.Number
+                && wireScope[1].GetProperty("safeValue").GetInt32() == 0);
+            Require(wireScope[2].GetProperty("dataType").GetString() == "REAL"
+                && wireScope[2].GetProperty("safeValue").ValueKind == JsonValueKind.Number
+                && wireScope[2].GetProperty("safeValue").GetDouble() == 0.25);
+            Require(observed.GetProperty("observedExpectedDescriptor").GetProperty("review").GetProperty("revision").GetInt32() == 7);
+        });
         await Test("disconnect invalidates an in-flight connect and permits a fresh session", async () =>
         {
             using var client = Client();
@@ -194,6 +230,24 @@ internal static class Program
                 playback.Update(ConnectionState.Connected, 1, cycle.RootElement);
                 Require(!playback.IsReady && !playback.TryRun());
             }
+            return Task.CompletedTask;
+        });
+        await Test("profile presentation preserves typed configuration, escapes names and states verification limits", () =>
+        {
+            using var profile = JsonDocument.Parse("""{"cpuFamily":"S7-1200","ip":"192.0.2.10","rack":0,"slot":1,"cycleMs":20,"connectTimeoutMs":750,"heartbeatPcTag":"pc_beat","heartbeatEchoTag":"plc_echo","heartbeatTimeoutMs":1000,"writeScope":[{"name":"[permit]","symbol":"DB.[permit]","dataType":"BOOL","address":"DB1.DBX0.0","safeValue":false},{"name":"count","symbol":"DB.count","dataType":"INT","address":"DB1.DBW2","safeValue":0}],"readScope":[{"name":"ready","symbol":"DB.ready","dataType":"BOOL","address":"DB1.DBX4.0"}],"pcPointScope":[{"name":"sensor","tag":"permit","dataType":"BOOL","address":"DB1.DBX0.0","inverted":true}],"plcPointScope":[{"name":"motor","tag":"ready","dataType":"BOOL","address":"DB1.DBX4.0"}]}""");
+            var formatted = ExternalProfilePresentation.Format(profile.RootElement);
+            foreach (var expected in new[] { "S7-1200", "192.0.2.10", "rack 0", "slot 1", "Cycle: 20 ms",
+                "connect timeout: 750 ms", "pc_beat → plc_echo", "timeout: 1000 ms", "BOOL", "INT", "DB1.DBW2",
+                "configured safe value: false", "configured safe value: 0", "sensor → permit", "motor → ready",
+                "inverted: true", "[lb]permit[rb]", "DB.[lb]permit[rb]", "LOCAL PROFILE VALID",
+                "does not verify CPU access permissions", "live handshake or watchdog operation",
+                "does not prove they were written on Stop or Disconnect" })
+                Require(formatted.Contains(expected, StringComparison.Ordinal));
+            using var missing = JsonDocument.Parse("""{"writeScope":[{"name":"unknown","dataType":"BOOL"}],"readScope":[],"pcPointScope":[],"plcPointScope":[]}""");
+            var unknown = ExternalProfilePresentation.Format(missing.RootElement);
+            Require(unknown.Contains("CPU: not provided", StringComparison.Ordinal)
+                && unknown.Contains("configured safe value: not provided", StringComparison.Ordinal)
+                && !unknown.Contains("configured safe value: false", StringComparison.Ordinal));
             return Task.CompletedTask;
         });
         Console.WriteLine($"CONNECTION_TESTS_PASS {_passed}; offline child processes only, no PLC transport or network.");

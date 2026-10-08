@@ -37,6 +37,17 @@ public partial class SimulatorShell
         void Check(bool condition, string name) { if (!condition) failures++; GD.Print($"AGGREGATE_EDITOR_VERIFY {name}={condition}"); }
         try
         {
+            // Use Godot's parser, so this detects malformed escape tokens rather
+            // than merely comparing two implementations of the same formatter.
+            var literal = "motors[9] [color=red]";
+            var parserProbe = new RichTextLabel();
+            try
+            {
+                parserProbe.BbcodeEnabled = true;
+                parserProbe.Text = Escape(literal);
+                Check(parserProbe.GetParsedText() == literal, "bbcode_parser_preserves_literal_array_index_and_markup");
+            }
+            finally { parserProbe.Free(); }
             _ladderDocument.ResetProject("aggregate-ui-qa", "AggregateUI", TimeSpan.FromMilliseconds(20));
             _ladderHistory = new LadderEditorHistory(150);
             SetProductView("ladder");
