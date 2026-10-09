@@ -66,6 +66,15 @@ public partial class Main
             Action("toggle-label_data_valid"); Action("toggle-product_weighed"); await Wait(.6);
             Check(Point("product_weighed") && Math.Abs(Number("weight_kg") - 1.237) < 1e-9
                 && !Point("print_request") && !Point("print_complete") && !paper.Visible, "chicken_actual_settled_weight_printer_off_blocks_print");
+            // Preserve the original full-footprint support criterion at its
+            // correct lifecycle boundary: actual loaded travel has settled.
+            var deck = ReviewBounds((MeshInstance3D)_sceneCompositionRoot!.GetNode("training_accessory_5")
+                .FindChild("WEIGH_DECK_surface", true, false));
+            var food = ReviewBounds(_sceneCompositionRoot.GetNode<Node3D>("training_accessory_4"));
+            Check(MathF.Abs(deck.End.Y - 0.9f) < 0.005f && MathF.Abs(food.Position.Y - deck.End.Y) < 0.005f
+                && food.Position.X >= deck.Position.X && food.End.X <= deck.End.X
+                && food.Position.Z >= deck.Position.Z && food.End.Z <= deck.End.Z,
+                "chicken_settled_food_tray_supported_by_actual_weigh_deck");
             Action("toggle-printer_ready"); await Wait(.15);
             Check(Point("print_request") && !Point("print_complete") && paper.Visible && paper.Transform != paperHome,
                 "chicken_loaded_format_command_moves_actual_print_paper");

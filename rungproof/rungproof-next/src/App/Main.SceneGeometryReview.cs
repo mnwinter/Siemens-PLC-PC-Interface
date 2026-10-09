@@ -685,7 +685,7 @@ public partial class Main
             && !ReviewMeshes(root).Any(mesh => mesh.Name.ToString().StartsWith("SHUTTER_", StringComparison.Ordinal)
                 || mesh.Name.ToString().StartsWith("PANEL_edge_post", StringComparison.Ordinal)
                 || mesh.Name == "SERVO_DRIVE"), "drive_alarm_correct_prop_families_replace_inherited_copies");
-        var labels = new[] { "MESSAGE VALID", "CODE FOUND", "RESET" };
+        var labels = new[] { "MESSAGE VALID", "NEXT MESSAGE", "RESET" };
         check(Enumerable.Range(6, 3).All(index =>
             root.GetNode<Node3D>($"switch_{index}").FindChild("OperatorFaceLabel", true, false) is Label3D label
             && label.Text == labels[index - 6]), "drive_alarm_operator_plates_match_input_functions");
@@ -707,12 +707,14 @@ public partial class Main
             .All(node => ReviewBounds(node).Position.Y >= -0.005f), "label_print_visible_equipment_above_finished_floor");
         check(LogBoundsCandidates(root) == 0, "label_print_separate_solid_equipment_clear");
         var weigh = root.GetNode<Node3D>("training_accessory_5");
-        var deck = ReviewBounds((MeshInstance3D)weigh.FindChild("WEIGH_DECK_surface", true, false));
-        var food = ReviewBounds(root.GetNode<Node3D>("training_accessory_4"));
-        check(MathF.Abs(deck.End.Y - 0.9f) < 0.005f && MathF.Abs(food.Position.Y - deck.End.Y) < 0.005f
-            && food.Position.X >= deck.Position.X && food.End.X <= deck.End.X
-            && food.Position.Z >= deck.Position.Z && food.End.Z <= deck.End.Z,
-            "label_print_food_tray_supported_by_actual_weigh_deck");
+        // Reset now represents an absent product at the entry pose. The
+        // loaded-controller typed verifier checks full deck support after travel.
+        var food = root.GetNode<Node3D>("training_accessory_4");
+        check(_sceneRuntime!.Points["product_present"] is false
+            && _sceneRuntime.Points["product_weighed"] is false
+            && Convert.ToDouble(_sceneRuntime.Points["weight_kg"]) == 0
+            && MathF.Abs(food.Position.X + 2f) < 0.005f,
+            "label_print_absent_product_starts_before_weigh_deck");
         var carton = ReviewBounds(root.GetNode<Node3D>("box_2"));
         check(ReviewMeshes(root.GetNode("conveyor_0")).Where(mesh => mesh.Name == "KIN_belt_surface").Any(mesh =>
         {
