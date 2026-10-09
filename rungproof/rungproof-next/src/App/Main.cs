@@ -31,6 +31,7 @@ public partial class Main : Node3D
     private bool _verifyHud;
     private bool _verifyCameraInput;
     private bool _verifySceneControls;
+    private bool _verifyGalleryClock;
     private bool _verifyVirtualController;
     private bool _verifyNumericSceneIo;
     private bool _verifyLadderEditor;
@@ -185,6 +186,7 @@ public partial class Main : Node3D
         _verifyHud = userArguments.Contains("--verify-hud", StringComparer.Ordinal);
         _verifyCameraInput = userArguments.Contains("--verify-camera-input", StringComparer.Ordinal);
         _verifySceneControls = userArguments.Contains("--verify-scene-controls", StringComparer.Ordinal);
+        _verifyGalleryClock = userArguments.Contains("--verify-gallery-clock", StringComparer.Ordinal);
         _verifyVirtualController = userArguments.Contains("--verify-virtual-controller", StringComparer.Ordinal);
         _verifyNumericSceneIo = userArguments.Contains("--verify-numeric-scene-io", StringComparer.Ordinal);
         _verifyLadderEditor = userArguments.Contains("--verify-ladder-editor", StringComparer.Ordinal);
@@ -198,7 +200,7 @@ public partial class Main : Node3D
             .FirstOrDefault(argument => argument.StartsWith("--mcp-scene=", StringComparison.Ordinal))?
             .Substring("--mcp-scene=".Length);
         _appShellRequested = _verifyDemoSequence || _auditToteFinishingProcess || _auditServiceElevatorAccess || _auditMotorAggregates || _auditMobileTraffic || _auditWastewaterProcess || _reportSceneGeometry || _verifySceneGeometry || _verifyToteFinishing || _auditDualSpindle || _auditRobotCnc || _auditRobotRestart || _auditSequenceTower || _auditChainLiftInstallation || _auditCookiePackaging || _auditBarrelFill || _auditCableCut || _auditPalletizer || _auditRepeatCycle || _auditButtonCounters || _auditParkingEntry || _auditPackageGrouping || _auditTimerLessons || _auditRotaryFlasher || _auditFlashPair || _auditRunningTower || _auditPedestrianCrossing || _auditDrawbridge || _auditBagIndex || _auditCoating || _auditHandDryer || _auditLuggageLayout || _auditEvLayout || _auditRadarLayout || _auditGuardedLayout || _verifyCartonStaticRoutes || (_visualSceneReview && !_visualPlantReview) || _verifyAppShell || _verifyExternalDialog || _verifyExternalPlayback || _verifyPlantMotion || _verifyWorkspace || _verifyHud || _verifyCameraInput || _verifySceneControls
-            || _verifyVirtualController || _verifyNumericSceneIo || _verifyLadderEditor || _verifySplitView || _verifyUiDensity || _virtualControllerDemo
+            || _verifyGalleryClock || _verifyVirtualController || _verifyNumericSceneIo || _verifyLadderEditor || _verifySplitView || _verifyUiDensity || _virtualControllerDemo
             || userArguments.Contains("--app-shell", StringComparer.Ordinal);
         if (_visualPlantReview && (_sceneId is null || _appShellRequested || _verifySceneContract))
         {
@@ -499,9 +501,9 @@ public partial class Main : Node3D
             if (_virtualController is not null) DisableVirtualController();
             if (_sceneRuntime is not null)
             {
-                // Both shell modes require a selected controller. The scene's
-                // reference fake-PLC rules are for standalone previews/tests.
-                _sceneRuntime.UsesExternalClock = true;
+                // Gallery animation is SIM-owned; PLC lessons still require a
+                // selected controller and cannot execute preview PLC rules.
+                _sceneRuntime.UsesExternalClock = SceneRequiresControllerClock;
                 if (!external) _sceneRuntime.ResetSimulation();
             }
             SynchronizeExternalPlayback();
@@ -719,6 +721,10 @@ public partial class Main : Node3D
         {
             CallDeferred(nameof(VerifySceneControls));
         }
+        else if (_verifyGalleryClock)
+        {
+            CallDeferred(nameof(VerifyGalleryClock));
+        }
         else if (_verifyDemoSequence)
         {
             CallDeferred(nameof(VerifyDemoSequence));
@@ -852,6 +858,9 @@ public partial class Main : Node3D
         GD.Print($"VIRTUAL_CONTROLLER_ENABLED mode=offline scene={_currentSceneId} transport=none");
     }
 
+    private bool SceneRequiresControllerClock => _simulatorShell is not null
+        && (_simulatorShell.IsExternalMode || _sceneRuntime?.RuntimeType != "gallery");
+
     private void DisableVirtualController()
     {
         if (_virtualController is not null) _virtualController.SnapshotPublished -= OnVirtualSnapshot;
@@ -861,7 +870,7 @@ public partial class Main : Node3D
         if (_sceneRuntime is not null)
         {
             _sceneRuntime.SetControllerPlaybackRunning(false);
-            _sceneRuntime.UsesExternalClock = _simulatorShell is not null;
+            _sceneRuntime.UsesExternalClock = SceneRequiresControllerClock;
             _sceneRuntime.StopSimulation();
         }
         _simulatorShell?.DetachVirtualController();
@@ -1850,6 +1859,86 @@ public partial class Main : Node3D
         GD.Print($"REVIEW_OVERLAY_INPUT_VERIFY {(reviewBarBlocked && reviewPopupBlocked && reviewClockBlocked ? "PASS" : "FAIL")} enabled={_visualReviewBar is not null} bar={reviewBarBlocked} popup={reviewPopupBlocked} clock={reviewClockBlocked}");
         GD.Print($"EXTERNAL_IMAGE_VERIFY {(invalidOutputRejected && atomicImageRejected ? "PASS" : "FAIL")} typed={invalidOutputRejected} atomic={atomicImageRejected}");
         GD.Print($"SCENE_CONTROL_VERIFY {(passed ? "PASS" : "FAIL")} facesOperator={facesOperator} start={running} depressed={depressed} restored={restored} estopLatched={estopLatched} stopped={stopped} restartBlocked={restartBlocked} resetReleased={resetReleased} restarted={restarted} virtualReady={virtualReady} virtualStart={virtualStart} virtualStopCommand={virtualStopCommand} immediateEstop={immediateEstop} virtualRestartBlocked={virtualRestartBlocked} resetDoesNotStart={resetDoesNotStart} virtualRestarted={virtualRestarted} exclusiveExternal={exclusiveExternal} externalActionBlocked={externalActionBlocked} externalImagePreserved={externalImagePreserved} awaitingController={awaitingController} noFallbackOverwrite={noFallbackOverwrite} fallbackRulesWork={fallbackRulesWork}");
+        GetTree().Quit(passed ? 0 : 1);
+    }
+
+    private async void VerifyGalleryClock()
+    {
+        // Exercise the normal shell action and actual engine callbacks. Calling
+        // the rotor's _PhysicsProcess directly would miss the disabled clock.
+        AddMigratedScene("equipment-gallery", _candidateCatalog!, _mainCamera!, false, false);
+        var fan = _sceneCompositionRoot!.GetNode<Node3D>("gallery_fan");
+        var rotor = fan.FindChildren("KIN_*", string.Empty, true, false).OfType<Node3D>().First();
+        var drive = fan.FindChildren("*", string.Empty, true, false).OfType<EquipmentMotionController>().Single();
+        var home = rotor.Transform;
+        var startAccepted = ExecuteSelectedControllerAction("toggle-gallery");
+        await ToSignal(GetTree().CreateTimer(0.13), SceneTreeTimer.SignalName.Timeout);
+        var localMotion = startAccepted && _virtualController is null
+            && _sceneRuntime!.Points.GetValueOrDefault("gallery_animation") is true
+            && drive.RunCommand && rotor.Transform != home;
+
+        StopActiveController();
+        var stopped = rotor.Transform;
+        await ToSignal(GetTree().CreateTimer(0.13), SceneTreeTimer.SignalName.Timeout);
+        var stopHolds = !drive.RunCommand && rotor.Transform == stopped
+            && _sceneRuntime!.Points.GetValueOrDefault("gallery_animation") is false;
+        ResetActiveController();
+        var resetRestores = rotor.Transform == home && !drive.RunCommand;
+
+        // A loaded controller still owns gallery timing. This valid, memory-only
+        // fixture supplies no scene outputs and is not a gallery lesson program.
+        var clockFixture = new LadderEditorDocument();
+        clockFixture.ResetProject("gallery-clock-fixture", "Gallery clock fixture", TimeSpan.FromMilliseconds(20));
+        clockFixture.AddTag("fixture", PlcVariableRole.Memory, initialValue: true);
+        clockFixture.AddRung("Clock ownership fixture", "fixture");
+        clockFixture.AddContact(0, 0, "fixture", false);
+        EnableVirtualControllerProgram(clockFixture.BuildProgram());
+        ExecuteSelectedControllerAction("toggle-gallery");
+        var controllerHeld = rotor.Transform;
+        await ToSignal(GetTree().CreateTimer(0.13), SceneTreeTimer.SignalName.Timeout);
+        var loadedStopped = _sceneRuntime!.UsesExternalClock && drive.RunCommand && rotor.Transform == controllerHeld;
+        RunActiveController();
+        await ToSignal(GetTree().CreateTimer(0.13), SceneTreeTimer.SignalName.Timeout);
+        var loadedRuns = rotor.Transform != controllerHeld;
+        StopActiveController();
+        controllerHeld = rotor.Transform;
+        await ToSignal(GetTree().CreateTimer(0.13), SceneTreeTimer.SignalName.Timeout);
+        var loadedStopHolds = rotor.Transform == controllerHeld;
+        DisableVirtualController();
+        ResetActiveController();
+        ExecuteSelectedControllerAction("toggle-gallery");
+        var unloaded = rotor.Transform;
+        await ToSignal(GetTree().CreateTimer(0.13), SceneTreeTimer.SignalName.Timeout);
+        var unloadRestoresLocal = !_sceneRuntime!.UsesExternalClock && rotor.Transform != unloaded;
+        StopActiveController();
+        ResetActiveController();
+
+        var plcMenu = _simulatorShell!.GetNode<MenuButton>("Workspace/Toolbar/ToolbarMargin/ToolbarRow/PlcMenu").GetPopup();
+        plcMenu.EmitSignal(PopupMenu.SignalName.IdPressed, 11);
+        ExecuteSelectedControllerAction("toggle-gallery");
+        var externalHeld = rotor.Transform;
+        await ToSignal(GetTree().CreateTimer(0.13), SceneTreeTimer.SignalName.Timeout);
+        var externalPaused = _sceneRuntime!.UsesExternalClock && rotor.Transform == externalHeld;
+        plcMenu.EmitSignal(PopupMenu.SignalName.IdPressed, 10);
+        ExecuteSelectedControllerAction("toggle-gallery");
+        var resumed = rotor.Transform;
+        await ToSignal(GetTree().CreateTimer(0.13), SceneTreeTimer.SignalName.Timeout);
+        var localResumes = _virtualController is null && rotor.Transform != resumed;
+        StopActiveController();
+        ResetActiveController();
+
+        // The exception must not activate fake PLC rules in a blank exercise.
+        AddMigratedScene("lab-2-01-workstation-call", _candidateCatalog!, _mainCamera!, false, false);
+        RunActiveController();
+        ExecuteSelectedControllerAction("toggle-material-call");
+        await ToSignal(GetTree().CreateTimer(0.13), SceneTreeTimer.SignalName.Timeout);
+        var blankFailClosed = _virtualController is null && _sceneRuntime!.UsesExternalClock
+            && _sceneRuntime.Points.GetValueOrDefault("material_call_pressed") is true
+            && _sceneRuntime.Points.GetValueOrDefault("material_call_on") is false;
+        ResetActiveController();
+        var passed = localMotion && stopHolds && resetRestores && loadedStopped && loadedRuns && loadedStopHolds && unloadRestoresLocal
+            && externalPaused && localResumes && blankFailClosed;
+        GD.Print($"GALLERY_CLOCK_VERIFY {(passed ? "PASS" : "FAIL")} localMotion={localMotion} stopHolds={stopHolds} resetRestores={resetRestores} loadedStopped={loadedStopped} loadedRuns={loadedRuns} loadedStopHolds={loadedStopHolds} unloadRestoresLocal={unloadRestoresLocal} externalPaused={externalPaused} localResumes={localResumes} blankFailClosed={blankFailClosed}");
         GetTree().Quit(passed ? 0 : 1);
     }
 
@@ -3677,7 +3766,7 @@ public partial class Main : Node3D
         }
         AddChild(composition.Root);
         _sceneRuntime = new SceneSimulationRuntime(scene.Simulation, composition.Root);
-        _sceneRuntime.UsesExternalClock = _simulatorShell is not null;
+        _sceneRuntime.UsesExternalClock = SceneRequiresControllerClock;
         _sceneControlInteractor = new SceneControlInteractor(scene, composition.Root);
         _sceneRuntime.StateChanged += ApplyWorkspaceSignalMappings;
         _sceneRuntime.StateChanged += UpdateGantryReviewClockLabel;

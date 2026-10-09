@@ -53,7 +53,19 @@ public partial class SceneSimulationRuntime : Node
     public string RuntimeType => Text(_definition, "type", "none");
     public IReadOnlyDictionary<string, object?> Points => _points;
     public bool IsRunning => _bottleShuttleReferenceActive || _shippingPalletReferenceActive || _tankSimulationRunning || _activeStepIndex >= 0 || Controllers().Any(IsControllerRunning);
-    public bool UsesExternalClock { get; set; }
+    private bool _usesExternalClock;
+    public bool UsesExternalClock
+    {
+        get => _usesExternalClock;
+        set
+        {
+            if (_usesExternalClock == value) return;
+            _usesExternalClock = value;
+            // Source changes must update already-composed equipment callbacks,
+            // even when the controller's running/stopped state is unchanged.
+            RefreshEquipmentClock();
+        }
+    }
     private bool _externalPlaybackSelected;
     private bool _externalPlaybackRunning;
 
