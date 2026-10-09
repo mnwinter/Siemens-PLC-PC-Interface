@@ -159,10 +159,19 @@ public static class LadderInstructionCatalog
         foreach (var (key, tia, logix, symbol) in comparisons)
             items.Add(new LadderInstructionHelp(key, "Compare", tia, logix,
                 $"Passes rung power when source A {symbol} source B.",
-                "Sources: INT/DINT/REAL tags, numeric literals, COUNTER ACC/CV/PRE/PV, or TIMER ET/PT.",
+                key is "compare-0" or "compare-1"
+                    ? "Sources: numeric operands, or matching STRING/ENUM tags and quoted text literals."
+                    : "Sources: INT/DINT/REAL tags, numeric literals, COUNTER ACC/CV/PRE/PV, or TIMER ET/PT.",
                 "Both operands are resolved at this point in deterministic scan order.",
-                "BOOL operands and unknown members fail validation. REAL comparison uses finite double values.",
+                "BOOL operands and unknown members fail validation. Text supports equality/inequality only; enum literals must be declared members. REAL comparison uses finite double values.",
                 $"measured_value {symbol} setpoint"));
+
+        items.Add(new LadderInstructionHelp("compare-6", "Compare", "CODE MATCH (local)", "CODE MATCH (local)",
+            "Passes rung power when a STRING contains a complete case-sensitive alphanumeric code token.",
+            "Source A: STRING tag. Source B: STRING tag or quoted nonempty alphanumeric code, for example \"F003\".",
+            "Splits source A on non-alphanumeric characters and compares whole tokens using ordinal case-sensitive equality.",
+            "F003 matches Drive alarm: F003; reset, but not F0030, AF003 or f003. Local RungProof instruction; no Siemens or Allen-Bradley parity claim.",
+            "CODE MATCH alarm_text, \"F003\""));
 
         var numeric = new[]
         {
@@ -193,7 +202,9 @@ public static class LadderInstructionCatalog
         };
         foreach (var (key, tia, logix, summary, example) in numeric)
             items.Add(new LadderInstructionHelp(key, "Move and math", tia, logix, summary,
-                key is "numeric-18" or "numeric-19"
+                key == "numeric-0"
+                    ? "Source A: numeric tag/member/literal, or STRING/ENUM tag or quoted text literal. Destination: writable tag of compatible type; enum text must be a declared member."
+                    : key is "numeric-18" or "numeric-19"
                     ? "Sources A/B/C are MIN, VALUE, and MAX. Destination: writable INT/DINT/REAL tag."
                     : key is not ("numeric-1" or "numeric-2" or "numeric-3" or "numeric-4" or "numeric-5" or "numeric-9")
                     ? "Source: numeric tag/member/literal. Destination: writable INT/DINT/REAL tag."
@@ -215,6 +226,13 @@ public static class LadderInstructionCatalog
                     _ => "Non-finite results are rejected and preserve the previous destination.",
                 }, example));
 
+        // Keep text formatting separate from numeric help: its destination and failure contract are typed.
+        items.Add(new LadderInstructionHelp("numeric-24", "Text", "FORMAT_TEXT (local)", "FORMAT_TEXT (local)",
+            "Formats one numeric value into a STRING using invariant culture.",
+            "Source A: numeric tag/literal. Source B: STRING tag or quoted template containing exactly one {0:F0} through {0:F6}. Destination: writable STRING.",
+            "Executes only on a true rung, resolving both sources in scan order.",
+            "Invalid literal templates fail validation. An invalid dynamic template or overlong result clears the destination and reports a runtime diagnostic, preventing stale print text. Local RungProof instruction; no Siemens or Allen-Bradley parity claim.",
+            "FORMAT_TEXT mass_kg, \"CHICKEN {0:F3} kg\" -> label_text"));
         return items;
     }
 }

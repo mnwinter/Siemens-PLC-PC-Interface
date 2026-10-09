@@ -25,7 +25,7 @@ public static class LadderCompiler
         return issues.Count == 0
             ? new(new CompiledLadderProgram(
                 program,
-                PlcAggregates.Expand(program.Variables).ToDictionary(item => item.Name, StringComparer.Ordinal)), [])
+                PlcAggregates.Expand(program.Variables).Select(item => item with { EnumMembers = item.EnumMembers is null ? null : Array.AsReadOnly(item.EnumMembers.ToArray()) }).ToDictionary(item => item.Name, StringComparer.Ordinal)), [])
             : new(null, issues);
     }
 
@@ -54,8 +54,12 @@ public static class LadderCompiler
                 issues.Add(new("VC001", $"{path}.name", "Variable name is required."));
             else if (!variables.TryAdd(variable.Name, variable))
                 issues.Add(new("VC004", $"{path}.name", $"Duplicate variable '{variable.Name}'."));
-            if (variable.Type is not (PlcVariableType.Bool or PlcVariableType.Int or PlcVariableType.DInt or PlcVariableType.Real or PlcVariableType.Timer or PlcVariableType.Counter))
+            if (variable.Type is not (PlcVariableType.Bool or PlcVariableType.Int or PlcVariableType.DInt or PlcVariableType.Real or PlcVariableType.Timer or PlcVariableType.Counter or PlcVariableType.String or PlcVariableType.Enum))
                 issues.Add(new("VC002", $"{path}.type", $"The current runtime supports BOOL, INT, DINT, REAL, TIMER, and COUNTER; '{variable.Name}' is {variable.Type}."));
+            if (PlcTextValues.IsText(variable.Type) && !PlcTextValues.IsValid(variable, variable.InitialValue))
+                issues.Add(new("VC002", $"{path}.initial", "STRING requires at most 255 characters; ENUM requires a valid domain and named member."));
+            if (variable.Type != PlcVariableType.Enum && variable.EnumMembers is not null)
+                issues.Add(new("VC002", $"{path}.enumMembers", "Only ENUM declarations may define members."));
             if (variable.Type == PlcVariableType.Bool && variable.InitialValue is not bool)
                 issues.Add(new("VC002", $"{path}.initial", $"BOOL variable '{variable.Name}' requires a Boolean initial value."));
             if (variable.Type is PlcVariableType.Int or PlcVariableType.DInt && variable.InitialValue is not (int or long))
@@ -132,143 +136,150 @@ public static class LadderCompiler
             }
             for (var index = 0; index < block.Networks.Count; index++)
             {
-            var network = block.Networks[index];
-            var path = $"{blockPath}.networks[{index}]";
-            AddId(network.Id, $"{path}.id", ids, issues);
-            ValidateNode(network.Logic, $"{path}.logic", variables, ids, issues);
-            var outputCount = (network.Coil is null ? 0 : 1)
-                + (network.Timer is null ? 0 : 1)
-                + (network.Counter is null ? 0 : 1)
-                + (network.CounterReset is null ? 0 : 1)
-                + (network.NumericOperation is null ? 0 : 1)
-                + (network.Call is null ? 0 : 1)
-                + (network.Return is null ? 0 : 1)
-                + (network.CounterLoad is null ? 0 : 1)
-                + (network.TimerReset is null ? 0 : 1)
-                + (network.Jump is null ? 0 : 1)
-                + (network.LabelInstruction is null ? 0 : 1);
-            if (outputCount != 1)
-                issues.Add(new("VC006", path, "A network requires exactly one output instruction: coil, timer/reset, counter reset/load, numeric operation, call, return, jump, or label."));
-            if (network.Coil is not null)
-            {
-                AddId(network.Coil.Id, $"{path}.coil.id", ids, issues);
-                if (!variables.TryGetValue(network.Coil.Variable, out var coilVariable))
-                    issues.Add(new("VC001", $"{path}.coil.variable", $"Unknown coil variable '{network.Coil.Variable}'."));
-                else if (coilVariable.Type != PlcVariableType.Bool)
-                    issues.Add(new("VC002", $"{path}.coil.variable", $"Coil target '{coilVariable.Name}' must be BOOL."));
-                else if (coilVariable.Role == PlcVariableRole.Input)
-                    issues.Add(new("VC005", $"{path}.coil.variable", $"Input '{coilVariable.Name}' is not a valid coil target."));
-            }
-            if (network.Timer is not null)
-            {
-                AddId(network.Timer.Id, $"{path}.timer.id", ids, issues);
-                if (!Enum.IsDefined(network.Timer.Kind))
-                    issues.Add(new("VC100", $"{path}.timer.kind", $"Unknown timer kind '{network.Timer.Kind}'."));
-                if (!variables.TryGetValue(network.Timer.Variable, out var timerVariable))
-                    issues.Add(new("VC001", $"{path}.timer.variable", $"Unknown timer instance '{network.Timer.Variable}'."));
-                else if (timerVariable.Type != PlcVariableType.Timer)
-                    issues.Add(new("VC002", $"{path}.timer.variable", $"{network.Timer.Kind} instance '{timerVariable.Name}' must be TIMER."));
-                if (network.Timer.Preset <= TimeSpan.Zero)
-                    issues.Add(new("VC007", $"{path}.timer.presetMs", $"{network.Timer.Kind} preset must be greater than zero."));
-                if (timerInstructionPaths.TryGetValue(network.Timer.Variable, out var firstTimerPath))
-                    issues.Add(new("VC013", $"{path}.timer.variable",
-                        $"TIMER instance '{network.Timer.Variable}' is already owned by {firstTimerPath}; one timer instruction must own each instance."));
-                else
-                    timerInstructionPaths[network.Timer.Variable] = $"{path}.timer";
-            }
-            if (network.TimerReset is not null)
-            {
-                AddId(network.TimerReset.Id, $"{path}.timerReset.id", ids, issues);
-                if (!variables.TryGetValue(network.TimerReset.Variable, out var timerVariable))
-                    issues.Add(new("VC001", $"{path}.timerReset.variable", $"Unknown timer instance '{network.TimerReset.Variable}'."));
-                else if (timerVariable.Type != PlcVariableType.Timer)
-                    issues.Add(new("VC002", $"{path}.timerReset.variable", $"Timer reset instance '{timerVariable.Name}' must be TIMER."));
-            }
-            if (network.Counter is not null)
-            {
-                AddId(network.Counter.Id, $"{path}.counter.id", ids, issues);
-                ValidateCounterInstance(network.Counter.Variable, $"{path}.counter.variable", variables, issues);
-                if (network.Counter.Preset <= 0)
-                    issues.Add(new("VC008", $"{path}.counter.preset", $"{network.Counter.Kind} preset must be greater than zero."));
-            }
-            if (network.CounterReset is not null)
-            {
-                AddId(network.CounterReset.Id, $"{path}.counterReset.id", ids, issues);
-                ValidateCounterInstance(network.CounterReset.Variable, $"{path}.counterReset.variable", variables, issues);
-            }
-            if (network.CounterLoad is not null)
-            {
-                AddId(network.CounterLoad.Id, $"{path}.counterLoad.id", ids, issues);
-                ValidateCounterInstance(network.CounterLoad.Variable, $"{path}.counterLoad.variable", variables, issues);
-                if (network.CounterLoad.Preset <= 0)
-                    issues.Add(new("VC008", $"{path}.counterLoad.preset", "Counter load preset must be greater than zero."));
-            }
-            if (network.NumericOperation is not null)
-            {
-                var operation = network.NumericOperation;
-                AddId(operation.Id, $"{path}.numericOperation.id", ids, issues);
-                if (!Enum.IsDefined(operation.Kind))
-                    issues.Add(new("VC100", $"{path}.numericOperation.operation", $"Unknown numeric operation '{operation.Kind}'."));
-                ValidateNumericOperand(operation.SourceA, $"{path}.numericOperation.sourceA", variables, issues);
-                if (LadderNumericOperationRules.RequiresSourceB(operation.Kind))
-                    ValidateNumericOperand(operation.SourceB, $"{path}.numericOperation.sourceB", variables, issues);
-                if (LadderNumericOperationRules.RequiresSourceC(operation.Kind))
-                    ValidateNumericOperand(operation.SourceC, $"{path}.numericOperation.sourceC", variables, issues);
-                if (!variables.TryGetValue(operation.Destination, out var destination))
-                    issues.Add(new("VC001", $"{path}.numericOperation.destination", $"Unknown numeric destination '{operation.Destination}'."));
-                else if (destination.Type is not (PlcVariableType.Int or PlcVariableType.DInt or PlcVariableType.Real))
-                    issues.Add(new("VC002", $"{path}.numericOperation.destination", $"Numeric destination '{operation.Destination}' must be INT, DINT, or REAL."));
-                else if (destination.Role == PlcVariableRole.Input)
-                    issues.Add(new("VC005", $"{path}.numericOperation.destination", $"Input '{operation.Destination}' is not a writable numeric destination."));
-                if (operation.Kind is LadderNumericOperationKind.Divide or LadderNumericOperationKind.Modulo
-                    && double.TryParse(operation.SourceB, System.Globalization.NumberStyles.Float,
-                        System.Globalization.CultureInfo.InvariantCulture, out var divisor)
-                    && divisor == 0)
-                    issues.Add(new("VC009", $"{path}.numericOperation.sourceB", $"{operation.Kind.ToString().ToUpperInvariant()} literal divisor cannot be zero."));
-                if (operation.Kind == LadderNumericOperationKind.SquareRoot
-                    && double.TryParse(operation.SourceA, System.Globalization.NumberStyles.Float,
-                        System.Globalization.CultureInfo.InvariantCulture, out var radicand)
-                    && radicand < 0)
-                    issues.Add(new("VC009", $"{path}.numericOperation.sourceA", "SQRT literal source cannot be negative."));
-                if (operation.Kind is LadderNumericOperationKind.NaturalLog or LadderNumericOperationKind.ArcSine or LadderNumericOperationKind.ArcCosine
-                    && double.TryParse(operation.SourceA, System.Globalization.NumberStyles.Float,
-                        System.Globalization.CultureInfo.InvariantCulture, out var unarySource)
-                    && !LadderNumericOperationRules.IsDomainValid(operation.Kind, unarySource))
-                    issues.Add(new("VC009", $"{path}.numericOperation.sourceA", $"{operation.Kind} literal source is outside its mathematical domain."));
-                if (operation.Kind == LadderNumericOperationKind.Exponentiate
-                    && double.TryParse(operation.SourceA, System.Globalization.NumberStyles.Float,
-                        System.Globalization.CultureInfo.InvariantCulture, out var powerBase)
-                    && double.TryParse(operation.SourceB, System.Globalization.NumberStyles.Float,
-                        System.Globalization.CultureInfo.InvariantCulture, out var exponent)
-                    && !LadderNumericOperationRules.IsDomainValid(operation.Kind, powerBase, exponent))
-                    issues.Add(new("VC009", $"{path}.numericOperation", "EXPT literal operands are outside the real-number domain."));
-                if (operation.Kind is LadderNumericOperationKind.Normalize or LadderNumericOperationKind.Scale
-                    && double.TryParse(operation.SourceA, System.Globalization.NumberStyles.Float,
-                        System.Globalization.CultureInfo.InvariantCulture, out var rangeMinimum)
-                    && double.TryParse(operation.SourceC, System.Globalization.NumberStyles.Float,
-                        System.Globalization.CultureInfo.InvariantCulture, out var rangeMaximum)
-                    && !LadderNumericOperationRules.IsDomainValid(operation.Kind, rangeMinimum, 0, rangeMaximum))
-                    issues.Add(new("VC009", $"{path}.numericOperation", $"{operation.Kind} requires MIN to be less than MAX."));
-            }
-            if (network.Call is not null)
-            {
-                AddId(network.Call.Id, $"{path}.call.id", ids, issues);
-                if (!blocks.Any(candidate => candidate.Id == network.Call.TargetBlock))
-                    issues.Add(new("VC010", $"{path}.call.targetBlock", $"Unknown call target block '{network.Call.TargetBlock}'."));
-            }
-            if (network.Return is not null)
-                AddId(network.Return.Id, $"{path}.return.id", ids, issues);
-            if (network.Jump is not null)
-            {
-                AddId(network.Jump.Id, $"{path}.jump.id", ids, issues);
-                if (string.IsNullOrWhiteSpace(network.Jump.TargetLabel))
-                    issues.Add(new("VC014", $"{path}.jump.targetLabel", "JMP target label is required."));
-                else if (!blockLabels.ContainsKey(network.Jump.TargetLabel))
-                    issues.Add(new("VC014", $"{path}.jump.targetLabel",
-                        $"Unknown block-local jump label '{network.Jump.TargetLabel}'."));
-            }
-            if (network.LabelInstruction is not null)
-                AddId(network.LabelInstruction.Id, $"{path}.label.id", ids, issues);
+                var network = block.Networks[index];
+                var path = $"{blockPath}.networks[{index}]";
+                AddId(network.Id, $"{path}.id", ids, issues);
+                ValidateNode(network.Logic, $"{path}.logic", variables, ids, issues);
+                var outputCount = (network.Coil is null ? 0 : 1)
+                    + (network.Timer is null ? 0 : 1)
+                    + (network.Counter is null ? 0 : 1)
+                    + (network.CounterReset is null ? 0 : 1)
+                    + (network.NumericOperation is null ? 0 : 1)
+                    + (network.Call is null ? 0 : 1)
+                    + (network.Return is null ? 0 : 1)
+                    + (network.CounterLoad is null ? 0 : 1)
+                    + (network.TimerReset is null ? 0 : 1)
+                    + (network.Jump is null ? 0 : 1)
+                    + (network.LabelInstruction is null ? 0 : 1);
+                if (outputCount != 1)
+                    issues.Add(new("VC006", path, "A network requires exactly one output instruction: coil, timer/reset, counter reset/load, numeric operation, call, return, jump, or label."));
+                if (network.Coil is not null)
+                {
+                    AddId(network.Coil.Id, $"{path}.coil.id", ids, issues);
+                    if (!variables.TryGetValue(network.Coil.Variable, out var coilVariable))
+                        issues.Add(new("VC001", $"{path}.coil.variable", $"Unknown coil variable '{network.Coil.Variable}'."));
+                    else if (coilVariable.Type != PlcVariableType.Bool)
+                        issues.Add(new("VC002", $"{path}.coil.variable", $"Coil target '{coilVariable.Name}' must be BOOL."));
+                    else if (coilVariable.Role == PlcVariableRole.Input)
+                        issues.Add(new("VC005", $"{path}.coil.variable", $"Input '{coilVariable.Name}' is not a valid coil target."));
+                }
+                if (network.Timer is not null)
+                {
+                    AddId(network.Timer.Id, $"{path}.timer.id", ids, issues);
+                    if (!Enum.IsDefined(network.Timer.Kind))
+                        issues.Add(new("VC100", $"{path}.timer.kind", $"Unknown timer kind '{network.Timer.Kind}'."));
+                    if (!variables.TryGetValue(network.Timer.Variable, out var timerVariable))
+                        issues.Add(new("VC001", $"{path}.timer.variable", $"Unknown timer instance '{network.Timer.Variable}'."));
+                    else if (timerVariable.Type != PlcVariableType.Timer)
+                        issues.Add(new("VC002", $"{path}.timer.variable", $"{network.Timer.Kind} instance '{timerVariable.Name}' must be TIMER."));
+                    if (network.Timer.Preset <= TimeSpan.Zero)
+                        issues.Add(new("VC007", $"{path}.timer.presetMs", $"{network.Timer.Kind} preset must be greater than zero."));
+                    if (timerInstructionPaths.TryGetValue(network.Timer.Variable, out var firstTimerPath))
+                        issues.Add(new("VC013", $"{path}.timer.variable",
+                            $"TIMER instance '{network.Timer.Variable}' is already owned by {firstTimerPath}; one timer instruction must own each instance."));
+                    else
+                        timerInstructionPaths[network.Timer.Variable] = $"{path}.timer";
+                }
+                if (network.TimerReset is not null)
+                {
+                    AddId(network.TimerReset.Id, $"{path}.timerReset.id", ids, issues);
+                    if (!variables.TryGetValue(network.TimerReset.Variable, out var timerVariable))
+                        issues.Add(new("VC001", $"{path}.timerReset.variable", $"Unknown timer instance '{network.TimerReset.Variable}'."));
+                    else if (timerVariable.Type != PlcVariableType.Timer)
+                        issues.Add(new("VC002", $"{path}.timerReset.variable", $"Timer reset instance '{timerVariable.Name}' must be TIMER."));
+                }
+                if (network.Counter is not null)
+                {
+                    AddId(network.Counter.Id, $"{path}.counter.id", ids, issues);
+                    ValidateCounterInstance(network.Counter.Variable, $"{path}.counter.variable", variables, issues);
+                    if (network.Counter.Preset <= 0)
+                        issues.Add(new("VC008", $"{path}.counter.preset", $"{network.Counter.Kind} preset must be greater than zero."));
+                }
+                if (network.CounterReset is not null)
+                {
+                    AddId(network.CounterReset.Id, $"{path}.counterReset.id", ids, issues);
+                    ValidateCounterInstance(network.CounterReset.Variable, $"{path}.counterReset.variable", variables, issues);
+                }
+                if (network.CounterLoad is not null)
+                {
+                    AddId(network.CounterLoad.Id, $"{path}.counterLoad.id", ids, issues);
+                    ValidateCounterInstance(network.CounterLoad.Variable, $"{path}.counterLoad.variable", variables, issues);
+                    if (network.CounterLoad.Preset <= 0)
+                        issues.Add(new("VC008", $"{path}.counterLoad.preset", "Counter load preset must be greater than zero."));
+                }
+                if (network.NumericOperation is not null)
+                {
+                    var operation = network.NumericOperation;
+                    AddId(operation.Id, $"{path}.numericOperation.id", ids, issues);
+                    if (!Enum.IsDefined(operation.Kind))
+                        issues.Add(new("VC100", $"{path}.numericOperation.operation", $"Unknown numeric operation '{operation.Kind}'."));
+                    if (operation.Kind == LadderNumericOperationKind.FormatText
+                        || operation.Kind == LadderNumericOperationKind.Move
+                            && variables.TryGetValue(operation.Destination, out var textDestination) && PlcTextValues.IsText(textDestination.Type))
+                        ValidateTextOperation(operation, path, variables, issues);
+                    else
+                    {
+                        ValidateNumericOperand(operation.SourceA, $"{path}.numericOperation.sourceA", variables, issues);
+                        if (LadderNumericOperationRules.RequiresSourceB(operation.Kind))
+                            ValidateNumericOperand(operation.SourceB, $"{path}.numericOperation.sourceB", variables, issues);
+                        if (LadderNumericOperationRules.RequiresSourceC(operation.Kind))
+                            ValidateNumericOperand(operation.SourceC, $"{path}.numericOperation.sourceC", variables, issues);
+                        if (!variables.TryGetValue(operation.Destination, out var destination))
+                            issues.Add(new("VC001", $"{path}.numericOperation.destination", $"Unknown numeric destination '{operation.Destination}'."));
+                        else if (destination.Type is not (PlcVariableType.Int or PlcVariableType.DInt or PlcVariableType.Real))
+                            issues.Add(new("VC002", $"{path}.numericOperation.destination", $"Numeric destination '{operation.Destination}' must be INT, DINT, or REAL."));
+                        else if (destination.Role == PlcVariableRole.Input)
+                            issues.Add(new("VC005", $"{path}.numericOperation.destination", $"Input '{operation.Destination}' is not a writable numeric destination."));
+                        if (operation.Kind is LadderNumericOperationKind.Divide or LadderNumericOperationKind.Modulo
+                            && double.TryParse(operation.SourceB, System.Globalization.NumberStyles.Float,
+                                System.Globalization.CultureInfo.InvariantCulture, out var divisor)
+                            && divisor == 0)
+                            issues.Add(new("VC009", $"{path}.numericOperation.sourceB", $"{operation.Kind.ToString().ToUpperInvariant()} literal divisor cannot be zero."));
+                        if (operation.Kind == LadderNumericOperationKind.SquareRoot
+                            && double.TryParse(operation.SourceA, System.Globalization.NumberStyles.Float,
+                                System.Globalization.CultureInfo.InvariantCulture, out var radicand)
+                            && radicand < 0)
+                            issues.Add(new("VC009", $"{path}.numericOperation.sourceA", "SQRT literal source cannot be negative."));
+                        if (operation.Kind is LadderNumericOperationKind.NaturalLog or LadderNumericOperationKind.ArcSine or LadderNumericOperationKind.ArcCosine
+                            && double.TryParse(operation.SourceA, System.Globalization.NumberStyles.Float,
+                                System.Globalization.CultureInfo.InvariantCulture, out var unarySource)
+                            && !LadderNumericOperationRules.IsDomainValid(operation.Kind, unarySource))
+                            issues.Add(new("VC009", $"{path}.numericOperation.sourceA", $"{operation.Kind} literal source is outside its mathematical domain."));
+                        if (operation.Kind == LadderNumericOperationKind.Exponentiate
+                            && double.TryParse(operation.SourceA, System.Globalization.NumberStyles.Float,
+                                System.Globalization.CultureInfo.InvariantCulture, out var powerBase)
+                            && double.TryParse(operation.SourceB, System.Globalization.NumberStyles.Float,
+                                System.Globalization.CultureInfo.InvariantCulture, out var exponent)
+                            && !LadderNumericOperationRules.IsDomainValid(operation.Kind, powerBase, exponent))
+                            issues.Add(new("VC009", $"{path}.numericOperation", "EXPT literal operands are outside the real-number domain."));
+                        if (operation.Kind is LadderNumericOperationKind.Normalize or LadderNumericOperationKind.Scale
+                            && double.TryParse(operation.SourceA, System.Globalization.NumberStyles.Float,
+                                System.Globalization.CultureInfo.InvariantCulture, out var rangeMinimum)
+                            && double.TryParse(operation.SourceC, System.Globalization.NumberStyles.Float,
+                                System.Globalization.CultureInfo.InvariantCulture, out var rangeMaximum)
+                            && !LadderNumericOperationRules.IsDomainValid(operation.Kind, rangeMinimum, 0, rangeMaximum))
+                            issues.Add(new("VC009", $"{path}.numericOperation", $"{operation.Kind} requires MIN to be less than MAX."));
+                    }
+                }
+                if (network.Call is not null)
+                {
+                    AddId(network.Call.Id, $"{path}.call.id", ids, issues);
+                    if (!blocks.Any(candidate => candidate.Id == network.Call.TargetBlock))
+                        issues.Add(new("VC010", $"{path}.call.targetBlock", $"Unknown call target block '{network.Call.TargetBlock}'."));
+                }
+                if (network.Return is not null)
+                    AddId(network.Return.Id, $"{path}.return.id", ids, issues);
+                if (network.Jump is not null)
+                {
+                    AddId(network.Jump.Id, $"{path}.jump.id", ids, issues);
+                    if (string.IsNullOrWhiteSpace(network.Jump.TargetLabel))
+                        issues.Add(new("VC014", $"{path}.jump.targetLabel", "JMP target label is required."));
+                    else if (!blockLabels.ContainsKey(network.Jump.TargetLabel))
+                        issues.Add(new("VC014", $"{path}.jump.targetLabel",
+                            $"Unknown block-local jump label '{network.Jump.TargetLabel}'."));
+                }
+                if (network.LabelInstruction is not null)
+                    AddId(network.LabelInstruction.Id, $"{path}.label.id", ids, issues);
             }
         }
         var entryBlock = string.IsNullOrWhiteSpace(program.EntryBlock) ? blocks[0].Id : program.EntryBlock;
@@ -338,6 +349,46 @@ public static class LadderCompiler
         }
     }
 
+    private static void ValidateTextOperation(LadderNumericOperation operation, string path,
+        IReadOnlyDictionary<string, PlcVariable> variables, ICollection<LadderValidationIssue> issues)
+    {
+        if (!variables.TryGetValue(operation.Destination, out var destination) || !PlcTextValues.IsText(destination.Type))
+        {
+            issues.Add(new("VC002", path, "Text operation requires a declared STRING/ENUM destination."));
+            return;
+        }
+        if (destination.Role == PlcVariableRole.Input) issues.Add(new("VC005", path, "Text destination must be writable."));
+        if (operation.Kind == LadderNumericOperationKind.Move)
+        {
+            if (!PlcTextValues.OperandCompatible(operation.SourceA, destination, variables))
+                issues.Add(new("VC002", path, "MOV requires a compatible text tag or valid quoted member/literal."));
+            return;
+        }
+        if (destination.Type != PlcVariableType.String) issues.Add(new("VC002", path, "FORMAT_TEXT destination must be STRING."));
+        ValidateNumericOperand(operation.SourceA, path + ".sourceA", variables, issues);
+        var template = new PlcVariable("template", PlcVariableType.String, PlcVariableRole.Memory, "");
+        if (!PlcTextValues.OperandCompatible(operation.SourceB, template, variables))
+            issues.Add(new("VC002", path, "FORMAT_TEXT template must be STRING or a quoted literal."));
+        if (PlcTextValues.TryLiteral(operation.SourceB, out var literal) && !PlcTextValues.TryFormat(0, literal, out _))
+            issues.Add(new("VC009", path, "FORMAT_TEXT needs exactly one {0:F0} through {0:F6} placeholder."));
+    }
+
+    private static void ValidateTextComparison(LadderNode node, string path,
+        IReadOnlyDictionary<string, PlcVariable> variables, ICollection<LadderValidationIssue> issues)
+    {
+        if (node.CompareOperator == LadderCompareOperator.ContainsCode && PlcTextValues.TryLiteral(node.RightOperand, out var code)
+            && (code.Length == 0 || code.Any(character => !char.IsLetterOrDigit(character))))
+            issues.Add(new("VC009", path, "CODE MATCH selector must be a nonempty alphanumeric code."));
+        PlcVariable? domain = variables.TryGetValue(node.Variable, out var left) && PlcTextValues.IsText(left.Type) ? left
+            : variables.TryGetValue(node.RightOperand, out var right) && PlcTextValues.IsText(right.Type) ? right
+            : new PlcVariable("literal", PlcVariableType.String, PlcVariableRole.Memory, "");
+        if (!PlcTextValues.OperandCompatible(node.Variable, domain, variables)
+            || !PlcTextValues.OperandCompatible(node.RightOperand, domain, variables)
+            || node.CompareOperator is not (LadderCompareOperator.Equal or LadderCompareOperator.NotEqual or LadderCompareOperator.ContainsCode)
+            || node.CompareOperator == LadderCompareOperator.ContainsCode && domain.Type != PlcVariableType.String)
+            issues.Add(new("VC002", path, "Text comparison requires matching domains; ENUM supports EQ/NE, STRING also supports CODE MATCH."));
+    }
+
     private static void ValidateNode(
         LadderNode node,
         string path,
@@ -363,8 +414,14 @@ public static class LadderCompiler
         }
         if (node.Kind == LadderNodeKind.Compare)
         {
-            ValidateNumericOperand(node.Variable, $"{path}.variable", variables, issues);
-            ValidateNumericOperand(node.RightOperand, $"{path}.rightOperand", variables, issues);
+            if (node.CompareOperator == LadderCompareOperator.ContainsCode
+                || PlcTextValues.IsOperand(node.Variable, variables) || PlcTextValues.IsOperand(node.RightOperand, variables))
+                ValidateTextComparison(node, path, variables, issues);
+            else
+            {
+                ValidateNumericOperand(node.Variable, $"{path}.variable", variables, issues);
+                ValidateNumericOperand(node.RightOperand, $"{path}.rightOperand", variables, issues);
+            }
             return;
         }
 

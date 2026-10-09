@@ -19,6 +19,16 @@ internal static partial class Program
 
     private static int Main()
     {
+        Test("STRING and ENUM are declared controller types", TestTextTypeSupport);
+        Test("scene text initial data is validated before construction", TestSceneTextBoundary);
+        Test("malformed enum member JSON returns a diagnostic", TestEnumMalformedJson);
+        Test("text MOVE preserves data and lifecycle through JSON and scene mapping", TestTextMoveAndLifecycle);
+        Test("text samples reject unknown and oversized values atomically", TestTextInputValidation);
+        Test("FORMAT_TEXT clears stale results on malformed templates", TestTextFormattingFailures);
+        Test("ENUM validates members and rejects incompatible domains", TestEnumDomains);
+        Test("drive matching executes editable STRING logic", TestDriveStringLesson);
+        Test("chicken formatting executes editable STRING logic", TestChickenStringLesson);
+        Test("motor transitions execute editable ENUM logic", TestMotorEnumLesson);
         Test("typed aggregate declarations execute and persist", TestAggregateExecution);
         Test("aggregate malformed declarations and operands fail closed", TestAggregateRejection);
         Test("NO contact follows false/true", TestNormallyOpen);
@@ -287,7 +297,8 @@ internal static partial class Program
                 var name = point.GetProperty("name").GetString()!;
                 var type = point.GetProperty("type").GetString()!;
                 var owner = point.GetProperty("owner").GetString()!;
-                points.Add(new(name, type, owner, string.Empty, string.Empty, point.TryGetProperty("aggregate", out var metadata) ? PlcAggregates.ParseSchema(metadata) : null));
+                points.Add(new(name, type, owner, string.Empty, string.Empty, point.TryGetProperty("aggregate", out var metadata) ? PlcAggregates.ParseSchema(metadata) : null,
+                    point.TryGetProperty("enumMembers", out var members) ? members.EnumerateArray().Select(member => member.GetString()!).ToArray() : null));
                 if (!point.TryGetProperty("initial", out var value)) continue;
                 initial[name] = value.ValueKind switch
                 {
@@ -297,6 +308,7 @@ internal static partial class Program
                     // remain long even when their declared scene type is REAL.
                     JsonValueKind.Number when value.TryGetInt64(out var integer) => integer,
                     JsonValueKind.Number => value.GetDouble(),
+                    JsonValueKind.String => value.GetString(),
                     JsonValueKind.Object or JsonValueKind.Array => value.Clone(),
                     _ => null,
                 };

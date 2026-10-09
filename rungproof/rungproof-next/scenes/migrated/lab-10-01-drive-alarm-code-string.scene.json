@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-10-01-drive-alarm-code-string",
   "name": "Lab 10.1 - Drive Alarm-Code String",
-  "description": "Symbolic drive-alarm exercise: Boolean inputs represent message validity and code match. No fieldbus reception or string parsing is implemented.",
+  "description": "Editable loaded STRING ladder matches complete drive alarm codes in received text; validity and Reset gate the alarm outputs. Offline symbolic message fixtures.",
   "camera": {
     "position": [
       11,
@@ -124,7 +124,7 @@
     {
       "id": "switch_7",
       "type": "switch",
-      "label": "CODE FOUND",
+      "label": "Cycle simulated received alarm message",
       "position": [
         2.5,
         0,
@@ -132,9 +132,9 @@
       ],
       "config": {
         "style": "pushbutton",
-        "action": "toggle-alarm_code_found",
+        "action": "next-alarm-message",
         "color": 2204518,
-        "faceLabel": "CODE FOUND"
+        "faceLabel": "NEXT MESSAGE"
       }
     },
     {
@@ -184,8 +184,10 @@
       {
         "name": "alarm_code_found",
         "type": "BOOL",
-        "owner": "PC",
-        "initial": false
+        "owner": "PLC",
+        "initial": false,
+        "role": "output",
+        "purpose": "Loaded ladder whole-code match result"
       },
       {
         "name": "alarm_reset",
@@ -206,6 +208,13 @@
         "owner": "PLC",
         "initial": false,
         "role": "output"
+      },
+      {
+        "name": "drive_alarm_text",
+        "type": "STRING",
+        "owner": "PC",
+        "initial": "",
+        "purpose": "Simulated received alarm message"
       }
     ],
     "actions": [
@@ -216,10 +225,18 @@
         "point": "drive_alarm_string_valid"
       },
       {
-        "id": "toggle-alarm_code_found",
-        "label": "Toggle alarm code found",
-        "type": "toggle",
-        "point": "alarm_code_found"
+        "id": "next-alarm-message",
+        "label": "Next received alarm message",
+        "type": "cycle",
+        "point": "drive_alarm_text",
+        "values": [
+          "",
+          "Drive alarm F003: undervoltage",
+          "Drive alarm F030: overload",
+          "Drive alarm F0030: different code",
+          "Drive alarm XF003: prefix",
+          "Drive alarm f003: case differs"
+        ]
       },
       {
         "id": "toggle-alarm_reset",
@@ -234,11 +251,6 @@
       {
         "point": "drive_alarm_string_valid",
         "equipmentId": "switch_6",
-        "mode": "switch"
-      },
-      {
-        "point": "alarm_code_found",
-        "equipmentId": "switch_7",
         "mode": "switch"
       },
       {
@@ -263,24 +275,30 @@
         "equipmentId": "training_accessory_5",
         "mode": "indicator",
         "activeColor": "red"
+      },
+      {
+        "point": "drive_alarm_text",
+        "equipmentId": "training_accessory_4",
+        "mode": "textDisplay",
+        "label": "RECEIVED MESSAGE"
       }
     ]
   },
   "training": {
     "hints": [
-      "Translate the lesson into explicit state and permissive logic: The alarm result is active only for a valid drive message containing the selected code.",
-      "Inputs are simulator feedback (drive_alarm_string_valid, alarm_code_found, alarm_reset); PLC logic owns drive_alarm_active, alarm_match_valid.",
-      "Test the initial state, the valid condition, and at least one missing permissive.",
-      "The VFD and alarm display are illustrative props. Actual alarm text and fieldbus parsing are outside this scene implementation."
+      "Verify + Load the supplied editable STRING ladder before Run; received messages are offline fixtures, not fieldbus reception.",
+      "CODEMATCH compares whole alphanumeric tokens in drive_alarm_text against selected_alarm_code, initially F003; F0030, prefixes, suffixes and lowercase do not match.",
+      "PC supplies drive_alarm_text, drive_alarm_string_valid and alarm_reset; PLC computes alarm_code_found, alarm_match_valid and drive_alarm_active.",
+      "Edit selected_alarm_code from F003 to F030, Apply and Verify + Load; observe reversed F003/F030 results, then Undo and Verify + Load to restore."
     ],
     "solution": {
-      "summary": "Control requirements for a symbolic Boolean exercise; no supplied reference ladder or string-processing implementation.",
+      "summary": "Supplied editable offline STRING ladder performs whole-code matching; validity and Reset gate all match and alarm commands.",
       "steps": [
-        "Require the documented inputs: drive_alarm_string_valid, alarm_code_found, alarm_reset.",
-        "Command the documented outputs: drive_alarm_active, alarm_match_valid.",
-        "Remove PLC commands when the permissive is lost."
+        "Verify + Load, Run, enable MESSAGE VALID and cycle received message fixtures.",
+        "Match the selected complete code token only; Reset or invalid-message status removes all match/alarm outputs.",
+        "Edit selected_alarm_code, Apply and Verify + Load to change matching; restore the original project and test Stop/Reset."
       ],
-      "acceptance": "The alarm result is active only for a valid drive message containing the selected code."
+      "acceptance": "The actual received text is displayed; valid F003 matches the default code, F030 and lookalikes do not, and an authored code edit changes results after Verify + Load."
     },
     "assetRequirements": [
       "VFD diagnostic panel",
@@ -288,24 +306,23 @@
       "drive status indicator"
     ],
     "machineGuide": {
-      "purpose": "Symbolic drive-alarm exercise: Boolean inputs represent message validity and code match. No fieldbus reception or string parsing is implemented.",
+      "purpose": "Editable loaded STRING ladder matches complete drive alarm codes in received text; validity and Reset gate the alarm outputs. Offline symbolic message fixtures.",
       "startConditions": [
-        "Supply and validate an offline controller program before Run.",
-        "Boolean scene inputs start false."
+        "Verify + Load the supplied editable STRING ladder.",
+        "Run, enable MESSAGE VALID, then cycle received messages."
       ],
       "normalSequence": [
-        "Toggle message validity and code-found inputs, then check PLC-owned outputs.",
-        "The VFD DEMO and display legends are static props; only bound alarm lenses indicate point state."
+        "F003 matches the default selected_alarm_code; F030, F0030, prefixes, lowercase and empty messages do not.",
+        "Edit selected_alarm_code in the tag table, Apply then Verify + Load to select a different code."
       ],
       "stopBehavior": [
-        "Removing the permissive removes PLC-owned commands.",
-        "Reset returns the module to its initial state."
+        "Stop removes BOOL commands and freezes equipment. Reset restores empty received text and the declared selected code."
       ],
       "faultBehavior": [
         "A missing or stale input must fail safe and remain diagnosable."
       ],
       "expectedObservations": [
-        "Check drive_alarm_active and alarm_match_valid against your controller logic. The scene has no actual alarm text input or string search."
+        "The live display shows received STRING text; alarm_code_found and both alarm lamps are derived by the loaded program."
       ]
     },
     "sequenceNumber": 59,
@@ -323,9 +340,12 @@
       "alarm_code_found",
       "alarm_reset",
       "drive_alarm_active",
-      "alarm_match_valid"
+      "alarm_match_valid",
+      "drive_alarm_text"
     ],
-    "changedTags": [],
+    "changedTags": [
+      "alarm_code_found is now PLC-owned derived output"
+    ],
     "previousAcceptance": [
       "lab-9-12-ev-charging-manager"
     ]

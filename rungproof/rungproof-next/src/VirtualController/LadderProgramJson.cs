@@ -167,6 +167,7 @@ public static class LadderProgramJson
                 ["initial"] = variable.InitialValue,
                 ["binding"] = variable.Binding,
                 ["aggregate"] = variable.Aggregate,
+                ["enumMembers"] = variable.EnumMembers,
             }).ToArray(),
             ["watchVariables"] = (program.WatchVariables ?? []).ToArray(),
             ["networks"] = program.Networks.Select(Network).ToArray(),
@@ -229,7 +230,17 @@ public static class LadderProgramJson
                     var initial = variable.TryGetProperty("initial", out var initialValue)
                         ? JsonValue(initialValue)
                         : false;
-                    variables.Add(new PlcVariable(name, type, role, initial, Text(variable, "binding"), variable.TryGetProperty("aggregate", out var schema) && schema.ValueKind == JsonValueKind.Object ? PlcAggregates.ParseSchema(schema) : null));
+                    string[]? enumMembers = null;
+                    if (variable.TryGetProperty("enumMembers", out var members) && members.ValueKind != JsonValueKind.Null)
+                    {
+                        if (members.ValueKind != JsonValueKind.Array
+                            || members.EnumerateArray().Any(member => member.ValueKind != JsonValueKind.String))
+                            issues.Add(new("VC100", path + ".enumMembers", "enumMembers must be an array of strings."));
+                        else
+                            enumMembers = members.EnumerateArray().Select(member => member.GetString()!).ToArray();
+                    }
+                    variables.Add(new PlcVariable(name, type, role, initial, Text(variable, "binding"), variable.TryGetProperty("aggregate", out var schema) && schema.ValueKind == JsonValueKind.Object ? PlcAggregates.ParseSchema(schema) : null,
+                        enumMembers));
                 }
             }
 

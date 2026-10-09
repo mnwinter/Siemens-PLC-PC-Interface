@@ -9,6 +9,32 @@ namespace RungProof.Next.VirtualController;
 /// <summary>Pure scene aggregate boundary validation; call before allocating runtime nodes.</summary>
 public static class SceneAggregateContract
 {
+    // Used by both catalog diagnostics and the preconstruction runtime boundary.
+    // Invalid text must not be silently dropped from the controller input image.
+    public static void ValidateTextPoint(JsonElement point)
+    {
+        var type = point.TryGetProperty("type", out var kind) && kind.ValueKind == JsonValueKind.String
+            ? kind.GetString()?.ToUpperInvariant() : "";
+        if (type is not ("STRING" or "ENUM")) return;
+        var name = point.TryGetProperty("name", out var id) && id.ValueKind == JsonValueKind.String ? id.GetString() : "";
+        var owner = point.TryGetProperty("owner", out var direction) && direction.ValueKind == JsonValueKind.String
+            ? direction.GetString()?.ToUpperInvariant() : "";
+        if (owner is not ("PC" or "PLC" or "SIM")) throw new ArgumentException($"Text point '{name}' requires PC, PLC or SIM ownership.");
+        if (!point.TryGetProperty("initial", out var initial) || initial.ValueKind != JsonValueKind.String)
+            throw new ArgumentException($"Text point '{name}' requires a STRING initial value.");
+        string[]? members = null;
+        if (point.TryGetProperty("enumMembers", out var domain) && domain.ValueKind != JsonValueKind.Null)
+        {
+            if (domain.ValueKind != JsonValueKind.Array || domain.EnumerateArray().Any(member => member.ValueKind != JsonValueKind.String))
+                throw new ArgumentException($"Text point '{name}' enumMembers must be an array of strings.");
+            members = domain.EnumerateArray().Select(member => member.GetString()!).ToArray();
+        }
+        var declaration = new PlcVariable(name ?? "", type == "STRING" ? PlcVariableType.String : PlcVariableType.Enum,
+            owner == "PC" ? PlcVariableRole.Input : owner == "PLC" ? PlcVariableRole.Output : PlcVariableRole.Memory, initial.GetString()!, EnumMembers: members);
+        if (type == "STRING" && members is not null || !PlcTextValues.IsValid(declaration, initial.GetString()))
+            throw new ArgumentException($"Text point '{name}' requires bounded text and a valid ENUM domain/member when declared ENUM.");
+    }
+
     public static IReadOnlyDictionary<string, string> Validate(JsonElement definition)
     {
         var aliases = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -25,6 +51,7 @@ public static class SceneAggregateContract
             if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Scene point name is required.");
             if (!names.TryAdd(name, (type, owner))) throw new ArgumentException($"Duplicate scene point '{name}'.");
             if (point.TryGetProperty("initial", out var initialValue)) initialValues.Add(name, initialValue.Clone());
+            ValidateTextPoint(point);
             if (type is not ("STRUCT" or "ARRAY")) continue;
             if (owner is not ("PC" or "PLC")) throw new ArgumentException($"Aggregate '{name}' requires PC or PLC ownership.");
             if (!point.TryGetProperty("initial", out var initial)) throw new ArgumentException($"Aggregate '{name}' requires initial data.");

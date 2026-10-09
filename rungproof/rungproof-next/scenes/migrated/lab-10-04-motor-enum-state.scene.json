@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-10-04-motor-enum-state",
   "name": "Lab 10.4 - Motor Operating-State Enum",
-  "description": "Boolean inputs and motor/status outputs for an operating-state exercise. No enum-valued state or reference controller is supplied; author or load controller logic before Run.",
+  "description": "Editable loaded ENUM state machine with Stopped, Running and Fault states, Stop/fault priority, latched fault reset and fresh Start requirements.",
   "camera": {
     "position": [
       11,
@@ -114,6 +114,36 @@
         ],
         "active": "red"
       }
+    },
+    {
+      "id": "switch_6",
+      "type": "switch",
+      "label": "Reset latched motor fault",
+      "position": [
+        1.55,
+        0,
+        2.35
+      ],
+      "config": {
+        "style": "pushbutton",
+        "action": "reset-motor-fault",
+        "color": 2201318,
+        "faceLabel": "FAULT RESET"
+      }
+    },
+    {
+      "id": "training_accessory_7",
+      "type": "trainingAccessory",
+      "label": "Named motor ENUM state",
+      "position": [
+        3.75,
+        0,
+        2.35
+      ],
+      "config": {
+        "assetName": "formatted label display",
+        "catalogAssetId": "training.accessory.formatted_label_display.v1"
+      }
     }
   ],
   "simulation": {
@@ -150,6 +180,24 @@
         "owner": "PLC",
         "initial": false,
         "role": "output"
+      },
+      {
+        "name": "reset_request",
+        "type": "BOOL",
+        "owner": "PC",
+        "initial": false
+      },
+      {
+        "name": "motor_state",
+        "type": "ENUM",
+        "owner": "PLC",
+        "role": "output",
+        "initial": "Stopped",
+        "enumMembers": [
+          "Stopped",
+          "Running",
+          "Fault"
+        ]
       }
     ],
     "actions": [
@@ -170,6 +218,12 @@
         "label": "Toggle fault active",
         "type": "toggle",
         "point": "fault_active"
+      },
+      {
+        "id": "reset-motor-fault",
+        "label": "Reset motor fault",
+        "type": "pulse",
+        "point": "reset_request"
       }
     ],
     "rules": [],
@@ -206,49 +260,60 @@
         "point": "motor_running",
         "equipmentId": "motor_0",
         "mode": "running"
+      },
+      {
+        "point": "reset_request",
+        "equipmentId": "switch_6",
+        "mode": "switch"
+      },
+      {
+        "point": "motor_state",
+        "equipmentId": "training_accessory_7",
+        "mode": "textDisplay",
+        "label": "MOTOR STATE",
+        "textColor": "black"
       }
     ]
   },
   "training": {
     "hints": [
-      "Translate the lesson into explicit state and permissive logic: A fault or stop request dominates start and leaves the motor in a safe stopped state.",
-      "Inputs are simulator feedback (start_request, stop_request, fault_active); PLC logic owns motor_running, state_valid.",
-      "Test the initial state, the valid condition, and at least one missing permissive.",
-      "Current scene exposes five BOOL points only. It does not implement or display an enum state. No reference ladder is supplied; normal Run opens the editor until valid controller logic is loaded."
+      "Verify + Load the supplied editable ENUM ladder before Run; motor_state retains Stopped, Running or Fault and is displayed in the scene.",
+      "PC supplies start_request, stop_request, fault_active and reset_request; motor_running follows motor_state == Running and state_valid checks the declared domain.",
+      "Fault dominates Stop and fresh Start; a cleared fault input remains latched until Reset, and held Start cannot restart after Stop or fault Reset.",
+      "Edit the Running transition MOV SourceA to Stopped, Apply and Verify + Load: fresh Start remains Stopped with motor_running FALSE; Undo and Verify + Load restores motion."
     ],
     "solution": {
-      "summary": "Controller design guidance only; no executable reference controller is supplied. The motor graphic projects motor_running, not a measured motor feedback signal.",
+      "summary": "Supplied editable ENUM state machine uses ordered MOV transitions, a fault latch and fresh Start edge; the shaft projects the committed motor command rather than measured motor feedback.",
       "steps": [
-        "Require the documented inputs: start_request, stop_request, fault_active.",
-        "Command the documented outputs: motor_running, state_valid.",
-        "Remove PLC commands when the permissive is lost."
+        "Verify + Load and Run; a fresh Start edge changes motor_state to Running and commands shaft motion.",
+        "Stop request changes state to Stopped; fault changes state to Fault and dominates Reset while fault_active remains TRUE.",
+        "Clear the fault input, then Reset the latch; release and reassert Start to run again.",
+        "Edit a transition member and Verify + Load to change state and motion; restore with Undo and Verify + Load, then test Stop/Reset."
       ],
-      "acceptance": "A fault or stop request dominates start and leaves the motor in a safe stopped state."
+      "acceptance": "Named ENUM state controls actual shaft motion; Stop/fault priority, retained fault, fresh-edge restart and authored transition edits behave consistently through Verify + Load and Stop/Reset."
     },
     "assetRequirements": [],
     "machineGuide": {
-      "purpose": "Boolean inputs and motor/status outputs for an operating-state exercise. No enum-valued state or reference controller is supplied; author or load controller logic before Run.",
+      "purpose": "Editable loaded ENUM state machine with Stopped, Running and Fault states, Stop/fault priority, latched fault reset and fresh Start requirements.",
       "startConditions": [
-        "Author or load a valid offline controller for the five declared BOOL points.",
-        "Keep stop_request and fault_active false before applying start_request.",
-        "The common watchdog tags are retained lesson metadata, not verified live PLC communication in this shell."
+        "Verify + Load the supplied editable ENUM ladder.",
+        "Release Start, Stop and Fault before Run; Start requires a fresh rising request."
       ],
       "normalSequence": [
-        "Apply the requested input condition.",
-        "Verify only the documented PLC outputs respond."
+        "Start changes motor_state from Stopped to Running; the shaft follows motor_running derived from that named state.",
+        "Stop returns Stopped. A fault enters Fault and remains latched after the fault input clears.",
+        "Clear the fault input and press FAULT RESET, then release and press Start again."
       ],
       "stopBehavior": [
-        "Controller logic must remove motor_running when a stop request or fault is active.",
-        "Playback Stop freezes local motion; it does not write a PLC or implement the missing controller logic.",
-        "Reset returns the module to its initial state."
+        "Stop clears motor_running and sets output motor_state to the first declared member Stopped; held Start does not restart.",
+        "Reset clears controller memory, named state, fault latch and scene inputs."
       ],
       "faultBehavior": [
         "A missing or stale input must fail safe and remain diagnosable."
       ],
       "expectedObservations": [
-        "When supplied controller logic commands motor_running, the shaft graphic and running indicator follow that output.",
-        "The state-valid indicator follows state_valid; no named enum state is displayed.",
-        "Fault/stop priority must be implemented and verified in the supplied controller logic."
+        "The live state display and motor_state watch show the actual loaded ENUM value.",
+        "Changing the Running transition MOV to Stopped, then Verify + Load, prevents the motor from running on Start."
       ]
     },
     "sequenceNumber": 62,
@@ -266,7 +331,9 @@
       "stop_request",
       "fault_active",
       "motor_running",
-      "state_valid"
+      "state_valid",
+      "reset_request",
+      "motor_state"
     ],
     "changedTags": [],
     "previousAcceptance": [

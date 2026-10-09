@@ -167,6 +167,7 @@ public static class LadderEditorProjectJson
             : source.InitialValue,
         Binding = source.Binding,
         Aggregate = source.Aggregate,
+        EnumMembers = source.EnumMembers?.ToList(),
     };
 
     private static BlockDto Block(EditableBlock source) => new()
@@ -245,7 +246,7 @@ public static class LadderEditorProjectJson
         var type = ParseEnum(dto.Type, PlcVariableType.Bool, $"$.tags[{index}].type", issues);
         var role = ParseEnum(dto.Role, PlcVariableRole.Memory, $"$.tags[{index}].role", issues);
         var initial = ParseInitial(dto.Initial, type, $"$.tags[{index}].initial", issues);
-        return new PlcVariable(dto.Name ?? string.Empty, type, role, initial, dto.Binding ?? string.Empty, dto.Aggregate);
+        return new PlcVariable(dto.Name ?? string.Empty, type, role, initial, dto.Binding ?? string.Empty, dto.Aggregate, dto.EnumMembers);
     }
 
     private static EditableBlock ParseBlock(BlockDto dto, int blockIndex, ICollection<LadderValidationIssue> issues)
@@ -355,6 +356,8 @@ public static class LadderEditorProjectJson
             return type switch
             {
                 PlcVariableType.Bool => element.GetBoolean(),
+                PlcVariableType.String or PlcVariableType.Enum when element.ValueKind == JsonValueKind.String => element.GetString()!,
+                PlcVariableType.String or PlcVariableType.Enum => throw new InvalidOperationException("Text initial value must be a JSON string."),
                 PlcVariableType.Int or PlcVariableType.DInt or PlcVariableType.Counter => element.GetInt64(),
                 PlcVariableType.Real => element.GetDouble(),
                 PlcVariableType.Timer => TimeSpan.FromMilliseconds(element.GetDouble()),
@@ -404,6 +407,7 @@ public static class LadderEditorProjectJson
         public object? Initial { get; set; }
         public string? Binding { get; set; }
         public PlcAggregateSchema? Aggregate { get; set; }
+        public List<string>? EnumMembers { get; set; }
     }
 
     private sealed class BlockDto

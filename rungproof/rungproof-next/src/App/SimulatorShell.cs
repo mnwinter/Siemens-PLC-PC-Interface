@@ -424,7 +424,8 @@ public partial class SimulatorShell : CanvasLayer
             return;
         }
 
-        var authored = AuthoredDemoLadderPrograms.TryCreate(scene.Id, out var starter);
+        var authored = AuthoredDemoLadderPrograms.TryCreate(scene.Id, out var starter)
+            || AuthoredLessonLadderPrograms.TryCreate(scene.Id, out starter);
         IReadOnlyList<SceneIoPoint> unsupported = [];
         if (!authored)
             starter = scene.Id == "conveyor-cell" ? LadderEditorDocument.CreateConveyorExample()
@@ -3509,7 +3510,9 @@ public partial class SimulatorShell : CanvasLayer
                     Text(point, "owner"),
                     Text(point, "role"),
                     Text(point, "purpose"),
-                    point.TryGetProperty("aggregate", out var schema) ? PlcAggregates.ParseSchema(schema) : null));
+                    point.TryGetProperty("aggregate", out var schema) ? PlcAggregates.ParseSchema(schema) : null,
+                    point.TryGetProperty("enumMembers", out var members) && members.ValueKind == JsonValueKind.Array
+                        ? members.EnumerateArray().Select(member => member.GetString() ?? string.Empty).ToArray() : null));
         }
         return result;
     }
@@ -4700,7 +4703,7 @@ public partial class SimulatorShell : CanvasLayer
         };
         var compareLeft = new OptionButton { Name = "CompareLeftOperand", CustomMinimumSize = new Vector2(150, 32) };
         var compareOperator = new OptionButton { Name = "CompareOperator", CustomMinimumSize = new Vector2(85, 32) };
-        foreach (var text in new[] { "==", "<>", ">", ">=", "<", "<=" }) compareOperator.AddItem(text);
+        foreach (var text in new[] { "==", "<>", ">", ">=", "<", "<=", "CODE MATCH" }) compareOperator.AddItem(text);
         var compareRight = new LineEdit
         {
             Name = "CompareRightOperand",
@@ -4878,6 +4881,15 @@ public partial class SimulatorShell : CanvasLayer
         tagType.AddItem("REAL");
         tagType.AddItem("STRUCT");
         tagType.AddItem("ARRAY");
+        tagType.AddItem("STRING");
+        tagType.AddItem("ENUM");
+        var tagEnumMembers = new LineEdit
+        {
+            Name = "TagEnumMembers", Text = "Stopped, Running, Fault",
+            PlaceholderText = "Stopped, Running, Fault",
+            TooltipText = "Comma-separated case-sensitive enum members; initial value must be a declared member.",
+            CustomMinimumSize = new Vector2(0, 32),
+        };
         var aggregateTagEditor = new AggregateTagEditor();
         var tagRole = new OptionButton { Name = "NewTagRole" };
         tagRole.AddItem("Input");
@@ -4887,7 +4899,7 @@ public partial class SimulatorShell : CanvasLayer
         {
             Name = "TagInitialValue",
             PlaceholderText = "FALSE",
-            TooltipText = "Startup value applied by offline controller Reset. BOOL: TRUE/FALSE; INT/DINT: integer; REAL: finite decimal.",
+            TooltipText = "Startup value applied by offline controller Reset. BOOL: TRUE/FALSE; INT/DINT: integer; REAL: finite decimal; STRING: raw text; ENUM: declared member.",
             CustomMinimumSize = new Vector2(0, 32),
         };
         var tagBinding = new OptionButton
@@ -5141,6 +5153,8 @@ public partial class SimulatorShell : CanvasLayer
             5 => PlcVariableType.Real,
             6 => PlcVariableType.Struct,
             7 => PlcVariableType.Array,
+            8 => PlcVariableType.String,
+            9 => PlcVariableType.Enum,
             _ => PlcVariableType.Bool,
         };
 
@@ -5153,6 +5167,7 @@ public partial class SimulatorShell : CanvasLayer
         {
             PlcVariableType.Struct => $"{variable.Aggregate?.Fields?.Count ?? 0} typed fields",
             PlcVariableType.Array => $"[{variable.Aggregate?.LowerBound}..{(long)(variable.Aggregate?.LowerBound ?? 0) + (variable.Aggregate?.Length ?? 0) - 1}] {variable.Aggregate?.ElementType}",
+            PlcVariableType.String or PlcVariableType.Enum => (string)variable.InitialValue,
             PlcVariableType.Bool => ((bool)variable.InitialValue).ToString().ToUpperInvariant(),
             PlcVariableType.Real => Convert.ToDouble(variable.InitialValue,
                 System.Globalization.CultureInfo.InvariantCulture).ToString("R", System.Globalization.CultureInfo.InvariantCulture),
@@ -5161,8 +5176,17 @@ public partial class SimulatorShell : CanvasLayer
             _ => "0",
         };
 
+        string[]? SelectedEnumMembers(PlcVariableType type) => type == PlcVariableType.Enum
+            ? tagEnumMembers.Text.Split(',').Select(member => member.Trim()).ToArray() : null;
+
         bool TryReadTagInitialValue(PlcVariableType type, out object initialValue)
         {
+            if (type is PlcVariableType.String or PlcVariableType.Enum)
+            {
+                initialValue = tagInitialValue.Text;
+                // Document preflight validates enum members and initial membership before history changes.
+                return true;
+            }
             if (PlcAggregates.IsAggregate(type))
             {
                 if (aggregateTagEditor.TryRead(type, out _, out initialValue, out var aggregateError)) return true;
@@ -5203,7 +5227,7 @@ public partial class SimulatorShell : CanvasLayer
                 }
             }
             if (role is PlcVariableRole.Input or PlcVariableRole.Output
-                && type is PlcVariableType.Bool or PlcVariableType.Int or PlcVariableType.DInt or PlcVariableType.Real or PlcVariableType.Struct or PlcVariableType.Array)
+                && type is PlcVariableType.Bool or PlcVariableType.Int or PlcVariableType.DInt or PlcVariableType.Real or PlcVariableType.Struct or PlcVariableType.Array or PlcVariableType.String or PlcVariableType.Enum)
             {
                 foreach (var scenePoint in ScenePoints().Where(candidate =>
                              SceneIoBindingValidator.TypesCompatible(type, candidate.Type)
@@ -5233,7 +5257,7 @@ public partial class SimulatorShell : CanvasLayer
                 selected = tagBinding.ItemCount - 1;
             }
             tagBinding.Select(Math.Max(0, selected));
-            var bindableType = type is PlcVariableType.Bool or PlcVariableType.Int or PlcVariableType.DInt or PlcVariableType.Real or PlcVariableType.Struct or PlcVariableType.Array;
+            var bindableType = type is PlcVariableType.Bool or PlcVariableType.Int or PlcVariableType.DInt or PlcVariableType.Real or PlcVariableType.Struct or PlcVariableType.Array or PlcVariableType.String or PlcVariableType.Enum;
             tagBinding.Disabled = !bindableType || role == PlcVariableRole.Memory;
             var binding = SelectedTagBinding();
             var selectedPoint = ScenePoints().FirstOrDefault(candidate => candidate.Name == binding);
@@ -5444,6 +5468,11 @@ public partial class SimulatorShell : CanvasLayer
                     compareLeft.AddItem($"{tag.Name}.{(siemens ? "CV" : "ACC")}");
                     compareLeft.AddItem($"{tag.Name}.{(siemens ? "PV" : "PRE")}");
                 }
+                else if (tag.Type is PlcVariableType.String or PlcVariableType.Enum)
+                {
+                    compareLeft.AddItem(tag.Name);
+                    compareLeft.SetItemTooltip(compareLeft.ItemCount - 1, $"{tag.Type} · {tag.Role}; text equality or CODE MATCH as validated");
+                }
                 else if (tag.Type is PlcVariableType.Int or PlcVariableType.DInt or PlcVariableType.Real)
                 {
                     compareLeft.AddItem(tag.Name);
@@ -5531,6 +5560,15 @@ public partial class SimulatorShell : CanvasLayer
                 if (counterIndex >= 0) counterSelector.Select(counterIndex);
                 counterPreset.Value = Math.Max(1, rung.CounterPreset);
                 numericSourceA.Text = rung.NumericSourceA;
+                if (rung.IsNumericOperation && rung.NumericOperationKind is LadderNumericOperationKind.Move or LadderNumericOperationKind.FormatText)
+                    foreach (var textTag in document.Tags.Where(tag => tag.Role != PlcVariableRole.Input
+                        && (rung.NumericOperationKind == LadderNumericOperationKind.FormatText
+                            ? tag.Type == PlcVariableType.String : tag.Type is PlcVariableType.String or PlcVariableType.Enum)))
+                        numericDestination.AddItem(textTag.Name);
+                if (rung.IsNumericOperation && rung.NumericOperationKind == LadderNumericOperationKind.FormatText)
+                    for (var item = numericDestination.ItemCount - 1; item >= 0; item--)
+                        if (!document.Tags.Any(tag => tag.Name == numericDestination.GetItemText(item) && tag.Type == PlcVariableType.String))
+                            numericDestination.RemoveItem(item);
                 var numericDestinationIndex = Enumerable.Range(0, numericDestination.ItemCount)
                     .FirstOrDefault(index => numericDestination.GetItemText(index) == rung.NumericDestination, -1);
                 if (numericDestinationIndex >= 0) numericDestination.Select(numericDestinationIndex);
@@ -5545,8 +5583,11 @@ public partial class SimulatorShell : CanvasLayer
                 if (!string.IsNullOrWhiteSpace(rung.NumericSourceC)) numericSourceC.Text = rung.NumericSourceC;
                 numericSourceB.Editable = rung.IsNumericOperation
                     && LadderNumericOperationRules.RequiresSourceB(rung.NumericOperationKind);
+                numericSourceB.TooltipText = rung.NumericOperationKind == LadderNumericOperationKind.FormatText
+                    ? "STRING tag or quoted template, exactly one {0:F0} through {0:F6}; invariant culture. Example: \"CHICKEN {0:F3} kg\"."
+                    : "Source B tag or literal.";
                 numericSourceB.PlaceholderText = numericSourceB.Editable
-                    ? "source B tag or literal"
+                    ? rung.NumericOperationKind == LadderNumericOperationKind.FormatText ? "quoted template or STRING tag" : "source B tag or literal"
                     : "not used by unary instruction";
                 numericSourceC.Editable = rung.IsNumericOperation
                     && LadderNumericOperationRules.RequiresSourceC(rung.NumericOperationKind);
@@ -5683,6 +5724,8 @@ public partial class SimulatorShell : CanvasLayer
         var numericCommands = new HBoxContainer { Name = "Math and Move" };
         numericCommands.AddThemeConstantOverride("separation", 4);
         var addMove = Command("AddMove", "MOV");
+        var addFormatText = Command("AddFormatText", "FORMAT_TEXT");
+        addFormatText.TooltipText = "Local simulator instruction: numeric source A + quoted template B to STRING; no vendor parity claim.";
         var addAdd = Command("AddAdd", "ADD");
         var addSubtract = Command("AddSubtract", "SUB");
         var addMultiply = Command("AddMultiply", "MUL");
@@ -5692,6 +5735,7 @@ public partial class SimulatorShell : CanvasLayer
         var addNegate = Command("AddNegate", "NEG");
         var addSquareRoot = Command("AddSquareRoot", "SQRT");
         numericCommands.AddChild(addMove);
+        numericCommands.AddChild(addFormatText);
         numericCommands.AddChild(addAdd);
         numericCommands.AddChild(addSubtract);
         numericCommands.AddChild(addMultiply);
@@ -5937,6 +5981,8 @@ public partial class SimulatorShell : CanvasLayer
         string WatchValue(PlcVariable variable, VirtualControllerSnapshot snapshot)
         {
             if (PlcAggregates.IsAggregate(variable.Type)) return AggregateWatchValue(variable, snapshot);
+            if (variable.Type is PlcVariableType.String or PlcVariableType.Enum)
+                return snapshot.TextVariables.TryGetValue(variable.Name, out var text) ? text : "—";
             if (variable.Type == PlcVariableType.Bool)
                 return snapshot.Variables.TryGetValue(variable.Name, out var boolean)
                     ? boolean.ToString().ToUpperInvariant() : "—";
@@ -6206,6 +6252,7 @@ public partial class SimulatorShell : CanvasLayer
             ("Greater or equal (GE)", "compare-3"),
             ("Less than (LT)", "compare-4"),
             ("Less or equal (LE)", "compare-5"),
+            ("CODE MATCH · local text instruction", "compare-6"),
         };
         foreach (var item in compareNames)
         {
@@ -6241,6 +6288,7 @@ public partial class SimulatorShell : CanvasLayer
                      (siemens ? "Round nearest-even (ROUND)" : "Round expression (CPT macro)", "numeric-21"),
                      (siemens ? "Ceiling (CEIL)" : "Ceiling expression (CPT macro)", "numeric-22"),
                      (siemens ? "Floor (FLOOR)" : "Floor expression (CPT macro)", "numeric-23"),
+                     ("FORMAT_TEXT · local text instruction", "numeric-24"),
                  })
         {
             var numericItem = instructionTree.CreateItem(mathOperations);
@@ -6313,6 +6361,9 @@ public partial class SimulatorShell : CanvasLayer
         tagPage.AddChild(TagFieldRow("TagTypeRow", "TYPE", tagType));
         tagPage.AddChild(TagFieldRow("TagRoleRow", "ROLE", tagRole));
         tagPage.AddChild(TagFieldRow("TagInitialValueRow", "INITIAL", tagInitialValue));
+        var tagEnumMembersRow = TagFieldRow("TagEnumMembersRow", "MEMBERS", tagEnumMembers);
+        tagEnumMembersRow.Visible = false;
+        tagPage.AddChild(tagEnumMembersRow);
         tagPage.AddChild(aggregateTagEditor);
         tagPage.AddChild(TagFieldRow("TagBindingRow", "BINDING", tagBinding));
         tagPage.AddChild(tagBindingStatus);
@@ -6556,6 +6607,8 @@ public partial class SimulatorShell : CanvasLayer
                 PlcVariableType.Real => 5,
                 PlcVariableType.Struct => 6,
                 PlcVariableType.Array => 7,
+                PlcVariableType.String => 8,
+                PlcVariableType.Enum => 9,
                 _ => 0,
             });
             tagRole.Select((int)tag.Role);
@@ -6564,6 +6617,8 @@ public partial class SimulatorShell : CanvasLayer
             tagInitialValue.Text = FormatTagInitialValue(tag);
             tagInitialValue.Editable = !isInstance && !PlcAggregates.IsAggregate(tag.Type);
             aggregateTagEditor.Load(tag.Type, tag.Aggregate, tag.InitialValue);
+            tagEnumMembersRow.Visible = tag.Type == PlcVariableType.Enum;
+            tagEnumMembers.Text = string.Join(", ", tag.EnumMembers ?? ["Stopped", "Running", "Fault"]);
             RefreshTagBindingOptions(tag.Type, tag.Role, tag.Binding);
             applyTagEdit!.Disabled = false;
             deleteTag!.Disabled = false;
@@ -6599,9 +6654,9 @@ public partial class SimulatorShell : CanvasLayer
             if (!TryReadTagInitialValue(type, out var initialValue)) return;
             var schema = PlcAggregates.IsAggregate(type) && aggregateTagEditor.TryRead(type, out var editedSchema, out _, out _) ? editedSchema : null;
             var binding = type is PlcVariableType.Timer or PlcVariableType.Counter ? string.Empty : SelectedTagBinding();
-            if (!PreflightTagEdit(preview => preview.UpdateTag(current.Name, normalizedName, type, role, binding, initialValue, schema))) return;
+            if (!PreflightTagEdit(preview => preview.UpdateTag(current.Name, normalizedName, type, role, binding, initialValue, schema, enumMembers: SelectedEnumMembers(type)))) return;
             if (!BeginEdit("Update tag definition")) return;
-            var updated = document.UpdateTag(current.Name, normalizedName, type, role, binding, initialValue, schema);
+            var updated = document.UpdateTag(current.Name, normalizedName, type, role, binding, initialValue, schema, enumMembers: SelectedEnumMembers(type));
             RefreshEditor();
             output.Text = $"[color=#18864b]Tag updated.[/color] {Escape(updated.Name)} · {updated.Type} · {updated.Role}. All symbolic references were renamed atomically.";
         };
@@ -6850,7 +6905,7 @@ public partial class SimulatorShell : CanvasLayer
                     addModulo, addAbsolute, addNegate, addSquareRoot, addExponentiate,
                     addNaturalLog, addSine, addCosine, addTangent, addArcSine, addArcCosine,
                     addArcTangent, addTruncate, addNormalize, addScale, addConvert, addRound,
-                    addCeiling, addFloor };
+                    addCeiling, addFloor, addFormatText };
                 if (numericIndex >= 0 && numericIndex < buttons.Length)
                     buttons[numericIndex].EmitSignal(BaseButton.SignalName.Pressed);
             }
@@ -7135,6 +7190,19 @@ public partial class SimulatorShell : CanvasLayer
         addCompare.Pressed += () =>
         {
             if (document.Rungs.Count == 0 || compareLeft.ItemCount == 0 || string.IsNullOrWhiteSpace(compareRight.Text)) return;
+            if (compareOperator.Selected == (int)LadderCompareOperator.ContainsCode)
+            {
+                var source = document.Tags.FirstOrDefault(tag => tag.Type == PlcVariableType.String);
+                if (source is null)
+                {
+                    output.Text = "[color=#d64545]CODE MATCH needs a STRING source tag.[/color] Add a STRING tag first.";
+                    return;
+                }
+                if (!document.Tags.Any(tag => tag.Name == compareLeft.GetItemText(compareLeft.Selected) && tag.Type == PlcVariableType.String))
+                    for (var item = 0; item < compareLeft.ItemCount; item++)
+                        if (compareLeft.GetItemText(item) == source.Name) { compareLeft.Select(item); break; }
+                if (compareRight.Text == "0") compareRight.Text = "\"F003\"";
+            }
             if (!BeginEdit("Add comparison")) return;
             var contacts = document.Rungs[selectedRung].Branches[selectedBranch].Contacts;
             var insertionIndex = selectedInsertionIndex >= 0 ? selectedInsertionIndex : contacts.Count;
@@ -7155,13 +7223,34 @@ public partial class SimulatorShell : CanvasLayer
         void SelectNumericOperation(LadderNumericOperationKind kind)
         {
             if (document.Rungs.Count == 0) return;
+            // Validate destination availability before history, monitor state or rung fields change.
+            // Aggregate numeric leaves participate exactly like scalar numeric tags.
+            var scalarTags = document.Tags.SelectMany(tag => PlcAggregates.IsAggregate(tag.Type)
+                ? AggregateEditorLeaves(tag) : new[] { tag }).ToArray();
+            var hasNumeric = scalarTags.Any(tag => tag.Type is PlcVariableType.Int or PlcVariableType.DInt or PlcVariableType.Real);
+            var hasWritableNumeric = scalarTags.Any(tag => tag.Role != PlcVariableRole.Input
+                && tag.Type is PlcVariableType.Int or PlcVariableType.DInt or PlcVariableType.Real);
+            var hasWritableText = scalarTags.Any(tag => tag.Role != PlcVariableRole.Input
+                && tag.Type is PlcVariableType.String or PlcVariableType.Enum);
+            if (kind != LadderNumericOperationKind.FormatText && hasNumeric && !hasWritableNumeric
+                && !(kind == LadderNumericOperationKind.Move && hasWritableText))
+            {
+                output.Text = $"[color=#d64545]{kind} insertion rejected.[/color] No writable destination of the required type. Add a Memory or Output tag first.";
+                return;
+            }
             if (!BeginEdit($"Insert {kind}")) return;
-            if (!document.Tags.Any(tag => tag.Type is PlcVariableType.Int or PlcVariableType.DInt or PlcVariableType.Real))
+            if (!hasNumeric && !(kind == LadderNumericOperationKind.Move && hasWritableText))
             {
                 document.AddTag("numeric_value", PlcVariableRole.Memory, type: PlcVariableType.Real);
                 RefreshEditor();
             }
-            if (numericDestination.ItemCount == 0) return;
+            if (kind == LadderNumericOperationKind.FormatText
+                && !document.Tags.Any(tag => tag.Type == PlcVariableType.String && tag.Role != PlcVariableRole.Input))
+            {
+                var name = "formatted_text";
+                for (var suffix = 2; document.Tags.Any(tag => tag.Name == name); suffix++) name = $"formatted_text_{suffix}";
+                document.AddTag(name, PlcVariableRole.Memory, type: PlcVariableType.String, initialValue: "");
+            }
             var rung = document.Rungs[selectedRung];
             rung.IsTimer = false;
             rung.IsTimerReset = false;
@@ -7175,13 +7264,18 @@ public partial class SimulatorShell : CanvasLayer
             rung.IsLabel = false;
             rung.NumericOperationKind = kind;
             rung.NumericSourceA = string.IsNullOrWhiteSpace(numericSourceA.Text) ? "0" : numericSourceA.Text.Trim();
-            rung.NumericSourceB = string.IsNullOrWhiteSpace(numericSourceB.Text) ? "0" : numericSourceB.Text.Trim();
+            rung.NumericSourceB = kind == LadderNumericOperationKind.FormatText
+                ? "\"CHICKEN {0:F3} kg\""
+                : string.IsNullOrWhiteSpace(numericSourceB.Text) ? "0" : numericSourceB.Text.Trim();
             rung.NumericSourceC = string.IsNullOrWhiteSpace(numericSourceC.Text) ? "0" : numericSourceC.Text.Trim();
-            rung.NumericDestination = numericDestination.GetItemText(numericDestination.Selected);
             RefreshEditor();
-            output.Text = $"[color=#18864b]{kind} inserted.[/color] Numeric write executes only while the rung is true.";
+            if (numericDestination.ItemCount == 0) return;
+            rung.NumericDestination = numericDestination.GetItemText(Math.Max(0, numericDestination.Selected));
+            RefreshEditor();
+            output.Text = $"[color=#18864b]{kind} inserted.[/color] Typed write executes only while the rung is true.";
         }
         addMove.Pressed += () => SelectNumericOperation(LadderNumericOperationKind.Move);
+        addFormatText.Pressed += () => SelectNumericOperation(LadderNumericOperationKind.FormatText);
         addAdd.Pressed += () => SelectNumericOperation(LadderNumericOperationKind.Add);
         addSubtract.Pressed += () => SelectNumericOperation(LadderNumericOperationKind.Subtract);
         addMultiply.Pressed += () => SelectNumericOperation(LadderNumericOperationKind.Multiply);
@@ -7844,20 +7938,26 @@ public partial class SimulatorShell : CanvasLayer
                 3 => "new_int",
                 4 => "new_dint",
                 5 => "new_real",
+                8 => "new_string",
+                9 => "new_enum",
                 _ => "new_bool_tag",
             };
             var type = SelectedTagType();
             tagInitialValue.Editable = !isInstance && !PlcAggregates.IsAggregate(type);
             aggregateTagEditor.Load(type);
+            tagEnumMembersRow.Visible = type == PlcVariableType.Enum;
             tagInitialValue.PlaceholderText = type switch
             {
                 PlcVariableType.Bool => "FALSE",
                 PlcVariableType.Int or PlcVariableType.DInt => "0",
                 PlcVariableType.Real => "0.0",
+                PlcVariableType.String => "raw text (no quotes)",
+                PlcVariableType.Enum => "Stopped",
                 _ => "0",
             };
             if (selectedTagIndex < 0)
-                tagInitialValue.Text = type == PlcVariableType.Bool ? "FALSE" : "0";
+                tagInitialValue.Text = type switch
+                { PlcVariableType.Bool => "FALSE", PlcVariableType.String => "", PlcVariableType.Enum => "Stopped", _ => "0" };
             RefreshTagBindingOptions(type, SelectedTagRole(type), string.Empty);
         };
         tagRole.ItemSelected += _ =>
@@ -7871,6 +7971,12 @@ public partial class SimulatorShell : CanvasLayer
             RefreshTagBindingOptions(type, SelectedTagRole(type), SelectedTagBinding());
             if (PlcAggregates.IsAggregate(type) && ScenePoints().FirstOrDefault(p => p.Name == SelectedTagBinding()) is { Aggregate: not null } root)
                 aggregateTagEditor.Load(type, root.Aggregate, _runtime?.Points.GetValueOrDefault(root.Name));
+            if (type == PlcVariableType.Enum && ScenePoints().FirstOrDefault(p => p.Name == SelectedTagBinding()) is { EnumMembers: not null } enumPoint)
+            {
+                tagEnumMembers.Text = string.Join(", ", enumPoint.EnumMembers);
+                if (!enumPoint.EnumMembers.Contains(tagInitialValue.Text, StringComparer.Ordinal) && enumPoint.EnumMembers.Count > 0)
+                    tagInitialValue.Text = enumPoint.EnumMembers[0];
+            }
         };
         addTag.Pressed += () =>
         {
@@ -7884,12 +7990,13 @@ public partial class SimulatorShell : CanvasLayer
             var binding = type is PlcVariableType.Timer or PlcVariableType.Counter ? string.Empty : SelectedTagBinding();
             PlcVariable AddDefinition(LadderEditorDocument target) => schema is not null
                 ? target.AddAggregateTag(tagName.Text, role, type, schema, initialValue, binding)
-                : target.AddTag(tagName.Text, role, binding, type, initialValue);
+                : target.AddTag(tagName.Text, role, binding, type, initialValue, enumMembers: SelectedEnumMembers(type));
             if (!PreflightTagEdit(AddDefinition)) return;
             if (!BeginEdit("Add tag")) return;
             AddDefinition(document);
             tagName.Clear();
-            tagInitialValue.Text = type == PlcVariableType.Bool ? "FALSE" : "0";
+            tagInitialValue.Text = type switch
+                { PlcVariableType.Bool => "FALSE", PlcVariableType.String => "", PlcVariableType.Enum => "Stopped", _ => "0" };
             RefreshTagBindingOptions(type, role, string.Empty);
             RefreshEditor();
         };
@@ -8021,7 +8128,7 @@ public partial class SimulatorShell : CanvasLayer
                 "jump" => "JMP selected. Double-click to jump to a block-local label when the rung is true.",
                 "label" => siemens ? "LABEL selected. Double-click to declare a block-local jump destination." : "LBL selected. Double-click to declare a routine-local jump destination.",
                 var value when value.StartsWith("compare-", StringComparison.Ordinal) => "Comparison selected. Double-click to insert it using the operands shown below the editor.",
-                var value when value.StartsWith("numeric-", StringComparison.Ordinal) => "Numeric instruction selected. Double-click to insert it using the source and destination fields below the editor.",
+                var value when value.StartsWith("numeric-", StringComparison.Ordinal) => "Typed write instruction selected. Double-click to insert it using the source and destination fields.",
                 "branch" => "Parallel branch selected. Double-click to add an OR path to the selected rung.",
                 "rung" => siemens ? "Network selected. Double-click to insert a network." : "Rung selected. Double-click to insert a rung.",
                 _ => "Choose a supported instruction. Double-click an instruction to insert it.",
@@ -8058,7 +8165,10 @@ public partial class SimulatorShell : CanvasLayer
                      && int.TryParse(kind.AsSpan("numeric-".Length), out var numericIndex))
             {
                 var buttons = new[] { addMove, addAdd, addSubtract, addMultiply, addDivide,
-                    addModulo, addAbsolute, addNegate, addSquareRoot };
+                    addModulo, addAbsolute, addNegate, addSquareRoot, addExponentiate,
+                    addNaturalLog, addSine, addCosine, addTangent, addArcSine, addArcCosine,
+                    addArcTangent, addTruncate, addNormalize, addScale, addConvert, addRound,
+                    addCeiling, addFloor, addFormatText };
                 if (numericIndex >= 0 && numericIndex < buttons.Length)
                     buttons[numericIndex].EmitSignal(BaseButton.SignalName.Pressed);
             }
@@ -9079,6 +9189,11 @@ public partial class SimulatorShell : CanvasLayer
                 variables.AppendLine($"{Escape(variable.Name)} [color=#7fa7ba]{variable.Type} · {variable.Role}[/color] {Escape(AggregateWatchValue(variable, snapshot))}");
                 continue;
             }
+            if (variable.Type is PlcVariableType.String or PlcVariableType.Enum)
+            {
+                variables.AppendLine($"{Escape(variable.Name)}  [color=#7fa7ba]{variable.Type.ToString().ToUpperInvariant()} · {variable.Role}[/color]  {Escape(snapshot.TextVariables.GetValueOrDefault(variable.Name) ?? "—")}");
+                continue;
+            }
             if (variable.Type == PlcVariableType.Timer)
             {
                 var timer = snapshot.Timers.GetValueOrDefault(variable.Name);
@@ -9957,6 +10072,63 @@ public partial class SimulatorShell : CanvasLayer
         }
         while (_ladderDocument.Tags.Count > numericStartingTags) _ladderDocument.Tags.RemoveAt(_ladderDocument.Tags.Count - 1);
         foreach (var refresh in _ladderEditorRefreshers) refresh();
+        // Exercise actual button handlers against an input-only numeric project.
+        // Rejection must preserve the complete document and leave Undo empty.
+        var numericGuardSnapshot = _ladderDocument.CaptureSnapshot();
+        var numericGuardHistory = _ladderHistory;
+        var numericInputOnlyRejected = false;
+        var textMoveDestinationWorked = false;
+        var formatTextDestinationCreated = false;
+        try
+        {
+            var inputOnly = new LadderEditorDocument();
+            inputOnly.ResetProject("numeric-destination-guard", "Numeric destination guard", TimeSpan.FromMilliseconds(20));
+            inputOnly.AddTag("measurement", PlcVariableRole.Input, type: PlcVariableType.Real);
+            inputOnly.AddTag("guard_output", PlcVariableRole.Output);
+            inputOnly.AddTag("enable", PlcVariableRole.Memory, initialValue: true);
+            inputOnly.AddRung("Keep original coil on rejected insertion", "guard_output");
+            inputOnly.AddContact(0, 0, "enable", false);
+            _ladderDocument.RestoreSnapshot(inputOnly.CaptureSnapshot());
+            _ladderHistory = new LadderEditorHistory();
+            foreach (var refresh in _ladderEditorRefreshers) refresh();
+            editorCanvas.SelectElement(0, 0, -1, output: true);
+            var beforeRejectedNumeric = LadderEditorProjectJson.Save(_ladderDocument);
+            var addNumericAdd = GetNodeOrNull<Button>($"{paletteRoot}/Math and Move/AddAdd");
+            addNumericAdd?.EmitSignal(BaseButton.SignalName.Pressed);
+            numericInputOnlyRejected = addNumericAdd is not null
+                && LadderEditorProjectJson.Save(_ladderDocument) == beforeRejectedNumeric
+                && !_ladderHistory.CanUndo && output.GetParsedText().Contains("No writable destination", StringComparison.Ordinal);
+
+            _ladderDocument.AddTag("state", PlcVariableRole.Memory, type: PlcVariableType.Enum, initialValue: "Stopped");
+            foreach (var refresh in _ladderEditorRefreshers) refresh();
+            var sourceA = GetNodeOrNull<LineEdit>($"{contextualPropertiesRoot}/NumericPropertyRow/NumericSourceA");
+            if (sourceA is not null) sourceA.Text = "\"Running\"";
+            addMove.EmitSignal(BaseButton.SignalName.Pressed);
+            textMoveDestinationWorked = sourceA is not null && _ladderDocument.Rungs[0].NumericDestination == "state"
+                && _ladderDocument.Rungs[0].NumericOperationKind == LadderNumericOperationKind.Move
+                && LadderCompiler.Validate(_ladderDocument.BuildProgram()).Count == 0;
+
+            // FORMAT_TEXT must create a writable STRING even though a numeric Input already exists.
+            _ladderDocument.RestoreSnapshot(inputOnly.CaptureSnapshot());
+            _ladderHistory = new LadderEditorHistory();
+            foreach (var refresh in _ladderEditorRefreshers) refresh();
+            editorCanvas.SelectElement(0, 0, -1, output: true);
+            var addFormat = GetNodeOrNull<Button>($"{paletteRoot}/Math and Move/AddFormatText");
+            addFormat?.EmitSignal(BaseButton.SignalName.Pressed);
+            formatTextDestinationCreated = addFormat is not null
+                && _ladderDocument.Rungs[0].NumericOperationKind == LadderNumericOperationKind.FormatText
+                && _ladderDocument.Tags.Any(tag => tag.Name == _ladderDocument.Rungs[0].NumericDestination
+                    && tag.Type == PlcVariableType.String && tag.Role != PlcVariableRole.Input)
+                && LadderCompiler.Validate(_ladderDocument.BuildProgram()).Count == 0;
+        }
+        finally
+        {
+            _ladderDocument.RestoreSnapshot(numericGuardSnapshot);
+            _ladderHistory = numericGuardHistory;
+            foreach (var refresh in _ladderEditorRefreshers) refresh();
+            editorCanvas.SelectElement(0, 0, -1, output: true);
+        }
+        GD.Print($"NUMERIC_DESTINATION_GUARD_VERIFY rejectedAtomic={numericInputOnlyRejected} textMove={textMoveDestinationWorked} formatCreatesString={formatTextDestinationCreated}");
         var startingBlocks = _ladderDocument.Blocks.Count;
         addBlock.EmitSignal(BaseButton.SignalName.Pressed);
         var blockAdded = _ladderDocument.Blocks.Count == startingBlocks + 1;
@@ -10180,7 +10352,7 @@ public partial class SimulatorShell : CanvasLayer
         }
         _ladderHistory.Clear();
         foreach (var refresh in _ladderEditorRefreshers) refresh();
-        result = $"treeSelectable={selectable} addBlockFromTree={addBlockFromTree is not null} projectPersistence={projectPersistenceWorked} newProject={newProjectWorked} rungLayout={rungLayoutWorked} contextualProperties={contextualPropertiesWorked}/{logixContextualPropertiesWorked}/{instructionContextMenuWorked} clipboard={instructionClipboardWorked}/{instructionClipboardUndone}/{rungClipboardWorked}/{rungClipboardUndone} monitor={monitorWorked}/{staleMonitorCleared}/{undoMonitorRestored} watchTable={watchTableWorked}/{watchMetadataKeptMonitor}/{watchUndoRestored} edges={risingEdgeInserted}/{fallingEdgeInserted} advancedMath={moduloInserted}/{squareRootInserted}/{exponentiateInserted}/{truncateInserted} scaling={normalizeInserted}/{scaleInserted} conversion={convertInserted}/{roundInserted}/{ceilingInserted}/{floorInserted} timers={timerInserted}/{offDelayInserted}/{pulseTimerInserted}/{retentiveTimerInserted}/{timerResetInserted} bindingBrowser={bindingBrowserWorked} validation={structuredValidationWorked}/{validationNavigationWorked}/{validationCleared} docksWorked={docksWorked}/{dockResizeWorked}[project={projectDockCollapsed}/{projectDockReopened},tools={toolDockCollapsed}/{toolDockReopened},bottom={bottomDockCollapsed}/{bottomDockReopened}] exactInsert={insertionCursorSelected}/{exactInsertionWorked}/{exactInsertionUndone} dragDrop={dragPreviewWorked}/{dragDropWorked}/{dragDropUndone} elementMove={exactMoveWorked}/{exactMoveRestored} exactDelete={exactDeleteWorked}/{exactDeleteUndone} branchDelete={branchDeleteWorked}/{branchDeleteUndone} tagEdit={unusedTagDeleted}/{tagRenameWorked}/{tagInitialValueWorked}/{tagRenameUndone} selectionHandled={selectionHandled} crossReferenceFound={crossReferenceFound} searchNavigated={searchNavigated} instructionHelpWorked={instructionHelpWorked} toolRailWorked={toolRailWorked} rungAdded={added} undoWorked={undoWorked} redoWorked={redoWorked} instructionAdded={instructionAdded} comparisonInserted={comparisonInserted} numericInserted={numericInserted} blockLifecycle={blockAdded}/{blockRenamed}/{blockDeleted} callInserted={callInserted} returnInserted={returnInserted} jumpLabel={jumpInserted}/{labelInserted}/{labelPropertyEdited}/{labelContextualPropertiesWorked} taskLifecycle={taskAdded}/{taskRenamed}/{taskDeleted} counterInserted={counterInserted} counterDownInserted={counterDownInserted} counterLoadInserted={counterLoadInserted} counterResetInserted={counterResetInserted} setInserted={setInserted} resetInserted={resetInserted} rungRestored={restored} instructionRestored={instructionRestored}";
+        result = $"treeSelectable={selectable} addBlockFromTree={addBlockFromTree is not null} projectPersistence={projectPersistenceWorked} newProject={newProjectWorked} rungLayout={rungLayoutWorked} contextualProperties={contextualPropertiesWorked}/{logixContextualPropertiesWorked}/{instructionContextMenuWorked} clipboard={instructionClipboardWorked}/{instructionClipboardUndone}/{rungClipboardWorked}/{rungClipboardUndone} monitor={monitorWorked}/{staleMonitorCleared}/{undoMonitorRestored} watchTable={watchTableWorked}/{watchMetadataKeptMonitor}/{watchUndoRestored} edges={risingEdgeInserted}/{fallingEdgeInserted} advancedMath={moduloInserted}/{squareRootInserted}/{exponentiateInserted}/{truncateInserted} scaling={normalizeInserted}/{scaleInserted} conversion={convertInserted}/{roundInserted}/{ceilingInserted}/{floorInserted} timers={timerInserted}/{offDelayInserted}/{pulseTimerInserted}/{retentiveTimerInserted}/{timerResetInserted} bindingBrowser={bindingBrowserWorked} validation={structuredValidationWorked}/{validationNavigationWorked}/{validationCleared} docksWorked={docksWorked}/{dockResizeWorked}[project={projectDockCollapsed}/{projectDockReopened},tools={toolDockCollapsed}/{toolDockReopened},bottom={bottomDockCollapsed}/{bottomDockReopened}] exactInsert={insertionCursorSelected}/{exactInsertionWorked}/{exactInsertionUndone} dragDrop={dragPreviewWorked}/{dragDropWorked}/{dragDropUndone} elementMove={exactMoveWorked}/{exactMoveRestored} exactDelete={exactDeleteWorked}/{exactDeleteUndone} branchDelete={branchDeleteWorked}/{branchDeleteUndone} tagEdit={unusedTagDeleted}/{tagRenameWorked}/{tagInitialValueWorked}/{tagRenameUndone} selectionHandled={selectionHandled} crossReferenceFound={crossReferenceFound} searchNavigated={searchNavigated} instructionHelpWorked={instructionHelpWorked} toolRailWorked={toolRailWorked} rungAdded={added} undoWorked={undoWorked} redoWorked={redoWorked} instructionAdded={instructionAdded} comparisonInserted={comparisonInserted} numericInserted={numericInserted} numericDestinationGuard={numericInputOnlyRejected}/{textMoveDestinationWorked}/{formatTextDestinationCreated} blockLifecycle={blockAdded}/{blockRenamed}/{blockDeleted} callInserted={callInserted} returnInserted={returnInserted} jumpLabel={jumpInserted}/{labelInserted}/{labelPropertyEdited}/{labelContextualPropertiesWorked} taskLifecycle={taskAdded}/{taskRenamed}/{taskDeleted} counterInserted={counterInserted} counterDownInserted={counterDownInserted} counterLoadInserted={counterLoadInserted} counterResetInserted={counterResetInserted} setInserted={setInserted} resetInserted={resetInserted} rungRestored={restored} instructionRestored={instructionRestored}";
         return selectable && addBlockFromTree is not null && projectPersistenceWorked && newProjectWorked && rungLayoutWorked && contextualPropertiesWorked && logixContextualPropertiesWorked && instructionContextMenuWorked && docksWorked && dockResizeWorked && selectionHandled && crossReferenceFound && searchNavigated && instructionHelpWorked && toolRailWorked && added && undoWorked && redoWorked && instructionAdded && timerInserted && offDelayInserted && pulseTimerInserted && retentiveTimerInserted && timerResetInserted
             && monitorWorked && staleMonitorCleared && undoMonitorRestored
             && watchTableWorked && watchMetadataKeptMonitor && watchUndoRestored && watchStableAcrossScans
@@ -10194,6 +10366,7 @@ public partial class SimulatorShell : CanvasLayer
             && branchDeleteWorked && branchDeleteUndone
             && unusedTagDeleted && tagRenameWorked && tagInitialValueWorked && tagRenameUndone
             && risingEdgeInserted && fallingEdgeInserted
+            && numericInputOnlyRejected && textMoveDestinationWorked && formatTextDestinationCreated
             && comparisonInserted && numericInserted && moduloInserted && squareRootInserted && exponentiateInserted && truncateInserted
             && normalizeInserted && scaleInserted
             && convertInserted && roundInserted && ceilingInserted && floorInserted

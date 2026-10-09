@@ -23,7 +23,7 @@ public static class ProjectValidator
 
     private static readonly HashSet<string> BindingModes = new(StringComparer.Ordinal)
     {
-        "running", "speedPercent", "estopPermissive", "switch", "selector", "numericDisplay", "indicator", "indicatorChannel", "photoeye", "position", "levelSensor",
+        "running", "speedPercent", "estopPermissive", "switch", "selector", "numericDisplay", "textDisplay", "indicator", "indicatorChannel", "photoeye", "position", "levelSensor",
     };
 
     public static IReadOnlyList<DiagnosticIssue> Validate(
@@ -210,6 +210,12 @@ public static class ProjectValidator
                         "Give every symbolic point a unique non-empty name.");
                 }
                 var type = Text(point, "type");
+                try { SceneAggregateContract.ValidateTextPoint(point); }
+                catch (ArgumentException exception)
+                {
+                    AddError(issues, "SCN-TEXT", scope, exception.Message,
+                        "Provide a bounded STRING initial value or a valid ENUM domain and initial member.");
+                }
                 if (type is "STRUCT" or "ARRAY")
                 {
                     try

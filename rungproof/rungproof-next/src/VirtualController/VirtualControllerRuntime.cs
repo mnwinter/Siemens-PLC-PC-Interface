@@ -45,7 +45,10 @@ public sealed record VirtualControllerSnapshot(
     IReadOnlyDictionary<string, LadderForceState> Forces,
     IReadOnlyList<string> Diagnostics,
     IReadOnlyDictionary<string, LadderElementState> Elements
-){
+)
+{
+    public IReadOnlyDictionary<string, string> TextVariables { get; init; } = new Dictionary<string, string>();
+    public IReadOnlyDictionary<string, string> TextOutputs { get; init; } = new Dictionary<string, string>();
     public IReadOnlyDictionary<string, object> Aggregates { get; init; } = new Dictionary<string, object>();
 }
 
@@ -68,6 +71,7 @@ public sealed class VirtualControllerRuntime
     // Raw input image stays independent of force overrides, including inputs
     // absent from later partial samples (for example momentary operator commands).
     private readonly Dictionary<string, bool> _unforcedBoolInputs = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> _textValues = new(StringComparer.Ordinal);
     private readonly Dictionary<string, double> _numericValues = new(StringComparer.Ordinal);
     private readonly Dictionary<string, LadderTimerState> _timers = new(StringComparer.Ordinal);
     private readonly Dictionary<string, LadderCounterState> _counters = new(StringComparer.Ordinal);
@@ -180,6 +184,8 @@ public sealed class VirtualControllerRuntime
                      item.Role == PlcVariableRole.Output
                      && item.Type is PlcVariableType.Int or PlcVariableType.DInt or PlcVariableType.Real))
             _numericValues[variable.Name] = 0.0;
+        foreach (var variable in _program.Variables.Values.Where(item => item.Role == PlcVariableRole.Output && PlcTextValues.IsText(item.Type)))
+            _textValues[variable.Name] = variable.Type == PlcVariableType.Enum ? variable.EnumMembers![0] : string.Empty;
         foreach (var name in _timers.Keys.ToArray())
             _timers[name] = _retentiveTimerVariables.Contains(name)
                 ? _timers[name] with { Timing = false, Input = false }
@@ -203,6 +209,7 @@ public sealed class VirtualControllerRuntime
         _values.Clear();
         _unforcedBoolInputs.Clear();
         _numericValues.Clear();
+        _textValues.Clear();
         _timers.Clear();
         _counters.Clear();
         _counterInputs.Clear();
@@ -221,6 +228,8 @@ public sealed class VirtualControllerRuntime
             }
             else if (variable.Type is PlcVariableType.Int or PlcVariableType.DInt or PlcVariableType.Real)
                 _numericValues[variable.Name] = Convert.ToDouble(variable.InitialValue, CultureInfo.InvariantCulture);
+            else if (PlcTextValues.IsText(variable.Type))
+                _textValues[variable.Name] = (string)variable.InitialValue;
             else if (variable.Type == PlcVariableType.Timer)
                 _timers[variable.Name] = new LadderTimerState(TimeSpan.Zero, TimeSpan.Zero, false, false);
             else if (variable.Type == PlcVariableType.Counter)
@@ -257,8 +266,17 @@ public sealed class VirtualControllerRuntime
 
     public VirtualControllerSnapshot Scan(
         IReadOnlyDictionary<string, bool> sampledInputs,
-        IReadOnlyDictionary<string, double>? sampledNumericInputs = null)
+        IReadOnlyDictionary<string, double>? sampledNumericInputs = null,
+        IReadOnlyDictionary<string, string>? sampledTextInputs = null)
     {
+        if (sampledTextInputs is not null)
+        {
+            foreach (var (name, value) in sampledTextInputs)
+                if (!_program.Variables.TryGetValue(name, out var declaration) || declaration.Role != PlcVariableRole.Input
+                    || !PlcTextValues.IsText(declaration.Type) || !PlcTextValues.IsValid(declaration, value))
+                    throw new ArgumentException($"Invalid typed text input '{name}'.");
+            foreach (var (name, value) in sampledTextInputs) _textValues[name] = value;
+        }
         foreach (var variable in _program.Variables.Values.Where(item =>
                      item.Role == PlcVariableRole.Input && item.Type == PlcVariableType.Bool))
         {
@@ -427,64 +445,80 @@ public sealed class VirtualControllerRuntime
                 var operation = network.NumericOperation;
                 if (energized)
                 {
-                    var sourceA = ResolveNumeric(operation.SourceA);
-                    var sourceB = LadderNumericOperationRules.RequiresSourceB(operation.Kind)
-                        ? ResolveNumeric(operation.SourceB)
-                        : 0;
-                    var sourceC = LadderNumericOperationRules.RequiresSourceC(operation.Kind)
-                        ? ResolveNumeric(operation.SourceC)
-                        : 0;
-                    string? numericFault = null;
-                    double? result = operation.Kind switch
+                    if (PlcTextValues.IsText(_program.Variables[operation.Destination].Type))
                     {
-                        LadderNumericOperationKind.Move => sourceA,
-                        LadderNumericOperationKind.Add => sourceA + sourceB,
-                        LadderNumericOperationKind.Subtract => sourceA - sourceB,
-                        LadderNumericOperationKind.Multiply => sourceA * sourceB,
-                        LadderNumericOperationKind.Divide when sourceB != 0 => sourceA / sourceB,
-                        LadderNumericOperationKind.Divide => Fault("VC_RUNTIME_DIV_ZERO", "divisor resolved to zero"),
-                        LadderNumericOperationKind.Modulo when sourceB != 0 => sourceA % sourceB,
-                        LadderNumericOperationKind.Modulo => Fault("VC_RUNTIME_MOD_ZERO", "divisor resolved to zero"),
-                        LadderNumericOperationKind.Absolute => Math.Abs(sourceA),
-                        LadderNumericOperationKind.Negate => -sourceA,
-                        LadderNumericOperationKind.SquareRoot when sourceA >= 0 => Math.Sqrt(sourceA),
-                        LadderNumericOperationKind.SquareRoot => Fault("VC_RUNTIME_DOMAIN", "square-root source resolved below zero"),
-                        LadderNumericOperationKind.Exponentiate when LadderNumericOperationRules.IsDomainValid(operation.Kind, sourceA, sourceB) => Math.Pow(sourceA, sourceB),
-                        LadderNumericOperationKind.Exponentiate => Fault("VC_RUNTIME_DOMAIN", "power operands are outside the real-number domain"),
-                        LadderNumericOperationKind.NaturalLog when sourceA > 0 => Math.Log(sourceA),
-                        LadderNumericOperationKind.NaturalLog => Fault("VC_RUNTIME_DOMAIN", "natural-log source resolved at or below zero"),
-                        LadderNumericOperationKind.Sine => Math.Sin(sourceA),
-                        LadderNumericOperationKind.Cosine => Math.Cos(sourceA),
-                        LadderNumericOperationKind.Tangent => Math.Tan(sourceA),
-                        LadderNumericOperationKind.ArcSine when sourceA is >= -1 and <= 1 => Math.Asin(sourceA),
-                        LadderNumericOperationKind.ArcSine => Fault("VC_RUNTIME_DOMAIN", "arcsine source resolved outside -1 through 1"),
-                        LadderNumericOperationKind.ArcCosine when sourceA is >= -1 and <= 1 => Math.Acos(sourceA),
-                        LadderNumericOperationKind.ArcCosine => Fault("VC_RUNTIME_DOMAIN", "arccosine source resolved outside -1 through 1"),
-                        LadderNumericOperationKind.ArcTangent => Math.Atan(sourceA),
-                        LadderNumericOperationKind.Truncate => Math.Truncate(sourceA),
-                        LadderNumericOperationKind.Normalize when sourceA < sourceC => (sourceB - sourceA) / (sourceC - sourceA),
-                        LadderNumericOperationKind.Normalize => Fault("VC_RUNTIME_RANGE", "NORM_X/CPT normalization requires MIN below MAX"),
-                        LadderNumericOperationKind.Scale when sourceA < sourceC => sourceB * (sourceC - sourceA) + sourceA,
-                        LadderNumericOperationKind.Scale => Fault("VC_RUNTIME_RANGE", "SCALE_X/CPT scaling requires MIN below MAX"),
-                        LadderNumericOperationKind.Convert => sourceA,
-                        LadderNumericOperationKind.Round => Math.Round(sourceA, MidpointRounding.ToEven),
-                        LadderNumericOperationKind.Ceiling => Math.Ceiling(sourceA),
-                        LadderNumericOperationKind.Floor => Math.Floor(sourceA),
-                        _ => null,
-                    };
-                    if (numericFault is not null)
-                        _diagnostics.Add($"{numericFault} {operation.Id}: '{operation.Destination}' was not written.");
-                    else if (result is null)
-                        _diagnostics.Add($"VC_RUNTIME_NUMERIC {operation.Id}: unsupported numeric operation; '{operation.Destination}' was not written.");
-                    else if (double.IsNaN(result.Value) || double.IsInfinity(result.Value))
-                        _diagnostics.Add($"VC_RUNTIME_NUMERIC {operation.Id}: result is not finite; '{operation.Destination}' was not written.");
+                        if (operation.Kind == LadderNumericOperationKind.Move)
+                            _textValues[operation.Destination] = PlcTextValues.Resolve(operation.SourceA, _textValues);
+                        else if (PlcTextValues.TryFormat(ResolveNumeric(operation.SourceA),
+                                     PlcTextValues.Resolve(operation.SourceB, _textValues), out var formatted))
+                            _textValues[operation.Destination] = formatted;
+                        else
+                        {
+                            _textValues[operation.Destination] = string.Empty;
+                            _diagnostics.Add($"VC_RUNTIME_TEXT {operation.Id}: invalid template/result; destination cleared.");
+                        }
+                    }
                     else
-                        StoreNumeric(operation.Destination, result.Value);
-
-                    double? Fault(string code, string detail)
                     {
-                        numericFault = $"{code}: {detail};";
-                        return null;
+                        var sourceA = ResolveNumeric(operation.SourceA);
+                        var sourceB = LadderNumericOperationRules.RequiresSourceB(operation.Kind)
+                            ? ResolveNumeric(operation.SourceB)
+                            : 0;
+                        var sourceC = LadderNumericOperationRules.RequiresSourceC(operation.Kind)
+                            ? ResolveNumeric(operation.SourceC)
+                            : 0;
+                        string? numericFault = null;
+                        double? result = operation.Kind switch
+                        {
+                            LadderNumericOperationKind.Move => sourceA,
+                            LadderNumericOperationKind.Add => sourceA + sourceB,
+                            LadderNumericOperationKind.Subtract => sourceA - sourceB,
+                            LadderNumericOperationKind.Multiply => sourceA * sourceB,
+                            LadderNumericOperationKind.Divide when sourceB != 0 => sourceA / sourceB,
+                            LadderNumericOperationKind.Divide => Fault("VC_RUNTIME_DIV_ZERO", "divisor resolved to zero"),
+                            LadderNumericOperationKind.Modulo when sourceB != 0 => sourceA % sourceB,
+                            LadderNumericOperationKind.Modulo => Fault("VC_RUNTIME_MOD_ZERO", "divisor resolved to zero"),
+                            LadderNumericOperationKind.Absolute => Math.Abs(sourceA),
+                            LadderNumericOperationKind.Negate => -sourceA,
+                            LadderNumericOperationKind.SquareRoot when sourceA >= 0 => Math.Sqrt(sourceA),
+                            LadderNumericOperationKind.SquareRoot => Fault("VC_RUNTIME_DOMAIN", "square-root source resolved below zero"),
+                            LadderNumericOperationKind.Exponentiate when LadderNumericOperationRules.IsDomainValid(operation.Kind, sourceA, sourceB) => Math.Pow(sourceA, sourceB),
+                            LadderNumericOperationKind.Exponentiate => Fault("VC_RUNTIME_DOMAIN", "power operands are outside the real-number domain"),
+                            LadderNumericOperationKind.NaturalLog when sourceA > 0 => Math.Log(sourceA),
+                            LadderNumericOperationKind.NaturalLog => Fault("VC_RUNTIME_DOMAIN", "natural-log source resolved at or below zero"),
+                            LadderNumericOperationKind.Sine => Math.Sin(sourceA),
+                            LadderNumericOperationKind.Cosine => Math.Cos(sourceA),
+                            LadderNumericOperationKind.Tangent => Math.Tan(sourceA),
+                            LadderNumericOperationKind.ArcSine when sourceA is >= -1 and <= 1 => Math.Asin(sourceA),
+                            LadderNumericOperationKind.ArcSine => Fault("VC_RUNTIME_DOMAIN", "arcsine source resolved outside -1 through 1"),
+                            LadderNumericOperationKind.ArcCosine when sourceA is >= -1 and <= 1 => Math.Acos(sourceA),
+                            LadderNumericOperationKind.ArcCosine => Fault("VC_RUNTIME_DOMAIN", "arccosine source resolved outside -1 through 1"),
+                            LadderNumericOperationKind.ArcTangent => Math.Atan(sourceA),
+                            LadderNumericOperationKind.Truncate => Math.Truncate(sourceA),
+                            LadderNumericOperationKind.Normalize when sourceA < sourceC => (sourceB - sourceA) / (sourceC - sourceA),
+                            LadderNumericOperationKind.Normalize => Fault("VC_RUNTIME_RANGE", "NORM_X/CPT normalization requires MIN below MAX"),
+                            LadderNumericOperationKind.Scale when sourceA < sourceC => sourceB * (sourceC - sourceA) + sourceA,
+                            LadderNumericOperationKind.Scale => Fault("VC_RUNTIME_RANGE", "SCALE_X/CPT scaling requires MIN below MAX"),
+                            LadderNumericOperationKind.Convert => sourceA,
+                            LadderNumericOperationKind.Round => Math.Round(sourceA, MidpointRounding.ToEven),
+                            LadderNumericOperationKind.Ceiling => Math.Ceiling(sourceA),
+                            LadderNumericOperationKind.Floor => Math.Floor(sourceA),
+                            _ => null,
+                        };
+                        if (numericFault is not null)
+                            _diagnostics.Add($"{numericFault} {operation.Id}: '{operation.Destination}' was not written.");
+                        else if (result is null)
+                            _diagnostics.Add($"VC_RUNTIME_NUMERIC {operation.Id}: unsupported numeric operation; '{operation.Destination}' was not written.");
+                        else if (double.IsNaN(result.Value) || double.IsInfinity(result.Value))
+                            _diagnostics.Add($"VC_RUNTIME_NUMERIC {operation.Id}: result is not finite; '{operation.Destination}' was not written.");
+                        else
+                            StoreNumeric(operation.Destination, result.Value);
+
+                        double? Fault(string code, string detail)
+                        {
+                            numericFault = $"{code}: {detail};";
+                            return null;
+                        }
                     }
                 }
                 _elements[operation.Id] = new LadderElementState(operation.Id, energized);
@@ -653,6 +687,22 @@ public sealed class VirtualControllerRuntime
                 }
                 break;
             case LadderNodeKind.Compare:
+                if (PlcTextValues.IsOperand(node.Variable, _program.Variables) || PlcTextValues.IsOperand(node.RightOperand, _program.Variables))
+                {
+                    var textLeft = PlcTextValues.Resolve(node.Variable, _textValues);
+                    var textRight = PlcTextValues.Resolve(node.RightOperand, _textValues);
+                    if (node.CompareOperator == LadderCompareOperator.ContainsCode
+                        && (textRight.Length == 0 || textRight.Any(character => !char.IsLetterOrDigit(character))))
+                        _diagnostics.Add($"VC_RUNTIME_TEXT {node.Id}: CODE MATCH selector must be a nonempty alphanumeric code.");
+                    energized = node.CompareOperator switch
+                    {
+                        LadderCompareOperator.Equal => textLeft == textRight,
+                        LadderCompareOperator.NotEqual => textLeft != textRight,
+                        LadderCompareOperator.ContainsCode => PlcTextValues.ContainsCode(textLeft, textRight),
+                        _ => false,
+                    };
+                    break;
+                }
                 var left = ResolveNumeric(node.Variable);
                 var right = ResolveNumeric(node.RightOperand);
                 energized = node.CompareOperator switch
@@ -772,6 +822,13 @@ public sealed class VirtualControllerRuntime
             StringComparer.Ordinal));
         var forces = new ReadOnlyDictionary<string, LadderForceState>(
             new Dictionary<string, LadderForceState>(_forces, StringComparer.Ordinal));
-        return new VirtualControllerSnapshot(_scanNumber, _simulatedTime, State, values, numericValues, outputs, numericOutputs, timers, counters, taskStates, forces, _diagnostics.ToArray(), elements) { Aggregates = PlcAggregates.Reconstruct(_program.Source.Variables, values, numericValues) };
+        return new VirtualControllerSnapshot(_scanNumber, _simulatedTime, State, values, numericValues, outputs, numericOutputs, timers, counters, taskStates, forces, _diagnostics.ToArray(), elements)
+        {
+            Aggregates = PlcAggregates.Reconstruct(_program.Source.Variables, values, numericValues),
+            TextVariables = new ReadOnlyDictionary<string, string>(new Dictionary<string, string>(_textValues, StringComparer.Ordinal)),
+            TextOutputs = new ReadOnlyDictionary<string, string>(_program.Variables.Values
+                .Where(item => item.Role == PlcVariableRole.Output && PlcTextValues.IsText(item.Type))
+                .ToDictionary(item => item.Name, item => _textValues[item.Name], StringComparer.Ordinal))
+        };
     }
 }

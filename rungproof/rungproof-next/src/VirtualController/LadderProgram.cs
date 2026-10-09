@@ -13,6 +13,8 @@ public enum PlcVariableType
     Counter,
     Struct,
     Array,
+    String,
+    Enum,
 }
 
 public enum PlcVariableRole
@@ -28,7 +30,8 @@ public sealed record PlcVariable(
     PlcVariableRole Role,
     object InitialValue,
     string Binding = "",
-    PlcAggregateSchema? Aggregate = null
+    PlcAggregateSchema? Aggregate = null,
+    IReadOnlyList<string>? EnumMembers = null
 );
 
 public enum LadderNodeKind
@@ -47,6 +50,7 @@ public enum LadderCompareOperator
     GreaterOrEqual,
     LessThan,
     LessOrEqual,
+    ContainsCode,
 }
 
 public enum LadderEdgeMode
@@ -134,6 +138,7 @@ public enum LadderNumericOperationKind
     Round,
     Ceiling,
     Floor,
+    FormatText,
 }
 
 public static class LadderNumericOperationRules
@@ -146,7 +151,8 @@ public static class LadderNumericOperationRules
         LadderNumericOperationKind.Modulo or
         LadderNumericOperationKind.Exponentiate or
         LadderNumericOperationKind.Normalize or
-        LadderNumericOperationKind.Scale;
+        LadderNumericOperationKind.Scale or
+        LadderNumericOperationKind.FormatText;
 
     public static bool RequiresSourceC(LadderNumericOperationKind kind) => kind is
         LadderNumericOperationKind.Normalize or

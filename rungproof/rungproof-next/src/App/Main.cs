@@ -32,6 +32,7 @@ public partial class Main : Node3D
     private bool _verifyCameraInput;
     private bool _verifySceneControls;
     private bool _verifyGalleryClock;
+    private bool _verifyTypedLessons;
     private bool _verifyVirtualController;
     private bool _verifyNumericSceneIo;
     private bool _verifyLadderEditor;
@@ -187,6 +188,7 @@ public partial class Main : Node3D
         _verifyCameraInput = userArguments.Contains("--verify-camera-input", StringComparer.Ordinal);
         _verifySceneControls = userArguments.Contains("--verify-scene-controls", StringComparer.Ordinal);
         _verifyGalleryClock = userArguments.Contains("--verify-gallery-clock", StringComparer.Ordinal);
+        _verifyTypedLessons = userArguments.Contains("--verify-typed-lessons", StringComparer.Ordinal);
         _verifyVirtualController = userArguments.Contains("--verify-virtual-controller", StringComparer.Ordinal);
         _verifyNumericSceneIo = userArguments.Contains("--verify-numeric-scene-io", StringComparer.Ordinal);
         _verifyLadderEditor = userArguments.Contains("--verify-ladder-editor", StringComparer.Ordinal);
@@ -200,7 +202,7 @@ public partial class Main : Node3D
             .FirstOrDefault(argument => argument.StartsWith("--mcp-scene=", StringComparison.Ordinal))?
             .Substring("--mcp-scene=".Length);
         _appShellRequested = _verifyDemoSequence || _auditToteFinishingProcess || _auditServiceElevatorAccess || _auditMotorAggregates || _auditMobileTraffic || _auditWastewaterProcess || _reportSceneGeometry || _verifySceneGeometry || _verifyToteFinishing || _auditDualSpindle || _auditRobotCnc || _auditRobotRestart || _auditSequenceTower || _auditChainLiftInstallation || _auditCookiePackaging || _auditBarrelFill || _auditCableCut || _auditPalletizer || _auditRepeatCycle || _auditButtonCounters || _auditParkingEntry || _auditPackageGrouping || _auditTimerLessons || _auditRotaryFlasher || _auditFlashPair || _auditRunningTower || _auditPedestrianCrossing || _auditDrawbridge || _auditBagIndex || _auditCoating || _auditHandDryer || _auditLuggageLayout || _auditEvLayout || _auditRadarLayout || _auditGuardedLayout || _verifyCartonStaticRoutes || (_visualSceneReview && !_visualPlantReview) || _verifyAppShell || _verifyExternalDialog || _verifyExternalPlayback || _verifyPlantMotion || _verifyWorkspace || _verifyHud || _verifyCameraInput || _verifySceneControls
-            || _verifyGalleryClock || _verifyVirtualController || _verifyNumericSceneIo || _verifyLadderEditor || _verifySplitView || _verifyUiDensity || _virtualControllerDemo
+            || _verifyTypedLessons || _verifyGalleryClock || _verifyVirtualController || _verifyNumericSceneIo || _verifyLadderEditor || _verifySplitView || _verifyUiDensity || _virtualControllerDemo
             || userArguments.Contains("--app-shell", StringComparer.Ordinal);
         if (_visualPlantReview && (_sceneId is null || _appShellRequested || _verifySceneContract))
         {
@@ -725,6 +727,10 @@ public partial class Main : Node3D
         {
             CallDeferred(nameof(VerifyGalleryClock));
         }
+        else if (_verifyTypedLessons)
+        {
+            CallDeferred(nameof(VerifyTypedLessons));
+        }
         else if (_verifyDemoSequence)
         {
             CallDeferred(nameof(VerifyDemoSequence));
@@ -941,6 +947,18 @@ public partial class Main : Node3D
         return SceneIoImageMapper.SampleNumericInputs(_virtualProgram, sceneInputs);
     }
 
+    private IReadOnlyDictionary<string, string> SampleVirtualControllerTextInputs()
+    {
+        var inputs = _sceneRuntime?.SampleVirtualControllerTextInputs() ?? new Dictionary<string, string>();
+        return _virtualProgram is null ? inputs : SceneIoImageMapper.SampleTextInputs(_virtualProgram, inputs);
+    }
+
+    private void CommitVirtualControllerTextOutputs(IReadOnlyDictionary<string, string> outputs)
+    {
+        if (_sceneRuntime is not null && _virtualProgram is not null)
+            _sceneRuntime.CommitVirtualControllerTextOutputs(SceneIoImageMapper.CommitTextOutputs(_virtualProgram, outputs));
+    }
+
     private void CommitVirtualControllerOutputs(IReadOnlyDictionary<string, bool> outputs)
     {
         if (_sceneRuntime is null || _virtualProgram is null) return;
@@ -959,6 +977,7 @@ public partial class Main : Node3D
     {
         CommitVirtualControllerOutputs(snapshot.Outputs);
         CommitVirtualControllerNumericOutputs(snapshot.NumericOutputs);
+        CommitVirtualControllerTextOutputs(snapshot.TextOutputs);
         // SnapshotPublished precedes output projection. Held inspection has no
         // later physics callback to refresh the label after Stop clears outputs.
         UpdateGantryReviewClockLabel();
@@ -1178,7 +1197,7 @@ public partial class Main : Node3D
                 SampleVirtualControllerNumericInputs,
                 CommitVirtualControllerOutputs,
                 CommitVirtualControllerNumericOutputs,
-                _sceneRuntime.AdvanceSimulation);
+                _sceneRuntime.AdvanceSimulation, SampleVirtualControllerTextInputs, CommitVirtualControllerTextOutputs);
         }
         var photoeye = _sceneRuntime.Points.TryGetValue("simulated_photoeye", out var sensor) && sensor is true;
         var actionsStable = originalButtons.Length > 0
@@ -1194,7 +1213,7 @@ public partial class Main : Node3D
             SampleVirtualControllerNumericInputs,
             CommitVirtualControllerOutputs,
             CommitVirtualControllerNumericOutputs,
-            _sceneRuntime.AdvanceSimulation);
+            _sceneRuntime.AdvanceSimulation, SampleVirtualControllerTextInputs, CommitVirtualControllerTextOutputs);
         var restartBlocked = _virtualSnapshot is not null
             && !_virtualSnapshot.Outputs.GetValueOrDefault("conveyor_running");
         var forcedSnapshot = _virtualController.SetBoolForce("conveyor_running", true);
@@ -1287,7 +1306,7 @@ public partial class Main : Node3D
             SampleVirtualControllerNumericInputs,
             CommitVirtualControllerOutputs,
             CommitVirtualControllerNumericOutputs,
-            _sceneRuntime.AdvanceSimulation);
+            _sceneRuntime.AdvanceSimulation, SampleVirtualControllerTextInputs, CommitVirtualControllerTextOutputs);
         var sampled = _virtualSnapshot?.NumericVariables.GetValueOrDefault("selector") == 1.0;
         var published = _virtualSnapshot?.NumericOutputs.GetValueOrDefault("speed") == 1.0
             && Convert.ToDouble(_sceneRuntime.Points.GetValueOrDefault("fan_speed_percent") ?? -1.0) == 1.0;
@@ -1694,7 +1713,7 @@ public partial class Main : Node3D
         void ScanOnce() => _virtualController?.Advance(0.020,
             SampleVirtualControllerInputs, SampleVirtualControllerNumericInputs,
             CommitVirtualControllerOutputs, CommitVirtualControllerNumericOutputs,
-            _sceneRuntime.AdvanceSimulation);
+            _sceneRuntime.AdvanceSimulation, SampleVirtualControllerTextInputs, CommitVirtualControllerTextOutputs);
         var reviewBarBlocked = true;
         var reviewPopupBlocked = true;
         var reviewClockBlocked = true;
@@ -4057,7 +4076,7 @@ public partial class Main : Node3D
             SampleVirtualControllerNumericInputs,
             CommitVirtualControllerOutputs,
             CommitVirtualControllerNumericOutputs,
-            _sceneRuntime.AdvanceSimulation);
+            _sceneRuntime.AdvanceSimulation, SampleVirtualControllerTextInputs, CommitVirtualControllerTextOutputs);
     }
 
     private void AdvanceExternalPlc(double delta)

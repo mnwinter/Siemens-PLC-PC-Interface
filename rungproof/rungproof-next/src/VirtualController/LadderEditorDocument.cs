@@ -170,6 +170,8 @@ public sealed partial class LadderEditorDocument
         {
             PlcVariableType.Bool => false,
             PlcVariableType.Real => 0.0,
+        PlcVariableType.String => string.Empty,
+        PlcVariableType.Enum => "Stopped",
             PlcVariableType.Timer => TimeSpan.Zero,
             _ => 0L,
         };
@@ -317,11 +319,18 @@ public sealed partial class LadderEditorDocument
         PlcVariableRole role,
         string binding = "",
         PlcVariableType type = PlcVariableType.Bool,
-        object? initialValue = null)
+        object? initialValue = null,
+        IReadOnlyList<string>? enumMembers = null)
     {
-        var normalizedInitialValue = initialValue ?? InitialValue(type);
+        var members = type == PlcVariableType.Enum ? enumMembers ?? PlcTextValues.MotorStates : null;
+        if (type == PlcVariableType.Enum && !PlcTextValues.IsValidDomain(members))
+            throw new InvalidOperationException("ENUM members must be 1–32 distinct identifiers.");
+        if (members is not null) members = Array.AsReadOnly(members.ToArray());
+        var normalizedInitialValue = initialValue ?? (type == PlcVariableType.Enum ? members![0] : InitialValue(type));
         ValidateInitialValue(type, normalizedInitialValue);
-        var tag = new PlcVariable(name.Trim(), type, role, normalizedInitialValue, binding.Trim());
+        var tag = new PlcVariable(name.Trim(), type, role, normalizedInitialValue, binding.Trim(), EnumMembers: members);
+        if (PlcTextValues.IsText(type) && !PlcTextValues.IsValid(tag, normalizedInitialValue))
+            throw new InvalidOperationException("Invalid STRING value or ENUM domain/member.");
         Tags.Add(tag);
         return tag;
     }
@@ -333,7 +342,8 @@ public sealed partial class LadderEditorDocument
         PlcVariableRole role,
         string binding = "",
         object? initialValue = null,
-        PlcAggregateSchema? aggregate = null)
+        PlcAggregateSchema? aggregate = null,
+        IReadOnlyList<string>? enumMembers = null)
     {
         var index = Tags.FindIndex(tag => tag.Name.Equals(currentName, StringComparison.Ordinal));
         if (index < 0) throw new InvalidOperationException($"Tag '{currentName}' does not exist.");
@@ -352,7 +362,11 @@ public sealed partial class LadderEditorDocument
         var updatedSchema = PlcAggregates.IsAggregate(type) ? aggregate ?? (current.Type == type ? current.Aggregate : null) : null;
         if (PlcAggregates.IsAggregate(type)) PlcAggregates.Expand([current with { Name = normalizedName, Type = type, InitialValue = normalizedInitialValue, Aggregate = updatedSchema }]);
         else ValidateInitialValue(type, normalizedInitialValue);
-        var updated = new PlcVariable(normalizedName, type, role, normalizedInitialValue, binding.Trim(), updatedSchema);
+        var members = type == PlcVariableType.Enum ? enumMembers ?? (current.Type == type ? current.EnumMembers : PlcTextValues.MotorStates) : null;
+        if (members is not null) members = Array.AsReadOnly(members.ToArray());
+        var updated = new PlcVariable(normalizedName, type, role, normalizedInitialValue, binding.Trim(), updatedSchema, members);
+        if (PlcTextValues.IsText(type) && !PlcTextValues.IsValid(updated, normalizedInitialValue))
+            throw new InvalidOperationException("Invalid STRING value or ENUM domain/member.");
         if (PlcAggregates.IsAggregate(type) || Tags.Any(tag => PlcAggregates.IsAggregate(tag.Type)))
             PlcAggregates.Expand(Tags.Where((_, tagIndex) => tagIndex != index).Append(updated).ToArray());
         if (!current.Name.Equals(normalizedName, StringComparison.Ordinal))
@@ -459,6 +473,16 @@ public sealed partial class LadderEditorDocument
         error = string.Empty;
         switch (type)
         {
+            case PlcVariableType.String:
+                value = text;
+                if (text.Length <= PlcTextValues.MaximumLength) return true;
+                error = "STRING initial value exceeds 255 characters.";
+                break;
+            case PlcVariableType.Enum:
+                value = normalized;
+                if (normalized.Length > 0 && normalized.Length <= 64) return true;
+                error = "ENUM initial value must name a declared member.";
+                break;
             case PlcVariableType.Bool:
                 if (normalized.Equals("TRUE", StringComparison.OrdinalIgnoreCase) || normalized == "1")
                 {
@@ -517,6 +541,7 @@ public sealed partial class LadderEditorDocument
         var valid = type switch
         {
             PlcVariableType.Bool => value is bool,
+            PlcVariableType.String or PlcVariableType.Enum => value is string text && text.Length <= PlcTextValues.MaximumLength,
             PlcVariableType.Int => value is long intValue && intValue is >= short.MinValue and <= short.MaxValue,
             PlcVariableType.DInt => value is long dIntValue && dIntValue is >= int.MinValue and <= int.MaxValue,
             PlcVariableType.Real => value is double realValue && double.IsFinite(realValue),

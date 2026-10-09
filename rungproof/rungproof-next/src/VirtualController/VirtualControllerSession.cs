@@ -104,7 +104,9 @@ public sealed class VirtualControllerSession
         Func<IReadOnlyDictionary<string, double>> sampleNumericPlantInputs,
         Action<IReadOnlyDictionary<string, bool>> commitOutputs,
         Action<IReadOnlyDictionary<string, double>> commitNumericOutputs,
-        Action<double> advancePlant)
+        Action<double> advancePlant,
+        Func<IReadOnlyDictionary<string, string>>? sampleTextPlantInputs = null,
+        Action<IReadOnlyDictionary<string, string>>? commitTextOutputs = null)
     {
         _accumulatorSeconds += Math.Max(0.0, elapsedSeconds);
         var cycleSeconds = ScanPeriod.TotalSeconds;
@@ -115,9 +117,10 @@ public sealed class VirtualControllerSession
             var inputs = new Dictionary<string, bool>(samplePlantInputs(), StringComparer.Ordinal);
             var numericInputs = new Dictionary<string, double>(sampleNumericPlantInputs(), StringComparer.Ordinal);
             foreach (var (name, value) in _operatorInputs) inputs[name] = value;
-            var snapshot = _runtime.Scan(inputs, numericInputs);
+            var snapshot = _runtime.Scan(inputs, numericInputs, sampleTextPlantInputs?.Invoke());
             commitOutputs(snapshot.Outputs);
             commitNumericOutputs(snapshot.NumericOutputs);
+            commitTextOutputs?.Invoke(snapshot.TextOutputs);
             advancePlant(cycleSeconds);
             foreach (var name in _pulseInputs) _operatorInputs[name] = false;
             _pulseInputs.Clear();

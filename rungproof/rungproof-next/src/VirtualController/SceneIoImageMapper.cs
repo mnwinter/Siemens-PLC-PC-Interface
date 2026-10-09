@@ -11,6 +11,16 @@ namespace RungProof.Next.VirtualController;
 /// </summary>
 public static class SceneIoImageMapper
 {
+    public static IReadOnlyDictionary<string, string> SampleTextInputs(LadderProgram program, IReadOnlyDictionary<string, string> sceneInputs) =>
+        program.Variables.Where(variable => variable.Role == PlcVariableRole.Input && PlcTextValues.IsText(variable.Type)
+            && variable.Binding.Length > 0 && sceneInputs.ContainsKey(variable.Binding))
+            .ToDictionary(variable => variable.Name, variable => sceneInputs[variable.Binding], StringComparer.Ordinal);
+
+    public static IReadOnlyDictionary<string, string> CommitTextOutputs(LadderProgram program, IReadOnlyDictionary<string, string> outputs) =>
+        program.Variables.Where(variable => variable.Role == PlcVariableRole.Output && PlcTextValues.IsText(variable.Type)
+            && variable.Binding.Length > 0 && outputs.ContainsKey(variable.Name))
+            .ToDictionary(variable => variable.Binding, variable => outputs[variable.Name], StringComparer.Ordinal);
+
     public static IReadOnlyDictionary<string, object> SampleAggregateInputs(LadderProgram program, IReadOnlyDictionary<string, object> sceneInputs)
     {
         var roots = program.Variables.Where(v => v.Role == PlcVariableRole.Input && PlcAggregates.IsAggregate(v.Type) && v.Binding.Length > 0 && sceneInputs.ContainsKey(v.Binding)).ToArray();

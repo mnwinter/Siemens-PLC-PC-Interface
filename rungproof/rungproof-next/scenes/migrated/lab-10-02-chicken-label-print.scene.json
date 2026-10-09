@@ -3,7 +3,7 @@
   "version": 1,
   "id": "lab-10-02-chicken-label-print",
   "name": "Lab 10.2 - Chicken Label Print",
-  "description": "Boolean label-request exercise with supported food tray, weigh deck, printer and static label-preview props. No measured weight, text formatting, printing or reference controller is supplied.",
+  "description": "Measured product weighing, PLC-authored label text, timed printing and separately commanded application. No controller is selected automatically.",
   "camera": {
     "position": [
       11,
@@ -76,7 +76,7 @@
       "type": "trainingAccessory",
       "label": "Chicken Label Print - food product load",
       "position": [
-        0,
+        -2,
         0.9,
         -1.3
       ],
@@ -130,7 +130,7 @@
     {
       "id": "switch_8",
       "type": "switch",
-      "label": "Toggle product weighed",
+      "label": "Load and weigh product",
       "position": [
         -2.5,
         0,
@@ -140,7 +140,7 @@
         "style": "pushbutton",
         "action": "toggle-product_weighed",
         "color": 2204518,
-        "faceLabel": "WEIGHED"
+        "faceLabel": "LOAD & WEIGH"
       }
     },
     {
@@ -195,7 +195,7 @@
     }
   ],
   "simulation": {
-    "type": "booleanPanel",
+    "type": "chickenLabel",
     "points": [
       {
         "name": "product_weighed",
@@ -228,13 +228,51 @@
         "owner": "PLC",
         "initial": false,
         "role": "output"
+      },
+      {
+        "owner": "PC",
+        "type": "REAL",
+        "name": "weight_kg",
+        "initial": 0
+      },
+      {
+        "owner": "PC",
+        "type": "BOOL",
+        "name": "product_present",
+        "initial": false
+      },
+      {
+        "owner": "PC",
+        "type": "BOOL",
+        "name": "print_complete",
+        "initial": false
+      },
+      {
+        "owner": "PC",
+        "type": "BOOL",
+        "name": "application_complete",
+        "initial": false
+      },
+      {
+        "owner": "PLC",
+        "type": "BOOL",
+        "name": "apply_request",
+        "initial": false,
+        "role": "output"
+      },
+      {
+        "owner": "PLC",
+        "type": "STRING",
+        "name": "label_text",
+        "initial": "",
+        "role": "output"
       }
     ],
     "actions": [
       {
         "id": "toggle-product_weighed",
-        "label": "Toggle product weighed",
-        "type": "toggle",
+        "label": "Load and weigh product",
+        "type": "chickenLoad",
         "point": "product_weighed"
       },
       {
@@ -279,24 +317,31 @@
         "equipmentId": "indicator_11",
         "mode": "indicator",
         "activeColor": "green"
+      },
+      {
+        "mode": "textDisplay",
+        "equipmentId": "training_accessory_7",
+        "point": "label_text",
+        "textColor": "black"
       }
     ]
   },
   "training": {
     "hints": [
-      "Translate the lesson into explicit state and permissive logic: A label request is issued only when the product data and printer are ready.",
-      "Inputs are simulator feedback (product_weighed, printer_ready, label_data_valid); PLC logic owns print_request, label_applied.",
-      "Test the initial state, the valid condition, and at least one missing permissive.",
-      "The five BOOL points represent manual validity inputs and controller-owned output indications. The weigh-deck DEMO readout, printer paper and label preview are static; no actual weight or label text is processed."
+      "Verify + Load the supplied editable label ladder before Run, then Load product: tray travel takes 0.3 s and measured weight settles after 0.5 s.",
+      "FORMAT_TEXT formats actual weight_kg using editable label_template; stable weight, valid data, printer readiness and nonempty text permit printing.",
+      "Printing captures exact PLC label_text and takes 0.6 s; actual print_complete permits a separate 0.5 s application; held requests do not duplicate jobs.",
+      "Edit label_template from CHICKEN {0:F3} kg to CHICKEN {0:F2} kg, Apply and Verify + Load; measured 1.237 kg prints 1.24 kg, then restore with Undo and Verify + Load."
     ],
     "solution": {
-      "summary": "Controller requirements only; no executable reference ladder or physical weighing/printing implementation is supplied.",
+      "summary": "Supplied editable ladder formats measured product weight and sequences printer/application commands; the plant supplies measurement and actual completion feedback.",
       "steps": [
-        "Require the documented inputs: product_weighed, printer_ready, label_data_valid.",
-        "Command the documented outputs: print_request, label_applied.",
-        "Remove PLC commands when the permissive is lost."
+        "Verify + Load and Run; load a product, enable label_data_valid and wait for product_weighed.",
+        "Enable printer_ready; FORMAT_TEXT creates nonempty label_text (at most 255 UTF-16 code units), and print_request starts actual paper printing.",
+        "Wait for print_complete before apply_request; observe actual application_complete and the retained printed caption.",
+        "Edit the format template and Verify + Load to change actual label text; Stop freezes the paper and Reset restores absent product/hidden paper."
       ],
-      "acceptance": "A label request is issued only when the product data and printer are ready."
+      "acceptance": "Actual measured weight drives editable formatted text, paper printing and separately commanded application; authored F3-to-F2 changes the captured caption after Verify + Load."
     },
     "assetRequirements": [
       "food product load",
@@ -305,26 +350,27 @@
       "formatted label display"
     ],
     "machineGuide": {
-      "purpose": "Boolean label-request exercise with supported food tray, weigh deck, printer and static label-preview props. No measured weight, text formatting, printing or reference controller is supplied.",
+      "purpose": "Measured product weighing, PLC-authored label text, timed printing and separately commanded application. No controller is selected automatically.",
       "startConditions": [
-        "Author or load a valid offline controller for the five declared BOOL points.",
-        "Validity inputs begin false; the simulator shell has no live PLC transport."
+        "Load or author an offline controller; unauthored Run does not synthesize PLC commands.",
+        "Printer-ready and data-valid fixtures begin false."
       ],
       "normalSequence": [
-        "Toggle product_weighed, printer_ready and label_data_valid as manual symbolic inputs.",
-        "Observe controller-owned print_request and label_applied indicators; static props do not execute a product-transfer or print cycle."
+        "Wait for product_weighed and require printer_ready and label_data_valid.",
+        "Supply nonempty label_text (maximum 255 characters), then raise print_request.",
+        "Wait for print_complete before raising apply_request; observe application_complete."
       ],
       "stopBehavior": [
-        "Controller logic must remove print_request when its required validity inputs are lost.",
-        "Playback Stop freezes local execution; it does not write a PLC.",
-        "Reset restores initial scene points."
+        "Stop freezes model and animation; Reset clears job and restores absent off-platform home.",
+        "Printer/data permissive loss pauses printing."
       ],
       "faultBehavior": [
         "A missing or stale input must fail safe and remain diagnosable."
       ],
       "expectedObservations": [
-        "The five BOOL points represent manual validity inputs and controller-owned output indications. The weigh-deck DEMO readout, printer paper and label preview are static; no actual weight or label text is processed.",
-        "A normal Run opens an empty editor until valid controller logic is supplied."
+        "Measured weight is zero until stable, then default product measures 1.237 kg.",
+        "Paper extrudes while printing and travels to tray only on separate application command.",
+        "Printed text remains the exact accepted PLC text even if label_text later changes."
       ]
     },
     "sequenceNumber": 60,
@@ -342,7 +388,13 @@
       "printer_ready",
       "label_data_valid",
       "print_request",
-      "label_applied"
+      "label_applied",
+      "weight_kg",
+      "product_present",
+      "print_complete",
+      "application_complete",
+      "apply_request",
+      "label_text"
     ],
     "changedTags": [],
     "previousAcceptance": [

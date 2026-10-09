@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.Json;
 using Godot;
 using RungProof.Next.App;
+using RungProof.Next.VirtualController;
 
 namespace RungProof.Next.Scenes;
 
@@ -264,6 +265,7 @@ public partial class SceneSimulationRuntime : Node
                 && StartSequence(sequence)) _commandSequenceStarted = true;
         }
 
+        if (HasChickenLabelPlant) { AdvanceChickenLabelPlant(delta); return; }
         if (HasVisionSorter) { AdvanceVisionSorter(delta); return; }
         if (HasChainLiftPlant) { AdvanceChainLiftPlant(delta); return; }
         if (HasCookiePackagingPlant) { AdvanceCookiePackagingPlant(delta); return; }
@@ -596,6 +598,7 @@ public partial class SceneSimulationRuntime : Node
         ResetParkingEntryPlant();
         ResetPackageGroupingPlant();
         ResetVisionSorter();
+        ResetChickenLabelPlant();
         EvaluateRules();
         ApplyBindings();
         if (RuntimeType == "tank") ProjectTankState();
@@ -622,6 +625,7 @@ public partial class SceneSimulationRuntime : Node
         var point = Text(action, "point", string.Empty);
         var result = type switch
         {
+            "chickenLoad" => LoadChickenProduct(),
             "palletizerLoad" => LoadPalletizerCarton(),
             "groupingLoad" => LoadGroupingCarton(),
             "parkingEnter" or "parkingExit" or "parkingClearDeparted" => ParkingEntryAction(type),
@@ -657,6 +661,29 @@ public partial class SceneSimulationRuntime : Node
     /// Samples declared simulator-owned BOOL points for a virtual controller.
     /// This is symbolic data only and has no PLC endpoint or address path.
     /// </summary>
+    public IReadOnlyDictionary<string, string> SampleVirtualControllerTextInputs() =>
+        _points.Where(point => _pointOwners.GetValueOrDefault(point.Key) == "PC"
+            && _pointTypes.GetValueOrDefault(point.Key) is "STRING" or "ENUM" && point.Value is string)
+            .ToDictionary(point => point.Key, point => (string)point.Value!, StringComparer.Ordinal);
+
+    public void CommitVirtualControllerTextOutputs(IReadOnlyDictionary<string, string> outputs)
+    {
+        foreach (var (name, value) in outputs)
+        {
+            var metadata = _definition.GetProperty("points").EnumerateArray().FirstOrDefault(point => Text(point, "name", "") == name);
+            var members = metadata.ValueKind == JsonValueKind.Object && metadata.TryGetProperty("enumMembers", out var domain)
+                ? domain.EnumerateArray().Select(member => member.GetString()!).ToArray() : null;
+            var type = _pointTypes.GetValueOrDefault(name);
+            var declaration = new PlcVariable(name, type == "ENUM" ? PlcVariableType.Enum : PlcVariableType.String,
+                PlcVariableRole.Output, value, EnumMembers: members);
+            if (_pointOwners.GetValueOrDefault(name) != "PLC" || type is not ("STRING" or "ENUM") || !PlcTextValues.IsValid(declaration, value))
+                throw new InvalidOperationException($"Invalid PLC-owned text scene output '{name}'.");
+        }
+        foreach (var (name, value) in outputs) _points[name] = value;
+        ApplyBindings();
+        StateChanged?.Invoke();
+    }
+
     public IReadOnlyDictionary<string, bool> SampleVirtualControllerInputs()
     {
         ProjectRobotParkFeedback();
@@ -1354,6 +1381,21 @@ public partial class SceneSimulationRuntime : Node
                 case "selector":
                     if (equipment.FindChild("SelectorSwitchController", true, false) is SelectorSwitchController selector)
                         selector.SetPosition(Convert.ToSingle(value, CultureInfo.InvariantCulture));
+                    break;
+                case "textDisplay":
+                    if (value is string displayed)
+                    {
+                        var textReadout = equipment.FindChild("StaticReadout", true, false) as Label3D;
+                        if (textReadout is null)
+                        {
+                            foreach (var legend in equipment.FindChildren("*static_legend*", "MeshInstance3D", true, false).OfType<MeshInstance3D>()) legend.Visible = false;
+                            if (equipment.FindChild("LABEL_DISPLAY_static_preview", true, false) is MeshInstance3D staticPreview) staticPreview.Visible = false;
+                            textReadout = new Label3D { Name = "StaticReadout", FontSize = 32, PixelSize = .0016f, OutlineSize = 0,
+                                Position = new Vector3(0,1.49f,.17f), Modulate = Text(binding, "textColor", "white") == "black" ? Colors.Black : Colors.White };
+                            equipment.AddChild(textReadout);
+                        }
+                        textReadout.Text = Text(binding, "label", "") + "\n" + (displayed.Length == 0 ? "NO DATA" : displayed);
+                    }
                     break;
                 case "numericDisplay":
                     if (equipment.GetNodeOrNull<Label3D>("NumericReadout") is { } readout

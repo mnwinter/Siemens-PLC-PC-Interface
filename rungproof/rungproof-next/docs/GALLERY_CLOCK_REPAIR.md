@@ -1,5 +1,7 @@
 # Gallery clock repair — 2026-10-08
 
+Later checkpoint: [typed lesson implementation](TYPED_LESSON_IMPLEMENTATION.md) closes the three typed-lesson gaps discussed below. This document retains the gallery checkpoint's historical evidence and scope.
+
 The normal built-in gallery accepted `toggle-gallery`, published the SIM-owned
 `gallery_animation=TRUE`, and displayed RUNNING, but its fan stayed frozen.
 The shell assigned every scene a controller clock even when the gallery had no

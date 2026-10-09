@@ -10,7 +10,8 @@ public sealed record SceneIoPoint(
     string Owner,
     string Role,
     string Purpose,
-    PlcAggregateSchema? Aggregate = null);
+    PlcAggregateSchema? Aggregate = null,
+    IReadOnlyList<string>? EnumMembers = null);
 
 /// <summary>
 /// Validates the symbolic seam between an offline Ladder program and the
@@ -81,6 +82,8 @@ public static class SceneIoBindingValidator
                     $"Scene point '{variable.Binding}' is not declared by the active scene."));
                 continue;
             }
+            if (variable.Type == PlcVariableType.Enum && !(variable.EnumMembers ?? []).SequenceEqual(point.EnumMembers ?? [], StringComparer.Ordinal))
+                issues.Add(new("IO002", path, "ENUM binding requires the same declared member domain."));
             if (!TypesCompatible(variable.Type, point.Type))
             {
                 issues.Add(new("IO002", path,
@@ -119,6 +122,8 @@ public static class SceneIoBindingValidator
         PlcVariableType.Real => pointType.Equals("REAL", StringComparison.OrdinalIgnoreCase),
         PlcVariableType.Struct => pointType.Equals("STRUCT", StringComparison.OrdinalIgnoreCase),
         PlcVariableType.Array => pointType.Equals("ARRAY", StringComparison.OrdinalIgnoreCase),
+        PlcVariableType.String => pointType.Equals("STRING", StringComparison.OrdinalIgnoreCase),
+        PlcVariableType.Enum => pointType.Equals("ENUM", StringComparison.OrdinalIgnoreCase),
         _ => false,
     };
 }

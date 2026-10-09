@@ -506,9 +506,10 @@ public partial class LadderEditorCanvas : Control
                         LadderCompareOperator.GreaterOrEqual => ">=",
                         LadderCompareOperator.LessThan => "<",
                         LadderCompareOperator.LessOrEqual => "<=",
+                        LadderCompareOperator.ContainsCode => "CODE MATCH",
                         _ => "?",
                     };
-                    DrawString(ThemeDB.FallbackFont, new Vector2(x - 50, branchY - 10), $"CMP {symbol}", HorizontalAlignment.Left, 100, 12, new Color("17242c"));
+                    DrawString(ThemeDB.FallbackFont, new Vector2(x - 50, branchY - 10), contact.CompareOperator == LadderCompareOperator.ContainsCode ? symbol : $"CMP {symbol}", HorizontalAlignment.Left, 100, 12, new Color("17242c"));
                     DrawString(ThemeDB.FallbackFont, new Vector2(x - 50, branchY + 12), $"{contact.Variable} , {contact.RightOperand}", HorizontalAlignment.Left, 100, 10, new Color("536771"));
                 }
                 else
@@ -656,6 +657,7 @@ public partial class LadderEditorCanvas : Control
                 LadderNumericOperationKind.Round => _style == LadderVendorStyle.SiemensTia ? "ROUND" : "CPT ROUND",
                 LadderNumericOperationKind.Ceiling => _style == LadderVendorStyle.SiemensTia ? "CEIL" : "CPT CEIL",
                 LadderNumericOperationKind.Floor => _style == LadderVendorStyle.SiemensTia ? "FLOOR" : "CPT FLOOR",
+                LadderNumericOperationKind.FormatText => "FORMAT_TEXT",
                 _ => "NUM",
             };
             DrawString(ThemeDB.FallbackFont, new Vector2(outputX - 58, y - 22), mnemonic, HorizontalAlignment.Left, 116, 14, new Color("17242c"));

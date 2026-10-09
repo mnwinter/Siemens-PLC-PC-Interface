@@ -32,6 +32,8 @@ public static class SceneLadderProject
                 "REAL" => PlcVariableType.Real,
                 "STRUCT" => PlcVariableType.Struct,
                 "ARRAY" => PlcVariableType.Array,
+                "STRING" => PlcVariableType.String,
+                "ENUM" => PlcVariableType.Enum,
                 _ => null,
             };
             if (type is null)
@@ -51,7 +53,7 @@ public static class SceneLadderProject
                 document.AddAggregateTag(point.Name, input ? PlcVariableRole.Input : PlcVariableRole.Output, type.Value, point.Aggregate, initial, point.Name);
             }
             else document.AddTag(point.Name, input ? PlcVariableRole.Input : PlcVariableRole.Output,
-                point.Name, type.Value, initial);
+                point.Name, type.Value, initial, enumMembers: point.EnumMembers);
             document.WatchVariables.Add(point.Name);
         }
         unsupportedPoints = unsupported;

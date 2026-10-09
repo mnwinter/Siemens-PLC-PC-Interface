@@ -1,76 +1,50 @@
 # Lab 10.4 - Motor Operating-State Enum help
 
-Scene ID: `lab-10-04-motor-enum-state`  
-Migrated source: `prototype/scenes/lab-10-04-motor-enum-state.plcscene`  
-Scene contract: `res://scenes/migrated/lab-10-04-motor-enum-state.scene.json`
+Scene ID: `lab-10-04-motor-enum-state`
 
-## Purpose
+## Operation
 
-Boolean inputs and motor/status outputs for an operating-state exercise. No enum-valued state or reference controller is supplied; author or load controller logic before Run.
+Editable loaded ENUM state machine with Stopped, Running and Fault states, Stop/fault priority, latched fault reset and fresh Start requirements.
 
-## Expected I/O to operate this scene
+## Start conditions
 
-All entries below are symbolic scene points. They are not `%I`, `%Q`, DB, or hardware addresses. PC-owned points are simulator feedback; PLC-owned points are commands supplied by the controller; SIM points are internal and should not be wired as external I/O.
+- Verify + Load the supplied editable ENUM ladder.
+- Release Start, Stop and Fault before Run; Start requires a fresh rising request.
 
-| Point | Type | Owner | Initial value |
+## Sequence
+
+- Start changes motor_state from Stopped to Running; the shaft follows motor_running derived from that named state.
+- Stop returns Stopped. A fault enters Fault and remains latched after the fault input clears.
+- Clear the fault input and press FAULT RESET, then release and press Start again.
+
+## Expected results
+
+- The live state display and motor_state watch show the actual loaded ENUM value.
+- Changing the Running transition MOV to Stopped, then Verify + Load, prevents the motor from running on Start.
+
+## Stop and Reset
+
+- Stop clears motor_running and sets output motor_state to the first declared member Stopped; held Start does not restart.
+- Reset clears controller memory, named state, fault latch and scene inputs.
+
+## Symbolic I/O
+
+| Point | Type | Owner | Initial |
 | --- | --- | --- | --- |
-| `start_request` | `BOOL` | **PC** | `False` |
-| `stop_request` | `BOOL` | **PC** | `False` |
-| `fault_active` | `BOOL` | **PC** | `False` |
-| `motor_running` | `BOOL` | **PLC** | `False` |
-| `state_valid` | `BOOL` | **PLC** | `False` |
+| `start_request` | BOOL | PC | `False` |
+| `stop_request` | BOOL | PC | `False` |
+| `fault_active` | BOOL | PC | `False` |
+| `motor_running` | BOOL | PLC | `False` |
+| `state_valid` | BOOL | PLC | `False` |
+| `reset_request` | BOOL | PC | `False` |
+| `motor_state` | ENUM | PLC | `Stopped` |
 
-## Operator actions
+## Editor exercise
 
-| Action | Type | Bound point/sequence |
-| --- | --- | --- |
-| `Toggle start request` | `toggle` | `start_request` |
-| `Toggle stop request` | `toggle` | `stop_request` |
-| `Toggle fault active` | `toggle` | `fault_active` |
+Select the MOV instruction in the State Running network and change the quoted member `"Running"` to `"Stopped"`. Apply, Verify + load, Run, release and press Start. The named state must stay Stopped and the motor must remain off. Undo, Verify + load and Reset to restore.
 
-## Equipment bindings
+The `motor_state` ENUM declares the exact members Stopped, Running and Fault. The loaded ladder retains that named state; `motor_running` is derived from equality to Running. Fault dominates Stop and Start. A fault remains latched until its input is clear and Fault Reset is pressed. A Start held across Stop or fault recovery cannot restart the motor.
 
-| Symbolic point | Equipment | Mode |
-| --- | --- | --- |
-| `start_request` | `switch_1` | `switch` |
-| `stop_request` | `switch_3` | `switch` |
-| `fault_active` | `switch_4` | `switch` |
-| `motor_running` | `indicator_2` | `indicator` |
-| `state_valid` | `indicator_5` | `indicator` |
-| `motor_running` | `motor_0` | `running` |
+## Boundary
 
-## Expected equipment
-
-| ID | Type | Label |
-| --- | --- | --- |
-| `motor_0` | `motor` | Motor commanded by motor_running |
-| `switch_1` | `switch` | Start request |
-| `indicator_2` | `indicator` | Motor running indication |
-| `switch_3` | `switch` | Stop request |
-| `switch_4` | `switch` | Simulated fault active |
-| `indicator_5` | `indicator` | State-valid indication |
-
-## Stop and safety boundary
-
-Playback Stop freezes local motion. Controller logic owns removal of motor_running for stop or fault conditions; the scene does not write a PLC. This document does not prove a safety function, a real E-stop circuit, a PLC watchdog, or live-machine commissioning.
-
-## Machine guide
-
-Boolean inputs and motor/status outputs for an operating-state exercise. No enum-valued state or reference controller is supplied; author or load controller logic before Run.
-
-### Start conditions
-
-- Author or load a valid offline controller for the five declared BOOL points.
-- Keep stop_request and fault_active false before applying start_request.
-- The common watchdog tags are retained lesson metadata, not verified live PLC communication in this shell.
-
-### Normal sequence
-
-- Apply the requested input condition.
-- Verify only the documented PLC outputs respond.
-
-### Expected observations
-
-- When supplied controller logic commands motor_running, the shaft graphic and running indicator follow that output.
-- The state-valid indicator follows state_valid; no named enum state is displayed.
-- Fault/stop priority must be implemented and verified in the supplied controller logic.
+All values and clocks are local simulator behavior. No physical PLC transport, vendor STRING encoding/ENUM ABI parity, fieldbus reception, safety function or commissioning approval is claimed.
